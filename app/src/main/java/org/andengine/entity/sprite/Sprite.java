@@ -17,6 +17,7 @@ import org.andengine.opengl.vbo.attribute.VertexBufferObjectAttributesBuilder;
 import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * (c) 2010 Nicolas Gramlich
@@ -127,6 +128,7 @@ public class Sprite extends Shape {
 	// Getter & Setter
 	// ===========================================================
 
+	@Nullable
 	public ITextureRegion getTextureRegion() {
 		return this.mTextureRegion;
 	}
@@ -187,14 +189,16 @@ public class Sprite extends Shape {
 	public void reset() {
 		super.reset();
 
-		this.initBlendFunction(this.getTextureRegion().getTexture());
+		if (this.mTextureRegion != null)
+			this.initBlendFunction(this.mTextureRegion.getTexture());
 	}
 
 	@Override
 	protected void preDraw(final GLState pGLState, final Camera pCamera) {
 		super.preDraw(pGLState, pCamera);
 
-		this.getTextureRegion().getTexture().bind(pGLState);
+		if (mTextureRegion != null)
+			this.mTextureRegion.getTexture().bind(pGLState);
 
 		this.mSpriteVertexBufferObject.bind(pGLState, this.mShaderProgram);
 	}

@@ -482,7 +482,7 @@ public class SpriteBatch extends Shape {
 	}
 
 	protected void assertTexture(final ITextureRegion pTextureRegion) {
-		if (pTextureRegion.getTexture() != this.mTexture) {
+		if (pTextureRegion == null || pTextureRegion.getTexture() != this.mTexture) {
 			throw new IllegalArgumentException("The supplied Texture does match the Texture of this " + this.getClass().getSimpleName() + "!");
 		}
 	}
