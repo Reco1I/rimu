@@ -1,4 +1,4 @@
-package com.reco1l.framework.extensions
+package com.reco1l.framework.lang
 
 
 /**
@@ -15,12 +15,4 @@ inline fun ignoreException(block: () -> Unit)
 inline fun <T> (() -> T).orCatch(onException: (e: Exception) -> T): T
 {
     return try { this() } catch (e: Exception) { onException(e) }
-}
-
-/**
- * Prettier try-catch on async thread.
- */
-fun (() -> Any).orAsyncCatch(onException: ((e: Exception) -> Unit)?)
-{
-    async { try { this() } catch (e: Exception) { onException?.invoke(e) } }
 }

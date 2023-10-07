@@ -5,7 +5,7 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
-import game.rimu.ui.views.addons.IScalable
+import game.rimu.ui.IScalable
 import org.andengine.entity.scene.Scene
 
 abstract class RimuScene(final override val ctx: RimuContext) :

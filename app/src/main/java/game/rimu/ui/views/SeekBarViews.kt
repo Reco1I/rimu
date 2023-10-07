@@ -1,16 +1,14 @@
 package game.rimu.ui.views
 
-import android.annotation.SuppressLint
 import android.graphics.drawable.LayerDrawable
-import android.graphics.drawable.ShapeDrawable
 import androidx.appcompat.widget.AppCompatSeekBar
-import com.reco1l.framework.graphics.RoundShape
-import com.reco1l.framework.graphics.setRadius
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
-import game.rimu.ui.views.addons.IScalable
-import game.rimu.ui.views.addons.ISkinnable
+import game.rimu.ui.drawables.RoundShape
+import game.rimu.ui.IScalable
+import game.rimu.ui.ISkinnable
+import game.rimu.ui.dimensions
 
 
 class SeekBar(override val ctx: RimuContext) :
@@ -20,11 +18,35 @@ class SeekBar(override val ctx: RimuContext) :
     ISkinnable
 {
 
-    private val thumbDrawable = ShapeDrawable(RoundShape())
+    private val thumbDrawable = RoundShape {
 
-    private val activeBarDrawable = ShapeDrawable(RoundShape())
+        dimensions {
+            width = 28
+            height = 18
+            radius = height / 2f
+        }
 
-    private val inactiveBarDrawable = ShapeDrawable(RoundShape())
+    }.toDrawable()
+
+    private val activeBarDrawable = RoundShape {
+
+        dimensions {
+            width = this@SeekBar.width
+            height = 14
+            radius = height / 2f
+        }
+
+    }.toDrawable()
+
+    private val inactiveBarDrawable = RoundShape {
+
+        dimensions {
+            width = this@SeekBar.width
+            height = 14
+            radius = height / 2f
+        }
+
+    }.toDrawable()
 
 
     init
@@ -47,39 +69,21 @@ class SeekBar(override val ctx: RimuContext) :
     override fun onApplySkin(skin: WorkingSkin)
     {
         activeBarDrawable.apply {
-            paint.color = skin.data.colours.accentColor.hexInt
+            paint.color = skin.data.colours.accentColor.toInt()
         }
 
         inactiveBarDrawable.apply {
-            paint.color = skin.data.colours.accentColor.bright(0.1f).hexInt
+            paint.color = skin.data.colours.accentColor.lightenInt(0.1f)
         }
 
         thumbDrawable.apply {
-            paint.color = skin.data.colours.accentColor.bright(1.25f).hexInt
+            paint.color = skin.data.colours.accentColor.lightenInt(1.25f)
         }
     }
 
     override fun onApplyScale(scale: Float)
     {
-        val barApply = fun ShapeDrawable.()
-        {
-            intrinsicWidth = this@SeekBar.width
-            intrinsicHeight = (14 * scale).toInt()
-
-            setRadius(null, intrinsicHeight / 2f)
-        }
-
-        inactiveBarDrawable.apply(barApply)
-        activeBarDrawable.apply(barApply)
-
-        thumbDrawable.apply {
-
-            intrinsicWidth = (28).toScale()
-            intrinsicHeight = (18).toScale()
-
-            setRadius(radius = intrinsicHeight / 2f)
-        }
-
+        super.onApplyScale(scale)
         requestLayout()
     }
 }

@@ -2,10 +2,9 @@ package com.reco1l.framework.net.request
 
 import android.net.Uri
 import androidx.core.net.toUri
-import com.reco1l.framework.extensions.buildRequest
-import com.reco1l.framework.extensions.className
-import com.reco1l.framework.extensions.logI
+import com.reco1l.framework.net.buildRequest
 import okhttp3.*
+import java.io.IOException
 import java.util.*
 
 /**
@@ -20,11 +19,6 @@ open class Requester(private val client: OkHttpClient, uri: Uri) : AutoCloseable
      * The request.
      */
     var request: Request? = buildRequest { url(uri.toString()) }
-
-    /**
-     * Indicates if the requester should log responses.
-     */
-    var isLogging = true
 
     /**
      * The call executed by the client, it'll automatically call [execute] if it wasn't called.
@@ -80,18 +74,16 @@ open class Requester(private val client: OkHttpClient, uri: Uri) : AutoCloseable
     /**
      * Make sure to call before call close() or inside the try-with-resources statement.
      */
-    @Throws(Exception::class)
     open fun execute(): Requester
     {
-        requireNotNull(request) { "The request cannot be null." }
+        if (request == null)
+            throw NullPointerException("The request cannot be null.")
 
-        call = client.newCall(request!!)
         try
         {
-            if (isLogging)
-                "Inserted url: ${request!!.url}".logI(className)
-
+            call = client.newCall(request!!)
             response = call!!.execute()
+
             onResponse(response!!)
 
             if (response!!.isSuccessful)
@@ -105,4 +97,10 @@ open class Requester(private val client: OkHttpClient, uri: Uri) : AutoCloseable
         }
         return this
     }
+}
+
+
+class ResponseException(response: Response) : IOException("Unexpected response: $response")
+{
+    val code: Int = response.code
 }

@@ -1,4 +1,6 @@
-package com.reco1l.framework.extensions
+package com.reco1l.framework.lang
+
+import kotlin.reflect.KClass
 
 
 /**
@@ -7,10 +9,9 @@ package com.reco1l.framework.extensions
 inline fun <T> compareBy(ascending: Boolean, crossinline selector: (T) -> Comparable<*>?) = Comparator<T> { a, b ->
 
     if (ascending)
-    {
         compareValuesBy(a, b, selector)
-    }
-    else compareValuesBy(b, a, selector)
+    else
+        compareValuesBy(b, a, selector)
 }
 
 /**
@@ -35,10 +36,23 @@ inline fun <T>MutableList<T>.forEachTrim(block: (T) -> Unit)
         block(removeFirst())
 }
 
-
 inline fun <T>MutableList<T>.forEachTrimEnd(block: (T) -> Unit)
 {
     while (isNotEmpty())
         block(removeLast())
 }
 
+inline fun <K, V> Iterable<K>.associateWithIndexed(valueSelector: (K, Int) -> V): Map<K, V>
+{
+    var index = 0
+    return associateWith {
+        val value = valueSelector(it, index)
+        index++
+        value
+    }
+}
+
+/**
+ * Store instances from a class inheritors as singletons.
+ */
+fun <T : Any>instanceMapOf() = HashMap<KClass<out T>, T>()

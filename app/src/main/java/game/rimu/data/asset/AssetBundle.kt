@@ -6,10 +6,10 @@ import android.graphics.Typeface
 import com.reco1l.bassbinding.stream.AssetSampleStream
 import com.reco1l.bassbinding.stream.BaseStream
 import com.reco1l.bassbinding.stream.SampleStream
-import com.reco1l.framework.extensions.className
-import com.reco1l.framework.extensions.logI
-import com.reco1l.framework.extensions.orCatch
-import com.reco1l.framework.extensions.toBitmap
+import com.reco1l.framework.lang.getClassName
+import com.reco1l.framework.android.logI
+import com.reco1l.framework.lang.orCatch
+import com.reco1l.framework.graphics.toBitmap
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.data.Skin
@@ -138,7 +138,7 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
 
     init
     {
-        "Created new instance.".logI(className)
+        "Created new instance.".logI(getClassName())
     }
 
     /**
@@ -146,11 +146,9 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
      */
     override val list = app.assets.list(directory)!!.map {
 
-        "Resolving asset: $directory$it".logI(className)
-
         val resolved = app.resources.resolveAsset(it)!!
 
-        "Resolved.".logI(className)
+        "Resolved asset: $directory$it".logI(getClassName())
 
         Asset(
             hash = it,

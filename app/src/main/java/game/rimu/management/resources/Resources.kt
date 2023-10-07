@@ -1,10 +1,10 @@
 package game.rimu.management.resources
 
-import com.reco1l.framework.extensions.between
-import com.reco1l.framework.extensions.className
-import com.reco1l.framework.extensions.logI
-import com.reco1l.framework.extensions.subDirectory
-import com.reco1l.framework.extensions.subFile
+import com.reco1l.framework.lang.between
+import com.reco1l.framework.lang.getClassName
+import com.reco1l.framework.android.logI
+import com.reco1l.framework.data.subDirectory
+import com.reco1l.framework.data.subFile
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.constants.RimuSetting.UI_USE_BEATMAP_SKIN
@@ -57,7 +57,7 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
         // 3 - As specified above the number will have its own capturing group to differentiate it.
         val regex = pattern?.let { "^($key)($it)?$".toRegex() }
 
-        "Defined allowed asset: $key - $regex".logI(className)
+        "Defined allowed asset: $key - $regex".logI(getClassName())
 
         // Storing the Regex only if it has a variant pattern:
         key to regex
@@ -125,17 +125,20 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
      * @see AssetBundle.SUPPORTED_TYPES
      */
     inline operator fun <reified T : Any> get(
-        key: String,
+        key: String?,
         variant: Int = 0,
-        useDefaultIfNotPresent: Boolean = true
+        fallbackToDefault: Boolean = true
     ): T?
     {
+        if (key == null)
+            return null
+
         for (source in ResourceProvider.entries)
         {
             if (source == BEATMAP && !useBeatmapSkin)
                 continue
 
-            if (source == DEFAULT && !useDefaultIfNotPresent)
+            if (source == DEFAULT && !fallbackToDefault)
                 break
 
             return source[ctx]?.get(key, variant) ?: continue
@@ -150,7 +153,7 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
      */
     inline operator fun <reified T : Any> get(
         key: String,
-        useDefaultIfNotPresent: Boolean = true
+        fallbackToDefault: Boolean = true
     ): List<T>?
     {
         for (source in ResourceProvider.entries)
@@ -158,7 +161,7 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
             if (source == BEATMAP && !useBeatmapSkin)
                 continue
 
-            if (source == DEFAULT && !useDefaultIfNotPresent)
+            if (source == DEFAULT && !fallbackToDefault)
                 break
 
             return source[ctx]?.get(key) ?: continue

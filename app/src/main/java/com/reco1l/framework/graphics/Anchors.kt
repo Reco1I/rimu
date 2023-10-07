@@ -1,4 +1,4 @@
-package com.reco1l.framework.annotation
+package com.reco1l.framework.graphics
 
 import androidx.annotation.IntDef
 

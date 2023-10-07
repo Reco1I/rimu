@@ -8,7 +8,7 @@ import game.rimu.constants.RimuSetting.UI_SKIN
 import game.rimu.data.Skin
 import game.rimu.data.Skin.Companion.DEFAULT
 import game.rimu.management.Setting
-import game.rimu.ui.views.addons.ISkinnable
+import game.rimu.ui.ISkinnable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

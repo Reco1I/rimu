@@ -1,4 +1,4 @@
-package com.reco1l.framework.extensions
+package com.reco1l.framework.lang
 
 import java.util.Locale
 
@@ -6,8 +6,7 @@ import java.util.Locale
 /**
  * Returns a copy of this string having its first letter in lowercase.
  */
-fun String.decapitalize(locale: Locale = Locale.getDefault()) =
-    replaceFirstChar { it.lowercase(locale) }
+fun String.decapitalize(locale: Locale = Locale.getDefault()) = replaceFirstChar { it.lowercase(locale) }
 
 /**
  * Returns a copy of this string trimmed or `null` if it's blank.
@@ -46,11 +45,8 @@ fun String.removeBetween(first: Char, last: Char): String
     return when
     {
         left.isEmpty() && right.isNotEmpty() -> right
-
         right.isEmpty() && left.isNotEmpty() -> left
-
         left.isNotEmpty() && right.isNotEmpty() -> left + right
-
         else -> this
     }
 }

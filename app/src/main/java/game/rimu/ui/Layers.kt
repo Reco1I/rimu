@@ -27,8 +27,8 @@ abstract class LayoutLayer(
     {
         super.onAttachedToWindow()
 
-        onApplyScale()
-        onApplySkin()
+        invalidateScale()
+        invalidateSkin()
     }
 }
 

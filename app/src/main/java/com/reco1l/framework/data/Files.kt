@@ -1,7 +1,5 @@
-package com.reco1l.framework.extensions
+package com.reco1l.framework.data
 
-import com.reco1l.framework.data.TemporalFile
-import net.lingala.zip4j.ZipFile
 import org.apache.commons.codec.digest.DigestUtils
 import java.io.File
 import java.io.IOException
@@ -131,27 +129,4 @@ operator fun Array<out File>.get(name: String, ignoreCase: Boolean = true) = fin
  */
 operator fun List<File>.get(name: String, ignoreCase: Boolean = true) = find {
     it.name.equals(name, ignoreCase)
-}
-
-
-/**
- * Extract a ZIP file temporarily in the desired folder.
- *
- * Note: It internally uses [TemporalFile], after the [block] the file will be automatically deleted.
- */
-fun ZipFile.extractTemporarily(directoryPath: String, block: (File) -> Unit)
-{
-    TemporalFile(directoryPath, "${file.nameWithoutExtension}/").also {
-
-        it.mkdirs()
-        extractAll(it.absolutePath)
-        use { block(file) }
-    }
-}
-
-/**
- * Converts an String referring to a path into a [File].
- */
-fun String?.toFile(parent: File? = null) = this?.let {
-    if (parent == null) File(it) else File(parent, it)
 }

@@ -1,4 +1,4 @@
-package com.reco1l.framework.extensions
+package com.reco1l.framework.data
 
 import org.json.JSONArray
 import org.json.JSONObject

@@ -1,7 +1,7 @@
 package game.rimu.management.time
 
-import com.reco1l.framework.extensions.nextOf
-import com.reco1l.framework.extensions.previousOf
+import com.reco1l.framework.lang.nextOf
+import com.reco1l.framework.lang.previousOf
 import com.rian.osu.beatmap.timings.ControlPoint
 import com.rian.osu.beatmap.timings.ControlPointManager
 

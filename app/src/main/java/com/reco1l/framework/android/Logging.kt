@@ -1,4 +1,4 @@
-package com.reco1l.framework.extensions
+package com.reco1l.framework.android
 
 import android.util.Log
 

@@ -1,13 +1,11 @@
 package game.rimu.ui.views
 
-import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.TextUtils
 import android.text.method.ArrowKeyMovementMethod
 import android.view.Gravity
 import android.view.MotionEvent
-import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -16,32 +14,30 @@ import androidx.appcompat.widget.AppCompatTextView
 import com.reco1l.framework.android.views.font
 import com.reco1l.framework.android.views.fontColor
 import com.reco1l.framework.android.views.fontSize
-import com.reco1l.framework.android.views.radius
-import com.reco1l.framework.android.views.setMargins
-import com.reco1l.framework.annotation.Anchor
-import com.reco1l.framework.annotation.BasicAnchor
+import com.reco1l.framework.graphics.Anchor
+import com.reco1l.framework.graphics.BasicAnchor
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
-import game.rimu.ui.views.addons.IScalableWithDimensions
-import game.rimu.ui.views.addons.ISkinnable
-import game.rimu.ui.views.addons.ViewDimensions
+import game.rimu.ui.IScalableWithDimensions
+import game.rimu.ui.ISkinnable
+import game.rimu.ui.ViewDimensions
+import game.rimu.ui.dimensions
 import kotlin.math.max
 
 
 data class TextViewDimensions(
 
-    var fontSize: Int = 18
+    var fontSize: Int = 16
 
-) : ViewDimensions()
+) : ViewDimensions<TextView>()
 {
 
-    override fun onApplyScale(view: View, scale: Float)
+    override fun onApplyScale(target: TextView, scale: Float)
     {
-        super.onApplyScale(view, scale)
+        super.onApplyScale(target, scale)
 
-        view as TextView
-        view.fontSize = fontSize * scale
+        target.fontSize = fontSize * scale
     }
 }
 
@@ -66,7 +62,7 @@ open class TextView(final override val ctx: RimuContext) :
     AppCompatTextView(ctx),
     IWithContext,
     ISkinnable,
-    IScalableWithDimensions<TextViewDimensions>
+    IScalableWithDimensions<TextView, TextViewDimensions>
 {
 
     override val dimensions = TextViewDimensions()
@@ -86,7 +82,7 @@ open class TextView(final override val ctx: RimuContext) :
         font = ctx.resources["font", 0]!!
 
         if (applyAccentColor)
-            fontColor = skin.data.colours.accentColor.hexInt
+            fontColor = skin.data.colours.accentColor.toInt()
     }
 
 
@@ -227,6 +223,16 @@ open class TextField(ctx: RimuContext) :
 
         gravity = Gravity.CENTER_VERTICAL
         imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN
+
+        setBackgroundColor(0x4D000000)
+
+        dimensions {
+            radius = 8f
+            paddingTop = 14
+            paddingBottom = 14
+            paddingLeft = 16
+            paddingRight = 16
+        }
     }
 
 
@@ -259,28 +265,6 @@ open class TextField(ctx: RimuContext) :
     }
 
 
-    override fun onApplySkin(skin: WorkingSkin)
-    {
-        super.onApplySkin(skin)
-
-        setBackgroundColor(0x4D000000)
-    }
-
-    override fun onApplyScale(scale: Float)
-    {
-        super.onApplyScale(scale)
-
-        radius = 8f
-
-        setMargins(
-            top = (14f).toScale(),
-            bottom = (14f).toScale(),
-            left = (16f).toScale(),
-            right = (16f).toScale()
-        )
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean
     {
         // Ignoring input in case it's not allowed

@@ -5,8 +5,8 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-import com.reco1l.framework.extensions.async
-import com.reco1l.framework.extensions.forEachTrim
+import com.reco1l.framework.lang.async
+import com.reco1l.framework.lang.forEachTrim
 import game.rimu.ui.scenes.SceneIntro
 
 

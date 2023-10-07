@@ -5,8 +5,8 @@ package com.reco1l.framework.android.views
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import com.reco1l.framework.annotation.Anchor
-import com.reco1l.framework.annotation.BasicAnchor
+import com.reco1l.framework.graphics.Anchor
+import com.reco1l.framework.graphics.BasicAnchor
 
 
 val ConstraintLayout.constraintSet: ConstraintSet

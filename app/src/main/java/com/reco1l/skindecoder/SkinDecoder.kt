@@ -1,10 +1,10 @@
 package com.reco1l.skindecoder
 
-import com.reco1l.framework.extensions.Regexs
-import com.reco1l.framework.extensions.between
-import com.reco1l.framework.extensions.decapitalize
-import com.reco1l.framework.extensions.isExtension
-import com.reco1l.framework.extensions.sanitize
+import com.reco1l.framework.lang.Regexs
+import com.reco1l.framework.lang.between
+import com.reco1l.framework.lang.decapitalize
+import com.reco1l.framework.data.isExtension
+import com.reco1l.framework.lang.sanitize
 import com.reco1l.framework.graphics.Color4
 import com.reco1l.skindecoder.data.SkinData
 import com.reco1l.skindecoder.exceptions.InvalidSkinException

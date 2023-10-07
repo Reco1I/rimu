@@ -1,8 +1,8 @@
 package game.rimu.management.beatmap
 
-import com.reco1l.framework.extensions.nextOf
-import com.reco1l.framework.extensions.orCatch
-import com.reco1l.framework.extensions.previousOf
+import com.reco1l.framework.lang.nextOf
+import com.reco1l.framework.lang.orCatch
+import com.reco1l.framework.lang.previousOf
 import com.rian.osu.beatmap.parser.BeatmapDecoder
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext

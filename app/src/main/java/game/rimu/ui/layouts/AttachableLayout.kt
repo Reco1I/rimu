@@ -4,7 +4,7 @@ import android.view.MotionEvent
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.annotation.CallSuper
 import com.reco1l.framework.android.views.removeSelf
-import com.reco1l.framework.extensions.ifNotNull
+import com.reco1l.framework.lang.ifNotNull
 import game.rimu.android.RimuContext
 import game.rimu.ui.LayoutLayer
 import game.rimu.ui.scenes.RimuScene
@@ -56,8 +56,8 @@ abstract class AttachableLayout(final override val ctx: RimuContext) : Constrain
     override fun onAttachedToWindow()
     {
         super.onAttachedToWindow()
-        onApplySkin()
-        onApplyScale()
+        invalidateSkin()
+        invalidateScale()
     }
 
     @CallSuper

@@ -6,8 +6,6 @@ import android.graphics.Path
 import android.graphics.Path.Direction
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RectShape
-import com.reco1l.framework.annotation.Anchor
-import com.reco1l.framework.annotation.CornerAnchor
 
 open class RoundShape : RectShape()
 {

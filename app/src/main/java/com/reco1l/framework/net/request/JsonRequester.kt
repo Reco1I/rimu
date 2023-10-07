@@ -2,9 +2,7 @@ package com.reco1l.framework.net.request
 
 import android.net.Uri
 import androidx.core.net.toUri
-import com.reco1l.framework.extensions.buildRequest
-import com.reco1l.framework.extensions.className
-import com.reco1l.framework.extensions.logI
+import com.reco1l.framework.net.buildRequest
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -53,9 +51,6 @@ class JsonRequester(client: OkHttpClient, uri: Uri) : Requester(client, uri)
         {
             if (value != null) buildRequest {
 
-                if (isLogging)
-                    "Inserted JSON: ${value.toString(4)}".logI(className)
-
                 post(value.toString().toRequestBody(JSON_UTF8))
             }
             field = value
@@ -73,9 +68,6 @@ class JsonRequester(client: OkHttpClient, uri: Uri) : Requester(client, uri)
             is JSONArray -> jsonArray = value
             else -> throw ResponseException(response)
         }
-
-        if (isLogging)
-            "Received JSON: ${jsonObject?.toString(4) ?: jsonArray?.toString(4)}".logI(className)
     }
 
 
@@ -85,6 +77,6 @@ class JsonRequester(client: OkHttpClient, uri: Uri) : Requester(client, uri)
 
     companion object
     {
-        var JSON_UTF8 = "application/json; charset=utf-8".toMediaTypeOrNull()
+        val JSON_UTF8 = "application/json; charset=utf-8".toMediaTypeOrNull()
     }
 }

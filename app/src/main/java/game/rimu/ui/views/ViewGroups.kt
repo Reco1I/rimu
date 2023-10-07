@@ -3,9 +3,9 @@ package game.rimu.ui.views
 import android.view.ViewGroup
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
-import game.rimu.ui.views.addons.IScalableWithDimensions
-import game.rimu.ui.views.addons.ISkinnable
-import game.rimu.ui.views.addons.ViewDimensions
+import game.rimu.ui.IScalableWithDimensions
+import game.rimu.ui.ISkinnable
+import game.rimu.ui.ViewDimensions
 import android.widget.LinearLayout as AndroidLinearLayout
 import android.widget.RelativeLayout as AndroidRelativeLayout
 import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLayout
@@ -17,9 +17,9 @@ open class ConstraintLayout(override val ctx: RimuContext) :
     AndroidConstraintLayout(ctx),
     IWithContext,
     ISkinnable,
-    IScalableWithDimensions<ViewDimensions>
+    IScalableWithDimensions<ConstraintLayout, ViewDimensions<ConstraintLayout>>
 {
-    final override val dimensions = ViewDimensions()
+    override val dimensions by lazy { ViewDimensions<ConstraintLayout>() }
 }
 
 inline fun <T> T.ConstraintLayout(
@@ -41,9 +41,9 @@ open class LinearLayout(override val ctx: RimuContext) :
     AndroidLinearLayout(ctx),
     IWithContext,
     ISkinnable,
-    IScalableWithDimensions<ViewDimensions>
+    IScalableWithDimensions<LinearLayout, ViewDimensions<LinearLayout>>
 {
-    final override val dimensions = ViewDimensions()
+    override val dimensions by lazy { ViewDimensions<LinearLayout>() }
 }
 
 inline fun <T> T.LinearLayout(
@@ -65,9 +65,9 @@ open class RelativeLayout(override val ctx: RimuContext) :
     AndroidRelativeLayout(ctx),
     IWithContext,
     ISkinnable,
-    IScalableWithDimensions<ViewDimensions>
+    IScalableWithDimensions<RelativeLayout, ViewDimensions<RelativeLayout>>
 {
-    final override val dimensions = ViewDimensions()
+    override val dimensions by lazy { ViewDimensions<RelativeLayout>() }
 }
 
 inline fun <T> T.RelativeLayout(

@@ -1,13 +1,15 @@
 package com.reco1l.framework.graphics
 
+import android.graphics.drawable.ColorDrawable
 import androidx.annotation.IntRange
 import com.reco1l.skindecoder.serializers.ColorSerializer
 import kotlinx.serialization.Serializable
 import org.andengine.util.adt.color.Color
+import org.andengine.util.adt.color.ColorUtils
 
 /**
  * [Color] extension that allows to pass a non-component color (8 bit 0-255) in its constructor,
- * default color is Black.
+ * default color is Black (0, 0, 0, 255).
  *
  * Keep in mind this converts the 4 channels to component, in order to use 0-255 format use [red8bit],
  * [green8bit], [blue8bit] and [alpha8bit].
@@ -46,12 +48,6 @@ open class Color4 @JvmOverloads constructor(
         copy.alpha8bit
     )
 
-    /**
-     * Returns the color in HEX integer format.
-     */
-    val hexInt
-        get() = argbPackedInt
-
     /**`getRed() * 255`*/
     var red8bit
         get() = (255f * red).toInt()
@@ -84,16 +80,40 @@ open class Color4 @JvmOverloads constructor(
             alpha = value.coerceIn(0, 255) / 255f
         }
 
-    
-    /**
-     * Returns a new [Color4] with the brightness factor applied.
-     */
-    fun bright(factor: Float) = Color4(
+
+    // Transformations
+
+    fun lighten(factor: Float) = Color4(
         (red8bit * factor).toInt(),
         (green8bit * factor).toInt(),
         (blue8bit * factor).toInt(),
         alpha8bit
     )
+
+    fun darker(factor: Float) = Color4(
+        (red8bit / factor).toInt(),
+        (green8bit / factor).toInt(),
+        (blue8bit / factor).toInt(),
+        alpha8bit
+    )
+
+
+    fun lightenInt(factor: Float) = ColorUtils.convertRGBAToARGBPackedInt(
+        red * factor,
+        green * factor,
+        blue * factor,
+        alpha
+    )
+
+    fun darkerInt(factor: Float) = ColorUtils.convertRGBAToARGBPackedInt(
+        red / factor,
+        green / factor,
+        blue / factor,
+        alpha
+    )
+
+
+    // Conversion
 
     fun set(hex: Int)
     {
@@ -103,6 +123,16 @@ open class Color4 @JvmOverloads constructor(
         alpha8bit = (hex shr 24) and 0xFF
     }
 
+
+    /**
+     * Returns the color in HEX integer format.
+     */
+    fun toInt() = argbPackedInt
+
+    fun toDrawable() = ColorDrawable(argbPackedInt)
+
+
+    // Generated
 
     override fun equals(other: Any?) = other === this || other is Color4
             && red == other.red

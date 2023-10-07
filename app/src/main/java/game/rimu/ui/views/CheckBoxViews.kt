@@ -1,12 +1,11 @@
 package game.rimu.ui.views
 
-import android.annotation.SuppressLint
 import androidx.appcompat.widget.AppCompatCheckBox
 import com.google.android.material.R
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
-import game.rimu.ui.views.addons.ISkinnable
+import game.rimu.ui.ISkinnable
 
 
 class CheckBox(override val ctx: RimuContext) :
@@ -29,6 +28,6 @@ class CheckBox(override val ctx: RimuContext) :
 
     override fun onApplySkin(skin: WorkingSkin)
     {
-        background.setTint(skin.data.colours.accentColor.hexInt)
+        background.setTint(skin.data.colours.accentColor.toInt())
     }
 }

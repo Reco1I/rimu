@@ -1,8 +1,7 @@
 package game.rimu.ui.layouts
 
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import com.reco1l.framework.android.views.attachTo
-import com.reco1l.framework.android.views.setSize
+import android.widget.ImageView.ScaleType
 import game.rimu.android.RimuContext
 import game.rimu.ui.LayerBackground
 import game.rimu.ui.LayoutLayer
@@ -27,12 +26,13 @@ class Background(ctx: RimuContext) : AttachableLayout(ctx)
         SelectorScene::class
     )
 
-    val image = FadeImageView(ctx).apply {
+    val image = FadeImageView {
 
         dimensions.width = MATCH_PARENT
         dimensions.height = MATCH_PARENT
 
-    } attachTo this
+        scaleType = ScaleType.CENTER_CROP
+    }
 
 
     override fun onAttachedToWindow()

@@ -1,10 +1,11 @@
-package com.reco1l.framework.extensions
+package com.reco1l.framework.graphics
 
 import android.graphics.Bitmap
 import android.graphics.Bitmap.Config
 import android.graphics.BitmapFactory
 import androidx.core.graphics.applyCanvas
 import com.caverock.androidsvg.SVG
+import com.reco1l.framework.lang.orCatch
 import java.io.InputStream
 import kotlin.math.roundToInt
 import kotlin.text.Charsets.UTF_8
@@ -33,8 +34,10 @@ fun InputStream.toBitmap(): Bitmap?
     val isSVG = {
 
         // Reading first 5 bytes to determine if the stream comes from an SVG file, this will check the
-        // first characters that should equal to the "<svg>" tag in case it's a SVG file.
-        ByteArray(5).let { read(it) == 5 && it.toString(UTF_8).startsWith("<svg") }
+        // first characters that should equal to the "<svg>" or "<?xml" tag in case it's a SVG file.
+        val parsed = ByteArray(5).takeIf { read(it) == 5 }?.toString(UTF_8)
+
+        parsed?.startsWith("<svg") == true || parsed?.startsWith("<?xml") == true
 
     }.orCatch { false }
 

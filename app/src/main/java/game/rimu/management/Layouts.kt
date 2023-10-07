@@ -3,8 +3,8 @@ package game.rimu.management
 import android.view.ViewGroup
 import androidx.core.view.contains
 import com.reco1l.framework.android.views.attachTo
-import com.reco1l.framework.data.instanceMapOf
-import com.reco1l.framework.extensions.createInstance
+import com.reco1l.framework.lang.instanceMapOf
+import com.reco1l.framework.lang.createInstance
 import game.rimu.android.RimuContext
 import game.rimu.ui.LayerBackground
 import game.rimu.ui.LayerOverlay

@@ -1,4 +1,4 @@
-package com.reco1l.framework.annotation
+package com.reco1l.framework.graphics
 
 import androidx.annotation.IntDef
 
@@ -16,3 +16,7 @@ annotation class Axis
         const val BOTH = 2
     }
 }
+
+
+@IntDef(value = [Axis.VERTICAL, Axis.HORIZONTAL])
+annotation class SingleAxis

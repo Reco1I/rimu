@@ -1,9 +1,9 @@
 package game.rimu.management.beatmap
 
-import com.reco1l.framework.extensions.addIfNotNull
-import com.reco1l.framework.extensions.extensionLowercase
-import com.reco1l.framework.extensions.isExtension
-import com.reco1l.framework.extensions.md5
+import com.reco1l.framework.lang.addIfNotNull
+import com.reco1l.framework.data.extensionLowercase
+import com.reco1l.framework.data.isExtension
+import com.reco1l.framework.data.md5
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.parser.BeatmapDecoder
 import game.rimu.android.RimuContext

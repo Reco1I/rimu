@@ -1,4 +1,4 @@
-package com.reco1l.framework.extensions
+package com.reco1l.framework.net
 
 import okhttp3.OkHttpClient
 import okhttp3.Request

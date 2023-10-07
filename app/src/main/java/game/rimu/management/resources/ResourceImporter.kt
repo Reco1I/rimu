@@ -1,9 +1,9 @@
 package game.rimu.management.resources
 
-import com.reco1l.framework.extensions.extensionLowercase
-import com.reco1l.framework.extensions.forEachRecursive
-import com.reco1l.framework.extensions.md5
-import com.reco1l.framework.extensions.subDirectory
+import com.reco1l.framework.data.extensionLowercase
+import com.reco1l.framework.data.forEachRecursive
+import com.reco1l.framework.data.md5
+import com.reco1l.framework.data.subDirectory
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.data.asset.Asset

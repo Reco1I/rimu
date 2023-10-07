@@ -6,12 +6,40 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
 import android.view.ViewGroup
+import androidx.annotation.CallSuper
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.drawable.toDrawable
+import com.reco1l.framework.android.views.setImageTint
+import com.reco1l.framework.lang.ifNotNull
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
-import game.rimu.ui.views.addons.IScalableWithDimensions
-import game.rimu.ui.views.addons.ViewDimensions
+import game.rimu.management.skin.WorkingSkin
+import game.rimu.ui.IScalable
+import game.rimu.ui.IScalableWithDimensions
+import game.rimu.ui.ISkinnableWithRules
+import game.rimu.ui.ViewDimensions
+import game.rimu.ui.ViewSkinningRules
+
+
+// Base
+
+open class ImageAttributes<T : ImageView> : ViewSkinningRules<T>()
+{
+
+    var bitmap: ((WorkingSkin) -> Bitmap?)? = null
+
+    var tint: ((WorkingSkin) -> Int)? = null
+
+
+    @CallSuper
+    override fun onApplySkin(target: T, skin: WorkingSkin)
+    {
+        super.onApplySkin(target, skin)
+
+        bitmap.ifNotNull { target.setImageBitmap(it(skin)) }
+        tint.ifNotNull { target.setImageTint(it(skin)) }
+    }
+}
 
 
 fun <T> T.ImageView(
@@ -28,17 +56,43 @@ fun <T> T.ImageView(
 open class ImageView(override val ctx: RimuContext) :
     AppCompatImageView(ctx),
     IWithContext,
-    IScalableWithDimensions<ViewDimensions>
+    IScalableWithDimensions<ImageView, ViewDimensions<ImageView>>,
+    ISkinnableWithRules<ImageView, ImageAttributes<ImageView>>
 {
-    override val dimensions = ViewDimensions()
+
+    override val dimensions by lazy { ViewDimensions<ImageView>() }
+
+    override val skinRules by lazy { ImageAttributes<ImageView>() }
+
+
+    override fun onApplyScale(scale: Float)
+    {
+        (drawable as? IScalable)?.onApplyScale(scale)
+
+        super.onApplyScale(scale)
+    }
+}
+
+
+
+// FadeImageView
+
+fun <T> T.FadeImageView(
+    attach: Boolean = true,
+    block: FadeImageView.() -> Unit
+) where T : ViewGroup, T : IWithContext = FadeImageView(ctx).also {
+
+    if (attach)
+        addView(it)
+
+    it.block()
 }
 
 /**
  * ImageView that fades when the drawable is changed.
  */
-
 class FadeImageView(override val ctx: RimuContext) :
-    AppCompatImageView(ctx),
+    ImageView(ctx),
     IWithContext
 {
 
