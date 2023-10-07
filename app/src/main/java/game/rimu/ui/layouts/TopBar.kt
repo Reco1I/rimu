@@ -3,13 +3,11 @@ package game.rimu.ui.layouts
 import android.view.Gravity
 import android.view.Gravity.CENTER_VERTICAL
 import android.view.Gravity.RIGHT
-import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout.HORIZONTAL
 import com.reco1l.framework.android.views.attachTo
 import com.reco1l.framework.android.views.setConstraints
 import com.reco1l.framework.graphics.Anchor
-import game.rimu.R
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.LayerOverlay
@@ -42,12 +40,28 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
     val navigationTree = mutableListOf<() -> Boolean>()
 
 
+    val backButton = Button("icon-back").apply {
+
+
+    } attachTo this
+
+
     val leftLayout = LinearLayout {
 
-        dimensions.height = MATCH_PARENT
+        setBackgroundColor(0x26000000)
 
-        orientation = HORIZONTAL
+        dimensions.height = MATCH_PARENT
         gravity = CENTER_VERTICAL
+        orientation = HORIZONTAL
+
+        setConstraints(
+            target = backButton,
+            left = Anchor.RIGHT
+        )
+
+        Button("icon-music").apply {
+
+        } attachTo this
     }
 
     val rightLayout = LinearLayout {
@@ -65,11 +79,6 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
 
         } attachTo this
     }
-
-    val backButton = Button("icon-back").apply {
-
-
-    } attachTo this
 
 
     init
@@ -134,7 +143,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
         dimensions {
             width = 26
             height = 26
-            radius = 7f
+            cornerRadius = 7f
         }
 
         skinRules {

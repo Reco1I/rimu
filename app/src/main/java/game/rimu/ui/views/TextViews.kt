@@ -227,7 +227,7 @@ open class TextField(ctx: RimuContext) :
         setBackgroundColor(0x4D000000)
 
         dimensions {
-            radius = 8f
+            cornerRadius = 8f
             paddingTop = 14
             paddingBottom = 14
             paddingLeft = 16

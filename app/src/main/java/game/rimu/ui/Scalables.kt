@@ -103,7 +103,7 @@ open class ViewDimensions<V : View> : ScalableDimensions<V>(WRAP_CONTENT, WRAP_C
 
     var marginBottom: Int = 0
 
-    var radius: Float = 0f
+    var cornerRadius: Float = 0f
 
 
     override fun onApplyScale(target: V, scale: Float)
@@ -127,7 +127,7 @@ open class ViewDimensions<V : View> : ScalableDimensions<V>(WRAP_CONTENT, WRAP_C
             bottom = marginBottom * scale
         )
 
-        target.radius = radius * scale
+        target.radius = cornerRadius * scale
     }
 }
 
