@@ -66,7 +66,10 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
         } attachTo this
     }
 
-    lateinit var backButton: View
+    val backButton = Button("icon-back").apply {
+
+
+    } attachTo this
 
 
     init
@@ -75,11 +78,6 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
             height = 50
             width = MATCH_PARENT
         }
-
-        Button("icon-back").apply {
-
-
-        } attachTo this
 
     }
 
@@ -93,7 +91,6 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
 
     inner class Button(texture: String) : ImageView(ctx)
     {
-
         init
         {
             dimensions {
