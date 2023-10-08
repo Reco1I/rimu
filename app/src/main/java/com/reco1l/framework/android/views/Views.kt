@@ -2,18 +2,37 @@
 
 package com.reco1l.framework.android.views
 
+import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.*
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import androidx.annotation.ColorInt
 import androidx.core.view.*
 import game.rimu.ui.views.addons.RoundOutlineProvider
 import kotlin.math.roundToInt
 
 
-// Radius
+// Drawables
 
-var View.radius: Float
+fun View.setForegroundColor(@ColorInt color: Int)
+{
+    var drawable: ColorDrawable? = background as? ColorDrawable
+
+    if (drawable != null)
+    {
+        drawable = drawable.mutate() as ColorDrawable
+        drawable.color = color
+    }
+    else drawable = ColorDrawable(color)
+
+    foreground = drawable
+}
+
+
+// Corner radius
+
+var View.cornerRadius: Float
     /**
      * Return the view corner radius.
      */
