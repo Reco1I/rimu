@@ -18,8 +18,10 @@ abstract class LayoutLayer(
 {
     init
     {
-        dimensions.width = MATCH_PARENT
-        dimensions.height = MATCH_PARENT
+        dimensions {
+            width = MATCH_PARENT
+            height = MATCH_PARENT
+        }
         onInitialization()
     }
 
