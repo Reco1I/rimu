@@ -4,8 +4,9 @@ import android.view.ViewGroup
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.ui.IScalableWithDimensions
-import game.rimu.ui.ISkinnable
+import game.rimu.ui.ISkinnableWithRules
 import game.rimu.ui.ViewDimensions
+import game.rimu.ui.ViewSkinningRules
 import android.widget.LinearLayout as AndroidLinearLayout
 import android.widget.RelativeLayout as AndroidRelativeLayout
 import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLayout
@@ -16,10 +17,12 @@ import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLay
 open class ConstraintLayout(override val ctx: RimuContext) :
     AndroidConstraintLayout(ctx),
     IWithContext,
-    ISkinnable,
+    ISkinnableWithRules<ConstraintLayout, ViewSkinningRules<ConstraintLayout>>,
     IScalableWithDimensions<ConstraintLayout, ViewDimensions<ConstraintLayout>>
 {
     override val dimensions by lazy { ViewDimensions<ConstraintLayout>() }
+
+    override val skinningRules by lazy { ViewSkinningRules<ConstraintLayout>() }
 }
 
 inline fun <T> T.ConstraintLayout(
@@ -40,10 +43,12 @@ inline fun <T> T.ConstraintLayout(
 open class LinearLayout(override val ctx: RimuContext) :
     AndroidLinearLayout(ctx),
     IWithContext,
-    ISkinnable,
+    ISkinnableWithRules<LinearLayout, ViewSkinningRules<LinearLayout>>,
     IScalableWithDimensions<LinearLayout, ViewDimensions<LinearLayout>>
 {
     override val dimensions by lazy { ViewDimensions<LinearLayout>() }
+
+    override val skinningRules by lazy { ViewSkinningRules<LinearLayout>() }
 }
 
 inline fun <T> T.LinearLayout(
