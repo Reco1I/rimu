@@ -8,7 +8,6 @@ import game.rimu.ui.ISkinnableWithRules
 import game.rimu.ui.ViewDimensions
 import game.rimu.ui.ViewSkinningRules
 import android.widget.LinearLayout as AndroidLinearLayout
-import android.widget.RelativeLayout as AndroidRelativeLayout
 import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLayout
 
 
@@ -61,28 +60,3 @@ inline fun <T> T.LinearLayout(
 
     it.block()
 }
-
-
-
-// RelativeLayout
-
-open class RelativeLayout(override val ctx: RimuContext) :
-    AndroidRelativeLayout(ctx),
-    IWithContext,
-    ISkinnable,
-    IScalableWithDimensions<RelativeLayout, ViewDimensions<RelativeLayout>>
-{
-    override val dimensions by lazy { ViewDimensions<RelativeLayout>() }
-}
-
-inline fun <T> T.RelativeLayout(
-    attach: Boolean = true,
-    block: RelativeLayout.() -> Unit
-) where T : ViewGroup, T : IWithContext = RelativeLayout(ctx).also {
-
-    if (attach)
-        addView(it)
-
-    it.block()
-}
-
