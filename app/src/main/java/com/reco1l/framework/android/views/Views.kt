@@ -117,6 +117,12 @@ fun View.setSize(width: Int? = null, height: Int? = null)
     }
 }
 
+fun View.setScale(scale: Float)
+{
+    scaleX = scale
+    scaleY = scale
+}
+
 
 // Attachment
 
