@@ -1,63 +1,64 @@
 package game.rimu.ui.views
 
-import android.graphics.drawable.LayerDrawable
+import android.graphics.Canvas
+import android.graphics.drawable.ShapeDrawable
+import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatSeekBar
+import com.reco1l.framework.graphics.LayerDrawable
+import com.reco1l.framework.graphics.RoundShape
+import com.reco1l.framework.graphics.clip
+import com.reco1l.framework.graphics.setRadius
+import com.reco1l.framework.graphics.setSize
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
-import game.rimu.ui.drawables.RoundShape
-import game.rimu.ui.IScalable
-import game.rimu.ui.ISkinnable
-import game.rimu.ui.dimensions
+import game.rimu.ui.IScalableWithDimensions
+import game.rimu.ui.ISkinnableWithRules
+import game.rimu.ui.ViewDimensions
+import game.rimu.ui.ViewSkinningRules
 
+
+class SeekBarDimensions<T : SeekBar> : ViewDimensions<T>()
+
+class SeekBarSkinningRules<T : SeekBar> : ViewSkinningRules<T>()
+
+fun <T> T.SeekBar(
+    attach: Boolean = true,
+    block: SeekBar.() -> Unit
+) where T : ViewGroup, T : IWithContext = SeekBar(ctx).also {
+
+    if (attach)
+        addView(it)
+
+    it.block()
+}
 
 class SeekBar(override val ctx: RimuContext) :
     AppCompatSeekBar(ctx),
     IWithContext,
-    IScalable,
-    ISkinnable
+    IScalableWithDimensions<SeekBar, SeekBarDimensions<SeekBar>>,
+    ISkinnableWithRules<SeekBar, SeekBarSkinningRules<SeekBar>>
 {
 
-    private val thumbDrawable = RoundShape {
+    override val skinningRules by lazy { SeekBarSkinningRules<SeekBar>() }
 
-        dimensions {
-            width = 28
-            height = 18
-            radius = height / 2f
-        }
+    override val dimensions by lazy { SeekBarDimensions<SeekBar>() }
 
-    }.toDrawable()
 
-    private val activeBarDrawable = RoundShape {
+    private val thumbDrawable = ShapeDrawable()
 
-        dimensions {
-            width = this@SeekBar.width
-            height = 14
-            radius = height / 2f
-        }
+    private val activeBarDrawable = ShapeDrawable()
 
-    }.toDrawable()
-
-    private val inactiveBarDrawable = RoundShape {
-
-        dimensions {
-            width = this@SeekBar.width
-            height = 14
-            radius = height / 2f
-        }
-
-    }.toDrawable()
+    private val inactiveBarDrawable = ShapeDrawable()
 
 
     init
     {
         // Bar drawable
-        LayerDrawable(arrayOf(inactiveBarDrawable, activeBarDrawable)).also {
+        progressDrawable = LayerDrawable(inactiveBarDrawable, activeBarDrawable.clip()).apply {
 
-            it.setId(0, android.R.id.background)
-            it.setId(1, android.R.id.progress)
-            progressDrawable = it
-
+            setId(0, android.R.id.background)
+            setId(1, android.R.id.progress)
         }
 
         // Thumb
@@ -66,24 +67,43 @@ class SeekBar(override val ctx: RimuContext) :
         splitTrack = false
     }
 
+    override fun onAttachedToWindow()
+    {
+        super.onAttachedToWindow()
+
+        invalidateSkin()
+        invalidateScale()
+    }
+
     override fun onApplySkin(skin: WorkingSkin)
     {
-        activeBarDrawable.apply {
-            paint.color = skin.data.colours.accentColor.toInt()
-        }
+        super.onApplySkin(skin)
+
+        val accent = skin.data.colours.accentColor.toInt()
 
         inactiveBarDrawable.apply {
-            paint.color = skin.data.colours.accentColor.lightenInt(0.1f)
+            paint.color = accent
+            paint.alpha = 100
         }
 
-        thumbDrawable.apply {
-            paint.color = skin.data.colours.accentColor.lightenInt(1.25f)
+        activeBarDrawable.apply {
+            paint.color = accent
+            paint.alpha = 200
         }
+
+        thumbDrawable.paint.color = accent
     }
 
     override fun onApplyScale(scale: Float)
     {
         super.onApplyScale(scale)
-        requestLayout()
+
+        thumbDrawable.setRadius(8f)
+        activeBarDrawable.setRadius(8f)
+        inactiveBarDrawable.setRadius(8f)
+
+        post {
+            thumbDrawable.setSize(12, height)
+        }
     }
 }

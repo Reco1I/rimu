@@ -121,8 +121,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
     @Suppress("UNCHECKED_CAST")
     operator fun <T : LayoutLayer> get(clazz: KClass<T>) = layers[clazz] as T
 
-    @Suppress("UNCHECKED_CAST")
-    operator fun <T : AttachableLayout> get(clazz: KClass<T>) = layouts[clazz] as T
+    operator fun <T : AttachableLayout> get(clazz: KClass<T>) = layouts.getOrPut(clazz) { clazz.createInstance(ctx) }
 
 
     companion object

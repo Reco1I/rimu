@@ -10,7 +10,6 @@ import androidx.annotation.CallSuper
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.drawable.toDrawable
 import com.reco1l.framework.android.views.setImageTint
-import com.reco1l.framework.lang.ifNotNull
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
@@ -26,9 +25,22 @@ import game.rimu.ui.ViewSkinningRules
 open class ImageAttributes<T : ImageView> : ViewSkinningRules<T>()
 {
 
-    var bitmap: ((WorkingSkin) -> Bitmap?)? = null
+    /**
+     * The bitmap that should be set as image.
+     */
+    var bitmap: (WorkingSkin.() -> Bitmap?)? = null
 
-    var tint: ((WorkingSkin) -> Int)? = null
+    /**
+     * The drawable that should be set as image.
+     *
+     * Note: This overrides the value set in [bitmap] property.
+     */
+    var drawable: (WorkingSkin.() -> Drawable?)? = null
+
+    /**
+     * The tint that should be set to the drawable.
+     */
+    var tint: (WorkingSkin.() -> Int)? = null
 
 
     @CallSuper
@@ -36,8 +48,11 @@ open class ImageAttributes<T : ImageView> : ViewSkinningRules<T>()
     {
         super.onApplySkin(target, skin)
 
-        bitmap.ifNotNull { target.setImageBitmap(it(skin)) }
-        tint.ifNotNull { target.setImageTint(it(skin)) }
+        drawable?.also { target.setImageDrawable(skin.it()) }
+            ?:
+            bitmap?.also { target.setImageBitmap(skin.it()) }
+
+        tint?.also { target.setImageTint(skin.it()) }
     }
 }
 
@@ -62,7 +77,7 @@ open class ImageView(override val ctx: RimuContext) :
 
     override val dimensions by lazy { ViewDimensions<ImageView>() }
 
-    override val skinRules by lazy { ImageAttributes<ImageView>() }
+    override val skinningRules by lazy { ImageAttributes<ImageView>() }
 
 
     override fun onApplyScale(scale: Float)

@@ -31,11 +31,11 @@ open class Color4 @JvmOverloads constructor(
     /**
      * Create a [Color4] from an HEX Integer.
      */
-    constructor(argb: Int) : this(
-        red = (argb shr 16) and 0xFF,
-        green = (argb shr 8) and 0xFF,
-        blue = argb and 0xFF,
-        alpha = (argb shr 24) and 0xFF
+    constructor(argb: Long) : this(
+        red = ((argb shr 16) and 0xFF).toInt(),
+        green = ((argb shr 8) and 0xFF).toInt(),
+        blue = (argb and 0xFF).toInt(),
+        alpha = ((argb shr 24) and 0xFF).toInt()
     )
 
     /**
@@ -83,32 +83,17 @@ open class Color4 @JvmOverloads constructor(
 
     // Transformations
 
-    fun lighten(factor: Float) = Color4(
+    fun factor(factor: Float) = Color4(
         (red8bit * factor).toInt(),
         (green8bit * factor).toInt(),
         (blue8bit * factor).toInt(),
         alpha8bit
     )
 
-    fun darker(factor: Float) = Color4(
-        (red8bit / factor).toInt(),
-        (green8bit / factor).toInt(),
-        (blue8bit / factor).toInt(),
-        alpha8bit
-    )
-
-
-    fun lightenInt(factor: Float) = ColorUtils.convertRGBAToARGBPackedInt(
+    fun factorInt(factor: Float) = ColorUtils.convertRGBAToARGBPackedInt(
         red * factor,
         green * factor,
         blue * factor,
-        alpha
-    )
-
-    fun darkerInt(factor: Float) = ColorUtils.convertRGBAToARGBPackedInt(
-        red / factor,
-        green / factor,
-        blue / factor,
         alpha
     )
 
@@ -127,7 +112,12 @@ open class Color4 @JvmOverloads constructor(
     /**
      * Returns the color in HEX integer format.
      */
-    fun toInt() = argbPackedInt
+    fun toInt(
+        red: Float = getRed(),
+        blue: Float = getBlue(),
+        green: Float = getGreen(),
+        alpha: Float = getAlpha()
+    ) = ColorUtils.convertRGBAToARGBPackedInt(red, green, blue, alpha)
 
     fun toDrawable() = ColorDrawable(argbPackedInt)
 
@@ -152,6 +142,3 @@ open class Color4 @JvmOverloads constructor(
     }
 
 }
-
-
-fun Int.toColor4() = Color4(this)

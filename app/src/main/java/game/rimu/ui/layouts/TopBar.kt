@@ -12,16 +12,17 @@ import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayoutLayer
+import game.rimu.ui.dimensions
 import game.rimu.ui.scenes.MenuScene
 import game.rimu.ui.scenes.ResultsScene
 import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.scenes.SceneIntro
 import game.rimu.ui.scenes.SelectorScene
+import game.rimu.ui.skinningRules
 import game.rimu.ui.views.ImageView
 import game.rimu.ui.views.LinearLayout
 import game.rimu.ui.views.TextView
-import game.rimu.ui.dimensions
-import game.rimu.ui.skinRules
+import game.rimu.ui.views.addons.TouchHandler
 import kotlin.reflect.KClass
 
 class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
@@ -40,8 +41,9 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
     val navigationTree = mutableListOf<() -> Boolean>()
 
 
-    val backButton = Button("icon-back").apply {
+    val backButton = Button("icon-back") {
 
+        setOnTouchListener(TouchHandler {})
 
     } attachTo this
 
@@ -56,10 +58,16 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
 
         setConstraints(
             target = backButton,
-            left = Anchor.RIGHT
+            leftToTarget = Anchor.RIGHT
         )
 
-        Button("icon-music").apply {
+        Button("icon-music") {
+
+            setOnTouchListener(TouchHandler {
+
+                onActionUp = { ctx.layouts[MusicPlayerBox::class].alternate() }
+
+            })
 
         } attachTo this
     }
@@ -71,11 +79,13 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
         orientation = HORIZONTAL
         gravity = CENTER_VERTICAL or RIGHT
 
-        setConstraints(right = Anchor.RIGHT)
+        setConstraints(rightToTarget = Anchor.RIGHT)
 
         UserBoxView(ctx) attachTo this
 
-        Button("icon-settings").apply {
+        Button("icon-settings") {
+
+            setOnTouchListener(TouchHandler {})
 
         } attachTo this
     }
@@ -87,18 +97,17 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
             height = 50
             width = MATCH_PARENT
         }
-
     }
 
     override fun onApplySkin(skin: WorkingSkin)
     {
-        setBackgroundColor(skin.data.colours.accentColor.lightenInt(0.15f))
+        setBackgroundColor(skin.data.colours.accentColor.factorInt(0.15f))
 
         super.onApplySkin(skin)
     }
 
 
-    inner class Button(texture: String) : ImageView(ctx)
+    inner class Button(texture: String, init: Button.() -> Unit) : ImageView(ctx)
     {
         init
         {
@@ -109,12 +118,13 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
                 paddingRight = 24
             }
 
-            skinRules {
+            skinningRules {
 
                 bitmap = { ctx.resources[texture, 0] }
-
-                tint = { it.data.colours.accentColor.toInt() }
+                tint = { data.colours.accentColor.toInt() }
             }
+
+            init()
         }
     }
 }
@@ -126,6 +136,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
     init
     {
         setBackgroundColor(0x26000000)
+        setOnTouchListener(TouchHandler {})
 
         gravity = Gravity.CENTER
         orientation = HORIZONTAL
@@ -135,6 +146,10 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
             height = MATCH_PARENT
             paddingLeft = 12
             paddingRight = 12
+            cornerRadius = 6f
+
+            marginTop = 4
+            marginBottom = 4
         }
     }
 
@@ -146,7 +161,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
             cornerRadius = 7f
         }
 
-        skinRules {
+        skinningRules {
             bitmap = { ctx.resources["avatar-default", 0] }
         }
     }

@@ -4,16 +4,13 @@ import android.view.MotionEvent
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.annotation.CallSuper
 import com.reco1l.framework.android.views.removeSelf
-import com.reco1l.framework.lang.ifNotNull
 import game.rimu.android.RimuContext
 import game.rimu.ui.LayoutLayer
+import game.rimu.ui.dimensions
 import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.views.ConstraintLayout
 import kotlin.reflect.KClass
 
-/**
- * A layout is a group of views that is attached to the [LayoutManager] according to its [properties].
- */
 abstract class AttachableLayout(final override val ctx: RimuContext) : ConstraintLayout(ctx)
 {
 
@@ -44,8 +41,10 @@ abstract class AttachableLayout(final override val ctx: RimuContext) : Constrain
 
     init
     {
-        dimensions.width = MATCH_PARENT
-        dimensions.height = MATCH_PARENT
+        dimensions {
+            width = MATCH_PARENT
+            height = MATCH_PARENT
+        }
 
         // Invalidating the timer
         invalidateHideTimer()
@@ -56,6 +55,7 @@ abstract class AttachableLayout(final override val ctx: RimuContext) : Constrain
     override fun onAttachedToWindow()
     {
         super.onAttachedToWindow()
+
         invalidateSkin()
         invalidateScale()
     }
@@ -79,7 +79,7 @@ abstract class AttachableLayout(final override val ctx: RimuContext) : Constrain
     {
         removeCallbacks(hideTask)
 
-        hideTime.ifNotNull { postDelayed(hideTask, it) }
+        hideTime?.also { postDelayed(hideTask, it) }
     }
 
 

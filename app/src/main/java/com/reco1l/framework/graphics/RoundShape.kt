@@ -48,12 +48,16 @@ open class RoundShape : RectShape()
             Anchor.BOTTOM_RIGHT -> radii.fill(radius, 6, 8)
         }
     }
+
+
+    fun toDrawable() = ShapeDrawable(this)
 }
 
-fun ShapeDrawable.setRadius(@CornerAnchor anchor: Int? = null, radius: Float)
+fun ShapeDrawable.setRadius(radius: Float, @CornerAnchor anchor: Int? = null)
 {
     if (shape !is RoundShape)
         shape = RoundShape()
 
     (shape as RoundShape).setRadius(anchor, radius)
+    invalidateSelf()
 }

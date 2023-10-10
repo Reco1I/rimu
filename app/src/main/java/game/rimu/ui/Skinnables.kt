@@ -5,11 +5,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.core.view.forEach
-import com.reco1l.framework.lang.ifNotNull
+import com.reco1l.framework.android.views.setForegroundColor
 import com.reco1l.framework.lang.isLazyInit
 import com.reco1l.framework.lang.isLazyInitialized
-import com.reco1l.framework.graphics.Color4
 import game.rimu.android.IWithContext
+import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
 import org.andengine.entity.IEntity
 
@@ -38,7 +38,14 @@ interface ISkinnable
             callOnChildren { (it as? ISkinnable)?.onApplySkin(skin) }
     }
 
-    fun IWithContext.invalidateSkin() = onApplySkin(ctx.skins.current)
+    /**
+     * Calls [onApplySkin] with the context skin, if there's a [RimuContext] implementation you
+     * don't need to pass the context.
+     */
+    fun invalidateSkin(ctx: RimuContext? = (this as? IWithContext)?.ctx)
+    {
+        ctx?.also { onApplySkin(it.skins.current) }
+    }
 }
 
 
@@ -50,59 +57,67 @@ abstract class SkinningRules<T>
 interface ISkinnableWithRules<T, D : SkinningRules<T>> : ISkinnable
 {
 
-    val skinRules: D
+    val skinningRules: D
 
     @Suppress("UNCHECKED_CAST")
     override fun onApplySkin(skin: WorkingSkin)
     {
         // Preventing unnecessary initialization.
-        if (!::skinRules.isLazyInit || ::skinRules.isLazyInitialized)
-            skinRules.onApplySkin(this as T, skin)
+        if (!::skinningRules.isLazyInit || ::skinningRules.isLazyInitialized)
+            skinningRules.onApplySkin(this as T, skin)
 
         super.onApplySkin(skin)
     }
 }
 
-inline fun <T, D : SkinningRules<T>> ISkinnableWithRules<T, D>.skinRules(
+inline fun <T, D : SkinningRules<T>> ISkinnableWithRules<T, D>.skinningRules(
     block: D.() -> Unit
-) = skinRules.apply(block)
+) = skinningRules.apply(block)
 
 
 
 // Views
 
+/**
+ * Defines the rules that the view should follow when the skin is changed.
+ */
 open class ViewSkinningRules<T : View> : SkinningRules<T>()
 {
 
-    var background: ((WorkingSkin) -> Drawable?)? = null
+    /**
+     * Define the drawable that should be set as background.
+     */
+    var background: (WorkingSkin.() -> Drawable?)? = null
 
-    var foreground: ((WorkingSkin) -> Drawable?)? = null
+    /**
+     * Define the background color that should be set.
+     *
+     * Note: This overrides the value set in [background] property.
+     */
+    var backgroundColor: (WorkingSkin.() -> Int)? = null
+
+    /**
+     * Define the drawable that should be set as foreground.
+     */
+    var foreground: (WorkingSkin.() -> Drawable?)? = null
+
+    /**
+     * Define the foreground color that should be set.
+     *
+     * Note: This overrides the value set in [foreground] property.
+     */
+    var foregroundColor: (WorkingSkin.() -> Int)? = null
 
 
     @CallSuper
     override fun onApplySkin(target: T, skin: WorkingSkin)
     {
-        background.ifNotNull { target.background = it(skin) }
+        backgroundColor?.also { target.setBackgroundColor(skin.it()) }
+            ?:
+            background?.also { target.background = skin.it() }
 
-        foreground.ifNotNull { target.foreground = it(skin) }
+        foregroundColor?.also { target.setForegroundColor(skin.it()) }
+            ?:
+            foreground?.also { target.foreground = skin.it() }
     }
-}
-
-
-// Drawable
-
-open class DrawableSkinningRules<T : Drawable> : SkinningRules<T>()
-{
-
-    var color: ((WorkingSkin) -> Color4)? = null
-
-    override fun onApplySkin(target: T, skin: WorkingSkin)
-    {
-        color?.invoke(skin).ifNotNull {
-
-            target.setTint(it.toInt())
-            target.alpha = it.alpha8bit
-        }
-    }
-
 }

@@ -30,7 +30,7 @@ class RimuApplication : Application(), ServiceConnection
     override fun onServiceConnected(name: ComponentName?, binder: IBinder?)
     {
         if (binder is MusicService.Binder)
-            baseContext.service = binder.service
+            baseContext.musicService = binder.service
     }
 
     override fun onServiceDisconnected(name: ComponentName?) = Unit

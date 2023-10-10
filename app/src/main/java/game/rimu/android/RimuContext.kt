@@ -3,8 +3,10 @@ package game.rimu.android
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Handler
+import android.os.Vibrator
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
+import com.reco1l.framework.android.getSystemService
 import game.rimu.engine.RimuEngine
 import game.rimu.management.DatabaseManager
 import game.rimu.management.LayoutManager
@@ -20,23 +22,38 @@ import game.rimu.management.skin.SkinManager
 class RimuContext(base: Context) : ContextWrapper(base)
 {
 
-    val mainHandler by lazy { Handler(mainLooper) }
-
-    var initializationTree: MutableList<RimuContext.() -> Unit>? = mutableListOf()
-
-
-    /**
-     * The music service.
-     */
-    lateinit var service: MusicService
-
     /**
      * The current activity instance.
      */
     lateinit var activity: RimuActivity
 
 
+    /**
+     * The initialization tree, all task that should be initialized asynchronously after the
+     * activity creation should be placed here.
+     */
+    var initializationTree: MutableList<RimuContext.() -> Unit>? = mutableListOf()
+
+
+    // Services
+
+    /**
+     * The music service.
+     */
+    lateinit var musicService: MusicService
+
+    /**
+     * The vibrator service.
+     */
+    val vibratorService = getSystemService<Vibrator>()
+
+
     // Engine
+
+    /**
+     * The main handler.
+     */
+    val handler = Handler(mainLooper)
 
     /**
      * The game engine.
@@ -98,7 +115,7 @@ interface IWithContext
     /**
      * Run a block into the main thread.
      */
-    fun mainThread(block: () -> Unit) = ctx.mainHandler.post(block)
+    fun mainThread(block: () -> Unit) = ctx.handler.post(block)
 
     /**
      * Run a block into the update thread.

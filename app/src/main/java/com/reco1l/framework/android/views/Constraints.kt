@@ -23,10 +23,10 @@ val ConstraintLayout.constraintSet: ConstraintSet
 
 fun View.setConstraints(
     target: View = parent as View,
-    @BasicAnchor left: Int? = null,
-    @BasicAnchor top: Int? = null,
-    @BasicAnchor right: Int? = null,
-    @BasicAnchor bottom: Int? = null,
+    @BasicAnchor leftToTarget: Int? = null,
+    @BasicAnchor topToTarget: Int? = null,
+    @BasicAnchor rightToTarget: Int? = null,
+    @BasicAnchor bottomToTarget: Int? = null,
 )
 {
     val parent = parent as? ConstraintLayout
@@ -38,17 +38,17 @@ fun View.setConstraints(
 
     parent.constraintSet.apply {
 
-        if (left != null)
-            connect(id, Anchor.LEFT, target.id, left)
+        if (leftToTarget != null)
+            connect(id, Anchor.LEFT, target.id, leftToTarget)
 
-        if (top != null)
-            connect(id, Anchor.TOP, target.id, top)
+        if (topToTarget != null)
+            connect(id, Anchor.TOP, target.id, topToTarget)
 
-        if (right != null)
-            connect(id, Anchor.RIGHT, target.id, right)
+        if (rightToTarget != null)
+            connect(id, Anchor.RIGHT, target.id, rightToTarget)
 
-        if (bottom != null)
-            connect(id, Anchor.BOTTOM, target.id, bottom)
+        if (bottomToTarget != null)
+            connect(id, Anchor.BOTTOM, target.id, bottomToTarget)
 
         applyTo(parent)
     }

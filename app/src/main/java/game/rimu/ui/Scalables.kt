@@ -5,13 +5,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.core.view.forEach
-import com.reco1l.framework.android.views.radius
+import com.reco1l.framework.android.views.cornerRadius
 import com.reco1l.framework.android.views.setMargins
 import com.reco1l.framework.android.views.setPaddings
 import com.reco1l.framework.android.views.setSize
 import com.reco1l.framework.lang.isLazyInit
 import com.reco1l.framework.lang.isLazyInitialized
 import game.rimu.android.IWithContext
+import game.rimu.android.RimuContext
 import game.rimu.constants.RimuSetting
 
 
@@ -41,7 +42,14 @@ interface IScalable
         // engine, also they're not used for UI.
     }
 
-    fun IWithContext.invalidateScale() = onApplyScale(ctx.engine.surface.scale)
+    /**
+     * Calls [onApplyScale] with the context scale, if there's a [RimuContext] implementation you
+     * don't need to pass the context.
+     */
+    fun invalidateScale(ctx: RimuContext? = (this as? IWithContext)?.ctx)
+    {
+        ctx?.also { onApplyScale(it.engine.surface.scale) }
+    }
 
 }
 
@@ -106,6 +114,15 @@ open class ViewDimensions<V : View> : ScalableDimensions<V>(WRAP_CONTENT, WRAP_C
     var cornerRadius: Float = 0f
 
 
+    fun padding(value: Int)
+    {
+        paddingLeft = value
+        paddingRight = value
+        paddingTop = value
+        paddingBottom = value
+    }
+
+
     override fun onApplyScale(target: V, scale: Float)
     {
         target.setSize(
@@ -127,28 +144,6 @@ open class ViewDimensions<V : View> : ScalableDimensions<V>(WRAP_CONTENT, WRAP_C
             bottom = marginBottom * scale
         )
 
-        target.radius = cornerRadius * scale
-    }
-}
-
-
-// Drawables
-
-open class DrawableDimensions<T : Drawable> : ScalableDimensions<T>(UNKNOWN, UNKNOWN)
-{
-
-    override fun onApplyScale(target: T, scale: Float)
-    {
-        val bounds = target.bounds
-
-        val width = if (width >= 0) width else target.intrinsicWidth
-        val height = if (height >= 0) height else target.intrinsicHeight
-
-        target.setBounds(
-            bounds.left,
-            bounds.top,
-            bounds.left + width,
-            bounds.top + height
-        )
+        target.cornerRadius = cornerRadius * scale
     }
 }

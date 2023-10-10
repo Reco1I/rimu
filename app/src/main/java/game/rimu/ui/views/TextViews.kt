@@ -1,5 +1,6 @@
 package game.rimu.ui.views
 
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.TextUtils
@@ -20,24 +21,42 @@ import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalableWithDimensions
-import game.rimu.ui.ISkinnable
+import game.rimu.ui.ISkinnableWithRules
 import game.rimu.ui.ViewDimensions
+import game.rimu.ui.ViewSkinningRules
 import game.rimu.ui.dimensions
 import kotlin.math.max
 
 
-data class TextViewDimensions(
+data class TextViewDimensions<T : TextView>(
 
-    var fontSize: Int = 16
+    var fontSize: Int = 14
 
-) : ViewDimensions<TextView>()
+) : ViewDimensions<T>()
 {
 
-    override fun onApplyScale(target: TextView, scale: Float)
+    override fun onApplyScale(target: T, scale: Float)
     {
         super.onApplyScale(target, scale)
 
         target.fontSize = fontSize * scale
+    }
+}
+
+data class TextViewSkinningRules<T : TextView>(
+
+    var font: (WorkingSkin.() -> Typeface)? = { ctx.resources["font", 0]!! },
+
+    var color: (WorkingSkin.() -> Int)? = { data.colours.accentColor.toInt() }
+
+) : ViewSkinningRules<T>()
+{
+    override fun onApplySkin(target: T, skin: WorkingSkin)
+    {
+        super.onApplySkin(target, skin)
+
+        font?.also { target.font = skin.it() }
+        color?.also { target.fontColor = skin.it() }
     }
 }
 
@@ -61,29 +80,16 @@ fun <T> T.TextView(
 open class TextView(final override val ctx: RimuContext) :
     AppCompatTextView(ctx),
     IWithContext,
-    ISkinnable,
-    IScalableWithDimensions<TextView, TextViewDimensions>
+    ISkinnableWithRules<TextView, TextViewSkinningRules<TextView>>,
+    IScalableWithDimensions<TextView, TextViewDimensions<TextView>>
 {
 
-    override val dimensions = TextViewDimensions()
+    override val dimensions = TextViewDimensions<TextView>()
 
-
-    /**
-     * If `true` the accent color will be applied automatically when changing skin.
-     */
-    var applyAccentColor = true
+    override val skinningRules = TextViewSkinningRules<TextView>()
 
 
     private val icons = arrayOfNulls<Icon>(4)
-
-
-    override fun onApplySkin(skin: WorkingSkin)
-    {
-        font = ctx.resources["font", 0]!!
-
-        if (applyAccentColor)
-            fontColor = skin.data.colours.accentColor.toInt()
-    }
 
 
     override fun onApplyScale(scale: Float)

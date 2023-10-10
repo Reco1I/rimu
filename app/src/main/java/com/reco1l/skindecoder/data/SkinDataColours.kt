@@ -40,7 +40,7 @@ data class SkinDataColours(
 
     // rimu! exclusive
 
-    val accentColor: Color4 = Color4(129, 157, 212)
+    val accentColor: Color4 = Color4(0xFF9AC2FF)
 )
 {
 
