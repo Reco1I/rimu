@@ -20,7 +20,13 @@ val ConstraintLayout.constraintSet: ConstraintSet
         }
     }
 
-
+/**
+ * Set the constraints of a [View].
+ * The parent of this view needs to be a [ConstraintLayout] otherwise it'll throw [UnsupportedOperationException].
+ *
+ * The [target] will be the source for the constraints, this means for example if we pass [Anchor.RIGHT]
+ * to [leftToTarget] it will constraint the left anchor of this view to the target right anchor.
+ */
 fun View.setConstraints(
     target: View = parent as View,
     @BasicAnchor leftToTarget: Int? = null,
@@ -30,7 +36,7 @@ fun View.setConstraints(
 )
 {
     val parent = parent as? ConstraintLayout
-        ?: throw UnsupportedOperationException("This view must be attached to a ConstraintLayout.")
+        ?: throw UnsupportedOperationException("This view needs to be attached to a ConstraintLayout.")
 
     this.ensureID()
     parent.ensureID()
@@ -38,17 +44,10 @@ fun View.setConstraints(
 
     parent.constraintSet.apply {
 
-        if (leftToTarget != null)
-            connect(id, Anchor.LEFT, target.id, leftToTarget)
-
-        if (topToTarget != null)
-            connect(id, Anchor.TOP, target.id, topToTarget)
-
-        if (rightToTarget != null)
-            connect(id, Anchor.RIGHT, target.id, rightToTarget)
-
-        if (bottomToTarget != null)
-            connect(id, Anchor.BOTTOM, target.id, bottomToTarget)
+        leftToTarget?.also { connect(id, Anchor.LEFT, target.id, it) }
+        topToTarget?.also { connect(id, Anchor.TOP, target.id, it) }
+        rightToTarget?.also { connect(id, Anchor.RIGHT, target.id, it) }
+        bottomToTarget?.also { connect(id, Anchor.BOTTOM, target.id, it) }
 
         applyTo(parent)
     }
