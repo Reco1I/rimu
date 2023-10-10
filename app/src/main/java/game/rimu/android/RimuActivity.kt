@@ -6,11 +6,9 @@ import android.view.KeyEvent
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 import androidx.core.net.toFile
-import com.reco1l.framework.android.logI
 import com.reco1l.framework.data.extensionLowercase
 import com.reco1l.framework.lang.async
 import com.reco1l.framework.lang.forEachTrim
-import com.reco1l.framework.lang.getClassName
 import game.rimu.ui.scenes.SceneIntro
 
 
@@ -19,7 +17,7 @@ class RimuActivity :
     IWithContext
 {
 
-    override lateinit var ctx: RimuContext
+    override val ctx by lazy { application.baseContext as RimuContext }
 
 
     // Activity
@@ -28,25 +26,17 @@ class RimuActivity :
     {
         super.onCreate(savedInstanceState)
 
-        ctx = application.baseContext as RimuContext
         ctx.activity = this
+        ctx.engine.startUpdateThread()
 
         applyWindowFlags()
 
-        // Initializing engine
-        ctx.engine.startUpdateThread()
-
         async {
-
-            val startTime = System.currentTimeMillis()
 
             ctx.initializationTree!!.forEachTrim { ctx.it() }
             ctx.initializationTree = null
 
-            "Initialization done, took: ${System.currentTimeMillis() - startTime}ms".logI(getClassName())
-
             onManageIntent()
-
             ctx.engine.scene = SceneIntro(ctx)
         }
     }
