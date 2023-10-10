@@ -20,7 +20,7 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
     /**
      * The directory where all the resource files will be located.
      */
-    val directory = File(ctx.obbDir, RESOURCES_PATH).apply { mkdirs() }
+    val directory = File(ctx.filesDir, "resources/").apply { mkdirs() }
 
     /**
      * Bindable for `Use beatmap skin` setting.
@@ -169,14 +169,6 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
         return null
     }
 
-
-    companion object
-    {
-        /**
-         * The resource directory sub-path.
-         */
-        const val RESOURCES_PATH = "resources/"
-    }
 }
 
 
