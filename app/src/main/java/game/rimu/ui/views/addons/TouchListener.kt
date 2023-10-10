@@ -23,7 +23,6 @@ import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalable
 import game.rimu.ui.ISkinnable
-import game.rimu.ui.skinningRules
 
 
 class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
@@ -149,6 +148,8 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
         }
     }
 }
+
+fun View.setTouchHandler(block: TouchHandler.() -> Unit) = setOnTouchListener(TouchHandler(block))
 
 
 class TouchEffectDrawable :
