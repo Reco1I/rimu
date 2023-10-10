@@ -14,7 +14,7 @@ import game.rimu.ui.views.FadeImageView
 import kotlin.reflect.KClass
 
 
-class Background(ctx: RimuContext) : AttachableLayout(ctx)
+class Background(ctx: RimuContext) : RimuLayout(ctx)
 {
 
     override var layer: KClass<out LayoutLayer> = LayerBackground::class

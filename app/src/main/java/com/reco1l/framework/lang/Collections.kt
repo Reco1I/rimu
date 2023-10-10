@@ -56,3 +56,8 @@ inline fun <K, V> Iterable<K>.associateWithIndexed(valueSelector: (K, Int) -> V)
  * Store instances from a class inheritors as singletons.
  */
 fun <T : Any>instanceMapOf() = HashMap<KClass<out T>, T>()
+
+
+infix fun <T>T.safeIn(array: Array<T>?): Boolean = array != null && this in array
+
+infix fun <T>T.safeIn(list: List<T>?): Boolean = list != null && this in list

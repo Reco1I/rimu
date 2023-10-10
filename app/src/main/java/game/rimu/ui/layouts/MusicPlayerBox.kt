@@ -19,7 +19,7 @@ import game.rimu.ui.views.SeekBar
 import game.rimu.ui.views.TextView
 import kotlin.reflect.KClass
 
-class MusicPlayerBox(ctx: RimuContext) : AttachableLayout(ctx), IBeatmapObserver
+class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
 {
 
     override var layer: KClass<out LayoutLayer> = LayerOverlay::class

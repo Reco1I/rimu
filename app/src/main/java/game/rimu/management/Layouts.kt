@@ -1,16 +1,17 @@
 package game.rimu.management
 
-import android.view.ViewGroup
 import androidx.core.view.contains
 import com.reco1l.framework.android.views.attachTo
-import com.reco1l.framework.lang.instanceMapOf
+import com.reco1l.framework.android.views.removeSelf
 import com.reco1l.framework.lang.createInstance
+import com.reco1l.framework.lang.instanceMapOf
+import com.reco1l.framework.lang.safeIn
 import game.rimu.android.RimuContext
 import game.rimu.ui.LayerBackground
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayerScene
 import game.rimu.ui.LayoutLayer
-import game.rimu.ui.layouts.AttachableLayout
+import game.rimu.ui.layouts.RimuLayout
 import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.views.ConstraintLayout
 import kotlin.reflect.KClass
@@ -20,7 +21,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
 {
 
     // Storing created layouts into a map to perform auto-show/hide events.
-    private val layouts = instanceMapOf<AttachableLayout>()
+    private val layouts = instanceMapOf<RimuLayout>()
 
     // Storing layers to perform scene change events.
     private val layers = LAYERS.associateWith {
@@ -47,17 +48,14 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
      */
     fun onSceneChange(scene: RimuScene) = mainThread {
 
-        // Adding external layouts
+        // Removing layouts that doesn't correspond to new scene
+        layers.values.forEach { it.onSceneChange(scene) }
+
+        // Showing already loaded layouts that correspond to the new scene
         layouts.values.forEach {
 
-            // At this point the parents array shouldn't be null
-            if (scene::class in it.parents!!)
-            {
-                if (!it.isAttachedToWindow)
-                    it.show()
-            }
-            else if (it.isAttachedToWindow)
-                it.hide()
+            if (scene::class safeIn it.parents && !it.isAttachedToWindow)
+                it.show()
         }
     }
 
@@ -67,31 +65,38 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
     /**
      * Add a layout to the defined layer.
      */
-    fun show(layout: AttachableLayout): Boolean
+    fun show(layout: RimuLayout): Boolean
     {
-        // If the layout has parents defined means we need to restore it to later automatically show.
         if (layout.shouldRemainInMemory)
-            layouts[layout::class] = layout
-
-        // Finding layer, usually this shouldn't throw NPE.
-        val desiredLayer = layers[layout.layer]
-            ?: throw NullPointerException("Unable to find layer in the map")
-
-        // If the layout is already attached to another layer we change it.
-        if (!desiredLayer.contains(layout) && layout.parent != null)
         {
-            // Finding the current parent
-            val currentLayer = layout.parent as? ViewGroup
-                ?: throw NullPointerException("Parent isn't a ViewGroup type")
+            if (layouts[layout::class] != layout)
+                throw IllegalArgumentException("There's already loaded an instance of this unique layout.")
 
-            currentLayer.removeView(layout)
+            layouts[layout::class] = layout
         }
 
-        // Adding only if it hasn't been added yet
-        if (layout.parent == null)
-            desiredLayer.addView(layout)
+        // The layer must be declared and initialized, otherwise this will throw an NPE which should
+        // never happen.
+        layers[layout.layer]!!.also {
+
+            // Removing from previous layer if it was changed, removeSelf() will do nothing if parent
+            // is null so we don't have to check nullability here.
+            if (layout.parent != it)
+                layout.removeSelf()
+
+            if (layout.parent == null)
+                it.addView(layout)
+        }
 
         return layout.isAttachedToWindow
+    }
+
+    fun hide(layout: RimuLayout)
+    {
+        layout.removeSelf()
+
+        if (!layout.shouldRemainInMemory && layouts[layout::class] == layout)
+            layouts.remove(layout::class)
     }
 
 
@@ -103,7 +108,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
         return layers[clazz] as T
     }
 
-    operator fun <T : AttachableLayout> get(clazz: KClass<T>) = layouts[clazz] ?: let {
+    operator fun <T : RimuLayout> get(clazz: KClass<T>) = layouts[clazz] ?: let {
 
         val instance = clazz.createInstance(ctx)
 

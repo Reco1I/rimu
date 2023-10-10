@@ -26,7 +26,7 @@ import game.rimu.ui.views.addons.TouchHandler
 import game.rimu.ui.views.addons.setTouchHandler
 import kotlin.reflect.KClass
 
-class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
+class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
 {
 
     override var layer: KClass<out LayoutLayer> = LayerOverlay::class

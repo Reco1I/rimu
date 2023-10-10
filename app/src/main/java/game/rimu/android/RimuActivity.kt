@@ -36,8 +36,8 @@ class RimuActivity :
             ctx.initializationTree!!.forEachTrim { ctx.it() }
             ctx.initializationTree = null
 
-            onManageIntent()
             ctx.engine.scene = SceneIntro(ctx)
+            onManageIntent()
         }
     }
 
