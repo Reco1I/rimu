@@ -71,7 +71,7 @@ class BeatmapManager(override val ctx: RimuContext) :
         }
     }
 
-    // onBeatmapTableChange
+    // Called when the beatmap table has been changed.
     override suspend fun emit(value: List<BeatmapSet>)
     {
         musicScope.launch {
