@@ -10,15 +10,16 @@ import com.reco1l.framework.android.views.setListeners
 import com.reco1l.framework.android.views.setScale
 import com.reco1l.framework.graphics.Anchor
 import game.rimu.android.RimuContext
+import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayoutLayer
 import game.rimu.ui.dimensions
-import game.rimu.ui.skinningRules
+import game.rimu.ui.views.ImageView
 import game.rimu.ui.views.SeekBar
 import game.rimu.ui.views.TextView
 import kotlin.reflect.KClass
 
-class MusicPlayerBox(ctx: RimuContext) : AttachableLayout(ctx)
+class MusicPlayerBox(ctx: RimuContext) : AttachableLayout(ctx), IBeatmapObserver
 {
 
     override var layer: KClass<out LayoutLayer> = LayerOverlay::class
@@ -61,6 +62,63 @@ class MusicPlayerBox(ctx: RimuContext) : AttachableLayout(ctx)
     }
 
 
+    val playButton = ImageView {
+
+        skinningRules.bitmap = { ctx.resources["icon-play", 0] }
+
+        // Center horizontal
+        setConstraints(
+            leftToTarget = Anchor.LEFT,
+            rightToTarget = Anchor.RIGHT
+        )
+
+        // Below seekbar
+        setConstraints(
+            target = seekBar,
+            topToTarget = Anchor.BOTTOM
+        )
+
+        dimensions {
+            size(12)
+            marginTop = 8
+        }
+    }
+
+    val previousButton = ImageView {
+
+        skinningRules.bitmap = { ctx.resources["icon-previous", 0] }
+
+        setConstraints(
+            target = playButton,
+            topToTarget = Anchor.TOP,
+            bottomToTarget = Anchor.BOTTOM,
+            rightToTarget = Anchor.LEFT
+        )
+
+        dimensions {
+            size(12)
+            marginRight = 8
+        }
+    }
+
+    val nextButton = ImageView {
+
+        skinningRules.bitmap = { ctx.resources["icon-next", 0] }
+
+        setConstraints(
+            target = playButton,
+            topToTarget = Anchor.TOP,
+            bottomToTarget = Anchor.BOTTOM,
+            leftToTarget = Anchor.RIGHT
+        )
+
+        dimensions {
+            size(12)
+            marginLeft = 8
+        }
+    }
+
+
     init
     {
         dimensions {
@@ -74,10 +132,7 @@ class MusicPlayerBox(ctx: RimuContext) : AttachableLayout(ctx)
             padding(12)
         }
 
-        skinningRules {
-
-            backgroundColor = { data.colours.accentColor.factorInt(0.1f) }
-        }
+        skinningRules.backgroundColor = { data.colours.accentColor.factorInt(0.1f) }
     }
 
 
@@ -87,8 +142,6 @@ class MusicPlayerBox(ctx: RimuContext) : AttachableLayout(ctx)
             leftToTarget = Anchor.LEFT,
             topToTarget = Anchor.TOP
         )
-
-
 
         super.onAttachedToWindow()
 

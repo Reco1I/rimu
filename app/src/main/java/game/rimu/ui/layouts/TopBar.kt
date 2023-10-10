@@ -23,6 +23,7 @@ import game.rimu.ui.views.ImageView
 import game.rimu.ui.views.LinearLayout
 import game.rimu.ui.views.TextView
 import game.rimu.ui.views.addons.TouchHandler
+import game.rimu.ui.views.addons.setTouchHandler
 import kotlin.reflect.KClass
 
 class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
@@ -43,7 +44,7 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
 
     val backButton = Button("icon-back") {
 
-        setOnTouchListener(TouchHandler {})
+        setTouchHandler {  }
 
     } attachTo this
 
@@ -63,11 +64,10 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
 
         Button("icon-music") {
 
-            setOnTouchListener(TouchHandler {
+            setTouchHandler {
 
                 onActionUp = { ctx.layouts[MusicPlayerBox::class].alternate() }
-
-            })
+            }
 
         } attachTo this
     }
@@ -102,7 +102,6 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
     override fun onApplySkin(skin: WorkingSkin)
     {
         setBackgroundColor(skin.data.colours.accentColor.factorInt(0.15f))
-
         super.onApplySkin(skin)
     }
 
@@ -119,7 +118,6 @@ class TopBarLayout(ctx: RimuContext) : AttachableLayout(ctx)
             }
 
             skinningRules {
-
                 bitmap = { ctx.resources[texture, 0] }
                 tint = { data.colours.accentColor.toInt() }
             }
@@ -136,7 +134,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
     init
     {
         setBackgroundColor(0x26000000)
-        setOnTouchListener(TouchHandler {})
+        setTouchHandler {  }
 
         gravity = Gravity.CENTER
         orientation = HORIZONTAL
@@ -161,9 +159,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
             cornerRadius = 7f
         }
 
-        skinningRules {
-            bitmap = { ctx.resources["avatar-default", 0] }
-        }
+        skinningRules.bitmap = { ctx.resources["avatar-default", 0] }
     }
 
     private val username = TextView {
