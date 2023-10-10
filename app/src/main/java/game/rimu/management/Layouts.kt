@@ -47,13 +47,6 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
      */
     fun onSceneChange(scene: RimuScene) = mainThread {
 
-        val layer = layers[LayerScene::class]
-            ?: throw NullPointerException("Unable to find layer in the map")
-
-        // When the scene is changed all other layouts in the SCENE layer should be removed.
-        layer.removeAllViews()
-        layer.addView(scene.layout)
-
         // Adding external layouts
         layouts.values.forEach {
 
@@ -69,20 +62,6 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
     }
 
 
-    // Management
-
-    fun <T : AttachableLayout> load(clazz: KClass<T>): T
-    {
-        return clazz.createInstance(ctx).apply {
-
-            if (parents.isNullOrEmpty())
-                throw IllegalArgumentException("Layout $clazz isn't intended to remain loaded, consider instantiate it without this method.")
-
-            layouts[clazz] = this
-        }
-    }
-
-
     // Attachment
 
     /**
@@ -91,7 +70,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
     fun show(layout: AttachableLayout): Boolean
     {
         // If the layout has parents defined means we need to restore it to later automatically show.
-        if (!layout.parents.isNullOrEmpty())
+        if (layout.shouldRemainInMemory)
             layouts[layout::class] = layout
 
         // Finding layer, usually this shouldn't throw NPE.
@@ -116,12 +95,23 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
     }
 
 
-    // Getters
+    // Management
 
-    @Suppress("UNCHECKED_CAST")
-    operator fun <T : LayoutLayer> get(clazz: KClass<T>) = layers[clazz] as T
+    operator fun <T : LayoutLayer> get(clazz: KClass<T>): T
+    {
+        @Suppress("UNCHECKED_CAST")
+        return layers[clazz] as T
+    }
 
-    operator fun <T : AttachableLayout> get(clazz: KClass<T>) = layouts.getOrPut(clazz) { clazz.createInstance(ctx) }
+    operator fun <T : AttachableLayout> get(clazz: KClass<T>) = layouts[clazz] ?: let {
+
+        val instance = clazz.createInstance(ctx)
+
+        if (instance.shouldRemainInMemory)
+            layouts[clazz] = instance
+
+        instance
+    }
 
 
     companion object

@@ -41,7 +41,7 @@ class LayerBackground(ctx: RimuContext) : LayoutLayer(ctx, {
 
     ctx.initializationTree!!.add {
 
-        layouts.load(Background::class)
+        layouts[Background::class]
     }
 })
 
@@ -51,7 +51,7 @@ class LayerOverlay(ctx: RimuContext) : LayoutLayer(ctx, {
 
     ctx.initializationTree!!.add {
 
-        layouts.load(TopBarLayout::class)
+        layouts[TopBarLayout::class]
     }
 
 })

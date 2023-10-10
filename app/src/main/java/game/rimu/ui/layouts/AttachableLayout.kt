@@ -6,13 +6,14 @@ import androidx.annotation.CallSuper
 import com.reco1l.framework.android.views.removeSelf
 import game.rimu.android.RimuContext
 import game.rimu.ui.LayoutLayer
-import game.rimu.ui.dimensions
 import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.views.ConstraintLayout
 import kotlin.reflect.KClass
 
 abstract class AttachableLayout(final override val ctx: RimuContext) : ConstraintLayout(ctx)
 {
+
+    final override val dimensions = super.dimensions
 
     /**
      * Determine the layer where this layout should be added.
@@ -35,16 +36,20 @@ abstract class AttachableLayout(final override val ctx: RimuContext) : Constrain
             invalidateHideTimer()
         }
 
+    /**
+     * Determines if the layout should remain in memory, this by default is determined by if the layout
+     * has or not parent scenes.
+     */
+    open val shouldRemainInMemory
+        get() = parents.isNullOrEmpty()
+
 
     private val hideTask = { hide() }
 
 
     init
     {
-        dimensions {
-            width = MATCH_PARENT
-            height = MATCH_PARENT
-        }
+        dimensions.size(MATCH_PARENT)
 
         // Invalidating the timer
         invalidateHideTimer()
