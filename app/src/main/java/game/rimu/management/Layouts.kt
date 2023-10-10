@@ -1,6 +1,5 @@
 package game.rimu.management
 
-import androidx.core.view.contains
 import com.reco1l.framework.android.views.attachTo
 import com.reco1l.framework.android.views.removeSelf
 import com.reco1l.framework.lang.createInstance
@@ -77,7 +76,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
 
         // The layer must be declared and initialized, otherwise this will throw an NPE which should
         // never happen.
-        layers[layout.layer]!!.also {
+        layers[layout.layer]?.also {
 
             // Removing from previous layer if it was changed, removeSelf() will do nothing if parent
             // is null so we don't have to check nullability here.
@@ -86,7 +85,8 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
 
             if (layout.parent == null)
                 it.addView(layout)
-        }
+
+        } ?: throw NullPointerException("The declared layer isn't loaded into the manager.")
 
         return layout.isAttachedToWindow
     }
