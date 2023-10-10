@@ -3,6 +3,8 @@ package game.rimu.management.beatmap
 import com.reco1l.framework.lang.nextOf
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.framework.lang.previousOf
+import com.reco1l.framework.management.IObservable
+import com.reco1l.framework.management.forEachObserver
 import com.rian.osu.beatmap.parser.BeatmapDecoder
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
@@ -18,8 +20,11 @@ import kotlinx.coroutines.launch
 @OptIn(DelicateCoroutinesApi::class)
 class BeatmapManager(override val ctx: RimuContext) :
     FlowCollector<List<BeatmapSet>>,
-    IWithContext
+    IWithContext,
+    IObservable<IBeatmapObserver>
 {
+
+    override val observers = mutableListOf<IBeatmapObserver>()
 
     /**
      * The list of [BeatmapSet].
@@ -50,7 +55,7 @@ class BeatmapManager(override val ctx: RimuContext) :
 
 
     // Using a different coroutine context.
-    private val changeScope = CoroutineScope(Dispatchers.IO)
+    private val musicScope = CoroutineScope(Dispatchers.IO)
 
 
     init
@@ -69,7 +74,7 @@ class BeatmapManager(override val ctx: RimuContext) :
     // onBeatmapTableChange
     override suspend fun emit(value: List<BeatmapSet>)
     {
-        changeScope.launch {
+        musicScope.launch {
 
             sets = value
 
@@ -91,33 +96,34 @@ class BeatmapManager(override val ctx: RimuContext) :
     }
 
 
-    fun play(base: Beatmap) = changeScope.launch {
+    fun play(base: Beatmap? = current?.source) = musicScope.launch {
 
-        // Releasing previous working beatmap.
-        current?.onRelease()
+        if (base != current?.source)
+        {
+            current?.onRelease()
+            current = base?.let { onCreateWorkingBeatmap(it) }
 
-        current = onCreateWorkingBeatmap(base) ?: return@launch
-        current!!.play()
+            forEachObserver { it.onMusicChange(current) }
+        }
+
+        current?.play()
+    }
+
+    fun pause(instantly: Boolean = false) = musicScope.launch {
+
+        current?.pause(instantly)
     }
 
 
-    fun next() = changeScope.launch {
+    fun next() = musicScope.launch {
 
         current?.onRelease()
-
-        val next = songs.nextOf(current) as? Beatmap ?: return@launch
-
-        current = onCreateWorkingBeatmap(next) ?: return@launch
-        current!!.play()
+        play(songs.nextOf(current?.source))
     }
 
-    fun previous() = changeScope.launch {
+    fun previous() = musicScope.launch {
 
         current?.onRelease()
-
-        val previous = songs.previousOf(current) as? Beatmap ?: return@launch
-
-        current = onCreateWorkingBeatmap(previous) ?: return@launch
-        current!!.play()
+        play(songs.previousOf(current?.source))
     }
 }

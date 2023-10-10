@@ -4,6 +4,7 @@ import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import com.reco1l.bassbinding.stream.AudioStream
 import com.reco1l.framework.animation.animateTo
+import com.reco1l.framework.management.forEachObserver
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.timings.ControlPoint
 import game.rimu.android.IWithContext
@@ -21,6 +22,7 @@ class WorkingBeatmap(override val ctx: RimuContext, val source: Beatmap) :
     IClockObserver,
     (ControlPointCursor<out ControlPoint>) -> Unit
 {
+
 
     /**
      * Determine if the working beatmap is in gameplay mode.
@@ -101,6 +103,9 @@ class WorkingBeatmap(override val ctx: RimuContext, val source: Beatmap) :
 
         stream::volume.animateTo(ctx.settings[MUSIC_VOLUME] ?: 1f, 300).doOnStart {
             stream.play()
+
+            if (ctx.beatmaps.current == this)
+                ctx.beatmaps.forEachObserver { it.onMusicPlay() }
         }
     }
 
@@ -119,14 +124,15 @@ class WorkingBeatmap(override val ctx: RimuContext, val source: Beatmap) :
 
         stream::volume.animateTo(0f, 300).doOnEnd {
             stream.pause()
+
+            if (ctx.beatmaps.current == this)
+                ctx.beatmaps.forEachObserver { it.onMusicPause() }
         }
     }
 
     override fun onClockUpdate(msElapsedTime: Long, msDeltaTime: Long)
     {
         cursors.values.forEach { it.onClockUpdate(msElapsedTime, msDeltaTime) }
-
-
     }
 
     override fun invoke(cursor: ControlPointCursor<out ControlPoint>)
@@ -138,13 +144,13 @@ class WorkingBeatmap(override val ctx: RimuContext, val source: Beatmap) :
 
 interface IBeatmapObserver
 {
-    fun onMusicChange(newBeatmap: Beatmap)
+    fun onMusicChange(beatmap: WorkingBeatmap?) = Unit
 
-    fun onMusicPause()
+    fun onMusicPause() = Unit
 
-    fun onMusicPlay()
+    fun onMusicPlay() = Unit
 
-    fun onMusicStop()
+    fun onMusicStop() = Unit
 
-    fun onMusicEnd()
+    fun onMusicEnd() = Unit
 }
