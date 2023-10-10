@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+import androidx.core.net.toFile
 import com.reco1l.framework.android.logI
+import com.reco1l.framework.data.extensionLowercase
 import com.reco1l.framework.lang.async
 import com.reco1l.framework.lang.forEachTrim
 import com.reco1l.framework.lang.getClassName
@@ -38,17 +40,36 @@ class RimuActivity :
 
             val startTime = System.currentTimeMillis()
 
-            // Initializing
             ctx.initializationTree!!.forEachTrim { ctx.it() }
             ctx.initializationTree = null
 
             "Initialization done, took: ${System.currentTimeMillis() - startTime}ms".logI(getClassName())
 
-            // Setting intro scene
+            onManageIntent()
+
             ctx.engine.scene = SceneIntro(ctx)
         }
     }
 
+
+    // Data management
+
+    fun onManageIntent()
+    {
+        if (intent.scheme == "file")
+        {
+            val file = intent.data?.toFile() ?: return
+
+            when(file.extensionLowercase)
+            {
+                "osz" -> ctx.beatmaps.importer.import(file)
+                "osk" -> ctx.skins.importer.import(file)
+            }
+        }
+    }
+
+
+    // Activity lifecycle
 
     override fun onResume()
     {
@@ -63,6 +84,16 @@ class RimuActivity :
         super.onPause()
 
         ctx.engine.renderView.onPause()
+    }
+
+    override fun onStart()
+    {
+        super.onStart()
+
+        // If the initialization tree is null means the game already started and the activity was
+        // started from being in background.
+        if (ctx.initializationTree == null)
+            onManageIntent()
     }
 
 
