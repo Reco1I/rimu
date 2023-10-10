@@ -1,6 +1,5 @@
 package game.rimu.ui
 
-import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -120,6 +119,12 @@ open class ViewDimensions<V : View> : ScalableDimensions<V>(WRAP_CONTENT, WRAP_C
         paddingRight = value
         paddingTop = value
         paddingBottom = value
+    }
+
+    fun size(value: Int)
+    {
+        width = value
+        height = value
     }
 
 
