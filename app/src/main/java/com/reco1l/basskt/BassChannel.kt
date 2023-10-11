@@ -1,4 +1,11 @@
-package com.reco1l.bassbinding
+package com.reco1l.basskt
+
+enum class AudioChannel
+{
+    LEFT,
+    RIGHT,
+    BOTH
+}
 
 /**
  * Indicates the channel state.
@@ -12,5 +19,7 @@ enum class AudioState
     STOPPED,
 
     /**The channel is paused*/
-    PAUSED
+    PAUSED,
+
+    STALLED
 }

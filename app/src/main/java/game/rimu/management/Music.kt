@@ -2,7 +2,7 @@ package game.rimu.management
 
 import android.app.Service
 import android.content.Intent
-import com.reco1l.bassbinding.BassDevice
+import com.reco1l.basskt.BassDevice
 
 /**
  * The music service used to operate the main BASS stream.

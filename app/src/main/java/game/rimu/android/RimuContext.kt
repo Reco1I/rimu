@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Vibrator
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
+import com.reco1l.basskt.BassDevice
 import com.reco1l.framework.android.getSystemService
 import game.rimu.engine.RimuEngine
 import game.rimu.management.DatabaseManager

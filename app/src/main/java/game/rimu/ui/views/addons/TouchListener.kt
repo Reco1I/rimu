@@ -14,7 +14,7 @@ import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewConfiguration.getLongPressTimeout
 import android.view.ViewPropertyAnimator
-import com.reco1l.bassbinding.stream.SampleStream
+import com.reco1l.basskt.stream.SampleStream
 import com.reco1l.framework.android.getSystemService
 import com.reco1l.framework.android.views.animate
 import com.reco1l.framework.android.views.scale

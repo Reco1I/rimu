@@ -1,16 +1,25 @@
-package com.reco1l.bassbinding.stream
+package com.reco1l.basskt.stream
 
 import androidx.annotation.FloatRange
-import com.reco1l.bassbinding.AudioChannel
-import com.reco1l.bassbinding.AudioChannel.BOTH
-import com.reco1l.bassbinding.AudioChannel.LEFT
-import com.reco1l.bassbinding.AudioChannel.RIGHT
-import com.reco1l.bassbinding.AudioState
-import com.reco1l.bassbinding.exceptions.InvalidBassDevice
-import com.reco1l.bassbinding.exceptions.InvalidBassStream
+import com.reco1l.basskt.AudioChannel
+import com.reco1l.basskt.AudioChannel.BOTH
+import com.reco1l.basskt.AudioChannel.LEFT
+import com.reco1l.basskt.AudioChannel.RIGHT
+import com.reco1l.basskt.AudioState
+import com.reco1l.basskt.AudioState.*
+import com.reco1l.basskt.BASS_ErrorGetName
+import com.reco1l.basskt.BASS_GetAttributeName
+import com.reco1l.basskt.InvalidBassDevice
+import com.reco1l.framework.android.withLogE
+import com.reco1l.framework.lang.isLazyInitialized
+import com.reco1l.framework.lang.klass
+import com.un4seen.bass.BASS
 import com.un4seen.bass.BASS.BASS_ACTIVE_PAUSED
+import com.un4seen.bass.BASS.BASS_ACTIVE_PAUSED_DEVICE
 import com.un4seen.bass.BASS.BASS_ACTIVE_PLAYING
+import com.un4seen.bass.BASS.BASS_ACTIVE_STALLED
 import com.un4seen.bass.BASS.BASS_ACTIVE_STOPPED
+import com.un4seen.bass.BASS.BASS_ATTRIB_BUFFER
 import com.un4seen.bass.BASS.BASS_ATTRIB_VOL
 import com.un4seen.bass.BASS.BASS_CHANNELINFO
 import com.un4seen.bass.BASS.BASS_ChannelBytes2Seconds
@@ -33,9 +42,9 @@ import com.un4seen.bass.BASS.BASS_GetDevice
 import com.un4seen.bass.BASS.BASS_POS_BYTE
 import com.un4seen.bass.BASS.BASS_POS_DECODE
 import com.un4seen.bass.BASS.BASS_SYNC_END
-import com.un4seen.bass.BASS.BASS_Stop
 import com.un4seen.bass.BASS.BASS_StreamFree
 import com.un4seen.bass.BASS.FloatValue
+import com.un4seen.bass.BASS_FX
 import com.un4seen.bass.BASS_FX.BASS_ATTRIB_TEMPO
 import com.un4seen.bass.BASS_FX.BASS_ATTRIB_TEMPO_PITCH
 import com.un4seen.bass.BASS_FX.BASS_BFX_BQF
@@ -118,7 +127,9 @@ abstract class BaseStream(source: String? = null)
     val info = BASS_CHANNELINFO()
         get()
         {
-            BASS_ChannelGetInfo(id, field)
+            if (!BASS_ChannelGetInfo(id, field))
+               klass withLogE "Failed to get channel information: ${BASS_ErrorGetName()}"
+
             return field
         }
 
@@ -128,20 +139,23 @@ abstract class BaseStream(source: String? = null)
     val state: AudioState
         get() = when (BASS_ChannelIsActive(id))
         {
-            BASS_ACTIVE_STOPPED -> AudioState.STOPPED
-            BASS_ACTIVE_PAUSED -> AudioState.PAUSED
-            BASS_ACTIVE_PLAYING -> AudioState.PLAYING
-            else -> AudioState.STOPPED
+            BASS_ACTIVE_STOPPED -> STOPPED
+            BASS_ACTIVE_PAUSED, BASS_ACTIVE_PAUSED_DEVICE -> PAUSED
+            BASS_ACTIVE_PLAYING -> PLAYING
+            BASS_ACTIVE_STALLED -> STALLED
+            else -> STOPPED
         }
 
     /**
      * The current audio length in milliseconds.
      */
-    val length
-        get() = BASS_ChannelBytes2Seconds(
-            id,
-            BASS_ChannelGetLength(id, BASS_POS_BYTE)
-        ) * 1000
+    val length: Double
+        get()
+        {
+            val length = BASS_ChannelGetLength(id, BASS_POS_BYTE)
+
+            return BASS_ChannelBytes2Seconds(id, length) * 1000
+        }
 
 
     // Properties
@@ -165,16 +179,17 @@ abstract class BaseStream(source: String? = null)
     var position: Long
         set(value)
         {
-            BASS_ChannelSetPosition(
-                id,
-                BASS_ChannelSeconds2Bytes(id, value / 1000.0),
-                BASS_POS_DECODE
-            )
+            val bytes = BASS_ChannelSeconds2Bytes(id, value / 1000.0)
+
+            if (!BASS_ChannelSetPosition(id, bytes, BASS_POS_DECODE))
+                klass withLogE "Failed to change position: ${BASS_ErrorGetName()}"
         }
-        get() = (BASS_ChannelBytes2Seconds(
-            id,
-            BASS_ChannelGetPosition(id, BASS_POS_BYTE)
-        ) * 1000).toLong()
+        get()
+        {
+            val bytes = BASS_ChannelGetPosition(id, BASS_POS_BYTE)
+
+            return BASS_ChannelBytes2Seconds(id, bytes).toLong() * 1000L
+        }
 
     /**
      * Set the playback speed.
@@ -202,9 +217,20 @@ abstract class BaseStream(source: String? = null)
     var muffle: Float = 1f
         set(value)
         {
+            // Don't initialize the equalizer if not needed
+            if (value == 1f && field == 1f && !::muffleEqualizer.isLazyInitialized)
+                return
+
             setFxParameters(muffleEqualizer.apply { fGain = -12 * value })
             field = value
         }
+
+    /**
+     * Set the audio buffer length.
+     */
+    var bufferLength
+        get() = getAttribute(BASS_ATTRIB_BUFFER)
+        set(value) { setAttribute(BASS_ATTRIB_BUFFER, value) }
 
 
     // Callbacks
@@ -244,25 +270,45 @@ abstract class BaseStream(source: String? = null)
     /**
      * Binding for [BASS_ChannelStop]
      */
-    fun stop() = BASS_ChannelStop(id)
+    fun stop() = BASS_ChannelStop(id).also {
+
+        if (!it)
+            klass withLogE "Failed to stop: ${BASS_ErrorGetName()}"
+    }
 
     /**
      * Binding for [BASS_ChannelPause]
      */
-    fun pause() = BASS_ChannelPause(id)
+    fun pause() = BASS_ChannelPause(id).also {
+
+        if (!it)
+            klass withLogE "Failed to pause: ${BASS_ErrorGetName()}"
+    }
 
     /**
      * Binding for [BASS_ChannelPlay]
      */
-    fun play(restart: Boolean = false) = BASS_ChannelPlay(id, restart)
+    fun play(restart: Boolean = false) = BASS_ChannelPlay(id, restart).also {
+
+        if (!it)
+            klass withLogE "Failed to play: ${BASS_ErrorGetName()}"
+    }
 
     /**
      * Binding for [BASS_StreamFree]
      */
     open fun free(): Boolean
     {
-        BASS_Stop()
-        return BASS_StreamFree(id).also { id = 0 }
+        if (state != STOPPED || state != STALLED)
+            stop()
+
+        return BASS_StreamFree(id).also {
+
+            if (!it)
+                klass withLogE "Failed to free stream: ${BASS_ErrorGetName()}"
+
+            id = 0
+        }
     }
 
 
@@ -276,14 +322,14 @@ abstract class BaseStream(source: String? = null)
     fun getLevel(channel: AudioChannel = BOTH): Float
     {
         val level = BASS_ChannelGetLevel(id)
-        val left = (level and 0xFFFF) / Short.MAX_VALUE
-        val right = (level shr 16 and 0xFFFF) / Short.MAX_VALUE
 
         return when (channel)
         {
-            LEFT -> left.toFloat()
-            RIGHT -> right.toFloat()
-            BOTH -> (left + right) / 2f
+            // The 1f is conversion to Float
+            LEFT -> (level and 0xFFFF) / Short.MAX_VALUE * 1f
+            RIGHT -> (level shr 16 and 0xFFFF) / Short.MAX_VALUE * 1f
+
+            BOTH -> (level and 0xFFFF + level shr 16 and 0xFFFF) / 2f
         }
     }
 
@@ -294,7 +340,10 @@ abstract class BaseStream(source: String? = null)
     {
         // Not sure about the reason of this class but it's required by the BASS JNI
         val float = FloatValue()
-        BASS_ChannelGetAttribute(id, attribute, float)
+
+        if (!BASS_ChannelGetAttribute(id, attribute, float))
+            klass withLogE "Failed to get \"${BASS_GetAttributeName(attribute)}\": ${BASS_ErrorGetName()}"
+
         return float.value
     }
 
@@ -311,7 +360,11 @@ abstract class BaseStream(source: String? = null)
      */
     fun setAttribute(attribute: Int, value: Float): Boolean
     {
-        return BASS_ChannelSetAttribute(id, attribute, value)
+        return BASS_ChannelSetAttribute(id, attribute, value).also {
+
+            if (!it)
+                klass withLogE "Failed to set ${BASS_GetAttributeName(attribute)} to \"$value\": ${BASS_ErrorGetName()}"
+        }
     }
 
     /**
@@ -319,7 +372,11 @@ abstract class BaseStream(source: String? = null)
      */
     fun setFxParameters(params: Any): Boolean
     {
-        return BASS_FXSetParameters(id, params)
+        return BASS_FXSetParameters(id, params).also {
+
+            if (!it)
+                klass withLogE "Failed to set FX parameters to \"$params\" : ${BASS_ErrorGetName()}"
+        }
     }
 
     /**
@@ -337,7 +394,6 @@ abstract class BaseStream(source: String? = null)
 
 
     override fun equals(other: Any?) = other === this || other is BaseStream
-
             && other.id == id
             && other.source == source
 
@@ -352,5 +408,33 @@ abstract class BaseStream(source: String? = null)
         result = 31 * result + muffle.hashCode()
         result = 31 * result + (endCallback?.hashCode() ?: 0)
         return result
+    }
+}
+
+
+class InvalidBassStream : Exception("Failed to initialize BASS channel: ${BASS_ErrorGetName()}")
+
+
+class AudioStream(
+
+    source: String? = null,
+
+    /**
+     * Define the stream flags, by default [BASS_STREAM_DECODE] and [BASS_STREAM_PRESCAN].
+     */
+    var flags: Int = BASS.BASS_STREAM_DECODE or BASS.BASS_STREAM_PRESCAN,
+
+    /**
+     * Define the FX flags, by default [BASS_STREAM_AUTOFREE].
+     */
+    var fxFlags: Int = BASS.BASS_STREAM_AUTOFREE
+
+) : BaseStream(source)
+{
+    override fun onSourceLoad(path: String): Int
+    {
+        val id = BASS.BASS_StreamCreateFile(path, 0, 0, flags)
+
+        return BASS_FX.BASS_FX_TempoCreate(id, fxFlags)
     }
 }

@@ -1,7 +1,7 @@
 package game.rimu.management.time
 
-import com.reco1l.bassbinding.AudioState.PLAYING
-import com.reco1l.bassbinding.stream.AudioStream
+import com.reco1l.basskt.AudioState.PLAYING
+import com.reco1l.basskt.stream.AudioStream
 import com.reco1l.framework.management.IObservable
 import com.reco1l.framework.management.forEachObserver
 import org.andengine.engine.handler.IUpdateHandler

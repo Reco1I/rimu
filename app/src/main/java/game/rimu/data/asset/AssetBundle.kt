@@ -3,11 +3,11 @@ package game.rimu.data.asset
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.Typeface
-import com.reco1l.bassbinding.stream.AssetSampleStream
-import com.reco1l.bassbinding.stream.BaseStream
-import com.reco1l.bassbinding.stream.SampleStream
-import com.reco1l.framework.lang.getClassName
-import com.reco1l.framework.android.logI
+import com.caverock.androidsvg.SVG
+import com.reco1l.basskt.stream.AssetSampleStream
+import com.reco1l.basskt.stream.BaseStream
+import com.reco1l.basskt.stream.SampleStream
+import com.reco1l.framework.android.withLogI
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.framework.graphics.toBitmap
 import game.rimu.android.IWithContext
