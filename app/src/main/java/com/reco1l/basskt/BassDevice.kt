@@ -1,6 +1,7 @@
 package com.reco1l.basskt
 
 import com.reco1l.framework.android.logE
+import com.reco1l.framework.android.logI
 import com.reco1l.framework.lang.klass
 import com.un4seen.bass.BASS.BASS_CONFIG_DEV_BUFFER
 import com.un4seen.bass.BASS.BASS_CONFIG_DEV_NONSTOP
@@ -46,10 +47,10 @@ class BassDevice
         setConfig(BASS_CONFIG_DEV_BUFFER, 10)
         setConfig(BASS_CONFIG_DEV_NONSTOP, 1)
 
-        BASS_Init(-1, DEFAULT_FREQUENCY, BASS_DEVICE_LATENCY)
-
-        if (id == -1)
+        if (!BASS_Init(-1, DEFAULT_FREQUENCY, BASS_DEVICE_LATENCY))
             throw InvalidBassDevice()
+
+        klass logI "Initialized with ID: $id"
     }
 
 
