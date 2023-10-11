@@ -4,17 +4,6 @@ import kotlin.reflect.KClass
 
 
 /**
- * Improved comparator with ascending boolean property.
- */
-inline fun <T> compareBy(ascending: Boolean, crossinline selector: (T) -> Comparable<*>?) = Comparator<T> { a, b ->
-
-    if (ascending)
-        compareValuesBy(a, b, selector)
-    else
-        compareValuesBy(b, a, selector)
-}
-
-/**
  * Add an element if the passed element isn't null.
  */
 fun <T : Any> MutableCollection<T>.addIfNotNull(element: T?) = element?.let { add(it) } ?: false
@@ -66,17 +55,12 @@ fun <T>List<T>.previousOf(
 }
 
 
-inline fun <T>MutableList<T>.forEachTrim(block: (T) -> Unit)
+inline fun <T>MutableList<T>.forEachTrim(block: (T) -> Unit, reversed: Boolean = false)
 {
     while (isNotEmpty())
-        block(removeFirst())
+        block(if (reversed) removeLast() else removeFirst())
 }
 
-inline fun <T>MutableList<T>.forEachTrimEnd(block: (T) -> Unit)
-{
-    while (isNotEmpty())
-        block(removeLast())
-}
 
 inline fun <K, V> Iterable<K>.associateWithIndexed(valueSelector: (K, Int) -> V): Map<K, V>
 {
@@ -95,8 +79,6 @@ fun <T : Any>instanceMapOf() = HashMap<KClass<out T>, T>()
 
 
 infix fun <T>T.safeIn(array: Array<T>?): Boolean = array != null && this in array
-
-infix fun <T>T.safeIn(list: List<T>?): Boolean = list != null && this in list
 
 /**
  * Just an alias for function [to].
