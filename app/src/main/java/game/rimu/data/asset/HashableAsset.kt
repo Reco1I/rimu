@@ -1,6 +1,5 @@
 package game.rimu.data.asset
 
-import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import java.io.File
 
