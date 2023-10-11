@@ -44,7 +44,12 @@ data class Asset(
      * Some assets can have the same name for the same, this identifies them.
      * In animatable textures this equals to the frame.
      */
-    val variant: Int = 0
+    val variant: Int = 0,
+
+    /**
+     * The asset filetype aka extension.
+     */
+    val type: String
 
 ) : HashableAsset()
 {

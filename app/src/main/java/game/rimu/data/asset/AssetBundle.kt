@@ -35,7 +35,7 @@ sealed class AssetBundle(override val ctx: RimuContext) : IWithContext
     /**
      * Called by [get] only once if the asset wasn't tried to load yet.
      */
-    abstract fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int = 0): T?
+    abstract fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int = 0, type: String): T?
 
 
     /**
@@ -45,7 +45,7 @@ sealed class AssetBundle(override val ctx: RimuContext) : IWithContext
     {
         val asset = list.find { it.equals(key, variant) } ?: return null
 
-        return "${ctx.resources.directory.path}/${asset.qualifiedPath}/${asset.hash}"
+        return "${ctx.resources.directory.path}/${asset.qualifiedPath}"
     }
 
     /**
@@ -64,7 +64,6 @@ sealed class AssetBundle(override val ctx: RimuContext) : IWithContext
      */
     inline operator fun <reified T : Any> get(key: String, variant: Int = 0): T?
     {
-
         if (SUPPORTED_TYPES.none { T::class == it || T::class.isSubclassOf(it) })
             throw UnsupportedOperationException("${T::class.simpleName} is not supported, see ${::SUPPORTED_TYPES.name}.")
 
@@ -83,7 +82,7 @@ sealed class AssetBundle(override val ctx: RimuContext) : IWithContext
         // it was already tried to load unsuccessfully.
         if (asset !in loadedAssets)
         {
-            value = onLoadAsset(T::class, key, variant)
+            value = onLoadAsset(T::class, key, variant, asset.type)
 
             // We storing it in the map no matter if it's still null, the key will have a null mapping
             // to avoid trying to load the asset again.
@@ -154,7 +153,8 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
             hash = it,
             parent = directory,
             key = resolved.first,
-            variant = resolved.second
+            variant = resolved.second,
+            type = it.substringAfterLast('.', "")
         )
     }
 
@@ -175,7 +175,7 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int): T?
+    override fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int, type: String): T?
     {
         val path = getAssetPath(name) ?: return null
 
@@ -186,7 +186,14 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
                 SampleStream::class -> AssetSampleStream(ctx, path) as? T
 
                 // Image formats
-                Bitmap::class -> getInputStream(name, variant)?.toBitmap() as? T
+                Bitmap::class -> getInputStream(name, variant)?.use {
+
+                    if (type == "svg")
+                        SVG.getFromInputStream(it).toBitmap()
+                    else
+                        it.toBitmap()
+
+                } as? T
 
                 // Font format
                 Typeface::class -> Typeface.createFromAsset(ctx.assets, path) as? T
@@ -210,7 +217,7 @@ class ExternalAssetBundle(ctx: RimuContext, key: String) : AssetBundle(ctx)
 
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int): T?
+    override fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int, type: String): T?
     {
         val path = getAssetPath(name) ?: return null
 
@@ -221,7 +228,14 @@ class ExternalAssetBundle(ctx: RimuContext, key: String) : AssetBundle(ctx)
                 SampleStream::class -> SampleStream(path) as? T
 
                 // Image formats
-                Bitmap::class -> getInputStream(name, variant)?.toBitmap() as? T
+                Bitmap::class -> getInputStream(name, variant)?.use {
+
+                    if (type == "svg")
+                        SVG.getFromInputStream(it).toBitmap()
+                    else
+                        it.toBitmap()
+
+                } as? T
 
                 // Font format
                 Typeface::class -> Typeface.createFromFile(path) as? T
