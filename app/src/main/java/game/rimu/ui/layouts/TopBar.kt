@@ -18,7 +18,7 @@ import game.rimu.ui.scenes.ResultsScene
 import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.scenes.SceneIntro
 import game.rimu.ui.scenes.SelectorScene
-import game.rimu.ui.skinningRules
+import game.rimu.ui.views.IconButton
 import game.rimu.ui.views.ImageView
 import game.rimu.ui.views.LinearLayout
 import game.rimu.ui.views.TextView
@@ -42,11 +42,11 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
     val navigationTree = mutableListOf<() -> Boolean>()
 
 
-    val backButton = Button("icon-back") {
+    val backButton = IconButton(texture = "icon-back") {
 
         setTouchHandler {  }
 
-    } attachTo this
+    }
 
 
     val leftLayout = LinearLayout {
@@ -62,14 +62,14 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
             leftToTarget = Anchor.RIGHT
         )
 
-        Button("icon-music") {
+        IconButton(texture = "icon-music") {
 
             setTouchHandler {
 
                 onActionUp = { ctx.layouts[MusicPlayerBox::class].alternate() }
             }
 
-        } attachTo this
+        }
     }
 
     val rightLayout = LinearLayout {
@@ -83,11 +83,11 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
 
         UserBoxView(ctx) attachTo this
 
-        Button("icon-settings") {
+        IconButton(texture = "icon-settings") {
 
             setOnTouchListener(TouchHandler {})
 
-        } attachTo this
+        }
     }
 
 
@@ -106,25 +106,6 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
     }
 
 
-    inner class Button(texture: String, init: Button.() -> Unit) : ImageView(ctx)
-    {
-        init
-        {
-            dimensions {
-                height = MATCH_PARENT
-
-                paddingLeft = 24
-                paddingRight = 24
-            }
-
-            skinningRules {
-                bitmap = { ctx.resources[texture, 0] }
-                tint = { data.colours.accentColor.toInt() }
-            }
-
-            init()
-        }
-    }
 }
 
 

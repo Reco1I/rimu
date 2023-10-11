@@ -1,8 +1,11 @@
 package game.rimu.management.beatmap
 
+import com.reco1l.framework.android.logE
+import com.reco1l.framework.lang.klass
 import com.reco1l.framework.lang.nextOf
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.framework.lang.previousOf
+import com.reco1l.framework.lang.with
 import com.reco1l.framework.management.IObservable
 import com.reco1l.framework.management.forEachObserver
 import com.rian.osu.beatmap.parser.BeatmapDecoder
@@ -76,29 +79,34 @@ class BeatmapManager(override val ctx: RimuContext) :
     {
         musicScope.launch {
 
+            val wasEmpty = !::sets.isInitialized || ::sets.isInitialized && sets.isEmpty()
+
             sets = value
 
             // Distinct beatmaps by its audio filename, this is exclusively used for the music
             // player to handle beatmaps sets with multiple songs
             songs = sets.flatMap { it.beatmaps }.distinctBy { it.audio }
+
+            if (wasEmpty && sets.isNotEmpty())
+                play(songs.random())
         }
     }
 
 
     private fun onCreateWorkingBeatmap(base: Beatmap): WorkingBeatmap?
     {
-        return { WorkingBeatmap(ctx, base) }.orCatch {
-
-            // Inform beatmap load fail.
-
-            null
-        }
+       return { WorkingBeatmap(ctx, base) }.orCatch {
+           klass logE "Failed to load beatmap: ${base.hash} ${base.title}" with it
+           null
+       }
     }
 
 
     fun play(base: Beatmap? = current?.source) = musicScope.launch {
 
-        if (base != current?.source)
+        val isDifferent = base != current?.source
+
+        if (isDifferent)
         {
             current?.onRelease()
             current = base?.let { onCreateWorkingBeatmap(it) }
@@ -106,7 +114,7 @@ class BeatmapManager(override val ctx: RimuContext) :
             forEachObserver { it.onMusicChange(current) }
         }
 
-        current?.play()
+        current?.play(!isDifferent)
     }
 
     fun pause(instantly: Boolean = false) = musicScope.launch {

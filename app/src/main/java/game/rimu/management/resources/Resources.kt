@@ -1,10 +1,10 @@
 package game.rimu.management.resources
 
 import com.reco1l.framework.lang.between
-import com.reco1l.framework.lang.getClassName
 import com.reco1l.framework.android.logI
 import com.reco1l.framework.data.subDirectory
 import com.reco1l.framework.data.subFile
+import com.reco1l.framework.lang.klass
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.constants.RimuSetting.UI_USE_BEATMAP_SKIN
@@ -57,7 +57,7 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
         // 3 - As specified above the number will have its own capturing group to differentiate it.
         val regex = pattern?.let { "^($key)($it)?$".toRegex() }
 
-        "Defined allowed asset: $key - $regex".logI(getClassName())
+        klass logI "Defined allowed asset: $key - $regex"
 
         // Storing the Regex only if it has a variant pattern:
         key to regex
@@ -104,16 +104,16 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
     fun storeResource(file: File, hash: String): Boolean
     {
         val destination = directory
-            // Creating sub directory in case it doesn't exist already.
             .subDirectory("${hash[0]}/${hash[0]}${hash[1]}", true)
-            // Creating destination file.
             .subFile(hash)
 
-        // If the destination file already exits we abort renaming it.
-        if (!destination.createNewFile())
-            return destination.exists()
+        if (destination.exists() && destination.length() == file.length())
+            return true
 
-        return file.renameTo(destination)
+        destination.createNewFile()
+        file.copyTo(destination, true)
+
+        return destination.exists()
     }
 
 

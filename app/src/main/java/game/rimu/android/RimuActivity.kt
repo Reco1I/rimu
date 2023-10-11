@@ -1,12 +1,15 @@
 package game.rimu.android
 
 import android.app.Activity
+import android.content.ContentResolver.SCHEME_CONTENT
+import android.content.ContentResolver.SCHEME_FILE
+import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-import androidx.core.net.toFile
 import com.reco1l.framework.data.extensionLowercase
+import com.reco1l.framework.data.toFile
 import com.reco1l.framework.lang.async
 import com.reco1l.framework.lang.forEachTrim
 import game.rimu.ui.scenes.SceneIntro
@@ -28,6 +31,7 @@ class RimuActivity :
 
         ctx.activity = this
         ctx.engine.startUpdateThread()
+        ctx.bassDevice.start()
 
         applyWindowFlags()
 
@@ -37,24 +41,26 @@ class RimuActivity :
             ctx.initializationTree = null
 
             ctx.engine.scene = SceneIntro(ctx)
-            onManageIntent()
+            onManageIntent(intent)
         }
     }
 
 
     // Data management
 
-    fun onManageIntent()
+    fun onManageIntent(intent: Intent)
     {
-        if (intent.scheme == "file")
-        {
-            val file = intent.data?.toFile() ?: return
+        val data = intent.data ?: return
 
-            when(file.extensionLowercase)
-            {
-                "osz" -> ctx.beatmaps.importer.import(file)
-                "osk" -> ctx.skins.importer.import(file)
-            }
+        if (intent.scheme != SCHEME_CONTENT || intent.scheme != SCHEME_FILE)
+            return
+
+        val file = data.toFile(cacheDir, contentResolver)
+
+        when(file.extensionLowercase)
+        {
+            "osz" -> ctx.beatmaps.importer.import(file)
+            "osk" -> ctx.skins.importer.import(file)
         }
     }
 
@@ -65,6 +71,9 @@ class RimuActivity :
     {
         super.onResume()
 
+        ctx.bassDevice.updatePeriod = 5
+        ctx.beatmaps.current?.stream?.bufferLength = 0.1f
+
         ctx.engine.start()
         ctx.engine.renderView.onResume()
     }
@@ -73,17 +82,20 @@ class RimuActivity :
     {
         super.onPause()
 
+        ctx.bassDevice.updatePeriod = 100
+        ctx.beatmaps.current?.stream?.bufferLength = 0.5f
+
         ctx.engine.renderView.onPause()
     }
 
-    override fun onStart()
+    override fun onNewIntent(intent: Intent?)
     {
-        super.onStart()
+        super.onNewIntent(intent)
 
         // If the initialization tree is null means the game already started and the activity was
         // started from being in background.
         if (ctx.initializationTree == null)
-            onManageIntent()
+            onManageIntent(intent ?: return)
     }
 
 

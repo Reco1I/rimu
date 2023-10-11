@@ -1,6 +1,6 @@
 package com.reco1l.basskt
 
-import com.reco1l.framework.android.withLogE
+import com.reco1l.framework.android.logE
 import com.reco1l.framework.lang.klass
 import com.un4seen.bass.BASS.BASS_CONFIG_DEV_BUFFER
 import com.un4seen.bass.BASS.BASS_CONFIG_DEV_NONSTOP
@@ -56,19 +56,19 @@ class BassDevice
     fun free() = BASS_Free().also {
 
         if (!it)
-            klass withLogE "Failed to free device: ${BASS_ErrorGetName()}"
+            klass logE "Failed to free device: ${BASS_ErrorGetName()}"
     }
 
     fun start() = BASS_Start().also {
 
         if (!it)
-            klass withLogE "Failed to start device: ${BASS_ErrorGetName()}"
+            klass logE "Failed to start device: ${BASS_ErrorGetName()}"
     }
 
     fun stop() = BASS_Stop().also {
 
         if (!it)
-            klass withLogE "Failed to stop device: ${BASS_ErrorGetName()}"
+            klass logE "Failed to stop device: ${BASS_ErrorGetName()}"
     }
 
 
@@ -78,7 +78,7 @@ class BassDevice
     fun setConfig(option: Int, value: Int) = BASS_SetConfig(option, value).also {
 
         if (!it)
-            klass withLogE "Failed to set ${BASS_GetConfigName(option)} to \"$value\": ${BASS_ErrorGetName()}"
+            klass logE "Failed to set ${BASS_GetConfigName(option)} to \"$value\": ${BASS_ErrorGetName()}"
     }
 
     /**

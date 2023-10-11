@@ -7,9 +7,12 @@ import com.caverock.androidsvg.SVG
 import com.reco1l.basskt.stream.AssetSampleStream
 import com.reco1l.basskt.stream.BaseStream
 import com.reco1l.basskt.stream.SampleStream
-import com.reco1l.framework.android.withLogI
+import com.reco1l.framework.android.logI
+import com.reco1l.framework.android.logE
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.framework.graphics.toBitmap
+import com.reco1l.framework.lang.klass
+import com.reco1l.framework.lang.with
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.data.Skin
@@ -137,7 +140,7 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
 
     init
     {
-        "Created new instance.".logI(getClassName())
+        klass logI "Created new instance."
     }
 
     /**
@@ -147,7 +150,7 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
 
         val resolved = app.resources.resolveAsset(it)!!
 
-        "Resolved asset: $directory$it".logI(getClassName())
+        klass logI "Resolved asset: $directory$it"
 
         Asset(
             hash = it,
@@ -243,7 +246,10 @@ class ExternalAssetBundle(ctx: RimuContext, key: String) : AssetBundle(ctx)
                 // Unknown type
                 else -> null
             }
-        }.orCatch { null }
+        }.orCatch {
+            klass logE "Error while loading asset: $name $variant $type" with it
+            null
+        }
     }
 
 }

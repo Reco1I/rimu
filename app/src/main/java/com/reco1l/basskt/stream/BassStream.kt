@@ -10,45 +10,11 @@ import com.reco1l.basskt.AudioState.*
 import com.reco1l.basskt.BASS_ErrorGetName
 import com.reco1l.basskt.BASS_GetAttributeName
 import com.reco1l.basskt.InvalidBassDevice
-import com.reco1l.framework.android.withLogE
+import com.reco1l.framework.android.logE
 import com.reco1l.framework.lang.isLazyInitialized
 import com.reco1l.framework.lang.klass
-import com.un4seen.bass.BASS
-import com.un4seen.bass.BASS.BASS_ACTIVE_PAUSED
-import com.un4seen.bass.BASS.BASS_ACTIVE_PAUSED_DEVICE
-import com.un4seen.bass.BASS.BASS_ACTIVE_PLAYING
-import com.un4seen.bass.BASS.BASS_ACTIVE_STALLED
-import com.un4seen.bass.BASS.BASS_ACTIVE_STOPPED
-import com.un4seen.bass.BASS.BASS_ATTRIB_BUFFER
-import com.un4seen.bass.BASS.BASS_ATTRIB_VOL
-import com.un4seen.bass.BASS.BASS_CHANNELINFO
-import com.un4seen.bass.BASS.BASS_ChannelBytes2Seconds
-import com.un4seen.bass.BASS.BASS_ChannelGetAttribute
-import com.un4seen.bass.BASS.BASS_ChannelGetData
-import com.un4seen.bass.BASS.BASS_ChannelGetInfo
-import com.un4seen.bass.BASS.BASS_ChannelGetLength
-import com.un4seen.bass.BASS.BASS_ChannelGetLevel
-import com.un4seen.bass.BASS.BASS_ChannelGetPosition
-import com.un4seen.bass.BASS.BASS_ChannelIsActive
-import com.un4seen.bass.BASS.BASS_ChannelPause
-import com.un4seen.bass.BASS.BASS_ChannelPlay
-import com.un4seen.bass.BASS.BASS_ChannelSeconds2Bytes
-import com.un4seen.bass.BASS.BASS_ChannelSetAttribute
-import com.un4seen.bass.BASS.BASS_ChannelSetPosition
-import com.un4seen.bass.BASS.BASS_ChannelSetSync
-import com.un4seen.bass.BASS.BASS_ChannelStop
-import com.un4seen.bass.BASS.BASS_FXSetParameters
-import com.un4seen.bass.BASS.BASS_GetDevice
-import com.un4seen.bass.BASS.BASS_POS_BYTE
-import com.un4seen.bass.BASS.BASS_POS_DECODE
-import com.un4seen.bass.BASS.BASS_SYNC_END
-import com.un4seen.bass.BASS.BASS_StreamFree
-import com.un4seen.bass.BASS.FloatValue
-import com.un4seen.bass.BASS_FX
-import com.un4seen.bass.BASS_FX.BASS_ATTRIB_TEMPO
-import com.un4seen.bass.BASS_FX.BASS_ATTRIB_TEMPO_PITCH
-import com.un4seen.bass.BASS_FX.BASS_BFX_BQF
-import com.un4seen.bass.BASS_FX.BASS_BFX_BQF_HIGHPASS
+import com.un4seen.bass.BASS.*
+import com.un4seen.bass.BASS_FX.*
 import java.nio.ByteBuffer
 
 /**
@@ -128,7 +94,7 @@ abstract class BaseStream(source: String? = null)
         get()
         {
             if (!BASS_ChannelGetInfo(id, field))
-               klass withLogE "Failed to get channel information: ${BASS_ErrorGetName()}"
+               klass logE "Failed to get channel information: ${BASS_ErrorGetName()}"
 
             return field
         }
@@ -182,7 +148,7 @@ abstract class BaseStream(source: String? = null)
             val bytes = BASS_ChannelSeconds2Bytes(id, value / 1000.0)
 
             if (!BASS_ChannelSetPosition(id, bytes, BASS_POS_DECODE))
-                klass withLogE "Failed to change position: ${BASS_ErrorGetName()}"
+                klass logE "Failed to change position: ${BASS_ErrorGetName()}"
         }
         get()
         {
@@ -273,7 +239,7 @@ abstract class BaseStream(source: String? = null)
     fun stop() = BASS_ChannelStop(id).also {
 
         if (!it)
-            klass withLogE "Failed to stop: ${BASS_ErrorGetName()}"
+            klass logE "Failed to stop: ${BASS_ErrorGetName()}"
     }
 
     /**
@@ -282,7 +248,7 @@ abstract class BaseStream(source: String? = null)
     fun pause() = BASS_ChannelPause(id).also {
 
         if (!it)
-            klass withLogE "Failed to pause: ${BASS_ErrorGetName()}"
+            klass logE "Failed to pause: ${BASS_ErrorGetName()}"
     }
 
     /**
@@ -291,7 +257,7 @@ abstract class BaseStream(source: String? = null)
     fun play(restart: Boolean = false) = BASS_ChannelPlay(id, restart).also {
 
         if (!it)
-            klass withLogE "Failed to play: ${BASS_ErrorGetName()}"
+            klass logE "Failed to play: ${BASS_ErrorGetName()}"
     }
 
     /**
@@ -305,7 +271,7 @@ abstract class BaseStream(source: String? = null)
         return BASS_StreamFree(id).also {
 
             if (!it)
-                klass withLogE "Failed to free stream: ${BASS_ErrorGetName()}"
+                klass logE "Failed to free stream: ${BASS_ErrorGetName()}"
 
             id = 0
         }
@@ -342,7 +308,7 @@ abstract class BaseStream(source: String? = null)
         val float = FloatValue()
 
         if (!BASS_ChannelGetAttribute(id, attribute, float))
-            klass withLogE "Failed to get \"${BASS_GetAttributeName(attribute)}\": ${BASS_ErrorGetName()}"
+            klass logE "Failed to get \"${BASS_GetAttributeName(attribute)}\": ${BASS_ErrorGetName()}"
 
         return float.value
     }
@@ -363,7 +329,7 @@ abstract class BaseStream(source: String? = null)
         return BASS_ChannelSetAttribute(id, attribute, value).also {
 
             if (!it)
-                klass withLogE "Failed to set ${BASS_GetAttributeName(attribute)} to \"$value\": ${BASS_ErrorGetName()}"
+                klass logE "Failed to set ${BASS_GetAttributeName(attribute)} to \"$value\": ${BASS_ErrorGetName()}"
         }
     }
 
@@ -375,7 +341,7 @@ abstract class BaseStream(source: String? = null)
         return BASS_FXSetParameters(id, params).also {
 
             if (!it)
-                klass withLogE "Failed to set FX parameters to \"$params\" : ${BASS_ErrorGetName()}"
+                klass logE "Failed to set FX parameters to \"$params\" : ${BASS_ErrorGetName()}"
         }
     }
 
@@ -422,19 +388,19 @@ class AudioStream(
     /**
      * Define the stream flags, by default [BASS_STREAM_DECODE] and [BASS_STREAM_PRESCAN].
      */
-    var flags: Int = BASS.BASS_STREAM_DECODE or BASS.BASS_STREAM_PRESCAN,
+    var flags: Int = BASS_STREAM_DECODE or BASS_STREAM_PRESCAN,
 
     /**
      * Define the FX flags, by default [BASS_STREAM_AUTOFREE].
      */
-    var fxFlags: Int = BASS.BASS_STREAM_AUTOFREE
+    var fxFlags: Int = BASS_STREAM_AUTOFREE
 
 ) : BaseStream(source)
 {
     override fun onSourceLoad(path: String): Int
     {
-        val id = BASS.BASS_StreamCreateFile(path, 0, 0, flags)
+        val id = BASS_StreamCreateFile(path, 0, 0, flags)
 
-        return BASS_FX.BASS_FX_TempoCreate(id, fxFlags)
+        return BASS_FX_TempoCreate(id, fxFlags)
     }
 }

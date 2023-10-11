@@ -3,15 +3,12 @@ package game.rimu.android
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Handler
-import android.os.Vibrator
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import com.reco1l.basskt.BassDevice
-import com.reco1l.framework.android.getSystemService
 import game.rimu.engine.RimuEngine
 import game.rimu.management.DatabaseManager
 import game.rimu.management.LayoutManager
-import game.rimu.management.MusicService
 import game.rimu.management.SettingManager
 import game.rimu.management.beatmap.BeatmapManager
 import game.rimu.management.resources.ResourceManager
@@ -36,19 +33,6 @@ class RimuContext(base: Context) : ContextWrapper(base)
     var initializationTree: MutableList<RimuContext.() -> Unit>? = mutableListOf()
 
 
-    // Services
-
-    /**
-     * The music service.
-     */
-    lateinit var musicService: MusicService
-
-    /**
-     * The vibrator service.
-     */
-    val vibratorService = getSystemService<Vibrator>()
-
-
     // Engine
 
     /**
@@ -60,6 +44,11 @@ class RimuContext(base: Context) : ContextWrapper(base)
      * The game engine.
      */
     val engine by lazy { RimuEngine(this) }
+
+    /**
+     * The BASS device.
+     */
+    val bassDevice by lazy { BassDevice() }
 
 
     // Managers

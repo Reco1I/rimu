@@ -114,7 +114,13 @@ abstract class ImportTask(override val ctx: RimuContext, protected var root: Fil
                 ctx.resources.resolveAsset(file.name) ?: return@forEachRecursive
 
             // Adding to the pending files list.
-            pending[file] = Asset(file.md5, parentKey!!, pair.first, pair.second)
+            pending[file] = Asset(
+                hash = file.md5,
+                parent = parentKey!!,
+                key = pair.first,
+                variant = pair.second,
+                type = file.extensionLowercase
+            )
         }
 
         if (isCancelled)

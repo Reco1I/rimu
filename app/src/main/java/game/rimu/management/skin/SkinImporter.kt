@@ -1,5 +1,6 @@
 package game.rimu.management.skin
 
+import com.reco1l.framework.lang.orCatch
 import com.reco1l.skindecoder.SkinDecoder
 import com.reco1l.skindecoder.data.SkinData
 import game.rimu.android.RimuContext

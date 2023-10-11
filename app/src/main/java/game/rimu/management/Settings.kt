@@ -2,7 +2,7 @@ package game.rimu.management
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.reco1l.framework.lang.getClassName
+import com.reco1l.framework.lang.klass
 import com.reco1l.framework.management.IMapObservable
 import com.reco1l.framework.management.bindables.Bindable
 import com.reco1l.framework.management.bindables.IBindableValueProvider
@@ -75,7 +75,8 @@ class SettingManager(override val ctx: RimuContext) :
             if (value is Set<*>)
             {
                 value as? Set<String>
-                    ?: throw IllegalArgumentException("Unsupported value type: ${value.getClassName()}")
+                    ?:
+                    throw IllegalArgumentException("Unsupported value type: ${value.klass}")
 
                 putStringSet(key, value)
             }
@@ -88,7 +89,7 @@ class SettingManager(override val ctx: RimuContext) :
                 is Boolean -> putBoolean(key, value)
                 is String -> putString(key, value)
 
-                else -> throw IllegalArgumentException("Unsupported value type: ${value.getClassName()}")
+                else -> throw IllegalArgumentException("Unsupported value type: ${value.klass}")
             }
             apply()
         }

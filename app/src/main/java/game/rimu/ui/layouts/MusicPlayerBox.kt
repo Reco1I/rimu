@@ -1,8 +1,10 @@
 package game.rimu.ui.layouts
 
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.BounceInterpolator
 import android.view.animation.DecelerateInterpolator
+import com.reco1l.basskt.AudioState
 import com.reco1l.framework.android.views.animate
 import com.reco1l.framework.android.views.scale
 import com.reco1l.framework.android.views.setConstraints
@@ -11,12 +13,14 @@ import com.reco1l.framework.android.views.setScale
 import com.reco1l.framework.graphics.Anchor
 import game.rimu.android.RimuContext
 import game.rimu.management.beatmap.IBeatmapObserver
+import game.rimu.management.beatmap.WorkingBeatmap
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayoutLayer
 import game.rimu.ui.dimensions
-import game.rimu.ui.views.ImageView
+import game.rimu.ui.views.IconButton
 import game.rimu.ui.views.SeekBar
 import game.rimu.ui.views.TextView
+import game.rimu.ui.views.addons.setTouchHandler
 import kotlin.reflect.KClass
 
 class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
@@ -27,13 +31,13 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
 
     val titleText = TextView {
 
-        text = "Title"
+        text = "Unknown"
 
     }
 
     val artistText = TextView {
 
-        text = "Artist"
+        text = "Unknown"
 
         setConstraints(
             target = titleText,
@@ -62,9 +66,7 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
     }
 
 
-    val playButton = ImageView {
-
-        skinningRules.bitmap = { ctx.resources["icon-play", 0] }
+    val playButton = IconButton(texture = "icon-play") {
 
         // Center horizontal
         setConstraints(
@@ -79,14 +81,25 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         )
 
         dimensions {
-            size(12)
             marginTop = 8
+            size(50)
+            padding(10)
+        }
+
+        setTouchHandler {
+            onActionUp = {
+                ctx.beatmaps.current?.apply {
+
+                    if (stream.state == AudioState.PLAYING)
+                        play()
+                    else
+                        pause()
+                }
+            }
         }
     }
 
-    val previousButton = ImageView {
-
-        skinningRules.bitmap = { ctx.resources["icon-previous", 0] }
+    val previousButton = IconButton(texture = "icon-previous") {
 
         setConstraints(
             target = playButton,
@@ -96,14 +109,17 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         )
 
         dimensions {
-            size(12)
             marginRight = 8
+            size(50)
+            padding(10)
+        }
+
+        setTouchHandler {
+            onActionUp = { ctx.beatmaps.previous() }
         }
     }
 
-    val nextButton = ImageView {
-
-        skinningRules.bitmap = { ctx.resources["icon-next", 0] }
+    val nextButton = IconButton(texture = "icon-next") {
 
         setConstraints(
             target = playButton,
@@ -113,8 +129,13 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         )
 
         dimensions {
-            size(12)
             marginLeft = 8
+            size(50)
+            padding(10)
+        }
+
+        setTouchHandler {
+            onActionUp = { ctx.beatmaps.next() }
         }
     }
 
@@ -123,7 +144,7 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
     {
         dimensions {
             width = 200
-            height = 200
+            height = WRAP_CONTENT
             cornerRadius = 12f
 
             marginTop = ctx.layouts[TopBarLayout::class].dimensions.height + 10
@@ -133,8 +154,20 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         }
 
         skinningRules.backgroundColor = { data.colours.accentColor.factorInt(0.1f) }
+
+        ctx.beatmaps.bindObserver(observer = this)
     }
 
+
+    override fun onMusicChange(beatmap: WorkingBeatmap?)
+    {
+        mainThread {
+
+            titleText.text = beatmap?.data?.metadata?.titleUnicode ?: "Unknown"
+            artistText.text = beatmap?.data?.metadata?.artistUnicode ?: "Unknown"
+
+        }
+    }
 
     override fun onAttachedToWindow()
     {
@@ -144,6 +177,7 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         )
 
         super.onAttachedToWindow()
+        onMusicChange(ctx.beatmaps.current)
 
         alpha = 0f
         setScale(0.8f)

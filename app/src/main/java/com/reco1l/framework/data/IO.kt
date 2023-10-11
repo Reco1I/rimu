@@ -1,7 +1,14 @@
 package com.reco1l.framework.data
 
+import android.content.ContentResolver
+import android.content.ContentResolver.SCHEME_CONTENT
+import android.content.ContentResolver.SCHEME_FILE
+import android.net.Uri
+import android.provider.OpenableColumns.DISPLAY_NAME
+import androidx.core.net.toFile
 import org.apache.commons.codec.digest.DigestUtils
 import java.io.File
+import java.io.InputStream
 import java.io.IOException
 
 
@@ -68,14 +75,6 @@ fun File.getFiles(vararg extensions: String? = emptyArray()): Array<File>?
 }
 
 /**
- * Opposite to [getFiles] where only sub-folders are listed.
- */
-fun File.getFolders(namePredicate: ((String) -> Boolean)? = null): Array<out File>?
-{
-    return listFiles { file -> file.isDirectory && (namePredicate == null || namePredicate(file.name)) }
-}
-
-/**
  * Iterate all over the files inside the directory.
  */
 fun File.forEach(
@@ -129,4 +128,49 @@ operator fun Array<out File>.get(name: String, ignoreCase: Boolean = true) = fin
  */
 operator fun List<File>.get(name: String, ignoreCase: Boolean = true) = find {
     it.name.equals(name, ignoreCase)
+}
+
+
+fun Uri.toFile(parent: File, resolver: ContentResolver): File
+{
+    if (scheme == SCHEME_FILE)
+        return toFile()
+
+    return File(parent, resolveFilename(resolver)).apply {
+
+        writeFromContentUri(this@toFile, resolver)
+    }
+}
+
+/**
+ * Write a file from an URI with [content][SCHEME_CONTENT] scheme.
+ *
+ * Because of Android's safe storage we can't access to these files directly, we have to read their
+ * contents from an [InputStream]. This method internally copies the content given by the URI input
+ * stream to this file.
+ *
+ * If a [File] object is not necessary consider using [InputStream] instead. Also consider using [Uri.toFile]
+ * instead if you sure that the URI scheme is [SCHEME_FILE].
+ */
+fun File.writeFromContentUri(uri: Uri, resolver: ContentResolver)
+{
+    if (uri.scheme != SCHEME_CONTENT)
+        throw IllegalArgumentException("The URI scheme does not equal \"content\".")
+
+    delete()
+    createNewFile()
+
+    resolver.openInputStream(uri)?.use { outputStream().use { out -> it.copyTo(out) } }
+}
+
+fun Uri.resolveFilename(resolver: ContentResolver): String
+{
+    if (scheme != SCHEME_CONTENT)
+        throw IllegalArgumentException("The URI scheme does not equal \"content\".")
+
+    return resolver.query(this, null, null, null, null)!!.use {
+
+        it.moveToFirst()
+        it.getString(it.getColumnIndexOrThrow(DISPLAY_NAME))
+    }
 }
