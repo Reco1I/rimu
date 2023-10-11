@@ -35,7 +35,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
         ctx.initializationTree!!.add(0) {
 
             // Setting as content view
-            activity.setContentView(this@LayoutManager)
+            mainThread { activity.setContentView(this@LayoutManager) }
         }
     }
 
