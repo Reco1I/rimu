@@ -85,7 +85,7 @@ class BeatmapImportTask internal constructor(ctx: RimuContext, root: File) : Imp
         // osu!std mode
         if (file.isExtension("osu"))
         {
-            val data = decoder.decode(file, false) ?: return null
+            val data = decoder.decode(file, false)
 
             data.metadata.apply {
 
