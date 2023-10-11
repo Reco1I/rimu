@@ -62,8 +62,8 @@ fun File.subFile(name: String, create: Boolean = true): File
  */
 fun File.getFiles(vararg extensions: String? = emptyArray()): Array<File>?
 {
-    return listFiles { _ ->
-        (extensions.isEmpty() || extensions.any { it.equals(extension, true) })
+    return listFiles { file ->
+        extensions.isEmpty() || extensions.any { it.equals(file.extension, true) }
     }
 }
 
@@ -104,7 +104,7 @@ fun File.forEachRecursive(
     val action = { file: File ->
 
         if (file.isDirectory)
-            file.forEachRecursive(*extensions, selector = selector) { block(it) }
+            file.forEachRecursive(*extensions, selector = selector, block = block)
         else
             block(file)
     }
