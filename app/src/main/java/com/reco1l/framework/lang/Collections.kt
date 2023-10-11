@@ -21,13 +21,49 @@ fun <T : Any> MutableCollection<T>.addIfNotNull(element: T?) = element?.let { ad
 
 /**
  * Returns the next element from the passed element or `null` if there's no next element.
+ *
+ * Note: This will never return the same object than the passed in [element].
+ *
+ * @param clampToBounds If `true` when reaching the max bound it'll return `null` instead of truncating
+ * to first element.
  */
-fun <T>List<T>.nextOf(element: T?) = element?.let { getOrNull((indexOf(it) + 1) % size) }
+fun <T>List<T>.nextOf(
+    element: T?,
+    clampToBounds: Boolean = true
+): T?
+{
+    var index = indexOf(element ?: return null) + 1
+
+    if (clampToBounds)
+        index = index.coerceAtMost(lastIndex)
+    else
+        index %= size
+
+    return get(index).takeUnless { it == element }
+}
 
 /**
  * Returns the previous element from the passed element or `null` if there's no previous element.
+ *
+ * Note: This will never return the same object than the passed in [element].
+ *
+ * @param clampToBounds If `true` when reaching the min bound it'll return `null` instead of skipping
+ * to last element.
  */
-fun <T>List<T>.previousOf(element: T?) = element?.let { getOrNull((indexOf(it) - 1) % size) }
+fun <T>List<T>.previousOf(
+    element: T?,
+    clampToBounds: Boolean = true
+): T?
+{
+    var index = indexOf(element ?: return null) - 1
+
+    index = if (clampToBounds)
+        index.coerceAtLeast(0)
+    else
+        if (index < 0) lastIndex else index
+
+    return get(index).takeUnless { it == element }
+}
 
 
 inline fun <T>MutableList<T>.forEachTrim(block: (T) -> Unit)
