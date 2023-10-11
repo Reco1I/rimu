@@ -24,13 +24,14 @@ fun <T : Any> KClass<T>.createInstance(vararg parameters: Any?): T
     return constructor.callBy(constructor.parameters.associateWithIndexed { _, i -> parameters[i] })
 }
 
-
+/**
+ * Returns `true` if the property is lazy initialized.
+ */
 val KProperty0<*>.isLazyInit: Boolean
     get() = getDelegate() is Lazy<*>
 
 /**
- * Returns `true` if the lazy property was initialized, `false` if it was not or if it's not a lazy
- * property.
+ * Returns `true` if the lazy property was initialized or if it's not a lazy property.
  */
 val KProperty0<*>.isLazyInitialized: Boolean
-    get() = (getDelegate() as? Lazy<*>)?.isInitialized() ?: false
+    get() = (getDelegate() as? Lazy<*>)?.isInitialized() ?: true
