@@ -5,9 +5,10 @@ import kotlin.reflect.KProperty0
 import kotlin.reflect.full.createInstance
 
 /**
- * Equivalent of [Class.getSimpleName]. 
+ * [javaClass]
  */
-fun Any?.getClassName() = if (this == null) "Null" else this::class.simpleName ?: "Null"
+val Any.klass
+    get() = this.javaClass.kotlin
 
 /**
  * Create a new instance with the given parameters.
