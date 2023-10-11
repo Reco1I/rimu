@@ -28,7 +28,7 @@ abstract class HashableAsset
      * [qualified path][qualifiedPath].
      */
     val qualifiedPath
-        get() = "${hash[0]}/${hash[0]}${hash[1]}"
+        get() = "${hash[0]}/${hash[0]}${hash[1]}/$hash"
 
 
     /**
