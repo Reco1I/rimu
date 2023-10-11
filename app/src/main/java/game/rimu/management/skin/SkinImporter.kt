@@ -103,7 +103,7 @@ class SkinImportTask internal constructor(ctx: RimuContext, root: File) : Import
     {
         // Inserting in the asset database, if it returns -1 means the asset already exists on
         // the database.
-        is Asset -> ctx.database.insertAsset(asset) > 0
+        is Asset -> { { ctx.database.insertAsset(asset) > 0 }.orCatch { false } }
 
         // This shouldn't never happen.
         else -> false

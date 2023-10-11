@@ -4,6 +4,7 @@ import com.reco1l.framework.lang.addIfNotNull
 import com.reco1l.framework.data.extensionLowercase
 import com.reco1l.framework.data.isExtension
 import com.reco1l.framework.data.md5
+import com.reco1l.framework.lang.orCatch
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.parser.BeatmapDecoder
 import game.rimu.android.RimuContext
@@ -106,7 +107,7 @@ class BeatmapImportTask internal constructor(ctx: RimuContext, root: File) : Imp
     {
         // Inserting in the beatmap database, in this case the returning Int from insertBeatmap()
         // will always be greater than 0 because its conflict strategy is REPLACE.
-        is Beatmap -> ctx.database.insertBeatmap(asset) > 0
+        is Beatmap -> { { ctx.database.insertBeatmap(asset) > 0 }.orCatch { false } }
 
         else -> super.onInsertAsset(file, asset)
     }

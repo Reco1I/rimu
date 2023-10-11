@@ -4,6 +4,7 @@ import com.reco1l.framework.data.extensionLowercase
 import com.reco1l.framework.data.forEachRecursive
 import com.reco1l.framework.data.md5
 import com.reco1l.framework.data.subDirectory
+import com.reco1l.framework.lang.orCatch
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.data.asset.Asset
@@ -165,7 +166,7 @@ abstract class ImportTask(override val ctx: RimuContext, protected var root: Fil
     {
         // Inserting in the asset database, if it returns -1 means the asset already exists on
         // the database.
-        is Asset -> ctx.database.insertAsset(asset) > 0
+        is Asset -> { { ctx.database.insertAsset(asset) > 0 }.orCatch { false } }
 
         // This shouldn't never happen.
         else -> false
