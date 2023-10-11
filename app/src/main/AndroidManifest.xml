@@ -27,19 +27,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!--OSZ and OSK intent filter, this will allow file explorers to open these types of files
-            with this app-->
+            <!--OSZ and OSK-->
+
             <intent-filter>
-
                 <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.intent.action.EDIT" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:scheme="file"/>
-                <data android:mimeType="application/zip"/>
-                <data android:pathPattern=".*\\.(osz|osk)" />
-
+                <data android:host="*" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\.osz|.*\.osk" />
+                <data android:scheme="content" />
             </intent-filter>
 
         </activity>
