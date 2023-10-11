@@ -22,12 +22,12 @@ fun <T : Any> MutableCollection<T>.addIfNotNull(element: T?) = element?.let { ad
 /**
  * Returns the next element from the passed element or `null` if there's no next element.
  */
-fun <T>List<T>.nextOf(element: T?) = element?.let { getOrNull(indexOf(it) + 1) }
+fun <T>List<T>.nextOf(element: T?) = element?.let { getOrNull((indexOf(it) + 1) % size) }
 
 /**
  * Returns the previous element from the passed element or `null` if there's no previous element.
  */
-fun <T>List<T>.previousOf(element: T?) = element?.let { getOrNull(indexOf(it) - 1) }
+fun <T>List<T>.previousOf(element: T?) = element?.let { getOrNull((indexOf(it) - 1) % size) }
 
 
 inline fun <T>MutableList<T>.forEachTrim(block: (T) -> Unit)
