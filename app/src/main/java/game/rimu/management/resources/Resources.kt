@@ -20,7 +20,7 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
     /**
      * The directory where all the resource files will be located.
      */
-    val directory = File(ctx.filesDir, "resources/").apply { mkdirs() }
+    val directory = File(ctx.getExternalFilesDir(null), "resources/").apply { mkdirs() }
 
     /**
      * Bindable for `Use beatmap skin` setting.
