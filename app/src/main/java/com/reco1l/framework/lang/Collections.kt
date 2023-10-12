@@ -18,17 +18,17 @@ fun <T : Any> MutableCollection<T>.addIfNotNull(element: T?) = element?.let { ad
  */
 fun <T>List<T>.nextOf(
     element: T?,
-    clampToBounds: Boolean = true
+    clampToBounds: Boolean = false
 ): T?
 {
     var index = indexOf(element ?: return null) + 1
 
-    if (clampToBounds)
-        index = index.coerceAtMost(lastIndex)
+    index = if (clampToBounds)
+        index.coerceAtMost(lastIndex)
     else
-        index %= size
+        if (index > lastIndex) 0 else index
 
-    return get(index).takeUnless { it == element }
+    return getOrNull(index)
 }
 
 /**
@@ -51,11 +51,11 @@ fun <T>List<T>.previousOf(
     else
         if (index < 0) lastIndex else index
 
-    return get(index).takeUnless { it == element }
+    return getOrNull(index)
 }
 
 
-inline fun <T>MutableList<T>.forEachTrim(block: (T) -> Unit, reversed: Boolean = false)
+inline fun <T>MutableList<T>.forEachTrim(reversed: Boolean = false, block: (T) -> Unit)
 {
     while (isNotEmpty())
         block(if (reversed) removeLast() else removeFirst())
