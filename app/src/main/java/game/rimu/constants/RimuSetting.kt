@@ -2,7 +2,7 @@ package game.rimu.constants
 
 import game.rimu.data.Skin
 
-enum class RimuSetting(val default: Any? = null)
+enum class RimuSetting(val default: Any)
 {
 
     // UI
