@@ -83,7 +83,7 @@ abstract class ImportTask(override val ctx: RimuContext, protected var root: Fil
         // Storing files and assets in a map before inserting the asset into the database and before
         // moving the file into the internal filesystem, this will prevent files and assets being
         // added after premature cancellation in the process.
-        val pending = mutableMapOf<File, HashableAsset>()
+        val pending = mutableListOf<Pair<File, HashableAsset>>()
 
         // Listing dependency file paths that should be imported along with the beatmap/skin.
         val dependencies = mutableListOf<String>()
@@ -94,33 +94,42 @@ abstract class ImportTask(override val ctx: RimuContext, protected var root: Fil
             if (isCancelled)
                 return@forEachRecursive
 
+            val asset: HashableAsset?
+
             if (file.extensionLowercase in requiresManagementFiletypes)
             {
                 // Computing the file, if this returns an HashableAsset we're adding it to the pending
                 // files list to later import it.
-                onComputeFile(file, dependencies)?.let { pending[file] = it }
-                return@forEachRecursive
+                asset = onComputeFile(file, dependencies)
+            }
+            else
+            {
+                // Resolving resource key and variant number according to file relative path from root.
+                val (key, variant) = when(file.toRelativeString(root))
+                {
+                    // The file path corresponds to a dependency so we return its filename without
+                    // extension as key and variant to always 0.
+                    in dependencies -> file.nameWithoutExtension to 0
+
+                    // Checking if the filename is ever used by the game.
+                    else -> ctx.resources.resolveAsset(file.name) ?: return@forEachRecursive
+                }
+
+                asset = Asset(
+                    hash = file.md5,
+                    parent = parentKey!!,
+                    key = key,
+                    variant = variant,
+                    type = file.extensionLowercase
+                )
             }
 
-            // Getting the relative filepath from root, this is used to check if the file path corresponds
-            // to a dependency.
-            val relativePath = file.toRelativeString(root)
-
-            // Resolving resource key and variant number, if the file path corresponds to a dependency
-            // its filename without extension is set as key and its variant will always be 0
-            val pair = if (relativePath in dependencies)
-                file.nameWithoutExtension to 0
-            else
-                ctx.resources.resolveAsset(file.name) ?: return@forEachRecursive
-
-            // Adding to the pending files list.
-            pending[file] = Asset(
-                hash = file.md5,
-                parent = parentKey!!,
-                key = pair.first,
-                variant = pair.second,
-                type = file.extensionLowercase
-            )
+            // Inserting every other asset that doesn't require management at the beginning because
+            // filetypes that requires management usually are attached to a different database table
+            // which may be or not being observed and in case of Beatmaps if we update the songs list
+            // but the song file isn't there yet the audio filename will point to an non-existent file.
+            if (asset != null)
+                pending.add(0, file to asset)
         }
 
         if (isCancelled)
