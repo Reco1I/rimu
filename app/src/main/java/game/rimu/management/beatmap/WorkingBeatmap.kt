@@ -98,36 +98,40 @@ class WorkingBeatmap(override val ctx: RimuContext, val source: Beatmap) :
     /**
      * Play the beatmap.
      */
-    fun play(restart: Boolean = false)
+    fun play(restart: Boolean = false, withAnimation: Boolean = true)
     {
         stream.volume = 0f
 
-        mainThread {
-            stream.play(restart)
-            stream.bufferLength = if (ctx.engine.isRunning) 0.1f else 0.5f
+        stream.play(restart)
+        stream.bufferLength = if (ctx.engine.isRunning) 0.1f else 0.5f
 
-            if (ctx.beatmaps.current == this)
-                ctx.beatmaps.forEachObserver { it.onMusicPlay() }
+        if (ctx.beatmaps.current == this)
+            ctx.beatmaps.forEachObserver { it.onMusicPlay() }
 
-            stream::volume.animateTo(ctx.settings[MUSIC_VOLUME] ?: 1f, 300)
+        if (!withAnimation)
+        {
+            stream.volume = ctx.settings[MUSIC_VOLUME]
+            return
         }
+
+        mainThread { stream::volume.animateTo(ctx.settings[MUSIC_VOLUME], 300) }
     }
 
     /**
      * Pause the beatmap.
      *
-     * @param instantly If `true` the pause animation will be skipped.
+     * @param withAnimation If `true` the pause animation will be skipped.
      */
-    fun pause(instantly: Boolean = false)
+    fun pause(withAnimation: Boolean = true)
     {
-        if (instantly)
+        if (!withAnimation)
         {
             stream.pause()
             return
         }
 
         mainThread {
-            stream::volume.animateTo(0f, 300).doOnEnd {
+            stream::volume.animateTo(0f, 200).doOnEnd {
                 stream.pause()
 
                 if (ctx.beatmaps.current == this)
