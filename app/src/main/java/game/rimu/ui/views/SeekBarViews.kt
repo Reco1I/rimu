@@ -1,11 +1,9 @@
 package game.rimu.ui.views
 
-import android.graphics.Canvas
 import android.graphics.drawable.ShapeDrawable
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatSeekBar
 import com.reco1l.framework.graphics.LayerDrawable
-import com.reco1l.framework.graphics.RoundShape
 import com.reco1l.framework.graphics.clip
 import com.reco1l.framework.graphics.setRadius
 import com.reco1l.framework.graphics.setSize
@@ -33,7 +31,7 @@ fun <T> T.SeekBar(
     it.block()
 }
 
-class SeekBar(override val ctx: RimuContext) :
+open class SeekBar(override val ctx: RimuContext) :
     AppCompatSeekBar(ctx),
     IWithContext,
     IScalableWithDimensions<SeekBar, SeekBarDimensions<SeekBar>>,
