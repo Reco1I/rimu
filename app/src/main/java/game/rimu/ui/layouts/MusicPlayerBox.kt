@@ -66,7 +66,7 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
     }
 
 
-    val playButton = IconButton(texture = "icon-play") {
+    val playButton = IconButton(texture = "icon-pause") {
 
         // Center horizontal
         setConstraints(
@@ -83,7 +83,6 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         dimensions {
             marginTop = 8
             size(50)
-            padding(10)
         }
 
         setTouchHandler {
@@ -91,9 +90,17 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
                 ctx.beatmaps.current?.apply {
 
                     if (stream.state == AudioState.PLAYING)
-                        play()
-                    else
+                    {
                         pause()
+                        skinningRules.bitmap = { ctx.resources["icon-play", 0] }
+                    }
+                    else
+                    {
+                        play()
+                        skinningRules.bitmap = { ctx.resources["icon-pause", 0] }
+                    }
+
+                    invalidateSkin()
                 }
             }
         }
@@ -111,7 +118,6 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         dimensions {
             marginRight = 8
             size(50)
-            padding(10)
         }
 
         setTouchHandler {
@@ -131,7 +137,6 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         dimensions {
             marginLeft = 8
             size(50)
-            padding(10)
         }
 
         setTouchHandler {
@@ -163,8 +168,8 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
     {
         mainThread {
 
-            titleText.text = beatmap?.data?.metadata?.titleUnicode ?: "Unknown"
-            artistText.text = beatmap?.data?.metadata?.artistUnicode ?: "Unknown"
+            titleText.text = beatmap?.data?.metadata?.title ?: "Unknown"
+            artistText.text = beatmap?.data?.metadata?.artist ?: "Unknown"
 
         }
     }
