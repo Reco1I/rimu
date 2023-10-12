@@ -30,7 +30,8 @@ abstract class BaseStream(source: String? = null)
     var source: String? = source
         set(value)
         {
-            free()
+            if (id != 0)
+                free()
 
             if (value != null)
             {
@@ -105,11 +106,10 @@ abstract class BaseStream(source: String? = null)
     val state: AudioState
         get() = when (BASS_ChannelIsActive(id))
         {
-            BASS_ACTIVE_STOPPED -> STOPPED
-            BASS_ACTIVE_PAUSED, BASS_ACTIVE_PAUSED_DEVICE -> PAUSED
+            BASS_ACTIVE_PAUSED -> PAUSED
             BASS_ACTIVE_PLAYING -> PLAYING
-            BASS_ACTIVE_STALLED -> STALLED
-            else -> STOPPED
+            BASS_ACTIVE_STOPPED -> STOPPED
+            else -> STALLED
         }
 
     /**
