@@ -88,7 +88,7 @@ class BeatmapManager(override val ctx: RimuContext) :
             songs = sets.flatMap { set -> set.beatmaps.distinctBy { it.audio } }
 
             if (wasEmpty && sets.isNotEmpty())
-                play(songs.random())
+                setCurrent(songs.random(), true)
         }
     }
 
@@ -102,36 +102,19 @@ class BeatmapManager(override val ctx: RimuContext) :
     }
 
 
-    fun play(base: Beatmap? = current?.source) = musicScope.launch {
+    fun setCurrent(base: Beatmap, forceReload: Boolean = false) = musicScope.launch {
 
-        val isDifferent = base != current?.source
-
-        if (isDifferent)
-        {
-            current?.onRelease()
-            current = base?.let { onCreateWorkingBeatmap(it) }
-
-            forEachObserver { it.onMusicChange(current) }
-        }
-
-        current?.play(!isDifferent)
-    }
-
-    fun pause(instantly: Boolean = false) = musicScope.launch {
-
-        current?.pause(instantly)
-    }
-
-
-    fun next() = musicScope.launch {
+        if (base == current?.source && !forceReload)
+            return@launch
 
         current?.onRelease()
-        play(songs.nextOf(current?.source))
+        current = onCreateWorkingBeatmap(base)
+
+        forEachObserver { it.onMusicChange(current) }
+        current?.play()
     }
 
-    fun previous() = musicScope.launch {
+    fun next() = songs.nextOf(current?.source, false)?.let { setCurrent(it) }
 
-        current?.onRelease()
-        play(songs.previousOf(current?.source))
-    }
+    fun previous() = songs.previousOf(current?.source, false)?.let { setCurrent(it) }
 }
