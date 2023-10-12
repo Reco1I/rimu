@@ -52,7 +52,7 @@ class RimuActivity :
     {
         val data = intent.data ?: return
 
-        if (intent.scheme != SCHEME_CONTENT || intent.scheme != SCHEME_FILE)
+        if (intent.scheme != SCHEME_CONTENT && intent.scheme != SCHEME_FILE)
             return
 
         val file = data.toFile(cacheDir, contentResolver)
