@@ -96,7 +96,7 @@ class BeatmapManager(override val ctx: RimuContext) :
     private fun onCreateWorkingBeatmap(base: Beatmap): WorkingBeatmap?
     {
        return { WorkingBeatmap(ctx, base) }.orCatch {
-           klass logE "Failed to load beatmap: ${base.hash} ${base.title}" with it
+           klass logE ("Failed to load beatmap: ${base.hash} ${base.title}" with it)
            null
        }
     }

@@ -247,7 +247,7 @@ class ExternalAssetBundle(ctx: RimuContext, key: String) : AssetBundle(ctx)
                 else -> null
             }
         }.orCatch {
-            klass logE "Error while loading asset: $name $variant $type" with it
+            klass logE ("Error while loading asset: $name $variant $type" with it)
             null
         }
     }
