@@ -14,6 +14,8 @@ import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewConfiguration.getLongPressTimeout
 import android.view.ViewPropertyAnimator
+import android.view.animation.BounceInterpolator
+import android.view.animation.DecelerateInterpolator
 import com.reco1l.basskt.stream.SampleStream
 import com.reco1l.framework.android.getSystemService
 import com.reco1l.framework.android.views.animate
@@ -44,10 +46,18 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
 
     var touchEffectDrawable: (() -> Drawable)? = { TouchEffectDrawable() }
 
-    var touchEffectAnimation: (ViewPropertyAnimator.(isPressed: Boolean) -> Unit)? = {
+    var touchEffectAnimation: (ViewPropertyAnimator.(isPressed: Boolean) -> Unit)? = block@{
 
-        scale(if (it) 0.8f else 1f)
-        duration = 100
+        if (it)
+        {
+            scale(0.85f)
+            interpolator = DecelerateInterpolator()
+            duration = 100
+            return@block
+        }
+        scale(1f)
+        interpolator = BounceInterpolator()
+        duration = 200
     }
 
 
