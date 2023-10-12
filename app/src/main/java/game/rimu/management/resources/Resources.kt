@@ -117,6 +117,23 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
     }
 
 
+    init
+    {
+        File(directory, "Important.txt").apply {
+
+            if (exists())
+                return@apply
+
+            createNewFile()
+
+            writeText("""
+                Please do not touch or modify any file or folder inside this directory, otherwise the game may not recognize them. 
+                If you wanna delete all resources consider using the "Clear data" option in device settings.
+            """.trimIndent())
+        }
+    }
+
+
     // Getters
 
     /**
