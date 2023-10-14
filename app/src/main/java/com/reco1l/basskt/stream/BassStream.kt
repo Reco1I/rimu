@@ -115,12 +115,12 @@ abstract class BaseStream(source: String? = null)
     /**
      * The current audio length in milliseconds.
      */
-    val length: Double
+    val length: Long
         get()
         {
             val length = BASS_ChannelGetLength(id, BASS_POS_BYTE)
 
-            return BASS_ChannelBytes2Seconds(id, length) * 1000
+            return BASS_ChannelBytes2Seconds(id, length).toLong() * 1000L
         }
 
 
