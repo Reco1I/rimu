@@ -44,7 +44,7 @@ private fun RimuDatabase(context: RimuContext) = Room
  * The rimu! database object class, this should be unique per instance.
  */
 @Database(
-    version = 5,
+    version = 6,
     entities = [
         Beatmap::class,
         Asset::class,

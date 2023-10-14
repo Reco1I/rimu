@@ -70,6 +70,11 @@ data class Beatmap(
     val creator: String,
 
     /**
+     * The beatmap version.
+     */
+    val version: String,
+
+    /**
      * The date when the beatmap has been imported
      */
     val dateImported: Long,
@@ -125,6 +130,7 @@ data class Beatmap(
             title = data.metadata.title,
             artist = data.metadata.artist,
             creator = data.metadata.creator,
+            version = data.metadata.version,
             dateImported = System.currentTimeMillis(),
 
             // Difficulty
