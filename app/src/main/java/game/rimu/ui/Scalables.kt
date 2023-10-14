@@ -54,12 +54,21 @@ interface IScalable
 
 
 abstract class ScalableDimensions<T : Any>(
+
     var width: Int = UNKNOWN,
+
     var height: Int = UNKNOWN
 )
 {
 
-    abstract fun onApplyScale(target: T, scale: Float)
+    var currentScale = 1f
+        private set
+
+    @CallSuper
+    open fun onApplyScale(target: T, scale: Float)
+    {
+        currentScale = scale
+    }
 
     companion object
     {
