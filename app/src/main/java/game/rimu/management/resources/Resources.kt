@@ -104,7 +104,7 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
     fun storeResource(file: File, hash: String): Boolean
     {
         val destination = directory
-            .subDirectory("${hash[0]}/${hash[0]}${hash[1]}", true)
+            .subDirectory("${hash[0]}/${hash[0]}${hash[1]}")
             .subFile(hash)
 
         if (destination.exists() && destination.length() == file.length())

@@ -75,7 +75,7 @@ abstract class ImportTask(override val ctx: RimuContext, protected var root: Fil
 
             // The temporal folder will be placed in the cache directory and we'll deleted once the
             // import task ends.
-            root = ctx.cacheDir.subDirectory(root.nameWithoutExtension, true)
+            root = ctx.cacheDir.subDirectory(root.nameWithoutExtension)
 
             wrappingZip!!.extractAll(root.path)
         }
@@ -105,7 +105,7 @@ abstract class ImportTask(override val ctx: RimuContext, protected var root: Fil
             else
             {
                 // Resolving resource key and variant number according to file relative path from root.
-                val (key, variant) = when(file.toRelativeString(root))
+                val (key, variant) = when (file.toRelativeString(root))
                 {
                     // The file path corresponds to a dependency so we return its filename without
                     // extension as key and variant to always 0.
