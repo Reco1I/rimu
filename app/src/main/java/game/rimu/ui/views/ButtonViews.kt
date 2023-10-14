@@ -29,7 +29,7 @@ class IconButton(ctx: RimuContext, textureName: String) : ImageView(ctx)
             width = 70
 
             scaleType = ScaleType.FIT_CENTER
-            padding(14)
+            padding(15)
         }
 
         skinningRules {
