@@ -3,6 +3,7 @@ package game.rimu.ui
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import androidx.annotation.CallSuper
 import androidx.core.view.forEach
 import com.reco1l.framework.android.views.cornerRadius
 import com.reco1l.framework.android.views.setMargins
@@ -100,7 +101,13 @@ inline fun <T : Any, D : ScalableDimensions<T>> IScalableWithDimensions<T, D>.di
 
 // Views
 
-open class ViewDimensions<V : View> : ScalableDimensions<V>(WRAP_CONTENT, WRAP_CONTENT)
+open class ViewDimensions<V : View>(
+
+    initialWidth: Int = WRAP_CONTENT,
+
+    initialHeight: Int = WRAP_CONTENT,
+
+) : ScalableDimensions<V>(initialWidth, initialHeight)
 {
 
     var paddingLeft: Int = 0
@@ -139,6 +146,8 @@ open class ViewDimensions<V : View> : ScalableDimensions<V>(WRAP_CONTENT, WRAP_C
 
     override fun onApplyScale(target: V, scale: Float)
     {
+        super.onApplyScale(target, scale)
+
         target.setSize(
             width = if (width >= 0) (width * scale).toInt() else width,
             height = if (height >= 0) (height * scale).toInt() else height
