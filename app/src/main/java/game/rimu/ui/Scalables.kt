@@ -78,10 +78,10 @@ abstract class ScalableDimensions<T : Any>(
 }
 
 
-interface IScalableWithDimensions<T : Any, D : ScalableDimensions<T>> : IScalable
+interface IScalableWithDimensions<T : Any> : IScalable
 {
 
-    val dimensions: D
+    val dimensions: ScalableDimensions<T>
 
     @Suppress("UNCHECKED_CAST")
     override fun onApplyScale(scale: Float)
@@ -93,10 +93,6 @@ interface IScalableWithDimensions<T : Any, D : ScalableDimensions<T>> : IScalabl
         super.onApplyScale(scale)
     }
 }
-
-inline fun <T : Any, D : ScalableDimensions<T>> IScalableWithDimensions<T, D>.dimensions(
-    block: D.() -> Unit
-) = dimensions.block()
 
 
 // Views

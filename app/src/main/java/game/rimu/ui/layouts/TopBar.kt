@@ -12,7 +12,6 @@ import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayoutLayer
-import game.rimu.ui.dimensions
 import game.rimu.ui.scenes.MenuScene
 import game.rimu.ui.scenes.ResultsScene
 import game.rimu.ui.scenes.RimuScene
@@ -93,7 +92,7 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
 
     init
     {
-        dimensions {
+        dimensions.apply {
             height = 50
             width = MATCH_PARENT
         }
@@ -121,7 +120,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
         orientation = HORIZONTAL
         dimensions.height = MATCH_PARENT
 
-        dimensions {
+        dimensions.apply {
             height = MATCH_PARENT
             paddingLeft = 12
             paddingRight = 12
@@ -134,7 +133,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
 
     private val avatar = ImageView {
 
-        dimensions {
+        dimensions.apply {
             width = 26
             height = 26
             cornerRadius = 7f
@@ -147,7 +146,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
 
         text = "Reco1l"
 
-        dimensions {
+        dimensions.apply {
             marginLeft = 12
             marginRight = 4
         }

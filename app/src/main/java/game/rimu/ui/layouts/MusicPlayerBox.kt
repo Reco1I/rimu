@@ -16,7 +16,6 @@ import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.management.beatmap.WorkingBeatmap
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayoutLayer
-import game.rimu.ui.dimensions
 import game.rimu.ui.views.IconButton
 import game.rimu.ui.views.SeekBar
 import game.rimu.ui.views.TextView
@@ -63,7 +62,7 @@ class MusicPlayerBox(ctx: RimuContext) :
             topToTarget = Anchor.BOTTOM
         )
 
-        dimensions {
+        dimensions.apply {
             fontSize = 8
             marginTop = 12
         }
@@ -106,7 +105,7 @@ class MusicPlayerBox(ctx: RimuContext) :
             topToTarget = Anchor.BOTTOM
         )
 
-        dimensions {
+        dimensions.apply {
             marginTop = 8
             size(50)
         }
@@ -141,7 +140,7 @@ class MusicPlayerBox(ctx: RimuContext) :
             rightToTarget = Anchor.LEFT
         )
 
-        dimensions {
+        dimensions.apply {
             marginRight = 8
             size(50)
         }
@@ -160,7 +159,7 @@ class MusicPlayerBox(ctx: RimuContext) :
             leftToTarget = Anchor.RIGHT
         )
 
-        dimensions {
+        dimensions.apply {
             marginLeft = 8
             size(50)
         }
@@ -176,7 +175,7 @@ class MusicPlayerBox(ctx: RimuContext) :
 
     init
     {
-        dimensions {
+        dimensions.apply {
             width = 200
             height = WRAP_CONTENT
             cornerRadius = 12f

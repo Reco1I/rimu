@@ -16,8 +16,8 @@ import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLay
 open class ConstraintLayout(override val ctx: RimuContext) :
     AndroidConstraintLayout(ctx),
     IWithContext,
-    ISkinnableWithRules<ConstraintLayout, ViewSkinningRules<ConstraintLayout>>,
-    IScalableWithDimensions<ConstraintLayout, ViewDimensions<ConstraintLayout>>
+    ISkinnableWithRules<ConstraintLayout>,
+    IScalableWithDimensions<ConstraintLayout>
 {
     override val dimensions by lazy { ViewDimensions<ConstraintLayout>() }
 
@@ -42,8 +42,8 @@ inline fun <T> T.ConstraintLayout(
 open class LinearLayout(override val ctx: RimuContext) :
     AndroidLinearLayout(ctx),
     IWithContext,
-    ISkinnableWithRules<LinearLayout, ViewSkinningRules<LinearLayout>>,
-    IScalableWithDimensions<LinearLayout, ViewDimensions<LinearLayout>>
+    ISkinnableWithRules<LinearLayout>,
+    IScalableWithDimensions<LinearLayout>
 {
     override val dimensions by lazy { ViewDimensions<LinearLayout>() }
 

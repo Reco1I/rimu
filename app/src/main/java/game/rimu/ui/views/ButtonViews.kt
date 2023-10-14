@@ -3,9 +3,6 @@ package game.rimu.ui.views
 import android.view.ViewGroup
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
-import game.rimu.ui.dimensions
-import game.rimu.ui.skinningRules
-
 
 
 fun <T> T.IconButton(
@@ -26,14 +23,14 @@ class IconButton(ctx: RimuContext, textureName: String) : ImageView(ctx)
     {
         scaleType = ScaleType.FIT_CENTER
 
-        dimensions {
+        dimensions.apply {
             height = 50
             width = 70
 
             padding(15)
         }
 
-        skinningRules {
+        skinningRules.apply {
             texture = textureName to 0
             tint = "accentColor" to 1f
         }

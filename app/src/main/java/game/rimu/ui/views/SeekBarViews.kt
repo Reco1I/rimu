@@ -14,7 +14,6 @@ import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
 import game.rimu.ui.ViewDimensions
 import game.rimu.ui.ViewSkinningRules
-import game.rimu.ui.dimensions
 
 
 class SeekBarDimensions<T : SeekBar> : ViewDimensions<T>(MATCH_PARENT, 20)
@@ -38,8 +37,8 @@ fun <T> T.SeekBar(
 open class SeekBar(override val ctx: RimuContext) :
     AppCompatSeekBar(ctx),
     IWithContext,
-    IScalableWithDimensions<SeekBar, SeekBarDimensions<SeekBar>>,
-    ISkinnableWithRules<SeekBar, ViewSkinningRules<SeekBar>>
+    IScalableWithDimensions<SeekBar>,
+    ISkinnableWithRules<SeekBar>
 {
 
     override val skinningRules by lazy { ViewSkinningRules<SeekBar>() }
@@ -94,7 +93,7 @@ open class SeekBar(override val ctx: RimuContext) :
     {
         super.onApplyScale(scale)
 
-        dimensions {
+        dimensions.apply {
 
             inactiveBarDrawable.cornerRadius = barCornerRadius * scale
             activeBarDrawable.cornerRadius = barCornerRadius * scale

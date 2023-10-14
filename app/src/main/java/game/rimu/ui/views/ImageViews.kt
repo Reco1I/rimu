@@ -70,8 +70,8 @@ fun <T> T.ImageView(
 open class ImageView(override val ctx: RimuContext) :
     AppCompatImageView(ctx),
     IWithContext,
-    IScalableWithDimensions<ImageView, ViewDimensions<ImageView>>,
-    ISkinnableWithRules<ImageView, ImageSkinningRules<ImageView>>
+    IScalableWithDimensions<ImageView>,
+    ISkinnableWithRules<ImageView>
 {
 
     override val dimensions by lazy { ViewDimensions<ImageView>() }

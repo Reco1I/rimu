@@ -22,7 +22,7 @@ abstract class LayoutLayer(
 {
     init
     {
-        dimensions {
+        dimensions.apply {
             width = MATCH_PARENT
             height = MATCH_PARENT
         }

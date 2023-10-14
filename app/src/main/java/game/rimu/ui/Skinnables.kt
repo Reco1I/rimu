@@ -54,10 +54,10 @@ abstract class SkinningRules<T>
     abstract fun onApplySkin(target: T, skin: WorkingSkin)
 }
 
-interface ISkinnableWithRules<T, D : SkinningRules<T>> : ISkinnable
+interface ISkinnableWithRules<T> : ISkinnable
 {
 
-    val skinningRules: D
+    val skinningRules: SkinningRules<T>
 
     @Suppress("UNCHECKED_CAST")
     override fun onApplySkin(skin: WorkingSkin)
@@ -69,11 +69,6 @@ interface ISkinnableWithRules<T, D : SkinningRules<T>> : ISkinnable
         super.onApplySkin(skin)
     }
 }
-
-inline fun <T, D : SkinningRules<T>> ISkinnableWithRules<T, D>.skinningRules(
-    block: D.() -> Unit
-) = skinningRules.apply(block)
-
 
 
 // Views

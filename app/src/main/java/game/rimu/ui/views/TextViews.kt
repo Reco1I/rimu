@@ -24,7 +24,6 @@ import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
 import game.rimu.ui.ViewDimensions
 import game.rimu.ui.ViewSkinningRules
-import game.rimu.ui.dimensions
 import kotlin.math.max
 
 
@@ -95,8 +94,8 @@ fun <T> T.TextView(
 open class TextView(final override val ctx: RimuContext) :
     AppCompatTextView(ctx),
     IWithContext,
-    ISkinnableWithRules<TextView, TextViewSkinningRules<TextView>>,
-    IScalableWithDimensions<TextView, TextViewDimensions<TextView>>
+    ISkinnableWithRules<TextView>,
+    IScalableWithDimensions<TextView>
 {
 
     override val dimensions = TextViewDimensions<TextView>()
@@ -247,7 +246,7 @@ open class TextField(ctx: RimuContext) :
 
         setBackgroundColor(0x4D000000)
 
-        dimensions {
+        dimensions.apply {
             cornerRadius = 8f
             paddingTop = 14
             paddingBottom = 14
