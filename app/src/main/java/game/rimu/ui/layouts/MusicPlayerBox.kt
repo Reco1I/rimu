@@ -199,7 +199,7 @@ class MusicPlayerBox(ctx: RimuContext) :
         mainThread {
 
             titleText.text = beatmap?.source?.title ?: "Unknown"
-            artistText.text = "${beatmap?.source?.artist}\n${beatmap?.source?.version}" ?: "Unknown"
+            artistText.text = beatmap?.source?.let { "${it.artist}\n${it.version}" } ?: "Unknown"
 
             val length = beatmap?.stream?.length ?: 1L
 
