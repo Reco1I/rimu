@@ -34,7 +34,7 @@ class IconButton(ctx: RimuContext, textureName: String) : ImageView(ctx)
 
         skinningRules {
             texture = textureName to 0
-            tint = { accentColor.toInt() }
+            tint = "accentColor" to 1f
         }
     }
 }

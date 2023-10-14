@@ -56,7 +56,7 @@ class MusicPlayerBox(ctx: RimuContext) :
     val timeText = TextView {
 
         text = "00:00"
-        skinningRules.color = { accentColor.factorInt(0.8f) }
+        skinningRules.fontColor = "accentColor" to 0.8f
 
         setConstraints(
             target = artistText,
@@ -73,12 +73,11 @@ class MusicPlayerBox(ctx: RimuContext) :
     val lengthText = TextView {
 
         text = "00:00"
-        skinningRules.color = { accentColor.factorInt(0.8f) }
+        dimensions.fontSize = 8
+        skinningRules.fontColor = "accentColor" to 0.8f
 
         setConstraints(target = timeText, topToTarget = Anchor.TOP)
         setConstraints(rightToTarget = Anchor.RIGHT)
-
-        dimensions.fontSize = 8
     }
 
 
@@ -188,7 +187,7 @@ class MusicPlayerBox(ctx: RimuContext) :
             padding(12)
         }
 
-        skinningRules.backgroundColor = { accentColor.factorInt(0.1f) }
+        skinningRules.backgroundColor = "accentColor" to 0.1f
 
         ctx.beatmaps.bindObserver(observer = this)
     }

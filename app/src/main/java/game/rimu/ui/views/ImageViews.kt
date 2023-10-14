@@ -2,6 +2,7 @@ package game.rimu.ui.views
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Color.TRANSPARENT
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
@@ -23,7 +24,7 @@ import game.rimu.ui.ViewSkinningRules
 
 // Base
 
-open class ImageAttributes<T : ImageView> : ViewSkinningRules<T>()
+open class ImageSkinningRules<T : ImageView> : ViewSkinningRules<T>()
 {
 
     /**
@@ -32,14 +33,9 @@ open class ImageAttributes<T : ImageView> : ViewSkinningRules<T>()
     var texture: Pair<String, Int>? = null
 
     /**
-     * The asset variant, by default 0.
+     * The tint name and factor that should be set to the drawable.
      */
-    var variant: Int = 0
-
-    /**
-     * The tint that should be set to the drawable.
-     */
-    var tint: (SkinDataColours.() -> Int)? = null
+    var tint: Pair<String, Float>? = null
 
 
     @CallSuper
@@ -51,7 +47,11 @@ open class ImageAttributes<T : ImageView> : ViewSkinningRules<T>()
 
             target.setImageBitmap(skin.ctx.resources[key, variant])
         }
-        tint?.also { target.setImageTint(skin.data.colours.it()) }
+
+        tint?.also { (key, factor) ->
+
+            target.setImageTint(skin.data.colours.map[key]?.factorInt(factor) ?: TRANSPARENT)
+        }
     }
 }
 
@@ -71,12 +71,12 @@ open class ImageView(override val ctx: RimuContext) :
     AppCompatImageView(ctx),
     IWithContext,
     IScalableWithDimensions<ImageView, ViewDimensions<ImageView>>,
-    ISkinnableWithRules<ImageView, ImageAttributes<ImageView>>
+    ISkinnableWithRules<ImageView, ImageSkinningRules<ImageView>>
 {
 
     override val dimensions by lazy { ViewDimensions<ImageView>() }
 
-    override val skinningRules by lazy { ImageAttributes<ImageView>() }
+    override val skinningRules by lazy { ImageSkinningRules<ImageView>() }
 
 
     override fun onApplyScale(scale: Float)
@@ -110,7 +110,7 @@ class FadeImageView(override val ctx: RimuContext) :
     IWithContext
 {
 
-    private val blankDrawable = ColorDrawable(Color.TRANSPARENT)
+    private val blankDrawable = ColorDrawable(TRANSPARENT)
 
     /**
      * The transition animation duration.
@@ -122,7 +122,7 @@ class FadeImageView(override val ctx: RimuContext) :
     // transparent ColorDrawables.
     private val transition = TransitionDrawable(
         arrayOf(
-            ColorDrawable(Color.TRANSPARENT),
+            ColorDrawable(TRANSPARENT),
             blankDrawable
         )
     )
