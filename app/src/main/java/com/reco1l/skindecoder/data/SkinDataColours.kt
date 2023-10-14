@@ -47,6 +47,6 @@ data class SkinDataColours(
     /**
      * List of defined colors.
      */
-    val comboColors = listOfNotNull(combo1, combo2, combo3, combo4, combo5, combo6, combo7, combo8)
+    val comboColors by lazy { listOfNotNull(combo1, combo2, combo3, combo4, combo5, combo6, combo7, combo8) }
 
 }
