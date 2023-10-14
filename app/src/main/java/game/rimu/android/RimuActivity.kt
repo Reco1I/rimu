@@ -18,7 +18,6 @@ import com.reco1l.framework.data.toFile
 import com.reco1l.framework.lang.async
 import com.reco1l.framework.lang.forEachTrim
 import com.reco1l.framework.lang.klass
-import com.reco1l.framework.lang.with
 import game.rimu.ui.scenes.SceneIntro
 
 
@@ -70,7 +69,7 @@ class RimuActivity :
         }
         catch (e: Exception)
         {
-            klass logE ("Failed to import file from URI." with e)
+            klass logE ("Failed to import file from URI." to e)
         }
 
         when (intent.action)

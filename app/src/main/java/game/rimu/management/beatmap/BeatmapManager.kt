@@ -5,7 +5,6 @@ import com.reco1l.framework.lang.klass
 import com.reco1l.framework.lang.nextOf
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.framework.lang.previousOf
-import com.reco1l.framework.lang.with
 import com.reco1l.framework.management.IObservable
 import com.reco1l.framework.management.forEachObserver
 import com.rian.osu.beatmap.parser.BeatmapDecoder
@@ -96,7 +95,7 @@ class BeatmapManager(override val ctx: RimuContext) :
     private fun onCreateWorkingBeatmap(base: Beatmap): WorkingBeatmap?
     {
        return { WorkingBeatmap(ctx, base) }.orCatch {
-           klass logE ("Failed to load beatmap: ${base.hash} ${base.title}" with it)
+           klass logE ("Failed to load beatmap: ${base.hash} ${base.title}" to  it)
            null
        }
     }

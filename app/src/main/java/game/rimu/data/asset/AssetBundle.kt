@@ -12,7 +12,6 @@ import com.reco1l.framework.android.logE
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.framework.graphics.toBitmap
 import com.reco1l.framework.lang.klass
-import com.reco1l.framework.lang.with
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.data.Skin
@@ -247,7 +246,7 @@ class ExternalAssetBundle(ctx: RimuContext, key: String) : AssetBundle(ctx)
                 else -> null
             }
         }.orCatch {
-            klass logE ("Error while loading asset: $name $variant $type" with it)
+            klass logE ("Error while loading asset: $name $variant $type" to it)
             null
         }
     }
