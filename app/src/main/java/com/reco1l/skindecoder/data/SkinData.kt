@@ -14,8 +14,8 @@ data class SkinData(
 
     /**
      * If this skin data was created from this constructor means the `skin.ini` file was missing and
-     * as specified in the [osu!wiki](https://osu.ppy.sh/wiki/en/Skinning/skin.ini#latest) it'll use
-     * [LATEST_VERSION]
+     * as specified in the [osu!wiki](https://osu.ppy.sh/wiki/en/Skinning/skin.ini#latest) it should
+     * use [latest skin version][LATEST_VERSION].
      */
     val general: SkinDataGeneral = SkinDataGeneral(version = LATEST_VERSION),
 
