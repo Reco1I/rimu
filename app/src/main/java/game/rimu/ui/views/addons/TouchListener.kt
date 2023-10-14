@@ -1,9 +1,9 @@
 package game.rimu.ui.views.addons
 
-import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Vibrator
 import android.view.MotionEvent
 import android.view.MotionEvent.ACTION_CANCEL
@@ -163,21 +163,21 @@ fun View.setTouchHandler(block: TouchHandler.() -> Unit) = setOnTouchListener(To
 
 
 class TouchEffectDrawable :
-    ShapeDrawable(),
+    GradientDrawable(),
     ISkinnable,
     IScalable
 {
 
     // Initial values for animator is irrelevant because it's updated before starting the animation.
-    val animator = ObjectAnimator.ofInt(paint, "alpha", 0, 0).apply {
+    val animator = ValueAnimator.ofInt().apply {
 
         duration = 100
-        addUpdateListener { invalidateSelf() }
+        addUpdateListener { alpha = it.animatedValue as Int }
     }
 
     init
     {
-        paint.alpha = 0
+        alpha = 0
     }
 
 
@@ -198,28 +198,28 @@ class TouchEffectDrawable :
 
     override fun onApplySkin(skin: WorkingSkin)
     {
-        // Preserving previous alpha to handle concurrent animations.
-        paint.color = skin.data.colours.accentColor.toInt(alpha = paint.alpha / 255f)
+        // Preserving previous alpha when changing color.
+        setColor(skin.data.colours.accentColor.toInt())
     }
 
 
     private fun fadeIn()
     {
-        if (paint.alpha == 20)
+        if (alpha == 20)
             return
 
         animator.cancel()
-        animator.setIntValues(paint.alpha, 20)
+        animator.setIntValues(alpha, 20)
         animator.start()
     }
 
     private fun fadeOut()
     {
-        if (paint.alpha == 0)
+        if (alpha == 0)
             return
 
         animator.cancel()
-        animator.setIntValues(paint.alpha, 0)
+        animator.setIntValues(alpha, 0)
         animator.start()
     }
 }
