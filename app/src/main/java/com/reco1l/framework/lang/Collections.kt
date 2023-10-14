@@ -79,8 +79,3 @@ fun <T : Any>instanceMapOf() = HashMap<KClass<out T>, T>()
 
 
 infix fun <T>T.safeIn(array: Array<T>?): Boolean = array != null && this in array
-
-/**
- * Just an alias for function [to].
- */
-infix fun <T1, T2>T1.with(that: T2) = this to that

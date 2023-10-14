@@ -24,11 +24,12 @@ class IconButton(ctx: RimuContext, textureName: String) : ImageView(ctx)
 {
     init
     {
+        scaleType = ScaleType.FIT_CENTER
+
         dimensions {
             height = 50
             width = 70
 
-            scaleType = ScaleType.FIT_CENTER
             padding(15)
         }
 
