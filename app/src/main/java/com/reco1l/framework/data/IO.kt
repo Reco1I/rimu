@@ -34,14 +34,14 @@ fun File.isExtension(extension: String) = isFile && extension.equals(extension, 
 /**
  * Create a new sub directory.
  */
-fun File.subDirectory(name: String, mkdirs: Boolean = false): File
+fun File.subDirectory(name: String): File
 {
     if (!isDirectory)
         throw IOException("This isn't a directory.")
 
     return File(this, name).apply {
 
-        if (mkdirs && !exists())
+        if (!exists())
             mkdirs()
     }
 }
@@ -49,17 +49,14 @@ fun File.subDirectory(name: String, mkdirs: Boolean = false): File
 /**
  * Create a new sub file.
  */
-fun File.subFile(name: String, create: Boolean = true): File
+fun File.subFile(name: String): File
 {
     if (!isDirectory)
         throw IOException("This isn't a directory.")
 
-    if (create)
-        mkdirs()
-
     return File(this, name).apply {
 
-        if (create && !exists())
+        if (!exists())
             createNewFile()
     }
 }
