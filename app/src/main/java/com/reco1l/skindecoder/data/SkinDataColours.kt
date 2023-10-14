@@ -49,4 +49,13 @@ data class SkinDataColours(
      */
     val comboColors by lazy { listOfNotNull(combo1, combo2, combo3, combo4, combo5, combo6, combo7, combo8) }
 
+    /**
+     * Map of colors stored in this data class.
+     */
+    val map by lazy {
+
+         SkinDataColours::class.memberProperties
+             .filter { it.returnType.classifier == Color4::class }
+             .associate { it.name to it.get(this) as Color4? }
+    }
 }
