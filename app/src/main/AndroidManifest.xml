@@ -63,6 +63,21 @@
                 <data android:scheme="content" />
             </intent-filter>
 
+            <!--Send to-->
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="application/download" />
+                <data android:mimeType="application/x-zip" />
+                <data android:mimeType="application/x-zip-compressed" />
+                <data android:mimeType="application/x-osu-beatmap-archive" />
+                <data android:mimeType="application/x-osu-skin-archive" />
+            </intent-filter>
+
         </activity>
 
     </application>
