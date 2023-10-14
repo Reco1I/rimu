@@ -10,6 +10,7 @@ import androidx.annotation.CallSuper
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.drawable.toDrawable
 import com.reco1l.framework.android.views.setImageTint
+import com.reco1l.skindecoder.data.SkinDataColours
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
@@ -26,21 +27,19 @@ open class ImageAttributes<T : ImageView> : ViewSkinningRules<T>()
 {
 
     /**
-     * The bitmap that should be set as image.
+     * The asset key.
      */
-    var bitmap: (WorkingSkin.() -> Bitmap?)? = null
+    var texture: Pair<String, Int>? = null
 
     /**
-     * The drawable that should be set as image.
-     *
-     * Note: This overrides the value set in [bitmap] property.
+     * The asset variant, by default 0.
      */
-    var drawable: (WorkingSkin.() -> Drawable?)? = null
+    var variant: Int = 0
 
     /**
      * The tint that should be set to the drawable.
      */
-    var tint: (WorkingSkin.() -> Int)? = null
+    var tint: (SkinDataColours.() -> Int)? = null
 
 
     @CallSuper
@@ -48,11 +47,11 @@ open class ImageAttributes<T : ImageView> : ViewSkinningRules<T>()
     {
         super.onApplySkin(target, skin)
 
-        drawable?.also { target.setImageDrawable(skin.it()) }
-            ?:
-            bitmap?.also { target.setImageBitmap(skin.it()) }
+        texture?.also { (key, variant) ->
 
-        tint?.also { target.setImageTint(skin.it()) }
+            target.setImageBitmap(skin.ctx.resources[key, variant])
+        }
+        tint?.also { target.setImageTint(skin.data.colours.it()) }
     }
 }
 

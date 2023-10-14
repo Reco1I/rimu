@@ -1,17 +1,24 @@
 package game.rimu.android
 
 import android.app.Activity
-import android.content.ContentResolver.SCHEME_CONTENT
-import android.content.ContentResolver.SCHEME_FILE
 import android.content.Intent
+import android.content.Intent.ACTION_SEND
+import android.content.Intent.ACTION_SEND_MULTIPLE
+import android.content.Intent.ACTION_VIEW
+import android.content.Intent.EXTRA_STREAM
+import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+import com.reco1l.framework.android.logE
 import com.reco1l.framework.data.extensionLowercase
+import com.reco1l.framework.data.subDirectory
 import com.reco1l.framework.data.toFile
 import com.reco1l.framework.lang.async
 import com.reco1l.framework.lang.forEachTrim
+import com.reco1l.framework.lang.klass
+import com.reco1l.framework.lang.with
 import game.rimu.ui.scenes.SceneIntro
 
 
@@ -50,17 +57,33 @@ class RimuActivity :
 
     fun onManageIntent(intent: Intent)
     {
-        val data = intent.data ?: return
-
-        if (intent.scheme != SCHEME_CONTENT && intent.scheme != SCHEME_FILE)
-            return
-
-        val file = data.toFile(cacheDir, contentResolver)
-
-        when(file.extensionLowercase)
+        fun onManageUri(uri: Uri) = try
         {
-            "osz" -> ctx.beatmaps.importer.import(file)
-            "osk" -> ctx.skins.importer.import(file)
+            val file = uri.toFile(cacheDir.subDirectory("import"), contentResolver)
+
+            when (file.extensionLowercase)
+            {
+                "osz" -> ctx.beatmaps.importer.import(file)
+                "osk" -> ctx.skins.importer.import(file)
+            }
+            Unit
+        }
+        catch (e: Exception)
+        {
+            klass logE ("Failed to import file from URI." with e)
+        }
+
+        when (intent.action)
+        {
+            ACTION_VIEW -> onManageUri(intent.data ?: return)
+            ACTION_SEND -> onManageUri(intent.getParcelableExtra(EXTRA_STREAM) ?: return)
+            ACTION_SEND_MULTIPLE ->
+            {
+                intent.getParcelableArrayListExtra<Uri>(EXTRA_STREAM)?.forEach {
+
+                    onManageUri(it)
+                }
+            }
         }
     }
 

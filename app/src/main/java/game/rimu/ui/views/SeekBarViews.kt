@@ -24,8 +24,6 @@ class SeekBarDimensions<T : SeekBar> : ViewDimensions<T>(MATCH_PARENT, 20)
     var thumbWidth = 12f
 }
 
-class SeekBarSkinningRules<T : SeekBar> : ViewSkinningRules<T>()
-
 fun <T> T.SeekBar(
     attach: Boolean = true,
     block: SeekBar.() -> Unit
@@ -41,10 +39,10 @@ open class SeekBar(override val ctx: RimuContext) :
     AppCompatSeekBar(ctx),
     IWithContext,
     IScalableWithDimensions<SeekBar, SeekBarDimensions<SeekBar>>,
-    ISkinnableWithRules<SeekBar, SeekBarSkinningRules<SeekBar>>
+    ISkinnableWithRules<SeekBar, ViewSkinningRules<SeekBar>>
 {
 
-    override val skinningRules by lazy { SeekBarSkinningRules<SeekBar>() }
+    override val skinningRules by lazy { ViewSkinningRules<SeekBar>() }
 
     override val dimensions by lazy { SeekBarDimensions<SeekBar>() }
 

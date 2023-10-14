@@ -8,8 +8,8 @@ import android.provider.OpenableColumns.DISPLAY_NAME
 import androidx.core.net.toFile
 import org.apache.commons.codec.digest.DigestUtils
 import java.io.File
-import java.io.InputStream
 import java.io.IOException
+import java.io.InputStream
 
 
 /**
@@ -128,19 +128,19 @@ operator fun List<File>.get(name: String, ignoreCase: Boolean = true) = find {
 }
 
 
-fun Uri.toFile(parent: File, resolver: ContentResolver): File
-{
-    if (scheme == SCHEME_FILE)
-        return toFile()
-
-    return File(parent, resolveFilename(resolver)).apply {
-
-        writeFromContentUri(this@toFile, resolver)
-    }
-}
+// SAF
 
 /**
- * Write a file from an URI with [content][SCHEME_CONTENT] scheme.
+ * If the input stream belongs to a file we write it to the destination file.
+ */
+fun InputStream.writeToFile(destination: File)
+{
+    destination.outputStream().use { copyTo(it) }
+}
+
+
+/**
+ * Writes a file from an URI with [content][SCHEME_CONTENT] or [file][SCHEME_FILE] scheme.
  *
  * Because of Android's safe storage we can't access to these files directly, we have to read their
  * contents from an [InputStream]. This method internally copies the content given by the URI input
@@ -149,25 +149,32 @@ fun Uri.toFile(parent: File, resolver: ContentResolver): File
  * If a [File] object is not necessary consider using [InputStream] instead. Also consider using [Uri.toFile]
  * instead if you sure that the URI scheme is [SCHEME_FILE].
  */
-fun File.writeFromContentUri(uri: Uri, resolver: ContentResolver)
+fun Uri.toFile(parent: File, resolver: ContentResolver): File
 {
-    if (uri.scheme != SCHEME_CONTENT)
-        throw IllegalArgumentException("The URI scheme does not equal \"content\".")
+    if (scheme == SCHEME_FILE)
+        return toFile()
 
-    delete()
-    createNewFile()
+    val file = File(parent, resolveFilename(resolver))
 
-    resolver.openInputStream(uri)?.use { outputStream().use { out -> it.copyTo(out) } }
+    resolver.openInputStream(this)?.use { it.writeToFile(file) }
+        ?:
+        throw IOException("Failed to create InputStream from given URI.")
+
+    return file
 }
 
+/**
+ * Resolves the filename given by the URI.
+ */
 fun Uri.resolveFilename(resolver: ContentResolver): String
 {
     if (scheme != SCHEME_CONTENT)
-        throw IllegalArgumentException("The URI scheme does not equal \"content\".")
+        throw UnsupportedOperationException("The URI scheme does not equal \"content\".")
 
-    return resolver.query(this, null, null, null, null)!!.use {
+    return resolver.query(this, null, null, null, null)?.use {
 
         it.moveToFirst()
         it.getString(it.getColumnIndexOrThrow(DISPLAY_NAME))
-    }
+
+    } ?: throw IOException("Failed to query URI.")
 }

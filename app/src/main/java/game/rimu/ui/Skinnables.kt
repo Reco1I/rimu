@@ -1,6 +1,5 @@
 package game.rimu.ui
 
-import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
@@ -8,6 +7,7 @@ import androidx.core.view.forEach
 import com.reco1l.framework.android.views.setForegroundColor
 import com.reco1l.framework.lang.isLazyInit
 import com.reco1l.framework.lang.isLazyInitialized
+import com.reco1l.skindecoder.data.SkinDataColours
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
@@ -87,37 +87,42 @@ open class ViewSkinningRules<T : View> : SkinningRules<T>()
     /**
      * Define the drawable that should be set as background.
      */
-    var background: (WorkingSkin.() -> Drawable?)? = null
+    var background: Pair<String, Int>? = null
 
     /**
      * Define the background color that should be set.
      *
      * Note: This overrides the value set in [background] property.
      */
-    var backgroundColor: (WorkingSkin.() -> Int)? = null
+    var backgroundColor: (SkinDataColours.() -> Int)? = null
 
     /**
      * Define the drawable that should be set as foreground.
      */
-    var foreground: (WorkingSkin.() -> Drawable?)? = null
+    var foreground: Pair<String, Int>? = null
 
     /**
      * Define the foreground color that should be set.
      *
      * Note: This overrides the value set in [foreground] property.
      */
-    var foregroundColor: (WorkingSkin.() -> Int)? = null
+    var foregroundColor: (SkinDataColours.() -> Int)? = null
 
 
     @CallSuper
     override fun onApplySkin(target: T, skin: WorkingSkin)
     {
-        backgroundColor?.also { target.setBackgroundColor(skin.it()) }
-            ?:
-            background?.also { target.background = skin.it() }
 
-        foregroundColor?.also { target.setForegroundColor(skin.it()) }
+        backgroundColor?.also {
+
+            target.setBackgroundColor(skin.data.colours.it())
+
+        }
             ?:
-            foreground?.also { target.foreground = skin.it() }
+            background?.also { (key, variant) -> target.background = skin.ctx.resources[key, variant] }
+
+        foregroundColor?.also { target.setForegroundColor(skin.data.colours.it()) }
+            ?:
+            foreground?.also { (key, variant) -> target.background = skin.ctx.resources[key, variant] }
     }
 }

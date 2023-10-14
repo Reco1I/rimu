@@ -140,7 +140,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
             cornerRadius = 7f
         }
 
-        skinningRules.bitmap = { ctx.resources["avatar-default", 0] }
+        skinningRules.texture = "avatar-default" to 0
     }
 
     private val username = TextView {

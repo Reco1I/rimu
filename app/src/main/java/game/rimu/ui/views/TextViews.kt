@@ -17,6 +17,7 @@ import com.reco1l.framework.android.views.fontColor
 import com.reco1l.framework.android.views.fontSize
 import com.reco1l.framework.graphics.Anchor
 import com.reco1l.framework.graphics.BasicAnchor
+import com.reco1l.skindecoder.data.SkinDataColours
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
@@ -45,9 +46,9 @@ data class TextViewDimensions<T : TextView>(
 
 data class TextViewSkinningRules<T : TextView>(
 
-    var font: (WorkingSkin.() -> Typeface)? = { ctx.resources["font", 0]!! },
+    var font: Pair<String, Int>? = "font" to 0,
 
-    var color: (WorkingSkin.() -> Int)? = { data.colours.accentColor.toInt() }
+    var color: (SkinDataColours.() -> Int)? = { accentColor.toInt() }
 
 ) : ViewSkinningRules<T>()
 {
@@ -55,8 +56,8 @@ data class TextViewSkinningRules<T : TextView>(
     {
         super.onApplySkin(target, skin)
 
-        font?.also { target.font = skin.it() }
-        color?.also { target.fontColor = skin.it() }
+        font?.also { (key, variant) -> target.font = skin.ctx.resources[key, variant]!! }
+        color?.also { target.fontColor = skin.data.colours.it() }
     }
 }
 

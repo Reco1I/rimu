@@ -1,6 +1,5 @@
 package game.rimu.ui.layouts
 
-import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.BounceInterpolator
 import android.view.animation.DecelerateInterpolator
@@ -11,6 +10,7 @@ import com.reco1l.framework.android.views.setConstraints
 import com.reco1l.framework.android.views.setListeners
 import com.reco1l.framework.android.views.setScale
 import com.reco1l.framework.graphics.Anchor
+import com.reco1l.framework.lang.dateFormatFor
 import game.rimu.android.RimuContext
 import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.management.beatmap.WorkingBeatmap
@@ -21,9 +21,14 @@ import game.rimu.ui.views.IconButton
 import game.rimu.ui.views.SeekBar
 import game.rimu.ui.views.TextView
 import game.rimu.ui.views.addons.setTouchHandler
+import org.andengine.engine.handler.IUpdateHandler
+import java.text.SimpleDateFormat
 import kotlin.reflect.KClass
 
-class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
+class MusicPlayerBox(ctx: RimuContext) :
+    RimuLayout(ctx),
+    IBeatmapObserver,
+    IUpdateHandler
 {
 
     override var layer: KClass<out LayoutLayer> = LayerOverlay::class
@@ -48,7 +53,10 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         alpha = 0.8f
     }
 
-    val seekBar = SeekBar {
+    val timeText = TextView {
+
+        text = "00:00"
+        skinningRules.color = { accentColor.factorInt(0.8f) }
 
         setConstraints(
             target = artistText,
@@ -56,13 +64,32 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         )
 
         dimensions {
-            marginTop = 8
-            width = MATCH_PARENT
-            height = 20
+            fontSize = 8
+            marginTop = 12
         }
 
-        progress = 50
-        max = 100
+    }
+
+    val lengthText = TextView {
+
+        text = "00:00"
+        skinningRules.color = { accentColor.factorInt(0.8f) }
+
+        setConstraints(target = timeText, topToTarget = Anchor.TOP)
+        setConstraints(rightToTarget = Anchor.RIGHT)
+
+        dimensions.fontSize = 8
+    }
+
+
+    val seekBar = SeekBar {
+
+        setConstraints(
+            target = timeText,
+            topToTarget = Anchor.BOTTOM
+        )
+
+        dimensions.marginTop = 8
     }
 
 
@@ -92,12 +119,12 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
                     if (stream.state == AudioState.PLAYING)
                     {
                         pause()
-                        skinningRules.bitmap = { ctx.resources["icon-play", 0] }
+                        skinningRules.texture = "icon-play" to 0
                     }
                     else
                     {
                         play()
-                        skinningRules.bitmap = { ctx.resources["icon-pause", 0] }
+                        skinningRules.texture = "icon-pause" to 0
                     }
 
                     invalidateSkin()
@@ -145,6 +172,9 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
     }
 
 
+    private lateinit var dateFormat: SimpleDateFormat
+
+
     init
     {
         dimensions {
@@ -158,7 +188,7 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
             padding(12)
         }
 
-        skinningRules.backgroundColor = { data.colours.accentColor.factorInt(0.1f) }
+        skinningRules.backgroundColor = { accentColor.factorInt(0.1f) }
 
         ctx.beatmaps.bindObserver(observer = this)
     }
@@ -168,11 +198,28 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
     {
         mainThread {
 
-            titleText.text = beatmap?.data?.metadata?.title ?: "Unknown"
-            artistText.text = beatmap?.data?.metadata?.artist ?: "Unknown"
+            titleText.text = beatmap?.source?.title ?: "Unknown"
+            artistText.text = "${beatmap?.source?.artist}\n${beatmap?.source?.version}" ?: "Unknown"
 
+            val length = beatmap?.stream?.length ?: 1L
+
+            dateFormat = dateFormatFor(length)
+
+            lengthText.text = dateFormat.format(length)
+            seekBar.max = length.toInt()
         }
     }
+
+    override fun onUpdate(secElapsed: Float)
+    {
+        mainThread {
+            val position = ctx.beatmaps.current?.stream?.position ?: 0L
+
+            timeText.text = dateFormat.format(position)
+            seekBar.progress = position.toInt()
+        }
+    }
+
 
     override fun onAttachedToWindow()
     {
@@ -182,7 +229,6 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
         )
 
         super.onAttachedToWindow()
-        onMusicChange(ctx.beatmaps.current)
 
         alpha = 0f
         setScale(0.8f)
@@ -194,6 +240,15 @@ class MusicPlayerBox(ctx: RimuContext) : RimuLayout(ctx), IBeatmapObserver
             duration = 300
             interpolator = BounceInterpolator()
         }
+
+        onMusicChange(ctx.beatmaps.current)
+        ctx.engine.registerUpdateHandler(this)
+    }
+
+    override fun onDetachedFromWindow()
+    {
+        super.onDetachedFromWindow()
+        ctx.engine.unregisterUpdateHandler(this)
     }
 
     override fun hide()

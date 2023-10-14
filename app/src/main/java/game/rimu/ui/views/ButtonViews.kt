@@ -20,7 +20,7 @@ fun <T> T.IconButton(
     it.block()
 }
 
-class IconButton(ctx: RimuContext, texture: String) : ImageView(ctx)
+class IconButton(ctx: RimuContext, textureName: String) : ImageView(ctx)
 {
     init
     {
@@ -33,8 +33,8 @@ class IconButton(ctx: RimuContext, texture: String) : ImageView(ctx)
         }
 
         skinningRules {
-            bitmap = { ctx.resources[texture, 0] }
-            tint = { data.colours.accentColor.toInt() }
+            texture = textureName to 0
+            tint = { accentColor.toInt() }
         }
     }
 }
