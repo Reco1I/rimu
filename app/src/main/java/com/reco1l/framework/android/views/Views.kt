@@ -15,6 +15,26 @@ import kotlin.math.roundToInt
 
 // Drawables
 
+var View.backgroundColor: Int?
+    get() = (background as? ColorDrawable)?.color
+    set(value)
+    {
+        if (value != null)
+            setBackgroundColor(value)
+        else
+            background = null
+    }
+
+var View.foregroundColor: Int?
+    get() = (foreground as? ColorDrawable)?.color
+    set(value)
+    {
+        if (value != null)
+            setForegroundColor(value)
+        else
+            background = null
+    }
+
 fun View.setForegroundColor(@ColorInt color: Int)
 {
     var drawable: ColorDrawable? = background as? ColorDrawable
