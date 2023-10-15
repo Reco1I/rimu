@@ -10,6 +10,8 @@ import com.reco1l.framework.lang.isLazyInit
 import com.reco1l.framework.lang.isLazyInitialized
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
+import game.rimu.management.resources.AssetID
+import game.rimu.management.resources.ColorID
 import game.rimu.management.skin.WorkingSkin
 import org.andengine.entity.IEntity
 
@@ -82,49 +84,37 @@ open class ViewSkinningRules<T : View> : SkinningRules<T>()
     /**
      * Define the drawable that should be set as background.
      */
-    var background: Pair<String, Int>? = null
+    var background: AssetID? = null
 
     /**
      * Define the background color that should be set.
      *
      * Note: This overrides the value set in [background] property.
      */
-    var backgroundColor: Pair<String, Float>? = null
+    var backgroundColor: ColorID? = null
 
     /**
      * Define the drawable that should be set as foreground.
      */
-    var foreground: Pair<String, Int>? = null
+    var foreground: AssetID? = null
 
     /**
      * Define the foreground color that should be set.
      *
      * Note: This overrides the value set in [foreground] property.
      */
-    var foregroundColor: Pair<String, Float>? = null
+    var foregroundColor: ColorID? = null
 
 
     @CallSuper
     override fun onApplySkin(target: T, skin: WorkingSkin)
     {
+        backgroundColor?.also { target.setBackgroundColor(it[skin.ctx] ?: TRANSPARENT) }
+            ?:
+            background?.also { target.background = it[skin.ctx] }
 
-        backgroundColor?.also { (key, factor) ->
-
-            target.setBackgroundColor(skin.data.colours.map[key]?.factorInt(factor) ?: TRANSPARENT)
-
-        } ?: background?.also { (key, variant) ->
-
-            target.background = skin.ctx.resources[key, variant]
-        }
-
-
-        foregroundColor?.also { (key, factor) ->
-
-            target.setForegroundColor(skin.data.colours.map[key]?.factorInt(factor) ?: TRANSPARENT)
-
-        } ?: foreground?.also { (key, variant) ->
-
-            target.background = skin.ctx.resources[key, variant]
-        }
+        foregroundColor?.also { target.setForegroundColor(it[skin.ctx] ?: TRANSPARENT) }
+            ?:
+            foreground?.also { target.background = it[skin.ctx] }
     }
 }

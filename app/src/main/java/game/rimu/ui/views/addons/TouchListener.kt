@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.MotionEvent.ACTION_CANCEL
 import android.view.MotionEvent.ACTION_DOWN
 import android.view.MotionEvent.ACTION_MOVE
+import android.view.MotionEvent.ACTION_OUTSIDE
 import android.view.MotionEvent.ACTION_UP
 import android.view.View
 import android.view.View.OnTouchListener
@@ -22,6 +23,7 @@ import com.reco1l.framework.android.views.animate
 import com.reco1l.framework.android.views.scale
 import com.reco1l.framework.graphics.setRadius
 import game.rimu.android.RimuContext
+import game.rimu.management.resources.AssetID
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalable
 import game.rimu.ui.ISkinnable
@@ -37,11 +39,11 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
     var onActionLong: (() -> Unit)? = null
 
 
-    var soundActionDown: (() -> SampleStream?)? = null
+    var soundActionDown: AssetID? = null
 
-    var soundActionUp: (() -> SampleStream?)? = null
+    var soundActionUp: AssetID? = null
 
-    var soundActionLong: (() -> SampleStream?)? = null
+    var soundActionLong: AssetID? = null
 
 
     var touchEffectDrawable: (() -> Drawable)? = { TouchEffectDrawable() }
@@ -55,13 +57,14 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
             duration = 100
             return@block
         }
+
         scale(1f)
         interpolator = BounceInterpolator()
         duration = 200
     }
 
 
-    private lateinit var view: View
+    private lateinit var ctx: RimuContext
 
 
     private val longPresCallback = {
@@ -69,10 +72,10 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
         ignoreActionUp = true
 
         onActionLong?.invoke()
-        soundActionLong?.invoke()?.play()
+        soundActionLong?.get<SampleStream>(ctx)?.play()
 
         // Newer method requires higher min API.
-        view.context.getSystemService<Vibrator>().vibrate(50)
+        ctx.getSystemService<Vibrator>().vibrate(50)
     }
 
     private var ignoreActionUp = false
@@ -84,10 +87,17 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
     }
 
 
+    fun noEffect()
+    {
+        touchEffectDrawable = null
+        touchEffectAnimation = null
+    }
+
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(view: View, event: MotionEvent): Boolean
     {
-        this.view = view
+        ctx = view.context as RimuContext
 
         // Setting the touch effect if hasn't been set yet.
         touchEffectDrawable?.also {
@@ -132,8 +142,13 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
                     view.handler.postDelayed(longPresCallback, getLongPressTimeout().toLong())
 
                 onActionDown?.invoke()
-                soundActionDown?.invoke()?.play()
+                soundActionDown?.get<SampleStream>(ctx)?.play()
+                true
+            }
 
+            ACTION_MOVE, ACTION_CANCEL ->
+            {
+                view.handler.removeCallbacks(longPresCallback)
                 true
             }
 
@@ -151,13 +166,7 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
                 view.handler.removeCallbacks(longPresCallback)
 
                 onActionUp?.invoke()
-                soundActionUp?.invoke()?.play()
-                true
-            }
-
-            ACTION_MOVE, ACTION_CANCEL ->
-            {
-                view.handler.removeCallbacks(longPresCallback)
+                soundActionUp?.get<SampleStream>(ctx)?.play()
                 true
             }
 

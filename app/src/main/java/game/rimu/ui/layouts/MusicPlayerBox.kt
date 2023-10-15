@@ -14,6 +14,8 @@ import com.reco1l.framework.lang.dateFormatFor
 import game.rimu.android.RimuContext
 import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.management.beatmap.WorkingBeatmap
+import game.rimu.management.resources.AssetID
+import game.rimu.management.resources.ColorID
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayoutLayer
 import game.rimu.ui.views.IconButton
@@ -55,7 +57,7 @@ class MusicPlayerBox(ctx: RimuContext) :
     val timeText = TextView {
 
         text = "00:00"
-        skinningRules.fontColor = "accentColor" to 0.8f
+        skinningRules.fontColor = ColorID("accentColor", 0.8f)
 
         setConstraints(
             target = artistText,
@@ -73,7 +75,7 @@ class MusicPlayerBox(ctx: RimuContext) :
 
         text = "00:00"
         dimensions.fontSize = 8
-        skinningRules.fontColor = "accentColor" to 0.8f
+        skinningRules.fontColor = ColorID("accentColor", 0.8f)
 
         setConstraints(target = timeText, topToTarget = Anchor.TOP)
         setConstraints(rightToTarget = Anchor.RIGHT)
@@ -117,12 +119,12 @@ class MusicPlayerBox(ctx: RimuContext) :
                     if (stream.state == AudioState.PLAYING)
                     {
                         pause()
-                        skinningRules.texture = "icon-play" to 0
+                        skinningRules.texture = AssetID("icon-play")
                     }
                     else
                     {
                         play()
-                        skinningRules.texture = "icon-pause" to 0
+                        skinningRules.texture = AssetID("icon-pause")
                     }
 
                     invalidateSkin()
@@ -155,8 +157,8 @@ class MusicPlayerBox(ctx: RimuContext) :
         setConstraints(
             target = playButton,
             topToTarget = Anchor.TOP,
-            bottomToTarget = Anchor.BOTTOM,
-            leftToTarget = Anchor.RIGHT
+            leftToTarget = Anchor.RIGHT,
+            bottomToTarget = Anchor.BOTTOM
         )
 
         dimensions.apply {
@@ -186,7 +188,7 @@ class MusicPlayerBox(ctx: RimuContext) :
             padding(12)
         }
 
-        skinningRules.backgroundColor = "accentColor" to 0.1f
+        skinningRules.backgroundColor = ColorID("accentColor", 0.1f)
 
         ctx.beatmaps.bindObserver(observer = this)
     }

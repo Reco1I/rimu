@@ -9,6 +9,7 @@ import com.reco1l.framework.android.views.attachTo
 import com.reco1l.framework.android.views.setConstraints
 import com.reco1l.framework.graphics.Anchor
 import game.rimu.android.RimuContext
+import game.rimu.management.resources.AssetID
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayoutLayer
@@ -21,7 +22,6 @@ import game.rimu.ui.views.IconButton
 import game.rimu.ui.views.ImageView
 import game.rimu.ui.views.LinearLayout
 import game.rimu.ui.views.TextView
-import game.rimu.ui.views.addons.TouchHandler
 import game.rimu.ui.views.addons.setTouchHandler
 import kotlin.reflect.KClass
 
@@ -139,7 +139,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
             cornerRadius = 7f
         }
 
-        skinningRules.texture = "avatar-default" to 0
+        skinningRules.texture = AssetID("avatar-default")
     }
 
     private val username = TextView {

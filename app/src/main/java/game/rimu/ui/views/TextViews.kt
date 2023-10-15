@@ -19,6 +19,8 @@ import com.reco1l.framework.graphics.Anchor
 import com.reco1l.framework.graphics.BasicAnchor
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
+import game.rimu.management.resources.AssetID
+import game.rimu.management.resources.ColorID
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
@@ -47,12 +49,12 @@ data class TextViewSkinningRules<T : TextView>(
     /**
      * The font asset name and variant.
      */
-    var font: Pair<String, Int>? = "font" to 0,
+    var font: AssetID? = AssetID("font"),
 
     /**
      * The font color and factor applied to it, by default is the accent color with factor 1.0.
      */
-    var fontColor: Pair<String, Float>? = "accentColor" to 1f
+    var fontColor: ColorID? = ColorID("accentColor", 1f)
 
 ) : ViewSkinningRules<T>()
 {

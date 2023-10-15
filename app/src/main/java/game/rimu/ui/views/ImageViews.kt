@@ -14,6 +14,8 @@ import com.reco1l.framework.android.views.setImageTint
 import com.reco1l.skindecoder.data.SkinDataColours
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
+import game.rimu.management.resources.AssetID
+import game.rimu.management.resources.ColorID
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalable
 import game.rimu.ui.IScalableWithDimensions
@@ -30,12 +32,12 @@ open class ImageSkinningRules<T : ImageView> : ViewSkinningRules<T>()
     /**
      * The asset key.
      */
-    var texture: Pair<String, Int>? = null
+    var texture: AssetID? = null
 
     /**
      * The tint name and factor that should be set to the drawable.
      */
-    var tint: Pair<String, Float>? = null
+    var tint: ColorID? = null
 
 
     @CallSuper
@@ -74,9 +76,9 @@ open class ImageView(override val ctx: RimuContext) :
     ISkinnableWithRules<ImageView>
 {
 
-    override val dimensions by lazy { ViewDimensions<ImageView>() }
+    final override val dimensions by lazy { ViewDimensions<ImageView>() }
 
-    override val skinningRules by lazy { ImageSkinningRules<ImageView>() }
+    final override val skinningRules by lazy { ImageSkinningRules<ImageView>() }
 
 
     override fun onApplyScale(scale: Float)

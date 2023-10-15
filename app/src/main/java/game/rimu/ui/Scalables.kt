@@ -125,6 +125,14 @@ open class ViewDimensions<V : View>(
     var cornerRadius: Float = 0f
 
 
+    fun padding(horizontal: Int, vertical: Int)
+    {
+        paddingLeft = horizontal
+        paddingRight = horizontal
+        paddingTop = vertical
+        paddingBottom = vertical
+    }
+
     fun padding(value: Int)
     {
         paddingLeft = value
