@@ -11,7 +11,6 @@ import okhttp3.OkHttpClient
  *
  * [Chimu docs...](https://chimu.moe/docs)
  */
-@Suppress("FunctionName")
 object CheesegullAPI
 {
 
