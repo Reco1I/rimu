@@ -109,13 +109,23 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
             it.invalidateScale(context)
         }
 
+
+        fun onHandleTouchEffect(isPressed: Boolean)
+        {
+            view.isPressed = isPressed
+            touchEffectAnimation?.also { view.animate { it(isPressed) } }
+        }
+
+        when (event.action)
+        {
+            ACTION_DOWN -> onHandleTouchEffect(true)
+            ACTION_UP, ACTION_OUTSIDE, ACTION_CANCEL -> onHandleTouchEffect(false)
+        }
+
         return when (event.action)
         {
             ACTION_DOWN ->
             {
-                view.isPressed = true
-                touchEffectAnimation?.also { view.animate { it(true) } }
-
                 // Queuing the long press callback, it'll be executed according to the timeout set by
                 // the user in its device settings.
                 if (onActionLong != null)
@@ -129,10 +139,7 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
 
             ACTION_UP ->
             {
-                view.isPressed = false
-                touchEffectAnimation?.also { view.animate { it(false) } }
-
-                // This means the long press callback was executed so we should ignore action UP.
+                // This means the long press callback was executed so we should ignore.
                 if (ignoreActionUp)
                 {
                     ignoreActionUp = false
