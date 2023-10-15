@@ -11,11 +11,8 @@ import androidx.annotation.CallSuper
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.drawable.toDrawable
 import com.reco1l.framework.android.views.setImageTint
-import com.reco1l.skindecoder.data.SkinDataColours
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
-import game.rimu.management.resources.AssetID
-import game.rimu.management.resources.ColorID
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalable
 import game.rimu.ui.IScalableWithDimensions
@@ -29,15 +26,14 @@ import game.rimu.ui.ViewSkinningRules
 open class ImageSkinningRules<T : ImageView> : ViewSkinningRules<T>()
 {
 
-    /**
-     * The asset key.
-     */
-    var texture: AssetID? = null
+    var image: String? = null
 
-    /**
-     * The tint name and factor that should be set to the drawable.
-     */
-    var tint: ColorID? = null
+    var imageVariant: Int = 0
+
+
+    var imageTint: String? = null
+
+    var imageTintFactor: Float = 1f
 
 
     @CallSuper
@@ -45,14 +41,11 @@ open class ImageSkinningRules<T : ImageView> : ViewSkinningRules<T>()
     {
         super.onApplySkin(target, skin)
 
-        texture?.also { (key, variant) ->
+        image?.also { target.setImageBitmap(skin.ctx.resources[it, imageVariant]) }
 
-            target.setImageBitmap(skin.ctx.resources[key, variant])
-        }
+        imageTint?.also {
 
-        tint?.also { (key, factor) ->
-
-            target.setImageTint(skin.data.colours.map[key]?.factorInt(factor) ?: TRANSPARENT)
+            target.setImageTint(skin.colors[it]?.factorInt(imageTintFactor) ?: TRANSPARENT)
         }
     }
 }

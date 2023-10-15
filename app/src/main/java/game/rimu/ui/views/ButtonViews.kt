@@ -3,8 +3,6 @@ package game.rimu.ui.views
 import android.view.ViewGroup
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
-import game.rimu.management.resources.AssetID
-import game.rimu.management.resources.ColorID
 
 
 fun <T> T.IconButton(
@@ -35,9 +33,9 @@ open class IconButton(ctx: RimuContext, initialTexture: String? = null) : ImageV
         skinningRules.apply {
 
             if (initialTexture != null)
-                texture = AssetID(initialTexture)
+                image = initialTexture
 
-            tint = ColorID("accentColor", 1f)
+            imageTint = "accentColor"
         }
     }
 }

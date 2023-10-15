@@ -14,8 +14,6 @@ import com.reco1l.framework.lang.dateFormatFor
 import game.rimu.android.RimuContext
 import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.management.beatmap.WorkingBeatmap
-import game.rimu.management.resources.AssetID
-import game.rimu.management.resources.ColorID
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayoutLayer
 import game.rimu.ui.views.IconButton
@@ -57,7 +55,7 @@ class MusicPlayerBox(ctx: RimuContext) :
     val timeText = TextView {
 
         text = "00:00"
-        skinningRules.fontColor = ColorID("accentColor", 0.8f)
+        skinningRules.fontColorFactor = 0.8f
 
         setConstraints(
             target = artistText,
@@ -75,7 +73,7 @@ class MusicPlayerBox(ctx: RimuContext) :
 
         text = "00:00"
         dimensions.fontSize = 8
-        skinningRules.fontColor = ColorID("accentColor", 0.8f)
+        skinningRules.fontColorFactor = 0.8f
 
         setConstraints(target = timeText, topToTarget = Anchor.TOP)
         setConstraints(rightToTarget = Anchor.RIGHT)
@@ -119,12 +117,12 @@ class MusicPlayerBox(ctx: RimuContext) :
                     if (stream.state == AudioState.PLAYING)
                     {
                         pause()
-                        skinningRules.texture = AssetID("icon-play")
+                        skinningRules.image = "icon-play"
                     }
                     else
                     {
                         play()
-                        skinningRules.texture = AssetID("icon-pause")
+                        skinningRules.image = "icon-pause"
                     }
 
                     invalidateSkin()
@@ -188,7 +186,8 @@ class MusicPlayerBox(ctx: RimuContext) :
             padding(12)
         }
 
-        skinningRules.backgroundColor = ColorID("accentColor", 0.1f)
+        skinningRules.backgroundColor = "accentColor"
+        skinningRules.backgroundColorFactor = 0.1f
 
         ctx.beatmaps.bindObserver(observer = this)
     }

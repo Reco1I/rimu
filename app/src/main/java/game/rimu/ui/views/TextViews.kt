@@ -1,6 +1,7 @@
 package game.rimu.ui.views
 
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.TextUtils
@@ -19,8 +20,6 @@ import com.reco1l.framework.graphics.Anchor
 import com.reco1l.framework.graphics.BasicAnchor
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
-import game.rimu.management.resources.AssetID
-import game.rimu.management.resources.ColorID
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
@@ -49,12 +48,16 @@ data class TextViewSkinningRules<T : TextView>(
     /**
      * The font asset name and variant.
      */
-    var font: AssetID? = AssetID("font"),
+    var font: String? = "font",
+
+    var fontVariant: Int = 0,
 
     /**
      * The font color and factor applied to it, by default is the accent color with factor 1.0.
      */
-    var fontColor: ColorID? = ColorID("accentColor", 1f)
+    var fontColor: String? = "accentColor",
+
+    var fontColorFactor: Float = 1f
 
 ) : ViewSkinningRules<T>()
 {
@@ -63,14 +66,14 @@ data class TextViewSkinningRules<T : TextView>(
     {
         super.onApplySkin(target, skin)
 
-        font?.also { (key, variant) ->
+        font?.also {
 
-            target.font = skin.ctx.resources[key, variant]!!
+            target.font = skin.ctx.resources[it, fontVariant] ?: Typeface.DEFAULT
         }
 
-        fontColor?.also { (key, factor) ->
+        fontColor?.also {
 
-            target.fontColor = skin.data.colours.map[key]?.factorInt(factor) ?: Color.TRANSPARENT
+            target.fontColor = skin.colors[it]?.factorInt(fontColorFactor) ?: Color.TRANSPARENT
         }
     }
 

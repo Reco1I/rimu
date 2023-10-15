@@ -38,6 +38,12 @@ class WorkingSkin(
      */
     val data = onDecodeData()
 
+    /**
+     * The skin declared colors in a map.
+     */
+    val colors
+        get() = data.colours.map
+
 
     private fun onDecodeData(): SkinData
     {

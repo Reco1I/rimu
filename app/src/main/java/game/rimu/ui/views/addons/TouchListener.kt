@@ -23,7 +23,6 @@ import com.reco1l.framework.android.views.animate
 import com.reco1l.framework.android.views.scale
 import com.reco1l.framework.graphics.setRadius
 import game.rimu.android.RimuContext
-import game.rimu.management.resources.AssetID
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalable
 import game.rimu.ui.ISkinnable
@@ -39,11 +38,11 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
     var onActionLong: (() -> Unit)? = null
 
 
-    var soundActionDown: AssetID? = null
+    var soundActionDown: String? = null
 
-    var soundActionUp: AssetID? = null
+    var soundActionUp: String? = null
 
-    var soundActionLong: AssetID? = null
+    var soundActionLong: String? = null
 
 
     var touchEffectDrawable: (() -> Drawable)? = { TouchEffectDrawable() }
@@ -72,7 +71,7 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
         ignoreActionUp = true
 
         onActionLong?.invoke()
-        soundActionLong?.get<SampleStream>(ctx)?.play()
+        soundActionLong?.also { ctx.resources.get<SampleStream>(it, 0)?.play() }
 
         // Newer method requires higher min API.
         ctx.getSystemService<Vibrator>().vibrate(50)
@@ -142,7 +141,7 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
                     view.handler.postDelayed(longPresCallback, getLongPressTimeout().toLong())
 
                 onActionDown?.invoke()
-                soundActionDown?.get<SampleStream>(ctx)?.play()
+                soundActionDown?.also { ctx.resources.get<SampleStream>(it, 0)?.play() }
                 true
             }
 
@@ -166,7 +165,7 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
                 view.handler.removeCallbacks(longPresCallback)
 
                 onActionUp?.invoke()
-                soundActionUp?.get<SampleStream>(ctx)?.play()
+                soundActionUp?.also { ctx.resources.get<SampleStream>(it, 0)?.play() }
                 true
             }
 

@@ -5,13 +5,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.core.view.forEach
-import com.reco1l.framework.android.views.setForegroundColor
+import com.reco1l.framework.android.views.backgroundColor
 import com.reco1l.framework.lang.isLazyInit
 import com.reco1l.framework.lang.isLazyInitialized
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
-import game.rimu.management.resources.AssetID
-import game.rimu.management.resources.ColorID
 import game.rimu.management.skin.WorkingSkin
 import org.andengine.entity.IEntity
 
@@ -84,37 +82,28 @@ open class ViewSkinningRules<T : View> : SkinningRules<T>()
     /**
      * Define the drawable that should be set as background.
      */
-    var background: AssetID? = null
+    var background: String? = null
+
+    var backgroundVariant: Int = 0
+
 
     /**
      * Define the background color that should be set.
      *
      * Note: This overrides the value set in [background] property.
      */
-    var backgroundColor: ColorID? = null
+    var backgroundColor: String? = null
 
-    /**
-     * Define the drawable that should be set as foreground.
-     */
-    var foreground: AssetID? = null
-
-    /**
-     * Define the foreground color that should be set.
-     *
-     * Note: This overrides the value set in [foreground] property.
-     */
-    var foregroundColor: ColorID? = null
+    var backgroundColorFactor: Float = 1f
 
 
     @CallSuper
     override fun onApplySkin(target: T, skin: WorkingSkin)
     {
-        backgroundColor?.also { target.setBackgroundColor(it[skin.ctx] ?: TRANSPARENT) }
-            ?:
-            background?.also { target.background = it[skin.ctx] }
+        backgroundColor?.also {
 
-        foregroundColor?.also { target.setForegroundColor(it[skin.ctx] ?: TRANSPARENT) }
-            ?:
-            foreground?.also { target.background = it[skin.ctx] }
+            target.backgroundColor = skin.colors[it]?.factorInt(backgroundColorFactor) ?: TRANSPARENT
+
+        } ?: background?.also { target.background = skin.ctx.resources[it, backgroundVariant] }
     }
 }
