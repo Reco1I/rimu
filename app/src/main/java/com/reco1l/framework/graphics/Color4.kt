@@ -116,8 +116,9 @@ open class Color4 @JvmOverloads constructor(
         red: Float = getRed(),
         blue: Float = getBlue(),
         green: Float = getGreen(),
-        alpha: Float = getAlpha()
-    ) = ColorUtils.convertRGBAToARGBPackedInt(red, green, blue, alpha)
+        alpha: Float = getAlpha(),
+        factor: Float = 1f
+    ) = ColorUtils.convertRGBAToARGBPackedInt(red * factor, green * factor, blue * factor, alpha)
 
     fun toDrawable() = ColorDrawable(argbPackedInt)
 
