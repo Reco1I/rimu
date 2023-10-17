@@ -89,7 +89,7 @@ data class Asset(
          * List of currently asset supported formats by rimu!.
          */
         val SUPPORTED_FORMATS =
-            MODE_FORMATS + SOUND_FORMATS + VIDEO_FORMATS + IMAGE_FORMATS + FONT_FORMATS
+            MODE_FORMATS + SOUND_FORMATS + VIDEO_FORMATS + IMAGE_FORMATS + FONT_FORMATS + "ini"
 
     }
 }
