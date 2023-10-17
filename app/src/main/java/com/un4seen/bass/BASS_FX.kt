@@ -14,26 +14,37 @@
  * Requires BASS 2.4 (available at http://www.un4seen.com)
 ===========================================================================*/
 
-package com.un4seen.bass;
+// File converted to Kotlin by Reco1l
 
-@SuppressWarnings({"all"})
-public class BASS_FX
-{
-	// BASS_CHANNELINFO types
-	public static final int BASS_CTYPE_STREAM_TEMPO = 0x1f200;
-	public static final int BASS_CTYPE_STREAM_REVERSE = 0x1f201;
+@file:Suppress(
+    "unused",
+    "ClassName",
+    "FunctionName",
+    "NotConstructor",
+    "LocalVariableName",
+    "SpellCheckingInspection"
+)
 
-	// Tempo / Reverse / BPM / Beat flag
-	public static final int BASS_FX_FREESOURCE = 0x10000;	// Free the source handle as well?
+package com.un4seen.bass
 
-	// BASS_FX Version
-	public static native int BASS_FX_GetVersion();
+import kotlin.math.log10
+import kotlin.math.pow
 
-	/*===========================================================================
+object BASS_FX {
+    // BASS_CHANNELINFO types
+    const val BASS_CTYPE_STREAM_TEMPO = 0x1f200
+    const val BASS_CTYPE_STREAM_REVERSE = 0x1f201
+
+    // Tempo / Reverse / BPM / Beat flag
+    const val BASS_FX_FREESOURCE = 0x10000 // Free the source handle as well?
+
+    // BASS_FX Version
+    external fun BASS_FX_GetVersion(): Int
+
+    /*===========================================================================
 		DSP (Digital Signal Processing)
 	===========================================================================*/
-	
-	/*
+    /*
 		Multi-channel order of each channel is as follows:
 		 3 channels       left-front, right-front, center.
 		 4 channels       left-front, right-front, left-rear/side, right-rear/side.
@@ -41,48 +52,196 @@ public class BASS_FX
 		 6 channels (5.1) left-front, right-front, center, LFE, left-rear/side, right-rear/side.
 		 8 channels (7.1) left-front, right-front, center, LFE, left-rear/side, right-rear/side, left-rear center, right-rear center.
 	*/
+    // DSP channels flags
+    const val BASS_BFX_CHANALL = -1 // all channels at once (as by default)
+    const val BASS_BFX_CHANNONE = 0 // disable an effect for all channels
+    const val BASS_BFX_CHAN1 = 1 // left-front channel
+    const val BASS_BFX_CHAN2 = 2 // right-front channel
+    const val BASS_BFX_CHAN3 = 4 // see above info
+    const val BASS_BFX_CHAN4 = 8 // see above info
+    const val BASS_BFX_CHAN5 = 16 // see above info
+    const val BASS_BFX_CHAN6 = 32 // see above info
+    const val BASS_BFX_CHAN7 = 64 // see above info
+    const val BASS_BFX_CHAN8 = 128 // see above info
 
-	// DSP channels flags
-	public static final int BASS_BFX_CHANALL = -1;	// all channels at once (as by default)
-	public static final int BASS_BFX_CHANNONE = 0;	// disable an effect for all channels
-	public static final int BASS_BFX_CHAN1 = 1;		// left-front channel
-	public static final int BASS_BFX_CHAN2 = 2;		// right-front channel
-	public static final int BASS_BFX_CHAN3 = 4;		// see above info
-	public static final int BASS_BFX_CHAN4 = 8;		// see above info
-	public static final int BASS_BFX_CHAN5 = 16;	// see above info
-	public static final int BASS_BFX_CHAN6 = 32;	// see above info
-	public static final int BASS_BFX_CHAN7 = 64;	// see above info
-	public static final int BASS_BFX_CHAN8 = 128;	// see above info
+    // if you have more than 8 channels (7.1), use this function
+    fun BASS_BFX_CHANNEL_N(n: Int): Int {
+        return 1 shl n - 1
+    }
 
-	// if you have more than 8 channels (7.1), use this function
-	public static int BASS_BFX_CHANNEL_N(int n) { return (1<<((n)-1)); }
+    // DSP effects
+    const val BASS_FX_BFX_ROTATE = 0x10000 // A channels volume ping-pong	/ multi channel
+    const val BASS_FX_BFX_ECHO = 0x10001 // Echo							/ 2 channels max	(deprecated)
+    const val BASS_FX_BFX_FLANGER = 0x10002 // Flanger						/ multi channel		(deprecated)
+    const val BASS_FX_BFX_VOLUME = 0x10003 // Volume						/ multi channel
+    const val BASS_FX_BFX_PEAKEQ = 0x10004 // Peaking Equalizer			/ multi channel
+    const val BASS_FX_BFX_REVERB = 0x10005 // Reverb						/ 2 channels max	(deprecated)
+    const val BASS_FX_BFX_LPF = 0x10006 // Low Pass Filter 24dB			/ multi channel		(deprecated)
+    const val BASS_FX_BFX_MIX = 0x10007 // Swap, remap and mix channels	/ multi channel
+    const val BASS_FX_BFX_DAMP = 0x10008 // Dynamic Amplification		/ multi channel
+    const val BASS_FX_BFX_AUTOWAH = 0x10009 // Auto Wah						/ multi channel
+    const val BASS_FX_BFX_ECHO2 = 0x1000a // Echo 2						/ multi channel		(deprecated)
+    const val BASS_FX_BFX_PHASER = 0x1000b // Phaser						/ multi channel
+    const val BASS_FX_BFX_ECHO3 = 0x1000c // Echo 3						/ multi channel		(deprecated)
+    const val BASS_FX_BFX_CHORUS = 0x1000d // Chorus/Flanger				/ multi channel
+    const val BASS_FX_BFX_APF = 0x1000e // All Pass Filter				/ multi channel		(deprecated)
+    const val BASS_FX_BFX_COMPRESSOR = 0x1000f // Compressor					/ multi channel		(deprecated)
+    const val BASS_FX_BFX_DISTORTION = 0x10010 // Distortion					/ multi channel
+    const val BASS_FX_BFX_COMPRESSOR2 = 0x10011 // Compressor 2					/ multi channel
+    const val BASS_FX_BFX_VOLUME_ENV = 0x10012 // Volume envelope				/ multi channel
+    const val BASS_FX_BFX_BQF = 0x10013 // BiQuad filters				/ multi channel
+    const val BASS_FX_BFX_ECHO4 = 0x10014 // Echo 4						/ multi channel
+    const val BASS_FX_BFX_PITCHSHIFT =
+        0x10015 // Pitch shift using FFT		/ multi channel		(not available on mobile)
+    const val BASS_FX_BFX_FREEVERB = 0x10016 // Reverb using "Freeverb" algo	/ multi channel
 
-	// DSP effects
-	public static final int BASS_FX_BFX_ROTATE = 0x10000;		// A channels volume ping-pong	/ multi channel
-	public static final int BASS_FX_BFX_ECHO = 0x10001;			// Echo							/ 2 channels max	(deprecated)
-	public static final int BASS_FX_BFX_FLANGER = 0x10002;		// Flanger						/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_VOLUME = 0x10003;		// Volume						/ multi channel
-	public static final int BASS_FX_BFX_PEAKEQ = 0x10004;		// Peaking Equalizer			/ multi channel
-	public static final int BASS_FX_BFX_REVERB = 0x10005;		// Reverb						/ 2 channels max	(deprecated)
-	public static final int BASS_FX_BFX_LPF = 0x10006;			// Low Pass Filter 24dB			/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_MIX = 0x10007;			// Swap, remap and mix channels	/ multi channel
-	public static final int BASS_FX_BFX_DAMP = 0x10008;			// Dynamic Amplification		/ multi channel
-	public static final int BASS_FX_BFX_AUTOWAH = 0x10009;		// Auto Wah						/ multi channel
-	public static final int BASS_FX_BFX_ECHO2 = 0x1000a;		// Echo 2						/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_PHASER = 0x1000b;		// Phaser						/ multi channel
-	public static final int BASS_FX_BFX_ECHO3 = 0x1000c;		// Echo 3						/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_CHORUS = 0x1000d;		// Chorus/Flanger				/ multi channel
-	public static final int BASS_FX_BFX_APF = 0x1000e;			// All Pass Filter				/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_COMPRESSOR = 0x1000f;	// Compressor					/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_DISTORTION = 0x10010;	// Distortion					/ multi channel
-	public static final int BASS_FX_BFX_COMPRESSOR2 = 0x10011;	// Compressor 2					/ multi channel
-	public static final int BASS_FX_BFX_VOLUME_ENV = 0x10012;	// Volume envelope				/ multi channel
-	public static final int BASS_FX_BFX_BQF = 0x10013;			// BiQuad filters				/ multi channel
-	public static final int BASS_FX_BFX_ECHO4 = 0x10014;		// Echo 4						/ multi channel
-	public static final int BASS_FX_BFX_PITCHSHIFT = 0x10015;	// Pitch shift using FFT		/ multi channel		(not available on mobile)
-	public static final int BASS_FX_BFX_FREEVERB = 0x10016;		// Reverb using "Freeverb" algo	/ multi channel
+    // BiQuad Filters
+    const val BASS_BFX_BQF_LOWPASS = 0
+    const val BASS_BFX_BQF_HIGHPASS = 1
+    const val BASS_BFX_BQF_BANDPASS = 2 // constant 0 dB peak gain
+    const val BASS_BFX_BQF_BANDPASS_Q = 3 // constant skirt gain, peak gain = Q
+    const val BASS_BFX_BQF_NOTCH = 4
+    const val BASS_BFX_BQF_ALLPASS = 5
+    const val BASS_BFX_BQF_PEAKINGEQ = 6
+    const val BASS_BFX_BQF_LOWSHELF = 7
+    const val BASS_BFX_BQF_HIGHSHELF = 8
 
-	/*
+    // Freeverb
+    const val BASS_BFX_FREEVERB_MODE_FREEZE = 1
+
+    /*===========================================================================
+		set dsp fx			- BASS_ChannelSetFX
+		remove dsp fx		- BASS_ChannelRemoveFX
+		set parameters		- BASS_FXSetParameters
+		retrieve parameters - BASS_FXGetParameters
+		reset the state		- BASS_FXReset
+	===========================================================================*/
+    /*===========================================================================
+		Tempo, Pitch scaling and Sample rate changers
+	===========================================================================*/
+    // NOTE: Enable Tempo supported flags in BASS_FX_TempoCreate and the others to source handle.
+    // tempo attributes (BASS_ChannelSet/GetAttribute)
+    const val BASS_ATTRIB_TEMPO = 0x10000
+    const val BASS_ATTRIB_TEMPO_PITCH = 0x10001
+    const val BASS_ATTRIB_TEMPO_FREQ = 0x10002
+
+    // tempo attributes options
+    const val BASS_ATTRIB_TEMPO_OPTION_USE_AA_FILTER =
+        0x10010 // TRUE (default) / FALSE (default for multi-channel on mobile devices for lower CPU usage)
+    const val BASS_ATTRIB_TEMPO_OPTION_AA_FILTER_LENGTH = 0x10011 // 32 default (8 .. 128 taps)
+    const val BASS_ATTRIB_TEMPO_OPTION_USE_QUICKALGO =
+        0x10012 // TRUE (default on mobile devices for lower CPU usage) / FALSE (default)
+    const val BASS_ATTRIB_TEMPO_OPTION_SEQUENCE_MS = 0x10013 // 82 default, 0 = automatic
+    const val BASS_ATTRIB_TEMPO_OPTION_SEEKWINDOW_MS = 0x10014 // 28 default, 0 = automatic
+    const val BASS_ATTRIB_TEMPO_OPTION_OVERLAP_MS = 0x10015 // 8  default
+    const val BASS_ATTRIB_TEMPO_OPTION_PREVENT_CLICK = 0x10016 // TRUE / FALSE (default)
+
+    // tempo algorithm flags
+    const val BASS_FX_TEMPO_ALGO_LINEAR = 0x200
+    const val BASS_FX_TEMPO_ALGO_CUBIC = 0x400 // default
+    const val BASS_FX_TEMPO_ALGO_SHANNON = 0x800
+    external fun BASS_FX_TempoCreate(chan: Int, flags: Int): Int
+    external fun BASS_FX_TempoGetSource(chan: Int): Int
+    external fun BASS_FX_TempoGetRateRatio(chan: Int): Float
+
+    /*===========================================================================
+		Reverse playback
+	===========================================================================*/
+    // NOTES: 1. MODs won't load without BASS_MUSIC_PRESCAN flag.
+    //		  2. Enable Reverse supported flags in BASS_FX_ReverseCreate and the others to source handle.
+    // reverse attribute (BASS_ChannelSet/GetAttribute)
+    const val BASS_ATTRIB_REVERSE_DIR = 0x11000
+
+    // playback directions
+    const val BASS_FX_RVS_REVERSE = -1
+    const val BASS_FX_RVS_FORWARD = 1
+    external fun BASS_FX_ReverseCreate(chan: Int, dec_block: Float, flags: Int): Int
+    external fun BASS_FX_ReverseGetSource(chan: Int): Int
+
+    /*===========================================================================
+		BPM (Beats Per Minute)
+	===========================================================================*/
+    // bpm flags
+    const val BASS_FX_BPM_BKGRND =
+        1 // if in use, then you can do other processing while detection's in progress. Available only in Windows platforms (BPM/Beat)
+    const val BASS_FX_BPM_MULT2 =
+        2 // if in use, then will auto multiply bpm by 2 (if BPM < minBPM*2)
+
+    // translation options (deprecated)
+    const val BASS_FX_BPM_TRAN_X2 =
+        0 // multiply the original BPM value by 2 (may be called only once & will change the original BPM as well!)
+    const val BASS_FX_BPM_TRAN_2FREQ = 1 // BPM value to Frequency
+    const val BASS_FX_BPM_TRAN_FREQ2 = 2 // Frequency to BPM value
+    const val BASS_FX_BPM_TRAN_2PERCENT = 3 // BPM value to Percents
+    const val BASS_FX_BPM_TRAN_PERCENT2 = 4 // Percents to BPM value
+    external fun BASS_FX_BPM_DecodeGet(
+        chan: Int,
+        startSec: Double,
+        endSec: Double,
+        minMaxBPM: Int,
+        flags: Int,
+        proc: Any?,
+        user: Any?
+    ): Float
+
+    external fun BASS_FX_BPM_CallbackSet(
+        handle: Int,
+        proc: BPMPROC?,
+        period: Double,
+        minMaxBPM: Int,
+        flags: Int,
+        user: Any?
+    ): Boolean
+
+    external fun BASS_FX_BPM_CallbackReset(handle: Int): Boolean
+    external fun BASS_FX_BPM_Translate(
+        handle: Int,
+        val2tran: Float,
+        trans: Int
+    ): Float // deprecated
+
+    external fun BASS_FX_BPM_Free(handle: Int): Boolean
+    external fun BASS_FX_BPM_BeatCallbackSet(handle: Int, proc: BPMBEATPROC?, user: Any?): Boolean
+    external fun BASS_FX_BPM_BeatCallbackReset(handle: Int): Boolean
+    external fun BASS_FX_BPM_BeatDecodeGet(
+        chan: Int,
+        startSec: Double,
+        endSec: Double,
+        flags: Int,
+        proc: BPMBEATPROC?,
+        user: Any?
+    ): Boolean
+
+    external fun BASS_FX_BPM_BeatSetParameters(
+        handle: Int,
+        bandwidth: Float,
+        centerfreq: Float,
+        beat_rtime: Float
+    ): Boolean
+
+    external fun BASS_FX_BPM_BeatGetParameters(
+        handle: Int,
+        bandwidth: Float?,
+        centerfreq: Float?,
+        beat_rtime: Float?
+    ): Boolean
+
+    external fun BASS_FX_BPM_BeatFree(handle: Int): Boolean
+
+    /*===========================================================================
+		Macros
+	===========================================================================*/
+    // translate linear level to logarithmic dB
+    fun BASS_BFX_Linear2dB(level: Double) = 20 * log10(level)
+
+    // translate logarithmic dB level to linear
+    fun BASS_BFX_dB2Linear(dB: Double) = (10.0).pow(dB / 20)
+
+    init {
+        System.loadLibrary("bass_fx")
+    }
+
+    /*
 	    Deprecated effects in 2.4.10 version:
 		------------------------------------
 		BASS_FX_BFX_ECHO		-> use BASS_FX_BFX_ECHO4
@@ -94,351 +253,245 @@ public class BASS_FX
 		BASS_FX_BFX_APF			-> use BASS_FX_BFX_BQF with BASS_BFX_BQF_ALLPASS filter
 		BASS_FX_BFX_LPF			-> use 2x BASS_FX_BFX_BQF with BASS_BFX_BQF_LOWPASS filter and appropriate fQ values
 	*/
+    // Rotate
+    class BASS_BFX_ROTATE {
+        var fRate =
+            0f // rotation rate/speed in Hz (A negative rate can be used for reverse direction)
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s (supported only even number of channels)
+    }
 
-	// Rotate
-	public static class BASS_BFX_ROTATE {
-		public float fRate;						// rotation rate/speed in Hz (A negative rate can be used for reverse direction)
-		public int	 lChannel;					// BASS_BFX_CHANxxx flag/s (supported only even number of channels)
-	}
+    // Echo (deprecated)
+    class BASS_BFX_ECHO {
+        var fLevel = 0f // [0....1....n] linear
+        var lDelay = 0 // [1200..30000]
+    }
 
-	// Echo (deprecated)
-	public static class BASS_BFX_ECHO {
-		public float fLevel;					// [0....1....n] linear
-		public int   lDelay;					// [1200..30000]
-	}
+    // Flanger (deprecated)
+    class BASS_BFX_FLANGER {
+        var fWetDry = 0f // [0....1....n] linear
+        var fSpeed = 0f // [0......0.09]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Flanger (deprecated)
-	public static class BASS_BFX_FLANGER {
-		public float fWetDry;					// [0....1....n] linear
-		public float fSpeed;					// [0......0.09]
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Volume
+    class BASS_BFX_VOLUME {
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s or 0 for global volume control
+        var fVolume = 0f // [0....1....n] linear
+    }
 
-	// Volume
-	public static class BASS_BFX_VOLUME {
-		public int	 lChannel;					// BASS_BFX_CHANxxx flag/s or 0 for global volume control
-		public float fVolume;					// [0....1....n] linear
-	}
+    // Peaking Equalizer
+    class BASS_BFX_PEAKEQ {
+        var lBand = 0 // [0...............n] more bands means more memory & cpu usage
+        var fBandwidth =
+            0f // [0.1...........<10] in octaves - fQ is not in use (Bandwidth has a priority over fQ)
+        var fQ =
+            0f // [0...............1] the EE kinda definition (linear) (if Bandwidth is not in use)
+        var fCenter = 0f // [1Hz..<info.freq/2] in Hz
+        var fGain = 0f // [-15dB...0...+15dB] in dB (can be above/below these limits)
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Peaking Equalizer
-	public static class BASS_BFX_PEAKEQ {
-		public int   lBand;						// [0...............n] more bands means more memory & cpu usage
-		public float fBandwidth;				// [0.1...........<10] in octaves - fQ is not in use (Bandwidth has a priority over fQ)
-		public float fQ;						// [0...............1] the EE kinda definition (linear) (if Bandwidth is not in use)
-		public float fCenter;					// [1Hz..<info.freq/2] in Hz
-		public float fGain;						// [-15dB...0...+15dB] in dB (can be above/below these limits)
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Reverb (deprecated)
+    class BASS_BFX_REVERB {
+        var fLevel = 0f // [0....1....n] linear
+        var lDelay = 0 // [1200..10000]
+    }
 
-	// Reverb (deprecated)
-	public static class BASS_BFX_REVERB {
-		public float fLevel;					// [0....1....n] linear
-		public int   lDelay;					// [1200..10000]
-	}
+    // Low Pass Filter (deprecated)
+    class BASS_BFX_LPF {
+        var fResonance = 0f // [0.01...........10]
+        var fCutOffFreq = 0f // [1Hz...info.freq/2] cutoff frequency
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Low Pass Filter (deprecated)
-	public static class BASS_BFX_LPF {
-		public float fResonance;				// [0.01...........10]
-		public float fCutOffFreq;				// [1Hz...info.freq/2] cutoff frequency
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Swap, remap and mix
+    class BASS_BFX_MIX {
+        lateinit var lChannel: IntArray // an array of channels to mix using BASS_BFX_CHANxxx flag/s (lChannel[0] is left channel...)
+    }
 
-	// Swap, remap and mix
-	public static class BASS_BFX_MIX {
-		public int[] lChannel;					// an array of channels to mix using BASS_BFX_CHANxxx flag/s (lChannel[0] is left channel...)
-	}
+    // Dynamic Amplification
+    class BASS_BFX_DAMP {
+        var fTarget = 0f // target volume level						[0<......1] linear
+        var fQuiet = 0f // quiet  volume level						[0.......1] linear
+        var fRate = 0f // amp adjustment rate						[0.......1] linear
+        var fGain = 0f // amplification level						[0...1...n] linear
+        var fDelay = 0f // delay in seconds before increasing level	[0.......n] linear
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Dynamic Amplification
-	public static class BASS_BFX_DAMP {
-		public float fTarget;					// target volume level						[0<......1] linear
-		public float fQuiet; 					// quiet  volume level						[0.......1] linear
-		public float fRate;						// amp adjustment rate						[0.......1] linear
-		public float fGain;						// amplification level						[0...1...n] linear
-		public float fDelay;					// delay in seconds before increasing level	[0.......n] linear
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Auto Wah
+    class BASS_BFX_AUTOWAH {
+        var fDryMix = 0f // dry (unaffected) signal mix				[-2......2]
+        var fWetMix = 0f // wet (affected) signal mix				[-2......2]
+        var fFeedback = 0f // output signal to feed back into input	[-1......1]
+        var fRate = 0f // rate of sweep in cycles per second		[0<....<10]
+        var fRange = 0f // sweep range in octaves					[0<....<10]
+        var fFreq = 0f // base frequency of sweep Hz				[0<...1000]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Auto Wah
-	public static class BASS_BFX_AUTOWAH {
-		public float fDryMix;					// dry (unaffected) signal mix				[-2......2]
-		public float fWetMix;					// wet (affected) signal mix				[-2......2]
-		public float fFeedback;					// output signal to feed back into input	[-1......1]
-		public float fRate;						// rate of sweep in cycles per second		[0<....<10]
-		public float fRange;					// sweep range in octaves					[0<....<10]
-		public float fFreq;						// base frequency of sweep Hz				[0<...1000]
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Echo 2 (deprecated)
+    class BASS_BFX_ECHO2 {
+        var fDryMix = 0f // dry (unaffected) signal mix				[-2......2]
+        var fWetMix = 0f // wet (affected) signal mix				[-2......2]
+        var fFeedback = 0f // output signal to feed back into input	[-1......1]
+        var fDelay = 0f // delay sec								[0<......n]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Echo 2 (deprecated)
-	public static class BASS_BFX_ECHO2 {
-		public float fDryMix;					// dry (unaffected) signal mix				[-2......2]
-		public float fWetMix;					// wet (affected) signal mix				[-2......2]
-		public float fFeedback;					// output signal to feed back into input	[-1......1]
-		public float fDelay;					// delay sec								[0<......n]
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Phaser
+    class BASS_BFX_PHASER {
+        var fDryMix = 0f // dry (unaffected) signal mix				[-2......2]
+        var fWetMix = 0f // wet (affected) signal mix				[-2......2]
+        var fFeedback = 0f // output signal to feed back into input	[-1......1]
+        var fRate = 0f // rate of sweep in cycles per second		[0<....<10]
+        var fRange = 0f // sweep range in octaves					[0<....<10]
+        var fFreq = 0f // base frequency of sweep					[0<...1000]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Phaser
-	public static class BASS_BFX_PHASER {
-		public float fDryMix;					// dry (unaffected) signal mix				[-2......2]
-		public float fWetMix;					// wet (affected) signal mix				[-2......2]
-		public float fFeedback;					// output signal to feed back into input	[-1......1]
-		public float fRate;						// rate of sweep in cycles per second		[0<....<10]
-		public float fRange;					// sweep range in octaves					[0<....<10]
-		public float fFreq;						// base frequency of sweep					[0<...1000]
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Echo 3 (deprecated)
+    class BASS_BFX_ECHO3 {
+        var fDryMix = 0f // dry (unaffected) signal mix				[-2......2]
+        var fWetMix = 0f // wet (affected) signal mix				[-2......2]
+        var fDelay = 0f // delay sec								[0<......n]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Echo 3 (deprecated)
-	public static class BASS_BFX_ECHO3 {
-		public float fDryMix;					// dry (unaffected) signal mix				[-2......2]
-		public float fWetMix;					// wet (affected) signal mix				[-2......2]
-		public float fDelay;					// delay sec								[0<......n]
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Chorus/Flanger
+    class BASS_BFX_CHORUS {
+        var fDryMix = 0f // dry (unaffected) signal mix				[-2......2]
+        var fWetMix = 0f // wet (affected) signal mix				[-2......2]
+        var fFeedback = 0f // output signal to feed back into input	[-1......1]
+        var fMinSweep = 0f // minimal delay ms							[0<...6000]
+        var fMaxSweep = 0f // maximum delay ms							[0<...6000]
+        var fRate = 0f // rate ms/s								[0<...1000]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Chorus/Flanger
-	public static class BASS_BFX_CHORUS {
-		public float fDryMix;					// dry (unaffected) signal mix				[-2......2]
-		public float fWetMix;					// wet (affected) signal mix				[-2......2]
-		public float fFeedback;					// output signal to feed back into input	[-1......1]
-		public float fMinSweep;					// minimal delay ms							[0<...6000]
-		public float fMaxSweep;					// maximum delay ms							[0<...6000]
-		public float fRate;						// rate ms/s								[0<...1000]
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // All Pass Filter (deprecated)
+    class BASS_BFX_APF {
+        var fGain = 0f // reverberation time						[-1=<..<=1]
+        var fDelay = 0f // delay sec								[0<....<=n]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// All Pass Filter (deprecated)
-	public static class BASS_BFX_APF {
-		public float fGain;						// reverberation time						[-1=<..<=1]
-		public float fDelay;					// delay sec								[0<....<=n]
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Compressor (deprecated)
+    class BASS_BFX_COMPRESSOR {
+        var fThreshold = 0f // compressor threshold						[0<=...<=1]
+        var fAttacktime = 0f // attack time ms							[0<.<=1000]
+        var fReleasetime = 0f // release time ms							[0<.<=5000]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Compressor (deprecated)
-	public static class BASS_BFX_COMPRESSOR {
-		public float fThreshold;				// compressor threshold						[0<=...<=1]
-		public float fAttacktime;				// attack time ms							[0<.<=1000]
-		public float fReleasetime;				// release time ms							[0<.<=5000]
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Distortion
+    class BASS_BFX_DISTORTION {
+        var fDrive = 0f // distortion drive							[0<=...<=5]
+        var fDryMix = 0f // dry (unaffected) signal mix				[-5<=..<=5]
+        var fWetMix = 0f // wet (affected) signal mix				[-5<=..<=5]
+        var fFeedback = 0f // output signal to feed back into input	[-1<=..<=1]
+        var fVolume = 0f // distortion volume						[0=<...<=2]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Distortion
-	public static class BASS_BFX_DISTORTION {
-		public float fDrive;					// distortion drive							[0<=...<=5]
-		public float fDryMix;					// dry (unaffected) signal mix				[-5<=..<=5]
-		public float fWetMix;					// wet (affected) signal mix				[-5<=..<=5]
-		public float fFeedback;					// output signal to feed back into input	[-1<=..<=1]
-		public float fVolume;					// distortion volume						[0=<...<=2]
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Compressor 2
+    class BASS_BFX_COMPRESSOR2 {
+        var fGain = 0f // output gain of signal after compression	[-60....60] in dB
+        var fThreshold = 0f // point at which compression begins		[-60.....0] in dB
+        var fRatio = 0f // compression ratio						[1.......n]
+        var fAttack = 0f // attack time in ms						[0.01.1000]
+        var fRelease = 0f // release time in ms						[0.01.5000]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Compressor 2
-	public static class BASS_BFX_COMPRESSOR2 {
-		public float fGain;						// output gain of signal after compression	[-60....60] in dB
-		public float fThreshold;				// point at which compression begins		[-60.....0] in dB
-		public float fRatio;					// compression ratio						[1.......n]
-		public float fAttack;					// attack time in ms						[0.01.1000]
-		public float fRelease;					// release time in ms						[0.01.5000]
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Volume envelope
+    class BASS_BFX_VOLUME_ENV {
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+        var lNodeCount = 0 // number of nodes
+        lateinit var pNodes: Array<BASS_BFX_ENV_NODE> // the nodes
+        var bFollow = false // follow source position
+    }
 
-	// Volume envelope
-	public static class BASS_BFX_VOLUME_ENV {
-		public int                 lChannel;	// BASS_BFX_CHANxxx flag/s
-		public int                 lNodeCount;	// number of nodes
-		public BASS_BFX_ENV_NODE[] pNodes;		// the nodes
-		public boolean             bFollow;		// follow source position
-	}
+    class BASS_BFX_ENV_NODE {
+        var pos = 0.0 // node position in seconds (1st envelope node must be at position 0)
+        var `val` = 0f // node value
+    }
 
-	public static class BASS_BFX_ENV_NODE {
-		public double pos;						// node position in seconds (1st envelope node must be at position 0)
-		public float  val;						// node value
-	}
+    class BASS_BFX_BQF {
+        var lFilter = 0 // BASS_BFX_BQF_xxx filter types
+        var fCenter = 0f // [1Hz..<info.freq/2] Cutoff (central) frequency in Hz
+        var fGain =
+            0f // [-15dB...0...+15dB] Used only for PEAKINGEQ and Shelving filters in dB (can be above/below these limits)
+        var fBandwidth =
+            0f // [0.1...........<10] Bandwidth in octaves (fQ is not in use (fBandwidth has a priority over fQ))
 
-	// BiQuad Filters
-	public static final int	BASS_BFX_BQF_LOWPASS = 0;
-	public static final int	BASS_BFX_BQF_HIGHPASS = 1;
-	public static final int	BASS_BFX_BQF_BANDPASS = 2;			// constant 0 dB peak gain
-	public static final int	BASS_BFX_BQF_BANDPASS_Q = 3;		// constant skirt gain, peak gain = Q
-	public static final int	BASS_BFX_BQF_NOTCH = 4;
-	public static final int	BASS_BFX_BQF_ALLPASS = 5;
-	public static final int	BASS_BFX_BQF_PEAKINGEQ = 6;
-	public static final int	BASS_BFX_BQF_LOWSHELF = 7;
-	public static final int	BASS_BFX_BQF_HIGHSHELF = 8;
+        // 						(between -3 dB frequencies for BANDPASS and NOTCH or between midpoint
+        // 						(fGgain/2) gain frequencies for PEAKINGEQ)
+        var fQ =
+            0f // [0.1.....1.......n] The EE kinda definition (linear) (if fBandwidth is not in use)
+        var fS =
+            0f // [0.1.....1.......n] A "shelf slope" parameter (linear) (used only with Shelving filters)
 
-	public static class BASS_BFX_BQF {
-		public int   lFilter;					// BASS_BFX_BQF_xxx filter types
-		public float fCenter;					// [1Hz..<info.freq/2] Cutoff (central) frequency in Hz
-		public float fGain;						// [-15dB...0...+15dB] Used only for PEAKINGEQ and Shelving filters in dB (can be above/below these limits)
-		public float fBandwidth;				// [0.1...........<10] Bandwidth in octaves (fQ is not in use (fBandwidth has a priority over fQ))
-												// 						(between -3 dB frequencies for BANDPASS and NOTCH or between midpoint
-												// 						(fGgain/2) gain frequencies for PEAKINGEQ)
-		public float fQ;						// [0.1.....1.......n] The EE kinda definition (linear) (if fBandwidth is not in use)
-		public float fS;						// [0.1.....1.......n] A "shelf slope" parameter (linear) (used only with Shelving filters)
-												// 						when fS = 1, the shelf slope is as steep as you can get it and remain monotonically
-												// 						increasing or decreasing gain with frequency.
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+        // 						when fS = 1, the shelf slope is as steep as you can get it and remain monotonically
+        // 						increasing or decreasing gain with frequency.
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Echo 4
-	public static class BASS_BFX_ECHO4 {
-		public float   fDryMix;					// dry (unaffected) signal mix				[-2.......2]
-		public float   fWetMix;					// wet (affected) signal mix				[-2.......2]
-		public float   fFeedback;				// output signal to feed back into input	[-1.......1]
-		public float   fDelay;					// delay sec								[0<.......n]
-		public boolean bStereo;					// echo adjoining channels to each other	[TRUE/FALSE]
-		public int     lChannel;				// BASS_BFX_CHANxxx flag/s
-	}
+    // Echo 4
+    class BASS_BFX_ECHO4 {
+        var fDryMix = 0f // dry (unaffected) signal mix				[-2.......2]
+        var fWetMix = 0f // wet (affected) signal mix				[-2.......2]
+        var fFeedback = 0f // output signal to feed back into input	[-1.......1]
+        var fDelay = 0f // delay sec								[0<.......n]
+        var bStereo = false // echo adjoining channels to each other	[TRUE/FALSE]
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// Pitch shift (not available on mobile)
-	public static class BASS_BFX_PITCHSHIFT {
-		public float fPitchShift;				// A factor value which is between 0.5 (one octave down) and 2 (one octave up) (1 won't change the pitch) [1 default]
-												// (fSemitones is not in use, fPitchShift has a priority over fSemitones)
-		public float fSemitones;				// Semitones (0 won't change the pitch) [0 default]
-		public int   lFFTsize;					// Defines the FFT frame size used for the processing. Typical values are 1024, 2048 and 4096 [2048 default]
-												// It may be any value <= 8192 but it MUST be a power of 2
-		public int   lOsamp;					// Is the STFT oversampling factor which also determines the overlap between adjacent STFT frames [8 default]
-												// It should at least be 4 for moderate scaling ratios. A value of 32 is recommended for best quality (better quality = higher CPU usage)
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+    // Pitch shift (not available on mobile)
+    class BASS_BFX_PITCHSHIFT {
+        var fPitchShift =
+            0f // A factor value which is between 0.5 (one octave down) and 2 (one octave up) (1 won't change the pitch) [1 default]
 
-	// Freeverb
-	public static final int	BASS_BFX_FREEVERB_MODE_FREEZE = 1;
+        // (fSemitones is not in use, fPitchShift has a priority over fSemitones)
+        var fSemitones = 0f // Semitones (0 won't change the pitch) [0 default]
+        var lFFTsize =
+            0 // Defines the FFT frame size used for the processing. Typical values are 1024, 2048 and 4096 [2048 default]
 
-	public static class BASS_BFX_FREEVERB {
-		public float fDryMix;					// dry (unaffected) signal mix				[0........1], def. 0
-		public float fWetMix;					// wet (affected) signal mix				[0........3], def. 1.0f
-		public float fRoomSize;					// room size								[0........1], def. 0.5f
-		public float fDamp;						// damping									[0........1], def. 0.5f
-		public float fWidth;					// stereo width								[0........1], def. 1
-		public int   lMode;						// 0 or BASS_BFX_FREEVERB_MODE_FREEZE, def. 0 (no freeze)
-		public int   lChannel;					// BASS_BFX_CHANxxx flag/s
-	}
+        // It may be any value <= 8192 but it MUST be a power of 2
+        var lOsamp =
+            0 // Is the STFT oversampling factor which also determines the overlap between adjacent STFT frames [8 default]
 
-	/*===========================================================================
-		set dsp fx			- BASS_ChannelSetFX
-		remove dsp fx		- BASS_ChannelRemoveFX
-		set parameters		- BASS_FXSetParameters
-		retrieve parameters - BASS_FXGetParameters
-		reset the state		- BASS_FXReset
-	===========================================================================*/
+        // It should at least be 4 for moderate scaling ratios. A value of 32 is recommended for best quality (better quality = higher CPU usage)
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	/*===========================================================================
-		Tempo, Pitch scaling and Sample rate changers
-	===========================================================================*/
-	
-	// NOTE: Enable Tempo supported flags in BASS_FX_TempoCreate and the others to source handle.
+    class BASS_BFX_FREEVERB {
+        var fDryMix = 0f // dry (unaffected) signal mix				[0........1], def. 0
+        var fWetMix = 0f // wet (affected) signal mix				[0........3], def. 1.0f
+        var fRoomSize = 0f // room size								[0........1], def. 0.5f
+        var fDamp = 0f // damping									[0........1], def. 0.5f
+        var fWidth = 0f // stereo width								[0........1], def. 1
+        var lMode = 0 // 0 or BASS_BFX_FREEVERB_MODE_FREEZE, def. 0 (no freeze)
+        var lChannel = 0 // BASS_BFX_CHANxxx flag/s
+    }
 
-	// tempo attributes (BASS_ChannelSet/GetAttribute)
-	public static final int BASS_ATTRIB_TEMPO = 0x10000;
-	public static final int BASS_ATTRIB_TEMPO_PITCH = 0x10001;
-	public static final int BASS_ATTRIB_TEMPO_FREQ = 0x10002;
+    fun interface BPMPROC {
+        fun BPMPROC(chan: Int, bpm: Float, user: Any?)
+    }
 
-	// tempo attributes options
-	public static final int BASS_ATTRIB_TEMPO_OPTION_USE_AA_FILTER = 0x10010;		// TRUE (default) / FALSE (default for multi-channel on mobile devices for lower CPU usage)
-	public static final int BASS_ATTRIB_TEMPO_OPTION_AA_FILTER_LENGTH = 0x10011;	// 32 default (8 .. 128 taps)
-	public static final int BASS_ATTRIB_TEMPO_OPTION_USE_QUICKALGO = 0x10012;		// TRUE (default on mobile devices for lower CPU usage) / FALSE (default)
-	public static final int BASS_ATTRIB_TEMPO_OPTION_SEQUENCE_MS = 0x10013;			// 82 default, 0 = automatic
-	public static final int BASS_ATTRIB_TEMPO_OPTION_SEEKWINDOW_MS = 0x10014;		// 28 default, 0 = automatic
-	public static final int BASS_ATTRIB_TEMPO_OPTION_OVERLAP_MS = 0x10015;			// 8  default
-	public static final int BASS_ATTRIB_TEMPO_OPTION_PREVENT_CLICK = 0x10016;		// TRUE / FALSE (default)
-	// tempo algorithm flags
-	public static final int BASS_FX_TEMPO_ALGO_LINEAR = 0x200;
-	public static final int BASS_FX_TEMPO_ALGO_CUBIC = 0x400;						// default
-	public static final int BASS_FX_TEMPO_ALGO_SHANNON = 0x800;
+    fun interface BPMPROGRESSPROC {
+        fun BPMPROGRESSPROC(chan: Int, percent: Float, user: Any?)
+    }
 
-	public static native int   BASS_FX_TempoCreate(int chan, int flags);
-	public static native int   BASS_FX_TempoGetSource(int chan);
-	public static native float BASS_FX_TempoGetRateRatio(int chan);
+    // back-compatibility
+    fun interface BPMPROCESSPROC {
+        fun BPMPROCESSPROC(chan: Int, percent: Float, user: Any?)
+    }
 
-	/*===========================================================================
-		Reverse playback
-	===========================================================================*/
-	
-	// NOTES: 1. MODs won't load without BASS_MUSIC_PRESCAN flag.
-	//		  2. Enable Reverse supported flags in BASS_FX_ReverseCreate and the others to source handle.
-
-	// reverse attribute (BASS_ChannelSet/GetAttribute)
-	public static final int BASS_ATTRIB_REVERSE_DIR = 0x11000;
-
-	// playback directions
-	public static final int BASS_FX_RVS_REVERSE = -1;
-	public static final int BASS_FX_RVS_FORWARD = 1;
-
-	public static native int BASS_FX_ReverseCreate(int chan, float dec_block, int flags);
-	public static native int BASS_FX_ReverseGetSource(int chan);
-
-	/*===========================================================================
-		BPM (Beats Per Minute)
-	===========================================================================*/
-
-	// bpm flags
-	public static final int BASS_FX_BPM_BKGRND = 1;			// if in use, then you can do other processing while detection's in progress. Available only in Windows platforms (BPM/Beat)
-	public static final int BASS_FX_BPM_MULT2 = 2;			// if in use, then will auto multiply bpm by 2 (if BPM < minBPM*2)
-
-	// translation options (deprecated)
-	public static final int BASS_FX_BPM_TRAN_X2 = 0;		// multiply the original BPM value by 2 (may be called only once & will change the original BPM as well!)
-	public static final int BASS_FX_BPM_TRAN_2FREQ = 1;		// BPM value to Frequency
-	public static final int BASS_FX_BPM_TRAN_FREQ2 = 2;		// Frequency to BPM value
-	public static final int BASS_FX_BPM_TRAN_2PERCENT = 3;	// BPM value to Percents
-	public static final int BASS_FX_BPM_TRAN_PERCENT2 = 4;	// Percents to BPM value
-
-	public interface BPMPROC
-	{
-		void BPMPROC(int chan, float bpm, Object user);
-	}
-
-	public interface BPMPROGRESSPROC
-	{
-		void BPMPROGRESSPROC(int chan, float percent, Object user);
-	}
-
-	// back-compatibility
-	public interface BPMPROCESSPROC
-	{
-		void BPMPROCESSPROC(int chan, float percent, Object user);
-	}
-
-	public static native float   BASS_FX_BPM_DecodeGet(int chan, double startSec, double endSec, int minMaxBPM, int flags, Object proc, Object user);
-	public static native boolean BASS_FX_BPM_CallbackSet(int handle, BPMPROC proc, double period, int minMaxBPM, int flags, Object user);
-	public static native boolean BASS_FX_BPM_CallbackReset(int handle);
-	public static native float   BASS_FX_BPM_Translate(int handle, float val2tran, int trans);	// deprecated
-	public static native boolean BASS_FX_BPM_Free(int handle);
-
-	/*===========================================================================
+    /*===========================================================================
 		Beat position trigger
 	===========================================================================*/
-
-	public interface BPMBEATPROC
-	{
-		void BPMBEATPROC(int chan, double beatpos, Object user);
-	}
-
-	public static native boolean BASS_FX_BPM_BeatCallbackSet(int handle, BPMBEATPROC proc, Object user);
-	public static native boolean BASS_FX_BPM_BeatCallbackReset(int handle);
-	public static native boolean BASS_FX_BPM_BeatDecodeGet(int chan, double startSec, double endSec, int flags, BPMBEATPROC proc, Object user);
-	public static native boolean BASS_FX_BPM_BeatSetParameters(int handle, float bandwidth, float centerfreq, float beat_rtime);
-	public static native boolean BASS_FX_BPM_BeatGetParameters(int handle, Float bandwidth, Float centerfreq, Float beat_rtime);
-	public static native boolean BASS_FX_BPM_BeatFree(int handle);
-
-	/*===========================================================================
-		Macros
-	===========================================================================*/
-
-	// translate linear level to logarithmic dB
-	public static double BASS_BFX_Linear2dB(double level)
-	{
-		return (20*Math.log10(level));
-	}
-
-	// translate logarithmic dB level to linear
-	public static double BASS_BFX_dB2Linear(double dB)
-	{
-		return (Math.pow(10,(dB)/20));
-	}
-
-	static {
-		System.loadLibrary("bass_fx");
-	}
+    fun interface BPMBEATPROC {
+        fun BPMBEATPROC(chan: Int, beatpos: Double, user: Any?)
+    }
 }
