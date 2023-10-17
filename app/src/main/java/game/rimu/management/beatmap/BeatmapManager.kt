@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.launch
 
@@ -55,6 +56,8 @@ class BeatmapManager(override val ctx: RimuContext) :
     var current: WorkingBeatmap? = null
         private set
 
+
+    private var currentSource: Beatmap? = null
 
     // Using a different coroutine context.
     private val musicScope = CoroutineScope(Dispatchers.IO)
@@ -101,19 +104,37 @@ class BeatmapManager(override val ctx: RimuContext) :
     }
 
 
-    fun setCurrent(base: Beatmap, forceReload: Boolean = false) = musicScope.launch {
+    /**
+     * Changes to a new WorkingBeatmap defined by the [source][source] parameter.
+     *
+     * @param forceReload If `true` the beatmap will be changed no matter if it's the same.
+     */
+    fun setCurrent(source: Beatmap, forceReload: Boolean = false): Job = musicScope.launch {
 
-        if (base == current?.source && !forceReload)
+        if (source == currentSource && !forceReload)
             return@launch
 
         current?.onRelease()
-        current = onCreateWorkingBeatmap(base)
+        current = onCreateWorkingBeatmap(source)
 
+        // Storing new source separately in case the working beatmap failed to create.
+        currentSource = source
+
+        // Notifying all registered observers.
         forEachObserver { it.onMusicChange(current) }
+
+        // Starting the audio stream.
         current?.play()
+        current?.stream?.onStreamEnd = { next() }
     }
 
-    fun next() = songs.nextOf(current?.source, false)?.let { setCurrent(it) }
+    /**
+     * Shifts to the next song in the playlist.
+     */
+    fun next() = songs.nextOf(currentSource, false)?.let { setCurrent(it) }
 
-    fun previous() = songs.previousOf(current?.source, false)?.let { setCurrent(it) }
+    /**
+     * Shifts to the previous song in the playlist.
+     */
+    fun previous() = songs.previousOf(currentSource, false)?.let { setCurrent(it) }
 }
