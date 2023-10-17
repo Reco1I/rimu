@@ -84,7 +84,7 @@ class BeatmapManager(override val ctx: RimuContext) :
 
             // Distinct beatmaps by its audio filename, this is exclusively used for the music
             // player to handle beatmaps sets with multiple songs
-            songs = sets.flatMap { set -> set.beatmaps.distinctBy { it.audio } }
+            songs = sets.flatMap { set -> set.beatmaps.distinctBy { it.audio } }.shuffled()
 
             if (wasEmpty && sets.isNotEmpty())
                 setCurrent(songs.random(), true)
