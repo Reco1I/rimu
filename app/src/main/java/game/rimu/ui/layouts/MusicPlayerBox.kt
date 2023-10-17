@@ -91,7 +91,9 @@ class MusicPlayerBox(ctx: RimuContext) :
     }
 
 
-    val playButton = IconButton(texture = "icon-pause") {
+    val playButton = IconButton {
+
+        skinningRules.image = "icon-pause"
 
         // Center horizontal
         setConstraints(
@@ -131,7 +133,9 @@ class MusicPlayerBox(ctx: RimuContext) :
         }
     }
 
-    val previousButton = IconButton(texture = "icon-previous") {
+    val previousButton = IconButton {
+
+        skinningRules.image = "icon-previous"
 
         setConstraints(
             target = playButton,
@@ -150,7 +154,9 @@ class MusicPlayerBox(ctx: RimuContext) :
         }
     }
 
-    val nextButton = IconButton(texture = "icon-next") {
+    val nextButton = IconButton {
+
+        skinningRules.image = "icon-next"
 
         setConstraints(
             target = playButton,

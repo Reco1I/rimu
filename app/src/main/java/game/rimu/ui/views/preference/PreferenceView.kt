@@ -6,7 +6,7 @@ import game.rimu.management.Setting
 import game.rimu.ui.views.ConstraintLayout
 
 
-sealed class SettingView<T : Any>(ctx: RimuContext, key: RimuSetting) : ConstraintLayout(ctx)
+sealed class SettingView<T : Any>(ctx: RimuContext, key: RimuSetting) : ConstraintLayout(ctx, {})
 {
 
     protected val binding by Setting<T>(key)

@@ -15,19 +15,20 @@ import game.rimu.ui.views.ConstraintLayout
 
 abstract class LayoutLayer(
     override val ctx: RimuContext,
-    onInitialization: LayoutLayer.() -> Unit = {}
+    init: LayoutLayer.() -> Unit = {}
 ) :
-    ConstraintLayout(ctx),
+    ConstraintLayout(ctx, {}),
     IWithContext
 {
-    init
-    {
-        dimensions.apply {
-            width = MATCH_PARENT
-            height = MATCH_PARENT
-        }
-        onInitialization()
+
+    override val dimensions = super.dimensions.apply {
+
+        width = MATCH_PARENT
+        height = MATCH_PARENT
     }
+
+
+    init { init() }
 
 
     override fun onAttachedToWindow()

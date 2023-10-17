@@ -23,18 +23,15 @@ class SeekBarDimensions<T : SeekBar> : ViewDimensions<T>(MATCH_PARENT, 20)
     var thumbWidth = 12f
 }
 
+
+
 fun <T> T.SeekBar(
     attach: Boolean = true,
-    block: SeekBar.() -> Unit
-) where T : ViewGroup, T : IWithContext = SeekBar(ctx).also {
+    init: SeekBar.() -> Unit
+) where T : IWithContext,
+        T : ViewGroup = SeekBar(ctx, init).also { if (attach) addView(it) }
 
-    if (attach)
-        addView(it)
-
-    it.block()
-}
-
-open class SeekBar(override val ctx: RimuContext) :
+open class SeekBar(override val ctx: RimuContext, init: SeekBar.() -> Unit) :
     AppCompatSeekBar(ctx),
     IWithContext,
     IScalableWithDimensions<SeekBar>,
@@ -65,6 +62,8 @@ open class SeekBar(override val ctx: RimuContext) :
         // Thumb
         thumb = thumbDrawable
         thumbOffset = 0
+
+        init()
     }
 
     override fun onAttachedToWindow()

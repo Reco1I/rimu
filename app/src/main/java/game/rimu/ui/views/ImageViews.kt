@@ -53,25 +53,23 @@ open class ImageSkinningRules<T : ImageView> : ViewSkinningRules<T>()
 
 fun <T> T.ImageView(
     attach: Boolean = true,
-    block: ImageView.() -> Unit
-) where T : ViewGroup, T : IWithContext = ImageView(ctx).also {
+    init: ImageView.() -> Unit
+) where T : IWithContext,
+        T : ViewGroup = ImageView(ctx, init).also { if (attach) addView(it) }
 
-    if (attach)
-        addView(it)
-
-    it.block()
-}
-
-open class ImageView(override val ctx: RimuContext) :
+open class ImageView(override val ctx: RimuContext, init: ImageView.() -> Unit) :
     AppCompatImageView(ctx),
     IWithContext,
     IScalableWithDimensions<ImageView>,
     ISkinnableWithRules<ImageView>
 {
 
-    final override val dimensions by lazy { ViewDimensions<ImageView>() }
+    override val dimensions by lazy { ViewDimensions<ImageView>() }
 
-    final override val skinningRules by lazy { ImageSkinningRules<ImageView>() }
+    override val skinningRules by lazy { ImageSkinningRules<ImageView>() }
+
+
+    init { init() }
 
 
     override fun onApplyScale(scale: Float)
@@ -88,20 +86,15 @@ open class ImageView(override val ctx: RimuContext) :
 
 fun <T> T.FadeImageView(
     attach: Boolean = true,
-    block: FadeImageView.() -> Unit
-) where T : ViewGroup, T : IWithContext = FadeImageView(ctx).also {
-
-    if (attach)
-        addView(it)
-
-    it.block()
-}
+    init: FadeImageView.() -> Unit
+) where T : IWithContext,
+        T : ViewGroup = FadeImageView(ctx, init).also { if (attach) addView(it) }
 
 /**
  * ImageView that fades when the drawable is changed.
  */
-class FadeImageView(override val ctx: RimuContext) :
-    ImageView(ctx),
+class FadeImageView(ctx: RimuContext, init: FadeImageView.() -> Unit) :
+    ImageView(ctx, {}),
     IWithContext
 {
 
@@ -127,6 +120,8 @@ class FadeImageView(override val ctx: RimuContext) :
     {
         // Calling super to set the TransitionDrawable properly.
         super.setImageDrawable(transition)
+
+        init()
     }
 
 

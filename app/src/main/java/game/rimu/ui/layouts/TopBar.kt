@@ -40,7 +40,9 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
     val navigationTree = mutableListOf<() -> Boolean>()
 
 
-    val backButton = IconButton(texture = "icon-back") {
+    val backButton = IconButton {
+
+        skinningRules.image = "icon-back"
 
         setTouchHandler {  }
 
@@ -60,7 +62,9 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
             leftToTarget = Anchor.RIGHT
         )
 
-        IconButton(texture = "icon-music") {
+        IconButton {
+
+            skinningRules.image = "icon-music"
 
             setTouchHandler {
 
@@ -81,7 +85,9 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
 
         UserBoxView(ctx) attachTo this
 
-        IconButton(texture = "icon-settings") {
+        IconButton {
+
+            skinningRules.image = "icon-settings"
 
             setOnTouchListener(TouchHandler {})
 
@@ -107,7 +113,7 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
 }
 
 
-class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
+class UserBoxView(ctx: RimuContext) : LinearLayout(ctx, {})
 {
 
     init

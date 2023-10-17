@@ -13,7 +13,13 @@ import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLay
 
 // ConstraintLayout
 
-open class ConstraintLayout(override val ctx: RimuContext) :
+fun <T> T.ConstraintLayout(
+    attach: Boolean = true,
+    init: ConstraintLayout.() -> Unit
+) where T : IWithContext,
+        T : ViewGroup = ConstraintLayout(ctx, init).also { if (attach) addView(it) }
+
+open class ConstraintLayout(override val ctx: RimuContext, init: ConstraintLayout.() -> Unit) :
     AndroidConstraintLayout(ctx),
     IWithContext,
     ISkinnableWithRules<ConstraintLayout>,
@@ -22,24 +28,20 @@ open class ConstraintLayout(override val ctx: RimuContext) :
     override val dimensions by lazy { ViewDimensions<ConstraintLayout>() }
 
     override val skinningRules by lazy { ViewSkinningRules<ConstraintLayout>() }
+
+    init { init() }
 }
-
-inline fun <T> T.ConstraintLayout(
-    attach: Boolean = true,
-    block: ConstraintLayout.() -> Unit
-) where T : ViewGroup, T : IWithContext = ConstraintLayout(ctx).also {
-
-    if (attach)
-        addView(it)
-
-    it.block()
-}
-
 
 
 // LinearLayout
 
-open class LinearLayout(override val ctx: RimuContext) :
+fun <T> T.LinearLayout(
+    attach: Boolean = true,
+    init: LinearLayout.() -> Unit
+) where T : IWithContext,
+        T : ViewGroup = LinearLayout(ctx, init).also { if (attach) addView(it) }
+
+open class LinearLayout(override val ctx: RimuContext, init: LinearLayout.() -> Unit) :
     AndroidLinearLayout(ctx),
     IWithContext,
     ISkinnableWithRules<LinearLayout>,
@@ -48,15 +50,6 @@ open class LinearLayout(override val ctx: RimuContext) :
     override val dimensions by lazy { ViewDimensions<LinearLayout>() }
 
     override val skinningRules by lazy { ViewSkinningRules<LinearLayout>() }
-}
 
-inline fun <T> T.LinearLayout(
-    attach: Boolean = true,
-    block: LinearLayout.() -> Unit
-) where T : ViewGroup, T : IWithContext = LinearLayout(ctx).also {
-
-    if (attach)
-        addView(it)
-
-    it.block()
+    init { init() }
 }

@@ -13,6 +13,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.widget.AppCompatTextView
+import com.reco1l.framework.android.views.backgroundColor
 import com.reco1l.framework.android.views.font
 import com.reco1l.framework.android.views.fontColor
 import com.reco1l.framework.android.views.fontSize
@@ -34,7 +35,6 @@ data class TextViewDimensions<T : TextView>(
 
 ) : ViewDimensions<T>()
 {
-
     override fun onApplyScale(target: T, scale: Float)
     {
         super.onApplyScale(target, scale)
@@ -80,23 +80,18 @@ data class TextViewSkinningRules<T : TextView>(
 }
 
 
+// Base
 
 fun <T> T.TextView(
     attach: Boolean = true,
-    block: TextView.() -> Unit
-) where T : ViewGroup, T : IWithContext = TextView(ctx).also {
-
-    if (attach)
-        addView(it)
-
-    it.block()
-}
+    init: TextView.() -> Unit
+) where T : IWithContext,
+        T : ViewGroup = TextView(ctx, init).also { if (attach) addView(it) }
 
 /**
  * Base class for every [TextView][AppCompatTextView] in rimu!, it has an special handling for icons.
  */
-
-open class TextView(final override val ctx: RimuContext) :
+open class TextView(final override val ctx: RimuContext, init: TextView.() -> Unit) :
     AppCompatTextView(ctx),
     IWithContext,
     ISkinnableWithRules<TextView>,
@@ -109,6 +104,9 @@ open class TextView(final override val ctx: RimuContext) :
 
 
     private val icons = arrayOfNulls<Icon>(4)
+
+
+    init { init() }
 
 
     override fun onApplyScale(scale: Float)
@@ -197,24 +195,24 @@ open class TextView(final override val ctx: RimuContext) :
 
 fun <T> T.TextField(
     attach: Boolean = true,
-    block: TextField.() -> Unit
-) where T : ViewGroup, T : IWithContext = TextField(ctx).also {
-
-    if (attach)
-        addView(it)
-
-    it.block()
-}
+    init: TextField.() -> Unit
+) where T : IWithContext,
+        T : ViewGroup = TextField(ctx, init).also { if (attach) addView(it) }
 
 /**
  * Base class for EditText in rimu!
  */
+open class TextField(ctx: RimuContext, init: TextField.() -> Unit) :
 
-open class TextField(ctx: RimuContext) :
-
-    TextView(ctx),
+    TextView(ctx, {}),
     IWithContext
 {
+
+    override val dimensions = super.dimensions.apply {
+
+        cornerRadius = 8f
+        padding(16, 14)
+    }
 
     /**
      * Allow the input in the field, if this is set to `false` the keyboard will automatically hide
@@ -246,18 +244,9 @@ open class TextField(ctx: RimuContext) :
     {
         allowInput = true
 
+        backgroundColor = 0x4D000000
         gravity = Gravity.CENTER_VERTICAL
         imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN
-
-        setBackgroundColor(0x4D000000)
-
-        dimensions.apply {
-            cornerRadius = 8f
-            paddingTop = 14
-            paddingBottom = 14
-            paddingLeft = 16
-            paddingRight = 16
-        }
     }
 
 
