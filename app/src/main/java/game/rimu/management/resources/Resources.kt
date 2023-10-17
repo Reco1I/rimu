@@ -81,7 +81,7 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
             val regex = allowedFilenames[key]
 
             // If the key equals exactly the filename means the filename doesn't have variants.
-            if (key == name && regex == null)
+            if (key.equals(name, true) && regex == null)
                 return key to 0
 
             // If the key has regex means it can have variants, in that case we check if the
