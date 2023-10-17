@@ -55,7 +55,7 @@ class MusicPlayerBox(ctx: RimuContext) :
     val timeText = TextView {
 
         text = "00:00"
-        skinningRules.fontColorFactor = 0.8f
+        rules.fontColorFactor = 0.8f
 
         setConstraints(
             target = artistText,
@@ -73,7 +73,7 @@ class MusicPlayerBox(ctx: RimuContext) :
 
         text = "00:00"
         dimensions.fontSize = 8
-        skinningRules.fontColorFactor = 0.8f
+        rules.fontColorFactor = 0.8f
 
         setConstraints(target = timeText, topToTarget = Anchor.TOP)
         setConstraints(rightToTarget = Anchor.RIGHT)
@@ -93,7 +93,7 @@ class MusicPlayerBox(ctx: RimuContext) :
 
     val playButton = IconButton {
 
-        skinningRules.image = "icon-pause"
+        rules.image = "icon-pause"
 
         // Center horizontal
         setConstraints(
@@ -119,12 +119,12 @@ class MusicPlayerBox(ctx: RimuContext) :
                     if (stream.state == AudioState.PLAYING)
                     {
                         pause()
-                        skinningRules.image = "icon-play"
+                        rules.image = "icon-play"
                     }
                     else
                     {
                         play()
-                        skinningRules.image = "icon-pause"
+                        rules.image = "icon-pause"
                     }
 
                     invalidateSkin()
@@ -135,7 +135,7 @@ class MusicPlayerBox(ctx: RimuContext) :
 
     val previousButton = IconButton {
 
-        skinningRules.image = "icon-previous"
+        rules.image = "icon-previous"
 
         setConstraints(
             target = playButton,
@@ -156,7 +156,7 @@ class MusicPlayerBox(ctx: RimuContext) :
 
     val nextButton = IconButton {
 
-        skinningRules.image = "icon-next"
+        rules.image = "icon-next"
 
         setConstraints(
             target = playButton,
@@ -192,8 +192,8 @@ class MusicPlayerBox(ctx: RimuContext) :
             padding(12)
         }
 
-        skinningRules.backgroundColor = "accentColor"
-        skinningRules.backgroundColorFactor = 0.1f
+        rules.backgroundColor = "accentColor"
+        rules.backgroundColorFactor = 0.1f
 
         ctx.beatmaps.bindObserver(observer = this)
     }

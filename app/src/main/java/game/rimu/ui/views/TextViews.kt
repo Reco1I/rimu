@@ -106,7 +106,7 @@ open class TextView(final override val ctx: RimuContext, init: TextView.() -> Un
 
     override val dimensions = TextViewDimensions<TextView>()
 
-    override val skinningRules = TextViewSkinningRules<TextView>()
+    override val rules = TextViewSkinningRules<TextView>()
 
 
     private val icons = arrayOfNulls<Icon>(4)

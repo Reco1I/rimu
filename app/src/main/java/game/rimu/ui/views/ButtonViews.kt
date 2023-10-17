@@ -26,7 +26,7 @@ open class IconButton(ctx: RimuContext, init: IconButton.() -> Unit) : ImageView
         padding(15)
     }
 
-    override val skinningRules = super.skinningRules.apply {
+    override val rules = super.rules.apply {
 
         imageTint = "accentColor"
     }
@@ -34,6 +34,47 @@ open class IconButton(ctx: RimuContext, init: IconButton.() -> Unit) : ImageView
     init
     {
         scaleType = ScaleType.FIT_CENTER
+
+        init()
+    }
+}
+
+
+
+// TextButton
+
+fun <T> T.TextButton(
+    attach: Boolean = true,
+    init: TextButton.() -> Unit
+) where T : IWithContext,
+        T : ViewGroup = TextButton(ctx) child@{
+
+    if (attach)
+        this@TextButton.addView(this@child)
+
+    init()
+}
+
+open class TextButton(ctx: RimuContext, init: TextButton.() -> Unit) : TextView(ctx, {})
+{
+
+    override val dimensions = super.dimensions.apply {
+
+        fontSize = 12
+        cornerRadius = 12f
+        padding(12, 8)
+    }
+
+    override val rules = super.rules.apply {
+
+        backgroundColor = "accentColor"
+        fontColor = "accentColor"
+        fontColorFactor = 0.1f
+    }
+
+    init
+    {
+        gravity = Gravity.CENTER
 
         init()
     }

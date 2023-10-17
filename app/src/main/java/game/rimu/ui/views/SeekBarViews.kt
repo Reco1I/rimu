@@ -44,7 +44,7 @@ open class SeekBar(override val ctx: RimuContext, init: SeekBar.() -> Unit) :
     ISkinnableWithRules<SeekBar>
 {
 
-    override val skinningRules by lazy { ViewSkinningRules<SeekBar>() }
+    override val rules by lazy { ViewSkinningRules<SeekBar>() }
 
     override val dimensions by lazy { SeekBarDimensions<SeekBar>() }
 

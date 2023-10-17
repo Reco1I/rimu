@@ -33,7 +33,7 @@ open class ConstraintLayout(override val ctx: RimuContext, init: ConstraintLayou
 {
     override val dimensions by lazy { ViewDimensions<ConstraintLayout>() }
 
-    override val skinningRules by lazy { ViewSkinningRules<ConstraintLayout>() }
+    override val rules by lazy { ViewSkinningRules<ConstraintLayout>() }
 
     init { init() }
 }
@@ -61,7 +61,7 @@ open class LinearLayout(override val ctx: RimuContext, init: LinearLayout.() -> 
 {
     override val dimensions by lazy { ViewDimensions<LinearLayout>() }
 
-    override val skinningRules by lazy { ViewSkinningRules<LinearLayout>() }
+    override val rules by lazy { ViewSkinningRules<LinearLayout>() }
 
     init { init() }
 }

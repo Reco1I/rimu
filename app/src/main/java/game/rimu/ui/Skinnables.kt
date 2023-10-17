@@ -57,14 +57,14 @@ abstract class SkinningRules<T>
 interface ISkinnableWithRules<T> : ISkinnable
 {
 
-    val skinningRules: SkinningRules<T>
+    val rules: SkinningRules<T>
 
     @Suppress("UNCHECKED_CAST")
     override fun onApplySkin(skin: WorkingSkin)
     {
         // Preventing unnecessary initialization.
-        if (!::skinningRules.isLazyInit || ::skinningRules.isLazyInitialized)
-            skinningRules.onApplySkin(this as T, skin)
+        if (!::rules.isLazyInit || ::rules.isLazyInitialized)
+            rules.onApplySkin(this as T, skin)
 
         super.onApplySkin(skin)
     }

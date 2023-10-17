@@ -42,7 +42,7 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
 
     val backButton = IconButton {
 
-        skinningRules.image = "icon-back"
+        rules.image = "icon-back"
 
         setTouchHandler {  }
 
@@ -64,7 +64,7 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
 
         IconButton {
 
-            skinningRules.image = "icon-music"
+            rules.image = "icon-music"
 
             setTouchHandler {
 
@@ -87,7 +87,7 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
 
         IconButton {
 
-            skinningRules.image = "icon-settings"
+            rules.image = "icon-settings"
 
             setOnTouchListener(TouchHandler {})
 
@@ -144,7 +144,7 @@ class UserBoxView(ctx: RimuContext) : LinearLayout(ctx, {})
             cornerRadius = 7f
         }
 
-        skinningRules.image = "avatar-default"
+        rules.image = "avatar-default"
     }
 
     private val username = TextView {

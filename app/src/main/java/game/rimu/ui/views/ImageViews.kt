@@ -72,7 +72,7 @@ open class ImageView(override val ctx: RimuContext, init: ImageView.() -> Unit) 
 
     override val dimensions by lazy { ViewDimensions<ImageView>() }
 
-    override val skinningRules by lazy { ImageSkinningRules<ImageView>() }
+    override val rules by lazy { ImageSkinningRules<ImageView>() }
 
 
     init { init() }
