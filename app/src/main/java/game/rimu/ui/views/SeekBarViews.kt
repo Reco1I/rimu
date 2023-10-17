@@ -87,9 +87,9 @@ open class SeekBar(override val ctx: RimuContext, init: SeekBar.() -> Unit) :
 
         skin.data.colours.accentColor.apply {
 
-            inactiveBarDrawable.setColor(factorInt(0.15f))
-            activeBarDrawable.setColor(factorInt(0.25f))
-            thumbDrawable.setColor(factorInt(0.5f))
+            inactiveBarDrawable.setColor(factorInt(0.2f))
+            activeBarDrawable.setColor(factorInt(0.6f))
+            thumbDrawable.setColor(toInt())
         }
     }
 
