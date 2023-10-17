@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.ImageView.ScaleType
 import game.rimu.android.RimuContext
+import game.rimu.constants.BuildSettings
 import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.management.beatmap.WorkingBeatmap
 import game.rimu.ui.LayerBackground
@@ -55,7 +56,8 @@ class Background(ctx: RimuContext) :
 
         beatmap?.data?.events?.apply {
 
-            bitmap = backgroundFilename?.let { beatmap.assets[it.substringBeforeLast('.'), 0] } ?: bitmap
+            if (!BuildSettings.SFW_MODE)
+                bitmap = backgroundFilename?.let { beatmap.assets[it.substringBeforeLast('.'), 0] } ?: bitmap
         }
 
         mainThread { image.setImageBitmap(bitmap) }
