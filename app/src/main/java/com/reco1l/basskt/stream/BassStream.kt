@@ -79,8 +79,8 @@ abstract class BaseStream(source: String? = null)
         if (pitch != 1f)
             pitch = pitch
 
-        if (endCallback != null)
-            endCallback = endCallback
+        if (onStreamEnd != null)
+            onStreamEnd = onStreamEnd
 
         if (muffle != 1f)
             muffle = muffle
@@ -204,7 +204,7 @@ abstract class BaseStream(source: String? = null)
     /**
      * The callback for [BASS.BASS_SYNC_END].
      */
-    var endCallback: (() -> Unit)? = null
+    var onStreamEnd: (() -> Unit)? = null
         set(value)
         {
             // Removing in case the callback is set to null
@@ -372,7 +372,7 @@ abstract class BaseStream(source: String? = null)
         result = 31 * result + speed.hashCode()
         result = 31 * result + pitch.hashCode()
         result = 31 * result + muffle.hashCode()
-        result = 31 * result + (endCallback?.hashCode() ?: 0)
+        result = 31 * result + (onStreamEnd?.hashCode() ?: 0)
         return result
     }
 }
