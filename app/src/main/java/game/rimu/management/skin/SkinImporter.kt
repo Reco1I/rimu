@@ -1,5 +1,6 @@
 package game.rimu.management.skin
 
+import com.reco1l.framework.data.md5
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.skindecoder.SkinDecoder
 import com.reco1l.skindecoder.data.SkinData
@@ -96,6 +97,8 @@ class SkinImportTask internal constructor(ctx: RimuContext, root: File) : Import
             }
 
             onManageDependencies(data, dependencies)
+
+            return Asset(file.md5, parentKey!!, file.nameWithoutExtension, 0, file.extension)
         }
         return null
     }
