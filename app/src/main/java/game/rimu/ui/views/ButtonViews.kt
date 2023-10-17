@@ -1,5 +1,6 @@
 package game.rimu.ui.views
 
+import android.view.Gravity
 import android.view.ViewGroup
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
