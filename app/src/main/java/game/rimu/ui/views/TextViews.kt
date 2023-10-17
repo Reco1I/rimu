@@ -13,10 +13,12 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.widget.AppCompatTextView
+import com.reco1l.framework.android.views.animate
 import com.reco1l.framework.android.views.backgroundColor
 import com.reco1l.framework.android.views.font
 import com.reco1l.framework.android.views.fontColor
 import com.reco1l.framework.android.views.fontSize
+import com.reco1l.framework.android.views.setListeners
 import com.reco1l.framework.graphics.Anchor
 import com.reco1l.framework.graphics.BasicAnchor
 import game.rimu.android.IWithContext
@@ -259,6 +261,8 @@ open class TextField(ctx: RimuContext, init: TextField.() -> Unit) :
         backgroundColor = 0x4D000000
         gravity = Gravity.CENTER_VERTICAL
         imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN
+
+        init()
     }
 
 
@@ -333,4 +337,30 @@ open class TextField(ctx: RimuContext, init: TextField.() -> Unit) :
     override fun getDefaultMovementMethod() = ArrowKeyMovementMethod.getInstance()!!
 
     override fun getAccessibilityClassName(): String = EditText::class.java.name
+}
+
+
+// Animations
+
+fun AppCompatTextView.setTextAnimated(newText: String, finalAlpha: Float = 1f)
+{
+    if (newText == text.toString())
+        return
+
+    animate().cancel()
+    animate {
+        alpha(0f)
+
+        setListeners(onEnd = {
+
+            it.removeAllListeners()
+            text = newText
+
+            animate {
+                alpha(finalAlpha)
+                duration = 100
+            }
+        })
+        duration = 100
+    }
 }
