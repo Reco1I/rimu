@@ -75,7 +75,9 @@ abstract class ImportTask(override val ctx: RimuContext, protected var root: Fil
 
             // The temporal folder will be placed in the cache directory and we'll deleted once the
             // import task ends.
-            root = ctx.cacheDir.subDirectory(root.nameWithoutExtension)
+            root = ctx.cacheDir
+                .subDirectory("import")
+                .subDirectory(root.nameWithoutExtension)
 
             wrappingZip!!.extractAll(root.path)
         }
