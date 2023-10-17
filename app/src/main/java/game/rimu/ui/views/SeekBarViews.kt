@@ -29,7 +29,13 @@ fun <T> T.SeekBar(
     attach: Boolean = true,
     init: SeekBar.() -> Unit
 ) where T : IWithContext,
-        T : ViewGroup = SeekBar(ctx, init).also { if (attach) addView(it) }
+        T : ViewGroup = SeekBar(ctx) child@{
+
+    if (attach)
+        this@SeekBar.addView(this@child)
+
+    init()
+}
 
 open class SeekBar(override val ctx: RimuContext, init: SeekBar.() -> Unit) :
     AppCompatSeekBar(ctx),

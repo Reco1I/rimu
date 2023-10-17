@@ -9,7 +9,7 @@ import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.views.ConstraintLayout
 import kotlin.reflect.KClass
 
-abstract class RimuLayout(final override val ctx: RimuContext) : ConstraintLayout(ctx)
+abstract class RimuLayout(final override val ctx: RimuContext) : ConstraintLayout(ctx, {})
 {
 
     final override val dimensions = super.dimensions

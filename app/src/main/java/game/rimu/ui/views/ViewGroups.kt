@@ -17,7 +17,13 @@ fun <T> T.ConstraintLayout(
     attach: Boolean = true,
     init: ConstraintLayout.() -> Unit
 ) where T : IWithContext,
-        T : ViewGroup = ConstraintLayout(ctx, init).also { if (attach) addView(it) }
+        T : ViewGroup = ConstraintLayout(ctx) child@{
+
+    if (attach)
+        this@ConstraintLayout.addView(this@child)
+
+    init()
+}
 
 open class ConstraintLayout(override val ctx: RimuContext, init: ConstraintLayout.() -> Unit) :
     AndroidConstraintLayout(ctx),
@@ -39,7 +45,13 @@ fun <T> T.LinearLayout(
     attach: Boolean = true,
     init: LinearLayout.() -> Unit
 ) where T : IWithContext,
-        T : ViewGroup = LinearLayout(ctx, init).also { if (attach) addView(it) }
+        T : ViewGroup = LinearLayout(ctx) child@{
+
+    if (attach)
+        this@LinearLayout.addView(this@child)
+
+    init()
+}
 
 open class LinearLayout(override val ctx: RimuContext, init: LinearLayout.() -> Unit) :
     AndroidLinearLayout(ctx),

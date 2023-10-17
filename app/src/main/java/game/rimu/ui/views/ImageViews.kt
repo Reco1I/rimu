@@ -55,7 +55,13 @@ fun <T> T.ImageView(
     attach: Boolean = true,
     init: ImageView.() -> Unit
 ) where T : IWithContext,
-        T : ViewGroup = ImageView(ctx, init).also { if (attach) addView(it) }
+        T : ViewGroup = ImageView(ctx) child@{
+
+    if (attach)
+        this@ImageView.addView(this@child)
+
+    init()
+}
 
 open class ImageView(override val ctx: RimuContext, init: ImageView.() -> Unit) :
     AppCompatImageView(ctx),
@@ -88,7 +94,13 @@ fun <T> T.FadeImageView(
     attach: Boolean = true,
     init: FadeImageView.() -> Unit
 ) where T : IWithContext,
-        T : ViewGroup = FadeImageView(ctx, init).also { if (attach) addView(it) }
+        T : ViewGroup = FadeImageView(ctx) child@{
+
+    if (attach)
+        this@FadeImageView.addView(this@child)
+
+    init()
+}
 
 /**
  * ImageView that fades when the drawable is changed.

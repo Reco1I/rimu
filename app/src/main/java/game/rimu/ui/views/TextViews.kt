@@ -86,7 +86,13 @@ fun <T> T.TextView(
     attach: Boolean = true,
     init: TextView.() -> Unit
 ) where T : IWithContext,
-        T : ViewGroup = TextView(ctx, init).also { if (attach) addView(it) }
+        T : ViewGroup = TextView(ctx) child@{
+
+    if (attach)
+        this@TextView.addView(this@child)
+
+    init()
+}
 
 /**
  * Base class for every [TextView][AppCompatTextView] in rimu!, it has an special handling for icons.
@@ -197,7 +203,13 @@ fun <T> T.TextField(
     attach: Boolean = true,
     init: TextField.() -> Unit
 ) where T : IWithContext,
-        T : ViewGroup = TextField(ctx, init).also { if (attach) addView(it) }
+        T : ViewGroup = TextField(ctx) child@{
+
+    if (attach)
+        this@TextField.addView(this@child)
+
+    init()
+}
 
 /**
  * Base class for EditText in rimu!

@@ -8,8 +8,13 @@ import game.rimu.android.RimuContext
 fun <T> T.IconButton(
     attach: Boolean = true,
     init: IconButton.() -> Unit
-) where T : IWithContext,
-        T : ViewGroup = IconButton(ctx, init).also { if (attach) addView(it) }
+) where T : IWithContext, T : ViewGroup = IconButton(ctx) child@{
+
+    if (attach)
+        this@IconButton.addView(this@child)
+
+    init()
+}
 
 open class IconButton(ctx: RimuContext, init: IconButton.() -> Unit) : ImageView(ctx, {})
 {
