@@ -141,6 +141,22 @@ open class ViewDimensions<V : View>(
         paddingBottom = value
     }
 
+    fun margin(horizontal: Int, vertical: Int)
+    {
+        marginLeft = horizontal
+        marginRight = horizontal
+        marginTop = vertical
+        marginBottom = vertical
+    }
+
+    fun margin(value: Int)
+    {
+        marginLeft = value
+        marginRight = value
+        marginTop = value
+        marginBottom = value
+    }
+
     fun size(value: Int)
     {
         width = value
