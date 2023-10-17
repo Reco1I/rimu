@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">rimu</string>
+
+    <string name="app_name">rimu!</string>
+
+
+    <!--Beatmap metadata-->
+    <string name="metadata_unknown">Unknown</string>
+
 </resources>
