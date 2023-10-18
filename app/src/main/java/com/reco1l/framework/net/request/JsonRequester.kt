@@ -2,7 +2,7 @@ package com.reco1l.framework.net.request
 
 import android.net.Uri
 import androidx.core.net.toUri
-import com.reco1l.framework.net.buildRequest
+import com.reco1l.framework.data.buildRequest
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
