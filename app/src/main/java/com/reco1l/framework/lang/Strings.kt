@@ -1,22 +1,20 @@
 package com.reco1l.framework.lang
 
-import java.util.Locale
 
+/**
+ * Returns a copy of this string having its first letter in uppercase.
+ */
+fun String.capitalize() = replaceFirstChar { it.uppercase() }
 
 /**
  * Returns a copy of this string having its first letter in lowercase.
  */
-fun String.decapitalize(locale: Locale = Locale.getDefault()) = replaceFirstChar { it.lowercase(locale) }
+fun String.decapitalize() = replaceFirstChar { it.lowercase() }
 
-/**
- * Returns a copy of this string trimmed or `null` if it's blank.
- */
-fun String.sanitize() = trim().takeUnless { it.isBlank() }
 
-/**
- * Convert the string to nullable if it's empty.
- */
-fun String.dropIfEmpty() = takeUnless { it.isEmpty() }
+// Ranges
+
+infix fun String.isBetween(range: CharRange) = startsWith(range.first) && endsWith(range.last)
 
 /**
  * Returns a substring cropped between the specified characters or `null` if it doesn't contains
@@ -50,6 +48,12 @@ fun String.removeBetween(first: Char, last: Char): String
         else -> this
     }
 }
+
+
+// Regex
+
+fun String.takeIfMatches(regex: Regex) = takeIf { regex.matches(it) }
+
 
 /**
  * Pack of constants with defaults regular expressions.
