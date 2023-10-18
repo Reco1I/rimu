@@ -68,9 +68,6 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-serialization
     implementation("org.jetbrains.kotlin:kotlin-serialization:1.9.10")
 
-    // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-properties
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:1.6.0")
-
     // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-json
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
