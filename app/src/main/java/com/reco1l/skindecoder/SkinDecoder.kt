@@ -1,18 +1,27 @@
 package com.reco1l.skindecoder
 
-import com.reco1l.framework.lang.Regexs
 import com.reco1l.framework.lang.between
 import com.reco1l.framework.lang.decapitalize
 import com.reco1l.framework.data.isExtension
-import com.reco1l.framework.lang.sanitize
-import com.reco1l.framework.graphics.Color4
+import com.reco1l.framework.data.readUTF8Lines
+import com.reco1l.framework.lang.Regexs.ALPHANUMERIC
+import com.reco1l.framework.lang.Regexs.DECIMAL
+import com.reco1l.framework.lang.Regexs.INTEGER
+import com.reco1l.framework.lang.Regexs.INTEGER_ARRAY
+import com.reco1l.framework.lang.isBetween
+import com.reco1l.framework.lang.takeIfMatches
 import com.reco1l.skindecoder.data.SkinData
 import com.reco1l.skindecoder.exceptions.InvalidSkinException
-import com.reco1l.skindecoder.serializers.ColorSerializer
-import com.reco1l.skindecoder.serializers.NumericBooleanSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNamingStrategy
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
 import okio.BufferedSource
 import okio.buffer
 import okio.source
@@ -31,15 +40,21 @@ class SkinDecoder : Closeable
 {
 
     // This buffer will be used along the parsing and set back to `null` once it finished.
-    private var buffer: BufferedSource? = null
+    private var currentBuffer: BufferedSource? = null
 
-    // Using '.properties' format to decode which is similar to '.ini'
     @OptIn(ExperimentalSerializationApi::class)
-    private val format = Properties(SerializersModule {
+    private val format = Json {
 
-        contextual(Color4::class, ColorSerializer)
-        contextual(Boolean::class, NumericBooleanSerializer)
-    })
+        coerceInputValues = true
+        ignoreUnknownKeys = true
+        useAlternativeNames = false
+
+        // The skin.ini file has the .ini naming convention for commands name with uppercase first
+        // letter meanwhile the data classes used for de-serialization doesn't, here we're handling
+        // that behaviour.
+        namingStrategy = JsonNamingStrategy { _, _, name -> name.decapitalize() }
+    }
+
 
     /**
      * Decode the `skin.ini` file.
@@ -55,87 +70,81 @@ class SkinDecoder : Closeable
     /**
      * Decode the `skin.ini` file from an [InputStream].
      */
-    @OptIn(ExperimentalSerializationApi::class)
     fun decode(stream: InputStream): SkinData
     {
         // Clearing previous buffer if there's any, this will cancel the current decoding.
         close()
-        buffer = stream.source().buffer()
 
-        // Map used to store the sections and its values
-        val map = mutableMapOf<String, MutableMap<String, Any>>()
+        val buffer = stream.source().buffer()
+        currentBuffer = buffer
 
-        var currentLine: String?
+        // Map tree for INI sections and commands.
+        val map = mutableMapOf<String,
+                // Command key and command value mapping.
+                MutableMap<String, JsonElement>>()
+
         var currentSection: String? = null
 
-        // Nullability check in `buffer` just in case it was closed while decoding.
-        while (buffer?.readUtf8Line().also { currentLine = it } != null)
-        {
+        buffer.readUTF8Lines loop@{ rawLine ->
 
-            // Trimming it before the C++ comment delimiter
-            val line = currentLine?.substringBefore(" //")?.sanitize() ?: continue
+            val line = rawLine.substringBefore(" //").trim()
 
-            // [SectionName]
-            if (line.startsWith('[') && line.endsWith(']'))
+            // Means the line refers to a section declaration: [Section]
+            if (line isBetween '['..']')
             {
-                val name = line.between('[', ']')?.sanitize()
-                    // Adapting keys to Kotlin's properties name convention.
-                    ?.decapitalize()
-
-                currentSection = name
-                continue
+                currentSection = line.between('[', ']')
+                return@loop
             }
 
-            // Ignoring values if the current sections hasn't been set.
-            if (currentSection == null)
-                continue
+            // Ignoring values if the current sections hasn't been declared yet or if the delimiter
+            // isn't present in the line.
+            if (currentSection == null || ':' !in line)
+                return@loop
 
-            // Extracting the key
-            val key = line.substringBefore(':').takeIf { Regexs.ALPHANUMERIC.matches(it) }
-                // Adapting keys to Kotlin's properties name convention.
-                ?.decapitalize() ?: continue
+            val key = line.substringBefore(':').takeIfMatches(ALPHANUMERIC)
+                ?:
+                return@loop
 
-            // Extracting the value
-            val value = decodeValue(line.substringAfter(':').trim()) ?: continue
+            val value = decodeValue(line.substringAfter(':').trim())
+                ?:
+                return@loop
 
-            // Creating the section map if it wasn't created yet.
-            map.getOrPut(currentSection) { mutableMapOf() }[key] = value
+            map.getOrPut(currentSection!!) { mutableMapOf() }[key] = value
         }
 
-        // We finished using the buffer
-        close()
+        if (currentBuffer == buffer)
+            currentBuffer = null
 
-        // Decoding using kotlinx.serialization
-        return format.decodeFromMap(SkinData.serializer(), map)
+        return format.decodeFromJsonElement(buildJsonObject {
+
+            // Mapping sections into JsonObjects.
+            map.forEach { put(it.key, JsonObject(it.value)) }
+        })
     }
 
-    private fun decodeValue(input: String): Any?
+    private fun decodeValue(input: String) = when
     {
+        // Integers
+        input matches INTEGER -> input.toIntOrNull()?.let { JsonPrimitive(it) }
 
-        // Integer
-        if (Regexs.INTEGER.matches(input))
-            return input.toIntOrNull()
+        // Decimals
+        input matches DECIMAL -> input.toFloatOrNull()?.let { JsonPrimitive(it) }
 
-        // Decimal
-        if (Regexs.DECIMAL.matches(input))
-            return input.toFloatOrNull()
-
-        // IntArray
-        if (Regexs.INTEGER_ARRAY.matches(input))
+        // Integer arrays
+        input matches INTEGER_ARRAY ->
         {
-            val sequence = input.split(',').takeUnless { it.isEmpty() }
-                ?: return null
+            // At this point should have format enough to be considered as an integer array.
+            val sequence = input.split(',').map { it.trim() }
 
-            // We use this instead of map() because we want a primitive Int array.
-            return IntArray(sequence.size) {
+            buildJsonArray {
                 // We consider as invalid array in case one of the values is wrong, because of
                 // the regular expression this should never happen.
-                sequence[it].trim().toIntOrNull() ?: return null
+                sequence.forEach { add(it.toIntOrNull() ?: return null) }
             }
         }
 
-        // String
-        return input
+        // Strings
+        else -> JsonPrimitive(input)
     }
 
 
@@ -144,8 +153,8 @@ class SkinDecoder : Closeable
      */
     override fun close()
     {
-        buffer?.close()
-        buffer = null
+        currentBuffer?.close()
+        currentBuffer = null
     }
 
 
