@@ -32,15 +32,24 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx, {})
 
     init
     {
-        ctx.initializationTree!!.add(0) {
-
-            // Setting as content view
-            mainThread { activity.setContentView(this@LayoutManager) }
-        }
+        ctx.initializationTree!!.add(0) { onActivityCreate() }
     }
 
 
     // Events
+
+    fun onActivityCreate()
+    {
+        mainThread {
+
+            // If the activity was recreated this must be called first.
+            if (parent != null)
+                removeSelf()
+
+            ctx.activity.setContentView(this@LayoutManager)
+        }
+    }
+
 
     /**
      * Set scene layouts.

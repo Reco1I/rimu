@@ -36,19 +36,26 @@ class RimuActivity :
         super.onCreate(savedInstanceState)
 
         ctx.activity = this
-        ctx.engine.startUpdateThread()
-        ctx.bassDevice.start()
 
-        applyWindowFlags()
+        // Application wasn't initialized yet.
+        if (ctx.initializationTree != null)
+        {
+            ctx.engine.startUpdateThread()
+            ctx.bassDevice.start()
 
-        async {
+            applyWindowFlags()
 
-            ctx.initializationTree!!.forEachTrim { ctx.it() }
-            ctx.initializationTree = null
+            async {
+                ctx.initializationTree!!.forEachTrim { ctx.it() }
+                ctx.initializationTree = null
 
-            ctx.engine.scene = SceneIntro(ctx)
-            onManageIntent(intent)
+                ctx.engine.scene = SceneIntro(ctx)
+                onManageIntent(intent)
+            }
+            return
         }
+
+        ctx.layouts.onActivityCreate()
     }
 
 
