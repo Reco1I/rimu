@@ -1,5 +1,6 @@
 package game.rimu.ui.views
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.GradientDrawable
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -14,6 +15,7 @@ import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
 import game.rimu.ui.ViewDimensions
 import game.rimu.ui.ViewSkinningRules
+import android.widget.SeekBar as AndroidSeekBar
 
 
 class SeekBarDimensions<T : SeekBar> : ViewDimensions<T>(MATCH_PARENT, 20)
@@ -24,21 +26,16 @@ class SeekBarDimensions<T : SeekBar> : ViewDimensions<T>(MATCH_PARENT, 20)
 }
 
 
-
-fun <T> T.SeekBar(
-    attach: Boolean = true,
+fun IWithContext.SeekBar(
+    parent: ViewGroup? = this as? ViewGroup,
     init: SeekBar.() -> Unit
-) where T : IWithContext,
-        T : ViewGroup = SeekBar(ctx) child@{
-
-    if (attach)
-        this@SeekBar.addView(this@child)
-
+) = SeekBar(ctx).apply {
+    parent?.addView(this)
     init()
 }
 
-open class SeekBar(override val ctx: RimuContext, init: SeekBar.() -> Unit) :
-    AppCompatSeekBar(ctx),
+open class SeekBar(override val ctx: RimuContext) :
+    AndroidSeekBar(ctx),
     IWithContext,
     IScalableWithDimensions<SeekBar>,
     ISkinnableWithRules<SeekBar>
@@ -68,8 +65,6 @@ open class SeekBar(override val ctx: RimuContext, init: SeekBar.() -> Unit) :
         // Thumb
         thumb = thumbDrawable
         thumbOffset = 0
-
-        init()
     }
 
     override fun onAttachedToWindow()

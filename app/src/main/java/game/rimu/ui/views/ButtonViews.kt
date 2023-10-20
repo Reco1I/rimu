@@ -6,18 +6,15 @@ import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 
 
-fun <T> T.IconButton(
-    attach: Boolean = true,
+fun IWithContext.IconButton(
+    parent: ViewGroup? = this as? ViewGroup,
     init: IconButton.() -> Unit
-) where T : IWithContext, T : ViewGroup = IconButton(ctx) child@{
-
-    if (attach)
-        this@IconButton.addView(this@child)
-
+) = IconButton(ctx).apply {
+    parent?.addView(this)
     init()
 }
 
-open class IconButton(ctx: RimuContext, init: IconButton.() -> Unit) : ImageView(ctx, {})
+open class IconButton(ctx: RimuContext) : ImageView(ctx)
 {
 
     override val dimensions = super.dimensions.apply {
@@ -35,8 +32,6 @@ open class IconButton(ctx: RimuContext, init: IconButton.() -> Unit) : ImageView
     init
     {
         scaleType = ScaleType.FIT_CENTER
-
-        init()
     }
 }
 
@@ -44,19 +39,15 @@ open class IconButton(ctx: RimuContext, init: IconButton.() -> Unit) : ImageView
 
 // TextButton
 
-fun <T> T.TextButton(
-    attach: Boolean = true,
+fun IWithContext.TextButton(
+    parent: ViewGroup? = this as? ViewGroup,
     init: TextButton.() -> Unit
-) where T : IWithContext,
-        T : ViewGroup = TextButton(ctx) child@{
-
-    if (attach)
-        this@TextButton.addView(this@child)
-
+) = TextButton(ctx).apply {
+    parent?.addView(this)
     init()
 }
 
-open class TextButton(ctx: RimuContext, init: TextButton.() -> Unit) : TextView(ctx, {})
+open class TextButton(ctx: RimuContext) : TextView(ctx)
 {
 
     override val dimensions = super.dimensions.apply {
@@ -76,7 +67,5 @@ open class TextButton(ctx: RimuContext, init: TextButton.() -> Unit) : TextView(
     init
     {
         gravity = Gravity.CENTER
-
-        init()
     }
 }

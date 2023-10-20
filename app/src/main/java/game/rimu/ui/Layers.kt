@@ -13,12 +13,7 @@ import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.views.ConstraintLayout
 
 
-abstract class LayoutLayer(
-    override val ctx: RimuContext,
-    init: LayoutLayer.() -> Unit = {}
-) :
-    ConstraintLayout(ctx, {}),
-    IWithContext
+abstract class LayoutLayer(override val ctx: RimuContext) : ConstraintLayout(ctx), IWithContext
 {
 
     override val dimensions = super.dimensions.apply {
@@ -26,9 +21,6 @@ abstract class LayoutLayer(
         width = MATCH_PARENT
         height = MATCH_PARENT
     }
-
-
-    init { init() }
 
 
     override fun onAttachedToWindow()
@@ -47,26 +39,32 @@ abstract class LayoutLayer(
 }
 
 
-class LayerBackground(ctx: RimuContext) : LayoutLayer(ctx, {
+class LayerBackground(ctx: RimuContext) : LayoutLayer(ctx)
+{
+    init
+    {
+        ctx.engine.renderView attachTo this
 
-    ctx.engine.renderView attachTo this
+        ctx.initializationTree!!.add {
 
-    ctx.initializationTree!!.add {
-
-        layouts[Background::class]
+            layouts[Background::class]
+        }
     }
-})
+}
 
 
-class LayerOverlay(ctx: RimuContext) : LayoutLayer(ctx, {
+class LayerOverlay(ctx: RimuContext) : LayoutLayer(ctx)
+{
+    init
+    {
+        ctx.initializationTree!!.add {
 
+            layouts[TopBarLayout::class]
+            layouts[NotificationCenter::class]
+        }
 
-    ctx.initializationTree!!.add {
-
-        layouts[TopBarLayout::class]
     }
-
-})
+}
 
 class LayerScene(ctx: RimuContext) : LayoutLayer(ctx)
 

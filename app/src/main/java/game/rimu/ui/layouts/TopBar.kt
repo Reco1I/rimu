@@ -113,7 +113,7 @@ class TopBarLayout(ctx: RimuContext) : RimuLayout(ctx)
 }
 
 
-class UserBoxView(ctx: RimuContext) : LinearLayout(ctx, {})
+class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
 {
 
     init

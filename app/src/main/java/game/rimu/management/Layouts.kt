@@ -16,7 +16,7 @@ import game.rimu.ui.views.ConstraintLayout
 import kotlin.reflect.KClass
 
 
-class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx, {})
+class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
 {
 
     // Storing created layouts into a map to perform auto-show/hide events.

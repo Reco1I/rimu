@@ -19,6 +19,7 @@ import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
 import game.rimu.ui.ViewDimensions
 import game.rimu.ui.ViewSkinningRules
+import android.widget.ImageView as AndroidImageView
 
 
 // Base
@@ -51,20 +52,16 @@ open class ImageSkinningRules<T : ImageView> : ViewSkinningRules<T>()
 }
 
 
-fun <T> T.ImageView(
-    attach: Boolean = true,
+fun IWithContext.ImageView(
+    parent: ViewGroup? = this as? ViewGroup,
     init: ImageView.() -> Unit
-) where T : IWithContext,
-        T : ViewGroup = ImageView(ctx) child@{
-
-    if (attach)
-        this@ImageView.addView(this@child)
-
+) = ImageView(ctx).apply {
+    parent?.addView(this)
     init()
 }
 
-open class ImageView(override val ctx: RimuContext, init: ImageView.() -> Unit) :
-    android.widget.ImageView(ctx),
+open class ImageView(override val ctx: RimuContext) :
+    AndroidImageView(ctx),
     IWithContext,
     IScalableWithDimensions<ImageView>,
     ISkinnableWithRules<ImageView>
@@ -73,9 +70,6 @@ open class ImageView(override val ctx: RimuContext, init: ImageView.() -> Unit) 
     override val dimensions by lazy { ViewDimensions<ImageView>() }
 
     override val rules by lazy { ImageSkinningRules<ImageView>() }
-
-
-    init { init() }
 
 
     override fun onApplyScale(scale: Float)
@@ -90,23 +84,19 @@ open class ImageView(override val ctx: RimuContext, init: ImageView.() -> Unit) 
 
 // FadeImageView
 
-fun <T> T.FadeImageView(
-    attach: Boolean = true,
+fun IWithContext.FadeImageView(
+    parent: ViewGroup? = this as? ViewGroup,
     init: FadeImageView.() -> Unit
-) where T : IWithContext,
-        T : ViewGroup = FadeImageView(ctx) child@{
-
-    if (attach)
-        this@FadeImageView.addView(this@child)
-
+) = FadeImageView(ctx).apply {
+    parent?.addView(this)
     init()
 }
 
 /**
  * ImageView that fades when the drawable is changed.
  */
-class FadeImageView(ctx: RimuContext, init: FadeImageView.() -> Unit) :
-    ImageView(ctx, {}),
+class FadeImageView(ctx: RimuContext) :
+    ImageView(ctx),
     IWithContext
 {
 
@@ -132,8 +122,6 @@ class FadeImageView(ctx: RimuContext, init: FadeImageView.() -> Unit) :
     {
         // Calling super to set the TransitionDrawable properly.
         super.setImageDrawable(transition)
-
-        init()
     }
 
 

@@ -13,15 +13,11 @@ import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLay
 
 // ConstraintLayout
 
-fun <T> T.ConstraintLayout(
-    attach: Boolean = true,
+fun IWithContext.ConstraintLayout(
+    parent: ViewGroup? = this as? ViewGroup,
     init: ConstraintLayout.() -> Unit
-) where T : IWithContext,
-        T : ViewGroup = ConstraintLayout(ctx) child@{
-
-    if (attach)
-        this@ConstraintLayout.addView(this@child)
-
+) = ConstraintLayout(ctx).apply {
+    parent?.addView(this)
     init()
 }
 
@@ -41,15 +37,11 @@ open class ConstraintLayout(override val ctx: RimuContext, init: ConstraintLayou
 
 // LinearLayout
 
-fun <T> T.LinearLayout(
-    attach: Boolean = true,
+fun IWithContext.LinearLayout(
+    parent: ViewGroup? = this as? ViewGroup,
     init: LinearLayout.() -> Unit
-) where T : IWithContext,
-        T : ViewGroup = LinearLayout(ctx) child@{
-
-    if (attach)
-        this@LinearLayout.addView(this@child)
-
+) = LinearLayout(ctx).apply {
+    parent?.addView(this)
     init()
 }
 

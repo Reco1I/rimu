@@ -29,6 +29,7 @@ import game.rimu.ui.ISkinnableWithRules
 import game.rimu.ui.ViewDimensions
 import game.rimu.ui.ViewSkinningRules
 import kotlin.math.max
+import android.widget.TextView as AndroidTextView
 
 
 data class TextViewDimensions<T : TextView>(
@@ -84,23 +85,19 @@ data class TextViewSkinningRules<T : TextView>(
 
 // Base
 
-fun <T> T.TextView(
-    attach: Boolean = true,
+fun IWithContext.TextView(
+    parent: ViewGroup? = this as? ViewGroup,
     init: TextView.() -> Unit
-) where T : IWithContext,
-        T : ViewGroup = TextView(ctx) child@{
-
-    if (attach)
-        this@TextView.addView(this@child)
-
+) = TextView(ctx).apply {
+    parent?.addView(this)
     init()
 }
 
 /**
  * Base class for every [TextView][AppCompatTextView] in rimu!, it has an special handling for icons.
  */
-open class TextView(final override val ctx: RimuContext, init: TextView.() -> Unit) :
-    android.widget.TextView(ctx),
+open class TextView(final override val ctx: RimuContext) :
+    AndroidTextView(ctx),
     IWithContext,
     ISkinnableWithRules<TextView>,
     IScalableWithDimensions<TextView>
@@ -112,9 +109,6 @@ open class TextView(final override val ctx: RimuContext, init: TextView.() -> Un
 
 
     private val icons = arrayOfNulls<Icon>(4)
-
-
-    init { init() }
 
 
     override fun onApplyScale(scale: Float)
@@ -200,26 +194,18 @@ open class TextView(final override val ctx: RimuContext, init: TextView.() -> Un
 }
 
 
-
-fun <T> T.TextField(
-    attach: Boolean = true,
+fun IWithContext.TextField(
+    parent: ViewGroup? = this as? ViewGroup,
     init: TextField.() -> Unit
-) where T : IWithContext,
-        T : ViewGroup = TextField(ctx) child@{
-
-    if (attach)
-        this@TextField.addView(this@child)
-
+) = TextField(ctx).apply {
+    parent?.addView(this)
     init()
 }
 
 /**
  * Base class for EditText in rimu!
  */
-open class TextField(ctx: RimuContext, init: TextField.() -> Unit) :
-
-    TextView(ctx, {}),
-    IWithContext
+open class TextField(ctx: RimuContext) : TextView(ctx), IWithContext
 {
 
     override val dimensions = super.dimensions.apply {
@@ -261,8 +247,6 @@ open class TextField(ctx: RimuContext, init: TextField.() -> Unit) :
         backgroundColor = 0x4D000000
         gravity = Gravity.CENTER_VERTICAL
         imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN
-
-        init()
     }
 
 
