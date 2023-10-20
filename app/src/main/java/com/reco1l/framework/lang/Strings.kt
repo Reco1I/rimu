@@ -31,24 +31,6 @@ fun String.between(first: Char, last: Char): String?
     return substring(firstIndex + 1, secondIndex).takeUnless { it.isEmpty() }
 }
 
-/**
- * Returns a copy of this string excluding the part between the specified characters (inclusive) or
- * the same string if no range was found.
- */
-fun String.removeBetween(first: Char, last: Char): String
-{
-    val left = substringBefore(first, missingDelimiterValue = "")
-    val right = substringAfterLast(last, missingDelimiterValue = "")
-
-    return when
-    {
-        left.isEmpty() && right.isNotEmpty() -> right
-        right.isEmpty() && left.isNotEmpty() -> left
-        left.isNotEmpty() && right.isNotEmpty() -> left + right
-        else -> this
-    }
-}
-
 
 // Regex
 
