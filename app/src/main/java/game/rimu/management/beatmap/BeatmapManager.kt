@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 
 @OptIn(DelicateCoroutinesApi::class)
 class BeatmapManager(override val ctx: RimuContext) :
-    FlowCollector<List<BeatmapSet>>,
     IWithContext,
     IObservable<IBeatmapObserver>
 {
@@ -59,7 +58,6 @@ class BeatmapManager(override val ctx: RimuContext) :
 
     private var currentSource: Beatmap? = null
 
-    // Using a different coroutine context.
     private val musicScope = CoroutineScope(Dispatchers.IO)
 
 
@@ -71,13 +69,12 @@ class BeatmapManager(override val ctx: RimuContext) :
             GlobalScope.launch {
 
                 // The flow will update the list everytime the table is changed.
-                ctx.database.getBeatmapSetsFlow().collect(this@BeatmapManager)
+                ctx.database.getBeatmapSetsFlow().collect(this@BeatmapManager::onBeatmapTableChange)
             }
         }
     }
 
-    // Called when the beatmap table has been changed.
-    override suspend fun emit(value: List<BeatmapSet>)
+    private fun onBeatmapTableChange(value: List<BeatmapSet>)
     {
         musicScope.launch {
 
