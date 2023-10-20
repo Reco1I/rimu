@@ -54,13 +54,13 @@ interface ISkinDAO
      * @see OnConflictStrategy.REPLACE
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertSkin(skin: Skin): Long
+    fun insert(skin: Skin): Long
 
     /**
      * Delete an skin from the database.
      */
     @Delete
-    fun deleteSkin(skin: Skin)
+    fun delete(skin: Skin)
 
     /**
      * Query all skins registered in the database.
@@ -72,5 +72,5 @@ interface ISkinDAO
      * Get an skin by its key.
      */
     @Query("SELECT * FROM Skin WHERE `key` = :key")
-    fun getSkin(key: String): Skin?
+    fun findByKey(key: String): Skin?
 }

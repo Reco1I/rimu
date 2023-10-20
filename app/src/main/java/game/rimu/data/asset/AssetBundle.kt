@@ -7,7 +7,6 @@ import com.caverock.androidsvg.SVG
 import com.reco1l.basskt.stream.AssetSampleStream
 import com.reco1l.basskt.stream.BaseStream
 import com.reco1l.basskt.stream.SampleStream
-import com.reco1l.framework.android.logI
 import com.reco1l.framework.android.logE
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.framework.graphics.toBitmap
@@ -208,7 +207,7 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
 class ExternalAssetBundle(ctx: RimuContext, key: String) : AssetBundle(ctx)
 {
 
-    override val list = ctx.database.assetTable.getAssetsFrom(key)
+    override val list = ctx.database.assetTable.getFromParent(key)
 
 
     @Suppress("UNCHECKED_CAST")

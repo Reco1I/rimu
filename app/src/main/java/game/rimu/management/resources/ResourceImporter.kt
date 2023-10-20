@@ -183,7 +183,7 @@ abstract class ImportTask(override val ctx: RimuContext, protected var root: Fil
     {
         // Inserting in the asset database, if it returns -1 means the asset already exists on
         // the database.
-        is Asset -> { { ctx.database.assetTable.insertAsset(asset) > 0 }.orCatch { false } }
+        is Asset -> { { ctx.database.assetTable.insert(asset) > 0 }.orCatch { false } }
 
         // This shouldn't never happen.
         else -> false

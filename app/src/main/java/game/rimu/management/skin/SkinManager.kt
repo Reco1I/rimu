@@ -59,6 +59,16 @@ class SkinManager(override val ctx: RimuContext) :
             // Executing in change scope
             changeScope.launch { onLoadSkin(it as String) }
         }
+
+        ctx.initializationTree!!.add {
+
+            GlobalScope.launch {
+
+                ctx.database.skinTable.getFlow().collect(this@SkinManager)
+            }
+
+            onLoadSkin(currentSkinKey)
+        }
     }
 
 
@@ -73,7 +83,7 @@ class SkinManager(override val ctx: RimuContext) :
 
         // As stated above if it's not an internal skin we get it from the database, otherwise
         // we create a new one based on the internal directory.
-        val skin = if (isInternal) Skin(key, "rimu! team") else ctx.database.skinTable.getSkin(key)
+        val skin = if (isInternal) Skin(key, "rimu! team") else ctx.database.skinTable.findByKey(key)
             // Using default skin if for whatever reason it fails to create the skin.
             ?: return default
 

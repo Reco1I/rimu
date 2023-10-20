@@ -107,7 +107,7 @@ class BeatmapImportTask internal constructor(ctx: RimuContext, root: File) : Imp
     {
         // Inserting in the beatmap database, in this case the returning Int from insertBeatmap()
         // will always be greater than 0 because its conflict strategy is REPLACE.
-        is Beatmap -> { { ctx.database.beatmapTable.insertBeatmap(asset) > 0 }.orCatch { false } }
+        is Beatmap -> { { ctx.database.beatmapTable.insert(asset) > 0 }.orCatch { false } }
 
         else -> super.onInsertAsset(file, asset)
     }

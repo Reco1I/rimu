@@ -17,7 +17,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.launch
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -69,7 +68,7 @@ class BeatmapManager(override val ctx: RimuContext) :
             GlobalScope.launch {
 
                 // The flow will update the list everytime the table is changed.
-                ctx.database.beatmapTable.getBeatmapSetsFlow().collect(this@BeatmapManager::onBeatmapTableChange)
+                ctx.database.beatmapTable.getParentSetFlow().collect(this@BeatmapManager::onBeatmapTableChange)
             }
         }
     }

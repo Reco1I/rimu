@@ -102,23 +102,17 @@ data class Asset(
      * [OnConflictStrategy.ABORT]
      */
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    fun insertAsset(asset: Asset): Long
+    fun insert(asset: Asset): Long
 
     /**
      * Delete am asset from the table.
      */
     @Delete
-    fun deleteAsset(asset: Asset)
+    fun delete(asset: Asset)
 
     /**
      * Get all assets from the parent [BeatmapSet.key] or [Skin.key].
      */
-    @Query("SELECT * FROM Asset WHERE parent = :key")
-    fun getAssetsFrom(key: String): List<Asset>
-
-    /**
-     * Find an specific asset from its MD5 hash.
-     */
-    @Query("SELECT * FROM Asset WHERE `key` = :name")
-    fun findAssetByName(name: String): Asset
+    @Query("SELECT * FROM Asset WHERE parent = :parentKey")
+    fun getFromParent(parentKey: String): List<Asset>
 }

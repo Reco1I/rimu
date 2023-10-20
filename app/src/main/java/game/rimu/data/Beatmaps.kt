@@ -152,31 +152,31 @@ data class Beatmap(
      * [OnConflictStrategy.REPLACE]
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertBeatmap(beatmap: Beatmap): Long
+    fun insert(beatmap: Beatmap): Long
 
     /**
      * Delete a beatmap from the table.
      */
     @Delete
-    fun deleteBeatmap(beatmap: Beatmap)
+    fun delete(beatmap: Beatmap)
 
     /**
      * Get all beatmaps from the parent [BeatmapSet.key].
      */
     @Query("SELECT * FROM Beatmap WHERE parent = :parentHash")
-    fun getBeatmapsFrom(parentHash: String): Array<Beatmap>
+    fun getFromParent(parentHash: String): Array<Beatmap>
 
     /**
      * Find an specific beatmap from its MD5 hash.
      */
     @Query("SELECT * FROM Beatmap WHERE hash = :hash")
-    fun findBeatmap(hash: String): Beatmap?
+    fun findByHash(hash: String): Beatmap?
 
     /**
      * Find an specific beatmap from its ID.
      */
     @Query("SELECT * FROM Beatmap WHERE id = :id")
-    fun findBeatmap(id: Long): Beatmap?
+    fun findByID(id: Long): Beatmap?
 
     /**
      * Get a flow that listens to database changes for the beatmap table.
@@ -184,7 +184,7 @@ data class Beatmap(
      */
     @Transaction
     @Query("SELECT DISTINCT parent FROM Beatmap")
-    fun getBeatmapSetsFlow() : Flow<List<BeatmapSet>>
+    fun getParentSetFlow() : Flow<List<BeatmapSet>>
 }
 
 
