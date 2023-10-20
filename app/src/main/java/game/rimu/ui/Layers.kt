@@ -33,7 +33,7 @@ abstract class LayoutLayer(override val ctx: RimuContext) : ConstraintLayout(ctx
 
     fun onSceneChange(scene: RimuScene) = forEach { layout ->
 
-        if (layout is RimuLayout && scene::class safeIn layout.parents)
+        if (layout is ModelLayout && scene::class safeIn layout.parents)
             layout.hide()
     }
 }

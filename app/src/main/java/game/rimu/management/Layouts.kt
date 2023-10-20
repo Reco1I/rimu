@@ -10,7 +10,7 @@ import game.rimu.ui.LayerBackground
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayerScene
 import game.rimu.ui.LayoutLayer
-import game.rimu.ui.layouts.RimuLayout
+import game.rimu.ui.layouts.ModelLayout
 import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.views.ConstraintLayout
 import kotlin.reflect.KClass
@@ -20,7 +20,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
 {
 
     // Storing created layouts into a map to perform auto-show/hide events.
-    private val layouts = instanceMapOf<RimuLayout>()
+    private val layouts = instanceMapOf<ModelLayout>()
 
     // Storing layers to perform scene change events.
     private val layers = LAYERS.associateWith {
@@ -73,7 +73,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
     /**
      * Add a layout to the defined layer.
      */
-    fun show(layout: RimuLayout): Boolean
+    fun show(layout: ModelLayout): Boolean
     {
         if (layout.shouldRemainInMemory)
         {
@@ -100,7 +100,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
         return layout.isAttachedToWindow
     }
 
-    fun hide(layout: RimuLayout)
+    fun hide(layout: ModelLayout): Boolean
     {
         layout.removeSelf()
 
@@ -117,7 +117,8 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
         return layers[clazz] as T
     }
 
-    operator fun <T : RimuLayout> get(clazz: KClass<T>) = layouts[clazz] ?: let {
+    @Suppress("UNCHECKED_CAST")
+    operator fun <T : ModelLayout> get(clazz: KClass<T>) = layouts[clazz] as? T ?: let {
 
         val instance = clazz.createInstance(ctx)
 

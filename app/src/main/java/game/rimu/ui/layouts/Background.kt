@@ -19,7 +19,7 @@ import kotlin.reflect.KClass
 
 
 class Background(ctx: RimuContext) :
-    RimuLayout(ctx),
+    ModelLayout(ctx),
     IBeatmapObserver
 {
 

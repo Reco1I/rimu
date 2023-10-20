@@ -25,12 +25,11 @@ import game.rimu.ui.views.TextView
 import game.rimu.ui.views.addons.setTouchHandler
 import game.rimu.ui.views.setTextAnimated
 import org.andengine.engine.handler.IUpdateHandler
-import java.text.SimpleDateFormat
 import kotlin.reflect.KClass
 import android.widget.SeekBar as AndroidSeekBar
 
 class MusicPlayerBox(ctx: RimuContext) :
-    RimuLayout(ctx),
+    ModelLayout(ctx),
     IBeatmapObserver,
     IUpdateHandler
 {
