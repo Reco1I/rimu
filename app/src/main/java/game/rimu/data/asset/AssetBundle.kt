@@ -137,19 +137,12 @@ sealed class AssetBundle(override val ctx: RimuContext) : IWithContext
 class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundle(app)
 {
 
-    init
-    {
-        klass logI "Created new instance."
-    }
-
     /**
      * List of assets found by its filename.
      */
     override val list = app.assets.list(directory)!!.map {
 
         val resolved = app.resources.resolveAsset(it)!!
-
-        klass logI "Resolved asset: $directory$it"
 
         Asset(
             hash = it,
