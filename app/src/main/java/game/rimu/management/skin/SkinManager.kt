@@ -73,7 +73,7 @@ class SkinManager(override val ctx: RimuContext) :
 
         // As stated above if it's not an internal skin we get it from the database, otherwise
         // we create a new one based on the internal directory.
-        val skin = if (isInternal) Skin(key, "rimu! team") else ctx.database.getSkin(key)
+        val skin = if (isInternal) Skin(key, "rimu! team") else ctx.database.skinTable.getSkin(key)
             // Using default skin if for whatever reason it fails to create the skin.
             ?: return default
 

@@ -3,6 +3,7 @@ package game.rimu.management
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.reco1l.framework.android.databaseBuilder
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.data.asset.Asset
@@ -21,24 +22,49 @@ import game.rimu.data.Skin
  * @see IAssetDAO
  * @see ISkinDAO
  */
-class DatabaseManager(override val ctx: RimuContext, database: RimuDatabase = RimuDatabase(ctx)) :
+class DatabaseManager(override val ctx: RimuContext) : IWithContext
+{
 
-    IBeatmapDAO by database.getBeatmapTable(),
-    IAssetDAO by database.getAssetTable(),
-    ISkinDAO by database.getSkinTable(),
-    IWithContext
+    /**
+     * Get beatmaps table.
+     */
+    val beatmapTable
+        get() = databaseImpl.getBeatmapTable()
+
+    /**
+     * Get assets table.
+     */
+    val assetTable
+        get() = databaseImpl.getAssetTable()
+
+    /**
+     * Get skins table.
+     */
+    val skinTable
+        get() = databaseImpl.getSkinTable()
 
 
-/**
- * We create the database in the initialization so we can implement DAOs and delegate them.
- */
-private fun RimuDatabase(context: RimuContext) = Room
-    .databaseBuilder(
-        context = context,
-        klass = RimuDatabase::class.java,
-        name = RimuDatabase::class.simpleName
-    )
-    .build()
+    private lateinit var databaseImpl: RimuDatabase
+
+
+    init
+    {
+        ctx.initializationTree!!.add(1) {
+
+            databaseImpl = Room.databaseBuilder<RimuDatabase>(ctx, DATABASE_NAME).build()
+        }
+    }
+
+
+    companion object
+    {
+        /**
+         * The internal database name, changing this will break existing databases.
+         */
+        const val DATABASE_NAME = "RimuDatabase"
+    }
+}
+
 
 /**
  * The rimu! database object class, this should be unique per instance.

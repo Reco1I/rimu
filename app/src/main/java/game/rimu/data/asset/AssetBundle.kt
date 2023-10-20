@@ -208,7 +208,7 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
 class ExternalAssetBundle(ctx: RimuContext, key: String) : AssetBundle(ctx)
 {
 
-    override val list = ctx.database.getAssetsFrom(key)
+    override val list = ctx.database.assetTable.getAssetsFrom(key)
 
 
     @Suppress("UNCHECKED_CAST")
