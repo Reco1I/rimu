@@ -64,7 +64,7 @@ fun <T> T.ImageView(
 }
 
 open class ImageView(override val ctx: RimuContext, init: ImageView.() -> Unit) :
-    AppCompatImageView(ctx),
+    android.widget.ImageView(ctx),
     IWithContext,
     IScalableWithDimensions<ImageView>,
     ISkinnableWithRules<ImageView>

@@ -100,7 +100,7 @@ fun <T> T.TextView(
  * Base class for every [TextView][AppCompatTextView] in rimu!, it has an special handling for icons.
  */
 open class TextView(final override val ctx: RimuContext, init: TextView.() -> Unit) :
-    AppCompatTextView(ctx),
+    android.widget.TextView(ctx),
     IWithContext,
     ISkinnableWithRules<TextView>,
     IScalableWithDimensions<TextView>
@@ -342,10 +342,16 @@ open class TextField(ctx: RimuContext, init: TextField.() -> Unit) :
 
 // Animations
 
-fun AppCompatTextView.setTextAnimated(newText: String, finalAlpha: Float = 1f)
+fun TextView.setTextAnimated(newText: String, finalAlpha: Float = 1f)
 {
     if (newText == text.toString())
         return
+
+    if (text.isNullOrEmpty())
+    {
+        text = newText
+        return
+    }
 
     animate().cancel()
     animate {
