@@ -13,12 +13,12 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.widget.AppCompatTextView
-import com.reco1l.framework.android.views.animate
 import com.reco1l.framework.android.views.backgroundColor
 import com.reco1l.framework.android.views.font
 import com.reco1l.framework.android.views.fontColor
 import com.reco1l.framework.android.views.fontSize
-import com.reco1l.framework.android.views.setListeners
+import com.reco1l.framework.animation.cancelAnimators
+import com.reco1l.framework.animation.toAlpha
 import com.reco1l.framework.graphics.Anchor
 import com.reco1l.framework.graphics.BasicAnchor
 import game.rimu.android.IWithContext
@@ -337,20 +337,11 @@ fun TextView.setTextAnimated(newText: String, finalAlpha: Float = 1f)
         return
     }
 
-    animate().cancel()
-    animate {
-        alpha(0f)
-
-        setListeners(onEnd = {
-
-            it.removeAllListeners()
+    cancelAnimators()
+    toAlpha(0f, 100, listener = {
+        onEnd = {
             text = newText
-
-            animate {
-                alpha(finalAlpha)
-                duration = 100
-            }
-        })
-        duration = 100
-    }
+            toAlpha(finalAlpha, 100)
+        }
+    })
 }

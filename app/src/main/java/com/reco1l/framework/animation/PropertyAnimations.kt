@@ -25,7 +25,7 @@ fun Pair<Int, Int>.animate(
     start()
 }!!
 
-fun Pair<Float, Float>.animateTo(
+fun Pair<Float, Float>.animate(
     duration: Long,
     delay: Long = 0,
     interpolator: TimeInterpolator? = null,

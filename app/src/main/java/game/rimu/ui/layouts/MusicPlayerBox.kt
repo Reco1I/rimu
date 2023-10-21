@@ -5,12 +5,11 @@ import android.view.animation.BounceInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.SeekBar.OnSeekBarChangeListener
 import com.reco1l.basskt.AudioState
-import com.reco1l.framework.android.views.animate
 import com.reco1l.framework.android.views.localized
-import com.reco1l.framework.android.views.scale
 import com.reco1l.framework.android.views.setConstraints
-import com.reco1l.framework.android.views.setListeners
-import com.reco1l.framework.android.views.setScale
+import com.reco1l.framework.animation.cancelAnimators
+import com.reco1l.framework.animation.toAlpha
+import com.reco1l.framework.animation.toScale
 import com.reco1l.framework.graphics.Anchor
 import com.reco1l.framework.lang.dateFormatFor
 import game.rimu.R
@@ -284,16 +283,11 @@ class MusicPlayerBox(ctx: RimuContext) :
 
         // Bounce animation
 
-        alpha = 0f
-        setScale(0.8f)
-
-        animate {
-            scale(1f)
-            alpha(1f)
-
-            duration = 300
-            interpolator = BounceInterpolator()
-        }
+        cancelAnimators()
+        toAlpha(0f)
+        toScale(0.8f)
+        toAlpha(1f, 100)
+        toScale(1f, 300, ease = BounceInterpolator())
 
         // Updating information just in case.
         onMusicChange(ctx.beatmaps.current)
@@ -310,14 +304,8 @@ class MusicPlayerBox(ctx: RimuContext) :
 
     override fun hide()
     {
-        animate {
-            scale(0.9f)
-            alpha(0f)
-
-            duration = 150
-            interpolator = DecelerateInterpolator()
-
-            setListeners(onEnd = { super.hide() })
-        }
+        cancelAnimators()
+        toScale(0.9f, 150, ease = DecelerateInterpolator())
+        toAlpha(0f, 150, listener = { onEnd = { super.hide() } })
     }
 }

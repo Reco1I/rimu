@@ -165,3 +165,8 @@ fun View.removeSelf()
 // Resources
 
 fun View.localized(@StringRes resId: Int) = context.getString(resId)
+
+
+// Execution
+
+fun View.doPost(block: View.() -> Unit) = post { block() }

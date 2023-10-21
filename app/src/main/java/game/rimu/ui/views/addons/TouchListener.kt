@@ -14,13 +14,10 @@ import android.view.MotionEvent.ACTION_UP
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewConfiguration.getLongPressTimeout
-import android.view.ViewPropertyAnimator
-import android.view.animation.BounceInterpolator
-import android.view.animation.DecelerateInterpolator
 import com.reco1l.basskt.stream.SampleStream
 import com.reco1l.framework.android.getSystemService
-import com.reco1l.framework.android.views.animate
-import com.reco1l.framework.android.views.scale
+import com.reco1l.framework.animation.Ease
+import com.reco1l.framework.animation.toScale
 import com.reco1l.framework.graphics.setRadius
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
@@ -47,19 +44,12 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
 
     var touchEffectDrawable: (() -> Drawable)? = { TouchEffectDrawable() }
 
-    var touchEffectAnimation: (ViewPropertyAnimator.(isPressed: Boolean) -> Unit)? = block@{
+    var touchEffectAnimation: (View.(isPressed: Boolean) -> Unit)? = {
 
         if (it)
-        {
-            scale(0.85f)
-            interpolator = DecelerateInterpolator()
-            duration = 100
-            return@block
-        }
-
-        scale(1f)
-        interpolator = BounceInterpolator()
-        duration = 200
+            toScale(0.85f, 100, ease = Ease.DECELERATE)
+        else
+            toScale(1f, 200, ease = Ease.BOUNCE_OUT)
     }
 
 
@@ -122,7 +112,7 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
         fun onHandleTouchEffect(isPressed: Boolean)
         {
             view.isPressed = isPressed
-            touchEffectAnimation?.also { view.animate { it(isPressed) } }
+            touchEffectAnimation?.also { view.it(isPressed) }
         }
 
         when (event.action)
