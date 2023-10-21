@@ -10,7 +10,7 @@ import android.animation.TimeInterpolator;
  * @author Nicolas Gramlich
  * @since 16:52:11 - 26.07.2010
  */
-public class EaseExponentialOut implements IEaseFunction, TimeInterpolator {
+public class EaseExponentialOut implements IEaseFunction {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -55,11 +55,6 @@ public class EaseExponentialOut implements IEaseFunction, TimeInterpolator {
 
 	public static float getValue(final float pPercentage) {
 		return (pPercentage == 1) ? 1 : (-(float) Math.pow(2, -10 * pPercentage) + 1);
-	}
-
-	@Override
-	public float getInterpolation(float input) {
-		return getValue(input);
 	}
 
 	// ===========================================================
