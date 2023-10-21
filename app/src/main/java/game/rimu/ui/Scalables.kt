@@ -2,13 +2,8 @@ package game.rimu.ui
 
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.annotation.CallSuper
 import androidx.core.view.forEach
-import com.reco1l.framework.android.views.cornerRadius
-import com.reco1l.framework.android.views.setMargins
-import com.reco1l.framework.android.views.setPaddings
-import com.reco1l.framework.android.views.setSize
 import com.reco1l.framework.lang.isLazyInit
 import com.reco1l.framework.lang.isLazyInitialized
 import game.rimu.android.IWithContext
@@ -50,11 +45,10 @@ interface IScalable
     {
         ctx?.also { onApplyScale(it.engine.surface.scale) }
     }
-
 }
 
 
-abstract class ScalableDimensions<T : Any>(
+open class ScalableDimensions<T : Any>(
 
     var width: Int = UNKNOWN,
 
@@ -91,102 +85,5 @@ interface IScalableWithDimensions<T : Any> : IScalable
             dimensions.onApplyScale(this as T, scale)
 
         super.onApplyScale(scale)
-    }
-}
-
-
-// Views
-
-open class ViewDimensions<V : View>(
-
-    initialWidth: Int = WRAP_CONTENT,
-
-    initialHeight: Int = WRAP_CONTENT,
-
-) : ScalableDimensions<V>(initialWidth, initialHeight)
-{
-
-    var paddingLeft: Int = 0
-
-    var paddingRight: Int = 0
-
-    var paddingTop: Int = 0
-
-    var paddingBottom: Int = 0
-
-    var marginLeft: Int = 0
-
-    var marginRight: Int = 0
-
-    var marginTop: Int = 0
-
-    var marginBottom: Int = 0
-
-    var cornerRadius: Float = 0f
-
-
-    fun padding(horizontal: Int, vertical: Int)
-    {
-        paddingLeft = horizontal
-        paddingRight = horizontal
-        paddingTop = vertical
-        paddingBottom = vertical
-    }
-
-    fun padding(value: Int)
-    {
-        paddingLeft = value
-        paddingRight = value
-        paddingTop = value
-        paddingBottom = value
-    }
-
-    fun margin(horizontal: Int, vertical: Int)
-    {
-        marginLeft = horizontal
-        marginRight = horizontal
-        marginTop = vertical
-        marginBottom = vertical
-    }
-
-    fun margin(value: Int)
-    {
-        marginLeft = value
-        marginRight = value
-        marginTop = value
-        marginBottom = value
-    }
-
-    fun size(value: Int)
-    {
-        width = value
-        height = value
-    }
-
-
-    override fun onApplyScale(target: V, scale: Float)
-    {
-        super.onApplyScale(target, scale)
-
-        target.setSize(
-            width = if (width >= 0) (width * scale).toInt() else width,
-            height = if (height >= 0) (height * scale).toInt() else height
-        )
-
-        target.setPaddings(
-            left = paddingLeft * scale,
-            top = paddingTop * scale,
-            right = paddingRight * scale,
-            bottom = paddingBottom * scale
-        )
-
-        target.setMargins(
-            left = marginLeft * scale,
-            top = marginTop * scale,
-            right = marginRight * scale,
-            bottom = marginBottom * scale
-        )
-
-        target.cornerRadius = cornerRadius * scale
     }
 }

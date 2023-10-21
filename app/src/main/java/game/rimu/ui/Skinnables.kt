@@ -1,11 +1,8 @@
 package game.rimu.ui
 
-import android.graphics.Color.TRANSPARENT
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.CallSuper
 import androidx.core.view.forEach
-import com.reco1l.framework.android.views.backgroundColor
 import com.reco1l.framework.lang.isLazyInit
 import com.reco1l.framework.lang.isLazyInitialized
 import game.rimu.android.IWithContext
@@ -49,9 +46,9 @@ interface ISkinnable
 }
 
 
-abstract class SkinningRules<T>
+open class SkinningRules<T>
 {
-    abstract fun onApplySkin(target: T, skin: WorkingSkin)
+    open fun onApplySkin(target: T, skin: WorkingSkin) = Unit
 }
 
 interface ISkinnableWithRules<T> : ISkinnable
@@ -67,43 +64,5 @@ interface ISkinnableWithRules<T> : ISkinnable
             rules.onApplySkin(this as T, skin)
 
         super.onApplySkin(skin)
-    }
-}
-
-
-// Views
-
-/**
- * Defines the rules that the view should follow when the skin is changed.
- */
-open class ViewSkinningRules<T : View> : SkinningRules<T>()
-{
-
-    /**
-     * Define the drawable that should be set as background.
-     */
-    var background: String? = null
-
-    var backgroundVariant: Int = 0
-
-
-    /**
-     * Define the background color that should be set.
-     *
-     * Note: This overrides the value set in [background] property.
-     */
-    var backgroundColor: String? = null
-
-    var backgroundColorFactor: Float = 1f
-
-
-    @CallSuper
-    override fun onApplySkin(target: T, skin: WorkingSkin)
-    {
-        backgroundColor?.also {
-
-            target.backgroundColor = skin.colors[it]?.factorInt(backgroundColorFactor) ?: TRANSPARENT
-
-        } ?: background?.also { target.background = skin.ctx.resources[it, backgroundVariant] }
     }
 }
