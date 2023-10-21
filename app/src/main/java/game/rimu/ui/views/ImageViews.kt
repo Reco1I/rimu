@@ -1,14 +1,12 @@
 package game.rimu.ui.views
 
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.Color.TRANSPARENT
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
-import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.drawable.toDrawable
 import com.reco1l.framework.android.views.setImageTint
 import game.rimu.android.IWithContext
@@ -17,8 +15,6 @@ import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalable
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
-import game.rimu.ui.ViewDimensions
-import game.rimu.ui.ViewSkinningRules
 import android.widget.ImageView as AndroidImageView
 
 

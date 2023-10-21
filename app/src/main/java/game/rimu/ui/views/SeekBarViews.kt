@@ -1,10 +1,8 @@
 package game.rimu.ui.views
 
-import android.annotation.SuppressLint
 import android.graphics.drawable.GradientDrawable
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import androidx.appcompat.widget.AppCompatSeekBar
 import com.reco1l.framework.graphics.LayerDrawable
 import com.reco1l.framework.graphics.clip
 import com.reco1l.framework.lang.intOf
@@ -13,8 +11,6 @@ import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
-import game.rimu.ui.ViewDimensions
-import game.rimu.ui.ViewSkinningRules
 import android.widget.SeekBar as AndroidSeekBar
 
 

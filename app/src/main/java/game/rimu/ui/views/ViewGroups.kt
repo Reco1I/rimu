@@ -5,8 +5,6 @@ import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
-import game.rimu.ui.ViewDimensions
-import game.rimu.ui.ViewSkinningRules
 import android.widget.LinearLayout as AndroidLinearLayout
 import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLayout
 
@@ -21,7 +19,7 @@ fun IWithContext.ConstraintLayout(
     init()
 }
 
-open class ConstraintLayout(override val ctx: RimuContext, init: ConstraintLayout.() -> Unit) :
+open class ConstraintLayout(override val ctx: RimuContext) :
     AndroidConstraintLayout(ctx),
     IWithContext,
     ISkinnableWithRules<ConstraintLayout>,
@@ -30,8 +28,6 @@ open class ConstraintLayout(override val ctx: RimuContext, init: ConstraintLayou
     override val dimensions by lazy { ViewDimensions<ConstraintLayout>() }
 
     override val rules by lazy { ViewSkinningRules<ConstraintLayout>() }
-
-    init { init() }
 }
 
 
@@ -45,7 +41,7 @@ fun IWithContext.LinearLayout(
     init()
 }
 
-open class LinearLayout(override val ctx: RimuContext, init: LinearLayout.() -> Unit) :
+open class LinearLayout(override val ctx: RimuContext) :
     AndroidLinearLayout(ctx),
     IWithContext,
     ISkinnableWithRules<LinearLayout>,
@@ -54,6 +50,4 @@ open class LinearLayout(override val ctx: RimuContext, init: LinearLayout.() -> 
     override val dimensions by lazy { ViewDimensions<LinearLayout>() }
 
     override val rules by lazy { ViewSkinningRules<LinearLayout>() }
-
-    init { init() }
 }

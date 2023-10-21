@@ -7,7 +7,7 @@ import com.reco1l.framework.lang.safeIn
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.ui.layouts.Background
-import game.rimu.ui.layouts.RimuLayout
+import game.rimu.ui.layouts.ModelLayout
 import game.rimu.ui.layouts.TopBarLayout
 import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.views.ConstraintLayout

@@ -26,8 +26,6 @@ import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
-import game.rimu.ui.ViewDimensions
-import game.rimu.ui.ViewSkinningRules
 import kotlin.math.max
 import android.widget.TextView as AndroidTextView
 
