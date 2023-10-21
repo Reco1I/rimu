@@ -12,6 +12,8 @@ object Ease
     // TODO Make functions inline or either convert IEaseFunction inheritors to TimeInterpolator
     //  (would require Engine changes).
 
+    val LINEAR = TimeInterpolator { it }
+
     val EXPO_OUT = TimeInterpolator { EaseExponentialOut.getValue(it) }
 
     val EXPO_IN = TimeInterpolator { EaseExponentialIn.getValue(it) }
