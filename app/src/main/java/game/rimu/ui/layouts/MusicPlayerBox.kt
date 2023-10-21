@@ -5,7 +5,6 @@ import android.view.animation.BounceInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.SeekBar.OnSeekBarChangeListener
 import com.reco1l.basskt.AudioState
-import com.reco1l.framework.android.views.localized
 import com.reco1l.framework.android.views.setConstraints
 import com.reco1l.framework.animation.cancelAnimators
 import com.reco1l.framework.animation.toAlpha
@@ -44,7 +43,7 @@ class MusicPlayerBox(ctx: RimuContext) :
 
     private val titleText = TextView {
 
-        text = localized(R.string.metadata_unknown)
+        setText(R.string.metadata_unknown)
 
     }
 
@@ -53,7 +52,7 @@ class MusicPlayerBox(ctx: RimuContext) :
         dimensions.fontSize = 10
         rules.fontColorFactor = 0.75f
 
-        text = localized(R.string.metadata_unknown)
+        setText(R.string.metadata_unknown)
 
         setConstraints(
             target = titleText,
@@ -236,10 +235,12 @@ class MusicPlayerBox(ctx: RimuContext) :
         mainThread {
 
             titleText.setTextAnimated(beatmap?.source?.title
-                ?: localized(R.string.metadata_unknown))
+                ?:
+                ctx.getString(R.string.metadata_unknown))
 
             artistText.setTextAnimated(beatmap?.source?.let { "${it.artist}\n${it.version}" }
-                ?: localized(R.string.metadata_unknown))
+                ?:
+                ctx.getString(R.string.metadata_unknown))
 
             lengthText.text = dateFormat.format(length)
 
