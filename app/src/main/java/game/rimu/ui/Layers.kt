@@ -14,7 +14,7 @@ import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.views.ConstraintLayout
 
 
-abstract class LayoutLayer(override val ctx: RimuContext) : ConstraintLayout(ctx), IWithContext
+abstract class BaseLayer(override val ctx: RimuContext) : ConstraintLayout(ctx), IWithContext
 {
 
     override val dimensions = super.dimensions.apply {
@@ -40,7 +40,7 @@ abstract class LayoutLayer(override val ctx: RimuContext) : ConstraintLayout(ctx
 }
 
 
-class LayerBackground(ctx: RimuContext) : LayoutLayer(ctx)
+class LayerBackground(ctx: RimuContext) : BaseLayer(ctx)
 {
     init
     {
@@ -54,7 +54,7 @@ class LayerBackground(ctx: RimuContext) : LayoutLayer(ctx)
 }
 
 
-class LayerOverlay(ctx: RimuContext) : LayoutLayer(ctx)
+class LayerOverlay(ctx: RimuContext) : BaseLayer(ctx)
 {
     init
     {
@@ -67,5 +67,5 @@ class LayerOverlay(ctx: RimuContext) : LayoutLayer(ctx)
     }
 }
 
-class LayerScene(ctx: RimuContext) : LayoutLayer(ctx)
+class LayerScene(ctx: RimuContext) : BaseLayer(ctx)
 

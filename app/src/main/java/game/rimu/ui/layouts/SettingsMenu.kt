@@ -13,14 +13,13 @@ import game.rimu.constants.RimuSetting
 import game.rimu.data.adapter.Adapter
 import game.rimu.data.adapter.IHeldView
 import game.rimu.ui.LayerOverlay
-import game.rimu.ui.LayoutLayer
+import game.rimu.ui.BaseLayer
 import game.rimu.ui.layouts.SettingTab.*
 import game.rimu.ui.views.IconButton
 import game.rimu.ui.views.LinearLayout
 import game.rimu.ui.views.RecyclerView
 import game.rimu.ui.views.TextView
 import game.rimu.ui.views.addons.setTouchHandler
-import game.rimu.ui.views.preference.ButtonSettingView
 import game.rimu.ui.views.preference.SeekBarSettingView
 import kotlin.reflect.KClass
 
@@ -34,7 +33,7 @@ enum class SettingTab
 class SettingsMenu(ctx: RimuContext) : ModelLayout(ctx)
 {
 
-    override var layer: KClass<out LayoutLayer> = LayerOverlay::class
+    override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
     private val tabSelector = RecyclerView {
 

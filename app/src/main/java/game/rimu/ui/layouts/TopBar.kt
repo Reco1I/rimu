@@ -11,7 +11,7 @@ import com.reco1l.framework.graphics.Anchor
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.LayerOverlay
-import game.rimu.ui.LayoutLayer
+import game.rimu.ui.BaseLayer
 import game.rimu.ui.scenes.MenuScene
 import game.rimu.ui.scenes.ResultsScene
 import game.rimu.ui.scenes.RimuScene
@@ -27,7 +27,7 @@ import kotlin.reflect.KClass
 class TopBarLayout(ctx: RimuContext) : ModelLayout(ctx)
 {
 
-    override var layer: KClass<out LayoutLayer> = LayerOverlay::class
+    override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
     override var parents: Array<KClass<out RimuScene>>? = arrayOf(
         SceneIntro::class,

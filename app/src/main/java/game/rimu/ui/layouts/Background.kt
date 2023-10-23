@@ -8,7 +8,7 @@ import game.rimu.constants.BuildSettings
 import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.management.beatmap.WorkingBeatmap
 import game.rimu.ui.LayerBackground
-import game.rimu.ui.LayoutLayer
+import game.rimu.ui.BaseLayer
 import game.rimu.ui.scenes.MenuScene
 import game.rimu.ui.scenes.ResultsScene
 import game.rimu.ui.scenes.RimuScene
@@ -23,7 +23,7 @@ class Background(ctx: RimuContext) :
     IBeatmapObserver
 {
 
-    override var layer: KClass<out LayoutLayer> = LayerBackground::class
+    override var layer: KClass<out BaseLayer> = LayerBackground::class
 
     override var parents: Array<KClass<out RimuScene>>? = arrayOf(
         SceneIntro::class,

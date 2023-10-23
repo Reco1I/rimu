@@ -10,7 +10,7 @@ import game.rimu.android.RimuContext
 import game.rimu.ui.LayerBackground
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayerScene
-import game.rimu.ui.LayoutLayer
+import game.rimu.ui.BaseLayer
 import game.rimu.ui.layouts.ModelLayout
 import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.views.ConstraintLayout
@@ -119,7 +119,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
 
     // Management
 
-    operator fun <T : LayoutLayer> get(clazz: KClass<T>): T
+    operator fun <T : BaseLayer> get(clazz: KClass<T>): T
     {
         @Suppress("UNCHECKED_CAST")
         return layers[clazz] as T
@@ -141,7 +141,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
     {
 
         /**
-         * List of [LayoutLayer] inheritors, unfortunately this can't be achieved with reflection.
+         * List of [BaseLayer] inheritors, unfortunately this can't be achieved with reflection.
          */
         val LAYERS = arrayOf(
             LayerBackground::class,

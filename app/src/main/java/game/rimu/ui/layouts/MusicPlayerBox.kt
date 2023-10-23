@@ -1,8 +1,6 @@
 package game.rimu.ui.layouts
 
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.view.animation.BounceInterpolator
-import android.view.animation.DecelerateInterpolator
 import com.google.android.material.slider.Slider
 import com.reco1l.basskt.AudioState
 import com.reco1l.framework.android.views.setConstraints
@@ -17,7 +15,7 @@ import game.rimu.android.RimuContext
 import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.management.beatmap.WorkingBeatmap
 import game.rimu.ui.LayerOverlay
-import game.rimu.ui.LayoutLayer
+import game.rimu.ui.BaseLayer
 import game.rimu.ui.views.IconButton
 import game.rimu.ui.views.SeekBar
 import game.rimu.ui.views.TextView
@@ -32,7 +30,7 @@ class MusicPlayerBox(ctx: RimuContext) :
     IUpdateHandler
 {
 
-    override var layer: KClass<out LayoutLayer> = LayerOverlay::class
+    override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
 
     private var dateFormat = dateFormatFor(1L)
