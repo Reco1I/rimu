@@ -2,9 +2,11 @@
 
 package game.rimu.engine.surface
 
+import android.animation.ValueAnimator
 import android.view.View.MeasureSpec
 import android.view.WindowManager
 import com.reco1l.framework.android.getSystemService
+import com.reco1l.framework.animation.Ease
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.constants.RimuSetting.UI_SCALE
@@ -24,7 +26,6 @@ class EngineSurface(override val ctx: RimuContext) :
      */
     val scale
         get() = ratio * factor
-
 
     /**
      * The scale factor set by user.
@@ -51,13 +52,29 @@ class EngineSurface(override val ctx: RimuContext) :
         private set
 
 
+    private val scaleAnimator = ValueAnimator.ofFloat().apply {
+
+        duration = 300
+        interpolator = Ease.DECELERATE
+
+        addUpdateListener { ctx.layouts.onApplyScale(it.animatedValue as Float) }
+    }
+
+
     init
     {
         ctx.settings.bindObserver(UI_SCALE) {
 
+            val oldScale = scale
             factor = it as Float
 
-            // Applying the scale specified in the option times the screen scaling ratio.
+            scaleAnimator.setFloatValues(oldScale, scale)
+            scaleAnimator.start()
+
+        }
+
+        ctx.initializationTree!!.add {
+
             ctx.layouts.onApplyScale(scale)
         }
     }

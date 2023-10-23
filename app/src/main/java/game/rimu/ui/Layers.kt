@@ -9,6 +9,7 @@ import game.rimu.android.RimuContext
 import game.rimu.ui.layouts.Background
 import game.rimu.ui.layouts.ModelLayout
 import game.rimu.ui.layouts.TopBarLayout
+import game.rimu.ui.layouts.NotificationCenter
 import game.rimu.ui.scenes.RimuScene
 import game.rimu.ui.views.ConstraintLayout
 

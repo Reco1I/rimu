@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.drawable.toDrawable
 import com.reco1l.framework.android.views.setImageTint
 import game.rimu.android.IWithContext
@@ -15,7 +16,6 @@ import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalable
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
-import android.widget.ImageView as AndroidImageView
 
 
 // Base
@@ -42,7 +42,7 @@ open class ImageSkinningRules<T : ImageView> : ViewSkinningRules<T>()
 
         imageTint?.also {
 
-            target.setImageTint(skin.colors[it]?.factorInt(imageTintFactor) ?: TRANSPARENT)
+            target.setImageTint(skin.colors[it]?.toInt(factor = imageTintFactor) ?: TRANSPARENT)
         }
     }
 }
@@ -57,7 +57,7 @@ fun IWithContext.ImageView(
 }
 
 open class ImageView(override val ctx: RimuContext) :
-    AndroidImageView(ctx),
+    AppCompatImageView(ctx),
     IWithContext,
     IScalableWithDimensions<ImageView>,
     ISkinnableWithRules<ImageView>

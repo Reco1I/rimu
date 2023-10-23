@@ -33,10 +33,9 @@ class SettingManager(override val ctx: RimuContext) :
         registerOnSharedPreferenceChangeListener(this@SettingManager)
     }
 
-
-    override fun onSharedPreferenceChanged(preferences: SharedPreferences, key: String)
+    override fun onSharedPreferenceChanged(preferences: SharedPreferences, key: String?)
     {
-        val setting = RimuSetting.valueOf(key)
+        val setting = RimuSetting.valueOf(key ?: return)
         val newValue = preferences.all[key] ?: setting.default
 
         forEachObserver(setting) { it(newValue) }

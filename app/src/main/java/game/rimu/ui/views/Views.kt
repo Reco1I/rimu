@@ -178,7 +178,7 @@ open class ViewSkinningRules<T : View> : SkinningRules<T>()
     {
         backgroundColor?.also {
 
-            target.backgroundColor = skin.colors[it]?.factorInt(backgroundColorFactor) ?: Color.TRANSPARENT
+            target.backgroundColor = skin.colors[it]?.toInt(factor = backgroundColorFactor) ?: Color.TRANSPARENT
 
         } ?: background?.also { target.background = skin.ctx.resources[it, backgroundVariant] }
     }

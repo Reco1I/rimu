@@ -3,7 +3,7 @@
     <style name="Theme.Rimu" parent="Theme.Base"/>
 
     <!-- Base application theme. -->
-    <style name="Theme.Base" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.Base" parent="Theme.Material3.Dark">
 
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>

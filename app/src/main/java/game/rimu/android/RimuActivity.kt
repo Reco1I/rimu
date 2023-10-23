@@ -1,6 +1,6 @@
 package game.rimu.android
 
-import android.app.Activity
+import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
 import android.content.Intent.ACTION_SEND
 import android.content.Intent.ACTION_SEND_MULTIPLE
@@ -18,11 +18,13 @@ import com.reco1l.framework.data.toFile
 import com.reco1l.framework.lang.async
 import com.reco1l.framework.lang.forEachTrim
 import com.reco1l.framework.lang.klass
+import game.rimu.ui.layouts.Notification
+import game.rimu.ui.layouts.NotificationCenter
 import game.rimu.ui.scenes.SceneIntro
 
 
 class RimuActivity :
-    Activity(),
+    AppCompatActivity(),
     IWithContext
 {
 
@@ -40,22 +42,36 @@ class RimuActivity :
         // Application wasn't initialized yet.
         if (ctx.initializationTree != null)
         {
-            ctx.engine.startUpdateThread()
-            ctx.bassDevice.start()
-
-            applyWindowFlags()
-
-            async {
-                ctx.initializationTree!!.forEachTrim { ctx.it() }
-                ctx.initializationTree = null
-
-                ctx.engine.scene = SceneIntro(ctx)
-                onManageIntent(intent)
-            }
+            onFirstCreate()
             return
         }
 
         ctx.layouts.onActivityCreate()
+    }
+
+    private fun onFirstCreate()
+    {
+        ctx.engine.startUpdateThread()
+        ctx.bassDevice.start()
+
+        applyWindowFlags()
+
+        async {
+            ctx.initializationTree!!.forEachTrim { ctx.it() }
+            ctx.initializationTree = null
+
+            ctx.engine.scene = SceneIntro(ctx)
+            onManageIntent(intent)
+
+            mainThread {
+                ctx.layouts[NotificationCenter::class].add(Notification(
+                    header = "Welcome to rimu!",
+                    message = "This is a test build, bugs are expected.",
+                    icon = "icon-notification"
+                ))
+            }
+        }
+
     }
 
 

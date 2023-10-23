@@ -66,7 +66,7 @@ sealed class AssetBundle(override val ctx: RimuContext) : IWithContext
     inline operator fun <reified T : Any> get(key: String, variant: Int = 0): T?
     {
         if (SUPPORTED_TYPES.none { T::class == it || T::class.isSubclassOf(it) })
-            throw UnsupportedOperationException("${T::class.simpleName} is not supported, see ${::SUPPORTED_TYPES.name}.")
+            throw UnsupportedOperationException("${T::class} is not supported, see ${::SUPPORTED_TYPES.name}.")
 
         // Searching the key and variant into the listed assets, if the find function returns null,
         // means the bundle (skin or beatmap) doesn't have such file.
@@ -195,7 +195,10 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
                 // Unknown type
                 else -> null
             }
-        }.orCatch { null }
+        }.orCatch {
+            klass logE ("Failed to load asset: \"$name\" with variant $variant of type \"$type\"" to it)
+            null
+        }
     }
 
 }

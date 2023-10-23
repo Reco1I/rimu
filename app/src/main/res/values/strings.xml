@@ -6,4 +6,11 @@
     <!--Beatmap metadata-->
     <string name="metadata_unknown">Unknown</string>
 
+    <!--Titles-->
+    <string name="title_notifications">Notifications</string>
+
+    <!--Settings-->
+    <string name="setting_ui_scale">UI scale</string>
+    <string name="setting_bgm_volume">BGM Volume</string>
+
 </resources>

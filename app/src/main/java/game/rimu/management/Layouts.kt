@@ -1,5 +1,6 @@
 package game.rimu.management
 
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import com.reco1l.framework.android.views.attachTo
 import com.reco1l.framework.android.views.removeSelf
 import com.reco1l.framework.lang.createInstance
@@ -18,6 +19,11 @@ import kotlin.reflect.KClass
 
 class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
 {
+
+    override val dimensions = super.dimensions.apply {
+
+        size(MATCH_PARENT)
+    }
 
     // Storing created layouts into a map to perform auto-show/hide events.
     private val layouts = instanceMapOf<ModelLayout>()
@@ -106,6 +112,8 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
 
         if (!layout.shouldRemainInMemory && layouts[layout::class] == layout)
             layouts.remove(layout::class)
+
+        return !layout.isAttachedToWindow
     }
 
 

@@ -76,6 +76,14 @@ class WorkingBeatmap(override val ctx: RimuContext, val source: Beatmap) :
         )
     }
 
+    private val onVolumeChange = { value: Any? -> stream.volume = value as Float }
+
+
+    init
+    {
+        ctx.settings.bindObserver(MUSIC_VOLUME, observer = onVolumeChange)
+    }
+
 
     private fun onDecodeSource(withHitObjects: Boolean): BeatmapData
     {
@@ -88,6 +96,8 @@ class WorkingBeatmap(override val ctx: RimuContext, val source: Beatmap) :
      */
     internal fun onRelease()
     {
+        ctx.settings.unbindObserver(MUSIC_VOLUME, observer = onVolumeChange)
+
         mainThread {
             stream::volume.animateTo(0f, 300).doOnEnd {
                 stream.free()

@@ -7,6 +7,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Denotes an skin entry.
@@ -66,7 +67,7 @@ interface ISkinDAO
      * Query all skins registered in the database.
      */
     @Query("SELECT * FROM Skin")
-    fun getSkins(): Array<Skin>
+    fun getFlow(): Flow<List<Skin>>
 
     /**
      * Get an skin by its key.

@@ -1,11 +1,11 @@
 package com.reco1l.framework.graphics
 
-import android.graphics.drawable.ColorDrawable
+import android.content.res.ColorStateList
 import androidx.annotation.IntRange
+import androidx.core.graphics.drawable.toDrawable
 import com.reco1l.skindecoder.serializers.ColorSerializer
 import kotlinx.serialization.Serializable
 import org.andengine.util.adt.color.Color
-import org.andengine.util.adt.color.ColorUtils
 
 /**
  * [Color] extension that allows to pass a non-component color (8 bit 0-255) in its constructor,
@@ -90,13 +90,6 @@ open class Color4 @JvmOverloads constructor(
         alpha8bit
     )
 
-    fun factorInt(factor: Float) = ColorUtils.convertRGBAToARGBPackedInt(
-        red * factor,
-        green * factor,
-        blue * factor,
-        alpha
-    )
-
 
     // Conversion
 
@@ -110,7 +103,7 @@ open class Color4 @JvmOverloads constructor(
 
 
     /**
-     * Returns the color in HEX integer format.
+     * Returns the color in a hexadecimal integer format.
      */
     fun toInt(
         red: Float = getRed(),
@@ -118,9 +111,29 @@ open class Color4 @JvmOverloads constructor(
         green: Float = getGreen(),
         alpha: Float = getAlpha(),
         factor: Float = 1f
-    ) = ColorUtils.convertRGBAToARGBPackedInt(red * factor, green * factor, blue * factor, alpha)
+    ): Int
+    {
+        return ((255 * alpha).toInt() shl 24)
+            .or((255 * red * factor).toInt() shl 16)
+            .or((255 * green * factor).toInt() shl 8)
+            .or((255 * blue * factor).toInt() shl 0)
+    }
 
-    fun toDrawable() = ColorDrawable(argbPackedInt)
+    fun toDrawable(
+        red: Float = getRed(),
+        blue: Float = getBlue(),
+        green: Float = getGreen(),
+        alpha: Float = getAlpha(),
+        factor: Float = 1f
+    ) = toInt(red, blue, green, alpha, factor).toDrawable()
+
+    fun toColorStateList(
+        red: Float = getRed(),
+        blue: Float = getBlue(),
+        green: Float = getGreen(),
+        alpha: Float = getAlpha(),
+        factor: Float = 1f
+    ) = ColorStateList.valueOf(toInt(red, blue, green, alpha, factor))
 
 
     // Generated

@@ -3,9 +3,10 @@ package game.rimu.ui.layouts
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.BounceInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.widget.SeekBar.OnSeekBarChangeListener
+import com.google.android.material.slider.Slider
 import com.reco1l.basskt.AudioState
 import com.reco1l.framework.android.views.setConstraints
+import com.reco1l.framework.animation.Ease
 import com.reco1l.framework.animation.cancelAnimators
 import com.reco1l.framework.animation.toAlpha
 import com.reco1l.framework.animation.toScale
@@ -24,7 +25,6 @@ import game.rimu.ui.views.addons.setTouchHandler
 import game.rimu.ui.views.setTextAnimated
 import org.andengine.engine.handler.IUpdateHandler
 import kotlin.reflect.KClass
-import android.widget.SeekBar as AndroidSeekBar
 
 class MusicPlayerBox(ctx: RimuContext) :
     ModelLayout(ctx),
@@ -97,23 +97,20 @@ class MusicPlayerBox(ctx: RimuContext) :
             topToTarget = Anchor.BOTTOM
         )
 
-        setOnSeekBarChangeListener(object : OnSeekBarChangeListener
+        addOnSliderTouchListener(object : Slider.OnSliderTouchListener
         {
-            override fun onProgressChanged(
-                seekBar: AndroidSeekBar,
-                progress: Int,
-                fromUser: Boolean
-            ) = Unit
-
-            override fun onStartTrackingTouch(seekBar: AndroidSeekBar)
+            override fun onStartTrackingTouch(slider: Slider)
             {
                 isSeeking = true
             }
 
-            override fun onStopTrackingTouch(seekBar: AndroidSeekBar)
+            override fun onStopTrackingTouch(slider: Slider)
             {
-                ctx.beatmaps.current?.stream?.position = seekBar.progress.toLong()
-                isSeeking = false
+                ctx.beatmaps.current?.stream?.position = slider.value.toLong()
+
+                // This fixes a visual bug when for one frame the non-updated position is shown in
+                // the slider track, mostly because a mismatch between update and UI thread.
+                slider.post { isSeeking = false }
             }
         })
     }
@@ -246,20 +243,14 @@ class MusicPlayerBox(ctx: RimuContext) :
 
             // Seekbar max value will equal to the length of the song so we can use absolute
             // positioning when seeking.
-            seekBar.max = length.toInt()
+            seekBar.valueTo = length.toFloat()
+            seekBar.setLabelFormatter { dateFormat.format(it) }
         }
     }
 
     override fun onUpdate(secElapsed: Float)
     {
-        val position = when
-        {
-            // If seeking the position is determined by the thumb position.
-            isSeeking -> seekBar.progress
-
-            // If not then it's determined by the audio stream position.
-            else -> ctx.beatmaps.current?.stream?.position ?: 0L
-        }
+        val position = ctx.beatmaps.current?.stream?.position ?: 0L
 
         mainThread {
 
@@ -268,7 +259,7 @@ class MusicPlayerBox(ctx: RimuContext) :
 
             // If seeking we should avoid update twice the seekbar progress.
             if (!isSeeking)
-                seekBar.progress = position.toInt()
+                seekBar.value = position.toFloat()
         }
     }
 
@@ -288,7 +279,7 @@ class MusicPlayerBox(ctx: RimuContext) :
         toAlpha(0f)
         toScale(0.8f)
         toAlpha(1f, 100)
-        toScale(1f, 300, ease = BounceInterpolator())
+        toScale(1f, 300, ease = Ease.BOUNCE_OUT)
 
         // Updating information just in case.
         onMusicChange(ctx.beatmaps.current)
@@ -306,7 +297,7 @@ class MusicPlayerBox(ctx: RimuContext) :
     override fun hide()
     {
         cancelAnimators()
-        toScale(0.9f, 150, ease = DecelerateInterpolator())
+        toScale(0.9f, 150, ease = Ease.DECELERATE)
         toAlpha(0f, 150, listener = { onEnd = { super.hide() } })
     }
 }

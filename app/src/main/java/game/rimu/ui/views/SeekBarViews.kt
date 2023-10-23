@@ -1,37 +1,41 @@
 package game.rimu.ui.views
 
-import android.graphics.drawable.GradientDrawable
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import com.reco1l.framework.graphics.LayerDrawable
-import com.reco1l.framework.graphics.clip
-import com.reco1l.framework.lang.intOf
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import com.google.android.material.slider.LabelFormatter
+import com.google.android.material.slider.Slider
 import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
-import android.widget.SeekBar as AndroidSeekBar
 
 
-class SeekBarDimensions<T : SeekBar> : ViewDimensions<T>(MATCH_PARENT, 20)
+class SeekBarDimensions<T : SeekBar> : ViewDimensions<T>(MATCH_PARENT, WRAP_CONTENT)
 {
-    var barCornerRadius = 8f
 
-    var thumbWidth = 12f
+    var barHeight = 14
+
+
+    override fun onApplyScale(target: T, scale: Float)
+    {
+        super.onApplyScale(target, scale)
+
+        target.trackHeight = (barHeight * scale).toInt()
+    }
 }
 
+
+// Base
 
 fun IWithContext.SeekBar(
     parent: ViewGroup? = this as? ViewGroup,
     init: SeekBar.() -> Unit
-) = SeekBar(ctx).apply {
-    parent?.addView(this)
-    init()
-}
+) = SeekBar(ctx).apply { parent?.addView(this); init() }
 
 open class SeekBar(override val ctx: RimuContext) :
-    AndroidSeekBar(ctx),
+    Slider(ctx.activity),
     IWithContext,
     IScalableWithDimensions<SeekBar>,
     ISkinnableWithRules<SeekBar>
@@ -42,26 +46,11 @@ open class SeekBar(override val ctx: RimuContext) :
     override val dimensions by lazy { SeekBarDimensions<SeekBar>() }
 
 
-    private val thumbDrawable = GradientDrawable()
-
-    private val activeBarDrawable = GradientDrawable()
-
-    private val inactiveBarDrawable = GradientDrawable()
-
-
     init
     {
-        // Bar drawable
-        progressDrawable = LayerDrawable(inactiveBarDrawable, activeBarDrawable.clip()).apply {
-
-            setId(0, android.R.id.background)
-            setId(1, android.R.id.progress)
-        }
-
-        // Thumb
-        thumb = thumbDrawable
-        thumbOffset = 0
+        labelBehavior = LabelFormatter.LABEL_FLOATING
     }
+
 
     override fun onAttachedToWindow()
     {
@@ -71,34 +60,15 @@ open class SeekBar(override val ctx: RimuContext) :
         invalidateScale()
     }
 
-
     override fun onApplySkin(skin: WorkingSkin)
     {
         super.onApplySkin(skin)
 
         skin.data.colours.accentColor.apply {
-
-            inactiveBarDrawable.setColor(factorInt(0.2f))
-            activeBarDrawable.setColor(factorInt(0.6f))
-            thumbDrawable.setColor(toInt())
-        }
-    }
-
-
-    override fun onApplyScale(scale: Float)
-    {
-        super.onApplyScale(scale)
-
-        dimensions.apply {
-
-            inactiveBarDrawable.cornerRadius = barCornerRadius * scale
-            activeBarDrawable.cornerRadius = barCornerRadius * scale
-            thumbDrawable.cornerRadius = barCornerRadius * scale
-
-            thumbDrawable.setSize(
-                intOf(thumbWidth * scale),
-                intOf(height * scale)
-            )
+            trackActiveTintList = toColorStateList(factor = 0.7f)
+            trackInactiveTintList = toColorStateList(factor = 0.2f)
+            haloTintList = toColorStateList(alpha = 0.1f)
+            thumbTintList = toColorStateList()
         }
     }
 }

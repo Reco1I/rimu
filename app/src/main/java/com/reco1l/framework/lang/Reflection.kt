@@ -36,3 +36,50 @@ val KProperty0<*>.isLazyInit: Boolean
  */
 val KProperty0<*>.isLazyInitialized: Boolean
     get() = (getDelegate() as? Lazy<*>)?.isInitialized() ?: true
+
+
+// Properties
+
+inline fun <T : Any, reified V : Any?> KClass<T>.setField(
+    instance: Any,
+    name: String,
+    value: V
+)
+{
+    java.getDeclaredField(name).apply {
+
+        if (!isAccessible)
+            isAccessible = true
+
+        set(instance, value)
+    }
+}
+
+inline fun <T : Any, reified V : Any?> KClass<T>.getField(instance: Any, name: String): V
+{
+    return java.getDeclaredField(name).let {
+
+        if (!it.isAccessible)
+            it.isAccessible = true
+
+        it.get(instance)
+    } as V
+}
+
+fun <T : Any> KClass<T>.invokeMethod(
+    instance: Any,
+    name: String,
+    vararg parameters: Any
+)
+{
+    java.getDeclaredMethod(name, *parameters.map { it.javaClass }.toTypedArray()).apply {
+
+        if (!isAccessible)
+            isAccessible = true
+
+        invoke(instance, *parameters)
+    }
+}
+
+
+

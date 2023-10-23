@@ -1,5 +1,6 @@
 package game.rimu.management.skin
 
+import com.reco1l.framework.lang.nextOf
 import com.reco1l.framework.management.IObservable
 import com.reco1l.skindecoder.SkinDecoder
 import game.rimu.android.IWithContext
@@ -10,10 +11,15 @@ import game.rimu.data.Skin.Companion.DEFAULT
 import game.rimu.management.Setting
 import game.rimu.ui.ISkinnable
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.launch
 
+@OptIn(DelicateCoroutinesApi::class)
 class SkinManager(override val ctx: RimuContext) :
+    FlowCollector<List<Skin>>,
     IObservable<ISkinnable>,
     IWithContext
 {
@@ -32,8 +38,7 @@ class SkinManager(override val ctx: RimuContext) :
     val decoder = SkinDecoder()
 
 
-    // Using a different coroutine context.
-    private val changeScope = CoroutineScope(Dispatchers.IO)
+    lateinit var skins: List<Skin>
 
 
     /**
@@ -50,6 +55,10 @@ class SkinManager(override val ctx: RimuContext) :
      * The current skin identified by [currentSkinKey]
      */
     var current = onLoadSkin(currentSkinKey)
+
+
+    // Using a different coroutine context.
+    private val changeScope = CoroutineScope(Dispatchers.IO)
 
 
     init
@@ -71,6 +80,24 @@ class SkinManager(override val ctx: RimuContext) :
         }
     }
 
+
+    fun next()
+    {
+        changeScope.launch {
+            current = onLoadSkin(skins.nextOf(current.source)?.key ?: default.source.key)
+
+            ctx.layouts.onApplySkin(current)
+        }
+    }
+
+
+    override suspend fun emit(value: List<Skin>)
+    {
+        skins = value.toMutableList().apply {
+
+            add(default.source)
+        }
+    }
 
     private fun onLoadSkin(key: String): WorkingSkin
     {

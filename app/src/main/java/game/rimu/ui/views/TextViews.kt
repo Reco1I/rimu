@@ -27,12 +27,11 @@ import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
 import kotlin.math.max
-import android.widget.TextView as AndroidTextView
 
 
 data class TextViewDimensions<T : TextView>(
 
-    var fontSize: Int = 14
+    var fontSize: Int = 12
 
 ) : ViewDimensions<T>()
 {
@@ -74,7 +73,7 @@ data class TextViewSkinningRules<T : TextView>(
 
         fontColor?.also {
 
-            target.fontColor = skin.colors[it]?.factorInt(fontColorFactor) ?: Color.TRANSPARENT
+            target.fontColor = skin.colors[it]?.toInt(factor = fontColorFactor) ?: Color.TRANSPARENT
         }
     }
 
@@ -95,7 +94,7 @@ fun IWithContext.TextView(
  * Base class for every [TextView][AppCompatTextView] in rimu!, it has an special handling for icons.
  */
 open class TextView(final override val ctx: RimuContext) :
-    AndroidTextView(ctx),
+    AppCompatTextView(ctx),
     IWithContext,
     ISkinnableWithRules<TextView>,
     IScalableWithDimensions<TextView>

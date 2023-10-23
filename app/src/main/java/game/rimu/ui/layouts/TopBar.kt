@@ -83,14 +83,16 @@ class TopBarLayout(ctx: RimuContext) : ModelLayout(ctx)
 
         setConstraints(rightToTarget = Anchor.RIGHT)
 
+        IconButton {
+            rules.image = "icon-notification"
+            setTouchHandler { onActionUp = { ctx.layouts[NotificationCenter::class].alternate() } }
+        }
+
         UserBoxView(ctx) attachTo this
 
         IconButton {
-
             rules.image = "icon-settings"
-
-            setOnTouchListener(TouchHandler {})
-
+            setTouchHandler { onActionUp = { ctx.layouts[SettingsMenu::class].alternate() } }
         }
     }
 
@@ -105,7 +107,7 @@ class TopBarLayout(ctx: RimuContext) : ModelLayout(ctx)
 
     override fun onApplySkin(skin: WorkingSkin)
     {
-        setBackgroundColor(skin.data.colours.accentColor.factorInt(0.15f))
+        setBackgroundColor(skin.data.colours.accentColor.toInt(factor = 0.15f))
         super.onApplySkin(skin)
     }
 
