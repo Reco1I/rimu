@@ -30,7 +30,7 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
 
     // List of valid resource filename patterns. This equals to a whitelist where its used to decide
     // if a file should be imported or not into the resource database.
-    private val allowedFilenames = ctx.assets.list("default/")!!.associate { filename ->
+    private val allowedFilenames = ctx.assets.list("default")!!.associate { filename ->
 
         val name = filename.substringBeforeLast('.')
 

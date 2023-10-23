@@ -136,18 +136,17 @@ sealed class AssetBundle(override val ctx: RimuContext) : IWithContext
 class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundle(app)
 {
 
-    /**
-     * List of assets found by its filename.
-     */
-    override val list = app.assets.list(directory)!!.map {
+    // Removing trailing slash isn't really necessary in newer APIs but apparently in Nougat and possibly
+    // Oreo causes the method 'list()' returning an empty list.
+    override val list = app.assets.list(directory.substringBeforeLast('/'))!!.map {
 
-        val resolved = app.resources.resolveAsset(it)!!
+        val (key, variant) = app.resources.resolveAsset(it)!!
 
         Asset(
             hash = it,
             parent = directory,
-            key = resolved.first,
-            variant = resolved.second,
+            key = key,
+            variant = variant,
             type = it.substringAfterLast('.', "")
         )
     }
@@ -171,13 +170,11 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int, type: String): T?
     {
-        val path = getAssetPath(name) ?: return null
-
         return {
             when (expectedType)
             {
                 // Audio formats
-                SampleStream::class -> AssetSampleStream(ctx, path) as? T
+                SampleStream::class -> AssetSampleStream(ctx, getAssetPath(name)) as? T
 
                 // Image formats
                 Bitmap::class -> getInputStream(name, variant)?.use {
@@ -190,7 +187,7 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
                 } as? T
 
                 // Font format
-                Typeface::class -> Typeface.createFromAsset(ctx.assets, path) as? T
+                Typeface::class -> Typeface.createFromAsset(ctx.assets, getAssetPath(name)) as? T
 
                 // Unknown type
                 else -> null
@@ -216,13 +213,11 @@ class ExternalAssetBundle(ctx: RimuContext, key: String) : AssetBundle(ctx)
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int, type: String): T?
     {
-        val path = getAssetPath(name) ?: return null
-
         return {
             when (expectedType)
             {
                 // Audio formats
-                SampleStream::class -> SampleStream(path) as? T
+                SampleStream::class -> SampleStream(getAssetPath(name, variant)) as? T
 
                 // Image formats
                 Bitmap::class -> getInputStream(name, variant)?.use {
@@ -235,7 +230,7 @@ class ExternalAssetBundle(ctx: RimuContext, key: String) : AssetBundle(ctx)
                 } as? T
 
                 // Font format
-                Typeface::class -> Typeface.createFromFile(path) as? T
+                Typeface::class -> Typeface.createFromFile(getAssetPath(name, variant)) as? T
 
                 // Unknown type
                 else -> null

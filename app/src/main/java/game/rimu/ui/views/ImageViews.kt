@@ -108,7 +108,7 @@ class FadeImageView(ctx: RimuContext) :
     // transparent ColorDrawables.
     private val transition = TransitionDrawable(
         arrayOf(
-            ColorDrawable(TRANSPARENT),
+            TRANSPARENT.toDrawable(),
             blankDrawable
         )
     )
