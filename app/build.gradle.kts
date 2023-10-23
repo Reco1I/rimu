@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "game.rimu"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "game.rimu"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
     }
@@ -37,9 +37,9 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.9.0")
+    implementation("com.google.android.material:material:1.10.0")
 
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-reflect
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.0")
@@ -51,16 +51,16 @@ dependencies {
     implementation("net.lingala.zip4j:zip4j:2.11.5")
 
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-serialization
-    implementation("org.jetbrains.kotlin:kotlin-serialization:1.9.0")
+    implementation("org.jetbrains.kotlin:kotlin-serialization:1.9.10")
 
     // https://mvnrepository.com/artifact/androidx.room/room-runtime
-    implementation("androidx.room:room-runtime:2.5.2")
+    implementation("androidx.room:room-runtime:2.6.0")
 
     // https://mvnrepository.com/artifact/androidx.room/room-compiler
-    ksp("androidx.room:room-compiler:2.5.2")
+    ksp("androidx.room:room-compiler:2.6.0")
 
     // https://mvnrepository.com/artifact/androidx.room/room-ktx
-    implementation("androidx.room:room-ktx:2.5.2")
+    implementation("androidx.room:room-ktx:2.6.0")
 
     // https://mvnrepository.com/artifact/commons-codec/commons-codec
     implementation("commons-codec:commons-codec:1.16.0")
