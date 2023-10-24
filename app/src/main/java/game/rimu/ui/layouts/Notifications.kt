@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.graphics.Color
 import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout.VERTICAL
 import com.reco1l.framework.android.views.backgroundColor
 import com.reco1l.framework.android.views.doPost
@@ -23,10 +24,10 @@ import game.rimu.data.adapter.IHeldView
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.BaseLayer
 import game.rimu.ui.LayerBackground
-import game.rimu.ui.views.ConstraintLayout
 import game.rimu.ui.views.DummyView
 import game.rimu.ui.views.ImageView
 import game.rimu.ui.views.LinearLayout
+import game.rimu.ui.views.LinearProgressIndicator
 import game.rimu.ui.views.RecyclerView
 import game.rimu.ui.views.TextView
 import game.rimu.ui.views.addons.setTouchHandler
@@ -37,6 +38,8 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
 {
 
     override var layer: KClass<out BaseLayer> = LayerOverlay::class
+
+    override val shouldRemainInMemory = true
 
 
     private val notifications = mutableListOf<Notification>()
@@ -62,7 +65,7 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
 
         TextView {
 
-            setText(R.string.title_notifications)
+            setText(R.string.header_notifications)
             gravity = Gravity.CENTER
 
             dimensions.apply {
@@ -109,7 +112,13 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
                     else -> 0
                 }
             },
-            onCreateView = { NotificationView(ctx) }
+            onCreateView = {
+                when (it)
+                {
+                    1 -> ProcessNotificationView(ctx)
+                    else -> NotificationView(ctx)
+                }
+            }
         )
     }
 
@@ -126,10 +135,26 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
     }
 
 
-    fun add(notification: Notification)
-    {
+    fun add(notification: Notification) = mainThread {
+
         notifications.add(0, notification)
         listView.adapter!!.notifyItemInserted(0)
+
+        if (!isAttachedToLayer)
+            ctx.layouts[when (notification)
+            {
+                is ProcessNotification -> ProcessNotificationView::class
+                else -> NotificationView::class
+
+            }].apply { onAssignData(notification, 0) }.show(true)
+    }
+
+    fun update(notification: Notification) = mainThread {
+
+        val index = notifications.indexOf(notification)
+
+        if (index >= 0)
+            listView.adapter!!.notifyItemChanged(index)
     }
 
 
@@ -208,6 +233,11 @@ open class Notification(
     var icon: String?
 
 )
+{
+    fun update(ctx: MainContext) = ctx.layouts[NotificationCenter::class].update(this)
+
+    fun show(ctx: MainContext) = ctx.layouts[NotificationCenter::class].add(this)
+}
 
 class ProcessNotification(
 
@@ -215,27 +245,33 @@ class ProcessNotification(
 
     message: String,
 
-    icon: String?,
+    var progress: Float = 0f,
 
-    var progress: Int
+    var minProgress: Float = 0f,
+
+    var maxProgress: Float = 1f,
+
+    var indeterminate: Boolean = true,
+
+    var showIndicator: Boolean = true,
+
+    icon: String? = null
 
 ) : Notification(header, message, icon)
 
 
 // View
 
-open class NotificationView(override val ctx: MainContext) :
-    ConstraintLayout(ctx),
+open class NotificationView(ctx: MainContext) :
+    ModelLayout(ctx),
     IWithContext,
     IHeldView<Notification>
 {
 
-    final override val dimensions = super.dimensions
-
-    final override val rules = super.rules
+    override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
 
-    private val iconView = ImageView {
+    protected val iconView = ImageView {
 
         backgroundColor = 0x27000000
 
@@ -251,7 +287,7 @@ open class NotificationView(override val ctx: MainContext) :
     }
 
 
-    private val headerView = TextView {
+    protected val headerView = TextView {
 
         rules.fontColorFactor = 0.8f
 
@@ -267,7 +303,7 @@ open class NotificationView(override val ctx: MainContext) :
         )
     }
 
-    private val messageText = TextView {
+    protected val messageText = TextView {
 
         dimensions.fontSize = 10
 
@@ -283,6 +319,7 @@ open class NotificationView(override val ctx: MainContext) :
         dimensions.apply {
             width = MATCH_PARENT
             cornerRadius = 8f
+            marginBottom = 8
             padding(8)
         }
 
@@ -295,10 +332,62 @@ open class NotificationView(override val ctx: MainContext) :
 
     override fun onAssignData(data: Notification, position: Int)
     {
-        headerView.text = data.header
+        headerView.text = data.header.uppercase()
         messageText.text = data.message
         iconView.rules.image = data.icon
 
         invalidateSkin()
+    }
+
+    override fun onAttachedToWindow()
+    {
+        if (isAttachedToLayer)
+        {
+            dimensions.apply {
+                width = 240
+                height = WRAP_CONTENT
+
+                marginTop = ctx.layouts[TopBarLayout::class].dimensions.height + 8
+                marginRight = 8
+            }
+
+            setConstraints(topToTarget = Anchor.TOP, rightToTarget = Anchor.RIGHT)
+        }
+
+        super.onAttachedToWindow()
+    }
+}
+
+
+class ProcessNotificationView(ctx: MainContext) : NotificationView(ctx)
+{
+
+    private val indicator = LinearProgressIndicator {
+
+        setConstraints(
+            target = messageText,
+            topToTarget = Anchor.BOTTOM,
+            leftToTarget = Anchor.LEFT,
+            rightToTarget = Anchor.RIGHT
+        )
+
+        dimensions.marginTop = 12
+    }
+
+    override fun onAssignData(data: Notification, position: Int)
+    {
+        data as ProcessNotification
+
+        indicator.apply {
+
+            progress = data.progress
+            min = data.minProgress
+            max = data.maxProgress
+            indeterminate = data.indeterminate
+
+            visibility = if (data.showIndicator) VISIBLE else GONE
+        }
+
+        super.onAssignData(data, position)
     }
 }

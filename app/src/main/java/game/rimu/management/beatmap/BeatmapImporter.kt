@@ -4,17 +4,25 @@ import com.reco1l.framework.lang.addIfNotNull
 import com.reco1l.framework.data.extensionLowercase
 import com.reco1l.framework.data.isExtension
 import com.reco1l.framework.data.md5
+import com.reco1l.framework.lang.klass
 import com.reco1l.framework.lang.orCatch
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.parser.BeatmapDecoder
 import game.rimu.MainContext
+import game.rimu.R.string.detail_beatmap_import_failed
+import game.rimu.R.string.detail_beatmap_import_success
+import game.rimu.R.string.detail_beatmap_importing
+import game.rimu.R.string.header_beatmap_importer
 import game.rimu.data.asset.HashableAsset
 import game.rimu.data.asset.Asset
 import game.rimu.data.Beatmap
 import game.rimu.management.resources.BaseImporter
 import game.rimu.management.resources.ImportTask
+import game.rimu.ui.layouts.NotificationCenter
+import game.rimu.ui.layouts.ProcessNotification
 import okio.IOException
 import java.io.File
+import java.lang.Exception
 
 /**
  * Responsible of manage all [BeatmapImportTask] into a queue.
@@ -24,6 +32,27 @@ class BeatmapImporter(ctx: MainContext) : BaseImporter(ctx)
 
     override fun onCreateTask(folder: File) = BeatmapImportTask(ctx, folder)
 
+
+    override fun onTaskStart(task: ImportTask)
+    {
+        task.notification.show(ctx)
+    }
+
+    override fun onTaskEnd(task: ImportTask, exception: Exception?)
+    {
+        val name = task.root.nameWithoutExtension
+
+        task.notification.message = when (exception)
+        {
+            // Success
+            null -> ctx.getString(detail_beatmap_import_success, name)
+
+            // Fail
+            else -> ctx.getString(detail_beatmap_import_failed, name, "${exception.klass.simpleName} - ${exception.message}")
+        }
+        task.notification.showIndicator = false
+        task.notification.update(ctx)
+    }
 }
 
 /**
@@ -31,6 +60,13 @@ class BeatmapImporter(ctx: MainContext) : BaseImporter(ctx)
  */
 class BeatmapImportTask internal constructor(ctx: MainContext, root: File) : ImportTask(ctx, root)
 {
+
+    override val notification = ProcessNotification(
+        header = ctx.getString(header_beatmap_importer),
+        message = ctx.getString(detail_beatmap_importing, root.nameWithoutExtension),
+        icon = "icon-notification"
+    )
+
 
     override val requiresManagementFiletypes = Asset.MODE_FORMATS
 
@@ -46,7 +82,6 @@ class BeatmapImportTask internal constructor(ctx: MainContext, root: File) : Imp
         }
 
 
-    // The beatmap decoder that'll used along with this task.
     private val decoder = BeatmapDecoder()
 
 
@@ -107,7 +142,10 @@ class BeatmapImportTask internal constructor(ctx: MainContext, root: File) : Imp
     {
         // Inserting in the beatmap database, in this case the returning Int from insertBeatmap()
         // will always be greater than 0 because its conflict strategy is REPLACE.
-        is Beatmap -> { { ctx.database.beatmapTable.insert(asset) > 0 }.orCatch { false } }
+        is Beatmap ->
+        {
+            { ctx.database.beatmapTable.insert(asset) > 0 }.orCatch { false }
+        }
 
         else -> super.onInsertAsset(file, asset)
     }

@@ -31,12 +31,6 @@ abstract class BaseLayer(override val ctx: MainContext) : ConstraintLayout(ctx),
         invalidateScale()
         invalidateSkin()
     }
-
-    fun onSceneChange(scene: BaseScene) = forEach { layout ->
-
-        if (layout is ModelLayout && scene::class safeIn layout.parents)
-            layout.hide()
-    }
 }
 
 

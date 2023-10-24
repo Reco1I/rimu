@@ -4,7 +4,6 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import com.reco1l.framework.android.views.attachTo
 import com.reco1l.framework.android.views.removeSelf
 import com.reco1l.framework.lang.createInstance
-import com.reco1l.framework.lang.instanceMapOf
 import com.reco1l.framework.lang.safeIn
 import game.rimu.MainContext
 import game.rimu.ui.LayerBackground
@@ -25,10 +24,9 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
         size(MATCH_PARENT)
     }
 
-    // Storing created layouts into a map to perform auto-show/hide events.
-    private val layouts = instanceMapOf<ModelLayout>()
 
-    // Storing layers to perform scene change events.
+    private val loadedLayouts = mutableListOf<ModelLayout>()
+
     private val layers = LAYERS.associateWith {
 
         // Creating an instance for every layer and attaching it.
@@ -62,14 +60,14 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
      */
     fun onSceneChange(scene: BaseScene) = mainThread {
 
-        // Removing layouts that doesn't correspond to new scene
-        layers.values.forEach { it.onSceneChange(scene) }
+        // We copying the list to avoid concurrency errors because during the iteration the original
+        // list can be modified.
+        loadedLayouts.toList().forEach {
 
-        // Showing already loaded layouts that correspond to the new scene
-        layouts.values.forEach {
-
-            if (scene::class safeIn it.parents && !it.isAttachedToWindow)
+            if (scene::class safeIn it.parents)
                 it.show()
+            else
+                it.hide()
         }
     }
 
@@ -78,16 +76,30 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
     /**
      * Add a layout to the defined layer.
+     *
+     * @param overridePrevious If `true` and the layout specifies that is a [singleton][ModelLayout.isSingleton]
+     * and there's already a previous instance of the same class it'll be override. If it's not a
+     * singleton this will not take any effect.
      */
-    fun show(layout: ModelLayout): Boolean
+    fun show(layout: ModelLayout, overridePrevious: Boolean = false): Boolean
     {
-        if (layout.shouldRemainInMemory)
+        // Storing the layout in the map where all unique layouts are stored, if the previous value
+        // isn't null and 'override' is false it'll throw an exception.
+        if (layout.isSingleton)
         {
-            if (layouts[layout::class] != layout)
-                throw IllegalArgumentException("There's already loaded an instance of this unique layout.")
+            val previous = loadedLayouts.find { it::class == layout::class }
 
-            layouts[layout::class] = layout
+            if (previous != null && previous != layout)
+            {
+                if (!overridePrevious)
+                    throw IllegalStateException("There's already loaded an instance of this layout.")
+                else
+                    previous.hide()
+            }
         }
+
+        if ((layout.isSingleton || layout.shouldRemainInMemory) && layout !in loadedLayouts)
+            loadedLayouts.add(layout)
 
         // The layer must be declared and initialized, otherwise this will throw an NPE which should
         // never happen.
@@ -103,17 +115,17 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
         } ?: throw NullPointerException("The declared layer isn't loaded into the manager.")
 
-        return layout.isAttached
+        return layout.isAttachedToLayer
     }
 
     fun hide(layout: ModelLayout): Boolean
     {
         layout.removeSelf()
 
-        if (!layout.shouldRemainInMemory && layouts[layout::class] == layout)
-            layouts.remove(layout::class)
+        if (!layout.shouldRemainInMemory && layout in loadedLayouts)
+            loadedLayouts.remove(layout)
 
-        return !layout.isAttached
+        return !layout.isAttachedToLayer
     }
 
 
@@ -126,14 +138,17 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
     }
 
     @Suppress("UNCHECKED_CAST")
-    operator fun <T : ModelLayout> get(clazz: KClass<T>) = layouts[clazz] as? T ?: let {
+    operator fun <T : ModelLayout> get(clazz: KClass<T>): T
+    {
+        return loadedLayouts.find { it.isSingleton && it::class == clazz } as? T ?: let {
 
-        val instance = clazz.createInstance(ctx)
+            val instance = clazz.createInstance(ctx)
 
-        if (instance.shouldRemainInMemory)
-            layouts[clazz] = instance
+            if (instance.shouldRemainInMemory)
+                loadedLayouts.add(instance)
 
-        instance
+            instance
+        }
     }
 
 

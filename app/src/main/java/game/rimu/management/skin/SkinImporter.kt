@@ -1,17 +1,22 @@
 package game.rimu.management.skin
 
 import com.reco1l.framework.data.md5
+import com.reco1l.framework.lang.klass
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.skindecoder.SkinDecoder
 import com.reco1l.skindecoder.data.SkinData
 import game.rimu.MainContext
+import game.rimu.R
 import game.rimu.data.asset.HashableAsset
 import game.rimu.data.asset.Asset
 import game.rimu.data.Skin
 import game.rimu.management.resources.BaseImporter
 import game.rimu.management.resources.ImportTask
+import game.rimu.ui.layouts.NotificationCenter
+import game.rimu.ui.layouts.ProcessNotification
 import okio.IOException
 import java.io.File
+import java.lang.Exception
 
 /**
  * Responsible of manage all [SkinImportTask] into a queue.
@@ -21,6 +26,26 @@ class SkinImporter(ctx: MainContext) : BaseImporter(ctx)
 
     override fun onCreateTask(folder: File) = SkinImportTask(ctx, folder)
 
+    override fun onTaskStart(task: ImportTask)
+    {
+        task.notification.show(ctx)
+    }
+
+    override fun onTaskEnd(task: ImportTask, exception: Exception?)
+    {
+        val name = task.root.nameWithoutExtension
+
+        task.notification.message = when (exception)
+        {
+            // Success
+            null -> ctx.getString(R.string.detail_skin_import_success, name)
+
+            // Fail
+            else -> ctx.getString(R.string.detail_skin_import_failed, name, "${exception.klass.simpleName} - ${exception.message}")
+        }
+        task.notification.showIndicator = false
+        task.notification.update(ctx)
+    }
 }
 
 /**
@@ -29,7 +54,15 @@ class SkinImporter(ctx: MainContext) : BaseImporter(ctx)
 class SkinImportTask internal constructor(ctx: MainContext, root: File) : ImportTask(ctx, root)
 {
 
+    override val notification = ProcessNotification(
+        header = ctx.getString(R.string.header_skin_importer),
+        message = ctx.getString(R.string.detail_skin_importing, root.nameWithoutExtension),
+        icon = "icon-notification"
+    )
+
+
     override val requiresManagementFiletypes = arrayOf("ini")
+
 
     override var parentKey: String? = null
         get()

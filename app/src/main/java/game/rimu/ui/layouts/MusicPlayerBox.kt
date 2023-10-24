@@ -39,18 +39,12 @@ class MusicPlayerBox(ctx: MainContext) :
     private var isSeeking = false
 
 
-    private val titleText = TextView {
-
-        setText(R.string.metadata_unknown)
-
-    }
+    private val titleText = TextView {}
 
     private val artistText = TextView {
 
         dimensions.fontSize = 10
         rules.fontColorFactor = 0.75f
-
-        setText(R.string.metadata_unknown)
 
         setConstraints(
             target = titleText,

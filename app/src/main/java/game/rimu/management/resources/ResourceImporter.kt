@@ -9,11 +9,14 @@ import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.data.asset.Asset
 import game.rimu.data.asset.HashableAsset
+import game.rimu.ui.layouts.ProcessNotification
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.lingala.zip4j.ZipFile
 import java.io.File
+import java.lang.Exception
 
 abstract class BaseImporter(override val ctx: MainContext) : IWithContext
 {
@@ -23,24 +26,44 @@ abstract class BaseImporter(override val ctx: MainContext) : IWithContext
      */
     protected val importScope = CoroutineScope(Dispatchers.IO)
 
+
     /**
      * Here a new instance of your custom [ImportTask] should be initialized.
      */
     protected abstract fun onCreateTask(folder: File): ImportTask
+
+    protected abstract fun onTaskStart(task: ImportTask)
+
+    protected abstract fun onTaskEnd(task: ImportTask, exception: Exception?)
+
 
     /**
      * Import from a folder.
      */
     fun import(folder: File) = onCreateTask(folder).apply {
 
-        // Starting the task in the import coroutine.
-        importScope.launch { start() }
+        importScope.launch {
+
+            onTaskStart(this@apply)
+
+            // Try-catching and delegating the exception handling so we can show some UI dialog or
+            // notification.
+            val exception = { start(); null }.orCatch { it }
+
+            onTaskEnd(this@apply, exception)
+        }
     }
 
 }
 
-abstract class ImportTask(override val ctx: MainContext, protected var root: File) : IWithContext
+abstract class ImportTask(override val ctx: MainContext, root: File) : IWithContext
 {
+
+    var root: File = root
+        protected set
+
+    abstract val notification: ProcessNotification
+
 
     /**
      * This should contain a list of file types that should be specially handled.
@@ -94,7 +117,7 @@ abstract class ImportTask(override val ctx: MainContext, protected var root: Fil
         root.forEachRecursive(*Asset.SUPPORTED_FORMATS, selector = onFilterFiles()) { file ->
 
             if (isCancelled)
-                return@forEachRecursive
+                throw CancellationException()
 
             val asset: HashableAsset?
 
@@ -103,8 +126,7 @@ abstract class ImportTask(override val ctx: MainContext, protected var root: Fil
                 // Computing the file, if this returns an HashableAsset we're adding it to the pending
                 // files list to later import it.
                 asset = onComputeFile(file, dependencies)
-            }
-            else
+            } else
             {
                 // Resolving resource key and variant number according to file relative path from root.
                 val (key, variant) = when (file.toRelativeString(root))
@@ -135,17 +157,23 @@ abstract class ImportTask(override val ctx: MainContext, protected var root: Fil
         }
 
         if (isCancelled)
-            return
+            throw CancellationException()
+
+        notification.indeterminate = false
+        notification.maxProgress = pending.size.toFloat()
+        notification.update(ctx)
 
         // Adding all registered assets.
-        pending.forEach { (file, asset) ->
+        pending.forEachIndexed { i, (file, asset) ->
 
             // Moving it to the resource directory, we abort inserting the asset into the database
             // if for whatever reason it fails in the process.
             if (ctx.resources.storeResource(file, asset.hash))
                 onInsertAsset(file, asset)
-        }
 
+            notification.progress = i.toFloat()
+            notification.update(ctx)
+        }
         onFinish()
     }
 
@@ -183,7 +211,10 @@ abstract class ImportTask(override val ctx: MainContext, protected var root: Fil
     {
         // Inserting in the asset database, if it returns -1 means the asset already exists on
         // the database.
-        is Asset -> { { ctx.database.assetTable.insert(asset) > 0 }.orCatch { false } }
+        is Asset ->
+        {
+            { ctx.database.assetTable.insert(asset) > 0 }.orCatch { false }
+        }
 
         // This shouldn't never happen.
         else -> false
@@ -195,7 +226,7 @@ abstract class ImportTask(override val ctx: MainContext, protected var root: Fil
         wrappingZip?.file?.delete()
 
         // Clearing temporal folder.
-        root.delete()
+        root.deleteRecursively()
     }
 
 }

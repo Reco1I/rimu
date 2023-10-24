@@ -17,6 +17,8 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
 
     final override val dimensions = super.dimensions
 
+    final override val rules = super.rules
+
 
     /**
      * Determine the layer where this layout should be added.
@@ -43,20 +45,20 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
     /**
      * Defines if the layout is attached aka has a parent.
      */
-    val isAttached
-        get() = parent != null
+    val isAttachedToLayer
+        get() = parent != null && parent is BaseLayer
 
 
     /**
      * Determines if the layout is a singleton, if `true` it'll remain in memory after [hide] is called.
      */
-    open val isUnique = true
+    open val isSingleton = true
 
     /**
      * Determines if the layout should remain in memory once [hide] is called.
      */
     open val shouldRemainInMemory
-        get() = isUnique || !parents.isNullOrEmpty()
+        get() = !parents.isNullOrEmpty()
 
 
     private val hideTask = { hide() }
@@ -110,7 +112,7 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
      */
     fun alternate()
     {
-        if (isAttached)
+        if (isAttachedToLayer)
             hide()
         else
             show()
@@ -120,7 +122,10 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
      * Show the layout.
      */
     @CallSuper
-    open fun show() = ctx.layouts.show(this).then { klass logI "Layout successfully attached." }
+    open fun show(override: Boolean = !isSingleton) = ctx.layouts.show(this, override).then {
+
+        klass logI "Layout successfully attached."
+    }
 
     /**
      * Remove the layout.

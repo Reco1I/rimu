@@ -6,8 +6,19 @@
     <!--Beatmap metadata-->
     <string name="metadata_unknown">Unknown</string>
 
-    <!--Titles-->
-    <string name="title_notifications">Notifications</string>
+    <!--Headers-->
+    <string name="header_beatmap_importer">Beatmap Import</string>
+    <string name="header_skin_importer">Skin Import</string>
+    <string name="header_notifications">Notifications</string>
+
+    <!--Details-->
+    <string name="detail_beatmap_importing">Importing beatmap %s…</string>
+    <string name="detail_beatmap_import_success">Beatmap %s successfully imported!</string>
+    <string name="detail_beatmap_import_failed">Failed to import beatmap %s.\nCause: %s</string>
+
+    <string name="detail_skin_importing">Importing skin %s…</string>
+    <string name="detail_skin_import_success">Skin %s successfully imported!</string>
+    <string name="detail_skin_import_failed">Failed to import skin %s.\nCause: %s</string>
 
     <!--Settings-->
     <string name="setting_ui_scale">UI scale</string>

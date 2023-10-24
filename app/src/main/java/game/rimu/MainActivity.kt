@@ -68,15 +68,11 @@ class MainActivity :
             // If the activity was started with an intent we managed it after the initialization.
             onManageIntent(intent)
 
-
-            mainThread {
-
-                ctx.layouts[NotificationCenter::class].add(Notification(
-                    header = "Welcome to rimu!",
-                    message = "This is a test build, bugs are expected.",
-                    icon = "icon-notification"
-                ))
-            }
+            Notification(
+                header = "Welcome to rimu!",
+                message = "This is a test build, bugs are expected.",
+                icon = "icon-notification"
+            ).show(ctx)
         }
 
     }
