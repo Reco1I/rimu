@@ -16,7 +16,7 @@ abstract class BaseScene(final override val ctx: RimuContext) :
 
     // Key listening events
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?) = false
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?) = true
 
     override fun onKeyLongPress(keyCode: Int, event: KeyEvent?) = false
 

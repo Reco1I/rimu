@@ -168,7 +168,9 @@ class RimuActivity :
         if (super.onKeyDown(keyCode, event))
             return true
 
-        return ctx.engine.scene?.onKeyDown(keyCode, event) ?: false
+        return ctx.engine.scene?.onKeyDown(keyCode, event)
+            // Consuming back press action.
+            ?: true
     }
 
     override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean
