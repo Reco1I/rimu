@@ -138,9 +138,9 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
 
     // Removing trailing slash isn't really necessary in newer APIs but apparently in Nougat and possibly
     // Oreo causes the method 'list()' returning an empty list.
-    override val list = app.assets.list(directory.substringBeforeLast('/'))!!.map {
+    override val list = app.assets.list(directory.substringBeforeLast('/'))!!.mapNotNull {
 
-        val (key, variant) = app.resources.resolveAsset(it)!!
+        val (key, variant) = app.resources.resolveAsset(it) ?: return@mapNotNull null
 
         Asset(
             hash = it,
