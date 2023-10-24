@@ -14,7 +14,7 @@ import game.rimu.ui.LayerOverlay
 import game.rimu.ui.BaseLayer
 import game.rimu.ui.scenes.MenuScene
 import game.rimu.ui.scenes.ResultsScene
-import game.rimu.ui.scenes.RimuScene
+import game.rimu.ui.scenes.BaseScene
 import game.rimu.ui.scenes.SceneIntro
 import game.rimu.ui.scenes.SelectorScene
 import game.rimu.ui.views.IconButton
@@ -29,7 +29,7 @@ class TopBarLayout(ctx: RimuContext) : ModelLayout(ctx)
 
     override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
-    override var parents: Array<KClass<out RimuScene>>? = arrayOf(
+    override var parents: Array<KClass<out BaseScene>>? = arrayOf(
         SceneIntro::class,
         MenuScene::class,
         SelectorScene::class,

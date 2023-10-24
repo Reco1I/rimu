@@ -12,7 +12,7 @@ import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayerScene
 import game.rimu.ui.BaseLayer
 import game.rimu.ui.layouts.ModelLayout
-import game.rimu.ui.scenes.RimuScene
+import game.rimu.ui.scenes.BaseScene
 import game.rimu.ui.views.ConstraintLayout
 import kotlin.reflect.KClass
 
@@ -60,7 +60,7 @@ class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
     /**
      * Set scene layouts.
      */
-    fun onSceneChange(scene: RimuScene) = mainThread {
+    fun onSceneChange(scene: BaseScene) = mainThread {
 
         // Removing layouts that doesn't correspond to new scene
         layers.values.forEach { it.onSceneChange(scene) }

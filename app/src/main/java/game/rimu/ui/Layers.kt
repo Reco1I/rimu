@@ -10,7 +10,7 @@ import game.rimu.ui.layouts.Background
 import game.rimu.ui.layouts.ModelLayout
 import game.rimu.ui.layouts.TopBarLayout
 import game.rimu.ui.layouts.NotificationCenter
-import game.rimu.ui.scenes.RimuScene
+import game.rimu.ui.scenes.BaseScene
 import game.rimu.ui.views.ConstraintLayout
 
 
@@ -32,7 +32,7 @@ abstract class BaseLayer(override val ctx: RimuContext) : ConstraintLayout(ctx),
         invalidateSkin()
     }
 
-    fun onSceneChange(scene: RimuScene) = forEach { layout ->
+    fun onSceneChange(scene: BaseScene) = forEach { layout ->
 
         if (layout is ModelLayout && scene::class safeIn layout.parents)
             layout.hide()

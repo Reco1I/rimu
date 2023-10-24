@@ -7,7 +7,7 @@ import game.rimu.ui.IScalable
 import org.andengine.entity.scene.Scene
 import android.view.KeyEvent.Callback as KeyEventCallback
 
-abstract class RimuScene(final override val ctx: RimuContext) :
+abstract class BaseScene(final override val ctx: RimuContext) :
     Scene(),
     IScalable,
     IWithContext,

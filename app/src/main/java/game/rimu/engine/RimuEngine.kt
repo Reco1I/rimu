@@ -4,7 +4,7 @@ import game.rimu.android.IWithContext
 import game.rimu.android.RimuContext
 import game.rimu.engine.surface.EngineCamera
 import game.rimu.engine.surface.EngineSurface
-import game.rimu.ui.scenes.RimuScene
+import game.rimu.ui.scenes.BaseScene
 import game.rimu.ui.views.EngineRenderView
 import org.andengine.engine.Engine
 import org.andengine.engine.options.EngineOptions
@@ -41,8 +41,8 @@ class RimuEngine(override val ctx: RimuContext) :
 
     override fun setScene(scene: Scene?)
     {
-        if (scene !is RimuScene)
-            throw ClassCastException("This engine only supports ${RimuScene::class} types")
+        if (scene !is BaseScene)
+            throw ClassCastException("This engine only supports ${BaseScene::class} types")
 
         if (getScene() != scene)
         {
@@ -52,7 +52,7 @@ class RimuEngine(override val ctx: RimuContext) :
     }
 
 
-    override fun getScene() = super.getScene() as? RimuScene
+    override fun getScene() = super.getScene() as? BaseScene
 
     override fun getCamera() = super.getCamera() as EngineCamera
 

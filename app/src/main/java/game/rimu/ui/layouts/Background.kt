@@ -11,7 +11,7 @@ import game.rimu.ui.LayerBackground
 import game.rimu.ui.BaseLayer
 import game.rimu.ui.scenes.MenuScene
 import game.rimu.ui.scenes.ResultsScene
-import game.rimu.ui.scenes.RimuScene
+import game.rimu.ui.scenes.BaseScene
 import game.rimu.ui.scenes.SceneIntro
 import game.rimu.ui.scenes.SelectorScene
 import game.rimu.ui.views.FadeImageView
@@ -25,7 +25,7 @@ class Background(ctx: RimuContext) :
 
     override var layer: KClass<out BaseLayer> = LayerBackground::class
 
-    override var parents: Array<KClass<out RimuScene>>? = arrayOf(
+    override var parents: Array<KClass<out BaseScene>>? = arrayOf(
         SceneIntro::class,
         MenuScene::class,
         ResultsScene::class,

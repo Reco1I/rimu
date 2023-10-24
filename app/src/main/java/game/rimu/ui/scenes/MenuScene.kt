@@ -2,4 +2,4 @@ package game.rimu.ui.scenes
 
 import game.rimu.android.RimuContext
 
-class MenuScene(ctx: RimuContext) : RimuScene(ctx)
+class MenuScene(ctx: RimuContext) : BaseScene(ctx)

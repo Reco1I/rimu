@@ -8,7 +8,7 @@ import com.reco1l.framework.lang.klass
 import com.reco1l.framework.lang.then
 import game.rimu.android.RimuContext
 import game.rimu.ui.BaseLayer
-import game.rimu.ui.scenes.RimuScene
+import game.rimu.ui.scenes.BaseScene
 import game.rimu.ui.views.ConstraintLayout
 import kotlin.reflect.KClass
 
@@ -25,7 +25,7 @@ abstract class ModelLayout(final override val ctx: RimuContext) : ConstraintLayo
     /**
      * The parents scenes where the layouts should be show/hide automatically.
      */
-    open var parents: Array<KClass<out RimuScene>>? = null
+    open var parents: Array<KClass<out BaseScene>>? = null
 
 
     /**
