@@ -17,16 +17,17 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
 
     final override val dimensions = super.dimensions
 
+
     /**
      * Determine the layer where this layout should be added.
      */
     abstract var layer: KClass<out BaseLayer>
 
+
     /**
      * The parents scenes where the layouts should be show/hide automatically.
      */
     open var parents: Array<KClass<out BaseScene>>? = null
-
 
     /**
      * Determine the time in ms that the layout will take to automatically hide.
@@ -37,6 +38,13 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
             field = value
             invalidateHideTimer()
         }
+
+
+    /**
+     * Defines if the layout is attached aka has a parent.
+     */
+    val isAttached
+        get() = parent != null
 
 
     /**
@@ -102,7 +110,7 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
      */
     fun alternate()
     {
-        if (isAttachedToWindow)
+        if (isAttached)
             hide()
         else
             show()

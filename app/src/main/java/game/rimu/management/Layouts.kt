@@ -103,7 +103,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
         } ?: throw NullPointerException("The declared layer isn't loaded into the manager.")
 
-        return layout.isAttachedToWindow
+        return layout.isAttached
     }
 
     fun hide(layout: ModelLayout): Boolean
@@ -113,7 +113,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
         if (!layout.shouldRemainInMemory && layouts[layout::class] == layout)
             layouts.remove(layout::class)
 
-        return !layout.isAttachedToWindow
+        return !layout.isAttached
     }
 
 
