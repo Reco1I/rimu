@@ -7,7 +7,7 @@ import com.reco1l.framework.data.md5
 import com.reco1l.framework.lang.orCatch
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.parser.BeatmapDecoder
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 import game.rimu.data.asset.HashableAsset
 import game.rimu.data.asset.Asset
 import game.rimu.data.Beatmap
@@ -19,7 +19,7 @@ import java.io.File
 /**
  * Responsible of manage all [BeatmapImportTask] into a queue.
  */
-class BeatmapImporter(ctx: RimuContext) : BaseImporter(ctx)
+class BeatmapImporter(ctx: MainContext) : BaseImporter(ctx)
 {
 
     override fun onCreateTask(folder: File) = BeatmapImportTask(ctx, folder)
@@ -29,7 +29,7 @@ class BeatmapImporter(ctx: RimuContext) : BaseImporter(ctx)
 /**
  * The assigned [ImportTask] for the beatmap folder that is about to be imported.
  */
-class BeatmapImportTask internal constructor(ctx: RimuContext, root: File) : ImportTask(ctx, root)
+class BeatmapImportTask internal constructor(ctx: MainContext, root: File) : ImportTask(ctx, root)
 {
 
     override val requiresManagementFiletypes = Asset.MODE_FORMATS

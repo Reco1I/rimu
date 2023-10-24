@@ -1,5 +1,5 @@
 package game.rimu.ui.scenes
 
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 
-class MenuScene(ctx: RimuContext) : BaseScene(ctx)
+class MenuScene(ctx: MainContext) : BaseScene(ctx)

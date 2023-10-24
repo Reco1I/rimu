@@ -4,7 +4,7 @@ import com.reco1l.framework.data.md5
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.skindecoder.SkinDecoder
 import com.reco1l.skindecoder.data.SkinData
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 import game.rimu.data.asset.HashableAsset
 import game.rimu.data.asset.Asset
 import game.rimu.data.Skin
@@ -16,7 +16,7 @@ import java.io.File
 /**
  * Responsible of manage all [SkinImportTask] into a queue.
  */
-class SkinImporter(ctx: RimuContext) : BaseImporter(ctx)
+class SkinImporter(ctx: MainContext) : BaseImporter(ctx)
 {
 
     override fun onCreateTask(folder: File) = SkinImportTask(ctx, folder)
@@ -26,7 +26,7 @@ class SkinImporter(ctx: RimuContext) : BaseImporter(ctx)
 /**
  * The assigned [ImportTask] for the beatmap folder that is about to be imported.
  */
-class SkinImportTask internal constructor(ctx: RimuContext, root: File) : ImportTask(ctx, root)
+class SkinImportTask internal constructor(ctx: MainContext, root: File) : ImportTask(ctx, root)
 {
 
     override val requiresManagementFiletypes = arrayOf("ini")

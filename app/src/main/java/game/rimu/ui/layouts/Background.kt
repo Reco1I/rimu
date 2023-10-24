@@ -3,7 +3,7 @@ package game.rimu.ui.layouts
 import android.graphics.Bitmap
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.ImageView.ScaleType
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 import game.rimu.constants.BuildSettings
 import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.management.beatmap.WorkingBeatmap
@@ -18,7 +18,7 @@ import game.rimu.ui.views.FadeImageView
 import kotlin.reflect.KClass
 
 
-class Background(ctx: RimuContext) :
+class Background(ctx: MainContext) :
     ModelLayout(ctx),
     IBeatmapObserver
 {

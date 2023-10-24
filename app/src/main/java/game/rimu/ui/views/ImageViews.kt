@@ -10,8 +10,8 @@ import androidx.annotation.CallSuper
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.drawable.toDrawable
 import com.reco1l.framework.android.views.setImageTint
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalable
 import game.rimu.ui.IScalableWithDimensions
@@ -56,7 +56,7 @@ fun IWithContext.ImageView(
     init()
 }
 
-open class ImageView(override val ctx: RimuContext) :
+open class ImageView(override val ctx: MainContext) :
     AppCompatImageView(ctx),
     IWithContext,
     IScalableWithDimensions<ImageView>,
@@ -91,7 +91,7 @@ fun IWithContext.FadeImageView(
 /**
  * ImageView that fades when the drawable is changed.
  */
-class FadeImageView(ctx: RimuContext) :
+class FadeImageView(ctx: MainContext) :
     ImageView(ctx),
     IWithContext
 {

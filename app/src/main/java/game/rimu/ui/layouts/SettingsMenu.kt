@@ -10,7 +10,6 @@ import com.reco1l.framework.android.views.backgroundColor
 import com.reco1l.framework.android.views.doPost
 import com.reco1l.framework.android.views.orientation
 import com.reco1l.framework.android.views.setConstraints
-import com.reco1l.framework.android.views.setSize
 import com.reco1l.framework.animation.Ease
 import com.reco1l.framework.animation.animate
 import com.reco1l.framework.animation.cancelAnimators
@@ -18,7 +17,7 @@ import com.reco1l.framework.animation.toAlpha
 import com.reco1l.framework.animation.toTranslationX
 import com.reco1l.framework.graphics.Anchor
 import game.rimu.R
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 import game.rimu.constants.RimuSetting
 import game.rimu.data.adapter.Adapter
 import game.rimu.data.adapter.IHeldView
@@ -43,7 +42,7 @@ enum class SettingTab
     // TODO
 }
 
-class SettingsMenu(ctx: RimuContext) : ModelLayout(ctx)
+class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
 {
 
     override var layer: KClass<out BaseLayer> = LayerOverlay::class

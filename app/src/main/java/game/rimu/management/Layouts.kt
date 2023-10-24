@@ -6,7 +6,7 @@ import com.reco1l.framework.android.views.removeSelf
 import com.reco1l.framework.lang.createInstance
 import com.reco1l.framework.lang.instanceMapOf
 import com.reco1l.framework.lang.safeIn
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 import game.rimu.ui.LayerBackground
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayerScene
@@ -17,7 +17,7 @@ import game.rimu.ui.views.ConstraintLayout
 import kotlin.reflect.KClass
 
 
-class LayoutManager(override val ctx: RimuContext) : ConstraintLayout(ctx)
+class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 {
 
     override val dimensions = super.dimensions.apply {

@@ -1,14 +1,12 @@
 package game.rimu.ui.views.preference
 
-import android.os.Build
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import android.widget.SeekBar.OnSeekBarChangeListener
 import com.google.android.material.slider.Slider
 import com.reco1l.framework.android.views.setConstraints
 import com.reco1l.framework.graphics.Anchor
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.constants.RimuSetting
 import game.rimu.management.Setting
 import game.rimu.ui.views.ConstraintLayout
@@ -16,11 +14,9 @@ import game.rimu.ui.views.SeekBar
 import game.rimu.ui.views.TextButton
 import game.rimu.ui.views.TextView
 import game.rimu.ui.views.addons.setTouchHandler
-import kotlin.math.pow
-import android.widget.SeekBar as AndroidSeekBar
 
 
-sealed class SettingView(ctx: RimuContext) : ConstraintLayout(ctx)
+sealed class SettingView(ctx: MainContext) : ConstraintLayout(ctx)
 {
 
     override val dimensions = super.dimensions.apply {
@@ -60,7 +56,7 @@ sealed class SettingView(ctx: RimuContext) : ConstraintLayout(ctx)
 
 }
 
-sealed class SettingViewWithBinding<T : Any>(ctx: RimuContext, key: RimuSetting) : SettingView(ctx)
+sealed class SettingViewWithBinding<T : Any>(ctx: MainContext, key: RimuSetting) : SettingView(ctx)
 {
 
     protected var binding by Setting<T>(key)
@@ -79,7 +75,7 @@ fun IWithContext.ButtonSettingView(
     init()
 }
 
-class ButtonSettingView(ctx: RimuContext) : SettingView(ctx)
+class ButtonSettingView(ctx: MainContext) : SettingView(ctx)
 {
 
     override val titleView = TextButton {
@@ -108,7 +104,7 @@ fun <T : Any> IWithContext.DropdownSettingView(
 }
 
 class DropdownSettingView<T : Any>(
-    ctx: RimuContext,
+    ctx: MainContext,
     key: RimuSetting,
 ) : SettingViewWithBinding<T>(ctx, key)
 
@@ -125,7 +121,7 @@ fun IWithContext.SeekBarSettingView(
 }
 
 class SeekBarSettingView(
-    ctx: RimuContext,
+    ctx: MainContext,
     key: RimuSetting
 ) :
     SettingViewWithBinding<Float>(ctx, key),

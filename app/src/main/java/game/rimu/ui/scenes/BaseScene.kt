@@ -1,13 +1,13 @@
 package game.rimu.ui.scenes
 
 import android.view.KeyEvent
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.ui.IScalable
 import org.andengine.entity.scene.Scene
 import android.view.KeyEvent.Callback as KeyEventCallback
 
-abstract class BaseScene(final override val ctx: RimuContext) :
+abstract class BaseScene(final override val ctx: MainContext) :
     Scene(),
     IScalable,
     IWithContext,

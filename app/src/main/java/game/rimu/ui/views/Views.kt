@@ -9,8 +9,8 @@ import com.reco1l.framework.android.views.cornerRadius
 import com.reco1l.framework.android.views.setMargins
 import com.reco1l.framework.android.views.setPaddings
 import com.reco1l.framework.android.views.setSize
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
@@ -26,7 +26,7 @@ fun IWithContext.DummyView(
     init()
 }
 
-class DummyView(override val ctx: RimuContext) :
+class DummyView(override val ctx: MainContext) :
     View(ctx),
     IWithContext,
     IScalableWithDimensions<View>,

@@ -5,8 +5,8 @@ import android.view.ViewGroup
 import androidx.core.view.forEach
 import com.reco1l.framework.lang.isLazyInit
 import com.reco1l.framework.lang.isLazyInitialized
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
 import org.andengine.entity.IEntity
 
@@ -36,10 +36,10 @@ interface ISkinnable
     }
 
     /**
-     * Calls [onApplySkin] with the context skin, if there's a [RimuContext] implementation you
+     * Calls [onApplySkin] with the context skin, if there's a [MainContext] implementation you
      * don't need to pass the context.
      */
-    fun invalidateSkin(ctx: RimuContext? = (this as? IWithContext)?.ctx)
+    fun invalidateSkin(ctx: MainContext? = (this as? IWithContext)?.ctx)
     {
         ctx?.also { onApplySkin(it.skins.current) }
     }

@@ -19,7 +19,7 @@ import com.reco1l.framework.android.getSystemService
 import com.reco1l.framework.animation.Ease
 import com.reco1l.framework.animation.toScale
 import com.reco1l.framework.graphics.setRadius
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalable
 import game.rimu.ui.ISkinnable
@@ -53,7 +53,7 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
     }
 
 
-    private lateinit var ctx: RimuContext
+    private lateinit var ctx: MainContext
 
 
     private val longPresCallback = {
@@ -86,7 +86,7 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(view: View, event: MotionEvent): Boolean
     {
-        ctx = view.context as RimuContext
+        ctx = view.context as MainContext
 
         // Setting the touch effect if hasn't been set yet.
         touchEffectDrawable?.also {
@@ -102,7 +102,7 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
         // as well for skin.
         if (event.action == ACTION_DOWN || event.action == ACTION_UP) (view.foreground as? TouchEffectDrawable)?.also {
 
-            val context = view.context as? RimuContext
+            val context = view.context as? MainContext
 
             it.invalidateSkin(context)
             it.invalidateScale(context)

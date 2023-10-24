@@ -5,8 +5,8 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import com.google.android.material.slider.LabelFormatter
 import com.google.android.material.slider.Slider
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
@@ -34,7 +34,7 @@ fun IWithContext.SeekBar(
     init: SeekBar.() -> Unit
 ) = SeekBar(ctx).apply { parent?.addView(this); init() }
 
-open class SeekBar(override val ctx: RimuContext) :
+open class SeekBar(override val ctx: MainContext) :
     Slider(ctx.activity),
     IWithContext,
     IScalableWithDimensions<SeekBar>,

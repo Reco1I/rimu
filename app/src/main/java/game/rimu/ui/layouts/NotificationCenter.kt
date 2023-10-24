@@ -16,8 +16,8 @@ import com.reco1l.framework.animation.toAlpha
 import com.reco1l.framework.animation.toTranslationX
 import com.reco1l.framework.graphics.Anchor
 import game.rimu.R
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.data.adapter.Adapter
 import game.rimu.data.adapter.IHeldView
 import game.rimu.ui.LayerOverlay
@@ -33,7 +33,7 @@ import game.rimu.ui.views.addons.setTouchHandler
 import kotlin.reflect.KClass
 
 
-class NotificationCenter(ctx: RimuContext) : ModelLayout(ctx)
+class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
 {
 
     override var layer: KClass<out BaseLayer> = LayerOverlay::class
@@ -224,7 +224,7 @@ class ProcessNotification(
 
 // View
 
-open class NotificationView(override val ctx: RimuContext) :
+open class NotificationView(override val ctx: MainContext) :
     ConstraintLayout(ctx),
     IWithContext,
     IHeldView<Notification>

@@ -5,8 +5,8 @@ import com.reco1l.framework.android.logI
 import com.reco1l.framework.data.subDirectory
 import com.reco1l.framework.data.subFile
 import com.reco1l.framework.lang.klass
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.constants.RimuSetting.UI_USE_BEATMAP_SKIN
 import game.rimu.data.asset.AssetBundle
 import game.rimu.management.Setting
@@ -14,7 +14,7 @@ import game.rimu.management.resources.ResourceProvider.BEATMAP
 import game.rimu.management.resources.ResourceProvider.DEFAULT
 import java.io.File
 
-class ResourceManager(override val ctx: RimuContext) : IWithContext
+class ResourceManager(override val ctx: MainContext) : IWithContext
 {
 
     /**
@@ -189,7 +189,7 @@ class ResourceManager(override val ctx: RimuContext) : IWithContext
 }
 
 
-enum class ResourceProvider(private val bundleProvider: RimuContext.() -> AssetBundle?)
+enum class ResourceProvider(private val bundleProvider: MainContext.() -> AssetBundle?)
 {
     BEATMAP({ beatmaps.current?.assets }),
 
@@ -198,6 +198,6 @@ enum class ResourceProvider(private val bundleProvider: RimuContext.() -> AssetB
     DEFAULT({ skins.default.assets });
 
 
-    operator fun get(ctx: RimuContext) = bundleProvider(ctx)
+    operator fun get(ctx: MainContext) = bundleProvider(ctx)
 
 }

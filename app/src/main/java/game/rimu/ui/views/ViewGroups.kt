@@ -1,8 +1,8 @@
 package game.rimu.ui.views
 
 import android.view.ViewGroup
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
 import android.widget.LinearLayout as AndroidLinearLayout
@@ -19,7 +19,7 @@ fun IWithContext.ConstraintLayout(
     init()
 }
 
-open class ConstraintLayout(override val ctx: RimuContext) :
+open class ConstraintLayout(override val ctx: MainContext) :
     AndroidConstraintLayout(ctx),
     IWithContext,
     ISkinnableWithRules<ConstraintLayout>,
@@ -41,7 +41,7 @@ fun IWithContext.LinearLayout(
     init()
 }
 
-open class LinearLayout(override val ctx: RimuContext) :
+open class LinearLayout(override val ctx: MainContext) :
     AndroidLinearLayout(ctx),
     IWithContext,
     ISkinnableWithRules<LinearLayout>,

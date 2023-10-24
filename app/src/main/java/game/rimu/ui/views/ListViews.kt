@@ -2,8 +2,8 @@ package game.rimu.ui.views
 
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.data.adapter.Adapter
 import game.rimu.data.adapter.IHeldView
 import game.rimu.ui.IScalableWithDimensions
@@ -23,7 +23,7 @@ fun IWithContext.RecyclerView(
     init()
 }
 
-open class RecyclerView(final override val ctx: RimuContext) :
+open class RecyclerView(final override val ctx: MainContext) :
     AndroidRecyclerView(ctx),
     IWithContext,
     ISkinnableWithRules<RecyclerView>,
@@ -44,7 +44,7 @@ open class RecyclerView(final override val ctx: RimuContext) :
 
 // Dropdown
 
-open class DropdownMenu(ctx: RimuContext) : RecyclerView(ctx)
+open class DropdownMenu(ctx: MainContext) : RecyclerView(ctx)
 {
 
     private val items = mutableListOf<Item>()

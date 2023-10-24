@@ -6,8 +6,8 @@ import androidx.annotation.CallSuper
 import androidx.core.view.forEach
 import com.reco1l.framework.lang.isLazyInit
 import com.reco1l.framework.lang.isLazyInitialized
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.constants.RimuSetting
 
 
@@ -38,10 +38,10 @@ interface IScalable
     }
 
     /**
-     * Calls [onApplyScale] with the context scale, if there's a [RimuContext] implementation you
+     * Calls [onApplyScale] with the context scale, if there's a [MainContext] implementation you
      * don't need to pass the context.
      */
-    fun invalidateScale(ctx: RimuContext? = (this as? IWithContext)?.ctx)
+    fun invalidateScale(ctx: MainContext? = (this as? IWithContext)?.ctx)
     {
         ctx?.also { onApplyScale(it.engine.surface.scale) }
     }

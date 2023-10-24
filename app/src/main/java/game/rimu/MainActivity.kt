@@ -1,4 +1,4 @@
-package game.rimu.android
+package game.rimu
 
 import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
@@ -11,24 +11,23 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-import com.reco1l.framework.android.logE
 import com.reco1l.framework.data.extensionLowercase
 import com.reco1l.framework.data.subDirectory
 import com.reco1l.framework.data.toFile
 import com.reco1l.framework.lang.async
 import com.reco1l.framework.lang.forEachTrim
-import com.reco1l.framework.lang.klass
+import com.reco1l.framework.lang.ignoreException
 import game.rimu.ui.layouts.Notification
 import game.rimu.ui.layouts.NotificationCenter
 import game.rimu.ui.scenes.SceneIntro
 
 
-class RimuActivity :
+class MainActivity :
     AppCompatActivity(),
     IWithContext
 {
 
-    override val ctx by lazy { application.baseContext as RimuContext }
+    override val ctx by lazy { application.baseContext as MainContext }
 
 
     // Activity
@@ -37,33 +36,41 @@ class RimuActivity :
     {
         super.onCreate(savedInstanceState)
 
+        // Setting the activity global reference to this one.
         ctx.activity = this
 
         // Application wasn't initialized yet.
         if (ctx.initializationTree != null)
         {
-            onFirstCreate()
+            onInitializeGame()
             return
         }
 
+        // Applying window fullscreen flags before setting the content view.
+        onApplyWindowFlags()
         ctx.layouts.onActivityCreate()
     }
 
-    private fun onFirstCreate()
+    private fun onInitializeGame()
     {
         ctx.engine.startUpdateThread()
         ctx.bassDevice.start()
 
-        applyWindowFlags()
-
         async {
+            // Iterating all over the task submitted to the initialization tree and executing them in
+            // asynchronous from UI thread.
             ctx.initializationTree!!.forEachTrim { ctx.it() }
             ctx.initializationTree = null
 
+            // Setting first scene to the Intro scene which will play an storyboard.
             ctx.engine.scene = SceneIntro(ctx)
+
+            // If the activity was started with an intent we managed it after the initialization.
             onManageIntent(intent)
 
+
             mainThread {
+
                 ctx.layouts[NotificationCenter::class].add(Notification(
                     header = "Welcome to rimu!",
                     message = "This is a test build, bugs are expected.",
@@ -79,8 +86,12 @@ class RimuActivity :
 
     fun onManageIntent(intent: Intent)
     {
-        fun onManageUri(uri: Uri) = try
-        {
+        /**
+         * Manages the given content/file scheme URI and copies the content to cache directory.
+         */
+        fun onManageUri(uri: Uri) = ignoreException {
+
+            // Copying file to '.../cache/import/' directory.
             val file = uri.toFile(cacheDir.subDirectory("import"), contentResolver)
 
             when (file.extensionLowercase)
@@ -88,49 +99,50 @@ class RimuActivity :
                 "osz" -> ctx.beatmaps.importer.import(file)
                 "osk" -> ctx.skins.importer.import(file)
             }
-            Unit
-        }
-        catch (e: Exception)
-        {
-            klass logE ("Failed to import file from URI." to e)
         }
 
+        // 'getParcelableExtra' and 'getParcelableArrayListExtra' are deprecated but current
+        // replacement is exclusive to newer APIs so there's no replacement.
+        @Suppress("DEPRECATION")
         when (intent.action)
         {
+            // The intent was sent through the 'Open with...' option.
             ACTION_VIEW -> onManageUri(intent.data ?: return)
-            ACTION_SEND -> onManageUri(intent.getParcelableExtra(EXTRA_STREAM) ?: return)
-            ACTION_SEND_MULTIPLE ->
-            {
-                intent.getParcelableArrayListExtra<Uri>(EXTRA_STREAM)?.forEach {
 
-                    onManageUri(it)
-                }
-            }
+            // The intent was sent through the 'Share' option.
+            ACTION_SEND -> onManageUri(intent.getParcelableExtra(EXTRA_STREAM) ?: return)
+            ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtra<Uri>(EXTRA_STREAM)
+                ?.forEach { onManageUri(it) }
         }
     }
 
 
     // Activity lifecycle
 
-    override fun onResume()
-    {
-        super.onResume()
-
-        ctx.bassDevice.updatePeriod = 5
-        ctx.beatmaps.current?.stream?.bufferLength = 0.1f
-
-        ctx.engine.start()
-        ctx.engine.renderView.onResume()
-    }
-
     override fun onPause()
     {
         super.onPause()
 
+        // When the game is on background there's no need to keep a low delay properties as it may
+        // consume unnecessary resources leading to the game being closed by Android.
         ctx.bassDevice.updatePeriod = 100
         ctx.beatmaps.current?.stream?.bufferLength = 0.5f
 
         ctx.engine.renderView.onPause()
+    }
+
+    override fun onResume()
+    {
+        super.onResume()
+
+        // Once we're back we can restore the previous values.
+        ctx.bassDevice.updatePeriod = 5
+        ctx.beatmaps.current?.stream?.bufferLength = 0.1f
+
+        // Starting engine if it wasn't yet, this will only take effect the first time opening the game.
+        ctx.engine.start()
+
+        ctx.engine.renderView.onResume()
     }
 
     override fun onNewIntent(intent: Intent?)
@@ -146,18 +158,18 @@ class RimuActivity :
 
     // Window events
 
-    private fun applyWindowFlags()
+    private fun onApplyWindowFlags()
     {
+        // Deprecated flags but current replacement requires higher API.
         @Suppress("DEPRECATION")
-        window.decorView.systemUiVisibility =
-            SYSTEM_UI_FLAG_HIDE_NAVIGATION or SYSTEM_UI_FLAG_FULLSCREEN
+        window.decorView.systemUiVisibility = SYSTEM_UI_FLAG_HIDE_NAVIGATION or SYSTEM_UI_FLAG_FULLSCREEN
     }
 
-    override fun onWindowFocusChanged(pHasWindowFocus: Boolean)
+    override fun onWindowFocusChanged(hasFocus: Boolean)
     {
-        super.onWindowFocusChanged(pHasWindowFocus)
+        super.onWindowFocusChanged(hasFocus)
 
-        applyWindowFlags()
+        onApplyWindowFlags()
     }
 
 

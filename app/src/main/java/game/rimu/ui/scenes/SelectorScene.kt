@@ -1,7 +1,7 @@
 package game.rimu.ui.scenes
 
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 
-class SelectorScene(ctx: RimuContext) : BaseScene(ctx)
+class SelectorScene(ctx: MainContext) : BaseScene(ctx)
 {
 }

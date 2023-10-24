@@ -5,8 +5,8 @@ import com.reco1l.framework.data.forEachRecursive
 import com.reco1l.framework.data.md5
 import com.reco1l.framework.data.subDirectory
 import com.reco1l.framework.lang.orCatch
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.data.asset.Asset
 import game.rimu.data.asset.HashableAsset
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import net.lingala.zip4j.ZipFile
 import java.io.File
 
-abstract class BaseImporter(override val ctx: RimuContext) : IWithContext
+abstract class BaseImporter(override val ctx: MainContext) : IWithContext
 {
 
     /**
@@ -39,7 +39,7 @@ abstract class BaseImporter(override val ctx: RimuContext) : IWithContext
 
 }
 
-abstract class ImportTask(override val ctx: RimuContext, protected var root: File) : IWithContext
+abstract class ImportTask(override val ctx: MainContext, protected var root: File) : IWithContext
 {
 
     /**

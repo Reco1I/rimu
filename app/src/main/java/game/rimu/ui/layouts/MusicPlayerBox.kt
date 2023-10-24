@@ -11,7 +11,7 @@ import com.reco1l.framework.animation.toScale
 import com.reco1l.framework.graphics.Anchor
 import com.reco1l.framework.lang.dateFormatFor
 import game.rimu.R
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.management.beatmap.WorkingBeatmap
 import game.rimu.ui.LayerOverlay
@@ -24,7 +24,7 @@ import game.rimu.ui.views.setTextAnimated
 import org.andengine.engine.handler.IUpdateHandler
 import kotlin.reflect.KClass
 
-class MusicPlayerBox(ctx: RimuContext) :
+class MusicPlayerBox(ctx: MainContext) :
     ModelLayout(ctx),
     IBeatmapObserver,
     IUpdateHandler

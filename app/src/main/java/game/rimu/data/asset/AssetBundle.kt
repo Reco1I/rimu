@@ -11,15 +11,15 @@ import com.reco1l.framework.android.logE
 import com.reco1l.framework.lang.orCatch
 import com.reco1l.framework.graphics.toBitmap
 import com.reco1l.framework.lang.klass
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.data.Skin
 import java.io.File
 import java.io.InputStream
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
-sealed class AssetBundle(override val ctx: RimuContext) : IWithContext
+sealed class AssetBundle(override val ctx: MainContext) : IWithContext
 {
 
     /**
@@ -119,7 +119,7 @@ sealed class AssetBundle(override val ctx: RimuContext) : IWithContext
          *
          * If the skin is internal it returns [InternalAssetsBundle] otherwise [ExternalAssetBundle].
          */
-        fun from(ctx: RimuContext, skin: Skin): AssetBundle
+        fun from(ctx: MainContext, skin: Skin): AssetBundle
         {
             return if (skin.isInternal)
                 InternalAssetsBundle(ctx, skin.key)
@@ -133,7 +133,7 @@ sealed class AssetBundle(override val ctx: RimuContext) : IWithContext
 /**
  * Created specifically to load default textures from Android [AssetManager].
  */
-class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundle(app)
+class InternalAssetsBundle(app: MainContext, val directory: String) : AssetBundle(app)
 {
 
     // Removing trailing slash isn't really necessary in newer APIs but apparently in Nougat and possibly
@@ -204,7 +204,7 @@ class InternalAssetsBundle(app: RimuContext, val directory: String) : AssetBundl
 /**
  * An AssetBundle wraps all assets used by a Skin or a Beatmap into a mapping.
  */
-class ExternalAssetBundle(ctx: RimuContext, key: String) : AssetBundle(ctx)
+class ExternalAssetBundle(ctx: MainContext, key: String) : AssetBundle(ctx)
 {
 
     override val list = ctx.database.assetTable.getFromParent(key)

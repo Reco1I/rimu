@@ -7,13 +7,13 @@ import android.view.View.MeasureSpec
 import android.view.WindowManager
 import com.reco1l.framework.android.getSystemService
 import com.reco1l.framework.animation.Ease
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.constants.RimuSetting.UI_SCALE
 import org.andengine.engine.options.resolutionpolicy.IResolutionPolicy
 import org.andengine.engine.options.resolutionpolicy.IResolutionPolicy.Callback
 
-class EngineSurface(override val ctx: RimuContext) :
+class EngineSurface(override val ctx: MainContext) :
     IResolutionPolicy,
     IWithContext
 {

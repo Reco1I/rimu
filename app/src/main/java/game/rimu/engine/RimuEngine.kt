@@ -1,7 +1,7 @@
 package game.rimu.engine
 
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.engine.surface.EngineCamera
 import game.rimu.engine.surface.EngineSurface
 import game.rimu.ui.scenes.BaseScene
@@ -13,7 +13,7 @@ import org.andengine.entity.scene.Scene
 import org.andengine.opengl.util.GLState
 import org.andengine.opengl.view.IRendererListener
 
-class RimuEngine(override val ctx: RimuContext) :
+class RimuEngine(override val ctx: MainContext) :
 
     Engine(
         EngineOptions(

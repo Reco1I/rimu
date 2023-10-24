@@ -6,8 +6,8 @@ import com.reco1l.framework.animation.animateTo
 import com.reco1l.framework.management.forEachObserver
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.timings.ControlPoint
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.constants.RimuSetting.MUSIC_VOLUME
 import game.rimu.data.Beatmap
 import game.rimu.data.ControlPointType.DIFFICULTY
@@ -16,7 +16,7 @@ import game.rimu.data.asset.ExternalAssetBundle
 import game.rimu.management.time.ControlPointCursor
 import game.rimu.management.time.IClockObserver
 
-class WorkingBeatmap(override val ctx: RimuContext, val source: Beatmap) :
+class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
     IWithContext,
     IClockObserver,
     (ControlPointCursor<out ControlPoint>) -> Unit

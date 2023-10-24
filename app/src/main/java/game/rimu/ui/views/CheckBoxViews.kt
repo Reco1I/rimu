@@ -2,13 +2,13 @@ package game.rimu.ui.views
 
 import androidx.appcompat.widget.AppCompatCheckBox
 import com.google.android.material.R
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.ISkinnable
 
 
-class CheckBox(override val ctx: RimuContext) :
+class CheckBox(override val ctx: MainContext) :
     AppCompatCheckBox(ctx),
     IWithContext,
     ISkinnable

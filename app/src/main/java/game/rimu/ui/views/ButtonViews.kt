@@ -2,8 +2,8 @@ package game.rimu.ui.views
 
 import android.view.Gravity
 import android.view.ViewGroup
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 
 
 fun IWithContext.IconButton(
@@ -14,7 +14,7 @@ fun IWithContext.IconButton(
     init()
 }
 
-open class IconButton(ctx: RimuContext) : ImageView(ctx)
+open class IconButton(ctx: MainContext) : ImageView(ctx)
 {
 
     override val dimensions = super.dimensions.apply {
@@ -47,7 +47,7 @@ fun IWithContext.TextButton(
     init()
 }
 
-open class TextButton(ctx: RimuContext) : TextView(ctx)
+open class TextButton(ctx: MainContext) : TextView(ctx)
 {
 
     override val dimensions = super.dimensions.apply {

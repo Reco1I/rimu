@@ -21,8 +21,8 @@ import com.reco1l.framework.animation.cancelAnimators
 import com.reco1l.framework.animation.toAlpha
 import com.reco1l.framework.graphics.Anchor
 import com.reco1l.framework.graphics.BasicAnchor
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalableWithDimensions
 import game.rimu.ui.ISkinnableWithRules
@@ -93,7 +93,7 @@ fun IWithContext.TextView(
 /**
  * Base class for every [TextView][AppCompatTextView] in rimu!, it has an special handling for icons.
  */
-open class TextView(final override val ctx: RimuContext) :
+open class TextView(final override val ctx: MainContext) :
     AppCompatTextView(ctx),
     IWithContext,
     ISkinnableWithRules<TextView>,
@@ -202,7 +202,7 @@ fun IWithContext.TextField(
 /**
  * Base class for EditText in rimu!
  */
-open class TextField(ctx: RimuContext) : TextView(ctx), IWithContext
+open class TextField(ctx: MainContext) : TextView(ctx), IWithContext
 {
 
     override val dimensions = super.dimensions.apply {

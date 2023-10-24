@@ -3,8 +3,8 @@ package game.rimu.management.skin
 import com.reco1l.framework.lang.nextOf
 import com.reco1l.framework.management.IObservable
 import com.reco1l.skindecoder.SkinDecoder
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.constants.RimuSetting.UI_SKIN
 import game.rimu.data.Skin
 import game.rimu.data.Skin.Companion.DEFAULT
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.launch
 
 @OptIn(DelicateCoroutinesApi::class)
-class SkinManager(override val ctx: RimuContext) :
+class SkinManager(override val ctx: MainContext) :
     FlowCollector<List<Skin>>,
     IObservable<ISkinnable>,
     IWithContext

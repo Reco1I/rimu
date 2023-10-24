@@ -8,8 +8,8 @@ import com.reco1l.framework.lang.previousOf
 import com.reco1l.framework.management.IObservable
 import com.reco1l.framework.management.forEachObserver
 import com.rian.osu.beatmap.parser.BeatmapDecoder
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.data.Beatmap
 import game.rimu.data.BeatmapSet
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @OptIn(DelicateCoroutinesApi::class)
-class BeatmapManager(override val ctx: RimuContext) :
+class BeatmapManager(override val ctx: MainContext) :
     IWithContext,
     IObservable<IBeatmapObserver>
 {

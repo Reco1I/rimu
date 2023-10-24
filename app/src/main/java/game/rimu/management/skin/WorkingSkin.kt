@@ -2,8 +2,8 @@ package game.rimu.management.skin
 
 import com.reco1l.skindecoder.SkinDecoder
 import com.reco1l.skindecoder.data.SkinData
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.data.asset.AssetBundle
 import game.rimu.data.Skin
 
@@ -13,7 +13,7 @@ import game.rimu.data.Skin
  */
 class WorkingSkin(
 
-    override val ctx: RimuContext,
+    override val ctx: MainContext,
 
     /**
      * The skin entity.

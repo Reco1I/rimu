@@ -7,8 +7,8 @@ import com.reco1l.framework.management.IMapObservable
 import com.reco1l.framework.management.bindables.Bindable
 import com.reco1l.framework.management.bindables.IBindableValueProvider
 import com.reco1l.framework.management.forEachObserver
-import game.rimu.android.IWithContext
-import game.rimu.android.RimuContext
+import game.rimu.IWithContext
+import game.rimu.MainContext
 import game.rimu.constants.RimuSetting
 
 
@@ -16,7 +16,7 @@ import game.rimu.constants.RimuSetting
 /**
  * Game settings manager.
  */
-class SettingManager(override val ctx: RimuContext) :
+class SettingManager(override val ctx: MainContext) :
     SharedPreferences.OnSharedPreferenceChangeListener,
     IBindableValueProvider<String, Any?, Setting<Any?>>,
     IMapObservable<RimuSetting, (Any?) -> Unit>,
@@ -104,7 +104,7 @@ class SettingManager(override val ctx: RimuContext) :
 
 
 
-fun <V : Any?>IWithContext.Setting(setting: RimuSetting) = Setting<V>(ctx, setting)
+fun <V : Any?> IWithContext.Setting(setting: RimuSetting) = Setting<V>(ctx, setting)
 
 /**
  * Bind a property to a game option specified by the [SettingManager].
@@ -115,14 +115,14 @@ class Setting<V : Any?>(
     /**
      * The attached context
      */
-    ctx: RimuContext,
+    ctx: MainContext,
 
     /**
      * The setting key
      */
     setting: RimuSetting,
 
-) :
+    ) :
     Bindable<String, V>(
         setting.key,
         setting.default as V,

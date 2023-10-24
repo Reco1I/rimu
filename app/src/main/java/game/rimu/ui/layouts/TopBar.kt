@@ -8,7 +8,7 @@ import android.widget.LinearLayout.HORIZONTAL
 import com.reco1l.framework.android.views.attachTo
 import com.reco1l.framework.android.views.setConstraints
 import com.reco1l.framework.graphics.Anchor
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.BaseLayer
@@ -24,7 +24,7 @@ import game.rimu.ui.views.TextView
 import game.rimu.ui.views.addons.setTouchHandler
 import kotlin.reflect.KClass
 
-class TopBarLayout(ctx: RimuContext) : ModelLayout(ctx)
+class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
 {
 
     override var layer: KClass<out BaseLayer> = LayerOverlay::class
@@ -115,7 +115,7 @@ class TopBarLayout(ctx: RimuContext) : ModelLayout(ctx)
 }
 
 
-class UserBoxView(ctx: RimuContext) : LinearLayout(ctx)
+class UserBoxView(ctx: MainContext) : LinearLayout(ctx)
 {
 
     init

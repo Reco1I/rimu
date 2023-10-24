@@ -1,6 +1,6 @@
 package game.rimu.data.asset
 
-import game.rimu.android.RimuContext
+import game.rimu.MainContext
 import java.io.File
 
 /**
@@ -36,5 +36,5 @@ abstract class HashableAsset
      * Warning: Don't use this for internal assets, it'll return a non-existent file. Internal assets
      * can only be get via an InputStream.
      */
-    fun toFile(app: RimuContext) = File(app.resources.directory, qualifiedPath)
+    fun toFile(app: MainContext) = File(app.resources.directory, qualifiedPath)
 }
