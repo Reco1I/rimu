@@ -1,20 +1,33 @@
 package game.rimu.ui.layouts
 
+import android.animation.ValueAnimator
+import android.graphics.Color
 import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.widget.LinearLayout.HORIZONTAL
 import android.widget.LinearLayout.VERTICAL
 import com.reco1l.framework.android.views.backgroundColor
+import com.reco1l.framework.android.views.doPost
 import com.reco1l.framework.android.views.orientation
 import com.reco1l.framework.android.views.setConstraints
+import com.reco1l.framework.android.views.setSize
+import com.reco1l.framework.animation.Ease
+import com.reco1l.framework.animation.animate
+import com.reco1l.framework.animation.cancelAnimators
+import com.reco1l.framework.animation.toAlpha
+import com.reco1l.framework.animation.toTranslationX
 import com.reco1l.framework.graphics.Anchor
 import game.rimu.R
 import game.rimu.android.RimuContext
 import game.rimu.constants.RimuSetting
 import game.rimu.data.adapter.Adapter
 import game.rimu.data.adapter.IHeldView
-import game.rimu.ui.LayerOverlay
 import game.rimu.ui.BaseLayer
-import game.rimu.ui.layouts.SettingTab.*
+import game.rimu.ui.LayerBackground
+import game.rimu.ui.LayerOverlay
+import game.rimu.ui.layouts.SettingTab.SKINS
+import game.rimu.ui.layouts.SettingTab.entries
+import game.rimu.ui.views.DummyView
 import game.rimu.ui.views.IconButton
 import game.rimu.ui.views.LinearLayout
 import game.rimu.ui.views.RecyclerView
@@ -35,31 +48,26 @@ class SettingsMenu(ctx: RimuContext) : ModelLayout(ctx)
 
     override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
-    private val tabSelector = RecyclerView {
 
-        orientation = VERTICAL
-        adapter = Adapter(entries, { TabIconButton() })
+    private val body = LinearLayout {
 
+        z = 1f
+        orientation = HORIZONTAL
         dimensions.height = MATCH_PARENT
 
         rules.apply {
             backgroundColor = "accentColor"
-            backgroundColorFactor = 0.2f
+            backgroundColorFactor = 0.15f
         }
 
         setConstraints(rightToTarget = Anchor.RIGHT)
     }
 
-    private val tabContents = RecyclerView {
+    private val tabContents = RecyclerView(body) {
 
         dimensions.apply {
             height = MATCH_PARENT
             width = 300
-        }
-
-        rules.apply {
-            backgroundColor = "accentColor"
-            backgroundColorFactor = 0.15f
         }
 
         orientation = VERTICAL
@@ -72,12 +80,35 @@ class SettingsMenu(ctx: RimuContext) : ModelLayout(ctx)
                 }
             }
         )
-
-        setConstraints(target = tabSelector, rightToTarget = Anchor.LEFT)
     }
 
+    private val tabSelector = RecyclerView(body) {
 
-    private var currentTab: SettingTab
+        orientation = VERTICAL
+        adapter = Adapter(entries, { TabIconButton() })
+
+        dimensions.height = MATCH_PARENT
+
+        rules.apply {
+            backgroundColor = "accentColor"
+            backgroundColorFactor = 0.2f
+        }
+    }
+
+    private val bodyShadow = DummyView {
+
+        dimensions.apply {
+            width = tabContents.dimensions.width + 70 // Tab selection bar width.
+            height = MATCH_PARENT
+        }
+
+        rules.apply {
+            backgroundColor = "accentColor"
+            backgroundColorFactor = 0.1f
+        }
+
+        setConstraints(rightToTarget = Anchor.RIGHT)
+    }
 
 
     // Layouts
@@ -101,6 +132,11 @@ class SettingsMenu(ctx: RimuContext) : ModelLayout(ctx)
     }
 
 
+    private var currentTab: SettingTab
+
+    private var backgroundAnimator: ValueAnimator? = null
+
+
     init
     {
         setTouchHandler {
@@ -108,8 +144,72 @@ class SettingsMenu(ctx: RimuContext) : ModelLayout(ctx)
             onActionUp = { hide() }
         }
 
-        backgroundColor = 0x41000000
+        backgroundColor = Color.BLACK
+        background.alpha = 0
         currentTab = SKINS
+    }
+
+
+    override fun onAttachedToWindow()
+    {
+        super.onAttachedToWindow()
+
+        backgroundAnimator?.cancel()
+        backgroundAnimator = background::setAlpha.animate(background.alpha, 65, 200)
+
+        ctx.layouts[LayerBackground::class].apply {
+
+            cancelAnimators()
+            toTranslationX(-50f, 400, ease = Ease.EXPO_OUT)
+        }
+
+        body.apply {
+            cancelAnimators()
+            toAlpha(0f)
+
+            doPost {
+                toTranslationX(width.toFloat())
+                toAlpha(1f)
+                toTranslationX(0f, 400, 50, Ease.EXPO_OUT)
+            }
+        }
+
+        bodyShadow.apply {
+            cancelAnimators()
+            toAlpha(0f)
+
+            doPost {
+                toTranslationX(width.toFloat())
+                toAlpha(1f)
+                toTranslationX(0f, 400, ease = Ease.EXPO_OUT)
+            }
+        }
+
+    }
+
+
+    override fun hide()
+    {
+        backgroundAnimator?.cancel()
+        backgroundAnimator = background::setAlpha.animate(background.alpha, 0, 200)
+
+        ctx.layouts[LayerBackground::class].apply {
+
+            cancelAnimators()
+            toTranslationX(0f, 350, ease = Ease.EXPO_IN)
+        }
+
+        body.apply {
+            cancelAnimators()
+            toTranslationX(width.toFloat(), 350, ease = Ease.EXPO_IN)
+        }
+
+        bodyShadow.apply {
+            cancelAnimators()
+            toTranslationX(width.toFloat(), 350, 50, Ease.EXPO_IN, listener = {
+                onEnd = { super.hide() }
+            })
+        }
     }
 
 
