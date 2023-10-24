@@ -1,5 +1,7 @@
 package game.rimu.ui.layouts
 
+import android.animation.ValueAnimator
+import android.graphics.Color
 import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout.VERTICAL
@@ -8,6 +10,7 @@ import com.reco1l.framework.android.views.doPost
 import com.reco1l.framework.android.views.orientation
 import com.reco1l.framework.android.views.setConstraints
 import com.reco1l.framework.animation.Ease
+import com.reco1l.framework.animation.animate
 import com.reco1l.framework.animation.cancelAnimators
 import com.reco1l.framework.animation.toAlpha
 import com.reco1l.framework.animation.toTranslationX
@@ -18,23 +21,27 @@ import game.rimu.android.RimuContext
 import game.rimu.data.adapter.Adapter
 import game.rimu.data.adapter.IHeldView
 import game.rimu.ui.LayerOverlay
-import game.rimu.ui.LayoutLayer
+import game.rimu.ui.BaseLayer
+import game.rimu.ui.LayerBackground
 import game.rimu.ui.views.ConstraintLayout
 import game.rimu.ui.views.DummyView
 import game.rimu.ui.views.ImageView
 import game.rimu.ui.views.LinearLayout
 import game.rimu.ui.views.RecyclerView
 import game.rimu.ui.views.TextView
+import game.rimu.ui.views.addons.setTouchHandler
 import kotlin.reflect.KClass
 
 
 class NotificationCenter(ctx: RimuContext) : ModelLayout(ctx)
 {
 
-    override var layer: KClass<out LayoutLayer> = LayerOverlay::class
+    override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
 
     private val notifications = mutableListOf<Notification>()
+
+    private var backgroundAnimator: ValueAnimator? = null
 
 
     private val body = LinearLayout {
@@ -107,6 +114,18 @@ class NotificationCenter(ctx: RimuContext) : ModelLayout(ctx)
     }
 
 
+    init
+    {
+        backgroundColor = Color.BLACK
+        background.alpha = 0
+
+        setTouchHandler {
+            noEffect()
+            onActionUp = { hide() }
+        }
+    }
+
+
     fun add(notification: Notification)
     {
         notifications.add(0, notification)
@@ -118,6 +137,15 @@ class NotificationCenter(ctx: RimuContext) : ModelLayout(ctx)
     {
         super.onAttachedToWindow()
         setConstraints(rightToTarget = Anchor.RIGHT)
+
+        backgroundAnimator?.cancel()
+        backgroundAnimator = background::setAlpha.animate(background.alpha, 65, 200)
+
+        ctx.layouts[LayerBackground::class].apply {
+
+            cancelAnimators()
+            toTranslationX(-50f, 400, ease = Ease.EXPO_OUT)
+        }
 
         body.apply {
             cancelAnimators()
@@ -137,7 +165,7 @@ class NotificationCenter(ctx: RimuContext) : ModelLayout(ctx)
             doPost {
                 toTranslationX(width.toFloat())
                 toAlpha(1f)
-                toTranslationX(0f, 300, ease = Ease.EXPO_OUT)
+                toTranslationX(0f, 400, ease = Ease.EXPO_OUT)
             }
         }
     }
@@ -145,6 +173,15 @@ class NotificationCenter(ctx: RimuContext) : ModelLayout(ctx)
 
     override fun hide()
     {
+        backgroundAnimator?.cancel()
+        backgroundAnimator = background::setAlpha.animate(background.alpha, 0, 200)
+
+        ctx.layouts[LayerBackground::class].apply {
+
+            cancelAnimators()
+            toTranslationX(0f, 350, ease = Ease.EXPO_IN)
+        }
+
         body.apply {
             cancelAnimators()
             toTranslationX(width.toFloat(), 350, ease = Ease.EXPO_IN)
