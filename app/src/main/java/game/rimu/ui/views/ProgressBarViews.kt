@@ -147,12 +147,11 @@ open class LinearProgressIndicator(ctx: MainContext) :
         val width = width.toFloat()
         val height = height.toFloat()
         val padding = dimensions.barPadding
-        val cornerRadius = dimensions.barRadius
 
         // Drawing inactive bar
         barCompound.set(padding, padding, width - padding, height - padding)
         barCompound.paint.color = inactiveBarColor
-        barCompound.drawTo(canvas, cornerRadius)
+        barCompound.drawTo(canvas, dimensions.cornerRadius)
 
         // Drawing active bar
 
@@ -180,7 +179,7 @@ open class LinearProgressIndicator(ctx: MainContext) :
                 right = (indeterminateX + barWidth).coerceAtMost(width - padding)
             }
 
-            barCompound.drawTo(canvas, cornerRadius)
+            barCompound.drawTo(canvas, dimensions.barRadius)
 
             // Since is indeterminate it should be invalidated afterwards because of the animation.
             invalidate()
@@ -190,6 +189,6 @@ open class LinearProgressIndicator(ctx: MainContext) :
         val barWidth = (width - padding * 2) * (progress / max)
 
         barCompound.set(padding, padding, padding + barWidth, height - padding)
-        barCompound.drawTo(canvas, cornerRadius)
+        barCompound.drawTo(canvas, dimensions.barRadius)
     }
 }
