@@ -22,6 +22,8 @@ open class ProgressIndicatorDimensions<T : LinearProgressIndicator> : ViewDimens
 
     var barRadius = 8f
 
+    var barPadding = 0f
+
 }
 
 open class ProgressIndicatorSkinningRules<T : LinearProgressIndicator> : ViewSkinningRules<T>(
@@ -53,7 +55,7 @@ fun IWithContext.LinearProgressIndicator(
     init: LinearProgressIndicator.() -> Unit
 ) = LinearProgressIndicator(ctx).apply { parent?.addView(this); init() }
 
-class LinearProgressIndicator(ctx: MainContext) :
+open class LinearProgressIndicator(ctx: MainContext) :
     View(ctx),
     IScalableWithDimensions<LinearProgressIndicator>,
     ISkinnableWithRules<LinearProgressIndicator>
@@ -125,7 +127,7 @@ class LinearProgressIndicator(ctx: MainContext) :
     /**
      * If `true` the bar will show the indeterminate animation rather than the actual progress.
      */
-    var indeterminate = true
+    open var indeterminate = true
         set(value)
         {
             field = value
@@ -133,7 +135,9 @@ class LinearProgressIndicator(ctx: MainContext) :
         }
 
 
-    private val barCompound = CompoundRectF()
+    protected val barCompound = CompoundRectF()
+
+    protected var indeterminateX = 0f
 
 
     override fun onDraw(canvas: Canvas)
@@ -142,23 +146,50 @@ class LinearProgressIndicator(ctx: MainContext) :
 
         val width = width.toFloat()
         val height = height.toFloat()
+        val padding = dimensions.barPadding
+        val cornerRadius = dimensions.barRadius
 
         // Drawing inactive bar
-        barCompound.set(0f, 0f, width, height)
+        barCompound.set(padding, padding, width - padding, height - padding)
         barCompound.paint.color = inactiveBarColor
-        barCompound.drawTo(canvas, dimensions.barRadius)
+        barCompound.drawTo(canvas, cornerRadius)
 
         // Drawing active bar
 
-        if (indeterminate)
-            barCompound.set(barCompound.left + 0.01f, 0f, width * 0.50f, height)
-        else
-            barCompound.set(0f, 0f, width * (progress / max), height)
-
         barCompound.paint.color = activeBarColor
-        barCompound.drawTo(canvas, dimensions.barRadius)
 
         if (indeterminate)
+        {
+            // Computing the bar width as the 4th part of the view width for indeterminate bar.
+            val barWidth = (width - padding * 2) / 4
+
+            indeterminateX += 2f
+
+            if (indeterminateX > width - padding)
+                indeterminateX = padding - barWidth
+
+            barCompound.apply {
+
+                top = padding
+                bottom = height - padding
+
+                // Coercing both left and right to the view bounds less the padding accordingly to
+                // the indeterminate X.
+
+                left = indeterminateX.coerceAtLeast(padding)
+                right = (indeterminateX + barWidth).coerceAtMost(width - padding)
+            }
+
+            barCompound.drawTo(canvas, cornerRadius)
+
+            // Since is indeterminate it should be invalidated afterwards because of the animation.
             invalidate()
+        }
+
+        // Computing barWidth with the view width as base and padding both left and right sides.
+        val barWidth = (width - padding * 2) * (progress / max)
+
+        barCompound.set(padding, padding, padding + barWidth, height - padding)
+        barCompound.drawTo(canvas, cornerRadius)
     }
 }
