@@ -83,7 +83,7 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
     }
 
     @CallSuper
-    override fun onTouchEvent(event: MotionEvent?): Boolean
+    override fun onTouchEvent(event: MotionEvent): Boolean
     {
         // Invalidating the timer at every event.
         invalidateHideTimer()

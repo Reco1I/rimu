@@ -137,9 +137,9 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
         return layers[clazz] as T
     }
 
-    @Suppress("UNCHECKED_CAST")
     operator fun <T : ModelLayout> get(clazz: KClass<T>): T
     {
+        @Suppress("UNCHECKED_CAST")
         return loadedLayouts.find { it.isSingleton && it::class == clazz } as? T ?: let {
 
             val instance = clazz.createInstance(ctx)

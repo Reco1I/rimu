@@ -1,5 +1,7 @@
 package game.rimu.ui.layouts
 
+import android.view.MotionEvent
+import android.view.MotionEvent.*
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import com.google.android.material.slider.Slider
 import com.reco1l.basskt.AudioState
@@ -8,6 +10,8 @@ import com.reco1l.framework.animation.Ease
 import com.reco1l.framework.animation.cancelAnimators
 import com.reco1l.framework.animation.toAlpha
 import com.reco1l.framework.animation.toScale
+import com.reco1l.framework.animation.toTranslationX
+import com.reco1l.framework.animation.toTranslationY
 import com.reco1l.framework.graphics.Anchor
 import com.reco1l.framework.lang.dateFormatFor
 import game.rimu.R
@@ -22,6 +26,8 @@ import game.rimu.ui.views.TextView
 import game.rimu.ui.views.addons.setTouchHandler
 import game.rimu.ui.views.setTextAnimated
 import org.andengine.engine.handler.IUpdateHandler
+import kotlin.math.pow
+import kotlin.math.sqrt
 import kotlin.reflect.KClass
 
 class MusicPlayerBox(ctx: MainContext) :
@@ -149,9 +155,14 @@ class MusicPlayerBox(ctx: MainContext) :
         }
     }
 
+    private var initialX = 0f
+
+    private var initialY = 0f
+
 
     init
     {
+        isClickable = true
 
         IconButton {
 
@@ -255,6 +266,40 @@ class MusicPlayerBox(ctx: MainContext) :
         }
     }
 
+
+    override fun onTouchEvent(event: MotionEvent): Boolean
+    {
+        when (event.action)
+        {
+            ACTION_DOWN ->
+            {
+                initialX = event.x
+                initialY = event.y
+            }
+
+            ACTION_MOVE ->
+            {
+                val dX = event.x - initialX
+                val dY = event.y - initialY
+
+                val length = sqrt(dX * dX + dY * dY)
+
+                translationX = dX * if (length <= 0) 0f else length.pow(0.7f) / length
+                translationY = dY * if (length <= 0) 0f else length.pow(0.7f) / length
+            }
+
+            ACTION_UP ->
+            {
+                if (translationX != 0f || translationY != 0f)
+                {
+                    toTranslationX(0f, 300, ease = Ease.BOUNCE_OUT)
+                    toTranslationY(0f, 300, ease = Ease.BOUNCE_OUT)
+                }
+            }
+        }
+
+        return super.onTouchEvent(event)
+    }
 
     override fun onAttachedToWindow()
     {
