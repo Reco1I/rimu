@@ -151,7 +151,7 @@ open class LinearProgressIndicator(ctx: MainContext) :
         // Drawing inactive bar
         barCompound.set(padding, padding, width - padding, height - padding)
         barCompound.paint.color = inactiveBarColor
-        barCompound.drawTo(canvas, dimensions.cornerRadius)
+        barCompound.drawTo(canvas, dimensions.barRadius)
 
         // Drawing active bar
 
