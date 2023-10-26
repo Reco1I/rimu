@@ -6,7 +6,7 @@ import kotlin.reflect.KFunction1
 import kotlin.reflect.KMutableProperty0
 
 
-// Floats
+// Base
 
 private fun animateFloat(
     onApply: (Float) -> Unit,
@@ -23,19 +23,10 @@ private fun animateFloat(
     interpolator = ease ?: Ease.LINEAR
 
     addUpdateListener { onApply(it.animatedValue as Float) }
-    start()
+
+    if (from != to || end == 0L)
+        start()
 }
-
-fun KMutableProperty0<Float>.animateTo(
-    to: Float,
-    end: Long,
-    delay: Long = 0,
-    ease: TimeInterpolator? = null
-
-): ValueAnimator = animateFloat(this::set, get(), to, end, delay, ease)
-
-
-// Integers
 
 private fun animateInt(
     onApply: (Int) -> Unit,
@@ -52,34 +43,76 @@ private fun animateInt(
     interpolator = ease ?: Ease.LINEAR
 
     addUpdateListener { onApply(it.animatedValue as Int) }
-    start()
+
+    if (from != to || end == 0L)
+        start()
 }
 
-fun KMutableProperty0<Int>.animateTo(
-    target: Int,
-    end: Long,
+
+// Float
+
+/**
+ * Animate the property from the current value to the [target][to] value.
+ *
+ * If no arguments are passed then it creates a [ValueAnimator] based on the property.
+ */
+fun KMutableProperty0<Float>.animateTo(
+    to: Float = 0f,
+    end: Long = 0,
     delay: Long = 0,
     ease: TimeInterpolator? = null
 
-): ValueAnimator = animateInt(this::set, get(), target, end, delay, ease)
+): ValueAnimator = animateFloat(this::set, get(), to, end, delay, ease)
+
+/**
+ * Animate calling the function from the [given][from] value to the [target][to] value.
+ *
+ * If no arguments are passed then it creates a [ValueAnimator] based on the function.
+ */
+fun KFunction1<Float, Any>.animate(
+    from: Float = 0f,
+    to: Float = 0f,
+    end: Long = 0,
+    delay: Long = 0,
+    ease: TimeInterpolator? = null
+
+) = animateFloat(this::invoke, from, to, end, delay, ease)
 
 
-// Functions
+// Integers
 
+/**
+ * Animate the property from the current value to the [target][to] value.
+ *
+ * If no arguments are passed then it creates a [ValueAnimator] based on the property.
+ */
+fun KMutableProperty0<Int>.animateTo(
+    to: Int = 0,
+    end: Long = 0,
+    delay: Long = 0,
+    ease: TimeInterpolator? = null
+
+): ValueAnimator = animateInt(this::set, get(), to, end, delay, ease)
+
+/**
+ * Animate calling the function from the [given][from] value to the [target][to] value.
+ *
+ * If no arguments are passed then it creates a [ValueAnimator] based on the function.
+ */
 fun KFunction1<Int, Any>.animate(
     from: Int = 0,
-    to: Int,
-    end: Long,
+    to: Int = 0,
+    end: Long = 0,
     delay: Long = 0,
     ease: TimeInterpolator? = null
 
 ) = animateInt(this::invoke, from, to, end, delay, ease)
 
-fun KFunction1<Float, Any>.animate(
-    from: Float = 0f,
-    to: Float,
-    end: Long,
-    delay: Long = 0,
-    ease: TimeInterpolator? = null
 
-) = animateFloat(this::invoke, from, to, end, delay, ease)
+// Extensions
+
+fun ValueAnimator.doOnUpdate(listener: ValueAnimator.AnimatorUpdateListener): ValueAnimator
+{
+    addUpdateListener(listener)
+    return this
+}

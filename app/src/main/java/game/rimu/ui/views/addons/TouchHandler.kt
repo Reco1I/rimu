@@ -14,9 +14,12 @@ import android.view.MotionEvent.ACTION_UP
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewConfiguration.getLongPressTimeout
+import androidx.core.animation.doOnCancel
 import com.reco1l.basskt.stream.SampleStream
 import com.reco1l.framework.android.getSystemService
 import com.reco1l.framework.animation.Ease
+import com.reco1l.framework.animation.animate
+import com.reco1l.framework.animation.doOnUpdate
 import com.reco1l.framework.animation.toScale
 import com.reco1l.framework.graphics.setRadius
 import game.rimu.MainContext
@@ -112,6 +115,7 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
         fun onHandleTouchEffect(isPressed: Boolean)
         {
             view.isPressed = isPressed
+            (view.foreground as? TouchEffectDrawable)?.animate(isPressed)
             touchEffectAnimation?.also { view.it(isPressed) }
         }
 
@@ -174,11 +178,7 @@ class TouchEffectDrawable :
 {
 
     // Initial values for animator is irrelevant because it's updated before starting the animation.
-    val animator = ValueAnimator.ofInt().apply {
-
-        duration = 100
-        addUpdateListener { alpha = it.animatedValue as Int }
-    }
+    private val animator = this::setAlpha.animate(end = 100)
 
     init
     {
@@ -186,17 +186,13 @@ class TouchEffectDrawable :
     }
 
 
-    override fun isStateful() = true
-
-
-    override fun onStateChange(stateSet: IntArray): Boolean
+    fun animate(isPressed: Boolean)
     {
-        if (android.R.attr.state_pressed in stateSet)
-            fadeIn()
-        else
-            fadeOut()
+        val newAlpha = if (isPressed) 20 else 0
 
-        return super.onStateChange(stateSet)
+        animator.cancel()
+        animator.setIntValues(alpha, newAlpha)
+        animator.start()
     }
 
     override fun onApplyScale(scale: Float) = setRadius(8f * scale)
@@ -205,26 +201,5 @@ class TouchEffectDrawable :
     {
         // Preserving previous alpha when changing color.
         setColor(skin.data.colours.accentColor.toInt())
-    }
-
-
-    private fun fadeIn()
-    {
-        if (alpha == 20)
-            return
-
-        animator.cancel()
-        animator.setIntValues(alpha, 20)
-        animator.start()
-    }
-
-    private fun fadeOut()
-    {
-        if (alpha == 0)
-            return
-
-        animator.cancel()
-        animator.setIntValues(alpha, 0)
-        animator.start()
     }
 }
