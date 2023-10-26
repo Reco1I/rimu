@@ -18,7 +18,8 @@ import com.reco1l.framework.android.getSystemService
 import com.reco1l.framework.animation.Ease
 import com.reco1l.framework.animation.animate
 import com.reco1l.framework.animation.toScale
-import com.reco1l.framework.graphics.setRadiusimport com.reco1l.framework.graphics.toInt
+import com.reco1l.framework.graphics.setRadius
+import com.reco1l.framework.graphics.toInt
 import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.IScalable

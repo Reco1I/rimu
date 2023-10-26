@@ -1,7 +1,8 @@
 package game.rimu.ui.views
 
 import androidx.appcompat.widget.AppCompatCheckBox
-import com.google.android.material.Rimport com.reco1l.framework.graphics.toInt
+import com.google.android.material.R
+import com.reco1l.framework.graphics.toInt
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
