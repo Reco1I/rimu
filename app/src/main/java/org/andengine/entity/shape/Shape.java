@@ -169,6 +169,11 @@ public abstract class Shape extends Entity implements IShape {
 	// ===========================================================
 
 	protected void initBlendFunction(final ITextureRegion pTextureRegion) {
+		// BEGIN rimu! modification
+		if (pTextureRegion == null)
+			return;
+		// END rimu! modification
+
 		this.initBlendFunction(pTextureRegion.getTexture());
 	}
 
