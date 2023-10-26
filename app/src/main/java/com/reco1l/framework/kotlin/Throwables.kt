@@ -4,9 +4,9 @@ package com.reco1l.framework.kotlin
 /**
  * Special block to ignore exceptions
  */
-inline fun ignoreException(block: () -> Unit)
+inline fun <R : Any> ignoreException(block: () -> R?): R?
 {
-    try { block() } catch (_: Exception) {  }
+    return try { block() } catch (_: Exception) { null }
 }
 
 /**

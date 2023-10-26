@@ -80,6 +80,7 @@ class MainActivity :
             {
                 "osz" -> ctx.beatmaps.importer.import(uri)
                 "osk" -> ctx.skins.importer.import(uri)
+                else -> Unit
             }
         }
 
