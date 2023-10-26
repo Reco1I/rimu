@@ -19,6 +19,7 @@ import com.reco1l.framework.lang.forEachTrim
 import com.reco1l.framework.lang.ignoreException
 import game.rimu.ui.layouts.Notification
 import game.rimu.ui.layouts.NotificationCenter
+import game.rimu.ui.layouts.ProcessNotification
 import game.rimu.ui.scenes.SceneIntro
 
 
@@ -68,10 +69,11 @@ class MainActivity :
             // If the activity was started with an intent we managed it after the initialization.
             onManageIntent(intent)
 
-            Notification(
-                header = "Welcome to rimu!",
-                message = "This is a test build, bugs are expected.",
-                icon = "icon-notification"
+            ProcessNotification(
+                header = "TEST",
+                message = "TEST TEST TEST.",
+                icon = "icon-notification",
+                indeterminate = true
             ).show(ctx)
         }
 

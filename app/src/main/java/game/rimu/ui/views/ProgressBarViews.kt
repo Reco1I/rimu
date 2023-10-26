@@ -3,10 +3,15 @@ package game.rimu.ui.views
 import android.app.ActionBar.LayoutParams
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.Path.Direction.CW
+import android.graphics.RectF
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
-import com.reco1l.framework.graphics.CompoundRectF
+import com.reco1l.framework.graphics.addRoundRect
+import com.reco1l.framework.graphics.drawRoundRect
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
@@ -135,9 +140,17 @@ open class LinearProgressIndicator(ctx: MainContext) :
         }
 
 
-    protected val barCompound = CompoundRectF()
+    protected val inactiveBarRect = RectF()
 
-    protected var indeterminateX = 0f
+    protected val activeBarRect = RectF()
+
+
+    private var indeterminateX = 0f
+
+
+    private val barPaint = Paint()
+
+    private val barPath = Path()
 
 
     override fun onDraw(canvas: Canvas)
@@ -146,16 +159,23 @@ open class LinearProgressIndicator(ctx: MainContext) :
 
         val width = width.toFloat()
         val height = height.toFloat()
-        val padding = dimensions.barPadding
+        val radius = dimensions.let { it.barRadius * it.currentScale }
+        val padding = dimensions.let { it.barPadding * it.currentScale }
 
-        // Drawing inactive bar
-        barCompound.set(padding, padding, width - padding, height - padding)
-        barCompound.paint.color = inactiveBarColor
-        barCompound.drawTo(canvas, dimensions.barRadius)
+        // Inactive bar
+        barPaint.color = inactiveBarColor
+        inactiveBarRect.set(padding, padding, width - padding, height - padding)
 
-        // Drawing active bar
+        // The clip path is a workaround to avoid flat corners when the active bar is small.
+        barPath.reset()
+        barPath.addRoundRect(inactiveBarRect, radius, CW)
 
-        barCompound.paint.color = activeBarColor
+        canvas.save()
+        canvas.clipPath(barPath)
+        canvas.drawPath(barPath, barPaint)
+
+        // Active bar
+        barPaint.color = activeBarColor
 
         if (indeterminate)
         {
@@ -167,7 +187,7 @@ open class LinearProgressIndicator(ctx: MainContext) :
             if (indeterminateX > width - padding)
                 indeterminateX = padding - barWidth
 
-            barCompound.apply {
+            activeBarRect.apply {
 
                 top = padding
                 bottom = height - padding
@@ -179,16 +199,21 @@ open class LinearProgressIndicator(ctx: MainContext) :
                 right = (indeterminateX + barWidth).coerceAtMost(width - padding)
             }
 
-            barCompound.drawTo(canvas, dimensions.barRadius)
+            canvas.drawRoundRect(activeBarRect, radius, barPaint)
+            canvas.restore()
 
             // Since is indeterminate it should be invalidated afterwards because of the animation.
             invalidate()
+            return
         }
 
-        // Computing barWidth with the view width as base and padding both left and right sides.
-        val barWidth = (width - padding * 2) * (progress / max)
+        // Computing barWidth with the view width as base and padding both left and right sides
+        // accounting for progress range.
+        val barWidth = (width - padding * 2) * ((progress - min) / (max - min))
 
-        barCompound.set(padding, padding, padding + barWidth, height - padding)
-        barCompound.drawTo(canvas, dimensions.barRadius)
+        activeBarRect.set(padding, padding, padding + barWidth, height - padding)
+
+        canvas.drawRoundRect(activeBarRect, radius, barPaint)
+        canvas.restore()
     }
 }

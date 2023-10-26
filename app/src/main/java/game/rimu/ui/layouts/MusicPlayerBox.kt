@@ -1,9 +1,10 @@
 package game.rimu.ui.layouts
 
 import android.view.MotionEvent
-import android.view.MotionEvent.*
+import android.view.MotionEvent.ACTION_DOWN
+import android.view.MotionEvent.ACTION_MOVE
+import android.view.MotionEvent.ACTION_UP
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import com.google.android.material.slider.Slider
 import com.reco1l.basskt.AudioState
 import com.reco1l.framework.android.views.setConstraints
 import com.reco1l.framework.animation.Ease
@@ -14,12 +15,12 @@ import com.reco1l.framework.animation.toTranslationX
 import com.reco1l.framework.animation.toTranslationY
 import com.reco1l.framework.graphics.Anchor
 import com.reco1l.framework.lang.dateFormatFor
-import game.rimu.R
 import game.rimu.MainContext
+import game.rimu.R
 import game.rimu.management.beatmap.IBeatmapObserver
 import game.rimu.management.beatmap.WorkingBeatmap
-import game.rimu.ui.LayerOverlay
 import game.rimu.ui.BaseLayer
+import game.rimu.ui.LayerOverlay
 import game.rimu.ui.views.IconButton
 import game.rimu.ui.views.SeekBar
 import game.rimu.ui.views.TextView
@@ -95,22 +96,12 @@ class MusicPlayerBox(ctx: MainContext) :
             topToTarget = Anchor.BOTTOM
         )
 
-        addOnSliderTouchListener(object : Slider.OnSliderTouchListener
-        {
-            override fun onStartTrackingTouch(slider: Slider)
-            {
-                isSeeking = true
-            }
+        onStartSeek = { isSeeking = true }
+        onEndSeek = {
 
-            override fun onStopTrackingTouch(slider: Slider)
-            {
-                ctx.beatmaps.current?.stream?.position = slider.value.toLong()
-
-                // This fixes a visual bug when for one frame the non-updated position is shown in
-                // the slider track, mostly because a mismatch between update and UI thread.
-                slider.post { isSeeking = false }
-            }
-        })
+            ctx.beatmaps.current?.stream?.position = it.toLong()
+            post { isSeeking = false }
+        }
     }
 
     private val playButton = IconButton {
@@ -246,8 +237,8 @@ class MusicPlayerBox(ctx: MainContext) :
 
             // Seekbar max value will equal to the length of the song so we can use absolute
             // positioning when seeking.
-            seekBar.valueTo = length.toFloat()
-            seekBar.setLabelFormatter { dateFormat.format(it) }
+            seekBar.max = length.toFloat()
+            //seekBar.setLabelFormatter { dateFormat.format(it) }
         }
     }
 
@@ -262,7 +253,7 @@ class MusicPlayerBox(ctx: MainContext) :
 
             // If seeking we should avoid update twice the seekbar progress.
             if (!isSeeking)
-                seekBar.value = position.toFloat()
+                seekBar.progress = position.toFloat()
         }
     }
 
@@ -273,6 +264,7 @@ class MusicPlayerBox(ctx: MainContext) :
         {
             ACTION_DOWN ->
             {
+                cancelAnimators()
                 initialX = event.x
                 initialY = event.y
             }

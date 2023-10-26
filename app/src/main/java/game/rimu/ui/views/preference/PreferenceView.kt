@@ -2,7 +2,6 @@ package game.rimu.ui.views.preference
 
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import com.google.android.material.slider.Slider
 import com.reco1l.framework.android.views.setConstraints
 import com.reco1l.framework.graphics.Anchor
 import game.rimu.IWithContext
@@ -48,11 +47,17 @@ sealed class SettingView(ctx: MainContext) : ConstraintLayout(ctx)
 
     var title
         get() = titleView.text?.toString()
-        set(value) { titleView.text = value }
+        set(value)
+        {
+            titleView.text = value
+        }
 
     var summary: String?
         get() = summaryView.text?.toString()
-        set(value) { summaryView.text = value }
+        set(value)
+        {
+            summaryView.text = value
+        }
 
 }
 
@@ -123,10 +128,7 @@ fun IWithContext.SeekBarSettingView(
 class SeekBarSettingView(
     ctx: MainContext,
     key: RimuSetting
-) :
-    SettingViewWithBinding<Float>(ctx, key),
-    Slider.OnSliderTouchListener,
-    Slider.OnChangeListener
+) : SettingViewWithBinding<Float>(ctx, key)
 {
 
     /**
@@ -139,15 +141,21 @@ class SeekBarSettingView(
      * Set the max allowed value, by default `100`.
      */
     var max: Float
-        get() = seekBar.valueTo
-        set(value) { seekBar.valueTo = value }
+        get() = seekBar.max
+        set(value)
+        {
+            seekBar.max = value
+        }
 
     /**
      * Set the max allowed value, by default `0`.
      */
     var min: Float
-        get() = seekBar.valueFrom
-        set(value) { seekBar.valueFrom = value }
+        get() = seekBar.min
+        set(value)
+        {
+            seekBar.min = value
+        }
 
 
     private val seekBar = SeekBar {
@@ -157,14 +165,21 @@ class SeekBarSettingView(
             marginTop = 10
         }
 
-        addOnSliderTouchListener(this@SeekBarSettingView)
-        addOnChangeListener(this@SeekBarSettingView)
+        onSeek = {
+            if (immediateChange)
+                updateBinding()
+        }
+
+        onEndSeek = {
+            if (!immediateChange)
+                updateBinding()
+        }
     }
 
 
     private fun updateBinding()
     {
-        binding = seekBar.value
+        binding = seekBar.progress
     }
 
 
@@ -177,22 +192,7 @@ class SeekBarSettingView(
             topToTarget = Anchor.BOTTOM
         )
 
-        seekBar.value = binding
+        seekBar.progress = binding
     }
-
-
-    override fun onValueChange(slider: Slider, value: Float, fromUser: Boolean)
-    {
-        if (immediateChange && fromUser)
-            updateBinding()
-    }
-
-    override fun onStopTrackingTouch(slider: Slider)
-    {
-        if (!immediateChange)
-            updateBinding()
-    }
-
-    override fun onStartTrackingTouch(slider: Slider) = Unit
 
 }

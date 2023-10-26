@@ -1,30 +1,15 @@
 package game.rimu.ui.views
 
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
+import android.view.MotionEvent
+import android.view.MotionEvent.*
 import android.view.ViewGroup
-import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import com.google.android.material.slider.LabelFormatter
-import com.google.android.material.slider.Slider
+import com.reco1l.framework.graphics.drawRoundRect
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
-import game.rimu.ui.IScalableWithDimensions
-import game.rimu.ui.ISkinnableWithRules
-
-
-class SeekBarDimensions<T : SeekBar> : ViewDimensions<T>(MATCH_PARENT, WRAP_CONTENT)
-{
-
-    var barHeight = 14
-
-
-    override fun onApplyScale(target: T, scale: Float)
-    {
-        super.onApplyScale(target, scale)
-
-        target.trackHeight = (barHeight * scale).toInt()
-    }
-}
 
 
 // Base
@@ -34,21 +19,101 @@ fun IWithContext.SeekBar(
     init: SeekBar.() -> Unit
 ) = SeekBar(ctx).apply { parent?.addView(this); init() }
 
-open class SeekBar(override val ctx: MainContext) :
-    Slider(ctx.activity),
-    IWithContext,
-    IScalableWithDimensions<SeekBar>,
-    ISkinnableWithRules<SeekBar>
+open class SeekBar(ctx: MainContext) : LinearProgressIndicator(ctx)
 {
 
-    override val rules by lazy { ViewSkinningRules<SeekBar>() }
+    override val dimensions = super.dimensions.apply {
+        height = 14
+        barRadius = 14f
+        barPadding = 4f
+    }
 
-    override val dimensions by lazy { SeekBarDimensions<SeekBar>() }
+    override var indeterminate: Boolean
+        get() = false
+        set(_) = throw IllegalArgumentException("SeekBar cannot be indeterminate.")
+
+
+    var onSeek: ((Float) -> Unit)? = null
+
+    var onStartSeek: (() -> Unit)? = null
+
+    var onEndSeek: ((Float) -> Unit)? = null
+
+
+    private val thumbRect = RectF()
+
+    private val thumbPaint = Paint()
 
 
     init
     {
-        labelBehavior = LabelFormatter.LABEL_FLOATING
+        isClickable = true
+    }
+
+
+    override fun onDraw(canvas: Canvas)
+    {
+        super.onDraw(canvas)
+
+        val width = width.toFloat()
+        val height = height.toFloat()
+        val radius = dimensions.let { it.barRadius * it.currentScale }
+
+        // Thumb size will always equal to view height without accounting for padding.
+        val left = (activeBarRect.right - height / 2f).coerceIn(0f, width - height)
+
+        thumbRect.set(left, 0f, left + height, height)
+
+        canvas.drawRoundRect(thumbRect, radius, thumbPaint)
+    }
+
+
+    private fun setProgressFromTouch(x: Float)
+    {
+        val padding = dimensions.let { it.barPadding * it.currentScale }
+
+        // Computing max X position.
+        val fX = inactiveBarRect.right - padding
+
+        // Coercing delta X to bar bounds rather than view bounds because of the padding.
+        val dX = x.coerceIn(padding, fX) - padding
+
+        // Setting new progress accounting for range (min to max values).
+        progress = min + ((max - min) * (dX / fX))
+
+        onSeek?.invoke(progress)
+    }
+
+
+    override fun onTouchEvent(event: MotionEvent) = when (event.action)
+    {
+        ACTION_DOWN ->
+        {
+            // Disabling ACTION_MOVE interception for parent views so we can handle seeking outside
+            // the view bounds, useful for ScrollViews.
+            parent.requestDisallowInterceptTouchEvent(true)
+
+            onStartSeek?.invoke()
+            setProgressFromTouch(event.x)
+            true
+        }
+
+        ACTION_MOVE ->
+        {
+            setProgressFromTouch(event.x)
+            true
+        }
+
+        ACTION_UP ->
+        {
+            // Re-enabling interception.
+            parent.requestDisallowInterceptTouchEvent(false)
+
+            onEndSeek?.invoke(progress)
+            true
+        }
+
+        else -> super.onTouchEvent(event)
     }
 
 
@@ -62,13 +127,8 @@ open class SeekBar(override val ctx: MainContext) :
 
     override fun onApplySkin(skin: WorkingSkin)
     {
-        super.onApplySkin(skin)
+        thumbPaint.color = skin.data.colours.accentColor.toInt()
 
-        skin.data.colours.accentColor.apply {
-            trackActiveTintList = toColorStateList(factor = 0.7f)
-            trackInactiveTintList = toColorStateList(factor = 0.2f)
-            haloTintList = toColorStateList(alpha = 0.1f)
-            thumbTintList = toColorStateList()
-        }
+        super.onApplySkin(skin)
     }
 }
