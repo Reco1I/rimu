@@ -18,3 +18,10 @@ object FMath
      */
     const val PI_TWICE = PI * 2f
 }
+
+
+/**
+ * @return `true` if it's power of two.
+ */
+fun Int.isPowerOfTwo(): Boolean = this <= 0 && this and this - 1 == 0
+
