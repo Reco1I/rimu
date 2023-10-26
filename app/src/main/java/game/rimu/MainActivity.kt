@@ -11,15 +11,10 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-import com.reco1l.framework.data.extensionLowercase
-import com.reco1l.framework.data.subDirectory
-import com.reco1l.framework.data.toFile
+import com.reco1l.framework.data.resolveFilename
 import com.reco1l.framework.lang.async
 import com.reco1l.framework.lang.forEachTrim
 import com.reco1l.framework.lang.ignoreException
-import game.rimu.ui.layouts.Notification
-import game.rimu.ui.layouts.NotificationCenter
-import game.rimu.ui.layouts.ProcessNotification
 import game.rimu.ui.scenes.SceneIntro
 
 
@@ -68,15 +63,7 @@ class MainActivity :
 
             // If the activity was started with an intent we managed it after the initialization.
             onManageIntent(intent)
-
-            ProcessNotification(
-                header = "TEST",
-                message = "TEST TEST TEST.",
-                icon = "icon-notification",
-                indeterminate = true
-            ).show(ctx)
         }
-
     }
 
 
@@ -89,28 +76,27 @@ class MainActivity :
          */
         fun onManageUri(uri: Uri) = ignoreException {
 
-            // Copying file to '.../cache/import/' directory.
-            val file = uri.toFile(cacheDir.subDirectory("import"), contentResolver)
-
-            when (file.extensionLowercase)
+            when (uri.resolveFilename(contentResolver).substringAfterLast('.'))
             {
-                "osz" -> ctx.beatmaps.importer.import(file)
-                "osk" -> ctx.skins.importer.import(file)
+                "osz" -> ctx.beatmaps.importer.import(uri)
+                "osk" -> ctx.skins.importer.import(uri)
             }
         }
 
-        // 'getParcelableExtra' and 'getParcelableArrayListExtra' are deprecated but current
-        // replacement is exclusive to newer APIs so there's no replacement.
-        @Suppress("DEPRECATION")
-        when (intent.action)
-        {
-            // The intent was sent through the 'Open with...' option.
-            ACTION_VIEW -> onManageUri(intent.data ?: return)
+        async {
+            // 'getParcelableExtra' and 'getParcelableArrayListExtra' are deprecated but current
+            // replacement is exclusive to newer APIs so there's no replacement.
+            @Suppress("DEPRECATION")
+            when (intent.action)
+            {
+                // The intent was sent through the 'Open with...' option.
+                ACTION_VIEW -> onManageUri(intent.data ?: return@async)
 
-            // The intent was sent through the 'Share' option.
-            ACTION_SEND -> onManageUri(intent.getParcelableExtra(EXTRA_STREAM) ?: return)
-            ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtra<Uri>(EXTRA_STREAM)
-                ?.forEach { onManageUri(it) }
+                // The intent was sent through the 'Share' option.
+                ACTION_SEND -> onManageUri(intent.getParcelableExtra(EXTRA_STREAM) ?: return@async)
+                ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtra<Uri>(EXTRA_STREAM)
+                    ?.forEach { onManageUri(it) }
+            }
         }
     }
 

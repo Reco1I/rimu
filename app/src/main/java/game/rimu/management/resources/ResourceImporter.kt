@@ -1,9 +1,11 @@
 package game.rimu.management.resources
 
+import android.net.Uri
 import com.reco1l.framework.data.extensionLowercase
 import com.reco1l.framework.data.forEachRecursive
 import com.reco1l.framework.data.md5
 import com.reco1l.framework.data.subDirectory
+import com.reco1l.framework.data.toFile
 import com.reco1l.framework.lang.orCatch
 import game.rimu.IWithContext
 import game.rimu.MainContext
@@ -16,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.lingala.zip4j.ZipFile
 import java.io.File
-import java.lang.Exception
 
 abstract class BaseImporter(override val ctx: MainContext) : IWithContext
 {
@@ -37,21 +38,31 @@ abstract class BaseImporter(override val ctx: MainContext) : IWithContext
     protected abstract fun onTaskEnd(task: ImportTask, exception: Exception?)
 
 
+    private fun ImportTask.doImport()
+    {
+        onTaskStart(this)
+
+        // Try-catching and delegating the exception handling so we can show some UI dialog or
+        // notification.
+        val exception = { start(); null }.orCatch { it }
+
+        onTaskEnd(this, exception)
+    }
+
+
     /**
-     * Import from a folder.
+     * Import from a file.
      */
-    fun import(folder: File) = onCreateTask(folder).apply {
+    fun import(file: File) = importScope.launch { onCreateTask(file).doImport() }
 
-        importScope.launch {
+    /**
+     * Import from an URI.
+     */
+    fun import(uri: Uri) = importScope.launch {
 
-            onTaskStart(this@apply)
+        val file = uri.toFile(ctx.cacheDir.subDirectory("import"), ctx.contentResolver)
 
-            // Try-catching and delegating the exception handling so we can show some UI dialog or
-            // notification.
-            val exception = { start(); null }.orCatch { it }
-
-            onTaskEnd(this@apply, exception)
-        }
+        onCreateTask(file).doImport()
     }
 
 }
@@ -126,7 +137,8 @@ abstract class ImportTask(override val ctx: MainContext, root: File) : IWithCont
                 // Computing the file, if this returns an HashableAsset we're adding it to the pending
                 // files list to later import it.
                 asset = onComputeFile(file, dependencies)
-            } else
+            }
+            else
             {
                 // Resolving resource key and variant number according to file relative path from root.
                 val (key, variant) = when (file.toRelativeString(root))

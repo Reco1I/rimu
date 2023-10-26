@@ -65,6 +65,8 @@ open class ViewDimensions<V : View>(
 
     var cornerRadius: Float = 0f
 
+    var fadeEdgeLength: Int = 0
+
 
     fun padding(horizontal: Int, vertical: Int)
     {
@@ -145,6 +147,7 @@ open class ViewDimensions<V : View>(
         )
 
         target.cornerRadius = cornerRadius * scale
+        target.setFadingEdgeLength((fadeEdgeLength * scale).toInt())
     }
 }
 

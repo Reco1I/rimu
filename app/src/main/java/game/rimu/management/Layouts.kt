@@ -87,14 +87,15 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
         // isn't null and 'override' is false it'll throw an exception.
         if (layout.isSingleton)
         {
-            val previous = loadedLayouts.find { it::class == layout::class }
+            loadedLayouts.filter { it::class == layout::class }.forEach {
 
-            if (previous != null && previous != layout)
-            {
+                if (it == layout)
+                    return@forEach
+
                 if (!overridePrevious)
                     throw IllegalStateException("There's already loaded an instance of this layout.")
                 else
-                    previous.hide()
+                    it.hide()
             }
         }
 

@@ -3,9 +3,11 @@ package game.rimu.ui.layouts
 import android.animation.ValueAnimator
 import android.graphics.Color
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout.VERTICAL
+import androidx.core.view.marginRight
 import com.reco1l.framework.android.views.backgroundColor
 import com.reco1l.framework.android.views.doPost
 import com.reco1l.framework.android.views.orientation
@@ -14,16 +16,18 @@ import com.reco1l.framework.animation.Ease
 import com.reco1l.framework.animation.animate
 import com.reco1l.framework.animation.cancelAnimators
 import com.reco1l.framework.animation.toAlpha
+import com.reco1l.framework.animation.toScale
 import com.reco1l.framework.animation.toTranslationX
+import com.reco1l.framework.animation.toTranslationY
 import com.reco1l.framework.graphics.Anchor
-import game.rimu.R
 import game.rimu.IWithContext
 import game.rimu.MainContext
+import game.rimu.R
 import game.rimu.data.adapter.Adapter
 import game.rimu.data.adapter.IHeldView
-import game.rimu.ui.LayerOverlay
 import game.rimu.ui.BaseLayer
 import game.rimu.ui.LayerBackground
+import game.rimu.ui.LayerOverlay
 import game.rimu.ui.views.DummyView
 import game.rimu.ui.views.ImageView
 import game.rimu.ui.views.LinearLayout
@@ -43,9 +47,6 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
 
 
     private val notifications = mutableListOf<Notification>()
-
-    private var backgroundAnimator: ValueAnimator? = null
-
 
     private val body = LinearLayout {
 
@@ -97,9 +98,11 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
     private val listView = RecyclerView(parent = body) {
 
         orientation = VERTICAL
+        isVerticalFadingEdgeEnabled = true
 
         dimensions.apply {
             width = MATCH_PARENT
+            fadeEdgeLength = 30
             padding(14)
         }
 
@@ -122,6 +125,10 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
         )
     }
 
+    private var backgroundAnimator: ValueAnimator? = null
+
+    private var currentPopup: NotificationView? = null
+
 
     init
     {
@@ -141,12 +148,15 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
         listView.adapter!!.notifyItemInserted(0)
 
         if (!isAttachedToLayer)
-            ctx.layouts[when (notification)
+        {
+            currentPopup = when (notification)
             {
-                is ProcessNotification -> ProcessNotificationView::class
-                else -> NotificationView::class
-
-            }].apply { onAssignData(notification, 0) }.show(true)
+                is ProcessNotification -> ProcessNotificationView(ctx)
+                else -> NotificationView(ctx)
+            }
+            currentPopup!!.onAssignData(notification, 0)
+            currentPopup!!.show(true)
+        }
     }
 
     fun update(notification: Notification) = mainThread {
@@ -155,6 +165,13 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
 
         if (index >= 0)
             listView.adapter!!.notifyItemChanged(index)
+
+        currentPopup?.apply {
+
+            if (associatedData == notification)
+                onAssignData(notification, 0)
+
+        }
     }
 
 
@@ -270,6 +287,8 @@ open class NotificationView(ctx: MainContext) :
 
     override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
+    lateinit var associatedData: Notification
+
 
     protected val iconView = ImageView {
 
@@ -318,6 +337,7 @@ open class NotificationView(ctx: MainContext) :
     {
         dimensions.apply {
             width = MATCH_PARENT
+            height = WRAP_CONTENT
             cornerRadius = 8f
             marginBottom = 8
             padding(8)
@@ -332,29 +352,58 @@ open class NotificationView(ctx: MainContext) :
 
     override fun onAssignData(data: Notification, position: Int)
     {
+        associatedData = data
+
         headerView.text = data.header.uppercase()
         messageText.text = data.message
         iconView.rules.image = data.icon
 
         invalidateSkin()
+        invalidateHideTimer()
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean
+    {
+        invalidateHideTimer()
+
+        return super.onTouchEvent(event)
     }
 
     override fun onAttachedToWindow()
     {
         if (isAttachedToLayer)
         {
+            hideTime = 5000
+
             dimensions.apply {
                 width = 240
-                height = WRAP_CONTENT
 
                 marginTop = ctx.layouts[TopBarLayout::class].dimensions.height + 8
                 marginRight = 8
             }
 
             setConstraints(topToTarget = Anchor.TOP, rightToTarget = Anchor.RIGHT)
+
+            toAlpha(0f)
+
+            post {
+                cancelAnimators()
+                toTranslationX((width + marginRight).toFloat())
+
+                toAlpha(1f, 300)
+                toTranslationX(0f, 400, ease = Ease.BOUNCE_OUT)
+            }
         }
 
         super.onAttachedToWindow()
+    }
+
+    override fun hide()
+    {
+        cancelAnimators()
+        toAlpha(0f, 300, ease = Ease.EXPO_OUT)
+        toScale(0.8f, 300, ease = Ease.EXPO_OUT)
+        toTranslationY(30f, 300, ease = Ease.EXPO_OUT, listener = { onEnd = { super.hide() } })
     }
 }
 

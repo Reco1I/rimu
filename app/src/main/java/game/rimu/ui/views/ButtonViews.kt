@@ -21,7 +21,7 @@ open class IconButton(ctx: MainContext) : ImageView(ctx)
 
         height = 50
         width = 70
-        padding(15)
+        padding(16)
     }
 
     override val rules = super.rules.apply {
