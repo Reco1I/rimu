@@ -249,6 +249,8 @@ class ExternalAssetBundle(ctx: MainContext, key: String) : AssetBundle(ctx)
                 SampleStream::class -> SampleStream(getAssetPath(key, variant)) as? T
 
                 // Image formats
+                WrappingTexture::class -> get<Bitmap>(key, variant)?.toTexture(ctx.engine.textureManager) as? T
+
                 Bitmap::class -> getInputStream(key, variant)?.use {
 
                     if (type == "svg")
