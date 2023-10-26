@@ -133,8 +133,8 @@ public class Sprite extends Shape {
 		return this.mTextureRegion;
 	}
 
-	// Modified
-	public void setTextureRegion(@NonNull ITextureRegion pTextureRegion) {
+	// BEGIN rimu! modification
+	public void setTextureRegion(@Nullable ITextureRegion pTextureRegion) {
 		this.mTextureRegion = pTextureRegion;
 
 		this.setBlendingEnabled(true);
@@ -142,6 +142,7 @@ public class Sprite extends Shape {
 		this.onUpdateColor();
 		this.onUpdateTextureCoordinates();
 	}
+	// END rimu! modification
 
 	public boolean isFlippedHorizontal() {
 		return this.mFlippedHorizontal;
