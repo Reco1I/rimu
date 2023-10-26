@@ -10,10 +10,13 @@ import com.reco1l.basskt.stream.SampleStream
 import com.reco1l.framework.android.Logger
 import com.reco1l.framework.kotlin.orCatch
 import com.reco1l.framework.graphics.toBitmap
+import com.reco1l.framework.graphics.toTexture
 import com.reco1l.framework.kotlin.klass
+import com.reco1l.framework.support.WrappingTexture
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.data.Skin
+import org.andengine.opengl.font.Font
 import java.io.File
 import java.io.InputStream
 import kotlin.reflect.KClass
@@ -28,15 +31,22 @@ sealed class AssetBundle(override val ctx: MainContext) : IWithContext
     abstract val list: List<Asset>
 
     /**
-     * List of loaded assets.
+     * Array map of loaded assets grouped by its classifier.
+     *
+     * Since this is an array (for performance purposes) instead of using keys, we're using the
+     * indexes from [SUPPORTED_TYPES] as keys.
      */
-    val loadedAssets by lazy { mutableMapOf<Asset, Any?>() }
-
+    val loadedMap by lazy { Array(SUPPORTED_TYPES.size) { mutableMapOf<Asset, Any?>() } }
 
     /**
      * Called by [get] only once if the asset wasn't tried to load yet.
      */
-    abstract fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int = 0, type: String): T?
+    abstract fun <T : Any> onLoadAsset(
+        expectedType: KClass<T>,
+        key: String,
+        variant: Int = 0,
+        type: String
+    ): T?
 
 
     /**
@@ -60,37 +70,45 @@ sealed class AssetBundle(override val ctx: MainContext) : IWithContext
     }
 
 
+    inline fun <reified T : Any> getMapOf(): MutableMap<Asset, Any?>
+    {
+        val mapIndex = SUPPORTED_TYPES.indexOfFirst(T::class::isSubclassOf)
+
+        if (mapIndex == -1)
+            throw UnsupportedOperationException("${T::class} is not a supported type.")
+
+        // Finding the corresponding map for the declared classifier.
+        return loadedMap[mapIndex]
+    }
+
+
     /**
      * Get an asset converted to the inferred type.
      */
     inline operator fun <reified T : Any> get(key: String, variant: Int = 0): T?
     {
-        if (SUPPORTED_TYPES.none { T::class == it || T::class.isSubclassOf(it) })
-            throw UnsupportedOperationException("${T::class} is not supported, see ${::SUPPORTED_TYPES.name}.")
+        val map = getMapOf<T>()
 
         // Searching the key and variant into the listed assets, if the find function returns null,
-        // means the bundle (skin or beatmap) doesn't have such file.
+        // means the bundle source doesn't have such file.
         val asset = list.find { it.equals(key, variant) } ?: return null
 
-        var value = loadedAssets[asset]?.also {
+        return map[asset] as? T ?: run {
 
-            // Means the loaded asset isn't type of the required type, shouldn't happen if the
-            // function is used properly.
-            return if (it::class != T::class) null else it as? T
-        }
-
-        // Trying to load sound only if it wasn't tried yet. If the key has a null mapping means that
-        // it was already tried to load unsuccessfully.
-        if (asset !in loadedAssets)
-        {
-            value = onLoadAsset(T::class, key, variant, asset.type)
+            // Trying to load sound only if it wasn't tried yet. If the key has a null mapping means that
+            // it was already tried to load unsuccessfully.
+            if (asset in map)
+                return null
 
             // We storing it in the map no matter if it's still null, the key will have a null mapping
-            // to avoid trying to load the asset again.
-            loadedAssets[asset] = value
-        }
+            // to avoid trying to load the asset again in the future.
+            { onLoadAsset(T::class, key, variant, asset.type) }.orCatch {
 
-        return value as? T
+                Logger.e(klass, "Failed to load asset $key::$variant of type ${T::class}", it)
+                null
+
+            }.also { map[asset] = it }
+        }
     }
 
     /**
@@ -112,7 +130,13 @@ sealed class AssetBundle(override val ctx: MainContext) : IWithContext
         /**
          * List of supported types.
          */
-        val SUPPORTED_TYPES = arrayOf(Bitmap::class, Typeface::class, BaseStream::class)
+        val SUPPORTED_TYPES = arrayOf(
+            Font::class,
+            Bitmap::class,
+            Typeface::class,
+            BaseStream::class,
+            WrappingTexture::class
+        )
 
         /**
          * Returns the proper type of [AssetBundle].
@@ -168,36 +192,36 @@ class InternalAssetsBundle(app: MainContext, val directory: String) : AssetBundl
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int, type: String): T?
+    override fun <T : Any> onLoadAsset(
+        expectedType: KClass<T>,
+        key: String,
+        variant: Int,
+        type: String
+    ) = when (expectedType)
     {
-        return {
-            when (expectedType)
-            {
-                // Audio formats
-                SampleStream::class -> AssetSampleStream(ctx, getAssetPath(name)) as? T
+        // Audio formats
+        SampleStream::class -> AssetSampleStream(ctx, getAssetPath(key)) as? T
 
-                // Image formats
-                Bitmap::class -> getInputStream(name, variant)?.use {
 
-                    if (type == "svg")
-                        SVG.getFromInputStream(it).toBitmap()
-                    else
-                        it.toBitmap()
+        // Image formats
+        WrappingTexture::class -> get<Bitmap>(key, variant)?.toTexture(ctx.engine.textureManager) as? T
 
-                } as? T
+        Bitmap::class -> getInputStream(key, variant)?.use {
 
-                // Font format
-                Typeface::class -> Typeface.createFromAsset(ctx.assets, getAssetPath(name)) as? T
+            if (type == "svg")
+                SVG.getFromInputStream(it).toBitmap()
+            else
+                it.toBitmap()
 
-                // Unknown type
-                else -> null
-            }
-        }.orCatch {
-            Logger.e(klass, "Failed to load asset: \"$name\" with variant $variant of type \"$type\"", it)
-            null
-        }
+        } as? T
+
+
+        // Font format
+        Typeface::class -> Typeface.createFromAsset(ctx.assets, getAssetPath(key)) as? T
+
+        // Unknown type
+        else -> throw UnsupportedOperationException("The expected type is not supported.")
     }
-
 }
 
 
@@ -211,16 +235,21 @@ class ExternalAssetBundle(ctx: MainContext, key: String) : AssetBundle(ctx)
 
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> onLoadAsset(expectedType: KClass<T>, name: String, variant: Int, type: String): T?
+    override fun <T : Any> onLoadAsset(
+        expectedType: KClass<T>,
+        key: String,
+        variant: Int,
+        type: String
+    ): T?
     {
         return {
             when (expectedType)
             {
                 // Audio formats
-                SampleStream::class -> SampleStream(getAssetPath(name, variant)) as? T
+                SampleStream::class -> SampleStream(getAssetPath(key, variant)) as? T
 
                 // Image formats
-                Bitmap::class -> getInputStream(name, variant)?.use {
+                Bitmap::class -> getInputStream(key, variant)?.use {
 
                     if (type == "svg")
                         SVG.getFromInputStream(it).toBitmap()
@@ -230,13 +259,13 @@ class ExternalAssetBundle(ctx: MainContext, key: String) : AssetBundle(ctx)
                 } as? T
 
                 // Font format
-                Typeface::class -> Typeface.createFromFile(getAssetPath(name, variant)) as? T
+                Typeface::class -> Typeface.createFromFile(getAssetPath(key, variant)) as? T
 
                 // Unknown type
                 else -> null
             }
         }.orCatch {
-            Logger.e(klass, "Error while loading asset: $name $variant $type", it)
+            Logger.e(klass, "Error while loading asset: $key $variant $type", it)
             null
         }
     }

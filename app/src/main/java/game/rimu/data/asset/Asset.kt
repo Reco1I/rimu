@@ -55,6 +55,9 @@ data class Asset(
 {
 
 
+    /**
+     * Compare along key and variant.
+     */
     fun equals(key: String, variant: Int = 0) = this.key == key && this.variant == variant
 
 

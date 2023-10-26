@@ -160,6 +160,10 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
 
             return source[ctx]?.get(key, variant) ?: continue
         }
+
+        if (fallbackToDefault)
+            Logger.w(klass, "Expected asset $key with variant $variant, wasn't found.")
+
         return null
     }
 
