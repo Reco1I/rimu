@@ -3,6 +3,7 @@ package game.rimu
 import android.app.Application
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.res.Resources
 import android.os.Handler
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
@@ -93,6 +94,16 @@ class MainContext(base: Context) : ContextWrapper(base)
      * The skin manager.
      */
     val skins = SkinManager(this)
+
+
+    init
+    {
+        // Fixes 'View class ... is an AppCompat widget that can only be used with a Theme.AppCompat
+        // theme (or descendant).' warning.
+        // That warning is thrown because views are intended to be instantiated with activity context
+        // rather than application context but since rimu! doesn't use theme attributes we ignore it.
+        setTheme(R.style.Theme_Rimu)
+    }
 
 
     // Compatibility
