@@ -133,6 +133,8 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
     @CallSuper
     open fun hide()
     {
+        removeCallbacks(hideTask)
+
         ctx.layouts.hide(this).then { klass logI "Layout successfully detached." }
     }
 
