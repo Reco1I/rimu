@@ -1,4 +1,4 @@
-package com.reco1l.framework.management.bindables
+package com.reco1l.framework.management
 
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -26,4 +26,19 @@ abstract class Bindable<K, V : Any?>(
     override fun getValue(thisRef: Any?, property: KProperty<*>) = provider.getValueForBindable(key) ?: fallback
 
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: V) = provider.setValueFromBindable(key, value)
+}
+
+interface IBindableValueProvider<K, V : Any?, B: Bindable<K, V>>
+{
+
+    /**
+     * Called by the bindable to get the value from the key.
+     */
+    fun getValueForBindable(key: K) : V
+
+    /**
+     * Called by the bindable to set the value from the key.
+     */
+    fun setValueFromBindable(key: K, value: V)
+
 }

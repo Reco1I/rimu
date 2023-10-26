@@ -1,8 +1,7 @@
 package com.reco1l.basskt
 
-import com.reco1l.framework.android.logE
-import com.reco1l.framework.android.logI
-import com.reco1l.framework.lang.klass
+import com.reco1l.framework.android.Logger
+import com.reco1l.framework.kotlin.klass
 import com.un4seen.bass.BASS.BASS_CONFIG_DEV_BUFFER
 import com.un4seen.bass.BASS.BASS_CONFIG_DEV_NONSTOP
 import com.un4seen.bass.BASS.BASS_CONFIG_DEV_PERIOD
@@ -50,26 +49,26 @@ class BassDevice
         if (!BASS_Init(-1, DEFAULT_FREQUENCY, BASS_DEVICE_LATENCY))
             throw InvalidBassDevice()
 
-        klass logI "Initialized with ID: $id"
+        Logger.i(klass, "Initialized with ID: $id")
     }
 
 
     fun free() = BASS_Free().also {
 
         if (!it)
-            klass logE "Failed to free device: ${BASS_ErrorGetName()}"
+            Logger.e(klass, "Failed to free device: ${BASS_ErrorGetName()}")
     }
 
     fun start() = BASS_Start().also {
 
         if (!it)
-            klass logE "Failed to start device: ${BASS_ErrorGetName()}"
+            Logger.e(klass, "Failed to start device: ${BASS_ErrorGetName()}")
     }
 
     fun stop() = BASS_Stop().also {
 
         if (!it)
-            klass logE "Failed to stop device: ${BASS_ErrorGetName()}"
+            Logger.e(klass, "Failed to stop device: ${BASS_ErrorGetName()}")
     }
 
 
@@ -79,7 +78,7 @@ class BassDevice
     fun setConfig(option: Int, value: Int) = BASS_SetConfig(option, value).also {
 
         if (!it)
-            klass logE "Failed to set ${BASS_GetConfigName(option)} to \"$value\": ${BASS_ErrorGetName()}"
+            Logger.e(klass, "Failed to set ${BASS_GetConfigName(option)} to \"$value\": ${BASS_ErrorGetName()}")
     }
 
     /**

@@ -2,10 +2,10 @@ package game.rimu.management
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.reco1l.framework.lang.klass
+import com.reco1l.framework.kotlin.klass
 import com.reco1l.framework.management.IMapObservable
-import com.reco1l.framework.management.bindables.Bindable
-import com.reco1l.framework.management.bindables.IBindableValueProvider
+import com.reco1l.framework.management.Bindable
+import com.reco1l.framework.management.IBindableValueProvider
 import com.reco1l.framework.management.forEachObserver
 import game.rimu.IWithContext
 import game.rimu.MainContext

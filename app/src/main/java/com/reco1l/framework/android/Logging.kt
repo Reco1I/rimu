@@ -1,31 +1,18 @@
 package com.reco1l.framework.android
 
 import android.util.Log
-import java.lang.Exception
 import kotlin.reflect.KClass
 
-/**
- * As specified on [Log.i]
- */
-infix fun String.logI(message: String) = Log.i(this, message)
 
-infix fun KClass<*>.logI(message: String) = Log.i(simpleName, message)
+object Logger
+{
 
-/**
- * As specified on [Log.w]
- */
-infix fun String.logW(message: String) = Log.w(this, message)
+    fun i(clazz: KClass<*>, message: String) = Log.i(clazz.simpleName, message)
 
-infix fun KClass<*>.logW(message: String) = Log.w(simpleName, message)
+    fun w(clazz: KClass<*>, message: String) = Log.w(clazz.simpleName, message)
 
-/**
- * As specified on [Log.e]
- */
-infix fun String.logE(message: String) = Log.e(this, message)
+    fun e(clazz: KClass<*>, message: String) = Log.e(clazz.simpleName, message)
 
-infix fun String.logE(exception: Exception) = Log.e(this, "", exception)
+    fun e(clazz: KClass<*>, message: String, throwable: Throwable) = Log.e(clazz.simpleName, message, throwable)
 
-
-infix fun KClass<*>.logE(message: String) = Log.e(simpleName, message)
-
-infix fun KClass<*>.logE(pair: Pair<String, Throwable>) = Log.e(simpleName, pair.first, pair.second)
+}

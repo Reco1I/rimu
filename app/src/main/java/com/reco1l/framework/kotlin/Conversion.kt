@@ -1,4 +1,4 @@
-package com.reco1l.framework.lang
+package com.reco1l.framework.kotlin
 
 import java.text.SimpleDateFormat
 import java.util.TimeZone

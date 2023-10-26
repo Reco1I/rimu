@@ -4,8 +4,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.core.view.forEach
-import com.reco1l.framework.lang.isLazyInit
-import com.reco1l.framework.lang.isLazyInitialized
+import com.reco1l.framework.kotlin.isLazyInit
+import com.reco1l.framework.kotlin.isLazyInitialized
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.constants.RimuSetting

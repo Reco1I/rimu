@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.BitmapFactory.Options
 import androidx.core.graphics.applyCanvas
 import com.caverock.androidsvg.SVG
-import com.reco1l.framework.lang.orCatch
+import com.reco1l.framework.kotlin.orCatch
 import java.io.InputStream
 import kotlin.math.roundToInt
 

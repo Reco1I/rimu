@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.view.ViewGroup.*
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.annotation.ColorInt
-import androidx.annotation.StringRes
 import androidx.core.view.*
 import game.rimu.ui.views.addons.RoundOutlineProvider
 import kotlin.math.roundToInt

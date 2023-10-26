@@ -10,9 +10,9 @@ import com.reco1l.basskt.AudioState.*
 import com.reco1l.basskt.BASS_ErrorGetName
 import com.reco1l.basskt.BASS_GetAttributeName
 import com.reco1l.basskt.InvalidBassDevice
-import com.reco1l.framework.android.logE
-import com.reco1l.framework.lang.isLazyInitialized
-import com.reco1l.framework.lang.klass
+import com.reco1l.framework.android.Logger
+import com.reco1l.framework.kotlin.isLazyInitialized
+import com.reco1l.framework.kotlin.klass
 import com.un4seen.bass.BASS
 import com.un4seen.bass.BASS_FX
 import java.nio.ByteBuffer
@@ -95,7 +95,7 @@ abstract class BaseStream(source: String? = null)
         get()
         {
             if (!BASS.BASS_ChannelGetInfo(id, field))
-               klass logE "Failed to get channel information: ${BASS_ErrorGetName()}"
+                Logger.e(klass, "Failed to get channel information: ${BASS_ErrorGetName()}")
 
             return field
         }
@@ -148,7 +148,7 @@ abstract class BaseStream(source: String? = null)
             val bytes = BASS.BASS_ChannelSeconds2Bytes(id, value / 1000.0)
 
             if (!BASS.BASS_ChannelSetPosition(id, bytes, BASS.BASS_POS_DECODE))
-                klass logE "Failed to change position: ${BASS_ErrorGetName()}"
+                Logger.e(klass, "Failed to change position: ${BASS_ErrorGetName()}")
         }
         get()
         {
@@ -239,7 +239,7 @@ abstract class BaseStream(source: String? = null)
     fun stop() = BASS.BASS_ChannelStop(id).also {
 
         if (!it)
-            klass logE "Failed to stop: ${BASS_ErrorGetName()}"
+            Logger.e(klass, "Failed to stop: ${BASS_ErrorGetName()}")
     }
 
     /**
@@ -248,7 +248,7 @@ abstract class BaseStream(source: String? = null)
     fun pause() = BASS.BASS_ChannelPause(id).also {
 
         if (!it)
-            klass logE "Failed to pause: ${BASS_ErrorGetName()}"
+            Logger.e(klass, "Failed to pause: ${BASS_ErrorGetName()}")
     }
 
     /**
@@ -257,7 +257,7 @@ abstract class BaseStream(source: String? = null)
     fun play(restart: Boolean = false) = BASS.BASS_ChannelPlay(id, restart).also {
 
         if (!it)
-            klass logE "Failed to play: ${BASS_ErrorGetName()}"
+            Logger.e(klass, "Failed to play: ${BASS_ErrorGetName()}")
     }
 
     /**
@@ -271,7 +271,7 @@ abstract class BaseStream(source: String? = null)
         return BASS.BASS_StreamFree(id).also {
 
             if (!it)
-                klass logE "Failed to free stream: ${BASS_ErrorGetName()}"
+                Logger.e(klass, "Failed to free stream: ${BASS_ErrorGetName()}")
 
             id = 0
         }
@@ -308,7 +308,7 @@ abstract class BaseStream(source: String? = null)
         val float = BASS.FloatValue()
 
         if (!BASS.BASS_ChannelGetAttribute(id, attribute, float))
-            klass logE "Failed to get \"${BASS_GetAttributeName(attribute)}\": ${BASS_ErrorGetName()}"
+            Logger.e(klass, "Failed to get \"${BASS_GetAttributeName(attribute)}\": ${BASS_ErrorGetName()}")
 
         return float.value
     }
@@ -329,7 +329,7 @@ abstract class BaseStream(source: String? = null)
         return BASS.BASS_ChannelSetAttribute(id, attribute, value).also {
 
             if (!it)
-                klass logE "Failed to set ${BASS_GetAttributeName(attribute)} to \"$value\": ${BASS_ErrorGetName()}"
+                Logger.e(klass, "Failed to set ${BASS_GetAttributeName(attribute)} to \"$value\": ${BASS_ErrorGetName()}")
         }
     }
 
@@ -341,7 +341,7 @@ abstract class BaseStream(source: String? = null)
         return BASS.BASS_FXSetParameters(id, params).also {
 
             if (!it)
-                klass logE "Failed to set FX parameters to \"$params\" : ${BASS_ErrorGetName()}"
+                Logger.e(klass, "Failed to set FX parameters to \"$params\" : ${BASS_ErrorGetName()}")
         }
     }
 

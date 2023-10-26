@@ -20,7 +20,7 @@ import com.reco1l.framework.android.views.fontSize
 import com.reco1l.framework.animation.cancelAnimators
 import com.reco1l.framework.animation.toAlpha
 import com.reco1l.framework.graphics.Anchor
-import com.reco1l.framework.graphics.BasicAnchor
+import com.reco1l.framework.graphics.BasicAnchorimport com.reco1l.framework.graphics.toInt
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin

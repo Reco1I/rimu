@@ -1,8 +1,8 @@
 package game.rimu.management.skin
 
 import com.reco1l.framework.data.md5
-import com.reco1l.framework.lang.klass
-import com.reco1l.framework.lang.orCatch
+import com.reco1l.framework.kotlin.klass
+import com.reco1l.framework.kotlin.orCatch
 import com.reco1l.skindecoder.SkinDecoder
 import com.reco1l.skindecoder.data.SkinData
 import game.rimu.MainContext
@@ -12,7 +12,6 @@ import game.rimu.data.asset.Asset
 import game.rimu.data.Skin
 import game.rimu.management.resources.BaseImporter
 import game.rimu.management.resources.ImportTask
-import game.rimu.ui.layouts.NotificationCenter
 import game.rimu.ui.layouts.ProcessNotification
 import okio.IOException
 import java.io.File

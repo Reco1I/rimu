@@ -1,6 +1,5 @@
 package com.reco1l.framework.graphics
 
-import android.content.res.ColorStateList
 import androidx.annotation.IntRange
 import androidx.core.graphics.drawable.toDrawable
 import com.reco1l.skindecoder.serializers.ColorSerializer
@@ -90,9 +89,6 @@ open class Color4 @JvmOverloads constructor(
         alpha8bit
     )
 
-
-    // Conversion
-
     fun set(hex: Int)
     {
         red8bit = (hex shr 16) and 0xFF
@@ -100,40 +96,6 @@ open class Color4 @JvmOverloads constructor(
         blue8bit = hex and 0xFF
         alpha8bit = (hex shr 24) and 0xFF
     }
-
-
-    /**
-     * Returns the color in a hexadecimal integer format.
-     */
-    fun toInt(
-        red: Float = getRed(),
-        blue: Float = getBlue(),
-        green: Float = getGreen(),
-        alpha: Float = getAlpha(),
-        factor: Float = 1f
-    ): Int
-    {
-        return ((255 * alpha).toInt() shl 24)
-            .or((255 * red * factor).toInt() shl 16)
-            .or((255 * green * factor).toInt() shl 8)
-            .or((255 * blue * factor).toInt() shl 0)
-    }
-
-    fun toDrawable(
-        red: Float = getRed(),
-        blue: Float = getBlue(),
-        green: Float = getGreen(),
-        alpha: Float = getAlpha(),
-        factor: Float = 1f
-    ) = toInt(red, blue, green, alpha, factor).toDrawable()
-
-    fun toColorStateList(
-        red: Float = getRed(),
-        blue: Float = getBlue(),
-        green: Float = getGreen(),
-        alpha: Float = getAlpha(),
-        factor: Float = 1f
-    ) = ColorStateList.valueOf(toInt(red, blue, green, alpha, factor))
 
 
     // Generated
@@ -156,3 +118,30 @@ open class Color4 @JvmOverloads constructor(
     }
 
 }
+
+
+/**
+ * Returns the color in a hexadecimal integer format.
+ */
+fun Color4.toInt(
+    red: Float = getRed(),
+    blue: Float = getBlue(),
+    green: Float = getGreen(),
+    alpha: Float = getAlpha(),
+    factor: Float = 1f
+): Int
+{
+    return ((255 * alpha).toInt() shl 24)
+        .or((255 * red * factor).toInt() shl 16)
+        .or((255 * green * factor).toInt() shl 8)
+        .or((255 * blue * factor).toInt() shl 0)
+}
+
+
+fun Color4.toDrawable(
+    red: Float = getRed(),
+    blue: Float = getBlue(),
+    green: Float = getGreen(),
+    alpha: Float = getAlpha(),
+    factor: Float = 1f
+) = toInt(red, blue, green, alpha, factor).toDrawable()

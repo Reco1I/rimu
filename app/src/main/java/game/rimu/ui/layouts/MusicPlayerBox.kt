@@ -14,7 +14,7 @@ import com.reco1l.framework.animation.toScale
 import com.reco1l.framework.animation.toTranslationX
 import com.reco1l.framework.animation.toTranslationY
 import com.reco1l.framework.graphics.Anchor
-import com.reco1l.framework.lang.dateFormatFor
+import com.reco1l.framework.kotlin.dateFormatFor
 import game.rimu.MainContext
 import game.rimu.R
 import game.rimu.management.beatmap.IBeatmapObserver

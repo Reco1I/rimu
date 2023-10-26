@@ -1,15 +1,15 @@
 package com.reco1l.skindecoder
 
-import com.reco1l.framework.lang.between
-import com.reco1l.framework.lang.decapitalize
+import com.reco1l.framework.kotlin.between
+import com.reco1l.framework.kotlin.decapitalize
 import com.reco1l.framework.data.isExtension
 import com.reco1l.framework.data.readUTF8Lines
-import com.reco1l.framework.lang.Regexs.ALPHANUMERIC
-import com.reco1l.framework.lang.Regexs.DECIMAL
-import com.reco1l.framework.lang.Regexs.INTEGER
-import com.reco1l.framework.lang.Regexs.INTEGER_ARRAY
-import com.reco1l.framework.lang.isBetween
-import com.reco1l.framework.lang.takeIfMatches
+import com.reco1l.framework.kotlin.Regexs.ALPHANUMERIC
+import com.reco1l.framework.kotlin.Regexs.DECIMAL
+import com.reco1l.framework.kotlin.Regexs.INTEGER
+import com.reco1l.framework.kotlin.Regexs.INTEGER_ARRAY
+import com.reco1l.framework.kotlin.isBetween
+import com.reco1l.framework.kotlin.takeIfMatches
 import com.reco1l.skindecoder.data.SkinData
 import com.reco1l.skindecoder.exceptions.InvalidSkinException
 import kotlinx.serialization.ExperimentalSerializationApi

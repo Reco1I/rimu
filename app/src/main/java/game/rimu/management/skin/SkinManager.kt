@@ -1,6 +1,6 @@
 package game.rimu.management.skin
 
-import com.reco1l.framework.lang.nextOf
+import com.reco1l.framework.kotlin.nextOf
 import com.reco1l.framework.management.IObservable
 import com.reco1l.skindecoder.SkinDecoder
 import game.rimu.IWithContext

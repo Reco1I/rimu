@@ -7,7 +7,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout.HORIZONTAL
 import com.reco1l.framework.android.views.attachTo
 import com.reco1l.framework.android.views.setConstraints
-import com.reco1l.framework.graphics.Anchor
+import com.reco1l.framework.graphics.Anchorimport com.reco1l.framework.graphics.toInt
 import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.LayerOverlay

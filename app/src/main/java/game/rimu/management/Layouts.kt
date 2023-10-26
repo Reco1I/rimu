@@ -3,8 +3,8 @@ package game.rimu.management
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import com.reco1l.framework.android.views.attachTo
 import com.reco1l.framework.android.views.removeSelf
-import com.reco1l.framework.lang.createInstance
-import com.reco1l.framework.lang.safeIn
+import com.reco1l.framework.kotlin.createInstance
+import com.reco1l.framework.kotlin.safeIn
 import game.rimu.MainContext
 import game.rimu.ui.LayerBackground
 import game.rimu.ui.LayerOverlay

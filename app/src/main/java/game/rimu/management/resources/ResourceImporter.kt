@@ -6,7 +6,7 @@ import com.reco1l.framework.data.forEachRecursive
 import com.reco1l.framework.data.md5
 import com.reco1l.framework.data.subDirectory
 import com.reco1l.framework.data.toFile
-import com.reco1l.framework.lang.orCatch
+import com.reco1l.framework.kotlin.orCatch
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.data.asset.Asset

@@ -11,7 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
 import com.reco1l.framework.graphics.addRoundRect
-import com.reco1l.framework.graphics.drawRoundRect
+import com.reco1l.framework.graphics.drawRoundRectimport com.reco1l.framework.graphics.toInt
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin

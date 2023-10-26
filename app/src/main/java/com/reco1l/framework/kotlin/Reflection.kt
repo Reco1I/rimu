@@ -1,4 +1,4 @@
-package com.reco1l.framework.lang
+package com.reco1l.framework.kotlin
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty0

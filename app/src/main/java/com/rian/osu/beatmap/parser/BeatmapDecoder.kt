@@ -1,6 +1,6 @@
 package com.rian.osu.beatmap.parser
 
-import com.reco1l.framework.lang.ignoreException
+import com.reco1l.framework.kotlin.ignoreException
 import com.reco1l.framework.data.md5
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.constants.BeatmapSection

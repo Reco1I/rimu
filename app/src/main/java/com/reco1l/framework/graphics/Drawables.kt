@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.view.Gravity
-import com.reco1l.framework.lang.orCatch
+import com.reco1l.framework.kotlin.orCatch
 
 
 // ClipDrawable

@@ -1,7 +1,7 @@
 package com.reco1l.framework.net.request
 
 import android.net.Uri
-import com.reco1l.framework.lang.orCatch
+import com.reco1l.framework.kotlin.orCatch
 import com.reco1l.framework.data.buildRequest
 import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType

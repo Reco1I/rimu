@@ -8,7 +8,7 @@ import com.reco1l.framework.android.views.backgroundColor
 import com.reco1l.framework.android.views.cornerRadius
 import com.reco1l.framework.android.views.setMargins
 import com.reco1l.framework.android.views.setPaddings
-import com.reco1l.framework.android.views.setSize
+import com.reco1l.framework.android.views.setSizeimport com.reco1l.framework.graphics.toInt
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin

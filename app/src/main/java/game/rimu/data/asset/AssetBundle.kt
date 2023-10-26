@@ -7,10 +7,10 @@ import com.caverock.androidsvg.SVG
 import com.reco1l.basskt.stream.AssetSampleStream
 import com.reco1l.basskt.stream.BaseStream
 import com.reco1l.basskt.stream.SampleStream
-import com.reco1l.framework.android.logE
-import com.reco1l.framework.lang.orCatch
+import com.reco1l.framework.android.Logger
+import com.reco1l.framework.kotlin.orCatch
 import com.reco1l.framework.graphics.toBitmap
-import com.reco1l.framework.lang.klass
+import com.reco1l.framework.kotlin.klass
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.data.Skin
@@ -193,7 +193,7 @@ class InternalAssetsBundle(app: MainContext, val directory: String) : AssetBundl
                 else -> null
             }
         }.orCatch {
-            klass logE ("Failed to load asset: \"$name\" with variant $variant of type \"$type\"" to it)
+            Logger.e(klass, "Failed to load asset: \"$name\" with variant $variant of type \"$type\"", it)
             null
         }
     }
@@ -236,7 +236,7 @@ class ExternalAssetBundle(ctx: MainContext, key: String) : AssetBundle(ctx)
                 else -> null
             }
         }.orCatch {
-            klass logE ("Error while loading asset: $name $variant $type" to it)
+            Logger.e(klass, "Error while loading asset: $name $variant $type", it)
             null
         }
     }

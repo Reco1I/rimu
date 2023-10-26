@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.drawable.toDrawable
-import com.reco1l.framework.android.views.setImageTint
+import com.reco1l.framework.android.views.setImageTintimport com.reco1l.framework.graphics.toInt
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.management.skin.WorkingSkin

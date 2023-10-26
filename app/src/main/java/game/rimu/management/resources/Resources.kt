@@ -1,10 +1,10 @@
 package game.rimu.management.resources
 
-import com.reco1l.framework.lang.between
-import com.reco1l.framework.android.logI
+import com.reco1l.framework.android.Logger
+import com.reco1l.framework.kotlin.between
 import com.reco1l.framework.data.subDirectory
 import com.reco1l.framework.data.subFile
-import com.reco1l.framework.lang.klass
+import com.reco1l.framework.kotlin.klass
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.constants.RimuSetting.UI_USE_BEATMAP_SKIN
@@ -57,7 +57,7 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
         // 3 - As specified above the number will have its own capturing group to differentiate it.
         val regex = pattern?.let { "^($key)($it)?$".toRegex() }
 
-        klass logI "Defined allowed asset: $key - $regex"
+        Logger.i(klass, "Defined allowed asset: $key - $regex")
 
         // Storing the Regex only if it has a variant pattern:
         key to regex
