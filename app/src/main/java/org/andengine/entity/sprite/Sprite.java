@@ -62,31 +62,31 @@ public class Sprite extends Shape {
 	// ===========================================================
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion) {
-		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, new VertexBufferObjectManager(), DrawType.STATIC);
+		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, new VertexBufferObjectManager(), DrawType.STATIC);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager) {
-		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC);
+		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager, final ShaderProgram pShaderProgram) {
-		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC, pShaderProgram);
+		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC, pShaderProgram);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager, final DrawType pDrawType) {
-		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, pDrawType);
+		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObjectManager, pDrawType);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager, final DrawType pDrawType, final ShaderProgram pShaderProgram) {
-		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, pDrawType, pShaderProgram);
+		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObjectManager, pDrawType, pShaderProgram);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final ISpriteVertexBufferObject pVertexBufferObject) {
-		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObject);
+		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObject);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final ISpriteVertexBufferObject pVertexBufferObject, final ShaderProgram pShaderProgram) {
-		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObject, pShaderProgram);
+		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObject, pShaderProgram);
 	}
 
 	public Sprite(final float pX, final float pY, final float pWidth, final float pHeight, final ITextureRegion pTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager) {
