@@ -906,14 +906,20 @@ public class Entity implements IEntity {
 
 	@Override
 	public void attachChild(final IEntity pEntity) throws IllegalStateException {
-		this.assertEntityHasNoParent(pEntity);
+		// BEGIN rimu! modification
+
+		/*this.assertEntityHasNoParent(pEntity);
 
 		if (this.mChildren == null) {
 			this.allocateChildren();
 		}
 		this.mChildren.add(pEntity);
 		pEntity.setParent(this);
-		pEntity.onAttached();
+		pEntity.onAttached();*/
+
+		attachChild(pEntity, mChildren == null ? 0 : mChildren.size());
+
+		// END rimu! modification
 	}
 
 	public void attachChild(final IEntity pEntity, int index) throws IllegalStateException {

@@ -103,10 +103,8 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
         // as well for skin.
         if (event.action == ACTION_DOWN || event.action == ACTION_UP) (view.foreground as? TouchEffectDrawable)?.also {
 
-            val context = view.context as? MainContext
-
-            it.invalidateSkin(context)
-            it.invalidateScale(context)
+            it.invalidateScale(ctx)
+            it.invalidateSkin(ctx)
         }
 
 

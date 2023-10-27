@@ -1,25 +1,27 @@
 package game.rimu.management.skin
 
+import com.reco1l.framework.android.Logger
+import com.reco1l.framework.kotlin.klass
 import com.reco1l.framework.kotlin.nextOf
-import com.reco1l.framework.management.IObservable
+import com.reco1l.framework.kotlin.orCatch
+import com.reco1l.framework.IObservable
+import com.reco1l.framework.forEachObserver
 import com.reco1l.skindecoder.SkinDecoder
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.constants.RimuSetting.UI_SKIN
 import game.rimu.data.Skin
-import game.rimu.data.Skin.Companion.DEFAULT
-import game.rimu.management.Setting
+import game.rimu.data.Skin.Companion.BASE
 import game.rimu.ui.ISkinnable
+import game.rimu.ui.layouts.Notification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.launch
 
 @OptIn(DelicateCoroutinesApi::class)
 class SkinManager(override val ctx: MainContext) :
-    FlowCollector<List<Skin>>,
     IObservable<ISkinnable>,
     IWithContext
 {
@@ -38,26 +40,27 @@ class SkinManager(override val ctx: MainContext) :
     val decoder = SkinDecoder()
 
 
-    lateinit var skins: List<Skin>
+    /**
+     * The list of skins.
+     */
+    var skins = getDefaults()
+        private set
+
+    /**
+     * Determines if a skin was already initialized, since current skin can never be null and it's
+     * late init we must check this first.
+     */
+    var isInitialized = false
+        private set
 
 
     /**
-     * The current skin key.
+     * The current skin.
      */
-    var currentSkinKey by Setting<String>(UI_SKIN)
-
-    /**
-     * The default skin which is always loaded just in case.
-     */
-    val default = WorkingSkin(ctx, DEFAULT, decoder)
-
-    /**
-     * The current skin identified by [currentSkinKey]
-     */
-    var current = onLoadSkin(currentSkinKey)
+    lateinit var current: WorkingSkin
+        private set
 
 
-    // Using a different coroutine context.
     private val changeScope = CoroutineScope(Dispatchers.IO)
 
 
@@ -65,18 +68,28 @@ class SkinManager(override val ctx: MainContext) :
     {
         ctx.settings.bindObserver(UI_SKIN) {
 
-            // Executing in change scope
-            changeScope.launch { onLoadSkin(it as String) }
+            changeScope.launch {
+
+                // Finding the source key in the list of skin sources.
+                val source = get(it as String)
+
+                onCreateWorkingSkin(source ?: get(BASE)!!)
+            }
         }
 
         ctx.initializationTree!!.add {
 
+            // Initializing assets with default skin until we get the corresponding skin.
+            setCurrent(get(BASE)!!)
+
             GlobalScope.launch {
 
-                ctx.database.skinTable.getFlow().collect(this@SkinManager)
-            }
+                // The flow will update the list everytime the table is changed.
+                ctx.database.skinTable.getFlow().collect(::onTableChange)
 
-            onLoadSkin(currentSkinKey)
+                // Now loading skin
+                setCurrent(get(ctx.settings[UI_SKIN]) ?: get(BASE)!!)
+            }
         }
     }
 
@@ -84,36 +97,69 @@ class SkinManager(override val ctx: MainContext) :
     fun next()
     {
         changeScope.launch {
-            current = onLoadSkin(skins.nextOf(current.source)?.key ?: default.source.key)
 
-            ctx.layouts.onApplySkin(current)
+            setCurrent(skins.nextOf(current.source) ?: get(BASE)!!)
         }
     }
 
 
-    override suspend fun emit(value: List<Skin>)
-    {
-        skins = value.toMutableList().apply {
+    /**
+     * Find the stored [Skin] entry from the given key.
+     */
+    operator fun get(key: String) = skins.find {
 
-            add(default.source)
+        // Checking with endsWith because default skins key starts with 'skins/' prefix so we must
+        // check what's after the slash, in external skins this will never happen.
+        key.endsWith(it.key)
+    }
+
+    /**
+     * Get list of defaults skins.
+     */
+    fun getDefaults() = ctx.assets.list("skins")!!.map { Skin(it, "rimu! team", true) }
+
+
+    private fun setCurrent(source: Skin)
+    {
+        if (isInitialized && source == current.source)
+            return
+
+        changeScope.launch {
+
+            // We're gonna to release the last skin once we get the new one so we ensure assets
+            // aren't released before finish loading.
+            val last = if (isInitialized) current else null
+
+            current = onCreateWorkingSkin(source)
+            isInitialized = true
+
+            forEachObserver { it.onApplySkin(current) }
+
+            last?.onRelease()
         }
     }
 
-    private fun onLoadSkin(key: String): WorkingSkin
+
+    private fun onTableChange(value: List<Skin>)
     {
-        if (key == default.source.key)
-            return default
+        // Default skins will always be on top
+        skins = getDefaults() + value
+    }
 
-        // Determining if the skin is internal, for this we use a pattern where the hash equals
-        // to the subdirectory in the assets folder and it ends with '/' to distinguish from external
-        val isInternal = key.endsWith('/')
+    private fun onCreateWorkingSkin(source: Skin) = { WorkingSkin(ctx, source, decoder) }.orCatch {
 
-        // As stated above if it's not an internal skin we get it from the database, otherwise
-        // we create a new one based on the internal directory.
-        val skin = if (isInternal) Skin(key, "rimu! team") else ctx.database.skinTable.findByKey(key)
-            // Using default skin if for whatever reason it fails to create the skin.
-            ?: return default
+        Notification(
+            header = "Error",
+            message = """
+                    Unable to load skin "${source.key}${source.author?.let { author -> " by $author" }}"
+                    Cause: ${it.klass} - ${it.message}
+                """.trimMargin(),
+            icon = ""
+        ).show(ctx)
 
-        return WorkingSkin(ctx, skin, decoder)
+        Logger.e(klass, "Error while loading skin.", it)
+
+        // Fallback to default skin because current skin can never be null.
+        WorkingSkin(ctx, get(BASE)!!, decoder)
     }
 }

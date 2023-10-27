@@ -4,15 +4,21 @@ import android.view.KeyEvent
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.ui.IScalable
+import game.rimu.ui.ISkinnable
 import org.andengine.entity.scene.Scene
 import android.view.KeyEvent.Callback as KeyEventCallback
 
 abstract class BaseScene(final override val ctx: MainContext) :
     Scene(),
     IScalable,
+    ISkinnable,
     IWithContext,
     KeyEventCallback
 {
+
+
+    override fun onAttached() = invalidateSkin()
+    
 
     // Key listening events
 

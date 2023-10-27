@@ -2,21 +2,29 @@
 
 package game.rimu.engine.surface
 
-import android.animation.ValueAnimator
 import android.view.View.MeasureSpec
 import android.view.WindowManager
 import com.reco1l.framework.android.getSystemService
 import com.reco1l.framework.animation.Ease
+import com.reco1l.framework.animation.FloatAnimator
+import com.reco1l.framework.IObservable
+import com.reco1l.framework.forEachObserver
 import game.rimu.IWithContext
 import game.rimu.MainContext
-import game.rimu.constants.RimuSetting.UI_SCALE
+import game.rimu.constants.RimuSetting.UI_SCALE_FACTOR
+import game.rimu.management.Setting
+import game.rimu.ui.IScalable
 import org.andengine.engine.options.resolutionpolicy.IResolutionPolicy
 import org.andengine.engine.options.resolutionpolicy.IResolutionPolicy.Callback
 
 class EngineSurface(override val ctx: MainContext) :
+    IObservable<IScalable>,
     IResolutionPolicy,
     IWithContext
 {
+
+    override val observers = mutableListOf<IScalable>()
+
 
     private val display = ctx.getSystemService<WindowManager>().defaultDisplay!!
 
@@ -27,22 +35,22 @@ class EngineSurface(override val ctx: MainContext) :
     val scale
         get() = ratio * factor
 
+
     /**
      * The scale factor set by user.
      */
-    var factor = 1f
-        private set
+    var factor by Setting<Float>(UI_SCALE_FACTOR)
 
     /**
      * The app window width.
      */
-    var width = display.width.toFloat()
+    var width = display.width
         private set
 
     /**
      * The app window height.
      */
-    var height = display.height.toFloat()
+    var height = display.height
         private set
 
     /**
@@ -52,55 +60,53 @@ class EngineSurface(override val ctx: MainContext) :
         private set
 
 
-    private val scaleAnimator = ValueAnimator.ofFloat().apply {
+    private val scaleAnimator = FloatAnimator().apply {
 
         duration = 300
         interpolator = Ease.DECELERATE
 
-        addUpdateListener { ctx.layouts.onApplyScale(it.animatedValue as Float) }
+        addUpdateListener { updateObservers(it.animatedValue as Float) }
     }
 
 
     init
     {
-        ctx.settings.bindObserver(UI_SCALE) {
+        ctx.settings.bindObserver(UI_SCALE_FACTOR) {
 
             val oldScale = scale
             factor = it as Float
 
             scaleAnimator.setFloatValues(oldScale, scale)
             scaleAnimator.start()
-
         }
 
-        ctx.initializationTree!!.add {
-
-            ctx.layouts.onApplyScale(scale)
-        }
+        ctx.initializationTree!!.add { updateObservers(scale) }
     }
+
+
+    private fun updateObservers(scale: Float) = forEachObserver { it.onApplyScale(scale) }
 
 
     override fun onMeasure(callback: Callback, rawWidth: Int, rawHeight: Int)
     {
-        var width = MeasureSpec.getSize(rawWidth).toFloat()
-        var height = MeasureSpec.getSize(rawHeight).toFloat()
 
-        ratio = RatioFunction.LEGACY(width, height)
+        fun Int.size() = MeasureSpec.getSize(this)
+
+        ratio = RatioFunction.LEGACY(rawWidth.size(), rawHeight.size())
 
         // Comparing desired ratio with real screen ratio so we can apply properly the ratio to
         // the measured dimensions.
-        if (width / height < ratio)
-            height = width / ratio
-        else
-            width = height * ratio
+        when (width / height < ratio)
+        {
+            true -> height = (width / ratio).toInt()
 
-        this.width = width
-        this.height = height
+            else -> width = (height * ratio).toInt()
+        }
 
-        callback.onResolutionChanged(width.toInt(), height.toInt())
+        callback.onResolutionChanged(width, height)
+        ctx.engine.camera.onResolutionChanged(width, height)
 
-        // Setting dimensions to the engine main camera to handle resolution changes.
-        ctx.engine.camera.onMeasureSurface(width, height)
+        updateObservers(scale)
     }
 
 
@@ -114,6 +120,6 @@ class EngineSurface(override val ctx: MainContext) :
          *
          * [osu!droid code snippet](https://github.com/osudroid/osu-droid/blob/522716f870701f4b3728bfb912e18dd264f8fa0c/src/ru/nsu/ccfit/zuev/osu/Config.java#L269-L272)
          */
-        val LEGACY = { width: Float, height: Float -> 1280f / (1280f * height / width) }
+        val LEGACY = { width: Int, height: Int -> 1280f / (1280f * height / width) }
     }
 }

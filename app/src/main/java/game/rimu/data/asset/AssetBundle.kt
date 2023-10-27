@@ -49,6 +49,13 @@ sealed class AssetBundle(override val ctx: MainContext) : IWithContext
     ): T?
 
 
+    fun onRelease()
+    {
+        // Unloading loaded textures from engine.
+        getMapOf<WrappingTexture>().forEach { (it.value as WrappingTexture).unload() }
+    }
+
+
     /**
      * Returns the real asset path according to its variant.
      */
@@ -157,14 +164,12 @@ sealed class AssetBundle(override val ctx: MainContext) : IWithContext
 /**
  * Created specifically to load default textures from Android [AssetManager].
  */
-class InternalAssetsBundle(app: MainContext, val directory: String) : AssetBundle(app)
+class InternalAssetsBundle(ctx: MainContext, val directory: String) : AssetBundle(ctx)
 {
 
-    // Removing trailing slash isn't really necessary in newer APIs but apparently in Nougat and possibly
-    // Oreo causes the method 'list()' returning an empty list.
-    override val list = app.assets.list(directory.substringBeforeLast('/'))!!.mapNotNull {
+    override val list = ctx.assets.list(directory)!!.mapNotNull {
 
-        val (key, variant) = app.resources.resolveAsset(it) ?: return@mapNotNull null
+        val (key, variant) = ctx.resources.resolveAsset(it) ?: return@mapNotNull null
 
         Asset(
             hash = it,
@@ -188,7 +193,7 @@ class InternalAssetsBundle(app: MainContext, val directory: String) : AssetBundl
     {
         val asset = list.find { it.equals(key, variant) } ?: return null
 
-        return "$directory${asset.hash}"
+        return "$directory/${asset.hash}"
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -204,7 +209,12 @@ class InternalAssetsBundle(app: MainContext, val directory: String) : AssetBundl
 
 
         // Image formats
-        WrappingTexture::class -> get<Bitmap>(key, variant)?.toTexture(ctx.engine.textureManager) as? T
+        WrappingTexture::class -> get<Bitmap>(key, variant)?.let {
+
+            it.toTexture(ctx.engine.textureManager).apply { load() }
+
+        } as? T
+
 
         Bitmap::class -> getInputStream(key, variant)?.use {
 
@@ -249,7 +259,11 @@ class ExternalAssetBundle(ctx: MainContext, key: String) : AssetBundle(ctx)
                 SampleStream::class -> SampleStream(getAssetPath(key, variant)) as? T
 
                 // Image formats
-                WrappingTexture::class -> get<Bitmap>(key, variant)?.toTexture(ctx.engine.textureManager) as? T
+                WrappingTexture::class -> get<Bitmap>(key, variant)?.let {
+
+                    it.toTexture(ctx.engine.textureManager).apply { load() }
+
+                } as? T
 
                 Bitmap::class -> getInputStream(key, variant)?.use {
 

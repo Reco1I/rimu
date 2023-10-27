@@ -1,9 +1,13 @@
 package game.rimu.ui.views
 
+import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.doOnAttach
 import game.rimu.IWithContext
 import game.rimu.MainContext
+import game.rimu.ui.IScalable
 import game.rimu.ui.IScalableWithDimensions
+import game.rimu.ui.ISkinnable
 import game.rimu.ui.ISkinnableWithRules
 import android.widget.LinearLayout as AndroidLinearLayout
 import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLayout
@@ -25,9 +29,30 @@ open class ConstraintLayout(override val ctx: MainContext) :
     ISkinnableWithRules<ConstraintLayout>,
     IScalableWithDimensions<ConstraintLayout>
 {
+
     override val dimensions by lazy { ViewDimensions<ConstraintLayout>() }
 
     override val rules by lazy { ViewSkinningRules<ConstraintLayout>() }
+
+
+    override fun onAttachedToWindow()
+    {
+        super.onAttachedToWindow()
+
+        invalidateSkin()
+        invalidateScale()
+    }
+
+    override fun onViewAdded(view: View)
+    {
+        super.onViewAdded(view)
+
+        if (view is IWithContext && view is ISkinnable && view is IScalable) view.doOnAttach {
+
+            view.invalidateScale()
+            view.invalidateSkin()
+        }
+    }
 }
 
 
@@ -47,7 +72,32 @@ open class LinearLayout(override val ctx: MainContext) :
     ISkinnableWithRules<LinearLayout>,
     IScalableWithDimensions<LinearLayout>
 {
+
     override val dimensions by lazy { ViewDimensions<LinearLayout>() }
 
     override val rules by lazy { ViewSkinningRules<LinearLayout>() }
+
+
+    override fun onAttachedToWindow()
+    {
+        super.onAttachedToWindow()
+
+        invalidateSkin()
+        invalidateScale()
+    }
+
+
+    override fun onViewAdded(view: View)
+    {
+        super.onViewAdded(view)
+
+        if (view is IWithContext) view.doOnAttach {
+
+            if (view is IScalable)
+                view.invalidateScale()
+
+            if (view is ISkinnable)
+                view.invalidateSkin()
+        }
+    }
 }

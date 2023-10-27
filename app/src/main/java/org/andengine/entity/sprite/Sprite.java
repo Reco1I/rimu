@@ -137,6 +137,10 @@ public class Sprite extends Shape {
 	public void setTextureRegion(@Nullable ITextureRegion pTextureRegion) {
 		this.mTextureRegion = pTextureRegion;
 
+		if (pTextureRegion != null) {
+			setSize(pTextureRegion.getWidth(), pTextureRegion.getHeight());
+		}
+
 		this.setBlendingEnabled(true);
 		this.initBlendFunction(pTextureRegion);
 		this.onUpdateColor();

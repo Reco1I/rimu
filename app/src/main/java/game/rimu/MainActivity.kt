@@ -49,14 +49,16 @@ class MainActivity :
 
     private fun onInitializeGame()
     {
-        ctx.engine.startUpdateThread()
-        ctx.bassDevice.start()
+        ctx.bass.start()
+        ctx.engine.start()
 
         async {
             // Iterating all over the task submitted to the initialization tree and executing them in
             // asynchronous from UI thread.
             ctx.initializationTree!!.forEachTrim { ctx.it() }
             ctx.initializationTree = null
+
+            ctx.engine.startUpdateThread()
 
             // Setting first scene to the Intro scene which will play an storyboard.
             ctx.engine.scene = SceneIntro(ctx)
@@ -110,7 +112,7 @@ class MainActivity :
 
         // When the game is on background there's no need to keep a low delay properties as it may
         // consume unnecessary resources leading to the game being closed by Android.
-        ctx.bassDevice.updatePeriod = 100
+        ctx.bass.updatePeriod = 100
         ctx.beatmaps.current?.stream?.bufferLength = 0.5f
 
         ctx.engine.renderView.onPause()
@@ -121,7 +123,7 @@ class MainActivity :
         super.onResume()
 
         // Once we're back we can restore the previous values.
-        ctx.bassDevice.updatePeriod = 5
+        ctx.bass.updatePeriod = 5
         ctx.beatmaps.current?.stream?.bufferLength = 0.1f
 
         // Starting engine if it wasn't yet, this will only take effect the first time opening the game.

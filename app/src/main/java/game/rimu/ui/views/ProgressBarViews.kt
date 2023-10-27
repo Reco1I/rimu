@@ -61,8 +61,9 @@ fun IWithContext.LinearProgressIndicator(
     init: LinearProgressIndicator.() -> Unit
 ) = LinearProgressIndicator(ctx).apply { parent?.addView(this); init() }
 
-open class LinearProgressIndicator(ctx: MainContext) :
+open class LinearProgressIndicator(override val ctx: MainContext) :
     View(ctx),
+    IWithContext,
     IScalableWithDimensions<LinearProgressIndicator>,
     ISkinnableWithRules<LinearProgressIndicator>
 {

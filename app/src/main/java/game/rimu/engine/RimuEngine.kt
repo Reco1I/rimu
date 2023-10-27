@@ -4,6 +4,8 @@ import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.engine.surface.EngineCamera
 import game.rimu.engine.surface.EngineSurface
+import game.rimu.management.skin.WorkingSkin
+import game.rimu.ui.ISkinnable
 import game.rimu.ui.scenes.BaseScene
 import game.rimu.ui.views.EngineRenderView
 import org.andengine.engine.Engine
@@ -24,7 +26,8 @@ class RimuEngine(override val ctx: MainContext) :
         )
     ),
     IRendererListener,
-    IWithContext
+    IWithContext,
+    ISkinnable
 {
 
     /**
@@ -39,6 +42,15 @@ class RimuEngine(override val ctx: MainContext) :
     val renderView = EngineRenderView(ctx, this)
 
 
+    init
+    {
+        ctx.initializationTree!!.add {
+
+            ctx.skins.bindObserver(observer = this@RimuEngine)
+        }
+    }
+
+
     override fun setScene(scene: Scene?)
     {
         if (scene !is BaseScene)
@@ -47,8 +59,16 @@ class RimuEngine(override val ctx: MainContext) :
         if (getScene() != scene)
         {
             ctx.layouts.onSceneChange(scene)
+
+            getScene()?.onDetached()
             super.setScene(scene)
+            scene.onAttached()
         }
+    }
+
+    override fun onApplySkin(skin: WorkingSkin)
+    {
+        scene?.onApplySkin(skin)
     }
 
 

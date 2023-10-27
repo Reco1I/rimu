@@ -8,10 +8,13 @@ import com.reco1l.framework.kotlin.klass
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.constants.RimuSetting.UI_USE_BEATMAP_SKIN
+import game.rimu.data.Skin
 import game.rimu.data.asset.AssetBundle
+import game.rimu.data.asset.InternalAssetsBundle
 import game.rimu.management.Setting
-import game.rimu.management.resources.ResourceProvider.BEATMAP
-import game.rimu.management.resources.ResourceProvider.DEFAULT
+import game.rimu.management.resources.Source.BEATMAP
+import game.rimu.management.resources.Source.DEFAULT
+import game.rimu.management.resources.Source.SKIN
 import java.io.File
 
 class ResourceManager(override val ctx: MainContext) : IWithContext
@@ -20,7 +23,20 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
     /**
      * The directory where all the resource files will be located.
      */
-    val directory = File(ctx.getExternalFilesDir(null), "resources/").apply { mkdirs() }
+    val directory = ctx.getExternalFilesDir(null)!!.subDirectory("resources/")
+
+
+
+    /**
+     * Map of assets sources and its getters.
+     */
+    val sources = mapOf(
+
+        BEATMAP to { ctx.beatmaps.current?.assets },
+        SKIN to { ctx.skins.current.assets },
+        DEFAULT to { ctx.resources.defaultAssets }
+    )
+
 
     /**
      * Bindable for `Use beatmap skin` setting.
@@ -30,14 +46,13 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
 
     // List of valid resource filename patterns. This equals to a whitelist where its used to decide
     // if a file should be imported or not into the resource database.
-    private val allowedFilenames = ctx.assets.list("default")!!.associate { filename ->
+    private val allowedFilenames = ctx.assets.list(Skin.BASE)!!.associate { filename ->
 
         val name = filename.substringBeforeLast('.')
 
         // Extracting the variant pattern in case it have, if it does we replacing the number
         // identifier (#) with the regex equivalent.
-        val pattern = name.between('[', ']')
-            ?.replace("#", "(\\d+)")
+        val pattern = name.between('[', ']')?.replace("#", "(\\d+)")
 
         // Extracting resource name, the name is always before the variant pattern.
         var key = name.substringBefore('[')
@@ -61,7 +76,11 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
         key to regex
     }
 
-    private val filenamesKeySet = allowedFilenames.keys
+
+    /**
+     * Asset bundle with defaults assets.
+     */
+    val defaultAssets by lazy { InternalAssetsBundle(ctx, Skin.BASE) }
 
 
     /**
@@ -74,10 +93,8 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
         // Removing extension and variant pattern indicator.
         val name = filename.substringBeforeLast('.').substringBefore('[')
 
-        for (key in filenamesKeySet)
+        for ((key, regex) in allowedFilenames)
         {
-            val regex = allowedFilenames[key]
-
             // If the key equals exactly the filename means the filename doesn't have variants.
             if (key.equals(name, true) && regex == null)
                 return key to 0
@@ -140,15 +157,15 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
      * @see AssetBundle.SUPPORTED_TYPES
      */
     inline operator fun <reified T : Any> get(
-        key: String?,
+        key: String,
         variant: Int = 0,
         fallbackToDefault: Boolean = true
     ): T?
     {
-        if (key == null)
+        if (!ctx.skins.isInitialized)
             return null
 
-        for (source in ResourceProvider.entries)
+        for ((source, bundle) in sources)
         {
             if (source == BEATMAP && !useBeatmapSkin)
                 continue
@@ -156,7 +173,7 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
             if (source == DEFAULT && !fallbackToDefault)
                 break
 
-            return source[ctx]?.get(key, variant) ?: continue
+            return bundle()?.get(key, variant) ?: continue
         }
 
         if (fallbackToDefault)
@@ -175,7 +192,11 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
         fallbackToDefault: Boolean = true
     ): List<T>?
     {
-        for (source in ResourceProvider.entries)
+        // Preventing access to late init in race condition.
+        if (!ctx.skins.isInitialized)
+            return null
+
+        for ((source, bundle) in sources)
         {
             if (source == BEATMAP && !useBeatmapSkin)
                 continue
@@ -183,23 +204,20 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
             if (source == DEFAULT && !fallbackToDefault)
                 break
 
-            return source[ctx]?.get(key) ?: continue
+            return bundle()?.get(key) ?: continue
         }
+
         return null
     }
 
 }
 
-
-enum class ResourceProvider(private val bundleProvider: MainContext.() -> AssetBundle?)
+/**
+ * Enumeration of sources where the assets can get from.
+ */
+enum class Source
 {
-    BEATMAP({ beatmaps.current?.assets }),
-
-    SKIN({ skins.current.assets }),
-
-    DEFAULT({ skins.default.assets });
-
-
-    operator fun get(ctx: MainContext) = bundleProvider(ctx)
-
+    SKIN,
+    BEATMAP,
+    DEFAULT
 }
