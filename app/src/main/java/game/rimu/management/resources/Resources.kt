@@ -57,8 +57,6 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
         // 3 - As specified above the number will have its own capturing group to differentiate it.
         val regex = pattern?.let { "^($key)($it)?$".toRegex() }
 
-        Logger.i(klass, "Defined allowed asset: $key - $regex")
-
         // Storing the Regex only if it has a variant pattern:
         key to regex
     }
