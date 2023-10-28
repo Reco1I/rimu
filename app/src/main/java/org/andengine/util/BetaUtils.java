@@ -66,12 +66,12 @@ public final class BetaUtils {
 		lastuseDate.setTimeInMillis(lastuse);
 
 		if (lastuseDate.after(pExpirationDate)) {
-			final Builder alertDialogBuilder = new Builder(pActivity)
+			final Builder alertDialogBuilder = new AlertDialog.Builder(pActivity)
 			.setTitle(pTitleResourceID)
 			.setIcon(android.R.drawable.ic_dialog_alert)
 			.setMessage(pMessageResourceID);
 
-			alertDialogBuilder.setPositiveButton(android.R.string.ok, new OnClickListener() {
+			alertDialogBuilder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(final DialogInterface pDialog, final int pWhich) {
 					if (pOkIntent != null) {

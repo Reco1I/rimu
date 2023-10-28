@@ -43,7 +43,7 @@ public abstract class LegacyBaseGameActivity extends BaseGameActivity {
 	protected abstract void onLoadResources();
 	protected abstract void onUnloadResources();
 	protected abstract Scene onLoadScene();
-	protected abstract void onLoadComplete();
+	protected abstract Scene onLoadComplete();
 
 	@Override
 	public final EngineOptions onCreateEngineOptions() {

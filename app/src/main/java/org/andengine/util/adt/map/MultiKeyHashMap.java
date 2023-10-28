@@ -33,9 +33,9 @@ public class MultiKeyHashMap<K, V> extends HashMap<MultiKey<K>, V> {
 	public V get(final K ... pKeys) {
 		final int hashCode = MultiKey.hash(pKeys);
 
-		final Iterator<Entry<MultiKey<K>, V>> it = this.entrySet().iterator();
+		final Iterator<Map.Entry<MultiKey<K>, V>> it = this.entrySet().iterator();
 		while (it.hasNext()) {
-			final Entry<MultiKey<K>, V> entry = it.next();
+			final Map.Entry<MultiKey<K>, V> entry = it.next();
 			final MultiKey<K> entryKey = entry.getKey();
 			if (entryKey.hashCode() == hashCode && this.isEqualKey(entryKey.getKeys(), pKeys)) {
 				return entry.getValue();

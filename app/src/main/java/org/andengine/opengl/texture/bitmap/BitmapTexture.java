@@ -125,7 +125,7 @@ public class BitmapTexture extends Texture {
 			GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, GLState.GL_UNPACK_ALIGNMENT_DEFAULT);
 		}
 
-		//bitmap.recycle();
+		bitmap.recycle();
 	}
 
 	// ===========================================================

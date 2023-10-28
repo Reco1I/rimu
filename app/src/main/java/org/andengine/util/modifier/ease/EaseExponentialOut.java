@@ -1,7 +1,5 @@
 package org.andengine.util.modifier.ease;
 
-import android.animation.TimeInterpolator;
-
 /**
  * (c) 2010 Nicolas Gramlich
  * (c) 2011 Zynga Inc.
@@ -46,7 +44,7 @@ public class EaseExponentialOut implements IEaseFunction {
 
 	@Override
 	public float getPercentage(final float pSecondsElapsed, final float pDuration) {
-		return getValue(pSecondsElapsed / pDuration);
+		return EaseExponentialOut.getValue(pSecondsElapsed / pDuration);
 	}
 
 	// ===========================================================

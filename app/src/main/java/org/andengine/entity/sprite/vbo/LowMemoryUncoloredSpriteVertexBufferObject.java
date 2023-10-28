@@ -73,9 +73,6 @@ public class LowMemoryUncoloredSpriteVertexBufferObject extends LowMemorySpriteV
 
 		final ITextureRegion textureRegion = pSprite.getTextureRegion();
 
-		if (textureRegion == null)
-			return;
-
 		final float u;
 		final float v;
 		final float u2;

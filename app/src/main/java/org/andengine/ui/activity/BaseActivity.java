@@ -1,6 +1,5 @@
 package org.andengine.ui.activity;
 
-import androidx.appcompat.app.AppCompatActivity;
 import org.andengine.util.ActivityUtils;
 import org.andengine.util.DialogUtils;
 import org.andengine.util.call.AsyncCallable;
@@ -20,7 +19,7 @@ import android.widget.Toast;
  * @author Nicolas Gramlich
  * @since 18:35:28 - 29.08.2009
  */
-public abstract class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends Activity {
 	// ===========================================================
 	// Constants
 	// ===========================================================

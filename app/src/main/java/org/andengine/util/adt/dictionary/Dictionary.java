@@ -220,21 +220,21 @@ public class Dictionary {
 		// ===========================================================
 
 		public static Dictionary create(final File pFile) throws IOException {
-			return Factory.create(FileUtils.readLines(pFile));
+			return Dictionary.Factory.create(FileUtils.readLines(pFile));
 		}
 
 		public static Dictionary create(final InputStream pInputStream) throws IOException {
-			return Factory.create(StreamUtils.readLines(pInputStream));
+			return Dictionary.Factory.create(StreamUtils.readLines(pInputStream));
 		}
 
 		public static Dictionary create(final Reader pReader) throws IOException {
-			return Factory.create(StreamUtils.readLines(pReader));
+			return Dictionary.Factory.create(StreamUtils.readLines(pReader));
 		}
 
 		public static Dictionary create(final String ... pStrings) {
 			Arrays.sort(pStrings, Dictionary.CASEINSENSITIVE_REVERSE_LEXICOGRAPHICAL_COMPARATOR);
 
-			final Entries entryDictionary = Factory.createDictionary(pStrings);
+			final Dictionary.Factory.Entries entryDictionary = Dictionary.Factory.createDictionary(pStrings);
 
 			final String string = entryDictionary.mString;
 
@@ -245,7 +245,7 @@ public class Dictionary {
 			final int entryStartIndexBitLength = DataUtils.getBitLength(entryDictionary.mEntryStartIndexMaximum);
 			final int entryLengthBitLength = DataUtils.getBitLength(entryDictionary.mEntryLengthMaximum);
 
-			final int bitsRequired = Factory.calculateBitsRequired(characterCountTotal, characterCount, characterBitLength, entryCount, entryStartIndexBitLength, entryLengthBitLength);
+			final int bitsRequired = Dictionary.Factory.calculateBitsRequired(characterCountTotal, characterCount, characterBitLength, entryCount, entryStartIndexBitLength, entryLengthBitLength);
 
 			final IBitVector bitVector = new ByteBackedBitVector(bitsRequired);
 
@@ -323,7 +323,7 @@ public class Dictionary {
 					entries.add(new Entry(startIndex, stringLength));
 				} else {
 					/* Check if the stringbuilder ends with any prefix of the string. */
-					final int prefixLength = Factory.getPrefixLength(stringBuilder, string);
+					final int prefixLength = Dictionary.Factory.getPrefixLength(stringBuilder, string);
 					if (prefixLength == -1) {
 						/* Append new string. */
 						final int startIndex = stringBuilderLength;
@@ -338,7 +338,7 @@ public class Dictionary {
 				}
 			}
 
-			return new Entries(entries, stringBuilder.toString());
+			return new Dictionary.Factory.Entries(entries, stringBuilder.toString());
 		}
 
 		// ===========================================================

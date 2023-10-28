@@ -1,7 +1,5 @@
 package org.andengine.opengl.texture.atlas.bitmap.source.decorator;
 
-import org.andengine.android.AvoidXfermode;
-import org.andengine.android.AvoidXfermode.Mode;
 import org.andengine.opengl.texture.atlas.bitmap.source.ColorSwapBitmapTextureAtlasSource;
 import org.andengine.opengl.texture.atlas.bitmap.source.IBitmapTextureAtlasSource;
 import org.andengine.opengl.texture.atlas.bitmap.source.decorator.shape.IBitmapTextureAtlasSourceDecoratorShape;
@@ -9,6 +7,11 @@ import org.andengine.util.adt.color.Color;
 import org.andengine.util.debug.Debug;
 import org.andengine.util.system.SystemUtils;
 
+// BEGIN rimu-changed: As specified in AvoidXfermode class, the original was removed from Android source
+// code, so we're using the ported equivalent.
+import org.andengine.android.AvoidXfermode;
+import org.andengine.android.AvoidXfermode.Mode;
+// END rimu-changed.
 import android.os.Build;
 
 /**

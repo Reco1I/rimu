@@ -22,9 +22,7 @@ public interface IGameInterface {
 	// Methods
 	// ===========================================================
 
-	default public EngineOptions onCreateEngineOptions() {
-		return null;
-	}
+	public EngineOptions onCreateEngineOptions();
 	public Engine onCreateEngine(final EngineOptions pEngineOptions);
 
 	public void onCreateResources(final OnCreateResourcesCallback pOnCreateResourcesCallback) throws IOException;

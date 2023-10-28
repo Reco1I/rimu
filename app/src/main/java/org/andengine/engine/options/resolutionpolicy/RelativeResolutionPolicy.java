@@ -43,7 +43,7 @@ public class RelativeResolutionPolicy extends BaseResolutionPolicy {
 	// ===========================================================
 
 	@Override
-	public void onMeasure(final Callback pResolutionPolicyCallback, final int pWidthMeasureSpec, final int pHeightMeasureSpec) {
+	public void onMeasure(final IResolutionPolicy.Callback pResolutionPolicyCallback, final int pWidthMeasureSpec, final int pHeightMeasureSpec) {
 		BaseResolutionPolicy.throwOnNotMeasureSpecEXACTLY(pWidthMeasureSpec, pHeightMeasureSpec);
 
 		final int measuredWidth = (int) (MeasureSpec.getSize(pWidthMeasureSpec) * this.mWidthScale);

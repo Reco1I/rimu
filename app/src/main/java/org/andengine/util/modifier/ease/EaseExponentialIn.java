@@ -1,7 +1,5 @@
 package org.andengine.util.modifier.ease;
 
-import android.animation.TimeInterpolator;
-
 /**
  * (c) 2010 Nicolas Gramlich
  * (c) 2011 Zynga Inc.

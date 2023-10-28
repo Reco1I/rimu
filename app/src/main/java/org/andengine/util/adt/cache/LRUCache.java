@@ -25,7 +25,7 @@ public class LRUCache<K, V> {
 	private final HashMap<K, LRUCacheValueHolder<K, V>> mMap;
 	private final LRUCacheQueue<K> mLRUCacheQueue;
 
-	private final GenericPool<LRUCacheValueHolder<K, V>> mLRUCacheValueHolderPool = new GenericPool<LRUCacheValueHolder<K, V>>() {
+	private final GenericPool<LRUCacheValueHolder<K, V>> mLRUCacheValueHolderPool = new GenericPool<LRUCache.LRUCacheValueHolder<K, V>>() {
 		@Override
 		protected LRUCacheValueHolder<K, V> onAllocatePoolItem() {
 			return new LRUCacheValueHolder<K, V>();
@@ -205,7 +205,7 @@ public class LRUCache<K, V> {
 		private LRUCacheQueueNode<K> mHead;
 		private LRUCacheQueueNode<K> mTail;
 
-		private final GenericPool<LRUCacheQueueNode<K>> mLRUCacheQueueNodePool = new GenericPool<LRUCacheQueueNode<K>>() {
+		private final GenericPool<LRUCacheQueueNode<K>> mLRUCacheQueueNodePool = new GenericPool<LRUCache.LRUCacheQueueNode<K>>() {
 			@Override
 			protected LRUCacheQueueNode<K> onAllocatePoolItem() {
 				return new LRUCacheQueueNode<K>();

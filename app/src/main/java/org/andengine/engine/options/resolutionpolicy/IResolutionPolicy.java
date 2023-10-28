@@ -17,7 +17,7 @@ public interface IResolutionPolicy {
 	// Methods
 	// ===========================================================
 
-	public void onMeasure(final Callback pResolutionPolicyCallback, final int pWidthMeasureSpec, final int pHeightMeasureSpec);
+	public void onMeasure(final IResolutionPolicy.Callback pResolutionPolicyCallback, final int pWidthMeasureSpec, final int pHeightMeasureSpec);
 
 	// ===========================================================
 	// Inner and Anonymous Classes

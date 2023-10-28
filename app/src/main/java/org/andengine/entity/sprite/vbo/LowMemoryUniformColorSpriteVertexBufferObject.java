@@ -74,9 +74,6 @@ public class LowMemoryUniformColorSpriteVertexBufferObject extends LowMemoryVert
 
 		final ITextureRegion textureRegion = pSprite.getTextureRegion(); // TODO Optimize with field access?
 
-		if (textureRegion == null)
-			return;
-
 		final float u;
 		final float v;
 		final float u2;

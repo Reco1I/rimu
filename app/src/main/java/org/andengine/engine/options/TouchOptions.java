@@ -18,7 +18,7 @@ public class TouchOptions {
 	// ===========================================================
 
 	private boolean mNeedsMultiTouch;
-	private long mTouchEventIntervalMilliseconds = 0;
+	private long mTouchEventIntervalMilliseconds = TouchOptions.TOUCHEVENT_INTERVAL_MILLISECONDS_DEFAULT;
 
 	// ===========================================================
 	// Constructors

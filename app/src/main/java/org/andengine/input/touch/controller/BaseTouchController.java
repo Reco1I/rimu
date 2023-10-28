@@ -24,12 +24,15 @@ public abstract class BaseTouchController implements ITouchController {
 
 	private ITouchEventCallback mTouchEventCallback;
 
-	//private final RunnablePoolUpdateHandler<TouchEventRunnablePoolItem> mTouchEventRunnablePoolUpdateHandler = new RunnablePoolUpdateHandler<TouchEventRunnablePoolItem>() {
-	//	@Override
-	//	protected TouchEventRunnablePoolItem onAllocatePoolItem() {
-	//		return new TouchEventRunnablePoolItem();
-	//	}
-	//};
+	// BEGIN rimu-changed: We're running touch event as soon as possible outside update thread so this
+	// is unnecessary.
+	/*private final RunnablePoolUpdateHandler<TouchEventRunnablePoolItem> mTouchEventRunnablePoolUpdateHandler = new RunnablePoolUpdateHandler<TouchEventRunnablePoolItem>() {
+		@Override
+		protected TouchEventRunnablePoolItem onAllocatePoolItem() {
+			return new TouchEventRunnablePoolItem();
+		}
+	};*/
+	// END rimu-changed.
 
 	// ===========================================================
 	// Constructors
@@ -54,24 +57,29 @@ public abstract class BaseTouchController implements ITouchController {
 
 	@Override
 	public void reset() {
-		//this.mTouchEventRunnablePoolUpdateHandler.reset();
+		// BEGIN rimu-changed
+		// this.mTouchEventRunnablePoolUpdateHandler.reset();
+		// END rimu-changed
 	}
 
 	@Override
 	public void onUpdate(final float pSecondsElapsed) {
-		//this.mTouchEventRunnablePoolUpdateHandler.onUpdate(pSecondsElapsed);
+		// BEGIN rimu-changed
+		// this.mTouchEventRunnablePoolUpdateHandler.onUpdate(pSecondsElapsed);
+		// END rimu-changed
 	}
 
 	protected void fireTouchEvent(final float pX, final float pY, final int pAction, final int pPointerID, final MotionEvent pMotionEvent) {
 		final TouchEvent touchEvent = TouchEvent.obtain(pX, pY, pAction, pPointerID, MotionEvent.obtain(pMotionEvent));
-
-		// Firing touch event as soon as possible.
+		// BEGIN rimu-changed: Running touch event directly in main thread rather than wait to update
+		// thread to poll it.
 		mTouchEventCallback.onTouchEvent(touchEvent);
 		touchEvent.recycle();
 
-		//final TouchEventRunnablePoolItem touchEventRunnablePoolItem = this.mTouchEventRunnablePoolUpdateHandler.obtainPoolItem();
-		//touchEventRunnablePoolItem.set(touchEvent);
-		//this.mTouchEventRunnablePoolUpdateHandler.postPoolItem(touchEventRunnablePoolItem);
+		/*final TouchEventRunnablePoolItem touchEventRunnablePoolItem = this.mTouchEventRunnablePoolUpdateHandler.obtainPoolItem();
+		touchEventRunnablePoolItem.set(touchEvent);
+		this.mTouchEventRunnablePoolUpdateHandler.postPoolItem(touchEventRunnablePoolItem);*/
+		// END rimu-changed
 	}
 
 	// ===========================================================

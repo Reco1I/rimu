@@ -38,7 +38,7 @@ public interface ILocationListener {
 	public void onLocationProviderDisabled();
 
 	/**
-	 * @see {@link LocationListener#onStatusChanged(String, int, Bundle)}
+	 * @see {@link LocationListener#onStatusChanged(String, int, android.os.Bundle)}
 	 */
 	public void onLocationProviderStatusChanged(final LocationProviderStatus pLocationProviderStatus, final Bundle pBundle);
 }

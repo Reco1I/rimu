@@ -31,7 +31,7 @@ public class FillResolutionPolicy extends BaseResolutionPolicy {
 	// ===========================================================
 
 	@Override
-	public void onMeasure(final Callback pResolutionPolicyCallback, final int pWidthMeasureSpec, final int pHeightMeasureSpec) {
+	public void onMeasure(final IResolutionPolicy.Callback pResolutionPolicyCallback, final int pWidthMeasureSpec, final int pHeightMeasureSpec) {
 		BaseResolutionPolicy.throwOnNotMeasureSpecEXACTLY(pWidthMeasureSpec, pHeightMeasureSpec);
 
 		final int measuredWidth = MeasureSpec.getSize(pWidthMeasureSpec);

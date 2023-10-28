@@ -86,7 +86,7 @@ public class ColorSwapBitmapTextureAtlasSource extends BaseBitmapTextureAtlasSou
 			case ARGB_8888:
 				return ColorSwapBitmapTextureAtlasSource.swapColorARGB_8888(pBitmap, this.mColorKeyColorARGBPackedInt, this.mTolerance, this.mColorSwapColorARGBPackedInt);
 			default:
-				Debug.w("Unexpected " + Config.class.getSimpleName() + ": '" + config + "'.");
+				Debug.w("Unexpected " + Bitmap.Config.class.getSimpleName() + ": '" + config + "'.");
 				return pBitmap;
 		}
 	}

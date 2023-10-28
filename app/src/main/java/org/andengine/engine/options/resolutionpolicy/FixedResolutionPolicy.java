@@ -38,7 +38,7 @@ public class FixedResolutionPolicy extends BaseResolutionPolicy {
 	// ===========================================================
 
 	@Override
-	public void onMeasure(final Callback pResolutionPolicyCallback, final int pWidthMeasureSpec, final int pHeightMeasureSpec) {
+	public void onMeasure(final IResolutionPolicy.Callback pResolutionPolicyCallback, final int pWidthMeasureSpec, final int pHeightMeasureSpec) {
 		pResolutionPolicyCallback.onResolutionChanged(this.mWidth, this.mHeight);
 	}
 

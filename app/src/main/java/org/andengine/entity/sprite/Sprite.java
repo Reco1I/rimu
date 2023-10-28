@@ -7,6 +7,7 @@ import org.andengine.entity.sprite.vbo.ISpriteVertexBufferObject;
 import org.andengine.opengl.shader.PositionColorTextureCoordinatesShaderProgram;
 import org.andengine.opengl.shader.ShaderProgram;
 import org.andengine.opengl.shader.constants.ShaderProgramConstants;
+import org.andengine.opengl.texture.region.BlankTextureRegion;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.util.GLState;
 import org.andengine.opengl.vbo.DrawType;
@@ -15,9 +16,9 @@ import org.andengine.opengl.vbo.attribute.VertexBufferObjectAttributes;
 import org.andengine.opengl.vbo.attribute.VertexBufferObjectAttributesBuilder;
 
 import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+// BEGIN rimu-changed: Using nullable annotation to notify Kotlin compiler.
 import androidx.annotation.Nullable;
+// END rimu-changed.
 
 /**
  * (c) 2010 Nicolas Gramlich
@@ -51,7 +52,9 @@ public class Sprite extends Shape {
 	// Fields
 	// ===========================================================
 
+	// BEGIN rimu-changed: Make texture region non-final.
 	protected ITextureRegion mTextureRegion;
+	// END rimu-changed.
 	protected final ISpriteVertexBufferObject mSpriteVertexBufferObject;
 
 	protected boolean mFlippedVertical;
@@ -61,32 +64,34 @@ public class Sprite extends Shape {
 	// Constructors
 	// ===========================================================
 
-	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion) {
-		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, new VertexBufferObjectManager(), DrawType.STATIC);
+	// BEGIN rimu-changed: No texture region constructor.
+	public Sprite(final VertexBufferObjectManager pVertexBufferObjectManager) {
+		this(0, 0, 0, 0, new BlankTextureRegion(), pVertexBufferObjectManager);
 	}
+	// END rimu-changed.
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager) {
-		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC);
+		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager, final ShaderProgram pShaderProgram) {
-		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC, pShaderProgram);
+		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC, pShaderProgram);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager, final DrawType pDrawType) {
-		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObjectManager, pDrawType);
+		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, pDrawType);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager, final DrawType pDrawType, final ShaderProgram pShaderProgram) {
-		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObjectManager, pDrawType, pShaderProgram);
+		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, pDrawType, pShaderProgram);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final ISpriteVertexBufferObject pVertexBufferObject) {
-		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObject);
+		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObject);
 	}
 
 	public Sprite(final float pX, final float pY, final ITextureRegion pTextureRegion, final ISpriteVertexBufferObject pVertexBufferObject, final ShaderProgram pShaderProgram) {
-		this(pX, pY, pTextureRegion != null ? pTextureRegion.getWidth() : 0f, pTextureRegion != null ? pTextureRegion.getHeight() : 0f, pTextureRegion, pVertexBufferObject, pShaderProgram);
+		this(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObject, pShaderProgram);
 	}
 
 	public Sprite(final float pX, final float pY, final float pWidth, final float pHeight, final ITextureRegion pTextureRegion, final VertexBufferObjectManager pVertexBufferObjectManager) {
@@ -128,21 +133,29 @@ public class Sprite extends Shape {
 	// Getter & Setter
 	// ===========================================================
 
-	@Nullable
 	public ITextureRegion getTextureRegion() {
 		return this.mTextureRegion;
 	}
 
-	// BEGIN rimu! modification
-	public void setTextureRegion(@Nullable ITextureRegion pTextureRegion) {
-		this.mTextureRegion = pTextureRegion;
+	// BEGIN rimu-changed: Make setter for texture region, to handle nullability we use BlankTextureRegion
+	// as fallback.
+	public void setTextureRegion(@Nullable ITextureRegion textureRegion) {
 
-		this.setBlendingEnabled(true);
-		this.initBlendFunction(pTextureRegion);
-		this.onUpdateColor();
-		this.onUpdateTextureCoordinates();
+		// Null values are compared with instanceof because internally texture region cannot be null.
+		if (textureRegion == mTextureRegion || (textureRegion == null) == (mTextureRegion instanceof BlankTextureRegion))
+			return;
+
+		mTextureRegion = textureRegion == null ? new BlankTextureRegion() : textureRegion;
+
+		setBlendingEnabled(true);
+		initBlendFunction(mTextureRegion);
+
+		setSize(mTextureRegion.getWidth(), mTextureRegion.getHeight());
+
+		onUpdateColor();
+		onUpdateTextureCoordinates();
 	}
-	// END rimu! modification
+	// END rimu-changed.
 
 	public boolean isFlippedHorizontal() {
 		return this.mFlippedHorizontal;
@@ -190,16 +203,14 @@ public class Sprite extends Shape {
 	public void reset() {
 		super.reset();
 
-		if (this.mTextureRegion != null)
-			this.initBlendFunction(this.mTextureRegion.getTexture());
+		this.initBlendFunction(this.getTextureRegion().getTexture());
 	}
 
 	@Override
 	protected void preDraw(final GLState pGLState, final Camera pCamera) {
 		super.preDraw(pGLState, pCamera);
 
-		if (mTextureRegion != null)
-			this.mTextureRegion.getTexture().bind(pGLState);
+		this.getTextureRegion().getTexture().bind(pGLState);
 
 		this.mSpriteVertexBufferObject.bind(pGLState, this.mShaderProgram);
 	}

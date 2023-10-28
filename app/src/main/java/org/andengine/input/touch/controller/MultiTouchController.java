@@ -50,7 +50,10 @@ public class MultiTouchController extends BaseTouchController {
 				this.onHandleTouchMove(pMotionEvent);
 				return;
 			default:
+				// BEGIN rimu-changed: Why throw an exception instead of just ignore the input?
 				return;
+				// throw new IllegalArgumentException("Invalid Action detected: " + action);
+				// END rimu-changed.
 		}
 	}
 

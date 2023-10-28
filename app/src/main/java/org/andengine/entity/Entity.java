@@ -916,17 +916,6 @@ public class Entity implements IEntity {
 		pEntity.onAttached();
 	}
 
-	public void attachChild(final IEntity pEntity, int index) throws IllegalStateException {
-		this.assertEntityHasNoParent(pEntity);
-
-		if (this.mChildren == null) {
-			this.allocateChildren();
-		}
-		this.mChildren.add(index, pEntity);
-		pEntity.setParent(this);
-		pEntity.onAttached();
-	}
-
 	@Override
 	public void sortChildren() {
 		this.sortChildren(true);

@@ -1,3 +1,6 @@
+// BEGIN rimu-changed: This class is a clone from the same in the Android project source code, in
+// current SDKs the original class has been deprecated and removed. In order to compile we're adding
+// this to AndEngine source code.
 package org.andengine.android;
 
 import android.graphics.Xfermode;
@@ -20,3 +23,4 @@ public class AvoidXfermode extends Xfermode {
         }
     }
 }
+// END rimu-changed.

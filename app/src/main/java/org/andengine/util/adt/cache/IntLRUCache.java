@@ -25,7 +25,7 @@ public class IntLRUCache<V> {
 	private final SparseArray<IntLRUCacheValueHolder<V>> mSparseArray;
 	private final IntLRUCacheQueue mIntLRUCacheQueue;
 
-	private final GenericPool<IntLRUCacheValueHolder<V>> mIntLRUCacheValueHolderPool = new GenericPool<IntLRUCacheValueHolder<V>>() {
+	private final GenericPool<IntLRUCacheValueHolder<V>> mIntLRUCacheValueHolderPool = new GenericPool<IntLRUCache.IntLRUCacheValueHolder<V>>() {
 		@Override
 		protected IntLRUCacheValueHolder<V> onAllocatePoolItem() {
 			return new IntLRUCacheValueHolder<V>();
@@ -208,7 +208,7 @@ public class IntLRUCache<V> {
 		private IntLRUCacheQueueNode mHead;
 		private IntLRUCacheQueueNode mTail;
 
-		private final GenericPool<IntLRUCacheQueueNode> mIntLRUCacheQueueNodePool = new GenericPool<IntLRUCacheQueueNode>() {
+		private final GenericPool<IntLRUCacheQueueNode> mIntLRUCacheQueueNodePool = new GenericPool<IntLRUCache.IntLRUCacheQueueNode>() {
 			@Override
 			protected IntLRUCacheQueueNode onAllocatePoolItem() {
 				return new IntLRUCacheQueueNode();

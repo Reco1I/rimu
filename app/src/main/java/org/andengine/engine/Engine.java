@@ -177,12 +177,8 @@ public class Engine implements SensorEventListener, OnTouchListener, ITouchEvent
 		this.mUpdateThread.setEngine(this);
 	}
 
-	public void startUpdateThread() {
-		try	{
-			this.mUpdateThread.start();
-		} catch (Exception e) {
-			Debug.e(e);
-		}
+	public void startUpdateThread() throws IllegalThreadStateException {
+		this.mUpdateThread.start();
 	}
 
 	// ===========================================================
@@ -433,6 +429,14 @@ public class Engine implements SensorEventListener, OnTouchListener, ITouchEvent
 	public boolean onTouch(final View pView, final MotionEvent pSurfaceMotionEvent) {
 		if (this.mRunning) {
 			this.mTouchController.onHandleMotionEvent(pSurfaceMotionEvent);
+			// BEGIN rimu-changed: Suspending main thread is so wrong lol.
+			/*try {
+				*//* Because a human cannot interact 1000x per second, we pause the UI-Thread for a little. *//*
+				Thread.sleep(this.mEngineOptions.getTouchOptions().getTouchEventIntervalMilliseconds());
+			} catch (final InterruptedException e) {
+				Debug.e(e);
+			}*/
+			// END rimu-changed.
 			return true;
 		} else {
 			return false;
@@ -659,16 +663,36 @@ public class Engine implements SensorEventListener, OnTouchListener, ITouchEvent
 		return this.mVibrator != null;
 	}
 
+	public void vibrate(final long pMilliseconds) throws IllegalStateException {
+		if (this.mVibrator != null) {
+			this.mVibrator.vibrate(pMilliseconds);
+		} else {
+			throw new IllegalStateException("You need to enable the Vibrator before you can use it!");
+		}
+	}
+
+	public void vibrate(final long[] pPattern, final int pRepeat) throws IllegalStateException {
+		if (this.mVibrator != null) {
+			this.mVibrator.vibrate(pPattern, pRepeat);
+		} else {
+			throw new IllegalStateException("You need to enable the Vibrator before you can use it!");
+		}
+	}
+
 	public void enableLocationSensor(final Context pContext, final ILocationListener pLocationListener, final LocationSensorOptions pLocationSensorOptions) {
 		this.mLocationListener = pLocationListener;
 
 		final LocationManager locationManager = (LocationManager) pContext.getSystemService(Context.LOCATION_SERVICE);
 		final String locationProvider = locationManager.getBestProvider(pLocationSensorOptions, pLocationSensorOptions.isEnabledOnly());
 		// TODO locationProvider can be null, in that case return false. Successful case should return true.
+		locationManager.requestLocationUpdates(locationProvider, pLocationSensorOptions.getMinimumTriggerTime(), pLocationSensorOptions.getMinimumTriggerDistance(), this);
+
+		this.onLocationChanged(locationManager.getLastKnownLocation(locationProvider));
 	}
 
 	public void disableLocationSensor(final Context pContext) {
 		final LocationManager locationManager = (LocationManager) pContext.getSystemService(Context.LOCATION_SERVICE);
+		locationManager.removeUpdates(this);
 	}
 
 	/**

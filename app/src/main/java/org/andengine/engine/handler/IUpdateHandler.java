@@ -19,7 +19,10 @@ public interface IUpdateHandler {
 	// ===========================================================
 
 	public void onUpdate(final float pSecondsElapsed);
+
+	// BEGIN rimu-changed: This method is not always used, adding default empty implementation.
 	default public void reset() {}
+	// END rimu-changed.
 
 	// TODO Maybe add onRegister and onUnregister. (Maybe add SimpleUpdateHandler that implements all methods, but onUpdate)
 

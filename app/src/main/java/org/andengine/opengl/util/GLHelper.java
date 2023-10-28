@@ -6,12 +6,9 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-import android.opengl.GLES20;
 import org.andengine.opengl.texture.PixelFormat;
 
 import android.graphics.Bitmap;
-
-import javax.microedition.khronos.opengles.GL10;
 
 /**
  * (c) 2010 Nicolas Gramlich

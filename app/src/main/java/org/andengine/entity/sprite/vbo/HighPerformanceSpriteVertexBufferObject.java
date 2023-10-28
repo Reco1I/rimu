@@ -80,9 +80,6 @@ public class HighPerformanceSpriteVertexBufferObject extends HighPerformanceVert
 
 		final ITextureRegion textureRegion = pSprite.getTextureRegion(); // TODO Optimize with field access?
 
-		if (textureRegion == null)
-			return;
-
 		final float u;
 		final float v;
 		final float u2;

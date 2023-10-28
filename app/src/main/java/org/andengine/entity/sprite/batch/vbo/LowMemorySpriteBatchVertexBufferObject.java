@@ -59,10 +59,6 @@ public class LowMemorySpriteBatchVertexBufferObject extends LowMemoryVertexBuffe
 	 */
 	@Override
 	public void addWithPackedColor(final ITextureRegion pTextureRegion, final float pX1, final float pY1, final float pX2, final float pY2, final float pX3, final float pY3, final float pX4, final float pY4, final float pColorABGRPackedInt) {
-
-		if (pTextureRegion == null)
-			return;
-
 		final FloatBuffer bufferData = this.getFloatBuffer();
 		final int bufferDataOffset = this.mBufferDataOffset;
 
@@ -164,10 +160,6 @@ public class LowMemorySpriteBatchVertexBufferObject extends LowMemoryVertexBuffe
 	 */
 	@Override
 	public void addWithPackedColor(final ITextureRegion pTextureRegion, final float pX1, final float pY1, final float pX2, final float pY2, final float pColorABGRPackedInt) {
-
-		if (pTextureRegion == null)
-			return;
-
 		final FloatBuffer bufferData = this.getFloatBuffer();
 		final int bufferDataOffset = this.mBufferDataOffset;
 
