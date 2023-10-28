@@ -116,7 +116,7 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
 
         title.text = "UI"
 
-        SeekBarSettingView(RimuSetting.UI_SCALE)
+        SeekBarSettingView(RimuSetting.UI_SCALE_FACTOR)
         {
             max = 1.5f
             min = 0.5f

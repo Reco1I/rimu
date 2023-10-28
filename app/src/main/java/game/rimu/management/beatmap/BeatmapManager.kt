@@ -5,13 +5,14 @@ import com.reco1l.framework.kotlin.klass
 import com.reco1l.framework.kotlin.nextOf
 import com.reco1l.framework.kotlin.orCatch
 import com.reco1l.framework.kotlin.previousOf
-import com.reco1l.framework.management.IObservable
-import com.reco1l.framework.management.forEachObserver
+import com.reco1l.framework.IObservable
+import com.reco1l.framework.forEachObserver
 import com.rian.osu.beatmap.parser.BeatmapDecoder
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.data.Beatmap
 import game.rimu.data.BeatmapSet
+import game.rimu.ui.layouts.Notification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -68,12 +69,13 @@ class BeatmapManager(override val ctx: MainContext) :
             GlobalScope.launch {
 
                 // The flow will update the list everytime the table is changed.
-                ctx.database.beatmapTable.getParentSetFlow().collect(this@BeatmapManager::onBeatmapTableChange)
+                ctx.database.beatmapTable.getParentSetFlow().collect(::onTableChange)
             }
         }
     }
 
-    private fun onBeatmapTableChange(value: List<BeatmapSet>)
+
+    private fun onTableChange(value: List<BeatmapSet>)
     {
         musicScope.launch {
 
@@ -90,13 +92,19 @@ class BeatmapManager(override val ctx: MainContext) :
         }
     }
 
+    private fun onCreateWorkingBeatmap(source: Beatmap) = { WorkingBeatmap(ctx, source) }.orCatch {
 
-    private fun onCreateWorkingBeatmap(base: Beatmap): WorkingBeatmap?
-    {
-       return { WorkingBeatmap(ctx, base) }.orCatch {
-           Logger.e(klass, "Failed to load beatmap: ${base.hash} ${base.title}", it)
-           null
-       }
+        Notification(
+            header = "Error",
+            message = """
+                    Unable to load beatmap "${source.title} by ${source.artist} - ${source.version} mapped by ${source.creator}"
+                    Cause: ${it.klass} - ${it.message}
+                """.trimMargin(),
+            icon = ""
+        ).show(ctx)
+
+        Logger.e(klass, "Error while loading beatmap.", it)
+        null
     }
 
 

@@ -1,4 +1,4 @@
-package com.reco1l.framework.management
+package com.reco1l.framework
 
 /**
  * Intended to be used in manager classes where many events happens at once that must be listened.

@@ -10,12 +10,12 @@ enum class RimuSetting(val default: Any)
     /**
      * The UI scale factor, by default `1.0`.
      */
-    UI_SCALE(1f),
+    UI_SCALE_FACTOR(1f),
 
     /**
-     * The skin key, by default [Skin.DEFAULT].
+     * The skin key, by default [Skin.BASE].
      */
-    UI_SKIN(Skin.DEFAULT.key),
+    UI_SKIN(Skin.BASE),
 
     /**
      * Determines if we use the beatmap skin instead of the user skin, by default `true`.

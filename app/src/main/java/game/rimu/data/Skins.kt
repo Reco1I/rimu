@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.Flow
 data class Skin(
 
     /**
-     * The skin name (specified in the skin.ini) or the containing folder name.
+     * The skin name or the containing folder name.
      */
     @PrimaryKey
     val key: String,
@@ -30,7 +30,7 @@ data class Skin(
      * Internal skins use a pattern where the hash equals to its subdirectory in the Android `/assets`
      * folder.
      */
-    val isInternal: Boolean = key.endsWith('/')
+    val isInternal: Boolean = false
 )
 {
 
@@ -38,9 +38,9 @@ data class Skin(
     {
 
         /**
-         * The rimu! default skin, located at `assets/default/`.
+         * The key of the default/main skin.
          */
-        val DEFAULT = Skin("default/", "rimu! team")
+        const val BASE = "skins/default"
 
     }
 }

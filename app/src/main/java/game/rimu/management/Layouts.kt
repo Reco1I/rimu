@@ -6,6 +6,7 @@ import com.reco1l.framework.android.views.removeSelf
 import com.reco1l.framework.kotlin.createInstance
 import com.reco1l.framework.kotlin.safeIn
 import game.rimu.MainContext
+import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.LayerBackground
 import game.rimu.ui.LayerOverlay
 import game.rimu.ui.LayerScene
@@ -36,7 +37,11 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
     init
     {
-        ctx.initializationTree!!.add(0) { onActivityCreate() }
+        ctx.initializationTree!!.add {
+
+            onActivityCreate()
+            skins.bindObserver(observer = this@LayoutManager)
+        }
     }
 
 
@@ -54,10 +59,6 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
         }
     }
 
-
-    /**
-     * Set scene layouts.
-     */
     fun onSceneChange(scene: BaseScene) = mainThread {
 
         // We copying the list to avoid concurrency errors because during the iteration the original
@@ -69,6 +70,19 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
             else
                 it.hide()
         }
+    }
+
+
+    override fun onApplyScale(scale: Float)
+    {
+        // This may be called from a Coroutine scope so we have to move the operation to main thread.
+        mainThread { super.onApplyScale(scale) }
+    }
+
+    override fun onApplySkin(skin: WorkingSkin)
+    {
+        // This may be called from a Coroutine scope so we have to move the operation to main thread.
+        mainThread { super.onApplySkin(skin) }
     }
 
 

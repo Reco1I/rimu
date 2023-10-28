@@ -45,7 +45,10 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
 
         rules.image = "icon-back"
 
-        setTouchHandler {  }
+        setTouchHandler {
+
+            onActionUp = { ctx.skins.next() }
+        }
 
     }
 

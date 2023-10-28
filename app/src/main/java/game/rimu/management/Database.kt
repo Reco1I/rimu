@@ -49,7 +49,7 @@ class DatabaseManager(override val ctx: MainContext) : IWithContext
 
     init
     {
-        ctx.initializationTree!!.add(1) {
+        ctx.initializationTree!!.add {
 
             databaseImpl = Room.databaseBuilder<RimuDatabase>(ctx, DATABASE_NAME).build()
         }

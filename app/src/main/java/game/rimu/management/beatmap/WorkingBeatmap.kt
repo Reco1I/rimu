@@ -3,7 +3,7 @@ package game.rimu.management.beatmap
 import androidx.core.animation.doOnEnd
 import com.reco1l.basskt.stream.AudioStream
 import com.reco1l.framework.animation.animateTo
-import com.reco1l.framework.management.forEachObserver
+import com.reco1l.framework.forEachObserver
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.timings.ControlPoint
 import game.rimu.IWithContext

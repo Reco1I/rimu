@@ -118,14 +118,6 @@ open class SeekBar(ctx: MainContext) : LinearProgressIndicator(ctx)
     }
 
 
-    override fun onAttachedToWindow()
-    {
-        super.onAttachedToWindow()
-
-        invalidateSkin()
-        invalidateScale()
-    }
-
     override fun onApplySkin(skin: WorkingSkin)
     {
         thumbPaint.color = skin.data.colours.accentColor.toInt()

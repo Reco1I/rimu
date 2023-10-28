@@ -18,15 +18,6 @@ abstract class BaseLayer(override val ctx: MainContext) : ConstraintLayout(ctx),
         width = MATCH_PARENT
         height = MATCH_PARENT
     }
-
-
-    override fun onAttachedToWindow()
-    {
-        super.onAttachedToWindow()
-
-        invalidateScale()
-        invalidateSkin()
-    }
 }
 
 

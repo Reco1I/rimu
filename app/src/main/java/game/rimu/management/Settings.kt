@@ -1,16 +1,15 @@
 package game.rimu.management
 
-import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import com.reco1l.framework.kotlin.klass
-import com.reco1l.framework.management.IMapObservable
-import com.reco1l.framework.management.Bindable
-import com.reco1l.framework.management.IBindableValueProvider
-import com.reco1l.framework.management.forEachObserver
+import com.reco1l.framework.IMapObservable
+import com.reco1l.framework.forEachObserver
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.constants.RimuSetting
-
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 
 /**
@@ -18,7 +17,6 @@ import game.rimu.constants.RimuSetting
  */
 class SettingManager(override val ctx: MainContext) :
     SharedPreferences.OnSharedPreferenceChangeListener,
-    IBindableValueProvider<String, Any?, Setting<Any?>>,
     IMapObservable<RimuSetting, (Any?) -> Unit>,
     IWithContext
 {
@@ -26,9 +24,7 @@ class SettingManager(override val ctx: MainContext) :
     override val observers = mutableMapOf<RimuSetting, MutableList<(Any?) -> Unit>>()
 
 
-    private val preferences = ctx.getSharedPreferences(ctx.applicationInfo.name,
-        Context.MODE_PRIVATE
-    ).apply {
+    private val preferences = ctx.getSharedPreferences(ctx.applicationInfo.name, MODE_PRIVATE).apply {
 
         registerOnSharedPreferenceChangeListener(this@SettingManager)
     }
@@ -45,13 +41,7 @@ class SettingManager(override val ctx: MainContext) :
      * Get an specific settings from the preference map.
      */
     @Suppress("UNCHECKED_CAST")
-    operator fun <T> get(key: RimuSetting) = get<T>(key.key) ?: key.default as T
-
-    /**
-     * Get an specific settings from the preference map.
-     */
-    @Suppress("UNCHECKED_CAST")
-    operator fun <T> get(key: String) = preferences.all[key] as? T
+    operator fun <T> get(setting: RimuSetting) = preferences.all[setting.key] as? T ?: setting.default as T
 
     /**
      * Set an specific settings from the preference map.
@@ -60,8 +50,10 @@ class SettingManager(override val ctx: MainContext) :
      * [String] and `Set<String>`.
      */
     @Suppress("UNCHECKED_CAST")
-    operator fun <T> set(key: String, value: T)
+    operator fun <T> set(setting: RimuSetting, value: T)
     {
+        val key = setting.key
+
         preferences.edit().apply {
 
             if (value == null)
@@ -93,13 +85,6 @@ class SettingManager(override val ctx: MainContext) :
             apply()
         }
     }
-
-
-    // Bindables
-
-    override fun getValueForBindable(key: String) = get<Any?>(key)
-
-    override fun setValueFromBindable(key: String, value: Any?) = set(key, value)
 }
 
 
@@ -109,22 +94,23 @@ fun <V : Any?> IWithContext.Setting(setting: RimuSetting) = Setting<V>(ctx, sett
 /**
  * Bind a property to a game option specified by the [SettingManager].
  */
-@Suppress("UNCHECKED_CAST")
 class Setting<V : Any?>(
 
     /**
      * The attached context
      */
-    ctx: MainContext,
+    private val ctx: MainContext,
 
     /**
      * The setting key
      */
-    setting: RimuSetting,
+    private val setting: RimuSetting,
 
     ) :
-    Bindable<String, V>(
-        setting.key,
-        setting.default as V,
-        ctx.settings as IBindableValueProvider<String, V, Setting<V>>
-    )
+    ReadWriteProperty<Any?, V>
+{
+    @Suppress("UNCHECKED_CAST")
+    override fun getValue(thisRef: Any?, property: KProperty<*>) = ctx.settings[setting] ?: setting.default as V
+
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: V) = ctx.settings.set(setting, value)
+}

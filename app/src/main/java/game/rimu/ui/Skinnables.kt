@@ -39,9 +39,11 @@ interface ISkinnable
      * Calls [onApplySkin] with the context skin, if there's a [MainContext] implementation you
      * don't need to pass the context.
      */
-    fun invalidateSkin(ctx: MainContext? = (this as? IWithContext)?.ctx)
+    fun invalidateSkin(ctx: MainContext = (this as IWithContext).ctx)
     {
-        ctx?.also { onApplySkin(it.skins.current) }
+        // Preventing from race condition when skin isn't loaded yet.
+        if (ctx.skins.isInitialized)
+            onApplySkin(ctx.skins.current)
     }
 }
 

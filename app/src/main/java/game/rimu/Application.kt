@@ -3,7 +3,6 @@ package game.rimu
 import android.app.Application
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.res.Resources
 import android.os.Handler
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
@@ -53,14 +52,14 @@ class MainContext(base: Context) : ContextWrapper(base)
     val handler = Handler(mainLooper)
 
     /**
+     * The BASS device.
+     */
+    val bass by lazy { BassDevice() }
+
+    /**
      * The game engine.
      */
     val engine by lazy { RimuEngine(this) }
-
-    /**
-     * The BASS device.
-     */
-    val bassDevice by lazy { BassDevice() }
 
 
     // Managers
@@ -81,14 +80,14 @@ class MainContext(base: Context) : ContextWrapper(base)
     val database = DatabaseManager(this)
 
     /**
-     * The beatmap manager.
-     */
-    val beatmaps = BeatmapManager(this)
-
-    /**
      * The resource manager.
      */
     val resources = ResourceManager(this)
+
+    /**
+     * The beatmap manager.
+     */
+    val beatmaps = BeatmapManager(this)
 
     /**
      * The skin manager.

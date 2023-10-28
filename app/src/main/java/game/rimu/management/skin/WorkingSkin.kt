@@ -6,6 +6,7 @@ import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.data.asset.AssetBundle
 import game.rimu.data.Skin
+import game.rimu.data.Skin.Companion.BASE
 
 /**
  * A working skin refers to a current loaded skin. Should be one per game instance but due to context
@@ -31,7 +32,11 @@ class WorkingSkin(
     /**
      * The skin asset bundle.
      */
-    val assets = AssetBundle.from(ctx, source)
+    val assets = when (source.key)
+    {
+        BASE -> ctx.resources.defaultAssets
+        else -> AssetBundle.from(ctx, source)
+    }
 
     /**
      * The skin data.
@@ -55,6 +60,13 @@ class WorkingSkin(
             decoder.decode(it)
 
         } ?: SkinData()
+    }
+
+
+    fun onRelease()
+    {
+        if (source.key != BASE)
+            assets.onRelease()
     }
 }
 
