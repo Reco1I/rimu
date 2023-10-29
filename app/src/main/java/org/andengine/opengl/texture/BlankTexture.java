@@ -79,7 +79,7 @@ public class BlankTexture implements ITexture {
 
     @Override
     public PixelFormat getPixelFormat() {
-        return PixelFormat.UNDEFINED;
+        return PixelFormat.RGBA_8888;
     }
 
     @Override
