@@ -41,6 +41,13 @@ public class EngineOptions {
 	// Constructors
 	// ===========================================================
 
+	// BEGIN rimu-changed: Additional constructor asserting fullscreen to true and screen orientation
+	// to landscape sensor
+	public EngineOptions(IResolutionPolicy pResolutionPolicy, Camera pCamera) {
+		this(true, ScreenOrientation.LANDSCAPE_SENSOR, pResolutionPolicy, pCamera);
+	}
+	// END rimu-changed.
+
 	public EngineOptions(final boolean pFullscreen, final ScreenOrientation pScreenOrientation, final IResolutionPolicy pResolutionPolicy, final Camera pCamera) {
 		this.mFullscreen = pFullscreen;
 		this.mScreenOrientation = pScreenOrientation;
