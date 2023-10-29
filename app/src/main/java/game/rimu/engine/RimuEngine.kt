@@ -10,21 +10,36 @@ import game.rimu.ui.scenes.BaseScene
 import game.rimu.ui.views.EngineRenderView
 import org.andengine.engine.Engine
 import org.andengine.engine.options.EngineOptions
-import org.andengine.engine.options.ScreenOrientation.LANDSCAPE_SENSOR
 import org.andengine.entity.scene.Scene
 import org.andengine.opengl.util.GLState
 import org.andengine.opengl.view.IRendererListener
 
+
+private fun EngineOptions(ctx: MainContext): EngineOptions
+{
+    val options = EngineOptions(EngineSurface(ctx), EngineCamera(ctx))
+
+    options.renderOptions.apply {
+
+        isDithering = true
+
+        // Setting color space to support 32 bit per pixel images.
+        configChooserOptions.apply {
+            requestedRedSize = 8
+            requestedBlueSize = 8
+            requestedGreenSize = 8
+            requestedAlphaSize = 8
+            requestedDepthSize = 24
+        }
+    }
+
+    return options
+}
+
+
 class RimuEngine(override val ctx: MainContext) :
 
-    Engine(
-        EngineOptions(
-            true,
-            LANDSCAPE_SENSOR,
-            EngineSurface(ctx),
-            EngineCamera(ctx)
-        )
-    ),
+    Engine(EngineOptions(ctx)),
     IRendererListener,
     IWithContext,
     ISkinnable
