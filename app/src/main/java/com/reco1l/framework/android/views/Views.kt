@@ -114,8 +114,8 @@ fun View.ensureID()
 // Size
 
 fun View.setSize(width: Float? = null, height: Float? = null) = setSize(
-    width = width?.roundToInt(),
-    height = height?.roundToInt()
+    width = width?.toInt(),
+    height = height?.toInt()
 )
 
 /**

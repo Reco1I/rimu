@@ -56,8 +56,8 @@ fun View.setMargins(
     bottom: Float? = null
 
 ) = setMargins(
-    left = left?.roundToInt(),
-    top = top?.roundToInt(),
-    right = right?.roundToInt(),
-    bottom = bottom?.roundToInt()
+    left = left?.toInt(),
+    top = top?.toInt(),
+    right = right?.toInt(),
+    bottom = bottom?.toInt()
 )
