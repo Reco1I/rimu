@@ -126,7 +126,8 @@ class MainActivity :
         ctx.bass.updatePeriod = 5
         ctx.beatmaps.current?.stream?.bufferLength = 0.1f
 
-        // Starting engine if it wasn't yet, this will only take effect the first time opening the game.
+        // Reloading resources and starting engine if wasn't started yet.
+        ctx.engine.onReloadResources()
         ctx.engine.start()
 
         ctx.engine.renderView.onResume()
