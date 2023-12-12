@@ -63,8 +63,7 @@ fun Bitmap.getPixelFormat(): PixelFormat
         Config.ALPHA_8 -> PixelFormat.A_8
         Config.RGB_565 -> PixelFormat.RGB_565
         Config.ARGB_4444 -> PixelFormat.RGBA_4444
-        Config.ARGB_8888 -> PixelFormat.RGBA_8888
 
-        else -> PixelFormat.UNDEFINED
+        else -> PixelFormat.RGBA_8888
     }
 }
