@@ -77,4 +77,7 @@ dependencies {
 
     // https://github.com/BigBadaboom/androidsvg
     implementation("com.caverock:androidsvg-aar:1.4")
+
+    // https://github.com/Reco1I/AndEngine
+    implementation("com.github.Reco1I:AndEngine:main-SNAPSHOT")
 }
