@@ -75,9 +75,12 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-json
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
+    // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-properties
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:1.6.0")
+
     // https://github.com/BigBadaboom/androidsvg
     implementation("com.caverock:androidsvg-aar:1.4")
 
     // https://github.com/Reco1I/AndEngine
-    implementation("com.github.Reco1I:AndEngine:1.0.0")
+    implementation("com.github.Reco1I:AndEngine:1.0.1")
 }
