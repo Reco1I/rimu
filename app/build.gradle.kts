@@ -83,4 +83,7 @@ dependencies {
 
     // https://github.com/Reco1I/AndEngine
     implementation("com.github.Reco1I:AndEngine:1.0.1")
+
+    // https://github.com/Reco1I/Basskt
+    implementation("com.github.Reco1I:Basskt:1.0.0")
 }
