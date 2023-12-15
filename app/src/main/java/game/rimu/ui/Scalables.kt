@@ -72,6 +72,10 @@ open class ScalableDimensions<T : Any>(
 interface IScalableWithDimensions<T : Any> : IScalable
 {
 
+    /**
+     * The view scalable dimensions, every dimension defined here will be scaled and applied once
+     * [onApplyScale] is called.
+     */
     val dimensions: ScalableDimensions<T>
 
     @Suppress("UNCHECKED_CAST")

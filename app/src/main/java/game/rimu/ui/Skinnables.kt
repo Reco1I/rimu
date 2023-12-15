@@ -55,6 +55,9 @@ open class SkinningRules<T>
 interface ISkinnableWithRules<T> : ISkinnable
 {
 
+    /**
+     * The view skinning rules, every rule will be applied once [onApplySkin] is called.
+     */
     val rules: SkinningRules<T>
 
     @Suppress("UNCHECKED_CAST")

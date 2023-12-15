@@ -1,6 +1,7 @@
 package game.rimu.ui.layouts
 
 import android.graphics.Color
+import android.graphics.Color.BLACK
 import android.graphics.drawable.ColorDrawable
 import android.view.MotionEvent
 import com.reco1l.framework.android.views.fontColor
@@ -77,7 +78,7 @@ class ToastView(ctx: MainContext) : ModelLayout(ctx)
             padding(14)
         }
 
-        background = ColorDrawable(Color.BLACK).apply {
+        background = ColorDrawable(BLACK).apply {
             alpha = 190
         }
     }
