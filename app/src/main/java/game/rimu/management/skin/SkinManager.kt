@@ -13,6 +13,7 @@ import game.rimu.data.Skin
 import game.rimu.data.Skin.Companion.BASE
 import game.rimu.ui.ISkinnable
 import game.rimu.ui.layouts.Notification
+import game.rimu.ui.layouts.ToastView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -130,7 +131,12 @@ class SkinManager(override val ctx: MainContext) :
                 forEachObserver { it.onApplySkin(skin) }
             }
 
-            last?.onRelease()
+            if (last != null)
+            {
+                mainThread { ToastView("Skin changed", current!!.source.key) }
+
+                last.onRelease()
+            }
         }
     }
 

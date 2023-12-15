@@ -20,7 +20,6 @@ import com.reco1l.framework.animation.toScale
 import com.reco1l.framework.animation.toTranslationX
 import com.reco1l.framework.animation.toTranslationY
 import com.reco1l.framework.graphics.Anchor
-import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.R
 import game.rimu.data.adapter.Adapter
@@ -281,7 +280,6 @@ class ProcessNotification(
 
 open class NotificationView(ctx: MainContext) :
     ModelLayout(ctx),
-    IWithContext,
     IHeldView<Notification>
 {
 
@@ -306,7 +304,7 @@ open class NotificationView(ctx: MainContext) :
     }
 
 
-    protected val headerView = TextView {
+    protected val headerText = TextView {
 
         rules.fontColorFactor = 0.8f
 
@@ -327,7 +325,7 @@ open class NotificationView(ctx: MainContext) :
         dimensions.fontSize = 10
 
         setConstraints(
-            target = headerView,
+            target = headerText,
             topToTarget = Anchor.BOTTOM,
             leftToTarget = Anchor.LEFT
         )
@@ -354,7 +352,7 @@ open class NotificationView(ctx: MainContext) :
     {
         associatedData = data
 
-        headerView.text = data.header.uppercase()
+        headerText.text = data.header.uppercase()
         messageText.text = data.message
         iconView.rules.image = data.icon
 

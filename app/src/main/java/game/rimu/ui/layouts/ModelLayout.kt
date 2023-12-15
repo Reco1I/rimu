@@ -88,9 +88,17 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
      */
     fun invalidateHideTimer()
     {
-        removeCallbacks(hideTask)
-
+        removeHideTimer()
         hideTime?.also { postDelayed(hideTask, it) }
+    }
+
+    /**
+     * Remove the timer callback to automatically hide the layout, in order to enable it back you
+     * should call [invalidateHideTimer].
+     */
+    fun removeHideTimer()
+    {
+        removeCallbacks(hideTask)
     }
 
 
@@ -114,6 +122,9 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
     open fun show(override: Boolean = !isSingleton) = ctx.layouts.show(this, override).also {
 
         Log.v(javaClass.simpleName, "Layout successfully attached.")
+
+        if (it)
+            invalidateHideTimer()
     }
 
     /**
@@ -122,7 +133,7 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
     @CallSuper
     open fun hide()
     {
-        removeCallbacks(hideTask)
+        removeHideTimer()
 
         ctx.layouts.hide(this).also {
 

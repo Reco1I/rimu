@@ -32,7 +32,7 @@ class Background(ctx: MainContext) :
         SelectorScene::class
     )
 
-    val image = FadeImageView(null) {
+    val image = FadeImageView {
 
         dimensions.width = MATCH_PARENT
         dimensions.height = MATCH_PARENT
