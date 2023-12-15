@@ -17,4 +17,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "rimu"
-include(":app")
+include(":game")
