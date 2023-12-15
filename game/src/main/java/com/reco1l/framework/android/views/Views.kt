@@ -8,9 +8,7 @@ import android.view.ViewGroup
 import android.view.ViewGroup.*
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.annotation.ColorInt
-import androidx.core.view.*
-import game.rimu.ui.views.addons.RoundOutlineProvider
-import kotlin.math.roundToInt
+import com.reco1l.rimu.ui.views.addons.RoundOutlineProvider
 
 
 // Drawables

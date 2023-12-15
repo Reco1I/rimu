@@ -238,8 +238,8 @@ class IniParser(private val inputStream: InputStream) : Closeable
 private class IniException(line: String, lineIndex: Int, charIndex: Int, message: String) :
     Exception(
         """
-        Error while reading line $lineIndex ($charIndex): $message
-        "$line"
-        ${' ' * (charIndex)}^
-    """.trimIndent()
+            Error while reading line $lineIndex ($charIndex): $message
+            "$line"
+            ${' ' * (charIndex)}^
+        """.trimIndent()
     )

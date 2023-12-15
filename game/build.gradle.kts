@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "game.rimu"
+    namespace = "com.reco1l.rimu"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "game.rimu"
+        applicationId = "com.reco1l.rimu"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

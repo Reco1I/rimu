@@ -2,7 +2,7 @@ package com.reco1l.framework.android.views
 
 import android.widget.LinearLayout.VERTICAL
 import androidx.recyclerview.widget.LinearLayoutManager
-import game.rimu.ui.views.RecyclerView
+import com.reco1l.rimu.ui.views.RecyclerView
 
 
 var RecyclerView.orientation

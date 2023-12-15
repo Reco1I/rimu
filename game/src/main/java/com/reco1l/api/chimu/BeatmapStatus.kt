@@ -1,7 +1,6 @@
 package com.reco1l.api.chimu
 
 import androidx.annotation.IntDef
-import game.rimu.management.RimuDatabase
 
 /**
  * Annotation integer definition for beatmap status, based on [Chimu](https://github.com/Chimu-moe/node-chimu-api/blob/master/src/lib.ts).
