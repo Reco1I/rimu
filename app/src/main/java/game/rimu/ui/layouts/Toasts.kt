@@ -32,8 +32,6 @@ class ToastView(ctx: MainContext) : ModelLayout(ctx)
 
     override var hideTime: Long? = 5000L
 
-    override val isSingleton = true
-
 
     val headerText = TextView {
 
