@@ -9,7 +9,9 @@ import game.rimu.MainContext
 import game.rimu.data.asset.Asset
 import game.rimu.data.asset.IAssetDAO
 import game.rimu.data.Beatmap
+import game.rimu.data.Filename
 import game.rimu.data.IBeatmapDAO
+import game.rimu.data.IFilenameDAO
 import game.rimu.data.ISkinDAO
 import game.rimu.data.Skin
 
@@ -51,7 +53,9 @@ class DatabaseManager(override val ctx: MainContext) : IWithContext
     {
         ctx.initializationTree!!.add {
 
-            databaseImpl = Room.databaseBuilder<RimuDatabase>(ctx, DATABASE_NAME).build()
+            databaseImpl = Room.databaseBuilder<RimuDatabase>(ctx, DATABASE_NAME)
+                .createFromAsset("")
+                .build()
         }
     }
 
@@ -70,8 +74,9 @@ class DatabaseManager(override val ctx: MainContext) : IWithContext
  * The rimu! database object class, this should be unique per instance.
  */
 @Database(
-    version = 6,
+    version = 7,
     entities = [
+        Filename::class,
         Beatmap::class,
         Asset::class,
         Skin::class
@@ -84,4 +89,6 @@ abstract class RimuDatabase : RoomDatabase()
     abstract fun getAssetTable(): IAssetDAO
 
     abstract fun getSkinTable(): ISkinDAO
+
+    abstract fun getFilenameTable(): IFilenameDAO
 }

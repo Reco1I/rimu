@@ -1,5 +1,6 @@
 package game.rimu.data
 
+import androidx.room.Dao
 import androidx.room.Entity
 
 
@@ -15,3 +16,6 @@ data class Filename(
     val withHyphen: Boolean
 
 )
+
+@Dao
+interface IFilenameDAO
