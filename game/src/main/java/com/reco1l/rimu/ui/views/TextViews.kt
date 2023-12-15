@@ -21,7 +21,7 @@ import com.reco1l.toolkt.animation.cancelAnimators
 import com.reco1l.toolkt.animation.toAlpha
 import com.reco1l.toolkt.graphics.Anchor
 import com.reco1l.toolkt.graphics.BasicAnchor
-import com.reco1l.toolkt.graphics.toInt
+import com.reco1l.rimu.graphics.toInt
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin

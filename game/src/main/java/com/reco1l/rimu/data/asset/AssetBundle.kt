@@ -9,12 +9,12 @@ import com.reco1l.basskt.stream.AssetSampleStream
 import com.reco1l.basskt.stream.BaseStream
 import com.reco1l.basskt.stream.SampleStream
 import com.reco1l.toolkt.kotlin.orCatch
-import com.reco1l.toolkt.graphics.toBitmap
-import com.reco1l.toolkt.graphics.toTexture
 import com.reco1l.rimu.graphics.WrappingTexture
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.data.Skin
+import com.reco1l.rimu.graphics.toBitmap
+import com.reco1l.rimu.graphics.toTexture
 import org.andengine.opengl.font.Font
 import java.io.File
 import java.io.InputStream

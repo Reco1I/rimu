@@ -1,6 +1,6 @@
 package com.rian.osu.beatmap.parser.sections
 
-import com.reco1l.toolkt.graphics.Color4
+import com.reco1l.rimu.graphics.Color4
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.timings.BreakPeriod
 import kotlin.math.max

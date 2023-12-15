@@ -27,11 +27,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 
@@ -86,4 +86,7 @@ dependencies {
 
     // https://github.com/Reco1I/Basskt
     implementation("com.github.Reco1I:Basskt:1.0.0")
+
+    // https://github.com/Reco1I/Toolkt
+    implementation("com.github.Reco1I:Toolkt:1.0.0")
 }

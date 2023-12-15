@@ -6,7 +6,7 @@ import android.graphics.drawable.ColorDrawable
 import android.view.MotionEvent
 import com.reco1l.toolkt.android.fontColor
 import com.reco1l.toolkt.android.setConstraints
-import com.reco1l.toolkt.animation.Ease
+import com.reco1l.rimu.graphics.Ease
 import com.reco1l.toolkt.animation.cancelAnimators
 import com.reco1l.toolkt.animation.toAlpha
 import com.reco1l.toolkt.animation.toScale
