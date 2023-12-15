@@ -2,6 +2,17 @@ package com.reco1l.rimu.constants
 
 import com.reco1l.rimu.data.Skin
 
+/**
+ * Whenever you need this for develop.
+ */
+object BuildSettings
+{
+    /**
+     * Disables every possible NSFW feature, for example backgrounds.
+     */
+    const val SFW_MODE = false
+}
+
 enum class RimuSetting(val default: Any)
 {
 
