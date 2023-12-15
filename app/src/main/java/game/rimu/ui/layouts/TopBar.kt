@@ -57,9 +57,12 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
 
         setBackgroundColor(0x26000000)
 
-        dimensions.height = MATCH_PARENT
         gravity = CENTER_VERTICAL
         orientation = HORIZONTAL
+
+        setDimensions {
+            height = MATCH_PARENT
+        }
 
         setConstraints(
             target = backButton,
@@ -68,7 +71,9 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
 
         IconButton {
 
-            rules.image = "icon-music"
+            setSkinning {
+                image = "icon-music"
+            }
 
             setTouchHandler {
 
@@ -80,22 +85,31 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
 
     val rightLayout = LinearLayout {
 
-        dimensions.height = MATCH_PARENT
-
         orientation = HORIZONTAL
         gravity = CENTER_VERTICAL or RIGHT
+
+        setDimensions {
+            height = MATCH_PARENT
+        }
 
         setConstraints(rightToTarget = Anchor.RIGHT)
 
         IconButton {
-            rules.image = "icon-notification"
+
+            setSkinning {
+                image = "icon-notification"
+            }
+
             setTouchHandler { onActionUp = { ctx.layouts[NotificationCenter::class].alternate() } }
         }
 
         UserBoxView(ctx) attachTo this
 
         IconButton {
-            rules.image = "icon-settings"
+
+            setSkinning {
+                image = "icon-settings"
+            }
             setTouchHandler { onActionUp = { ctx.layouts[SettingsMenu::class].alternate() } }
         }
     }
@@ -103,7 +117,7 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
 
     init
     {
-        dimensions.apply {
+        setDimensions {
             height = 50
             width = MATCH_PARENT
         }
@@ -129,9 +143,8 @@ class UserBoxView(ctx: MainContext) : LinearLayout(ctx)
 
         gravity = Gravity.CENTER
         orientation = HORIZONTAL
-        dimensions.height = MATCH_PARENT
 
-        dimensions.apply {
+        setDimensions {
             height = MATCH_PARENT
             paddingLeft = 12
             paddingRight = 12
@@ -144,7 +157,7 @@ class UserBoxView(ctx: MainContext) : LinearLayout(ctx)
 
     private val avatar = ImageView {
 
-        dimensions.apply {
+        setDimensions {
             width = 26
             height = 26
             cornerRadius = 7f
@@ -157,7 +170,7 @@ class UserBoxView(ctx: MainContext) : LinearLayout(ctx)
 
         text = "Reco1l"
 
-        dimensions.apply {
+        setDimensions {
             marginLeft = 12
             marginRight = 4
         }

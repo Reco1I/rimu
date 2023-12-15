@@ -29,7 +29,7 @@ fun IWithContext.TextureText(
 
 open class TextureText(ctx: MainContext) :
     Entity(ctx),
-    ISkinnableWithRules<TextureText>
+    ISkinnableWithRules<TextureText, TextureTextSkinningRules<TextureText>>
 {
 
 

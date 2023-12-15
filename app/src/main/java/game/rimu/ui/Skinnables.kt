@@ -52,13 +52,13 @@ open class SkinningRules<T>
     open fun onApplySkin(target: T, skin: WorkingSkin) = Unit
 }
 
-interface ISkinnableWithRules<T> : ISkinnable
+interface ISkinnableWithRules<T : Any, D : SkinningRules<T>> : ISkinnable
 {
 
     /**
      * The view skinning rules, every rule will be applied once [onApplySkin] is called.
      */
-    val rules: SkinningRules<T>
+    val rules: D
 
     @Suppress("UNCHECKED_CAST")
     override fun onApplySkin(skin: WorkingSkin)
@@ -69,4 +69,6 @@ interface ISkinnableWithRules<T> : ISkinnable
 
         super.onApplySkin(skin)
     }
+
+    fun setSkinning(block: D.() -> Unit) = rules.apply(block)
 }

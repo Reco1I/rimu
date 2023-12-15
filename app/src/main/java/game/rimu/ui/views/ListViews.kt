@@ -26,8 +26,8 @@ fun IWithContext.RecyclerView(
 open class RecyclerView(final override val ctx: MainContext) :
     AndroidRecyclerView(ctx),
     IWithContext,
-    ISkinnableWithRules<RecyclerView>,
-    IScalableWithDimensions<RecyclerView>
+    ISkinnableWithRules<RecyclerView, ViewSkinningRules<RecyclerView>>,
+    IScalableWithDimensions<RecyclerView, ViewDimensions<RecyclerView>>
 {
 
     override val dimensions by lazy { ViewDimensions<RecyclerView>() }

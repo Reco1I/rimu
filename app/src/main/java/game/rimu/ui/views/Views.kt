@@ -30,8 +30,8 @@ fun IWithContext.DummyView(
 class DummyView(override val ctx: MainContext) :
     View(ctx),
     IWithContext,
-    IScalableWithDimensions<View>,
-    ISkinnableWithRules<View>
+    IScalableWithDimensions<View, ViewDimensions<View>>,
+    ISkinnableWithRules<View, ViewSkinningRules<View>>
 {
     override var dimensions = ViewDimensions<View>()
 

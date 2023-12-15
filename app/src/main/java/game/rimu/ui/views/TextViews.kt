@@ -97,8 +97,8 @@ fun IWithContext.TextView(
 open class TextView(final override val ctx: MainContext) :
     AppCompatTextView(ctx),
     IWithContext,
-    ISkinnableWithRules<TextView>,
-    IScalableWithDimensions<TextView>
+    ISkinnableWithRules<TextView, TextViewSkinningRules<TextView>>,
+    IScalableWithDimensions<TextView, TextViewDimensions<TextView>>
 {
 
     override val dimensions = TextViewDimensions<TextView>()

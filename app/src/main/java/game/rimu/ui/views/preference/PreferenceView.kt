@@ -37,8 +37,13 @@ sealed class SettingView(ctx: MainContext) : ConstraintLayout(ctx)
 
         TextView {
 
-            dimensions.fontSize = 8
-            rules.fontColorFactor = 0.8f
+            setDimensions {
+                fontSize = 8
+            }
+
+            setSkinning {
+                fontColorFactor = 0.8f
+            }
 
             setConstraints(target = titleView, topToTarget = Anchor.BOTTOM)
         }
@@ -85,7 +90,9 @@ class ButtonSettingView(ctx: MainContext) : SettingView(ctx)
 
     override val titleView = TextButton {
 
-        dimensions.width = MATCH_PARENT
+        setDimensions {
+            width = MATCH_PARENT
+        }
     }
 
     var onButtonPress: (() -> Unit)? = null
@@ -160,7 +167,7 @@ class SeekBarSettingView(
 
     private val seekBar = SeekBar {
 
-        dimensions.apply {
+        setDimensions {
             width = MATCH_PARENT
             marginTop = 10
         }

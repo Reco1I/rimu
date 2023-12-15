@@ -37,8 +37,13 @@ class ToastView(ctx: MainContext) : ModelLayout(ctx)
 
     val headerText = TextView {
 
-        rules.fontColor = null
-        dimensions.fontSize = 10
+        setDimensions {
+            fontSize = 10
+        }
+
+        setSkinning {
+            fontColor = null
+        }
 
         fontColor = Color.WHITE
         alpha = 0.8f
@@ -51,7 +56,7 @@ class ToastView(ctx: MainContext) : ModelLayout(ctx)
 
     val messageText = TextView {
 
-        dimensions.apply {
+        setDimensions {
             fontSize = 14
             marginTop = 6
         }
@@ -69,7 +74,7 @@ class ToastView(ctx: MainContext) : ModelLayout(ctx)
 
     init
     {
-        dimensions.apply {
+        setDimensions {
             width = LayoutParams.WRAP_CONTENT
             height = LayoutParams.WRAP_CONTENT
 

@@ -64,8 +64,8 @@ fun IWithContext.LinearProgressIndicator(
 open class LinearProgressIndicator(override val ctx: MainContext) :
     View(ctx),
     IWithContext,
-    IScalableWithDimensions<LinearProgressIndicator>,
-    ISkinnableWithRules<LinearProgressIndicator>
+    IScalableWithDimensions<LinearProgressIndicator, ProgressIndicatorDimensions<LinearProgressIndicator>>,
+    ISkinnableWithRules<LinearProgressIndicator, ProgressIndicatorSkinningRules<LinearProgressIndicator>>
 {
 
     override val dimensions = ProgressIndicatorDimensions<LinearProgressIndicator>()

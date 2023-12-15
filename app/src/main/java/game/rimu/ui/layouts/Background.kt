@@ -34,8 +34,10 @@ class Background(ctx: MainContext) :
 
     val image = FadeImageView {
 
-        dimensions.width = MATCH_PARENT
-        dimensions.height = MATCH_PARENT
+        setDimensions {
+            width = MATCH_PARENT
+            height = MATCH_PARENT
+        }
 
         scaleType = ScaleType.CENTER_CROP
     }

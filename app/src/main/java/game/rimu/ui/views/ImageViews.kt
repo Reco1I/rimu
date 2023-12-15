@@ -60,8 +60,8 @@ fun IWithContext.ImageView(
 open class ImageView(override val ctx: MainContext) :
     AppCompatImageView(ctx),
     IWithContext,
-    IScalableWithDimensions<ImageView>,
-    ISkinnableWithRules<ImageView>
+    IScalableWithDimensions<ImageView, ViewDimensions<ImageView>>,
+    ISkinnableWithRules<ImageView, ImageSkinningRules<ImageView>>
 {
 
     override val dimensions by lazy { ViewDimensions<ImageView>() }

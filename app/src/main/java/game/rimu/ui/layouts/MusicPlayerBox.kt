@@ -50,8 +50,13 @@ class MusicPlayerBox(ctx: MainContext) :
 
     private val artistText = TextView {
 
-        dimensions.fontSize = 10
-        rules.fontColorFactor = 0.75f
+        setDimensions {
+            fontSize = 10
+        }
+
+        setSkinning {
+            fontColorFactor = 0.75f
+        }
 
         setConstraints(
             target = titleText,
@@ -61,12 +66,15 @@ class MusicPlayerBox(ctx: MainContext) :
 
     private val timeText = TextView {
 
-        rules.fontColorFactor = 0.8f
         text = dateFormat.format(0L)
 
-        dimensions.apply {
+        setDimensions {
             fontSize = 8
             marginTop = 12
+        }
+
+        setSkinning {
+            fontColorFactor = 0.8f
         }
 
         setConstraints(
@@ -77,10 +85,15 @@ class MusicPlayerBox(ctx: MainContext) :
 
     private val lengthText = TextView {
 
-        dimensions.fontSize = 8
-        rules.fontColorFactor = 0.8f
-
         text = dateFormat.format(0L)
+
+        setDimensions {
+            fontSize = 8
+        }
+
+        setSkinning {
+            fontColorFactor = 0.8f
+        }
 
         setConstraints(target = timeText, topToTarget = Anchor.TOP)
         setConstraints(rightToTarget = Anchor.RIGHT)
@@ -89,7 +102,9 @@ class MusicPlayerBox(ctx: MainContext) :
 
     private val seekBar = SeekBar {
 
-        dimensions.marginTop = 8
+        setDimensions {
+            marginTop = 8
+        }
 
         setConstraints(
             target = timeText,
@@ -106,7 +121,9 @@ class MusicPlayerBox(ctx: MainContext) :
 
     private val playButton = IconButton {
 
-        rules.image = "icon-pause"
+        setSkinning {
+            image = "icon-pause"
+        }
 
         // Center horizontal
         setConstraints(
@@ -120,7 +137,7 @@ class MusicPlayerBox(ctx: MainContext) :
             topToTarget = Anchor.BOTTOM
         )
 
-        dimensions.apply {
+        setDimensions {
             marginTop = 8
             size(50)
         }
@@ -166,7 +183,7 @@ class MusicPlayerBox(ctx: MainContext) :
                 rightToTarget = Anchor.LEFT
             )
 
-            dimensions.apply {
+            setDimensions {
                 marginRight = 8
                 size(50)
             }
@@ -187,7 +204,7 @@ class MusicPlayerBox(ctx: MainContext) :
                 bottomToTarget = Anchor.BOTTOM
             )
 
-            dimensions.apply {
+            setDimensions {
                 marginLeft = 8
                 size(50)
             }
@@ -197,7 +214,7 @@ class MusicPlayerBox(ctx: MainContext) :
             }
         }
 
-        dimensions.apply {
+        setDimensions {
             width = 200
             height = WRAP_CONTENT
             cornerRadius = 12f

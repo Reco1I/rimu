@@ -26,8 +26,8 @@ fun IWithContext.ConstraintLayout(
 open class ConstraintLayout(override val ctx: MainContext) :
     AndroidConstraintLayout(ctx),
     IWithContext,
-    ISkinnableWithRules<ConstraintLayout>,
-    IScalableWithDimensions<ConstraintLayout>
+    ISkinnableWithRules<ConstraintLayout, ViewSkinningRules<ConstraintLayout>>,
+    IScalableWithDimensions<ConstraintLayout, ViewDimensions<ConstraintLayout>>
 {
 
     override val dimensions by lazy { ViewDimensions<ConstraintLayout>() }
@@ -69,8 +69,8 @@ fun IWithContext.LinearLayout(
 open class LinearLayout(override val ctx: MainContext) :
     AndroidLinearLayout(ctx),
     IWithContext,
-    ISkinnableWithRules<LinearLayout>,
-    IScalableWithDimensions<LinearLayout>
+    ISkinnableWithRules<LinearLayout, ViewSkinningRules<LinearLayout>>,
+    IScalableWithDimensions<LinearLayout, ViewDimensions<LinearLayout>>
 {
 
     override val dimensions by lazy { ViewDimensions<LinearLayout>() }

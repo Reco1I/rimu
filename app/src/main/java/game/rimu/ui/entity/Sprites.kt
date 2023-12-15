@@ -41,7 +41,7 @@ fun IWithContext.Sprite(
 
 open class Sprite(override val ctx: MainContext) :
     AndEngineSprite(ctx.engine.vertexBufferObjectManager),
-    ISkinnableWithRules<Sprite>,
+    ISkinnableWithRules<Sprite, SpriteSkinnableRules<Sprite>>,
     IWithContext
 {
 

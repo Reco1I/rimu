@@ -52,9 +52,12 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
 
         z = 1f
         orientation = HORIZONTAL
-        dimensions.height = MATCH_PARENT
 
-        rules.apply {
+        setDimensions {
+            height = MATCH_PARENT
+        }
+
+        setSkinning {
             backgroundColor = "accentColor"
             backgroundColorFactor = 0.15f
         }
@@ -64,7 +67,7 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
 
     private val tabContents = RecyclerView(body) {
 
-        dimensions.apply {
+        setDimensions {
             height = MATCH_PARENT
             width = 300
         }
@@ -86,9 +89,11 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
         orientation = VERTICAL
         adapter = Adapter(entries, { TabIconButton() })
 
-        dimensions.height = MATCH_PARENT
+        setDimensions {
+            height = MATCH_PARENT
+        }
 
-        rules.apply {
+        setSkinning {
             backgroundColor = "accentColor"
             backgroundColorFactor = 0.2f
         }
@@ -96,12 +101,12 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
 
     private val bodyShadow = DummyView {
 
-        dimensions.apply {
+        setDimensions {
             width = tabContents.dimensions.width + 70 // Tab selection bar width.
             height = MATCH_PARENT
         }
 
-        rules.apply {
+        setSkinning {
             backgroundColor = "accentColor"
             backgroundColorFactor = 0.1f
         }
@@ -233,13 +238,13 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
 
         val title = TextView {
 
-            dimensions.apply {
+            setDimensions {
                 width = MATCH_PARENT
                 fontSize = 20
                 padding(0, 18)
             }
 
-            rules.apply {
+            setSkinning {
                 backgroundColor = "accentColor"
                 backgroundColorFactor = 0.15f
             }
@@ -250,9 +255,12 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
         init
         {
             orientation = VERTICAL
-            dimensions.width = MATCH_PARENT
 
-            rules.apply {
+            setDimensions {
+                width = MATCH_PARENT
+            }
+
+            setSkinning {
                 backgroundColor = "accentColor"
                 backgroundColorFactor = 0.175f
             }

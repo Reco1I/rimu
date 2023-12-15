@@ -69,14 +69,14 @@ open class ScalableDimensions<T : Any>(
 }
 
 
-interface IScalableWithDimensions<T : Any> : IScalable
+interface IScalableWithDimensions<T : Any, D : ScalableDimensions<T>> : IScalable
 {
 
     /**
      * The view scalable dimensions, every dimension defined here will be scaled and applied once
      * [onApplyScale] is called.
      */
-    val dimensions: ScalableDimensions<T>
+    val dimensions: D
 
     @Suppress("UNCHECKED_CAST")
     override fun onApplyScale(scale: Float)
@@ -87,4 +87,7 @@ interface IScalableWithDimensions<T : Any> : IScalable
 
         super.onApplyScale(scale)
     }
+
+    fun setDimensions(block: D.() -> Unit) = dimensions.apply(block)
 }
+

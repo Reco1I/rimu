@@ -52,13 +52,13 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
         orientation = VERTICAL
         z = 1f
 
-        dimensions.apply {
+        setDimensions {
 
             height = MATCH_PARENT
             width = 250
         }
 
-        rules.apply {
+        setSkinning {
             backgroundColor = "accentColor"
             backgroundColorFactor = 0.15f
         }
@@ -68,12 +68,12 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
             setText(R.string.header_notifications)
             gravity = Gravity.CENTER
 
-            dimensions.apply {
+            setDimensions {
                 width = MATCH_PARENT
                 padding(0, 12)
             }
 
-            rules.apply {
+            setSkinning {
                 backgroundColor = "accentColor"
                 backgroundColorFactor = 0.15f
             }
@@ -86,7 +86,7 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
 
         dimensions.set(body.dimensions)
 
-        rules.apply {
+        setSkinning {
             backgroundColor = "accentColor"
             backgroundColorFactor = 0.1f
         }
@@ -99,7 +99,7 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
         orientation = VERTICAL
         isVerticalFadingEdgeEnabled = true
 
-        dimensions.apply {
+        setDimensions {
             width = MATCH_PARENT
             fadeEdgeLength = 30
             padding(14)
@@ -294,7 +294,7 @@ open class NotificationView(ctx: MainContext) :
 
         rules.imageTint = "accentColor"
 
-        dimensions.apply {
+        setDimensions {
             cornerRadius = 8f
             padding(8)
             size(32)
@@ -308,7 +308,7 @@ open class NotificationView(ctx: MainContext) :
 
         rules.fontColorFactor = 0.8f
 
-        dimensions.apply {
+        setDimensions {
             marginLeft = 8
             fontSize = 9
         }
@@ -322,7 +322,9 @@ open class NotificationView(ctx: MainContext) :
 
     protected val messageText = TextView {
 
-        dimensions.fontSize = 10
+        setDimensions {
+            fontSize = 10
+        }
 
         setConstraints(
             target = headerText,
@@ -333,7 +335,7 @@ open class NotificationView(ctx: MainContext) :
 
     init
     {
-        dimensions.apply {
+        setDimensions {
             width = MATCH_PARENT
             height = WRAP_CONTENT
             cornerRadius = 8f
@@ -341,7 +343,7 @@ open class NotificationView(ctx: MainContext) :
             padding(8)
         }
 
-        rules.apply {
+        setSkinning {
             backgroundColor = "accentColor"
             backgroundColorFactor = 0.2f
         }
@@ -373,7 +375,7 @@ open class NotificationView(ctx: MainContext) :
         {
             hideTime = 5000
 
-            dimensions.apply {
+            setDimensions {
                 width = 240
 
                 marginTop = ctx.layouts[TopBarLayout::class].dimensions.height + 8
@@ -418,7 +420,9 @@ class ProcessNotificationView(ctx: MainContext) : NotificationView(ctx)
             rightToTarget = Anchor.RIGHT
         )
 
-        dimensions.marginTop = 12
+        setDimensions {
+            marginTop = 12
+        }
     }
 
     override fun onAssignData(data: Notification, position: Int)
