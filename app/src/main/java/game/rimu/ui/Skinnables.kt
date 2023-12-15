@@ -70,5 +70,8 @@ interface ISkinnableWithRules<T : Any, D : SkinningRules<T>> : ISkinnable
         super.onApplySkin(skin)
     }
 
+    /**
+     * Apply the skinning rules to the view.
+     */
     fun setSkinning(block: D.() -> Unit) = rules.apply(block)
 }

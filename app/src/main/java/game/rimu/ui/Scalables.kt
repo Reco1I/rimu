@@ -88,6 +88,9 @@ interface IScalableWithDimensions<T : Any, D : ScalableDimensions<T>> : IScalabl
         super.onApplyScale(scale)
     }
 
+    /**
+     * Apply the scalable dimensions to the view.
+     */
     fun setDimensions(block: D.() -> Unit) = dimensions.apply(block)
 }
 
