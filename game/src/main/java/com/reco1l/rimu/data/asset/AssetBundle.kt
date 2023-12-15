@@ -13,8 +13,8 @@ import com.reco1l.rimu.graphics.WrappingTexture
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.data.Skin
-import com.reco1l.rimu.extensions.toBitmap
-import com.reco1l.rimu.extensions.toTexture
+import com.reco1l.rimu.graphics.toBitmap
+import com.reco1l.rimu.graphics.toTexture
 import org.andengine.opengl.font.Font
 import java.io.File
 import java.io.InputStream
