@@ -1,10 +1,10 @@
 package com.reco1l.rimu.management.beatmap
 
-import com.reco1l.framework.kotlin.addIfNotNull
-import com.reco1l.framework.data.extensionLowercase
-import com.reco1l.framework.data.isExtension
-import com.reco1l.framework.data.md5
-import com.reco1l.framework.kotlin.orCatch
+import com.reco1l.toolkt.kotlin.addIfNotNull
+import com.reco1l.toolkt.data.extensionLowercase
+import com.reco1l.toolkt.data.isExtension
+import com.reco1l.toolkt.data.md5
+import com.reco1l.toolkt.kotlin.orCatch
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.parser.BeatmapDecoder
 import com.reco1l.rimu.MainContext

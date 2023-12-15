@@ -10,9 +10,9 @@ import android.graphics.RectF
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
-import com.reco1l.framework.graphics.addRoundRect
-import com.reco1l.framework.graphics.drawRoundRect
-import com.reco1l.framework.graphics.toInt
+import com.reco1l.toolkt.graphics.addRoundRect
+import com.reco1l.toolkt.graphics.drawRoundRect
+import com.reco1l.rimu.graphics.toInt
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin

@@ -1,7 +1,7 @@
 package com.reco1l.rimu.management.time
 
-import com.reco1l.framework.kotlin.nextOf
-import com.reco1l.framework.kotlin.previousOf
+import com.reco1l.toolkt.kotlin.nextOf
+import com.reco1l.toolkt.kotlin.previousOf
 import com.rian.osu.beatmap.timings.ControlPoint
 import com.rian.osu.beatmap.timings.ControlPointManager
 

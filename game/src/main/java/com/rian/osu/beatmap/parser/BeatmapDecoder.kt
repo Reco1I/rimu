@@ -1,7 +1,7 @@
 package com.rian.osu.beatmap.parser
 
-import com.reco1l.framework.kotlin.ignoreException
-import com.reco1l.framework.data.md5
+import com.reco1l.toolkt.kotlin.ignoreException
+import com.reco1l.toolkt.data.md5
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.constants.BeatmapSection
 import com.rian.osu.beatmap.parser.sections.BeatmapColorParser

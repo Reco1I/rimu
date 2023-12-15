@@ -1,6 +1,6 @@
 package com.reco1l.rimu.ui.scenes
 
-import com.reco1l.framework.support.WrappingTexture
+import com.reco1l.rimu.graphics.WrappingTexture
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.BuildSettings
 import com.reco1l.rimu.management.beatmap.IBeatmapObserver

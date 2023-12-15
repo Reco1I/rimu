@@ -1,6 +1,6 @@
 package com.rian.osu.beatmap
 
-import com.reco1l.framework.graphics.Color4
+import com.reco1l.rimu.graphics.Color4
 
 /**
  * An extension to [RGBColor] specifically for combo colors.

@@ -11,10 +11,10 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-import com.reco1l.framework.data.resolveFilename
-import com.reco1l.framework.kotlin.async
-import com.reco1l.framework.kotlin.forEachTrim
-import com.reco1l.framework.kotlin.ignoreException
+import com.reco1l.toolkt.data.resolveFilename
+import com.reco1l.toolkt.kotlin.async
+import com.reco1l.toolkt.kotlin.forEachTrim
+import com.reco1l.toolkt.kotlin.ignoreException
 import com.reco1l.rimu.ui.scenes.SceneIntro
 
 

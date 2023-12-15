@@ -1,6 +1,6 @@
 package com.reco1l.skindecoder.data
 
-import com.reco1l.framework.graphics.Color4
+import com.reco1l.rimu.graphics.Color4
 import kotlinx.serialization.Serializable
 import kotlin.reflect.full.memberProperties
 

@@ -1,6 +1,6 @@
 package com.reco1l.ini
 
-import com.reco1l.framework.kotlin.toBooleanOrNull
+import com.reco1l.toolkt.kotlin.toBooleanOrNull
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray

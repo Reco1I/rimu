@@ -1,10 +1,10 @@
 package com.reco1l.rimu.management.skin
 
 import android.util.Log
-import com.reco1l.framework.kotlin.nextOf
-import com.reco1l.framework.kotlin.orCatch
-import com.reco1l.framework.IObservable
-import com.reco1l.framework.forEachObserver
+import com.reco1l.toolkt.kotlin.nextOf
+import com.reco1l.toolkt.kotlin.orCatch
+import com.reco1l.toolkt.IObservable
+import com.reco1l.toolkt.forEachObserver
 import com.reco1l.skindecoder.SkinMapper
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext

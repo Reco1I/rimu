@@ -2,12 +2,12 @@ package com.reco1l.rimu.management
 
 import android.animation.ValueAnimator
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import com.reco1l.framework.android.views.attachTo
-import com.reco1l.framework.android.views.removeSelf
-import com.reco1l.framework.animation.Ease
-import com.reco1l.framework.animation.animateTo
-import com.reco1l.framework.kotlin.createInstance
-import com.reco1l.framework.kotlin.safeIn
+import com.reco1l.toolkt.android.attachTo
+import com.reco1l.toolkt.android.removeSelf
+import com.reco1l.rimu.graphics.Ease
+import com.reco1l.toolkt.animation.animateTo
+import com.reco1l.toolkt.kotlin.createInstance
+import com.reco1l.toolkt.kotlin.safeIn
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.RimuSetting
 import com.reco1l.rimu.management.skin.WorkingSkin

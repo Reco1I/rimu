@@ -1,6 +1,6 @@
 package com.reco1l.skindecoder.serializers
 
-import com.reco1l.framework.graphics.Color4
+import com.reco1l.rimu.graphics.Color4
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor

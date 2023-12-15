@@ -1,9 +1,9 @@
 package com.reco1l.ini
 
-import com.reco1l.framework.kotlin.between
-import com.reco1l.framework.kotlin.withTranslatedEscapes
-import com.reco1l.framework.kotlin.forEachLet
-import com.reco1l.framework.kotlin.times
+import com.reco1l.toolkt.kotlin.between
+import com.reco1l.toolkt.kotlin.withTranslatedEscapes
+import com.reco1l.toolkt.kotlin.forEachLet
+import com.reco1l.toolkt.kotlin.times
 import okio.BufferedSource
 import okio.buffer
 import okio.source

@@ -3,8 +3,8 @@ package com.reco1l.rimu.ui
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.forEach
-import com.reco1l.framework.kotlin.isLazyInit
-import com.reco1l.framework.kotlin.isLazyInitialized
+import com.reco1l.toolkt.kotlin.isLazyInit
+import com.reco1l.toolkt.kotlin.isLazyInitialized
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin

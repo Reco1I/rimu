@@ -1,7 +1,7 @@
 package com.reco1l.rimu.ui.views
 
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import com.reco1l.framework.android.views.setSize
+import com.reco1l.toolkt.android.setSize
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.RimuEngine

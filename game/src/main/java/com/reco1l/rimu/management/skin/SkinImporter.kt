@@ -1,7 +1,7 @@
 package com.reco1l.rimu.management.skin
 
-import com.reco1l.framework.data.md5
-import com.reco1l.framework.kotlin.orCatch
+import com.reco1l.toolkt.data.md5
+import com.reco1l.toolkt.kotlin.orCatch
 import com.reco1l.skindecoder.SkinMapper
 import com.reco1l.skindecoder.data.SkinData
 import com.reco1l.rimu.MainContext
