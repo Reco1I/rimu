@@ -5,6 +5,7 @@ import android.opengl.GLES20
 import android.opengl.GLES20.GL_TEXTURE_2D
 import android.opengl.GLES20.GL_UNPACK_ALIGNMENT
 import android.opengl.GLUtils
+import com.reco1l.rimu.extensions.getPixelFormat
 import com.reco1l.toolkt.isPowerOfTwo
 import org.andengine.opengl.texture.ITextureStateListener
 import org.andengine.opengl.texture.PixelFormat.RGBA_8888

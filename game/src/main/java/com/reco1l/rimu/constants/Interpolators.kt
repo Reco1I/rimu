@@ -1,4 +1,4 @@
-package com.reco1l.rimu.graphics
+package com.reco1l.rimu.constants
 
 import android.animation.TimeInterpolator
 import com.reco1l.toolkt.MathF

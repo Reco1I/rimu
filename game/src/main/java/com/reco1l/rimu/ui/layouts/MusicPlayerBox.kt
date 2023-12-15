@@ -7,7 +7,7 @@ import android.view.MotionEvent.ACTION_UP
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import com.reco1l.basskt.AudioState
 import com.reco1l.toolkt.android.setConstraints
-import com.reco1l.rimu.graphics.Ease
+import com.reco1l.rimu.constants.Ease
 import com.reco1l.toolkt.animation.cancelAnimators
 import com.reco1l.toolkt.animation.toAlpha
 import com.reco1l.toolkt.animation.toScale

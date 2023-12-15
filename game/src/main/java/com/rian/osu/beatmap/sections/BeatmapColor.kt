@@ -1,6 +1,6 @@
 package com.rian.osu.beatmap.sections
 
-import com.reco1l.rimu.graphics.Color4
+import com.reco1l.rimu.data.Color4
 import com.rian.osu.beatmap.ComboColor
 
 /**

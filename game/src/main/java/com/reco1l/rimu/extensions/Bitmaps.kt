@@ -1,4 +1,4 @@
-package com.reco1l.rimu.graphics
+package com.reco1l.rimu.extensions
 
 import android.graphics.Bitmap
 import android.graphics.Bitmap.Config
@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.graphics.BitmapFactory.Options
 import androidx.core.graphics.applyCanvas
 import com.caverock.androidsvg.SVG
+import com.reco1l.rimu.graphics.WrappingTexture
 import com.reco1l.toolkt.kotlin.orCatch
 import org.andengine.opengl.texture.ITextureStateListener
 import org.andengine.opengl.texture.PixelFormat

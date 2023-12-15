@@ -14,11 +14,11 @@ import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewConfiguration.getLongPressTimeout
 import com.reco1l.basskt.stream.SampleStream
-import com.reco1l.rimu.graphics.Ease
+import com.reco1l.rimu.constants.Ease
 import com.reco1l.toolkt.animation.animate
 import com.reco1l.toolkt.animation.toScale
 import com.reco1l.toolkt.graphics.setRadius
-import com.reco1l.rimu.graphics.toInt
+import com.reco1l.rimu.data.toInt
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin
 import com.reco1l.rimu.ui.IScalable

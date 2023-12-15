@@ -4,7 +4,7 @@ import android.animation.ValueAnimator
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import com.reco1l.toolkt.android.attachTo
 import com.reco1l.toolkt.android.removeSelf
-import com.reco1l.rimu.graphics.Ease
+import com.reco1l.rimu.constants.Ease
 import com.reco1l.toolkt.animation.animateTo
 import com.reco1l.toolkt.kotlin.createInstance
 import com.reco1l.toolkt.kotlin.safeIn

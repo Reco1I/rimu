@@ -12,7 +12,7 @@ import com.reco1l.toolkt.android.backgroundColor
 import com.reco1l.toolkt.android.doPost
 import com.reco1l.toolkt.android.orientation
 import com.reco1l.toolkt.android.setConstraints
-import com.reco1l.rimu.graphics.Ease
+import com.reco1l.rimu.constants.Ease
 import com.reco1l.toolkt.animation.animate
 import com.reco1l.toolkt.animation.cancelAnimators
 import com.reco1l.toolkt.animation.toAlpha
