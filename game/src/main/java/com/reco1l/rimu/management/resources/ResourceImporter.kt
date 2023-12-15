@@ -1,12 +1,12 @@
 package com.reco1l.rimu.management.resources
 
 import android.net.Uri
-import com.reco1l.framework.data.extensionLowercase
-import com.reco1l.framework.data.forEachRecursive
-import com.reco1l.framework.data.md5
-import com.reco1l.framework.data.subDirectory
-import com.reco1l.framework.data.toFile
-import com.reco1l.framework.kotlin.orCatch
+import com.reco1l.toolkt.data.extensionLowercase
+import com.reco1l.toolkt.data.forEachRecursive
+import com.reco1l.toolkt.data.md5
+import com.reco1l.toolkt.data.subDirectory
+import com.reco1l.toolkt.data.toFile
+import com.reco1l.toolkt.kotlin.orCatch
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.data.asset.Asset

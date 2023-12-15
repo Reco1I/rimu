@@ -1,4 +1,4 @@
-package com.reco1l.framework.graphics
+package com.reco1l.rimu.graphics
 
 import androidx.annotation.IntRange
 import androidx.core.graphics.drawable.toDrawable

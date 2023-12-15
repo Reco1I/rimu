@@ -2,8 +2,8 @@ package com.reco1l.rimu.management.beatmap
 
 import androidx.core.animation.doOnEnd
 import com.reco1l.basskt.stream.AudioStream
-import com.reco1l.framework.animation.animateTo
-import com.reco1l.framework.forEachObserver
+import com.reco1l.toolkt.animation.animateTo
+import com.reco1l.toolkt.forEachObserver
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.timings.ControlPoint
 import com.reco1l.rimu.IWithContext

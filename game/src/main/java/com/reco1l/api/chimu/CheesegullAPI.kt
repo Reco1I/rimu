@@ -1,9 +1,9 @@
 package com.reco1l.api.chimu
 
 import androidx.core.net.toUri
-import com.reco1l.framework.data.mapInto
-import com.reco1l.framework.data.mapIntoListOf
-import com.reco1l.framework.net.request.JsonRequester
+import com.reco1l.toolkt.data.mapInto
+import com.reco1l.toolkt.data.mapIntoListOf
+import com.reco1l.api.net.request.JsonRequester
 import okhttp3.OkHttpClient
 
 /**

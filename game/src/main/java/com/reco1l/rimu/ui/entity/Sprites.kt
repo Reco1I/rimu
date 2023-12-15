@@ -1,7 +1,7 @@
 package com.reco1l.rimu.ui.entity
 
-import com.reco1l.framework.support.WrappingTexture
-import com.reco1l.framework.support.toTextureRegion
+import com.reco1l.rimu.graphics.WrappingTexture
+import com.reco1l.rimu.graphics.toTextureRegion
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin

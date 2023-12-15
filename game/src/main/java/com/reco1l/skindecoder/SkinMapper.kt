@@ -1,15 +1,11 @@
 package com.reco1l.skindecoder
 
-import com.reco1l.framework.data.isExtension
-import com.reco1l.ini.Ini
+import com.reco1l.toolkt.data.isExtension
 import com.reco1l.ini.IniParser
 import com.reco1l.skindecoder.data.SkinData
-import com.reco1l.skindecoder.data.SkinDataGeneral
 import com.reco1l.skindecoder.exceptions.InvalidSkinException
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
-import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 

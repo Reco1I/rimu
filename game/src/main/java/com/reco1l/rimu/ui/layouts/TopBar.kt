@@ -5,10 +5,10 @@ import android.view.Gravity.CENTER_VERTICAL
 import android.view.Gravity.RIGHT
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout.HORIZONTAL
-import com.reco1l.framework.android.views.attachTo
-import com.reco1l.framework.android.views.setConstraints
-import com.reco1l.framework.graphics.Anchor
-import com.reco1l.framework.graphics.toInt
+import com.reco1l.toolkt.android.attachTo
+import com.reco1l.toolkt.android.setConstraints
+import com.reco1l.toolkt.graphics.Anchor
+import com.reco1l.toolkt.graphics.toInt
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin
 import com.reco1l.rimu.ui.LayerOverlay

@@ -1,12 +1,11 @@
-package com.reco1l.framework.support
+package com.reco1l.rimu.graphics
 
 import android.graphics.Bitmap
 import android.opengl.GLES20
 import android.opengl.GLES20.GL_TEXTURE_2D
 import android.opengl.GLES20.GL_UNPACK_ALIGNMENT
 import android.opengl.GLUtils
-import com.reco1l.framework.graphics.getPixelFormat
-import com.reco1l.framework.isPowerOfTwo
+import com.reco1l.toolkt.isPowerOfTwo
 import org.andengine.opengl.texture.ITextureStateListener
 import org.andengine.opengl.texture.PixelFormat.RGBA_8888
 import org.andengine.opengl.texture.Texture

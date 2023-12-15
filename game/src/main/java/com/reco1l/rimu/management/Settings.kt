@@ -2,8 +2,8 @@ package com.reco1l.rimu.management
 
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
-import com.reco1l.framework.IMapObservable
-import com.reco1l.framework.forEachObserver
+import com.reco1l.toolkt.IMapObservable
+import com.reco1l.toolkt.forEachObserver
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.RimuSetting

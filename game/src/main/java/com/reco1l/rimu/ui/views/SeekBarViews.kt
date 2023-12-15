@@ -6,8 +6,8 @@ import android.graphics.RectF
 import android.view.MotionEvent
 import android.view.MotionEvent.*
 import android.view.ViewGroup
-import com.reco1l.framework.graphics.drawRoundRect
-import com.reco1l.framework.graphics.toInt
+import com.reco1l.toolkt.graphics.drawRoundRect
+import com.reco1l.toolkt.graphics.toInt
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin

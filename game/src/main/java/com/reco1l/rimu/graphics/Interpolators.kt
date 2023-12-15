@@ -1,7 +1,7 @@
-package com.reco1l.framework.animation
+package com.reco1l.rimu.graphics
 
 import android.animation.TimeInterpolator
-import com.reco1l.framework.FMath
+import com.reco1l.toolkt.MathF
 import org.andengine.util.modifier.ease.IEaseFunction
 import kotlin.math.cos
 import kotlin.math.pow
@@ -51,9 +51,9 @@ object Ease
 
     // Sine
 
-    val SINE_IN = TimeEasing { -cos(it * FMath.PI_HALF) + 1f }
+    val SINE_IN = TimeEasing { -cos(it * MathF.PI_HALF) + 1f }
 
-    val SINE_OUT = TimeEasing { sin(it * FMath.PI_HALF) }
+    val SINE_OUT = TimeEasing { sin(it * MathF.PI_HALF) }
 
 
     // Acceleration

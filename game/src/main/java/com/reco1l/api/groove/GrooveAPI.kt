@@ -3,11 +3,11 @@ package com.reco1l.api.groove
 import androidx.core.net.toUri
 import com.reco1l.api.groove.exceptions.InvalidCredentialException
 import com.reco1l.api.groove.exceptions.NotFoundException
-import com.reco1l.framework.data.mapInto
-import com.reco1l.framework.data.mapIntoListOf
-import com.reco1l.framework.data.putGroup
-import com.reco1l.framework.net.request.JsonRequester
-import com.reco1l.framework.net.request.Requester
+import com.reco1l.toolkt.data.mapInto
+import com.reco1l.toolkt.data.mapIntoListOf
+import com.reco1l.toolkt.data.putGroup
+import com.reco1l.api.net.request.JsonRequester
+import com.reco1l.api.net.request.Requester
 import okhttp3.OkHttpClient
 import org.json.JSONObject
 import java.util.UUID

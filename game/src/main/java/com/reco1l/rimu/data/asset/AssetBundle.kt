@@ -8,10 +8,10 @@ import com.caverock.androidsvg.SVG
 import com.reco1l.basskt.stream.AssetSampleStream
 import com.reco1l.basskt.stream.BaseStream
 import com.reco1l.basskt.stream.SampleStream
-import com.reco1l.framework.kotlin.orCatch
-import com.reco1l.framework.graphics.toBitmap
-import com.reco1l.framework.graphics.toTexture
-import com.reco1l.framework.support.WrappingTexture
+import com.reco1l.toolkt.kotlin.orCatch
+import com.reco1l.toolkt.graphics.toBitmap
+import com.reco1l.toolkt.graphics.toTexture
+import com.reco1l.rimu.graphics.WrappingTexture
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.data.Skin

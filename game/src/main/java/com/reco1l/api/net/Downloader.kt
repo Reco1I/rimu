@@ -1,10 +1,10 @@
-package com.reco1l.framework.net
+package com.reco1l.api.net
 
 import android.net.Uri
-import com.reco1l.framework.net.SpeedMeasure.BPS
-import com.reco1l.framework.net.SpeedMeasure.KBPS
-import com.reco1l.framework.net.SpeedMeasure.MBPS
-import com.reco1l.framework.net.request.Requester
+import com.reco1l.api.net.SpeedMeasure.BPS
+import com.reco1l.api.net.SpeedMeasure.KBPS
+import com.reco1l.api.net.SpeedMeasure.MBPS
+import com.reco1l.api.net.request.Requester
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import java.io.BufferedInputStream

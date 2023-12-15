@@ -1,8 +1,8 @@
-package com.reco1l.framework.net.request
+package com.reco1l.api.net.request
 
 import android.net.Uri
-import com.reco1l.framework.kotlin.orCatch
-import com.reco1l.framework.data.buildRequest
+import com.reco1l.toolkt.kotlin.orCatch
+import com.reco1l.toolkt.data.buildRequest
 import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient

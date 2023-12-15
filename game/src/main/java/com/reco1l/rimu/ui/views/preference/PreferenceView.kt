@@ -2,8 +2,8 @@ package com.reco1l.rimu.ui.views.preference
 
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import com.reco1l.framework.android.views.setConstraints
-import com.reco1l.framework.graphics.Anchor
+import com.reco1l.toolkt.android.setConstraints
+import com.reco1l.toolkt.graphics.Anchor
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.RimuSetting

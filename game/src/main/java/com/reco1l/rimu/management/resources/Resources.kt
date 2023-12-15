@@ -1,9 +1,9 @@
 package com.reco1l.rimu.management.resources
 
 import android.util.Log
-import com.reco1l.framework.kotlin.between
-import com.reco1l.framework.data.subDirectory
-import com.reco1l.framework.data.subFile
+import com.reco1l.toolkt.kotlin.between
+import com.reco1l.toolkt.data.subDirectory
+import com.reco1l.toolkt.data.subFile
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.RimuSetting.UI_USE_BEATMAP_SKIN

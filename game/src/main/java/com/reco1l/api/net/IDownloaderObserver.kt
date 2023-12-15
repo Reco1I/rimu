@@ -1,4 +1,4 @@
-package com.reco1l.framework.net
+package com.reco1l.api.net
 
 /**
  * @author Reco1l
