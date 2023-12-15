@@ -47,11 +47,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
     private val loadedLayouts = mutableListOf<ModelLayout>()
 
-    private val layers = LAYERS.associateWith {
-
-        // Creating an instance for every layer and attaching it.
-        it.createInstance(ctx) attachTo this
-    }
+    private val loadedLayers = LAYERS.associateWith { it.createInstance(ctx) attachTo this }
 
 
     init
@@ -155,7 +151,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
         // The layer must be declared and initialized, otherwise this will throw an NPE which should
         // never happen.
-        layers[layout.layer]?.also {
+        loadedLayers[layout.layer]?.also {
 
             // Removing from previous layer if it was changed, removeSelf() will do nothing if parent
             // is null so we don't have to check nullability here.
@@ -186,7 +182,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
     operator fun <T : BaseLayer> get(clazz: KClass<T>): T
     {
         @Suppress("UNCHECKED_CAST")
-        return layers[clazz] as T
+        return loadedLayers[clazz] as T
     }
 
     operator fun <T : ModelLayout> get(clazz: KClass<T>): T
@@ -208,13 +204,9 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
     {
 
         /**
-         * List of [BaseLayer] inheritors, unfortunately this can't be achieved with reflection.
+         * List of layer classes to be created at manager initialization.
          */
-        private val LAYERS = arrayOf(
-            LayerBackground::class,
-            LayerScene::class,
-            LayerOverlay::class,
-        )
+        private val LAYERS = arrayOf(LayerBackground::class, LayerScene::class, LayerOverlay::class)
 
         /**
          * Based on the osu!droid scale ratio function.
