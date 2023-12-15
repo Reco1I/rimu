@@ -59,7 +59,10 @@ class ToastView(ctx: MainContext) : ModelLayout(ctx)
             marginTop = 6
         }
 
-        rules.fontColor = null
+        setSkinning {
+            fontColor = null
+        }
+
         fontColor = Color.WHITE
 
         setConstraints(
