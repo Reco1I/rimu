@@ -15,8 +15,11 @@ open class HitCircleEntity(ctx: MainContext) : HitObjectEntity(ctx)
 
     val numberSprite = TextureText {
 
-        // By default: "default-#"
-        rules.textureProvider = { "${ctx.skins.current.data.fonts.hitCirclePrefix}-$it" }
+        rules.textureProvider = {
+
+            // Prepending the skin prefix for the font.
+            "${ctx.skins.current?.run { data.fonts.hitCirclePrefix } ?: "default"}-$it"
+        }
 
         text = "1"
     }

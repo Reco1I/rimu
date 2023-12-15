@@ -20,7 +20,7 @@ interface IScalable
 {
 
     /**
-     * Called when the [UI scale factor][RimuSetting.UI_SCALE_FACTOR] is changed.
+     * Called when the [UI scale factor][RimuSetting.UI_SCALE] is changed.
      */
     fun onApplyScale(scale: Float)
     {
@@ -41,7 +41,7 @@ interface IScalable
      * Calls [onApplyScale] with the context scale, if there's a [MainContext] implementation you
      * don't need to pass the context.
      */
-    fun invalidateScale(ctx: MainContext = (this as IWithContext).ctx) = onApplyScale(ctx.engine.surface.scale)
+    fun invalidateScale(ctx: MainContext = (this as IWithContext).ctx) = onApplyScale(ctx.layouts.scale)
 }
 
 

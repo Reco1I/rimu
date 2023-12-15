@@ -42,8 +42,7 @@ interface ISkinnable
     fun invalidateSkin(ctx: MainContext = (this as IWithContext).ctx)
     {
         // Preventing from race condition when skin isn't loaded yet.
-        if (ctx.skins.isInitialized)
-            onApplySkin(ctx.skins.current)
+        ctx.skins.current?.also { onApplySkin(it) }
     }
 }
 

@@ -1,15 +1,15 @@
 package game.rimu.management.skin
 
 import com.reco1l.framework.data.md5
-import com.reco1l.framework.kotlin.klass
 import com.reco1l.framework.kotlin.orCatch
-import com.reco1l.skindecoder.SkinDecoder
+import com.reco1l.skindecoder.SkinMapper
 import com.reco1l.skindecoder.data.SkinData
 import game.rimu.MainContext
 import game.rimu.R
 import game.rimu.data.asset.HashableAsset
 import game.rimu.data.asset.Asset
 import game.rimu.data.Skin
+import game.rimu.data.asset.AssetType
 import game.rimu.management.resources.BaseImporter
 import game.rimu.management.resources.ImportTask
 import game.rimu.ui.layouts.ProcessNotification
@@ -40,7 +40,8 @@ class SkinImporter(ctx: MainContext) : BaseImporter(ctx)
             null -> ctx.getString(R.string.detail_skin_import_success, name)
 
             // Fail
-            else -> ctx.getString(R.string.detail_skin_import_failed, name, "${exception.klass.simpleName} - ${exception.message}")
+            else -> ctx.getString(R.string.detail_skin_import_failed, name,
+                "${exception.javaClass.simpleName} - ${exception.message}")
         }
         task.notification.showIndicator = false
         task.notification.update(ctx)
@@ -60,9 +61,6 @@ class SkinImportTask internal constructor(ctx: MainContext, root: File) : Import
     )
 
 
-    override val requiresManagementFiletypes = arrayOf("ini")
-
-
     override var parentKey: String? = null
         get()
         {
@@ -74,7 +72,7 @@ class SkinImportTask internal constructor(ctx: MainContext, root: File) : Import
         }
 
 
-    private val decoder = SkinDecoder()
+    private val decoder = SkinMapper()
 
     private var data = SkinData()
 
@@ -117,7 +115,9 @@ class SkinImportTask internal constructor(ctx: MainContext, root: File) : Import
         }
     }
 
-    override fun onComputeFile(file: File, dependencies: MutableList<String>): HashableAsset?
+    override fun isManagementRequired(fileExtension: String) = fileExtension in AssetType.CONFIGURATION
+
+    override fun onManageFile(file: File, dependencies: MutableList<String>): HashableAsset?
     {
         // skin.ini
         if (file.name.equals("skin.ini", true))

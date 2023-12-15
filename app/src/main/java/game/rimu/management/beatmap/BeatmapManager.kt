@@ -1,7 +1,6 @@
 package game.rimu.management.beatmap
 
-import com.reco1l.framework.android.Logger
-import com.reco1l.framework.kotlin.klass
+import android.util.Log
 import com.reco1l.framework.kotlin.nextOf
 import com.reco1l.framework.kotlin.orCatch
 import com.reco1l.framework.kotlin.previousOf
@@ -98,12 +97,12 @@ class BeatmapManager(override val ctx: MainContext) :
             header = "Error",
             message = """
                     Unable to load beatmap "${source.title} by ${source.artist} - ${source.version} mapped by ${source.creator}"
-                    Cause: ${it.klass} - ${it.message}
+                    Cause: ${it.javaClass} - ${it.message}
                 """.trimMargin(),
             icon = ""
         ).show(ctx)
 
-        Logger.e(klass, "Error while loading beatmap.", it)
+        Log.e(javaClass.simpleName, "Error while loading beatmap.", it)
         null
     }
 

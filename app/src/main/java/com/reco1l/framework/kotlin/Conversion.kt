@@ -4,13 +4,16 @@ import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 
-fun intOf(value: Float) = value.toInt()
+/**
+ * This converts the string to boolean allowing numeric booleans (`1` for `true` and `0` for `false`).
+ */
+fun String.toBooleanOrNull(): Boolean?
+{
+    if (length == 1 && (get(0) == '0' || get(0) == '1'))
+        return get(0) == '1'
 
-fun intOf(value: Double) = value.toInt()
-
-fun longOf(value: Float) = value.toLong()
-
-fun longOf(value: Double) = value.toLong()
+    return try { toBoolean() } catch (_: Exception) { null }
+}
 
 
 fun dateFormatFor(ms: Long): SimpleDateFormat

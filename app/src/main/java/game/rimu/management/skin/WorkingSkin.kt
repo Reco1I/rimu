@@ -1,6 +1,6 @@
 package game.rimu.management.skin
 
-import com.reco1l.skindecoder.SkinDecoder
+import com.reco1l.skindecoder.SkinMapper
 import com.reco1l.skindecoder.data.SkinData
 import game.rimu.IWithContext
 import game.rimu.MainContext
@@ -24,7 +24,7 @@ class WorkingSkin(
     /**
      * The shared skin decoder.
      */
-    val decoder: SkinDecoder
+    val decoder: SkinMapper
 
 ) : IWithContext
 {

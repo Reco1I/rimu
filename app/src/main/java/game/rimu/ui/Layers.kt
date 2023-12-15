@@ -25,9 +25,9 @@ class LayerBackground(ctx: MainContext) : BaseLayer(ctx)
 {
     init
     {
-        ctx.engine.renderView attachTo this
-
         ctx.initializationTree!!.add {
+
+            addView(engine.renderView)
 
             layouts[Background::class]
         }

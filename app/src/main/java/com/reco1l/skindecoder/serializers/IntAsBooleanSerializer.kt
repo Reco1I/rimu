@@ -7,7 +7,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-object NumericBooleanSerializer : KSerializer<Boolean>
+object IntAsBooleanSerializer : KSerializer<Boolean>
 {
 
     override val descriptor = PrimitiveSerialDescriptor(

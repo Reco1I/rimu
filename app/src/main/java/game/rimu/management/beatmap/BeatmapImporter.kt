@@ -4,7 +4,6 @@ import com.reco1l.framework.kotlin.addIfNotNull
 import com.reco1l.framework.data.extensionLowercase
 import com.reco1l.framework.data.isExtension
 import com.reco1l.framework.data.md5
-import com.reco1l.framework.kotlin.klass
 import com.reco1l.framework.kotlin.orCatch
 import com.rian.osu.beatmap.BeatmapData
 import com.rian.osu.beatmap.parser.BeatmapDecoder
@@ -16,6 +15,7 @@ import game.rimu.R.string.header_beatmap_importer
 import game.rimu.data.asset.HashableAsset
 import game.rimu.data.asset.Asset
 import game.rimu.data.Beatmap
+import game.rimu.data.asset.AssetType
 import game.rimu.management.resources.BaseImporter
 import game.rimu.management.resources.ImportTask
 import game.rimu.ui.layouts.ProcessNotification
@@ -47,7 +47,8 @@ class BeatmapImporter(ctx: MainContext) : BaseImporter(ctx)
             null -> ctx.getString(detail_beatmap_import_success, name)
 
             // Fail
-            else -> ctx.getString(detail_beatmap_import_failed, name, "${exception.klass.simpleName} - ${exception.message}")
+            else -> ctx.getString(detail_beatmap_import_failed, name,
+                "${exception.javaClass.simpleName} - ${exception.message}")
         }
         task.notification.showIndicator = false
         task.notification.update(ctx)
@@ -65,9 +66,6 @@ class BeatmapImportTask internal constructor(ctx: MainContext, root: File) : Imp
         message = ctx.getString(detail_beatmap_importing, root.nameWithoutExtension),
         icon = "icon-notification"
     )
-
-
-    override val requiresManagementFiletypes = Asset.MODE_FORMATS
 
 
     override var parentKey: String? = null
@@ -89,7 +87,7 @@ class BeatmapImportTask internal constructor(ctx: MainContext, root: File) : Imp
         when
         {
             // Filtering mode files first
-            file.extensionLowercase in Asset.MODE_FORMATS -> 0
+            file.extensionLowercase in AssetType.BEATMAP -> 0
 
             // Directories after the above condition because of dependencies
             file.isDirectory -> 1
@@ -115,7 +113,9 @@ class BeatmapImportTask internal constructor(ctx: MainContext, root: File) : Imp
     }
 
 
-    override fun onComputeFile(file: File, dependencies: MutableList<String>): HashableAsset?
+    override fun isManagementRequired(fileExtension: String) = fileExtension in AssetType.BEATMAP
+
+    override fun onManageFile(file: File, dependencies: MutableList<String>): HashableAsset?
     {
         // osu!std mode
         if (file.isExtension("osu"))

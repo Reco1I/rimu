@@ -1,24 +1,24 @@
-package game.rimu.engine
+package game.rimu
 
-import game.rimu.IWithContext
-import game.rimu.MainContext
-import game.rimu.engine.surface.EngineCamera
-import game.rimu.engine.surface.EngineSurface
 import game.rimu.management.skin.WorkingSkin
 import game.rimu.ui.ISkinnable
 import game.rimu.ui.scenes.BaseScene
 import game.rimu.ui.views.EngineRenderView
 import org.andengine.engine.Engine
+import org.andengine.engine.camera.SmoothCamera
 import org.andengine.engine.options.EngineOptions
+import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy
 import org.andengine.entity.scene.Scene
 import org.andengine.opengl.util.GLState
 import org.andengine.opengl.view.IRendererListener
 
 
-private fun EngineOptions(ctx: MainContext): EngineOptions
+fun EngineOptions(): EngineOptions
 {
-    val options = EngineOptions(EngineSurface(ctx), EngineCamera(ctx))
+    // 1x1 are just initial values, they'll be changed along with surface.
+    val options = EngineOptions(FillResolutionPolicy(), SmoothCamera(1f, 1f))
 
+    options.camera.isResizeOnSurfaceSizeChanged = true
     options.renderOptions.apply {
 
         isDithering = true
@@ -37,19 +37,13 @@ private fun EngineOptions(ctx: MainContext): EngineOptions
 }
 
 
+
 class RimuEngine(override val ctx: MainContext) :
 
-    Engine(EngineOptions(ctx)),
-    IRendererListener,
+    Engine(EngineOptions()),
     IWithContext,
     ISkinnable
 {
-
-    /**
-     * The engine surface manager aka ratio resolution policy.
-     */
-    val surface
-        get() = engineOptions.resolutionPolicy as EngineSurface
 
     /**
      * The engine render view.
@@ -89,10 +83,13 @@ class RimuEngine(override val ctx: MainContext) :
 
     override fun getScene() = super.getScene() as? BaseScene
 
-    override fun getCamera() = super.getCamera() as EngineCamera
+    override fun getCamera() = super.getCamera() as SmoothCamera
 
 
-    override fun onSurfaceCreated(gl: GLState?) = Unit
+    override fun onUpdateCameraSurface()
+    {
+        super.onUpdateCameraSurface()
 
-    override fun onSurfaceChanged(gl: GLState?, width: Int, height: Int) = Unit
+        ctx.layouts.onSurfaceChange(surfaceWidth, surfaceHeight)
+    }
 }

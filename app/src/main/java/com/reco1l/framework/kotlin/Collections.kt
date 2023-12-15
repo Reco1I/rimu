@@ -54,14 +54,29 @@ fun <T>List<T>.previousOf(
     return getOrNull(index)
 }
 
-
+/**
+ * Iterates all over the list removing the elements from start or from the end depending of [reversed]
+ * parameter.
+ */
 inline fun <T>MutableList<T>.forEachTrim(reversed: Boolean = false, block: (T) -> Unit)
 {
     while (isNotEmpty())
         block(if (reversed) removeLast() else removeFirst())
 }
 
+/**
+ * Iterates all over the list transforming the result and returning it at the end.
+ */
+inline fun <T, R : Any?>Array<T>.forEachLet(block: (T) -> R): R?
+{
+    var result: R? = null
+    forEach { result = block(it) }
+    return result
+}
 
+/**
+ * Covers the same functions as [associateWith] with indices.
+ */
 inline fun <K, V> Iterable<K>.associateWithIndexed(valueSelector: (K, Int) -> V): Map<K, V>
 {
     var index = 0
@@ -77,5 +92,7 @@ inline fun <K, V> Iterable<K>.associateWithIndexed(valueSelector: (K, Int) -> V)
  */
 fun <T : Any>instanceMapOf() = HashMap<KClass<out T>, T>()
 
-
+/**
+ * Safe check if an element is in a nullable array. If the array is null then the result is `false`.
+ */
 infix fun <T>T.safeIn(array: Array<T>?): Boolean = array != null && this in array

@@ -1,12 +1,11 @@
 package game.rimu.management.skin
 
-import com.reco1l.framework.android.Logger
-import com.reco1l.framework.kotlin.klass
+import android.util.Log
 import com.reco1l.framework.kotlin.nextOf
 import com.reco1l.framework.kotlin.orCatch
 import com.reco1l.framework.IObservable
 import com.reco1l.framework.forEachObserver
-import com.reco1l.skindecoder.SkinDecoder
+import com.reco1l.skindecoder.SkinMapper
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.constants.RimuSetting.UI_SKIN
@@ -37,7 +36,7 @@ class SkinManager(override val ctx: MainContext) :
     /**
      * The skin decoder used along for skin changes.
      */
-    val decoder = SkinDecoder()
+    val decoder = SkinMapper()
 
 
     /**
@@ -46,18 +45,11 @@ class SkinManager(override val ctx: MainContext) :
     var skins = getDefaults()
         private set
 
-    /**
-     * Determines if a skin was already initialized, since current skin can never be null and it's
-     * late init we must check this first.
-     */
-    var isInitialized = false
-        private set
-
 
     /**
-     * The current skin.
+     * The current skin, can only be `null` if game is initializing.
      */
-    lateinit var current: WorkingSkin
+    var current: WorkingSkin? = null
         private set
 
 
@@ -98,7 +90,7 @@ class SkinManager(override val ctx: MainContext) :
     {
         changeScope.launch {
 
-            setCurrent(skins.nextOf(current.source) ?: get(BASE)!!)
+            setCurrent(skins.nextOf(current?.source) ?: get(BASE)!!)
         }
     }
 
@@ -116,24 +108,27 @@ class SkinManager(override val ctx: MainContext) :
     /**
      * Get list of defaults skins.
      */
-    fun getDefaults() = ctx.assets.list("skins")!!.map { Skin(it, "rimu! team", true) }
+    private fun getDefaults() = ctx.assets.list("skins")!!.map {
+
+        Skin("skins/$it", "rimu! team", true)
+    }
 
 
     private fun setCurrent(source: Skin)
     {
-        if (isInitialized && source == current.source)
+        if (source == current?.source)
             return
 
         changeScope.launch {
 
             // We're gonna to release the last skin once we get the new one so we ensure assets
             // aren't released before finish loading.
-            val last = if (isInitialized) current else null
+            val last = current
 
-            current = onCreateWorkingSkin(source)
-            isInitialized = true
+            current = onCreateWorkingSkin(source).also { skin ->
 
-            forEachObserver { it.onApplySkin(current) }
+                forEachObserver { it.onApplySkin(skin) }
+            }
 
             last?.onRelease()
         }
@@ -152,12 +147,12 @@ class SkinManager(override val ctx: MainContext) :
             header = "Error",
             message = """
                     Unable to load skin "${source.key}${source.author?.let { author -> " by $author" }}"
-                    Cause: ${it.klass} - ${it.message}
+                    Cause: ${it.javaClass} - ${it.message}
                 """.trimMargin(),
             icon = ""
         ).show(ctx)
 
-        Logger.e(klass, "Error while loading skin.", it)
+        Log.e(javaClass.simpleName, "Error while loading skin.", it)
 
         // Fallback to default skin because current skin can never be null.
         WorkingSkin(ctx, get(BASE)!!, decoder)

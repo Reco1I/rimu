@@ -1,6 +1,7 @@
 package game.rimu.management.resources
 
 import android.net.Uri
+import android.util.Log
 import com.reco1l.framework.data.extensionLowercase
 import com.reco1l.framework.data.forEachRecursive
 import com.reco1l.framework.data.md5
@@ -77,11 +78,6 @@ abstract class ImportTask(override val ctx: MainContext, root: File) : IWithCont
 
 
     /**
-     * This should contain a list of file types that should be specially handled.
-     */
-    protected abstract val requiresManagementFiletypes: Array<String>
-
-    /**
      * This should contain the parent identifier that assets will uses as [parent key][Asset.parent].
      */
     protected abstract var parentKey: String?
@@ -132,24 +128,31 @@ abstract class ImportTask(override val ctx: MainContext, root: File) : IWithCont
 
             val asset: HashableAsset?
 
-            if (file.extensionLowercase in requiresManagementFiletypes)
+            if (isManagementRequired(file.extensionLowercase))
             {
                 // Computing the file, if this returns an HashableAsset we're adding it to the pending
                 // files list to later import it.
-                asset = onComputeFile(file, dependencies)
+                asset = onManageFile(file, dependencies)
             }
             else
             {
+                val relativePath = file.toRelativeString(root)
+
                 // Resolving resource key and variant number according to file relative path from root.
-                val (key, variant) = when (file.toRelativeString(root))
+                val (key, variant) = when
                 {
                     // The file path corresponds to a dependency so we return its filename without
                     // extension as key and variant to always 0.
-                    in dependencies -> file.nameWithoutExtension to 0
+                    dependencies.any { relativePath.startsWith(it) } ->
+                    {
+                        // Removing the extension and the quality indicator from the filename.
+                        relativePath.substringBeforeLast('.').substringBefore('@') to 0
+                    }
 
                     // Checking if the filename is ever used by the game.
                     else -> ctx.resources.resolveAsset(file.name) ?: return@forEachRecursive
                 }
+
 
                 asset = Asset(
                     hash = file.md5,
@@ -194,6 +197,12 @@ abstract class ImportTask(override val ctx: MainContext, root: File) : IWithCont
         isCancelled = true
     }
 
+
+    /**
+     * This should determine by the filetype if a special management is required.
+     */
+    internal abstract fun isManagementRequired(fileExtension: String): Boolean
+
     /**
      * Called when the folder and its sub-folders are about to being iterated, this should filter
      * and order files by their extensions.
@@ -208,7 +217,7 @@ abstract class ImportTask(override val ctx: MainContext, root: File) : IWithCont
      * This should return its [HashableAsset] entity to be inserted into the database along with the
      * file being moved to the resource directory, if `null` is returned, the file will be skipped.
      */
-    internal abstract fun onComputeFile(
+    internal abstract fun onManageFile(
         file: File,
         dependencies: MutableList<String>
     ): HashableAsset?

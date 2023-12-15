@@ -40,7 +40,7 @@ open class TextureText(ctx: MainContext) :
         set(value)
         {
             if (field != value)
-                invalidateText = true
+                invalidate = true
 
             field = value
         }
@@ -49,24 +49,13 @@ open class TextureText(ctx: MainContext) :
         set(value)
         {
             if (field != value)
-                invalidatePositions = true
-
-            field = value
-        }
-
-    var charScale = 1f
-        set(value)
-        {
-            if (field != value)
-                invalidatePositions = true
+                invalidate = true
 
             field = value
         }
 
 
-    private var invalidateText = false
-
-    private var invalidatePositions = false
+    private var invalidate = false
 
 
     private fun onAllocateSprites(length: Int) = when
@@ -99,53 +88,27 @@ open class TextureText(ctx: MainContext) :
         if (childCount != text.length)
             onAllocateSprites(text.length)
 
-        if (childCount == 0)
-            return
-
-        // Updating text only if necessary, we're delegating texture change to the sprite's
-        // onManagedUpdate method where the texture is changed.
-        if (invalidateText && ctx.skins.isInitialized)
-        {
-            mChildren.forEachIndexed { index, sprite ->
-
-                sprite as Sprite
-
-                // Assigning the character according to the index.
-                val key = rules.textureProvider(text[index])
-
-                // Avoiding unnecessary invalidation in cases where the character is the same.
-                if (key != sprite.rules.texture)
-                {
-                    sprite.rules.texture = key
-                    sprite.invalidateTexture()
-                }
-            }
-            invalidateText = false
-
-            // New textures may differ size from previous one so we must update positions too.
-            invalidatePositions = true
-        }
-
         super.onManagedUpdate(sElapsed)
 
-        if (!invalidatePositions)
+        if (!invalidate || childCount == 0)
             return
 
         // Accounting last right bound from the previous sprite so we can place each one at the right
         // side of the previous.
         var lastRight = 0f
 
-        mChildren.forEachIndexed { index, sprite ->
+        mChildren.forEachIndexed { index, sprite -> sprite as Sprite
 
-            sprite as Sprite
-            sprite.setScale(charScale)
+            // Assigning the character according to the index.
+            val key = rules.textureProvider(text[index])
+
+            sprite.setTexture(ctx.resources[key, 0])
             sprite.setPosition(lastRight, 0f)
 
             lastRight += sprite.width * sprite.scaleX - overlap
         }
 
-        onMeasureSize()
-        invalidatePositions = false
+        invalidate = false
     }
 
     override fun onApplySkin(skin: WorkingSkin)
@@ -154,6 +117,6 @@ open class TextureText(ctx: MainContext) :
         // override onApplySkin.
         super<Entity>.onApplySkin(skin)
 
-        invalidateText = true
+        this.invalidate = true
     }
 }

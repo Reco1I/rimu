@@ -5,12 +5,6 @@ import kotlin.reflect.KProperty0
 import kotlin.reflect.full.createInstance
 
 /**
- * [javaClass]
- */
-val Any.klass
-    get() = this.javaClass.kotlin
-
-/**
  * Create a new instance with the given parameters.
  */
 fun <T : Any> KClass<T>.createInstance(vararg parameters: Any?): T

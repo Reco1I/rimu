@@ -6,13 +6,6 @@ import kotlin.reflect.KFunction1
 import kotlin.reflect.KMutableProperty0
 
 
-// Constructors
-
-fun FloatAnimator(vararg values: Float) = ValueAnimator.ofFloat(*values)
-
-fun IntAnimator(vararg values: Int) = ValueAnimator.ofInt(*values)
-
-
 // Base
 
 private fun animateFloat(

@@ -3,15 +3,14 @@ package game.rimu.data.asset
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.Typeface
+import android.util.Log
 import com.caverock.androidsvg.SVG
 import com.reco1l.basskt.stream.AssetSampleStream
 import com.reco1l.basskt.stream.BaseStream
 import com.reco1l.basskt.stream.SampleStream
-import com.reco1l.framework.android.Logger
 import com.reco1l.framework.kotlin.orCatch
 import com.reco1l.framework.graphics.toBitmap
 import com.reco1l.framework.graphics.toTexture
-import com.reco1l.framework.kotlin.klass
 import com.reco1l.framework.support.WrappingTexture
 import game.rimu.IWithContext
 import game.rimu.MainContext
@@ -63,7 +62,10 @@ sealed class AssetBundle(override val ctx: MainContext) : IWithContext
     {
         val asset = list.find { it.equals(key, variant) } ?: return null
 
-        return "${ctx.resources.directory.path}/${asset.qualifiedPath}"
+        val path = "${ctx.resources.directory.path}/${asset.qualifiedPath}"
+        Log.v(javaClass.simpleName, "Queried path for asset with key \"$key\": \"$path\"")
+
+        return path
     }
 
     /**
@@ -98,20 +100,27 @@ sealed class AssetBundle(override val ctx: MainContext) : IWithContext
 
         // Searching the key and variant into the listed assets, if the find function returns null,
         // means the bundle source doesn't have such file.
-        val asset = list.find { it.equals(key, variant) } ?: return null
+        val asset = list.find { it.equals(key, variant) } ?: run {
+
+            Log.e(javaClass.simpleName, "Asset with key \"$key\" not found in the bundle.")
+            return null
+        }
 
         return map[asset] as? T ?: run {
 
             // Trying to load sound only if it wasn't tried yet. If the key has a null mapping means that
             // it was already tried to load unsuccessfully.
             if (asset in map)
+            {
+                Log.e(javaClass.simpleName, "Asset \"$key\" was already tried to load unsucessfully.")
                 return null
+            }
 
             // We storing it in the map no matter if it's still null, the key will have a null mapping
             // to avoid trying to load the asset again in the future.
             { onLoadAsset(T::class, key, variant, asset.type) }.orCatch {
 
-                Logger.e(klass, "Failed to load asset $key::$variant of type ${T::class}", it)
+                Log.e(javaClass.simpleName, "Failed to load asset $key::$variant of type ${T::class}", it)
                 null
 
             }.also { map[asset] = it }
@@ -252,6 +261,8 @@ class ExternalAssetBundle(ctx: MainContext, key: String) : AssetBundle(ctx)
         type: String
     ): T?
     {
+        Log.v(javaClass.simpleName, "Loading external asset: Key=\"$key\" Type=\"$type\"")
+
         return {
             when (expectedType)
             {
@@ -281,7 +292,7 @@ class ExternalAssetBundle(ctx: MainContext, key: String) : AssetBundle(ctx)
                 else -> null
             }
         }.orCatch {
-            Logger.e(klass, "Error while loading asset: $key $variant $type", it)
+            Log.e(javaClass.simpleName, "Error while loading asset: $key $variant $type", it)
             null
         }
     }

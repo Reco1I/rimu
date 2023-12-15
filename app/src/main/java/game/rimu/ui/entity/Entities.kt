@@ -52,9 +52,9 @@ open class Entity(override val ctx: MainContext) :
     }
 
 
-    override fun attachChild(pEntity: IEntity?, index: Int)
+    override fun attachChild(entity: IEntity)
     {
-        super.attachChild(pEntity, index)
+        super.attachChild(entity)
         onMeasureSize()
     }
 

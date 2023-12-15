@@ -2,7 +2,6 @@ package game.rimu.management
 
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
-import com.reco1l.framework.kotlin.klass
 import com.reco1l.framework.IMapObservable
 import com.reco1l.framework.forEachObserver
 import game.rimu.IWithContext
@@ -41,7 +40,7 @@ class SettingManager(override val ctx: MainContext) :
      * Get an specific settings from the preference map.
      */
     @Suppress("UNCHECKED_CAST")
-    operator fun <T> get(setting: RimuSetting) = preferences.all[setting.key] as? T ?: setting.default as T
+    operator fun <T> get(setting: RimuSetting) = preferences.all[setting.name] as? T ?: setting.default as T
 
     /**
      * Set an specific settings from the preference map.
@@ -52,7 +51,7 @@ class SettingManager(override val ctx: MainContext) :
     @Suppress("UNCHECKED_CAST")
     operator fun <T> set(setting: RimuSetting, value: T)
     {
-        val key = setting.key
+        val key = setting.name
 
         preferences.edit().apply {
 
@@ -67,7 +66,7 @@ class SettingManager(override val ctx: MainContext) :
             {
                 value as? Set<String>
                     ?:
-                    throw IllegalArgumentException("Unsupported value type: ${value.klass}")
+                    throw IllegalArgumentException("Unsupported value type: ${value.javaClass}")
 
                 putStringSet(key, value)
             }
@@ -80,7 +79,7 @@ class SettingManager(override val ctx: MainContext) :
                 is Boolean -> putBoolean(key, value)
                 is String -> putString(key, value)
 
-                else -> throw IllegalArgumentException("Unsupported value type: ${value.klass}")
+                else -> throw IllegalArgumentException("Unsupported value type: ${value.javaClass}")
             }
             apply()
         }

@@ -1,16 +1,17 @@
 package game.rimu.management
 
+import android.animation.ValueAnimator
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import com.reco1l.framework.android.views.attachTo
 import com.reco1l.framework.android.views.removeSelf
+import com.reco1l.framework.animation.Ease
+import com.reco1l.framework.animation.animateTo
 import com.reco1l.framework.kotlin.createInstance
 import com.reco1l.framework.kotlin.safeIn
 import game.rimu.MainContext
+import game.rimu.constants.RimuSetting
 import game.rimu.management.skin.WorkingSkin
-import game.rimu.ui.LayerBackground
-import game.rimu.ui.LayerOverlay
-import game.rimu.ui.LayerScene
-import game.rimu.ui.BaseLayer
+import game.rimu.ui.*
 import game.rimu.ui.layouts.ModelLayout
 import game.rimu.ui.scenes.BaseScene
 import game.rimu.ui.views.ConstraintLayout
@@ -24,6 +25,24 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
         size(MATCH_PARENT)
     }
+
+    /**
+     * The UI scale.
+     */
+    val scale
+        get() = scaleFactor * scaleRatio
+
+
+    private var scaleAnimator: ValueAnimator? = null
+
+    private var scaleRatio = 1f
+
+    private var scaleFactor: Float = ctx.settings[RimuSetting.UI_SCALE]
+        set(value)
+        {
+            field = value
+            invalidateScale()
+        }
 
 
     private val loadedLayouts = mutableListOf<ModelLayout>()
@@ -40,7 +59,16 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
         ctx.initializationTree!!.add {
 
             onActivityCreate()
+
+            // Binding skin change observer to update properly all attached layouts.
             skins.bindObserver(observer = this@LayoutManager)
+
+            // Binding scale factor observer to rescale properly all attached layouts.
+            ctx.settings.bindObserver(RimuSetting.UI_SCALE) { value ->
+
+                scaleAnimator?.cancel()
+                scaleAnimator = ::scaleFactor.animateTo(value as Float, 300, ease = Ease.DECELERATE)
+            }
         }
     }
 
@@ -61,7 +89,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
     fun onSceneChange(scene: BaseScene) = mainThread {
 
-        // We copying the list to avoid concurrency errors because during the iteration the original
+        // We're copying the list to avoid concurrency errors because during the iteration the original
         // list can be modified.
         loadedLayouts.toList().forEach {
 
@@ -70,6 +98,15 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
             else
                 it.hide()
         }
+    }
+
+    fun onSurfaceChange(width: Int, height: Int)
+    {
+        // Applying over a ratio multiplier based on 16:9 to make scale relative to screen aspect
+        // ratio, this will make the scale to have the same factor in different screen sizes.
+        scaleRatio = RATIO_FUNCTION(width, height)
+
+        invalidateScale()
     }
 
 
@@ -173,12 +210,19 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
         /**
          * List of [BaseLayer] inheritors, unfortunately this can't be achieved with reflection.
          */
-        val LAYERS = arrayOf(
+        private val LAYERS = arrayOf(
             LayerBackground::class,
             LayerScene::class,
             LayerOverlay::class,
         )
 
+        /**
+         * Based on the osu!droid scale ratio function.
+         * [osu!droid code snippet](https://github.com/osudroid/osu-droid/blob/522716f870701f4b3728bfb912e18dd264f8fa0c/src/ru/nsu/ccfit/zuev/osu/Config.java#L269-L272)
+         */
+        private val RATIO_FUNCTION = { width: Int, height: Int -> 1280f / (1280f * height / width) }
+
     }
+
 }
 

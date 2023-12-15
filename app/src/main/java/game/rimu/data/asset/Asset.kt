@@ -58,7 +58,7 @@ data class Asset(
     /**
      * Compare along key and variant.
      */
-    fun equals(key: String, variant: Int = 0) = this.key == key && this.variant == variant
+    fun equals(key: String, variant: Int = 0) = this.key.equals(key, true) && this.variant == variant
 
 
     companion object
@@ -91,10 +91,32 @@ data class Asset(
         /**
          * List of currently asset supported formats by rimu!.
          */
-        val SUPPORTED_FORMATS =
-            MODE_FORMATS + SOUND_FORMATS + VIDEO_FORMATS + IMAGE_FORMATS + FONT_FORMATS + "ini"
+        val SUPPORTED_FORMATS = AssetType.entries.flatMap { it.formats.toList() }.toTypedArray()
 
     }
+}
+
+enum class AssetType(vararg val formats: String)
+{
+
+    BEATMAP("osu"),
+
+    SOUND("wav", "mp3", "ogg"),
+
+    VIDEO("3gp", "mp4", "mkv", "webm", "avi", "flv"),
+
+    IMAGE("png", "jpg", "jpeg"),
+
+    FONT("ttf", "otf"),
+
+    CONFIGURATION("ini");
+
+
+    /**
+     * Check if the [extension] is supported by this asset type.
+     */
+    operator fun contains(extension: String) = extension in formats
+
 }
 
 @Dao interface IAssetDAO

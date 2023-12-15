@@ -10,8 +10,8 @@ import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.constants.RimuSetting.MUSIC_VOLUME
 import game.rimu.data.Beatmap
-import game.rimu.data.ControlPointType.DIFFICULTY
-import game.rimu.data.ControlPointType.TIMING
+import game.rimu.management.time.ControlPointType.DIFFICULTY
+import game.rimu.management.time.ControlPointType.TIMING
 import game.rimu.data.asset.ExternalAssetBundle
 import game.rimu.management.time.ControlPointCursor
 import game.rimu.management.time.IClockObserver
@@ -56,7 +56,7 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
     val stream = AudioStream().also {
 
         // Getting the audio file key, usually this contains the extension so we're removing it first.
-        val key = data.general.audioFilename.substringBeforeLast('.')
+        val key = source.audio.substringBeforeLast('.')
 
         it.source = assets.getAssetPath(key)
     }

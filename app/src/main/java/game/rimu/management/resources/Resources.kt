@@ -1,10 +1,9 @@
 package game.rimu.management.resources
 
-import com.reco1l.framework.android.Logger
+import android.util.Log
 import com.reco1l.framework.kotlin.between
 import com.reco1l.framework.data.subDirectory
 import com.reco1l.framework.data.subFile
-import com.reco1l.framework.kotlin.klass
 import game.rimu.IWithContext
 import game.rimu.MainContext
 import game.rimu.constants.RimuSetting.UI_USE_BEATMAP_SKIN
@@ -33,7 +32,7 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
     val sources = mapOf(
 
         BEATMAP to { ctx.beatmaps.current?.assets },
-        SKIN to { ctx.skins.current.assets },
+        SKIN to { ctx.skins.current?.assets },
         DEFAULT to { ctx.resources.defaultAssets }
     )
 
@@ -50,7 +49,7 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
 
         val name = filename.substringBeforeLast('.')
 
-        // Extracting the variant pattern in case it have, if it does we replacing the number
+        // Extracting the variant pattern in case it have, if it does we're replacing the number
         // identifier (#) with the regex equivalent.
         val pattern = name.between('[', ']')?.replace("#", "(\\d+)")
 
@@ -90,8 +89,11 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
      */
     fun resolveAsset(filename: String): Pair<String, Int>?
     {
-        // Removing extension and variant pattern indicator.
-        val name = filename.substringBeforeLast('.').substringBefore('[')
+        // Extracting the key name.
+        val name = filename
+            .substringBeforeLast('.')
+            .substringBefore('[')
+            .substringBeforeLast('@')
 
         for ((key, regex) in allowedFilenames)
         {
@@ -160,13 +162,8 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
         key: String,
         variant: Int = 0,
         fallbackToDefault: Boolean = true
-    ): T?
-    {
-        if (!ctx.skins.isInitialized)
-            return null
-
-        for ((source, bundle) in sources)
-        {
+    ): T? {
+        for ((source, bundle) in sources) {
             if (source == BEATMAP && !useBeatmapSkin)
                 continue
 
@@ -177,7 +174,7 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
         }
 
         if (fallbackToDefault)
-            Logger.w(klass, "Expected asset $key with variant $variant, wasn't found.")
+            Log.w(javaClass.simpleName, "Expected asset $key with variant $variant, wasn't found.")
 
         return null
     }
@@ -192,10 +189,6 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
         fallbackToDefault: Boolean = true
     ): List<T>?
     {
-        // Preventing access to late init in race condition.
-        if (!ctx.skins.isInitialized)
-            return null
-
         for ((source, bundle) in sources)
         {
             if (source == BEATMAP && !useBeatmapSkin)

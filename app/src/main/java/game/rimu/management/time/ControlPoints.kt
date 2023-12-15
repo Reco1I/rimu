@@ -5,6 +5,7 @@ import com.reco1l.framework.kotlin.previousOf
 import com.rian.osu.beatmap.timings.ControlPoint
 import com.rian.osu.beatmap.timings.ControlPointManager
 
+
 /**
  * Cursor to determine the current control point at current time defined by a [GameClock].
  */
@@ -63,18 +64,19 @@ class ControlPointCursor<T : ControlPoint>(
         // Determining if the clock if going forward.
         if (msDeltaTime > 0)
         {
-            next?.apply {
+            if (msElapsedTime >= (next?.time ?: return))
+                current = next ?: return
 
-                if (msElapsedTime >= time)
-                    current = this
-            }
             return
         }
 
-        current.apply {
-
-            if (msElapsedTime < time)
-                current = previous ?: return
-        }
+        if (msElapsedTime < current.time)
+            current = previous ?: return
     }
+}
+
+enum class ControlPointType
+{
+    TIMING,
+    DIFFICULTY
 }

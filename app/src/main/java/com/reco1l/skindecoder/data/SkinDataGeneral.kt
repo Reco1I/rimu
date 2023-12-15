@@ -1,6 +1,6 @@
 package com.reco1l.skindecoder.data
 
-import com.reco1l.skindecoder.serializers.NumericBooleanSerializer
+import com.reco1l.skindecoder.serializers.IntAsBooleanSerializer
 import kotlinx.serialization.Serializable
 
 /**
@@ -25,40 +25,40 @@ data class SkinDataGeneral(
     // Because skin.ini stores booleans in numeric format (0 for false and 1 for true) we need to
     // specify a custom serializer.
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val allowSliderBallTint: Boolean = false,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val comboBurstRandom: Boolean = false,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val cursorCentre: Boolean = true,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val cursorExpand: Boolean = true,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val cursorRotate: Boolean = true,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val cursorTrailRotate: Boolean = true,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val hitCircleOverlayAboveNumber: Boolean = true,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val layeredHitSounds: Boolean = true,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val sliderBallFlip: Boolean = true,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val spinnerFadePlayfield: Boolean = false,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val spinnerFrequencyModulate: Boolean = true,
 
-    @Serializable(NumericBooleanSerializer::class)
+    @Serializable(IntAsBooleanSerializer::class)
     val spinnerNoBlink: Boolean = false
 )
 {

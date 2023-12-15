@@ -7,7 +7,6 @@ import android.os.Handler
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import com.reco1l.basskt.BassDevice
-import game.rimu.engine.RimuEngine
 import game.rimu.management.DatabaseManager
 import game.rimu.management.LayoutManager
 import game.rimu.management.SettingManager

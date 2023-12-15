@@ -1,11 +1,9 @@
 package game.rimu.ui.layouts
 
+import android.util.Log
 import android.view.MotionEvent
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.annotation.CallSuper
-import com.reco1l.framework.android.Logger
-import com.reco1l.framework.kotlin.klass
-import com.reco1l.framework.kotlin.then
 import game.rimu.MainContext
 import game.rimu.ui.BaseLayer
 import game.rimu.ui.scenes.BaseScene
@@ -113,9 +111,9 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
      * Show the layout.
      */
     @CallSuper
-    open fun show(override: Boolean = !isSingleton) = ctx.layouts.show(this, override).then {
+    open fun show(override: Boolean = !isSingleton) = ctx.layouts.show(this, override).also {
 
-        Logger.i(klass, "Layout successfully attached.")
+        Log.v(javaClass.simpleName, "Layout successfully attached.")
     }
 
     /**
@@ -126,7 +124,10 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
     {
         removeCallbacks(hideTask)
 
-        ctx.layouts.hide(this).then { Logger.i(klass, "Layout successfully detached.") }
+        ctx.layouts.hide(this).also {
+
+            Log.v(javaClass.simpleName, "Layout successfully detached.")
+        }
     }
 
 }
