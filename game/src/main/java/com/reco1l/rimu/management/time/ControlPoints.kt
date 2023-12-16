@@ -1,5 +1,6 @@
 package com.reco1l.rimu.management.time
 
+import com.reco1l.toolkt.kotlin.BoundConflict
 import com.reco1l.toolkt.kotlin.nextOf
 import com.reco1l.toolkt.kotlin.previousOf
 import com.rian.osu.beatmap.timings.ControlPoint
@@ -30,13 +31,14 @@ class ControlPointCursor<T : ControlPoint>(
     /**
      * The current active control point.
      */
-    var current: T = manager.controlPointAt(0.0)
+    var current: T = controlPoints[0]
         private set(value)
         {
             if (field != value)
             {
-                previous = controlPoints.previousOf(value)
-                next = controlPoints.nextOf(value)
+                field = value
+                previous = controlPoints.previousOf(value, BoundConflict.CLAMP)!!
+                next = controlPoints.nextOf(value, BoundConflict.CLAMP)!!
 
                 onControlPointChange()
             }
@@ -45,14 +47,20 @@ class ControlPointCursor<T : ControlPoint>(
     /**
      * The previous of [current] control point.
      */
-    var previous: T? = controlPoints.previousOf(current)
+    var previous: T = current
         private set
 
     /**
      * The next of [current] control point.
      */
-    var next: T? = controlPoints.nextOf(current)
+    var next: T = controlPoints.nextOf(current, BoundConflict.CLAMP)!!
         private set
+
+
+    init
+    {
+        onControlPointChange()
+    }
 
 
     override fun onClockUpdate(msElapsedTime: Long, msDeltaTime: Long)
@@ -64,14 +72,14 @@ class ControlPointCursor<T : ControlPoint>(
         // Determining if the clock if going forward.
         if (msDeltaTime > 0)
         {
-            if (msElapsedTime >= (next?.time ?: return))
-                current = next ?: return
+            if (msElapsedTime >= next.time)
+                current = next
 
             return
         }
 
         if (msElapsedTime < current.time)
-            current = previous ?: return
+            current = previous
     }
 }
 

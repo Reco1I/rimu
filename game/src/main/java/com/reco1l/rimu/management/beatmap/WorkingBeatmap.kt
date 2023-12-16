@@ -14,7 +14,10 @@ import com.reco1l.rimu.management.time.ControlPointType.DIFFICULTY
 import com.reco1l.rimu.management.time.ControlPointType.TIMING
 import com.reco1l.rimu.data.asset.ExternalAssetBundle
 import com.reco1l.rimu.management.time.ControlPointCursor
+import com.reco1l.rimu.management.time.GameClock
 import com.reco1l.rimu.management.time.IClockObserver
+import com.reco1l.rimu.ui.layouts.DebugOverlay
+import com.rian.osu.beatmap.timings.TimingControlPoint
 
 class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
     IWithContext,
@@ -61,6 +64,14 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
         it.source = assets.getAssetPath(key)
     }
 
+    /**
+     * The game clock that matches the audio stream time.
+     */
+    val clock = GameClock(ctx, stream).also {
+
+        it.bindObserver(observer = this)
+    }
+
 
     /**
      * The cursors for every control point type.
@@ -98,6 +109,10 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
     {
         ctx.settings.unbindObserver(MUSIC_VOLUME, observer = onVolumeChange)
 
+        updateThread {
+            ctx.engine.unregisterUpdateHandler(clock)
+        }
+
         mainThread {
             stream::volume.animateTo(0f, 300).doOnEnd {
                 stream.free()
@@ -111,9 +126,12 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
     fun play(restart: Boolean = false, withAnimation: Boolean = true)
     {
         stream.volume = 0f
-
-        stream.play(restart)
         stream.bufferLength = if (ctx.engine.isRunning) 0.1f else 0.5f
+        stream.play(restart)
+
+        updateThread {
+            ctx.engine.registerUpdateHandler(clock)
+        }
 
         if (ctx.beatmaps.current == this)
             ctx.beatmaps.forEachObserver { it.onMusicPlay() }
@@ -157,7 +175,22 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
 
     override fun invoke(cursor: ControlPointCursor<out ControlPoint>)
     {
+        val current = cursor.current
+        val next = cursor.next
 
+        when (current)
+        {
+            is TimingControlPoint -> {
+
+                ctx.layouts[DebugOverlay::class].setSection("TimingPoint", """
+                    current_start_time: ${current.time.toInt()}ms
+                    next_start_time: ${next?.let { "${it.time.toInt()}ms" }}
+                    beat_length: ${current.msPerBeat.toInt()}ms (${current.BPM.toInt()} BPM)
+                    time_signature: 1/${current.timeSignature}
+                """.trimIndent())
+            }
+
+        }
     }
 }
 

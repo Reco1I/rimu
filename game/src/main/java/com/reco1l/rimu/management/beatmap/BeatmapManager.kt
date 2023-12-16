@@ -12,6 +12,7 @@ import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.data.Beatmap
 import com.reco1l.rimu.data.BeatmapSet
 import com.reco1l.rimu.ui.layouts.Notification
+import com.reco1l.toolkt.kotlin.BoundConflict
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -55,8 +56,6 @@ class BeatmapManager(override val ctx: MainContext) :
         private set
 
 
-    private var currentSource: Beatmap? = null
-
     private val musicScope = CoroutineScope(Dispatchers.IO)
 
 
@@ -78,7 +77,7 @@ class BeatmapManager(override val ctx: MainContext) :
     {
         musicScope.launch {
 
-            val wasEmpty = !::sets.isInitialized || ::sets.isInitialized && sets.isEmpty()
+            val wasEmpty = if (::sets.isInitialized) sets.isEmpty() else true
 
             sets = value
 
@@ -96,9 +95,9 @@ class BeatmapManager(override val ctx: MainContext) :
         Notification(
             header = "Error",
             message = """
-                    Unable to load beatmap "${source.title} by ${source.artist} - ${source.version} mapped by ${source.creator}"
-                    Cause: ${it.javaClass} - ${it.message}
-                """.trimMargin(),
+                Unable to load beatmap "${source.title} by ${source.artist} - ${source.version} mapped by ${source.creator}"
+                Cause: ${it.javaClass} - ${it.message}
+            """.trimIndent(),
             icon = ""
         ).show(ctx)
 
@@ -114,14 +113,17 @@ class BeatmapManager(override val ctx: MainContext) :
      */
     fun setCurrent(source: Beatmap, forceReload: Boolean = false): Job = musicScope.launch {
 
-        if (source == currentSource && !forceReload)
-            return@launch
+        val last = current
 
-        current?.onRelease()
+        if (last != null)
+        {
+            if (source == last.source && !forceReload)
+                return@launch
+
+            last.onRelease()
+        }
+
         current = onCreateWorkingBeatmap(source)
-
-        // Storing new source separately in case the working beatmap failed to create.
-        currentSource = source
 
         // Notifying all registered observers.
         forEachObserver { it.onMusicChange(current) }
@@ -134,10 +136,10 @@ class BeatmapManager(override val ctx: MainContext) :
     /**
      * Shifts to the next song in the playlist.
      */
-    fun next() = songs.nextOf(currentSource, false)?.let { setCurrent(it) }
+    fun next() = songs.nextOf(current?.source, BoundConflict.START_END)?.let { setCurrent(it) }
 
     /**
      * Shifts to the previous song in the playlist.
      */
-    fun previous() = songs.previousOf(currentSource, false)?.let { setCurrent(it) }
+    fun previous() = songs.previousOf(current?.source, BoundConflict.START_END)?.let { setCurrent(it) }
 }
