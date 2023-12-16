@@ -10,7 +10,7 @@ import androidx.annotation.CallSuper
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.drawable.toDrawable
 import com.reco1l.toolkt.android.setImageTint
-import com.reco1l.rimu.data.toInt
+
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin

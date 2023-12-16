@@ -9,7 +9,7 @@ import com.reco1l.toolkt.android.cornerRadius
 import com.reco1l.toolkt.android.setMargins
 import com.reco1l.toolkt.android.setPaddings
 import com.reco1l.toolkt.android.setSize
-import com.reco1l.rimu.data.toInt
+
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin

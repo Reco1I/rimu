@@ -12,7 +12,7 @@ import android.view.ViewGroup
 import androidx.annotation.ColorInt
 import com.reco1l.toolkt.graphics.addRoundRect
 import com.reco1l.toolkt.graphics.drawRoundRect
-import com.reco1l.rimu.data.toInt
+
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin

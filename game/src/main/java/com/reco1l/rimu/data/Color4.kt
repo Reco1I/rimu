@@ -98,6 +98,35 @@ open class Color4 @JvmOverloads constructor(
     }
 
 
+    // Conversion
+
+
+    /**
+     * Returns the color in a hexadecimal integer format.
+     */
+    fun toInt(
+        red: Float = getRed(),
+        blue: Float = getBlue(),
+        green: Float = getGreen(),
+        alpha: Float = getAlpha(),
+        factor: Float = 1f
+    ): Int
+    {
+        return ((255 * alpha).toInt() shl 24)
+            .or((255 * red * factor).toInt() shl 16)
+            .or((255 * green * factor).toInt() shl 8)
+            .or((255 * blue * factor).toInt() shl 0)
+    }
+
+    fun toDrawable(
+        red: Float = getRed(),
+        blue: Float = getBlue(),
+        green: Float = getGreen(),
+        alpha: Float = getAlpha(),
+        factor: Float = 1f
+    ) = toInt(red, blue, green, alpha, factor).toDrawable()
+
+
     // Generated
 
     override fun equals(other: Any?) = other === this || other is Color4
@@ -120,28 +149,3 @@ open class Color4 @JvmOverloads constructor(
 }
 
 
-/**
- * Returns the color in a hexadecimal integer format.
- */
-fun Color4.toInt(
-    red: Float = getRed(),
-    blue: Float = getBlue(),
-    green: Float = getGreen(),
-    alpha: Float = getAlpha(),
-    factor: Float = 1f
-): Int
-{
-    return ((255 * alpha).toInt() shl 24)
-        .or((255 * red * factor).toInt() shl 16)
-        .or((255 * green * factor).toInt() shl 8)
-        .or((255 * blue * factor).toInt() shl 0)
-}
-
-
-fun Color4.toDrawable(
-    red: Float = getRed(),
-    blue: Float = getBlue(),
-    green: Float = getGreen(),
-    alpha: Float = getAlpha(),
-    factor: Float = 1f
-) = toInt(red, blue, green, alpha, factor).toDrawable()

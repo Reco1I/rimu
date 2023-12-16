@@ -8,7 +8,7 @@ import android.widget.LinearLayout.HORIZONTAL
 import com.reco1l.toolkt.android.attachTo
 import com.reco1l.toolkt.android.setConstraints
 import com.reco1l.toolkt.graphics.Anchor
-import com.reco1l.rimu.data.toInt
+
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin
 import com.reco1l.rimu.ui.LayerOverlay
