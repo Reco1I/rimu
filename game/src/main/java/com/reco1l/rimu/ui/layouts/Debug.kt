@@ -86,6 +86,7 @@ class DebugOverlay(ctx: MainContext) :
     init
     {
         ctx.engine.registerUpdateHandler(this)
+        z = 5f
     }
 
 
