@@ -101,8 +101,6 @@ sealed class AssetBundle(override val ctx: MainContext) : IWithContext
         // Searching the key and variant into the listed assets, if the find function returns null,
         // means the bundle source doesn't have such file.
         val asset = list.find { it.equals(key, variant) } ?: run {
-
-            Log.e(javaClass.simpleName, "Asset with key \"$key\" not found in the bundle.")
             return null
         }
 
