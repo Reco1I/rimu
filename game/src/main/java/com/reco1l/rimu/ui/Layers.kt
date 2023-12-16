@@ -4,6 +4,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.ui.layouts.Background
+import com.reco1l.rimu.ui.layouts.DebugOverlay
 import com.reco1l.rimu.ui.layouts.TopBarLayout
 import com.reco1l.rimu.ui.layouts.NotificationCenter
 import com.reco1l.rimu.ui.views.ConstraintLayout
@@ -42,6 +43,7 @@ class LayerOverlay(ctx: MainContext) : BaseLayer(ctx)
 
             layouts[TopBarLayout::class]
             layouts[NotificationCenter::class]
+            layouts[DebugOverlay::class]
         }
 
     }

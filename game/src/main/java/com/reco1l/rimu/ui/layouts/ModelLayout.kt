@@ -121,7 +121,7 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
     @CallSuper
     open fun show(override: Boolean = !isSingleton) = ctx.layouts.show(this, override).also {
 
-        Log.v(javaClass.simpleName, "Layout successfully attached.")
+        Log.v(javaClass.simpleName, "Layout \"${javaClass.simpleName}\" successfully attached.")
 
         if (it)
             invalidateHideTimer()
@@ -137,7 +137,7 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
 
         ctx.layouts.hide(this).also {
 
-            Log.v(javaClass.simpleName, "Layout successfully detached.")
+            Log.v(javaClass.simpleName, "Layout \"${javaClass.simpleName}\" successfully detached.")
         }
     }
 
