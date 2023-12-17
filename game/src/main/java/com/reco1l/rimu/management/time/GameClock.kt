@@ -8,9 +8,10 @@ import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.ui.layouts.DebugOverlay
 import com.reco1l.toolkt.IObservable
 import com.reco1l.toolkt.forEachObserver
+import com.reco1l.toolkt.roundBy
 import org.andengine.engine.handler.IUpdateHandler
 import kotlin.math.abs
-import kotlin.math.absoluteValue
+
 /**
  * Despite a normal [IUpdateHandler] it listens to time modifications in an [AudioStream].
  */
@@ -26,7 +27,7 @@ class GameClock(override val ctx: MainContext, var audioStream: AudioStream) :
     /**
      * The total elapsed time since clock start.
      */
-    var msElapsedTime: Long = 0
+    var msElapsedTime: Double = 0.0
 
     /**
      * The current clock rate defined by the audio playback speed.
@@ -35,49 +36,67 @@ class GameClock(override val ctx: MainContext, var audioStream: AudioStream) :
         private set
 
 
-    override fun onUpdate(sEngineDelta: Float)
+    override fun onUpdate(sEngineDeltaTime: Float)
     {
         if (audioStream.state != PLAYING)
             return
 
-        // Current audio time in milliseconds.
-        val msAudioElapsed = audioStream.position
+        val sAudioElapsedTime = audioStream.position / 1000.0
 
         // Computing the difference between the engine elapsed time and the audio elapsed time, this
         // is used to match elapsed time and synchronize both times.
-        val msDifference = msAudioElapsed - msElapsedTime + sEngineDelta * 1000
+        val sTimeDifference = msElapsedTime + sEngineDeltaTime - sAudioElapsedTime
 
         // Determining if the difference is significant enough to seek to the target time, this can
         // happen if for example user seeks the song.
-        val isSeeking = abs(msDifference) >= 1000
+        val isSeeking = abs(sTimeDifference) > 1.0
 
-        // By default when seeking the rate will be forced to 4x.
-        rate = if (isSeeking) 6f else audioStream.speed
+        // By default when seeking the rate will be forced to 6x.
+        // When not seeking we compensate multiplying by the difference ratio.
+        rate = if (isSeeking) 6f else {
 
-        var msDeltaTime = (sEngineDelta * 1000 * rate).toLong()
+            // 10 ms tolerance of difference to avoid unexpected jumps.
+            if (sTimeDifference < sEngineDeltaTime)
+                audioStream.speed + (abs(sTimeDifference) / sEngineDeltaTime).toFloat()
+            else
+                audioStream.speed
+
+        }.coerceAtLeast(0f)
+
+        var sDeltaTime = sEngineDeltaTime * rate
 
         // In this case the clock is going backwards, we need to reverse the delta time.
-        if (isSeeking && msDifference < 0)
-            msDeltaTime = -msDeltaTime
+        if (isSeeking && sTimeDifference > 0)
+            sDeltaTime = -sDeltaTime
 
-        msElapsedTime += msDeltaTime
+        msElapsedTime += sDeltaTime
 
+        forEachObserver { it.onClockUpdate(msElapsedTime, sDeltaTime) }
+
+        updateDebugOverlaySection(sAudioElapsedTime, sTimeDifference, sDeltaTime)
+    }
+
+
+    private fun updateDebugOverlaySection(
+        sAudioElapsedTime: Double,
+        sTimeDifference: Double,
+        sDeltaTime: Float
+    )
+    {
         ctx.layouts[DebugOverlay::class].setSection("Clock", """
-            clock_elapsed_time: ${msElapsedTime}ms
-            audio_elapsed_time: ${msAudioElapsed}ms
-            delta_time: ${msDeltaTime}ms
-            difference: ${msDifference.toInt()}ms
-            rate: ${rate}x
+            rate: ${rate.roundBy(3)}x
+            audio_elapsed_time: ${sAudioElapsedTime}s
+            clock_elapsed_time: ${msElapsedTime.roundBy(3)}s
+            clock_delta_time: ${sDeltaTime.roundBy(3)}s
+            time_difference: ${sTimeDifference.roundBy(3)}s
         """.trimIndent())
-
-        forEachObserver { it.onClockUpdate(msElapsedTime, msDeltaTime) }
     }
 
     override fun reset()
     {
         Log.v(javaClass.simpleName, "Game clock resetted.")
 
-        msElapsedTime = 0
+        msElapsedTime = 0.0
         rate = 1f
     }
 }

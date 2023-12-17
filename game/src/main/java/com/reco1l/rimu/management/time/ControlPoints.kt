@@ -7,6 +7,11 @@ import com.rian.osu.beatmap.timings.ControlPoint
 import com.rian.osu.beatmap.timings.ControlPointManager
 
 
+fun interface CursorListener<T : ControlPoint>
+{
+    fun onControlPointChange(previous: T, current: T, next: T)
+}
+
 /**
  * Cursor to determine the current control point at current time defined by a [GameClock].
  */
@@ -20,7 +25,7 @@ class ControlPointCursor<T : ControlPoint>(
     /**
      * Called when the [current] control point has been changed.
      */
-    val onControlPointChange: ControlPointCursor<T>.() -> Unit
+    val onChange: (previous: T, current: T, next: T) -> Unit
 
 ) : IClockObserver
 {
@@ -40,7 +45,7 @@ class ControlPointCursor<T : ControlPoint>(
                 previous = controlPoints.previousOf(value, BoundConflict.CLAMP)!!
                 next = controlPoints.nextOf(value, BoundConflict.CLAMP)!!
 
-                onControlPointChange()
+                onChange(previous, current, next)
             }
         }
 
@@ -59,26 +64,26 @@ class ControlPointCursor<T : ControlPoint>(
 
     init
     {
-        onControlPointChange()
+        onChange(previous, current, next)
     }
 
 
-    override fun onClockUpdate(msElapsedTime: Long, msDeltaTime: Long)
+    override fun onClockUpdate(sElapsedTime: Double, sDeltaTime: Float)
     {
         // If the delta time equals 0 means there's nothing to update aka clock is paused.
-        if (msDeltaTime == 0L)
+        if (sDeltaTime == 0f)
             return
 
         // Determining if the clock if going forward.
-        if (msDeltaTime > 0)
+        if (sDeltaTime > 0f)
         {
-            if (msElapsedTime >= next.time)
+            if (sElapsedTime >= next.time / 1000.0)
                 current = next
 
             return
         }
 
-        if (msElapsedTime < current.time)
+        if (sElapsedTime < current.time / 1000.0)
             current = previous
     }
 }

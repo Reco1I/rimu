@@ -17,14 +17,11 @@ import com.reco1l.rimu.management.time.ControlPointCursor
 import com.reco1l.rimu.management.time.GameClock
 import com.reco1l.rimu.management.time.IClockObserver
 import com.reco1l.rimu.ui.layouts.DebugOverlay
+import com.reco1l.toolkt.roundBy
 import com.rian.osu.beatmap.timings.TimingControlPoint
 
-class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
-    IWithContext,
-    IClockObserver,
-    (ControlPointCursor<out ControlPoint>) -> Unit
+class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) : IWithContext
 {
-
 
     /**
      * Determine if the working beatmap is in gameplay mode.
@@ -67,10 +64,7 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
     /**
      * The game clock that matches the audio stream time.
      */
-    val clock = GameClock(ctx, stream).also {
-
-        it.bindObserver(observer = this)
-    }
+    val clock = GameClock(ctx, stream)
 
 
     /**
@@ -80,10 +74,10 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
 
         mutableMapOf(
             // Cursor for timing control points
-            TIMING to ControlPointCursor(it.timing, this),
+            TIMING to ControlPointCursor(it.timing, ::onTimingControlPointChange),
 
             // Cursor for difficulty control points
-            DIFFICULTY to ControlPointCursor(it.difficulty, this)
+            DIFFICULTY to ControlPointCursor(it.difficulty) { _, _, _ -> }
         )
     }
 
@@ -93,6 +87,9 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
     init
     {
         ctx.settings.bindObserver(MUSIC_VOLUME, observer = onVolumeChange)
+
+        // Binding the cursors to the clock.
+        cursors.values.forEach { clock.bindObserver(observer = it) }
     }
 
 
@@ -168,29 +165,21 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) :
         }
     }
 
-    override fun onClockUpdate(msElapsedTime: Long, msDeltaTime: Long)
+
+    // Control points
+
+    private fun onTimingControlPointChange(
+        previous: TimingControlPoint,
+        current: TimingControlPoint,
+        next: TimingControlPoint
+    )
     {
-        cursors.values.forEach { it.onClockUpdate(msElapsedTime, msDeltaTime) }
-    }
-
-    override fun invoke(cursor: ControlPointCursor<out ControlPoint>)
-    {
-        val current = cursor.current
-        val next = cursor.next
-
-        when (current)
-        {
-            is TimingControlPoint -> {
-
-                ctx.layouts[DebugOverlay::class].setSection("TimingPoint", """
-                    current_start_time: ${current.time.toInt()}ms
-                    next_start_time: ${next?.let { "${it.time.toInt()}ms" }}
-                    beat_length: ${current.msPerBeat.toInt()}ms (${current.BPM.toInt()} BPM)
-                    time_signature: 1/${current.timeSignature}
-                """.trimIndent())
-            }
-
-        }
+        ctx.layouts[DebugOverlay::class].setSection("TimingPoint", """
+            current_start_time: ${(current.time / 1000.0).roundBy(3)}s
+            current_beat_length: ${current.msPerBeat.roundBy(3)}s (BPM: ${current.BPM.roundBy(3)})
+            current_time_signature: 1/${current.timeSignature}
+            next_start_time: ${(next.time / 1000.0).roundBy(3)}s
+        """.trimIndent())
     }
 }
 
