@@ -35,7 +35,7 @@ class DebugOverlay(ctx: MainContext) :
     private val text = TextView {
 
         setDimensions {
-            fontSize = 10
+            fontSize = 8
             cornerRadius = 4f
             marginLeft = 2
             marginBottom = 2
