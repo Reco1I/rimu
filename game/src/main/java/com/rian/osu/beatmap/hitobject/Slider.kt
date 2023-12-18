@@ -77,7 +77,6 @@ open class Slider(
      * Consists of head circle (slider head), slider ticks, repeat points, and tail circle (slider end).
      */
     var nestedHitObjects: ArrayList<SliderHitObject> = ArrayList()
-        get() = Collections.unmodifiableList(field) as ArrayList
         private set
 
     /**
