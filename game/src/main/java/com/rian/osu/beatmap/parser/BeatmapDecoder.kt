@@ -121,7 +121,10 @@ class BeatmapDecoder : Closeable {
 
                 BeatmapSection.HitObjects ->
                     if (withHitObjects) {
-                        beatmapData.hitObjects = BeatmapHitObjects()
+
+                        if (beatmapData.hitObjects == null)
+                            beatmapData.hitObjects = BeatmapHitObjects()
+
                         BeatmapHitObjectsParser.parse(beatmapData, line)
                     }
 
