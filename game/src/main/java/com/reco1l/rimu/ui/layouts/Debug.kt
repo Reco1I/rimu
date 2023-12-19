@@ -31,8 +31,34 @@ class DebugOverlay(ctx: MainContext) :
     override var parents: Array<KClass<out BaseScene>>? = arrayOf(SceneIntro::class)
 
 
+    @SuppressLint("SetTextI18n")
+    private val versionText = TextView {
+
+        setDimensions {
+            fontSize = 8
+            cornerRadius = 4f
+            marginRight = 2
+            marginBottom = 2
+            padding(3)
+        }
+
+        setSkinning {
+            fontColor = null
+        }
+
+        fontColor = WHITE
+        text = "rimu!alpha 0.0.1"
+        background = ColorDrawable(BLACK).apply { alpha = 160 }
+
+        setConstraints(
+            rightToTarget = Anchor.RIGHT,
+            bottomToTarget = Anchor.BOTTOM
+        )
+    }
+
+
     @SuppressLint("ClickableViewAccessibility")
-    private val text = TextView {
+    private val logText = TextView {
 
         setDimensions {
             fontSize = 8
@@ -129,7 +155,7 @@ class DebugOverlay(ctx: MainContext) :
 
             mainThread {
 
-                text.setText(this, SPANNABLE)
+                logText.setText(this, SPANNABLE)
             }
         }
 
