@@ -165,36 +165,34 @@ class MainActivity :
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean
     {
-        if (super.onKeyDown(keyCode, event))
+        if (ctx.engine.scene?.onKeyDown(keyCode, event) == true)
             return true
 
-        return ctx.engine.scene?.onKeyDown(keyCode, event)
-            // Consuming back press action.
-            ?: true
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean
     {
-        if (super.onKeyLongPress(keyCode, event))
+        if (ctx.engine.scene?.onKeyLongPress(keyCode, event) == true)
             return true
 
-        return ctx.engine.scene?.onKeyLongPress(keyCode, event) ?: false
+        return super.onKeyLongPress(keyCode, event)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean
     {
-        if (super.onKeyUp(keyCode, event))
+        if (ctx.engine.scene?.onKeyUp(keyCode, event) == true)
             return true
 
-        return ctx.engine.scene?.onKeyUp(keyCode, event) ?: false
+        return super.onKeyUp(keyCode, event)
     }
 
     override fun onKeyMultiple(keyCode: Int, repeatCount: Int, event: KeyEvent?): Boolean
     {
-        if (super.onKeyMultiple(keyCode, repeatCount, event))
+        if (ctx.engine.scene?.onKeyMultiple(keyCode, repeatCount, event) == true)
             return true
 
-        return ctx.engine.scene?.onKeyMultiple(keyCode, repeatCount, event) ?: false
+        return super.onKeyMultiple(keyCode, repeatCount, event)
     }
 }
 

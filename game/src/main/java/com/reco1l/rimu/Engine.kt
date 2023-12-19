@@ -65,17 +65,14 @@ class RimuEngine(override val ctx: MainContext) :
 
         if (getScene() != scene)
         {
-            ctx.layouts.onSceneChange(scene)
+            val lastScene = super.getScene()
 
-            getScene()?.onDetached()
+            ctx.layouts.onSceneChange(scene)
             super.setScene(scene)
+
+            lastScene?.onDetached()
             scene.onAttached()
         }
-    }
-
-    override fun onApplySkin(skin: WorkingSkin)
-    {
-        scene?.onApplySkin(skin)
     }
 
 
@@ -83,6 +80,8 @@ class RimuEngine(override val ctx: MainContext) :
 
     override fun getCamera() = super.getCamera() as SmoothCamera
 
+
+    override fun onApplySkin(skin: WorkingSkin) = scene?.onApplySkin(skin) ?: Unit
 
     override fun onUpdateCameraSurface()
     {

@@ -22,7 +22,7 @@ abstract class BaseScene(final override val ctx: MainContext) :
 
     // Key listening events
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?) = true
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?) = false
 
     override fun onKeyLongPress(keyCode: Int, event: KeyEvent?) = false
 
