@@ -2,9 +2,9 @@ package com.reco1l.rimu.ui
 
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams
 import androidx.annotation.CallSuper
 import androidx.core.view.forEach
-import com.reco1l.toolkt.kotlin.isLazyInit
 import com.reco1l.toolkt.kotlin.isLazyInitialized
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
@@ -45,30 +45,10 @@ interface IScalable
 }
 
 
-open class ScalableDimensions<T : Any>(
-
-    var width: Int = UNKNOWN,
-
-    var height: Int = UNKNOWN
-)
-{
-
-    var currentScale = 1f
-        private set
-
-    @CallSuper
-    open fun onApplyScale(target: T, scale: Float)
-    {
-        currentScale = scale
-    }
-
-    companion object
-    {
-        const val UNKNOWN = -1
-    }
-}
-
-
+/**
+ * Indicates that the view is scalable and has its own scalable dimensions.
+ * @see ScalableDimensions
+ */
 interface IScalableWithDimensions<T : Any, D : ScalableDimensions<T>> : IScalable
 {
 
@@ -78,19 +58,48 @@ interface IScalableWithDimensions<T : Any, D : ScalableDimensions<T>> : IScalabl
      */
     val dimensions: D
 
+
     @Suppress("UNCHECKED_CAST")
     override fun onApplyScale(scale: Float)
     {
         // Preventing unnecessary initialization.
-        if (!::dimensions.isLazyInit || ::dimensions.isLazyInitialized)
+        if (::dimensions.isLazyInitialized)
             dimensions.onApplyScale(this as T, scale)
 
         super.onApplyScale(scale)
     }
 
     /**
-     * Apply the scalable dimensions to the view.
+     * Change scalable dimensions parameters, this will be applied when the scale factor or the screen
+     * size are changed.
+     * You can also apply the changes with [invalidateScale].
      */
     fun setDimensions(block: D.() -> Unit) = dimensions.apply(block)
 }
 
+
+/**
+ * The view scalable dimensions that will be applied when the scale factor or the screen size is
+ * changed.
+ */
+open class ScalableDimensions<T : Any>(
+
+    var width: Int = LayoutParams.WRAP_CONTENT,
+
+    var height: Int = LayoutParams.WRAP_CONTENT
+)
+{
+
+    /**
+     * The current scale applied to this dimensions.
+     */
+    var currentScale = 1f
+        private set
+
+
+    @CallSuper
+    open fun onApplyScale(target: T, scale: Float)
+    {
+        currentScale = scale
+    }
+}

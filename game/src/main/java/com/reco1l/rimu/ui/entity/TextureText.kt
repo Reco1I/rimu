@@ -33,7 +33,7 @@ open class TextureText(ctx: MainContext) :
 {
 
 
-    override val rules = TextureTextSkinningRules<TextureText>()
+    override val skinningRules = TextureTextSkinningRules<TextureText>()
 
 
     var text: String = ""
@@ -100,7 +100,7 @@ open class TextureText(ctx: MainContext) :
         mChildren.forEachIndexed { index, sprite -> sprite as Sprite
 
             // Assigning the character according to the index.
-            val key = rules.textureProvider(text[index])
+            val key = skinningRules.textureProvider(text[index])
 
             sprite.setTexture(ctx.resources[key, 0])
             sprite.setPosition(lastRight, 0f)

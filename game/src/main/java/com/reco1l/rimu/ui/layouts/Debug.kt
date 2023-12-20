@@ -15,6 +15,7 @@ import com.reco1l.rimu.ui.LayerOverlay
 import com.reco1l.rimu.ui.scenes.BaseScene
 import com.reco1l.rimu.ui.scenes.SceneIntro
 import com.reco1l.rimu.ui.views.TextView
+import com.reco1l.rimu.ui.views.view
 import com.reco1l.toolkt.android.fontColor
 import com.reco1l.toolkt.android.setConstraints
 import com.reco1l.toolkt.graphics.Anchor
@@ -33,7 +34,7 @@ class DebugOverlay(ctx: MainContext) :
 
 
     @SuppressLint("SetTextI18n")
-    private val versionText = TextView {
+    private val versionText = view<TextView> {
 
         setDimensions {
             fontSize = 8
@@ -59,7 +60,7 @@ class DebugOverlay(ctx: MainContext) :
 
 
     @SuppressLint("ClickableViewAccessibility")
-    private val logText = TextView {
+    private val logText = view<TextView> {
 
         setDimensions {
             fontSize = 8
@@ -70,6 +71,7 @@ class DebugOverlay(ctx: MainContext) :
         }
 
         setSkinning {
+            
             fontColor = null
         }
 

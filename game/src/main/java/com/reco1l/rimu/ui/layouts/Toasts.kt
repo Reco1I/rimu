@@ -16,14 +16,9 @@ import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.ui.BaseLayer
 import com.reco1l.rimu.ui.LayerOverlay
 import com.reco1l.rimu.ui.views.TextView
+import com.reco1l.rimu.ui.views.view
 import kotlin.reflect.KClass
 
-
-fun IWithContext.ToastView(header: String, message: String) = ToastView(ctx).apply {
-    headerText.text = header
-    messageText.text = message
-    show(true)
-}
 
 class ToastView(ctx: MainContext) : ModelLayout(ctx)
 {
@@ -33,7 +28,28 @@ class ToastView(ctx: MainContext) : ModelLayout(ctx)
     override var hideTime: Long? = 5000L
 
 
-    val headerText = TextView {
+    /**
+     * Change the header text.
+     */
+    var header: String
+        get() = headerText.text.toString()
+        set(value)
+        {
+            headerText.text = value
+        }
+
+    /**
+     * Change the message text.
+     */
+    var message: String
+        get() = messageText.text.toString()
+        set(value)
+        {
+            messageText.text = value
+        }
+
+
+    private val headerText = view<TextView> {
 
         setDimensions {
             fontSize = 10
@@ -52,7 +68,7 @@ class ToastView(ctx: MainContext) : ModelLayout(ctx)
         )
     }
 
-    val messageText = TextView {
+    private val messageText = view<TextView> {
 
         setDimensions {
             fontSize = 14
@@ -73,6 +89,7 @@ class ToastView(ctx: MainContext) : ModelLayout(ctx)
         setConstraints(target = headerText, topToTarget = Anchor.BOTTOM)
     }
 
+
     init
     {
         setDimensions {
@@ -87,6 +104,13 @@ class ToastView(ctx: MainContext) : ModelLayout(ctx)
         background = ColorDrawable(BLACK).apply {
             alpha = 190
         }
+    }
+
+
+    override fun show(override: Boolean): Boolean
+    {
+        // Since only one toast can be shown in screen we'll always override the previous if any.
+        return super.show(true)
     }
 
 

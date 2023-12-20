@@ -19,8 +19,6 @@ import com.reco1l.rimu.ui.IScalableWithDimensions
 import com.reco1l.rimu.ui.ISkinnableWithRules
 
 
-// Base
-
 open class ImageSkinningRules<T : ImageView> : ViewSkinningRules<T>()
 {
 
@@ -48,15 +46,9 @@ open class ImageSkinningRules<T : ImageView> : ViewSkinningRules<T>()
     }
 }
 
-
-fun IWithContext.ImageView(
-    parent: ViewGroup? = this as? ViewGroup,
-    init: ImageView.() -> Unit
-) = ImageView(ctx).apply {
-    parent?.addView(this)
-    init()
-}
-
+/**
+ * View containing an image.
+ */
 open class ImageView(override val ctx: MainContext) :
     AppCompatImageView(ctx),
     IWithContext,
@@ -66,7 +58,7 @@ open class ImageView(override val ctx: MainContext) :
 
     override val dimensions by lazy { ViewDimensions<ImageView>() }
 
-    override val rules by lazy { ImageSkinningRules<ImageView>() }
+    override val skinningRules by lazy { ImageSkinningRules<ImageView>() }
 
 
     override fun onApplyScale(scale: Float)
@@ -78,16 +70,6 @@ open class ImageView(override val ctx: MainContext) :
 }
 
 
-
-// FadeImageView
-
-fun IWithContext.FadeImageView(
-    parent: ViewGroup? = this as? ViewGroup,
-    init: FadeImageView.() -> Unit
-) = FadeImageView(ctx).apply {
-    parent?.addView(this)
-    init()
-}
 
 /**
  * ImageView that fades when the drawable is changed.

@@ -35,6 +35,7 @@ import com.reco1l.rimu.ui.views.LinearProgressIndicator
 import com.reco1l.rimu.ui.views.RecyclerView
 import com.reco1l.rimu.ui.views.TextView
 import com.reco1l.rimu.ui.views.addons.setTouchHandler
+import com.reco1l.rimu.ui.views.view
 import kotlin.reflect.KClass
 
 
@@ -48,7 +49,7 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
 
     private val notifications = mutableListOf<Notification>()
 
-    private val body = LinearLayout {
+    private val body = view<LinearLayout> {
 
         orientation = VERTICAL
         z = 1f
@@ -64,7 +65,7 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
             backgroundColorFactor = 0.15f
         }
 
-        TextView {
+        view<TextView> {
 
             setText(R.string.header_notifications)
             gravity = Gravity.CENTER
@@ -83,9 +84,9 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
         setConstraints(rightToTarget = Anchor.RIGHT)
     }
 
-    private val bodyShadow = DummyView {
+    private val bodyShadow = view<DummyView> {
 
-        dimensions.set(body.dimensions)
+        dimensions.clone(body.dimensions)
 
         setSkinning {
             backgroundColor = "accentColor"
@@ -95,7 +96,7 @@ class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
         setConstraints(rightToTarget = Anchor.RIGHT)
     }
 
-    private val listView = RecyclerView(parent = body) {
+    private val listView = view<RecyclerView>(body) {
 
         orientation = VERTICAL
         isVerticalFadingEdgeEnabled = true
@@ -289,11 +290,11 @@ open class NotificationView(ctx: MainContext) :
     lateinit var associatedData: Notification
 
 
-    protected val iconView = ImageView {
+    protected val iconView = view<ImageView> {
 
         backgroundColor = 0x27000000
 
-        rules.imageTint = "accentColor"
+        skinningRules.imageTint = "accentColor"
 
         setDimensions {
             cornerRadius = 8f
@@ -305,9 +306,9 @@ open class NotificationView(ctx: MainContext) :
     }
 
 
-    protected val headerText = TextView {
+    protected val headerText = view<TextView> {
 
-        rules.fontColorFactor = 0.8f
+        skinningRules.fontColorFactor = 0.8f
 
         setDimensions {
             marginLeft = 8
@@ -321,7 +322,7 @@ open class NotificationView(ctx: MainContext) :
         )
     }
 
-    protected val messageText = TextView {
+    protected val messageText = view<TextView> {
 
         setDimensions {
             fontSize = 10
@@ -357,7 +358,7 @@ open class NotificationView(ctx: MainContext) :
 
         headerText.text = data.header.uppercase()
         messageText.text = data.message
-        iconView.rules.image = data.icon
+        iconView.skinningRules.image = data.icon
 
         invalidateSkin()
         invalidateHideTimer()
@@ -412,7 +413,7 @@ open class NotificationView(ctx: MainContext) :
 class ProcessNotificationView(ctx: MainContext) : NotificationView(ctx)
 {
 
-    private val indicator = LinearProgressIndicator {
+    private val indicator = view<LinearProgressIndicator> {
 
         setConstraints(
             target = messageText,

@@ -3,7 +3,6 @@ package com.reco1l.rimu.ui
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.forEach
-import com.reco1l.toolkt.kotlin.isLazyInit
 import com.reco1l.toolkt.kotlin.isLazyInitialized
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
@@ -46,32 +45,41 @@ interface ISkinnable
     }
 }
 
-
-open class SkinningRules<T>
-{
-    open fun onApplySkin(target: T, skin: WorkingSkin) = Unit
-}
-
+/**
+ * Indicates that this View or Entity is skinnable with custom rules.
+ * @see SkinningRules
+ */
 interface ISkinnableWithRules<T : Any, D : SkinningRules<T>> : ISkinnable
 {
 
     /**
      * The view skinning rules, every rule will be applied once [onApplySkin] is called.
      */
-    val rules: D
+    val skinningRules: D
+
 
     @Suppress("UNCHECKED_CAST")
     override fun onApplySkin(skin: WorkingSkin)
     {
         // Preventing unnecessary initialization.
-        if (!::rules.isLazyInit || ::rules.isLazyInitialized)
-            rules.onApplySkin(this as T, skin)
+        if (::skinningRules.isLazyInitialized)
+            skinningRules.onApplySkin(this as T, skin)
 
         super.onApplySkin(skin)
     }
 
+
     /**
-     * Apply the skinning rules to the view.
+     * Change skinning rules parameters, in order to apply the new values you should call [invalidateSkin].
      */
-    fun setSkinning(block: D.() -> Unit) = rules.apply(block)
+    fun setSkinning(block: D.() -> Unit) = skinningRules.apply(block)
+}
+
+/**
+ * The skinning rules to be used, defines how the View or Entity has to behave skin changes.
+ * @see ISkinnableWithRules
+ */
+open class SkinningRules<T>
+{
+    open fun onApplySkin(target: T, skin: WorkingSkin) = Unit
 }

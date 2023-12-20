@@ -27,6 +27,7 @@ import com.reco1l.rimu.ui.views.SeekBar
 import com.reco1l.rimu.ui.views.TextView
 import com.reco1l.rimu.ui.views.addons.setTouchHandler
 import com.reco1l.rimu.ui.views.setTextAnimated
+import com.reco1l.rimu.ui.views.view
 import org.andengine.engine.handler.IUpdateHandler
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -47,9 +48,9 @@ class MusicPlayerBox(ctx: MainContext) :
     private var isSeeking = false
 
 
-    private val titleText = TextView {}
+    private val titleText = view<TextView> {}
 
-    private val artistText = TextView {
+    private val artistText = view<TextView> {
 
         setDimensions {
             fontSize = 10
@@ -65,7 +66,7 @@ class MusicPlayerBox(ctx: MainContext) :
         )
     }
 
-    private val timeText = TextView {
+    private val timeText = view<TextView> {
 
         text = dateFormat.format(0L)
 
@@ -84,7 +85,7 @@ class MusicPlayerBox(ctx: MainContext) :
         )
     }
 
-    private val lengthText = TextView {
+    private val lengthText = view<TextView> {
 
         text = dateFormat.format(0L)
 
@@ -101,7 +102,7 @@ class MusicPlayerBox(ctx: MainContext) :
     }
 
 
-    private val seekBar = SeekBar {
+    private val seekBar = view<SeekBar> {
 
         setDimensions {
             marginTop = 8
@@ -120,7 +121,7 @@ class MusicPlayerBox(ctx: MainContext) :
         }
     }
 
-    private val playButton = IconButton {
+    private val playButton = view<IconButton> {
 
         setSkinning {
             image = "icon-pause"
@@ -150,12 +151,12 @@ class MusicPlayerBox(ctx: MainContext) :
                     if (stream.state == AudioState.PLAYING)
                     {
                         pause()
-                        rules.image = "icon-play"
+                        skinningRules.image = "icon-play"
                     }
                     else
                     {
                         play()
-                        rules.image = "icon-pause"
+                        skinningRules.image = "icon-pause"
                     }
 
                     invalidateSkin()
@@ -173,9 +174,9 @@ class MusicPlayerBox(ctx: MainContext) :
     {
         isClickable = true
 
-        IconButton {
+        view<IconButton> {
 
-            rules.image = "icon-previous"
+            skinningRules.image = "icon-previous"
 
             setConstraints(
                 target = playButton,
@@ -194,9 +195,9 @@ class MusicPlayerBox(ctx: MainContext) :
             }
         }
 
-        IconButton {
+        view<IconButton> {
 
-            rules.image = "icon-next"
+            skinningRules.image = "icon-next"
 
             setConstraints(
                 target = playButton,
@@ -226,8 +227,8 @@ class MusicPlayerBox(ctx: MainContext) :
             padding(12)
         }
 
-        rules.backgroundColor = "accentColor"
-        rules.backgroundColorFactor = 0.1f
+        skinningRules.backgroundColor = "accentColor"
+        skinningRules.backgroundColorFactor = 0.1f
 
         ctx.beatmaps.bindObserver(observer = this)
     }
