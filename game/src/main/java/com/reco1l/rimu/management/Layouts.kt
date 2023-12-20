@@ -1,6 +1,7 @@
 package com.reco1l.rimu.management
 
 import android.animation.ValueAnimator
+import android.app.Activity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import com.reco1l.toolkt.android.attachTo
 import com.reco1l.toolkt.android.removeSelf
@@ -10,6 +11,7 @@ import com.reco1l.toolkt.kotlin.createInstance
 import com.reco1l.toolkt.kotlin.safeIn
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.RimuSetting
+import com.reco1l.rimu.mainThread
 import com.reco1l.rimu.management.skin.WorkingSkin
 import com.reco1l.rimu.ui.*
 import com.reco1l.rimu.ui.layouts.ModelLayout
@@ -52,9 +54,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
     init
     {
-        ctx.initializationTree!!.add {
-
-            onActivityCreate()
+        ctx.onPostInitialization {
 
             // Binding skin change observer to update properly all attached layouts.
             skins.bindObserver(observer = this@LayoutManager)
@@ -71,7 +71,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
     // Events
 
-    fun onActivityCreate()
+    fun onActivityCreate(activity: Activity)
     {
         mainThread {
 
@@ -79,7 +79,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
             if (parent != null)
                 removeSelf()
 
-            ctx.activity.setContentView(this@LayoutManager)
+            activity.setContentView(this@LayoutManager)
         }
     }
 

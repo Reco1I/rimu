@@ -24,6 +24,7 @@ import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.R
 import com.reco1l.rimu.data.adapter.Adapter
 import com.reco1l.rimu.data.adapter.IHeldView
+import com.reco1l.rimu.mainThread
 import com.reco1l.rimu.ui.BaseLayer
 import com.reco1l.rimu.ui.LayerBackground
 import com.reco1l.rimu.ui.LayerOverlay

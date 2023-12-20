@@ -5,6 +5,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.ImageView.ScaleType
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.BuildSettings
+import com.reco1l.rimu.mainThread
 import com.reco1l.rimu.management.beatmap.IBeatmapObserver
 import com.reco1l.rimu.management.beatmap.WorkingBeatmap
 import com.reco1l.rimu.ui.LayerBackground
@@ -45,7 +46,7 @@ class Background(ctx: MainContext) :
 
     init
     {
-        ctx.initializationTree!!.add {
+        ctx.onPostInitialization {
 
             beatmaps.bindObserver(observer = this@Background)
         }

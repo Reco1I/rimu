@@ -25,7 +25,7 @@ class LayerBackground(ctx: MainContext) : BaseLayer(ctx)
 {
     init
     {
-        ctx.initializationTree!!.add {
+        ctx.onPostInitialization {
 
             addView(engine.renderView)
 
@@ -39,7 +39,7 @@ class LayerOverlay(ctx: MainContext) : BaseLayer(ctx)
 {
     init
     {
-        ctx.initializationTree!!.add {
+        ctx.onPostInitialization {
 
             layouts[TopBarLayout::class]
             layouts[NotificationCenter::class]

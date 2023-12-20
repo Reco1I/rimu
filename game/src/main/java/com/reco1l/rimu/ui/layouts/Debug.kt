@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.widget.TextView.BufferType.SPANNABLE
 import androidx.core.text.color
 import com.reco1l.rimu.MainContext
+import com.reco1l.rimu.mainThread
 import com.reco1l.rimu.ui.BaseLayer
 import com.reco1l.rimu.ui.LayerOverlay
 import com.reco1l.rimu.ui.scenes.BaseScene

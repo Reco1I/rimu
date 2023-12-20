@@ -11,6 +11,7 @@ import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.RimuSetting.UI_SKIN
 import com.reco1l.rimu.data.Skin
 import com.reco1l.rimu.data.Skin.Companion.BASE
+import com.reco1l.rimu.mainThread
 import com.reco1l.rimu.ui.ISkinnable
 import com.reco1l.rimu.ui.layouts.Notification
 import com.reco1l.rimu.ui.layouts.ToastView
@@ -70,7 +71,7 @@ class SkinManager(override val ctx: MainContext) :
             }
         }
 
-        ctx.initializationTree!!.add {
+        ctx.onPostInitialization {
 
             // Initializing assets with default skin until we get the corresponding skin.
             setCurrent(get(BASE)!!)

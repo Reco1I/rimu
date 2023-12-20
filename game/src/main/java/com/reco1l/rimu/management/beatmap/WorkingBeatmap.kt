@@ -13,9 +13,11 @@ import com.reco1l.rimu.data.Beatmap
 import com.reco1l.rimu.management.time.ControlPointType.DIFFICULTY
 import com.reco1l.rimu.management.time.ControlPointType.TIMING
 import com.reco1l.rimu.data.asset.ExternalAssetBundle
+import com.reco1l.rimu.mainThread
 import com.reco1l.rimu.management.time.ControlPointCursor
 import com.reco1l.rimu.management.time.GameClock
 import com.reco1l.rimu.ui.layouts.DebugOverlay
+import com.reco1l.rimu.updateThread
 import com.reco1l.toolkt.roundBy
 import com.rian.osu.beatmap.timings.TimingControlPoint
 
