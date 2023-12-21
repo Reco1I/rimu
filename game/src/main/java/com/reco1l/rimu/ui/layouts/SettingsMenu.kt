@@ -66,7 +66,7 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
         setConstraints(rightToTarget = Anchor.RIGHT)
     }
 
-    private val tabContents = view<RecyclerView> {
+    private val tabContents = view<RecyclerView>(body) {
 
         setDimensions {
             height = MATCH_PARENT
@@ -85,7 +85,7 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
         )
     }
 
-    private val tabSelector = view<RecyclerView> {
+    private val tabSelector = view<RecyclerView>(body) {
 
         orientation = VERTICAL
         adapter = Adapter(entries, { TabIconButton() })
