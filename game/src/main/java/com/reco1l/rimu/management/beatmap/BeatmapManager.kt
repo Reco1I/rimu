@@ -45,11 +45,6 @@ class BeatmapManager(override val ctx: MainContext) :
     val importer = BeatmapImporter(ctx)
 
     /**
-     * The beatmap decoder used along for beatmap changes.
-     */
-    val decoder = BeatmapDecoder()
-
-    /**
      * The current working beatmap.
      */
     var current: WorkingBeatmap? = null

@@ -96,7 +96,7 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) : IWith
 
     private fun onDecodeSource(withHitObjects: Boolean): BeatmapData
     {
-        return ctx.beatmaps.decoder.decode(source.toFile(ctx), withHitObjects)
+        return BeatmapDecoder().decode(source.toFile(ctx), withHitObjects)
     }
 
 
