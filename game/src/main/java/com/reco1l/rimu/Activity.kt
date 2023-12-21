@@ -38,7 +38,7 @@ class MainActivity :
         // In this case we reassign the content view to this new activity.
         ctx.onActivityCreate(this)
 
-        ctx.onPostInitialization {
+        if (!ctx.isInitialized) ctx.onPostInitialization {
 
             // Setting first scene to the Intro scene which will play an storyboard.
             ctx.engine.scene = SceneIntro(ctx)
