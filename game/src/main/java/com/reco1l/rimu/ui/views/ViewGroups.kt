@@ -15,14 +15,6 @@ import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLay
 
 // ConstraintLayout
 
-fun IWithContext.ConstraintLayout(
-    parent: ViewGroup? = this as? ViewGroup,
-    init: ConstraintLayout.() -> Unit
-) = ConstraintLayout(ctx).apply {
-    parent?.addView(this)
-    init()
-}
-
 open class ConstraintLayout(override val ctx: MainContext) :
     AndroidConstraintLayout(ctx),
     IWithContext,
@@ -32,7 +24,7 @@ open class ConstraintLayout(override val ctx: MainContext) :
 
     override val dimensions by lazy { ViewDimensions<ConstraintLayout>() }
 
-    override val rules by lazy { ViewSkinningRules<ConstraintLayout>() }
+    override val skinningRules by lazy { ViewSkinningRules<ConstraintLayout>() }
 
 
     override fun onAttachedToWindow()
@@ -58,14 +50,6 @@ open class ConstraintLayout(override val ctx: MainContext) :
 
 // LinearLayout
 
-fun IWithContext.LinearLayout(
-    parent: ViewGroup? = this as? ViewGroup,
-    init: LinearLayout.() -> Unit
-) = LinearLayout(ctx).apply {
-    parent?.addView(this)
-    init()
-}
-
 open class LinearLayout(override val ctx: MainContext) :
     AndroidLinearLayout(ctx),
     IWithContext,
@@ -75,7 +59,7 @@ open class LinearLayout(override val ctx: MainContext) :
 
     override val dimensions by lazy { ViewDimensions<LinearLayout>() }
 
-    override val rules by lazy { ViewSkinningRules<LinearLayout>() }
+    override val skinningRules by lazy { ViewSkinningRules<LinearLayout>() }
 
 
     override fun onAttachedToWindow()

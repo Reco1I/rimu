@@ -9,13 +9,13 @@ import com.reco1l.rimu.ui.entity.TextureText
 open class HitCircleEntity(ctx: MainContext) : HitObjectEntity(ctx)
 {
 
-    val bodySprite = Sprite { rules.texture = "hitcircle" }
+    val bodySprite = Sprite { skinningRules.texture = "hitcircle" }
 
-    val overlaySprite = Sprite { rules.texture = "hitcircleoverlay" }
+    val overlaySprite = Sprite { skinningRules.texture = "hitcircleoverlay" }
 
     val numberSprite = TextureText {
 
-        rules.textureProvider = {
+        skinningRules.textureProvider = {
 
             // Prepending the skin prefix for the font.
             "${ctx.skins.current?.run { data.fonts.hitCirclePrefix } ?: "default"}-$it"
@@ -24,7 +24,7 @@ open class HitCircleEntity(ctx: MainContext) : HitObjectEntity(ctx)
         text = "1"
     }
 
-    val approachCircleSprite = Sprite { rules.texture = "approachcircle" }
+    val approachCircleSprite = Sprite { skinningRules.texture = "approachcircle" }
 
 
     override fun onApplySkin(skin: WorkingSkin)

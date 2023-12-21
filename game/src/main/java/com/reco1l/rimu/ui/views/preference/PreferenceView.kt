@@ -13,6 +13,7 @@ import com.reco1l.rimu.ui.views.SeekBar
 import com.reco1l.rimu.ui.views.TextButton
 import com.reco1l.rimu.ui.views.TextView
 import com.reco1l.rimu.ui.views.addons.setTouchHandler
+import com.reco1l.rimu.ui.views.view
 
 
 sealed class SettingView(ctx: MainContext) : ConstraintLayout(ctx)
@@ -28,14 +29,14 @@ sealed class SettingView(ctx: MainContext) : ConstraintLayout(ctx)
 
     protected var hasSummary = false
 
-    protected open val titleView = TextView {}
+    protected open val titleView = view<TextView> {}
 
     protected open val summaryView by lazy {
 
         // Summary view will not be created unless the summary has been set.
         hasSummary = true
 
-        TextView {
+        view<TextView> {
 
             setDimensions {
                 fontSize = 8
@@ -88,7 +89,7 @@ fun IWithContext.ButtonSettingView(
 class ButtonSettingView(ctx: MainContext) : SettingView(ctx)
 {
 
-    override val titleView = TextButton {
+    override val titleView = view<TextButton> {
 
         setDimensions {
             width = MATCH_PARENT
@@ -165,7 +166,7 @@ class SeekBarSettingView(
         }
 
 
-    private val seekBar = SeekBar {
+    private val seekBar = view<SeekBar> {
 
         setDimensions {
             width = MATCH_PARENT

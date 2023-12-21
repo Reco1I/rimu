@@ -33,6 +33,7 @@ import com.reco1l.rimu.ui.views.RecyclerView
 import com.reco1l.rimu.ui.views.TextView
 import com.reco1l.rimu.ui.views.addons.setTouchHandler
 import com.reco1l.rimu.ui.views.preference.SeekBarSettingView
+import com.reco1l.rimu.ui.views.view
 import kotlin.reflect.KClass
 
 
@@ -48,7 +49,7 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
     override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
 
-    private val body = LinearLayout {
+    private val body = view<LinearLayout> {
 
         z = 1f
         orientation = HORIZONTAL
@@ -65,7 +66,7 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
         setConstraints(rightToTarget = Anchor.RIGHT)
     }
 
-    private val tabContents = RecyclerView(body) {
+    private val tabContents = view<RecyclerView> {
 
         setDimensions {
             height = MATCH_PARENT
@@ -84,7 +85,7 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
         )
     }
 
-    private val tabSelector = RecyclerView(body) {
+    private val tabSelector = view<RecyclerView> {
 
         orientation = VERTICAL
         adapter = Adapter(entries, { TabIconButton() })
@@ -99,7 +100,7 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
         }
     }
 
-    private val bodyShadow = DummyView {
+    private val bodyShadow = view<DummyView> {
 
         setDimensions {
             width = tabContents.dimensions.width + 70 // Tab selection bar width.
@@ -221,7 +222,7 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
     {
         override fun onAssignData(data: SettingTab, position: Int)
         {
-            rules.image = when (data)
+            skinningRules.image = when (data)
             {
                 SKINS -> "icon-skin"
             }
@@ -236,7 +237,7 @@ class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
         IHeldView<SettingTab>
     {
 
-        val title = TextView {
+        val title = view<TextView> {
 
             setDimensions {
                 width = MATCH_PARENT

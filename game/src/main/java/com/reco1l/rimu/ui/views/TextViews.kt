@@ -83,14 +83,6 @@ data class TextViewSkinningRules<T : TextView>(
 
 // Base
 
-fun IWithContext.TextView(
-    parent: ViewGroup? = this as? ViewGroup,
-    init: TextView.() -> Unit
-) = TextView(ctx).apply {
-    parent?.addView(this)
-    init()
-}
-
 /**
  * Base class for every [TextView][AppCompatTextView] in rimu!, it has an special handling for icons.
  */
@@ -103,7 +95,7 @@ open class TextView(final override val ctx: MainContext) :
 
     override val dimensions = TextViewDimensions<TextView>()
 
-    override val rules = TextViewSkinningRules<TextView>()
+    override val skinningRules = TextViewSkinningRules<TextView>()
 
 
     private val icons = arrayOfNulls<Icon>(4)
@@ -192,16 +184,8 @@ open class TextView(final override val ctx: MainContext) :
 }
 
 
-fun IWithContext.TextField(
-    parent: ViewGroup? = this as? ViewGroup,
-    init: TextField.() -> Unit
-) = TextField(ctx).apply {
-    parent?.addView(this)
-    init()
-}
-
 /**
- * Base class for EditText in rimu!
+ * A field to write text, also known as input.
  */
 open class TextField(ctx: MainContext) : TextView(ctx), IWithContext
 {

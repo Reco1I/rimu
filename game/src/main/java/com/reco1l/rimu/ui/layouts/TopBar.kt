@@ -23,6 +23,7 @@ import com.reco1l.rimu.ui.views.ImageView
 import com.reco1l.rimu.ui.views.LinearLayout
 import com.reco1l.rimu.ui.views.TextView
 import com.reco1l.rimu.ui.views.addons.setTouchHandler
+import com.reco1l.rimu.ui.views.view
 import kotlin.reflect.KClass
 
 class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
@@ -41,9 +42,9 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
     val navigationTree = mutableListOf<() -> Boolean>()
 
 
-    val backButton = IconButton {
+    val backButton = view<IconButton> {
 
-        rules.image = "icon-back"
+        skinningRules.image = "icon-back"
 
         setTouchHandler {
 
@@ -53,7 +54,7 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
     }
 
 
-    val leftLayout = LinearLayout {
+    val leftLayout = view<LinearLayout> { 
 
         setBackgroundColor(0x26000000)
 
@@ -69,7 +70,7 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
             leftToTarget = Anchor.RIGHT
         )
 
-        IconButton {
+        view<IconButton> {
 
             setSkinning {
                 image = "icon-music"
@@ -83,7 +84,7 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
         }
     }
 
-    val rightLayout = LinearLayout {
+    val rightLayout = view<LinearLayout> { 
 
         orientation = HORIZONTAL
         gravity = CENTER_VERTICAL or RIGHT
@@ -94,7 +95,7 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
 
         setConstraints(rightToTarget = Anchor.RIGHT)
 
-        IconButton {
+        view<IconButton> {
 
             setSkinning {
                 image = "icon-notification"
@@ -105,7 +106,7 @@ class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
 
         UserBoxView(ctx) attachTo this
 
-        IconButton {
+        view<IconButton> {
 
             setSkinning {
                 image = "icon-settings"
@@ -155,7 +156,7 @@ class UserBoxView(ctx: MainContext) : LinearLayout(ctx)
         }
     }
 
-    private val avatar = ImageView {
+    private val avatar = view<ImageView> {
 
         setDimensions {
             width = 26
@@ -163,10 +164,10 @@ class UserBoxView(ctx: MainContext) : LinearLayout(ctx)
             cornerRadius = 7f
         }
 
-        rules.image = "avatar-default"
+        skinningRules.image = "avatar-default"
     }
 
-    private val username = TextView {
+    private val username = view<TextView> {
 
         text = "Reco1l"
 

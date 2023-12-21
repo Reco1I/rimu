@@ -1,6 +1,5 @@
 package com.reco1l.rimu.ui.views
 
-import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
@@ -12,17 +11,6 @@ import com.reco1l.rimu.ui.views.addons.setTouchHandler
 import androidx.recyclerview.widget.RecyclerView as AndroidRecyclerView
 
 
-
-// ReyclerView
-
-fun IWithContext.RecyclerView(
-    parent: ViewGroup? = this as? ViewGroup,
-    init: RecyclerView.() -> Unit
-) = RecyclerView(ctx).apply {
-    parent?.addView(this)
-    init()
-}
-
 open class RecyclerView(final override val ctx: MainContext) :
     AndroidRecyclerView(ctx),
     IWithContext,
@@ -32,7 +20,7 @@ open class RecyclerView(final override val ctx: MainContext) :
 
     override val dimensions by lazy { ViewDimensions<RecyclerView>() }
 
-    override val rules by lazy { ViewSkinningRules<RecyclerView>() }
+    override val skinningRules by lazy { ViewSkinningRules<RecyclerView>() }
 
     init
     {
@@ -55,15 +43,15 @@ open class DropdownMenu(ctx: MainContext) : RecyclerView(ctx)
         padding(2)
     }
 
-    override val rules = super.rules.apply {
+    override val skinningRules = super.skinningRules.apply {
 
         backgroundColor = "accentColor"
         backgroundColorFactor = 0.2f
     }
 
 
-    init {
-
+    init
+    {
         adapter = Adapter(
             data = items,
             onCreateView = { ItemView() }

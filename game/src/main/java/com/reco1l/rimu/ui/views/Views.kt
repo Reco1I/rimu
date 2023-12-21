@@ -17,16 +17,35 @@ import com.reco1l.rimu.ui.IScalableWithDimensions
 import com.reco1l.rimu.ui.ISkinnableWithRules
 import com.reco1l.rimu.ui.ScalableDimensions
 import com.reco1l.rimu.ui.SkinningRules
+import com.reco1l.toolkt.kotlin.createInstance
 
 
-fun IWithContext.DummyView(
+/**
+ * Creates a view from this context.
+ *
+ * @param parent The parent from where this new view will be attached. If `null` the view will not
+ * be attached to anything.
+ * @param block The block that will be called when the view is created and after attachment if [parent]
+ * was specified.
+ */
+inline fun <reified T> IWithContext.view(
+
     parent: ViewGroup? = this as? ViewGroup,
-    init: DummyView.() -> Unit
-) = DummyView(ctx).apply {
-    parent?.addView(this)
-    init()
+
+    block: T.() -> Unit
+
+): T where T : View, T : IWithContext
+{
+    val view = T::class.createInstance(ctx)
+    parent?.addView(view)
+    view.block()
+    return view
 }
 
+
+/**
+ * A dummy view that has no special functionality.
+ */
 class DummyView(override val ctx: MainContext) :
     View(ctx),
     IWithContext,
@@ -35,7 +54,7 @@ class DummyView(override val ctx: MainContext) :
 {
     override var dimensions = ViewDimensions<View>()
 
-    override var rules = ViewSkinningRules<View>()
+    override var skinningRules = ViewSkinningRules<View>()
 }
 
 
@@ -69,6 +88,8 @@ open class ViewDimensions<V : View>(
     var fadeEdgeLength: Int = 0
 
 
+    fun padding(value: Int) = padding(value, value)
+
     fun padding(horizontal: Int, vertical: Int)
     {
         paddingLeft = horizontal
@@ -77,13 +98,7 @@ open class ViewDimensions<V : View>(
         paddingBottom = vertical
     }
 
-    fun padding(value: Int)
-    {
-        paddingLeft = value
-        paddingRight = value
-        paddingTop = value
-        paddingBottom = value
-    }
+    fun margin(value: Int) = margin(value, value)
 
     fun margin(horizontal: Int, vertical: Int)
     {
@@ -93,14 +108,6 @@ open class ViewDimensions<V : View>(
         marginBottom = vertical
     }
 
-    fun margin(value: Int)
-    {
-        marginLeft = value
-        marginRight = value
-        marginTop = value
-        marginBottom = value
-    }
-
     fun size(value: Int)
     {
         width = value
@@ -108,7 +115,7 @@ open class ViewDimensions<V : View>(
     }
 
 
-    open fun <T : View> set(other: ViewDimensions<T>)
+    open fun <T : View> clone(other: ViewDimensions<T>)
     {
         width = other.width
         height = other.height
@@ -153,9 +160,6 @@ open class ViewDimensions<V : View>(
 }
 
 
-/**
- * Defines the rules that the view should follow when the skin is changed.
- */
 open class ViewSkinningRules<T : View> : SkinningRules<T>()
 {
 

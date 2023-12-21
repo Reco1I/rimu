@@ -15,7 +15,7 @@ abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayo
 
     final override val dimensions = super.dimensions
 
-    final override val rules = super.rules
+    final override val skinningRules = super.skinningRules
 
 
     /**

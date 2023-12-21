@@ -15,6 +15,7 @@ import com.reco1l.rimu.mainThread
 import com.reco1l.rimu.ui.ISkinnable
 import com.reco1l.rimu.ui.layouts.Notification
 import com.reco1l.rimu.ui.layouts.ToastView
+import com.reco1l.rimu.ui.views.view
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -134,7 +135,12 @@ class SkinManager(override val ctx: MainContext) :
 
             if (last != null)
             {
-                mainThread { ToastView("Skin changed", current!!.source.key) }
+                mainThread {
+                    view<ToastView> {
+                        header = "Skin changed"
+                        current!!.data.general.also { message = "${it.name} by ${it.author}" }
+                    }.show()
+                }
 
                 last.onRelease()
             }

@@ -13,12 +13,6 @@ import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin
 
 
-// Base
-
-fun IWithContext.SeekBar(
-    parent: ViewGroup? = this as? ViewGroup,
-    init: SeekBar.() -> Unit
-) = SeekBar(ctx).apply { parent?.addView(this); init() }
 
 open class SeekBar(ctx: MainContext) : LinearProgressIndicator(ctx)
 {

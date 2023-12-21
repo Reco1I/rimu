@@ -16,6 +16,7 @@ import com.reco1l.rimu.ui.scenes.BaseScene
 import com.reco1l.rimu.ui.scenes.SceneIntro
 import com.reco1l.rimu.ui.scenes.SelectorScene
 import com.reco1l.rimu.ui.views.FadeImageView
+import com.reco1l.rimu.ui.views.view
 import kotlin.reflect.KClass
 
 
@@ -33,7 +34,7 @@ class Background(ctx: MainContext) :
         SelectorScene::class
     )
 
-    val image = FadeImageView {
+    val image = view<FadeImageView> {
 
         setDimensions {
             width = MATCH_PARENT

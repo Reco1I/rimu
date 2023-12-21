@@ -1,19 +1,12 @@
 package com.reco1l.rimu.ui.views
 
 import android.view.Gravity
-import android.view.ViewGroup
-import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 
 
-fun IWithContext.IconButton(
-    parent: ViewGroup? = this as? ViewGroup,
-    init: IconButton.() -> Unit
-) = IconButton(ctx).apply {
-    parent?.addView(this)
-    init()
-}
-
+/**
+ * Button with icon in center.
+ */
 open class IconButton(ctx: MainContext) : ImageView(ctx)
 {
 
@@ -24,7 +17,7 @@ open class IconButton(ctx: MainContext) : ImageView(ctx)
         padding(16)
     }
 
-    override val rules = super.rules.apply {
+    override val skinningRules = super.skinningRules.apply {
 
         imageTint = "accentColor"
     }
@@ -36,17 +29,9 @@ open class IconButton(ctx: MainContext) : ImageView(ctx)
 }
 
 
-
-// TextButton
-
-fun IWithContext.TextButton(
-    parent: ViewGroup? = this as? ViewGroup,
-    init: TextButton.() -> Unit
-) = TextButton(ctx).apply {
-    parent?.addView(this)
-    init()
-}
-
+/**
+ * Button with text in center.
+ */
 open class TextButton(ctx: MainContext) : TextView(ctx)
 {
 
@@ -57,7 +42,7 @@ open class TextButton(ctx: MainContext) : TextView(ctx)
         padding(12, 8)
     }
 
-    override val rules = super.rules.apply {
+    override val skinningRules = super.skinningRules.apply {
 
         backgroundColor = "accentColor"
         fontColor = "accentColor"

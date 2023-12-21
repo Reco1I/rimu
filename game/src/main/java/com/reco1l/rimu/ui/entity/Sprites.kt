@@ -45,7 +45,7 @@ open class Sprite(override val ctx: MainContext) :
     IWithContext
 {
 
-    override val rules by lazy { SpriteSkinnableRules<Sprite>() }
+    override val skinningRules by lazy { SpriteSkinnableRules<Sprite>() }
 
 
     /**
