@@ -29,10 +29,10 @@ object BeatmapHitObjectsParser : BeatmapSectionParser() {
 
             val obj = when {
                 type === HitObjectType.Normal || type === HitObjectType.NormalNewCombo ->
-                    createCircle(time, position)
+                    createCircle(time, position, type === HitObjectType.NormalNewCombo)
 
                 type === HitObjectType.Slider || type === HitObjectType.SliderNewCombo ->
-                    createSlider(beatmapData, time, position, it)
+                    createSlider(beatmapData, time, position, it, type === HitObjectType.SliderNewCombo)
 
                 type === HitObjectType.Spinner ->
                     createSpinner(beatmapData, time, it)
@@ -44,10 +44,10 @@ object BeatmapHitObjectsParser : BeatmapSectionParser() {
             beatmapData.hitObjects!!.add(obj)
         }
 
-    private fun createCircle(time: Double, position: Vector2) = HitCircle(time, position)
+    private fun createCircle(time: Double, position: Vector2, isNewCombo: Boolean) = HitCircle(time, position, isNewCombo)
 
     @Throws(UnsupportedOperationException::class)
-    private fun createSlider(beatmapData: BeatmapData, time: Double, startPosition: Vector2, pars: List<String>): Slider {
+    private fun createSlider(beatmapData: BeatmapData, time: Double, startPosition: Vector2, pars: List<String>, isNewCombo: Boolean): Slider {
         if (pars.size < 8) {
             throw UnsupportedOperationException("Malformed slider")
         }
@@ -115,7 +115,8 @@ object BeatmapHitObjectsParser : BeatmapSectionParser() {
             beatmapData.difficulty.sliderTickRate,
             // Prior to v8, speed multipliers don't adjust for how many ticks are generated over the same distance.
             // this results in more (or less) ticks being generated in <v8 maps for the same time duration.
-            if (beatmapData.formatVersion < 8) 1 / difficultyControlPoint.speedMultiplier else 1.0
+            if (beatmapData.formatVersion < 8) 1 / difficultyControlPoint.speedMultiplier else 1.0,
+            isNewCombo
         )
     }
 

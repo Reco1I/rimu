@@ -14,7 +14,13 @@ abstract class HitObject(
     /**
      * The position of the hit object relative to the play field.
      */
-    position: Vector2
+    position: Vector2,
+
+    /**
+     * Whether this hit object is a new combo.
+     */
+    val isNewCombo: Boolean = false
+
 ) : Cloneable {
     /**
      * The time at which this hit object starts, in milliseconds.
