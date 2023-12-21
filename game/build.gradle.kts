@@ -85,7 +85,7 @@ dependencies {
     implementation("com.github.Reco1I:AndEngine:1.0.4")
 
     // https://github.com/Reco1I/Basskt
-    implementation("com.github.Reco1I:Basskt:1.0.1")
+    implementation("com.github.Reco1I:Basskt:1.0.2")
 
     // https://github.com/Reco1I/Toolkt
     implementation("com.github.Reco1I:Toolkt:1.0.3")

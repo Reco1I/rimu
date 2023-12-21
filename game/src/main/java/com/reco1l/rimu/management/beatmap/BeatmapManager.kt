@@ -6,13 +6,13 @@ import com.reco1l.toolkt.kotlin.orCatch
 import com.reco1l.toolkt.kotlin.previousOf
 import com.reco1l.toolkt.IObservable
 import com.reco1l.toolkt.forEachObserver
-import com.rian.osu.beatmap.parser.BeatmapDecoder
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.data.Beatmap
 import com.reco1l.rimu.data.BeatmapSet
 import com.reco1l.rimu.ui.layouts.Notification
 import com.reco1l.toolkt.kotlin.BoundConflict
+import com.un4seen.bass.BASS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -124,8 +124,8 @@ class BeatmapManager(override val ctx: MainContext) :
         forEachObserver { it.onMusicChange(current) }
 
         // Starting the audio stream.
-        current?.play()
-        current?.stream?.onStreamEnd = {
+        current!!.play()
+        current!!.stream.addSynchronizer(BASS.BASS_SYNC_END or BASS.BASS_SYNC_ONETIME) {
 
             musicScope.launch {
 
