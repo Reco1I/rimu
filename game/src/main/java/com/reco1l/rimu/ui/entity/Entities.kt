@@ -3,19 +3,35 @@ package com.reco1l.rimu.ui.entity
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.ui.ISkinnable
+import com.reco1l.toolkt.kotlin.createInstance
 import org.andengine.entity.IEntity
 import kotlin.math.max
 import kotlin.math.min
 import org.andengine.entity.Entity as AndEngineEntity
 
 
-fun IWithContext.Entity(
-    parent: AndEngineEntity? = this as? AndEngineEntity,
-    init: Entity.() -> Unit
-) = Entity(ctx).apply {
-    parent?.attachChild(this)
-    init()
+/**
+ * Creates a entity from this context.
+ *
+ * @param parent The parent from where this new entity will be attached. If `null` the entity will not
+ * be attached to anything.
+ * @param block The block that will be called when the entity is created and after attachment if [parent]
+ * was specified.
+ */
+inline fun <reified T> IWithContext.entity(
+
+    parent: IEntity? = this as? IEntity,
+
+    block: T.() -> Unit
+
+): T where T : IEntity, T : IWithContext
+{
+    val entity = T::class.createInstance(ctx)
+    parent?.attachChild(entity)
+    entity.block()
+    return entity
 }
+
 
 open class Entity(override val ctx: MainContext) :
     AndEngineEntity(),
