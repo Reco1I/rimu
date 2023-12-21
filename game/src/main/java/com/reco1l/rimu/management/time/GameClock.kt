@@ -11,6 +11,7 @@ import com.reco1l.toolkt.forEachObserver
 import com.reco1l.toolkt.roundBy
 import org.andengine.engine.handler.IUpdateHandler
 import kotlin.math.abs
+import kotlin.math.absoluteValue
 
 /**
  * Despite a normal [IUpdateHandler] it listens to time modifications in an [AudioStream].
@@ -55,17 +56,27 @@ class GameClock(override val ctx: MainContext, var audioStream: AudioStream) :
 
         // Determining if the difference is significant enough to seek to the target time, this can
         // happen if for example user seeks the song.
-        isSeeking = abs(sTimeDifference) > 1.0
+        // sEngineDeltaTime * 1.15f is used to avoid unexpected jumps due to frame time variations.
+        if (!isSeeking)
+            isSeeking = abs(sTimeDifference) > 1.0 + ctx.engine.expectedFrameTime
+        else if (sTimeDifference >= 0.0 && sTimeDifference < 1.0)
+            isSeeking = false
 
         // By default when seeking the rate will be forced to 6x.
         // When not seeking we compensate multiplying by the difference ratio.
         rate = if (isSeeking) 6f else {
 
-            // 10 ms tolerance of difference to avoid unexpected jumps.
-            if (sTimeDifference < sEngineDeltaTime)
-                audioStream.speed + (abs(sTimeDifference) / sEngineDeltaTime).toFloat()
-            else
-                audioStream.speed
+            val differenceRatio = (abs(sTimeDifference) / 1.0).toFloat()
+
+            audioStream.speed + when
+            {
+                // The audio is ahead of the engine, we need to slow down the clock.
+                sTimeDifference < 0.0 -> differenceRatio
+                // The audio is behind the engine, we need to speed up the clock.
+                sTimeDifference > 1.0 -> -differenceRatio
+
+                else -> 0f
+            }
 
         }.coerceAtLeast(0f)
 
