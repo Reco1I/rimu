@@ -3,6 +3,7 @@ package com.reco1l.rimu.ui.scenes
 import android.view.KeyEvent
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
+import com.reco1l.rimu.management.beatmap.IBeatmapObserver
 import com.reco1l.rimu.ui.IScalable
 import com.reco1l.rimu.ui.ISkinnable
 import org.andengine.entity.scene.Scene
@@ -13,12 +14,24 @@ abstract class BaseScene(final override val ctx: MainContext) :
     IScalable,
     ISkinnable,
     IWithContext,
+    IBeatmapObserver,
     KeyEventCallback
 {
 
 
-    override fun onAttached() = invalidateSkin()
-    
+    override fun onAttached()
+    {
+        ctx.beatmaps.bindObserver(observer = this)
+        invalidateSkin()
+    }
+
+    override fun onDetached()
+    {
+        super.onDetached()
+
+        ctx.beatmaps.unbindObserver(this)
+    }
+
 
     // Key listening events
 

@@ -8,7 +8,7 @@ import com.reco1l.rimu.management.beatmap.WorkingBeatmap
 import com.reco1l.rimu.ui.entity.Sprite
 import com.reco1l.rimu.ui.entity.hitobjects.HitCircleEntity
 
-class SceneIntro(ctx: MainContext) : BaseScene(ctx), IBeatmapObserver
+class SceneIntro(ctx: MainContext) : BaseScene(ctx)
 {
 
     val hitCircleTest = HitCircleEntity(ctx)
@@ -37,6 +37,12 @@ class SceneIntro(ctx: MainContext) : BaseScene(ctx), IBeatmapObserver
         background.setTexture(texture)
         background.setScale(ctx.engine.surfaceWidth / background.width)
     }
+
+    override fun onMusicEnd()
+    {
+        ctx.beatmaps.next()
+    }
+
 
     override fun onManagedUpdate(pSecondsElapsed: Float)
     {
