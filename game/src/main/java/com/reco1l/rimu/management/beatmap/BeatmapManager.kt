@@ -62,7 +62,7 @@ class BeatmapManager(override val ctx: MainContext) :
     init
     {
         // Initializing library list with a Flow
-        ctx.initializationTree!!.add {
+        ctx.onPostInitialization {
 
             GlobalScope.launch {
 

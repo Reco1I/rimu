@@ -17,6 +17,7 @@ import com.reco1l.toolkt.graphics.Anchor
 import com.reco1l.toolkt.kotlin.dateFormatFor
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.R
+import com.reco1l.rimu.mainThread
 import com.reco1l.rimu.management.beatmap.IBeatmapObserver
 import com.reco1l.rimu.management.beatmap.WorkingBeatmap
 import com.reco1l.rimu.ui.BaseLayer

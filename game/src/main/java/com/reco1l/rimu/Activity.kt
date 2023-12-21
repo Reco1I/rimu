@@ -32,38 +32,17 @@ class MainActivity :
     {
         super.onCreate(savedInstanceState)
 
-        // Setting the activity global reference to this one.
-        ctx.activity = this
-
-        // Application wasn't initialized yet.
-        if (ctx.initializationTree != null)
-        {
-            onInitializeGame()
-            return
-        }
-
         // Applying window fullscreen flags before setting the content view.
         onApplyWindowFlags()
-        ctx.layouts.onActivityCreate()
-    }
 
-    private fun onInitializeGame()
-    {
-        ctx.bass.start()
-        ctx.engine.start()
+        // In this case we reassign the content view to this new activity.
+        ctx.onActivityCreate(this)
 
-        async {
-            // Iterating all over the task submitted to the initialization tree and executing them in
-            // asynchronous from UI thread.
-            ctx.initializationTree!!.forEachTrim { ctx.it() }
-            ctx.initializationTree = null
-
-            ctx.engine.startUpdateThread()
+        ctx.onPostInitialization {
 
             // Setting first scene to the Intro scene which will play an storyboard.
             ctx.engine.scene = SceneIntro(ctx)
 
-            // If the activity was started with an intent we managed it after the initialization.
             onManageIntent(intent)
         }
     }
@@ -139,7 +118,7 @@ class MainActivity :
 
         // If the initialization tree is null means the game already started and the activity was
         // started from being in background.
-        if (ctx.initializationTree == null)
+        if (ctx.isInitialized)
             onManageIntent(intent ?: return)
     }
 

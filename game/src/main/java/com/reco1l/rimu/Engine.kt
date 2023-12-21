@@ -51,7 +51,7 @@ class RimuEngine(override val ctx: MainContext) :
 
     init
     {
-        ctx.initializationTree!!.add {
+        ctx.onPostInitialization {
 
             ctx.skins.bindObserver(observer = this@RimuEngine)
         }
