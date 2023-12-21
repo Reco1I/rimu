@@ -43,11 +43,12 @@ enum class SettingTab
     // TODO
 }
 
-class SettingsMenu(ctx: MainContext) : ModelLayout(ctx)
+class SettingsMenu(ctx: MainContext) :
+    ModelLayout(
+        ctx = ctx,
+        layer = LayerOverlay::class
+    )
 {
-
-    override var layer: KClass<out BaseLayer> = LayerOverlay::class
-
 
     private val body = view<LinearLayout> {
 

@@ -10,9 +10,7 @@ import android.widget.TextView.BufferType.SPANNABLE
 import androidx.core.text.color
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.mainThread
-import com.reco1l.rimu.ui.BaseLayer
 import com.reco1l.rimu.ui.LayerOverlay
-import com.reco1l.rimu.ui.scenes.BaseScene
 import com.reco1l.rimu.ui.scenes.SceneIntro
 import com.reco1l.rimu.ui.views.TextView
 import com.reco1l.rimu.ui.views.view
@@ -20,18 +18,16 @@ import com.reco1l.toolkt.android.fontColor
 import com.reco1l.toolkt.android.setConstraints
 import com.reco1l.toolkt.graphics.Anchor
 import org.andengine.engine.handler.IUpdateHandler
-import kotlin.reflect.KClass
 
 
 class DebugOverlay(ctx: MainContext) :
-    ModelLayout(ctx),
+    ModelLayout(
+        ctx = ctx,
+        layer = LayerOverlay::class,
+        parents = arrayOf(SceneIntro::class)
+    ),
     IUpdateHandler
 {
-
-    override var layer: KClass<out BaseLayer> = LayerOverlay::class
-
-    override var parents: Array<KClass<out BaseScene>>? = arrayOf(SceneIntro::class)
-
 
     @SuppressLint("SetTextI18n")
     private val versionText = view<TextView> {

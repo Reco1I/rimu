@@ -34,13 +34,13 @@ import kotlin.math.sqrt
 import kotlin.reflect.KClass
 
 class MusicPlayerBox(ctx: MainContext) :
-    ModelLayout(ctx),
+    ModelLayout(
+        ctx = ctx,
+        layer = LayerOverlay::class
+    ),
     IBeatmapObserver,
     IUpdateHandler
 {
-
-    override var layer: KClass<out BaseLayer> = LayerOverlay::class
-
 
     private var dateFormat = dateFormatFor(1L)
 

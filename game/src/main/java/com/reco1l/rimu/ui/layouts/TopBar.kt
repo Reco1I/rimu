@@ -26,31 +26,27 @@ import com.reco1l.rimu.ui.views.addons.setTouchHandler
 import com.reco1l.rimu.ui.views.view
 import kotlin.reflect.KClass
 
-class TopBarLayout(ctx: MainContext) : ModelLayout(ctx)
-{
-
-    override var layer: KClass<out BaseLayer> = LayerOverlay::class
-
-    override var parents: Array<KClass<out BaseScene>>? = arrayOf(
-        SceneIntro::class,
-        MenuScene::class,
-        SelectorScene::class,
-        ResultsScene::class
+class TopBarLayout(ctx: MainContext) :
+    ModelLayout(
+        ctx = ctx,
+        layer = LayerOverlay::class,
+        parents = arrayOf(
+            SceneIntro::class,
+            MenuScene::class,
+            SelectorScene::class,
+            ResultsScene::class
+        )
     )
-
+{
 
     val navigationTree = mutableListOf<() -> Boolean>()
 
 
     val backButton = view<IconButton> {
 
-        skinningRules.image = "icon-back"
+        setSkinning { image = "icon-back" }
 
-        setTouchHandler {
-
-            onActionUp = { ctx.skins.next() }
-        }
-
+        setTouchHandler { onActionUp = ctx.skins::next }
     }
 
 

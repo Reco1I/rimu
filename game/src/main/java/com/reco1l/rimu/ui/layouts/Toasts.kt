@@ -20,10 +20,12 @@ import com.reco1l.rimu.ui.views.view
 import kotlin.reflect.KClass
 
 
-class ToastView(ctx: MainContext) : ModelLayout(ctx)
+class ToastView(ctx: MainContext) :
+    ModelLayout(
+        ctx = ctx,
+        layer = LayerOverlay::class
+    )
 {
-
-    override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
     override var hideTime: Long? = 5000L
 

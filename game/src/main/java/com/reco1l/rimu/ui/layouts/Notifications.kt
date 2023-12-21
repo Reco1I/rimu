@@ -36,13 +36,14 @@ import com.reco1l.rimu.ui.views.RecyclerView
 import com.reco1l.rimu.ui.views.TextView
 import com.reco1l.rimu.ui.views.addons.setTouchHandler
 import com.reco1l.rimu.ui.views.view
-import kotlin.reflect.KClass
 
 
-class NotificationCenter(ctx: MainContext) : ModelLayout(ctx)
+class NotificationCenter(ctx: MainContext) :
+    ModelLayout(
+        ctx = ctx,
+        layer = LayerOverlay::class
+    )
 {
-
-    override var layer: KClass<out BaseLayer> = LayerOverlay::class
 
     override val shouldRemainInMemory = true
 
@@ -281,20 +282,39 @@ class ProcessNotification(
 // View
 
 open class NotificationView(ctx: MainContext) :
-    ModelLayout(ctx),
+    ModelLayout(
+        ctx = ctx,
+        layer = LayerOverlay::class
+    ),
     IHeldView<Notification>
 {
 
-    override var layer: KClass<out BaseLayer> = LayerOverlay::class
-
     lateinit var associatedData: Notification
+
+
+    override val dimensions = super.dimensions.apply {
+
+        width = MATCH_PARENT
+        height = WRAP_CONTENT
+        cornerRadius = 8f
+        marginBottom = 8
+        padding(8)
+    }
+
+    override val skinningRules = super.skinningRules.apply {
+
+        backgroundColor = "accentColor"
+        backgroundColorFactor = 0.2f
+    }
 
 
     protected val iconView = view<ImageView> {
 
         backgroundColor = 0x27000000
 
-        skinningRules.imageTint = "accentColor"
+        setSkinning {
+            imageTint = "accentColor"
+        }
 
         setDimensions {
             cornerRadius = 8f
@@ -302,7 +322,10 @@ open class NotificationView(ctx: MainContext) :
             size(32)
         }
 
-        setConstraints(topToTarget = Anchor.TOP, leftToTarget = Anchor.LEFT)
+        setConstraints(
+            topToTarget = Anchor.TOP,
+            leftToTarget = Anchor.LEFT
+        )
     }
 
 
@@ -333,22 +356,6 @@ open class NotificationView(ctx: MainContext) :
             topToTarget = Anchor.BOTTOM,
             leftToTarget = Anchor.LEFT
         )
-    }
-
-    init
-    {
-        setDimensions {
-            width = MATCH_PARENT
-            height = WRAP_CONTENT
-            cornerRadius = 8f
-            marginBottom = 8
-            padding(8)
-        }
-
-        setSkinning {
-            backgroundColor = "accentColor"
-            backgroundColorFactor = 0.2f
-        }
     }
 
 

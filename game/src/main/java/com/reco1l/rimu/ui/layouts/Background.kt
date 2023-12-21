@@ -21,18 +21,18 @@ import kotlin.reflect.KClass
 
 
 class Background(ctx: MainContext) :
-    ModelLayout(ctx),
+    ModelLayout(
+        ctx = ctx,
+        layer = LayerBackground::class,
+        parents = arrayOf(
+            SceneIntro::class,
+            MenuScene::class,
+            ResultsScene::class,
+            SelectorScene::class
+        )
+    ),
     IBeatmapObserver
 {
-
-    override var layer: KClass<out BaseLayer> = LayerBackground::class
-
-    override var parents: Array<KClass<out BaseScene>>? = arrayOf(
-        SceneIntro::class,
-        MenuScene::class,
-        ResultsScene::class,
-        SelectorScene::class
-    )
 
     val image = view<FadeImageView> {
 

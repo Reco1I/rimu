@@ -10,24 +10,22 @@ import com.reco1l.rimu.ui.scenes.BaseScene
 import com.reco1l.rimu.ui.views.ConstraintLayout
 import kotlin.reflect.KClass
 
-abstract class ModelLayout(final override val ctx: MainContext) : ConstraintLayout(ctx)
-{
+abstract class ModelLayout(
 
-    final override val dimensions = super.dimensions
-
-    final override val skinningRules = super.skinningRules
-
+    final override val ctx: MainContext,
 
     /**
      * Determine the layer where this layout should be added.
      */
-    abstract var layer: KClass<out BaseLayer>
-
+    var layer: KClass<out BaseLayer>,
 
     /**
      * The parents scenes where the layouts should be show/hide automatically.
      */
-    open var parents: Array<KClass<out BaseScene>>? = null
+    vararg var parents: KClass<out BaseScene>
+
+) : ConstraintLayout(ctx)
+{
 
     /**
      * Determine the time in ms that the layout will take to automatically hide.

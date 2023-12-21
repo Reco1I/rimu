@@ -25,6 +25,15 @@ import com.reco1l.rimu.ui.IScalable
 import com.reco1l.rimu.ui.ISkinnable
 
 
+/**
+ * Adds a touch handler to the view.
+ * @see TouchHandler
+ */
+fun View.setTouchHandler(block: TouchHandler.() -> Unit) = setOnTouchListener(TouchHandler(block))
+
+/**
+ * An custom touch listener to handle effects and sounds when interacting with the view.
+ */
 class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
 {
 
@@ -162,8 +171,6 @@ class TouchHandler(init: TouchHandler.() -> Unit) : OnTouchListener
         }
     }
 }
-
-fun View.setTouchHandler(block: TouchHandler.() -> Unit) = setOnTouchListener(TouchHandler(block))
 
 
 class TouchEffectDrawable :
