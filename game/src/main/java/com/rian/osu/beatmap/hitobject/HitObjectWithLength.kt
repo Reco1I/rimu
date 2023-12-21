@@ -26,8 +26,14 @@ abstract class HitObjectWithLength(
      * The end position of this hit object relative to the play field. Defaults to the start position of this
      * hit object.
      */
-    endPosition: Vector2 = position
-) : HitObject(startTime, position) {
+    endPosition: Vector2 = position,
+
+    /**
+     * Whether this hit object is a new combo.
+     */
+    isNewCombo: Boolean = false
+
+) : HitObject(startTime, position, isNewCombo) {
     /**
      * The time at which this hit object ends, in milliseconds.
      */

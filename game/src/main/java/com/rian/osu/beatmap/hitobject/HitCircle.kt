@@ -14,7 +14,13 @@ class HitCircle(
     /**
      * The position of this hit circle relative to the play field.
      */
-    position: Vector2
-) : HitObject(startTime, position) {
+    position: Vector2,
+
+    /**
+     * Whether this hit circle is a new combo.
+     */
+    isNewCombo: Boolean
+
+) : HitObject(startTime, position, isNewCombo) {
     override fun clone() = super.clone() as HitCircle
 }

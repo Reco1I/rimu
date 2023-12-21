@@ -62,6 +62,20 @@ abstract class HitObject(
     val stackedPosition
         get() = evaluateStackedPosition(position)
 
+
+    // Gameplay features
+
+    /**
+     * Whether this hit object is active, used exclusively for gameplay otherwise it will always false.
+     */
+    var isActive = false
+
+    /**
+     * The combo index of this hit object.
+     */
+    var comboIndex: Int = 0
+
+
     /**
      * Evaluates a stacked position relative to this hit object.
      *
