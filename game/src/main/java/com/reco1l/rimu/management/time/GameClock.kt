@@ -35,6 +35,12 @@ class GameClock(override val ctx: MainContext, var audioStream: AudioStream) :
     var rate: Float = 1f
         private set
 
+    /**
+     * Determines if the clock is seeking to a specific time.
+     */
+    var isSeeking: Boolean = false
+        private set
+
 
     override fun onUpdate(sEngineDeltaTime: Float)
     {
@@ -84,11 +90,12 @@ class GameClock(override val ctx: MainContext, var audioStream: AudioStream) :
     )
     {
         ctx.layouts[DebugOverlay::class].setSection("Clock", """
-            rate: ${rate.roundBy(3)}x
+            rate: ${rate.roundBy(1)}x
+            isSeeking: $isSeeking
             audio_elapsed_time: ${sAudioElapsedTime}s
-            clock_elapsed_time: ${msElapsedTime.roundBy(3)}s
+            clock_elapsed_time: ${msElapsedTime.roundBy(1)}s
             clock_delta_time: ${sDeltaTime.roundBy(3)}s
-            time_difference: ${sTimeDifference.roundBy(3)}s
+            time_difference: ${sTimeDifference.roundBy(1)}s
         """.trimIndent())
     }
 
@@ -101,3 +108,13 @@ class GameClock(override val ctx: MainContext, var audioStream: AudioStream) :
     }
 }
 
+/**
+ * Observable for clock update calls.
+ */
+fun interface IClockObserver
+{
+    /**
+     * Called by the clock with the elapsed time and the delta time both multiplied with the rate.
+     */
+    fun onClockUpdate(sElapsedTime: Double, sDeltaTime: Float)
+}
