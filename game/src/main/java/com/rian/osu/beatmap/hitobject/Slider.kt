@@ -55,8 +55,14 @@ open class Slider(
     /**
      * The multiplier for calculating slider ticks.
      */
-    tickDistanceMultiplier: Double
-) : HitObjectWithLength(startTime, startTime, position) {
+    tickDistanceMultiplier: Double,
+
+    /**
+     * Whether this slider is a new combo.
+     */
+    isNewCombo: Boolean
+
+) : HitObjectWithLength(startTime, startTime, position, isNewCombo = isNewCombo) {
     /**
      * The repetition amount of this slider.
      *
