@@ -312,9 +312,7 @@ open class NotificationView(ctx: MainContext) :
 
         backgroundColor = 0x27000000
 
-        setSkinning {
-            imageTint = "accentColor"
-        }
+        setSkinning { imageTint = "accentColor" }
 
         setDimensions {
             cornerRadius = 8f
@@ -331,7 +329,7 @@ open class NotificationView(ctx: MainContext) :
 
     protected val headerText = view<TextView> {
 
-        skinningRules.fontColorFactor = 0.8f
+        setSkinning { fontColorFactor = 0.8f }
 
         setDimensions {
             marginLeft = 8
@@ -347,9 +345,7 @@ open class NotificationView(ctx: MainContext) :
 
     protected val messageText = view<TextView> {
 
-        setDimensions {
-            fontSize = 10
-        }
+        setDimensions { fontSize = 10 }
 
         setConstraints(
             target = headerText,
