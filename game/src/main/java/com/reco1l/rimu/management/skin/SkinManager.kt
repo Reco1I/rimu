@@ -136,10 +136,14 @@ class SkinManager(override val ctx: MainContext) :
             if (last != null)
             {
                 mainThread {
+
                     view<ToastView> {
+
                         header = "Skin changed"
-                        current!!.data.general.also { message = "${it.name} by ${it.author}" }
+                        message = current!!.data.general.name + (current!!.data.general.author?.let { " by $it" } ?: "")
+
                     }.show()
+
                 }
 
                 last.onRelease()

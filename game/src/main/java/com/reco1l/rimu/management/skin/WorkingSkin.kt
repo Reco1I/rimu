@@ -7,6 +7,7 @@ import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.data.asset.AssetBundle
 import com.reco1l.rimu.data.Skin
 import com.reco1l.rimu.data.Skin.Companion.BASE
+import com.reco1l.skindecoder.data.SkinDataGeneral
 
 /**
  * A working skin refers to a current loaded skin. Should be one per game instance but due to context
@@ -59,7 +60,14 @@ class WorkingSkin(
             // Decoding 'skin.ini' file if it exists for the source skin.
             decoder.decode(it)
 
-        } ?: SkinData()
+        } ?: SkinData(
+
+            general = SkinDataGeneral(
+                name = if (source.isInternal) source.key.substringAfterLast('/') else source.key,
+                author = if (source.isInternal) source.author else null
+            )
+
+        )
     }
 
 
