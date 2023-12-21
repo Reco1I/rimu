@@ -125,7 +125,13 @@ class BeatmapManager(override val ctx: MainContext) :
 
         // Starting the audio stream.
         current?.play()
-        current?.stream?.onStreamEnd = { forEachObserver { it.onMusicEnd() } }
+        current?.stream?.onStreamEnd = {
+
+            musicScope.launch {
+
+                forEachObserver { it.onMusicEnd() }
+            }
+        }
     }
 
     /**
