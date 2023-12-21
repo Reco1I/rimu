@@ -130,16 +130,16 @@ class BeatmapManager(override val ctx: MainContext) :
 
         // Starting the audio stream.
         current?.play()
-        current?.stream?.onStreamEnd = { next() }
+        current?.stream?.onStreamEnd = { forEachObserver { it.onMusicEnd() } }
     }
 
     /**
      * Shifts to the next song in the playlist.
      */
-    fun next() = songs.nextOf(current?.source, BoundConflict.START_END)?.let { setCurrent(it) }
+    fun next() = songs.nextOf(current?.source ?: songs.random(), BoundConflict.START_END)?.let { setCurrent(it) }
 
     /**
      * Shifts to the previous song in the playlist.
      */
-    fun previous() = songs.previousOf(current?.source, BoundConflict.START_END)?.let { setCurrent(it) }
+    fun previous() = songs.previousOf(current?.source ?: songs.random(), BoundConflict.START_END)?.let { setCurrent(it) }
 }
