@@ -26,10 +26,12 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
@@ -40,6 +42,17 @@ ksp {
 }
 
 dependencies {
+
+    // BEGIN libGDX
+
+    implementation("com.badlogicgames.gdx:gdx-backend-android:1.12.1")
+
+    api("com.badlogicgames.gdx:gdx:1.12.1")
+    api("io.github.libktx:ktx-app:1.12.1-rc1")
+    api("io.github.libktx:ktx-assets:1.12.1-rc1")
+    api("io.github.libktx:ktx-graphics:1.12.1-rc1")
+
+    // END libGDX
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
