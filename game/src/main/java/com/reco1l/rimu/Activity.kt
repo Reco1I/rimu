@@ -1,6 +1,5 @@
 package com.reco1l.rimu
 
-import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
 import android.content.Intent.ACTION_SEND
 import android.content.Intent.ACTION_SEND_MULTIPLE
@@ -11,14 +10,17 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+import com.badlogic.gdx.ApplicationAdapter
+import com.badlogic.gdx.backends.android.AndroidApplication
+import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
+import com.reco1l.rimu.ui.scenes.SceneIntro
 import com.reco1l.toolkt.data.resolveFilename
 import com.reco1l.toolkt.kotlin.async
 import com.reco1l.toolkt.kotlin.ignoreException
-import com.reco1l.rimu.ui.scenes.SceneIntro
 
 
 class MainActivity :
-    AppCompatActivity(),
+    AndroidApplication(),
     IWithContext
 {
 
@@ -30,9 +32,6 @@ class MainActivity :
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
-
-        // Applying window fullscreen flags before setting the content view.
-        onApplyWindowFlags()
 
         // In this case we reassign the content view to this new activity.
         ctx.onActivityCreate(this)
@@ -92,8 +91,6 @@ class MainActivity :
         // consume unnecessary resources leading to the game being closed by Android.
         ctx.bass.updatePeriod = 100
         ctx.beatmaps.current?.stream?.bufferLength = 0.5f
-
-        ctx.engine.renderView.onPause()
     }
 
     override fun onResume()
@@ -103,12 +100,6 @@ class MainActivity :
         // Once we're back we can restore the previous values.
         ctx.bass.updatePeriod = 5
         ctx.beatmaps.current?.stream?.bufferLength = 0.1f
-
-        // Reloading resources and starting engine if wasn't started yet.
-        ctx.engine.onReloadResources()
-        ctx.engine.start()
-
-        ctx.engine.renderView.onResume()
     }
 
     override fun onNewIntent(intent: Intent?)
@@ -119,23 +110,6 @@ class MainActivity :
         // started from being in background.
         if (ctx.isInitialized)
             onManageIntent(intent ?: return)
-    }
-
-
-    // Window events
-
-    private fun onApplyWindowFlags()
-    {
-        // Deprecated flags but current replacement requires higher API.
-        @Suppress("DEPRECATION")
-        window.decorView.systemUiVisibility = SYSTEM_UI_FLAG_HIDE_NAVIGATION or SYSTEM_UI_FLAG_FULLSCREEN
-    }
-
-    override fun onWindowFocusChanged(hasFocus: Boolean)
-    {
-        super.onWindowFocusChanged(hasFocus)
-
-        onApplyWindowFlags()
     }
 
 
@@ -173,4 +147,3 @@ class MainActivity :
         return super.onKeyMultiple(keyCode, repeatCount, event)
     }
 }
-

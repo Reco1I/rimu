@@ -43,6 +43,11 @@ inline fun <reified T> IWithContext.view(
 }
 
 
+fun ViewGroup.DummyView(block: DummyView.() -> Unit) = DummyView(context as MainContext).also {
+    addView(it)
+    it.block()
+}
+
 /**
  * A dummy view that has no special functionality.
  */

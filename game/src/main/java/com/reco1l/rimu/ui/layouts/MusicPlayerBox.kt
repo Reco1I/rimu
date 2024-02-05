@@ -17,6 +17,7 @@ import com.reco1l.toolkt.graphics.Anchor
 import com.reco1l.toolkt.kotlin.dateFormatFor
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.R
+import com.reco1l.rimu.UpdateHandler
 import com.reco1l.rimu.mainThread
 import com.reco1l.rimu.management.beatmap.IBeatmapObserver
 import com.reco1l.rimu.management.beatmap.WorkingBeatmap
@@ -28,10 +29,8 @@ import com.reco1l.rimu.ui.views.TextView
 import com.reco1l.rimu.ui.views.addons.setTouchHandler
 import com.reco1l.rimu.ui.views.setTextAnimated
 import com.reco1l.rimu.ui.views.view
-import org.andengine.engine.handler.IUpdateHandler
 import kotlin.math.pow
 import kotlin.math.sqrt
-import kotlin.reflect.KClass
 
 class MusicPlayerBox(ctx: MainContext) :
     ModelLayout(
@@ -39,7 +38,7 @@ class MusicPlayerBox(ctx: MainContext) :
         layer = LayerOverlay::class
     ),
     IBeatmapObserver,
-    IUpdateHandler
+    UpdateHandler
 {
 
     private var dateFormat = dateFormatFor(1L)
@@ -48,9 +47,9 @@ class MusicPlayerBox(ctx: MainContext) :
     private var isSeeking = false
 
 
-    private val titleText = view<TextView> {}
+    private val titleText = TextView {}
 
-    private val artistText = view<TextView> {
+    private val artistText = TextView {
 
         setDimensions {
             fontSize = 10
@@ -66,7 +65,7 @@ class MusicPlayerBox(ctx: MainContext) :
         )
     }
 
-    private val timeText = view<TextView> {
+    private val timeText = TextView {
 
         text = dateFormat.format(0L)
 
@@ -85,7 +84,7 @@ class MusicPlayerBox(ctx: MainContext) :
         )
     }
 
-    private val lengthText = view<TextView> {
+    private val lengthText = TextView {
 
         text = dateFormat.format(0L)
 
@@ -102,7 +101,7 @@ class MusicPlayerBox(ctx: MainContext) :
     }
 
 
-    private val seekBar = view<SeekBar> {
+    private val seekBar = SeekBar {
 
         setDimensions {
             marginTop = 8
@@ -121,7 +120,7 @@ class MusicPlayerBox(ctx: MainContext) :
         }
     }
 
-    private val playButton = view<IconButton> {
+    private val playButton = IconButton {
 
         setSkinning {
             image = "icon-pause"
@@ -174,7 +173,7 @@ class MusicPlayerBox(ctx: MainContext) :
     {
         isClickable = true
 
-        view<IconButton> {
+        IconButton {
 
             skinningRules.image = "icon-previous"
 
@@ -195,7 +194,7 @@ class MusicPlayerBox(ctx: MainContext) :
             }
         }
 
-        view<IconButton> {
+        IconButton {
 
             skinningRules.image = "icon-next"
 
@@ -332,14 +331,14 @@ class MusicPlayerBox(ctx: MainContext) :
         // Updating information just in case.
         onMusicChange(ctx.beatmaps.current)
 
-        ctx.engine.registerUpdateHandler(this)
+        //ctx.engine.registerUpdateHandler(this)
     }
 
     override fun onDetachedFromWindow()
     {
         super.onDetachedFromWindow()
 
-        ctx.engine.unregisterUpdateHandler(this)
+        //ctx.engine.unregisterUpdateHandler(this)
     }
 
     override fun hide()

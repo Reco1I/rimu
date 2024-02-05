@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 7,
-    "identityHash": "029e675e9a2e447fb3a57d452f60a2ff",
+    "identityHash": "da25eb98fc0f0da04097c68521f8d289",
     "entities": [
       {
         "tableName": "Filename",
@@ -44,7 +44,7 @@
       },
       {
         "tableName": "Beatmap",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`hash` TEXT NOT NULL, `id` INTEGER, `audio` TEXT NOT NULL, `status` INTEGER, `parent` TEXT NOT NULL, `title` TEXT NOT NULL, `artist` TEXT NOT NULL, `creator` TEXT NOT NULL, `version` TEXT NOT NULL, `dateImported` INTEGER NOT NULL, `approachRate` REAL, `overallDifficulty` REAL, `circleSize` REAL, `hpDrainRate` REAL, `starRating` REAL, PRIMARY KEY(`hash`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`hash` TEXT NOT NULL, `id` INTEGER, `audio` TEXT NOT NULL, `background` TEXT, `status` INTEGER, `parent` TEXT NOT NULL, `title` TEXT NOT NULL, `artist` TEXT NOT NULL, `creator` TEXT NOT NULL, `version` TEXT NOT NULL, `dateImported` INTEGER NOT NULL, `approachRate` REAL, `overallDifficulty` REAL, `circleSize` REAL, `hpDrainRate` REAL, `starRating` REAL, PRIMARY KEY(`hash`))",
         "fields": [
           {
             "fieldPath": "hash",
@@ -63,6 +63,12 @@
             "columnName": "audio",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "background",
+            "columnName": "background",
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "status",
@@ -227,7 +233,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '029e675e9a2e447fb3a57d452f60a2ff')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'da25eb98fc0f0da04097c68521f8d289')"
     ]
   }
 }

@@ -1,29 +1,37 @@
 package com.reco1l.rimu.ui.scenes
 
-import com.reco1l.rimu.graphics.WrappingTexture
+import com.badlogic.gdx.graphics.Texture
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.BuildSettings
-import com.reco1l.rimu.management.beatmap.IBeatmapObserver
+import com.reco1l.rimu.graphics.setTexture
 import com.reco1l.rimu.management.beatmap.WorkingBeatmap
+import com.reco1l.rimu.ui.entity.Image
+import com.reco1l.rimu.ui.entity.game.Playfield
 import com.reco1l.rimu.ui.entity.Sprite
-import com.reco1l.rimu.ui.entity.hitobjects.HitCircleEntity
 
 class SceneIntro(ctx: MainContext) : BaseScene(ctx)
 {
 
-    val background = Sprite {  }
+    val background = Image(ctx).also {
+
+        stage.addActor(it)
+    }
+
+    val playfield = Playfield(ctx)
 
 
     init
     {
+        ctx.beatmaps.bindObserver(observer = this)
+
         background.setTexture(ctx.resources["menu-background", 0])
 
-        ctx.beatmaps.bindObserver(observer = this)
+        attachChild(playfield)
     }
 
     override fun onMusicChange(beatmap: WorkingBeatmap?)
     {
-        var texture: WrappingTexture? = ctx.resources["menu-background", 0]
+        var texture: Texture? = ctx.resources["menu-background", 0]
 
         beatmap?.data?.events?.apply {
 
@@ -45,5 +53,7 @@ class SceneIntro(ctx: MainContext) : BaseScene(ctx)
         super.onManagedUpdate(pSecondsElapsed)
 
         background.setPosition(ctx.engine.surfaceWidth / 2f, ctx.engine.surfaceHeight / 2f)
+        playfield.setPosition(ctx.engine.surfaceWidth / 2f, ctx.engine.surfaceHeight / 2f)
+        playfield.setScale(ctx.engine.surfaceHeight / Playfield.PLAYFIELD_HEIGHT * 0.8f)
     }
 }

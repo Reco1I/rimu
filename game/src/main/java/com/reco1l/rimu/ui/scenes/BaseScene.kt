@@ -1,16 +1,20 @@
 package com.reco1l.rimu.ui.scenes
 
 import android.view.KeyEvent
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.beatmap.IBeatmapObserver
 import com.reco1l.rimu.ui.IScalable
 import com.reco1l.rimu.ui.ISkinnable
-import org.andengine.entity.scene.Scene
+import ktx.app.KtxScreen
 import android.view.KeyEvent.Callback as KeyEventCallback
 
 abstract class BaseScene(final override val ctx: MainContext) :
-    Scene(),
+    KtxScreen,
     IScalable,
     ISkinnable,
     IWithContext,
@@ -18,20 +22,38 @@ abstract class BaseScene(final override val ctx: MainContext) :
     KeyEventCallback
 {
 
+    val stage = Stage(ScreenViewport())
 
-    override fun onAttached()
+
+    open fun onAttached()
     {
+        Gdx.input.inputProcessor = stage
+
         ctx.beatmaps.bindObserver(observer = this)
         invalidateSkin()
     }
 
-    override fun onDetached()
+    open fun onDetached()
     {
-        super.onDetached()
-
         ctx.beatmaps.unbindObserver(this)
     }
 
+
+    fun attachChild(actor: Actor) = stage.addActor(actor)
+
+    fun detachChild(actor: Actor) = stage.root.removeActor(actor)
+
+
+    override fun render(delta: Float)
+    {
+        super.render(delta)
+        stage.draw()
+    }
+
+    open fun onManagedUpdate(delta: Float)
+    {
+        stage.act(delta)
+    }
 
     // Key listening events
 

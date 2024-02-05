@@ -20,7 +20,7 @@ import com.reco1l.rimu.ui.IScalableWithDimensions
 import com.reco1l.rimu.ui.ISkinnableWithRules
 
 
-open class ProgressIndicatorDimensions<T : LinearProgressIndicator> : ViewDimensions<T>(
+open class ProgressIndicatorDimensions<T : ProgressIndicator> : ViewDimensions<T>(
 
     initialWidth = LayoutParams.MATCH_PARENT,
 
@@ -35,7 +35,7 @@ open class ProgressIndicatorDimensions<T : LinearProgressIndicator> : ViewDimens
 
 }
 
-open class ProgressIndicatorSkinningRules<T : LinearProgressIndicator> : ViewSkinningRules<T>()
+open class ProgressIndicatorSkinningRules<T : ProgressIndicator> : ViewSkinningRules<T>()
 {
 
     var activeColor = "accentColor"
@@ -57,16 +57,21 @@ open class ProgressIndicatorSkinningRules<T : LinearProgressIndicator> : ViewSki
 }
 
 
-open class LinearProgressIndicator(override val ctx: MainContext) :
+fun ViewGroup.ProgressIndicator(block: ProgressIndicator.() -> Unit) = ProgressIndicator(context as MainContext).also {
+    addView(it)
+    it.block()
+}
+
+open class ProgressIndicator(override val ctx: MainContext) :
     View(ctx),
     IWithContext,
-    IScalableWithDimensions<LinearProgressIndicator, ProgressIndicatorDimensions<LinearProgressIndicator>>,
-    ISkinnableWithRules<LinearProgressIndicator, ProgressIndicatorSkinningRules<LinearProgressIndicator>>
+    IScalableWithDimensions<ProgressIndicator, ProgressIndicatorDimensions<ProgressIndicator>>,
+    ISkinnableWithRules<ProgressIndicator, ProgressIndicatorSkinningRules<ProgressIndicator>>
 {
 
-    override val dimensions = ProgressIndicatorDimensions<LinearProgressIndicator>()
+    override val dimensions = ProgressIndicatorDimensions<ProgressIndicator>()
 
-    override val skinningRules = ProgressIndicatorSkinningRules<LinearProgressIndicator>()
+    override val skinningRules = ProgressIndicatorSkinningRules<ProgressIndicator>()
 
 
     /**

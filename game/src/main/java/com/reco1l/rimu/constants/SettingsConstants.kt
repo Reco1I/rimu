@@ -10,7 +10,7 @@ object BuildSettings
     /**
      * Disables every possible NSFW feature, for example backgrounds.
      */
-    const val SFW_MODE = false
+    const val SFW_MODE = true
 }
 
 enum class RimuSetting(val default: Any)

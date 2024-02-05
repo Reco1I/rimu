@@ -2,13 +2,13 @@ package com.reco1l.rimu.management
 
 import android.animation.ValueAnimator
 import android.app.Activity
+import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import com.reco1l.toolkt.android.attachTo
 import com.reco1l.toolkt.android.removeSelf
 import com.reco1l.rimu.constants.Ease
 import com.reco1l.toolkt.animation.animateTo
 import com.reco1l.toolkt.kotlin.createInstance
-import com.reco1l.toolkt.kotlin.safeIn
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.RimuSetting
 import com.reco1l.rimu.mainThread
@@ -17,6 +17,8 @@ import com.reco1l.rimu.ui.*
 import com.reco1l.rimu.ui.layouts.ModelLayout
 import com.reco1l.rimu.ui.scenes.BaseScene
 import com.reco1l.rimu.ui.views.ConstraintLayout
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.reflect.KClass
 
 
@@ -34,6 +36,10 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
     val scale
         get() = scaleFactor * scaleRatio
 
+    val loadedLayouts = mutableListOf<ModelLayout>()
+
+    val loadedLayers = LAYERS.associateWith { it.createInstance(ctx) attachTo this }
+
 
     private var scaleAnimator: ValueAnimator? = null
 
@@ -45,11 +51,6 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
             field = value
             invalidateScale()
         }
-
-
-    private val loadedLayouts = mutableListOf<ModelLayout>()
-
-    private val loadedLayers = LAYERS.associateWith { it.createInstance(ctx) attachTo this }
 
 
     init
@@ -71,9 +72,11 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
     // Events
 
-    fun onActivityCreate(activity: Activity)
+    fun onActivityCreate(activity: Activity, renderView: View)
     {
         mainThread {
+
+            get<LayerBackground>().addView(renderView, 0)
 
             // If the activity was recreated this must be called first.
             if (parent != null)
@@ -89,7 +92,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
         // list can be modified.
         loadedLayouts.toList().forEach {
 
-            if (scene::class safeIn it.parents)
+            if (scene::class in it.parents)
                 it.show()
             else
                 it.hide()
@@ -100,7 +103,7 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
     {
         // Applying over a ratio multiplier based on 16:9 to make scale relative to screen aspect
         // ratio, this will make the scale to have the same factor in different screen sizes.
-        scaleRatio = RATIO_FUNCTION(width, height)
+        scaleRatio = 1f // RATIO_FUNCTION(width, height)
 
         invalidateScale()
     }
@@ -179,15 +182,13 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
 
     // Management
 
-    operator fun <T : BaseLayer> get(clazz: KClass<T>): T
+    inline operator fun <reified T : BaseLayer> get(clazz: KClass<T> = T::class): T
     {
-        @Suppress("UNCHECKED_CAST")
         return loadedLayers[clazz] as T
     }
 
-    operator fun <T : ModelLayout> get(clazz: KClass<T>): T
+    inline operator fun <reified T : ModelLayout> get(clazz: KClass<T> = T::class): T
     {
-        @Suppress("UNCHECKED_CAST")
         return loadedLayouts.find { it.isSingleton && it::class == clazz } as? T ?: let {
 
             val instance = clazz.createInstance(ctx)
@@ -212,7 +213,10 @@ class LayoutManager(override val ctx: MainContext) : ConstraintLayout(ctx)
          * Based on the osu!droid scale ratio function.
          * [osu!droid code snippet](https://github.com/osudroid/osu-droid/blob/522716f870701f4b3728bfb912e18dd264f8fa0c/src/ru/nsu/ccfit/zuev/osu/Config.java#L269-L272)
          */
-        private val RATIO_FUNCTION = { width: Int, height: Int -> 1280f / (1280f * height / width) }
+        private val RATIO_FUNCTION = { width: Int, height: Int ->
+
+            1280f / (1280f * (min(height, width) / max(width, height)))
+        }
 
     }
 

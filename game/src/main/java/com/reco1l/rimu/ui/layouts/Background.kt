@@ -3,6 +3,7 @@ package com.reco1l.rimu.ui.layouts
 import android.graphics.Bitmap
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.ImageView.ScaleType
+import androidx.core.view.isInvisible
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.BuildSettings
 import com.reco1l.rimu.mainThread
@@ -34,14 +35,16 @@ class Background(ctx: MainContext) :
     IBeatmapObserver
 {
 
-    val image = view<FadeImageView> {
+    val image = FadeImageView {
 
         setDimensions {
             width = MATCH_PARENT
             height = MATCH_PARENT
         }
 
+        alpha = 0f
         scaleType = ScaleType.CENTER_CROP
+        isInvisible = false
     }
 
 

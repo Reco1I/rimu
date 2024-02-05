@@ -48,6 +48,8 @@ dependencies {
     implementation("com.badlogicgames.gdx:gdx-backend-android:1.12.1")
 
     api("com.badlogicgames.gdx:gdx:1.12.1")
+    api("com.badlogicgames.gdx:gdx-freetype:1.12.1")
+
     api("io.github.libktx:ktx-app:1.12.1-rc1")
     api("io.github.libktx:ktx-assets:1.12.1-rc1")
     api("io.github.libktx:ktx-graphics:1.12.1-rc1")
@@ -94,12 +96,9 @@ dependencies {
     // https://github.com/BigBadaboom/androidsvg
     implementation("com.caverock:androidsvg-aar:1.4")
 
-    // https://github.com/Reco1I/AndEngine
-    implementation("com.github.Reco1I:AndEngine:1.0.4")
-
     // https://github.com/Reco1I/Basskt
     implementation("com.github.Reco1I:Basskt:1.0.2")
 
     // https://github.com/Reco1I/Toolkt
-    implementation("com.github.Reco1I:Toolkt:1.0.3")
+    implementation("com.github.Reco1I:Toolkt:1.0.6")
 }

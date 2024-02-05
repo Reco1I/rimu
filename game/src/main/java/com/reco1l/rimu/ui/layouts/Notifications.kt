@@ -25,13 +25,12 @@ import com.reco1l.rimu.R
 import com.reco1l.rimu.data.adapter.Adapter
 import com.reco1l.rimu.data.adapter.IHeldView
 import com.reco1l.rimu.mainThread
-import com.reco1l.rimu.ui.BaseLayer
 import com.reco1l.rimu.ui.LayerBackground
 import com.reco1l.rimu.ui.LayerOverlay
 import com.reco1l.rimu.ui.views.DummyView
 import com.reco1l.rimu.ui.views.ImageView
 import com.reco1l.rimu.ui.views.LinearLayout
-import com.reco1l.rimu.ui.views.LinearProgressIndicator
+import com.reco1l.rimu.ui.views.ProgressIndicator
 import com.reco1l.rimu.ui.views.RecyclerView
 import com.reco1l.rimu.ui.views.TextView
 import com.reco1l.rimu.ui.views.addons.setTouchHandler
@@ -50,7 +49,7 @@ class NotificationCenter(ctx: MainContext) :
 
     private val notifications = mutableListOf<Notification>()
 
-    private val body = view<LinearLayout> {
+    private val body = LinearLayout {
 
         orientation = VERTICAL
         z = 1f
@@ -66,7 +65,7 @@ class NotificationCenter(ctx: MainContext) :
             backgroundColorFactor = 0.15f
         }
 
-        view<TextView> {
+        TextView {
 
             setText(R.string.header_notifications)
             gravity = Gravity.CENTER
@@ -85,7 +84,7 @@ class NotificationCenter(ctx: MainContext) :
         setConstraints(rightToTarget = Anchor.RIGHT)
     }
 
-    private val bodyShadow = view<DummyView> {
+    private val bodyShadow = DummyView {
 
         dimensions.clone(body.dimensions)
 
@@ -97,7 +96,7 @@ class NotificationCenter(ctx: MainContext) :
         setConstraints(rightToTarget = Anchor.RIGHT)
     }
 
-    private val listView = view<RecyclerView>(body) {
+    private val listView = body.RecyclerView {
 
         orientation = VERTICAL
         isVerticalFadingEdgeEnabled = true
@@ -156,7 +155,7 @@ class NotificationCenter(ctx: MainContext) :
                 is ProcessNotification -> ProcessNotificationView(ctx)
                 else -> NotificationView(ctx)
             }
-            currentPopup!!.onAssignData(notification, 0)
+            currentPopup!!.onBindData(notification, 0)
             currentPopup!!.show(true)
         }
     }
@@ -170,8 +169,8 @@ class NotificationCenter(ctx: MainContext) :
 
         currentPopup?.apply {
 
-            if (associatedData == notification)
-                onAssignData(notification, 0)
+            if (boundData == notification)
+                onBindData(notification, 0)
 
         }
     }
@@ -289,7 +288,7 @@ open class NotificationView(ctx: MainContext) :
     IHeldView<Notification>
 {
 
-    lateinit var associatedData: Notification
+    override var boundData: Notification? = null
 
 
     override val dimensions = super.dimensions.apply {
@@ -308,7 +307,7 @@ open class NotificationView(ctx: MainContext) :
     }
 
 
-    protected val iconView = view<ImageView> {
+    protected val iconView = ImageView {
 
         backgroundColor = 0x27000000
 
@@ -327,7 +326,7 @@ open class NotificationView(ctx: MainContext) :
     }
 
 
-    protected val headerText = view<TextView> {
+    protected val headerText = TextView {
 
         setSkinning { fontColorFactor = 0.8f }
 
@@ -343,7 +342,7 @@ open class NotificationView(ctx: MainContext) :
         )
     }
 
-    protected val messageText = view<TextView> {
+    protected val messageText = TextView {
 
         setDimensions { fontSize = 10 }
 
@@ -355,9 +354,9 @@ open class NotificationView(ctx: MainContext) :
     }
 
 
-    override fun onAssignData(data: Notification, position: Int)
+    override fun onBindData(data: Notification, position: Int)
     {
-        associatedData = data
+        super.onBindData(data, position)
 
         headerText.text = data.header.uppercase()
         messageText.text = data.message
@@ -416,7 +415,7 @@ open class NotificationView(ctx: MainContext) :
 class ProcessNotificationView(ctx: MainContext) : NotificationView(ctx)
 {
 
-    private val indicator = view<LinearProgressIndicator> {
+    private val indicator = ProgressIndicator {
 
         setConstraints(
             target = messageText,
@@ -430,7 +429,7 @@ class ProcessNotificationView(ctx: MainContext) : NotificationView(ctx)
         }
     }
 
-    override fun onAssignData(data: Notification, position: Int)
+    override fun onBindData(data: Notification, position: Int)
     {
         data as ProcessNotification
 
@@ -444,6 +443,6 @@ class ProcessNotificationView(ctx: MainContext) : NotificationView(ctx)
             visibility = if (data.showIndicator) VISIBLE else GONE
         }
 
-        super.onAssignData(data, position)
+        super.onBindData(data, position)
     }
 }

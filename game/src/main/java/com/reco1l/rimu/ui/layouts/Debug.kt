@@ -4,11 +4,12 @@ import android.annotation.SuppressLint
 import android.graphics.Color.BLACK
 import android.graphics.Color.WHITE
 import android.graphics.drawable.ColorDrawable
-import android.text.SpannableStringBuilder
 import android.view.MotionEvent
 import android.widget.TextView.BufferType.SPANNABLE
+import androidx.core.text.buildSpannedString
 import androidx.core.text.color
 import com.reco1l.rimu.MainContext
+import com.reco1l.rimu.UpdateHandler
 import com.reco1l.rimu.mainThread
 import com.reco1l.rimu.ui.LayerOverlay
 import com.reco1l.rimu.ui.scenes.SceneIntro
@@ -17,7 +18,6 @@ import com.reco1l.rimu.ui.views.view
 import com.reco1l.toolkt.android.fontColor
 import com.reco1l.toolkt.android.setConstraints
 import com.reco1l.toolkt.graphics.Anchor
-import org.andengine.engine.handler.IUpdateHandler
 
 
 class DebugOverlay(ctx: MainContext) :
@@ -26,11 +26,11 @@ class DebugOverlay(ctx: MainContext) :
         layer = LayerOverlay::class,
         parents = arrayOf(SceneIntro::class)
     ),
-    IUpdateHandler
+    UpdateHandler
 {
 
     @SuppressLint("SetTextI18n")
-    private val versionText = view<TextView> {
+    private val versionText = TextView {
 
         setDimensions {
             fontSize = 8
@@ -56,7 +56,7 @@ class DebugOverlay(ctx: MainContext) :
 
 
     @SuppressLint("ClickableViewAccessibility")
-    private val logText = view<TextView> {
+    private val logText = TextView {
 
         setDimensions {
             fontSize = 8
@@ -130,7 +130,7 @@ class DebugOverlay(ctx: MainContext) :
 
     }
 
-    override fun onUpdate(sElapsed: Float)
+    override fun onUpdate(sDelta: Float)
     {
         if (!needsUpdate)
             return
@@ -140,7 +140,7 @@ class DebugOverlay(ctx: MainContext) :
         if (sections.isEmpty())
             return
 
-        SpannableStringBuilder().apply {
+        buildSpannedString {
 
             sections.forEach { (key, section) ->
 
@@ -149,7 +149,7 @@ class DebugOverlay(ctx: MainContext) :
 
                 append('[').append(key).append(']')
                 appendLine()
-                color(0xFFC7DCFF.toInt()) { append(section) }
+                color(0xC7DCFF) { append(section) }
             }
 
             mainThread {

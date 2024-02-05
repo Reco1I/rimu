@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.graphics.Color.BLACK
 import android.graphics.drawable.ColorDrawable
 import android.view.MotionEvent
+import android.view.ViewGroup
 import com.reco1l.toolkt.android.fontColor
 import com.reco1l.toolkt.android.setConstraints
 import com.reco1l.rimu.constants.Ease
@@ -15,10 +16,13 @@ import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.ui.BaseLayer
 import com.reco1l.rimu.ui.LayerOverlay
+import com.reco1l.rimu.ui.views.DummyView
 import com.reco1l.rimu.ui.views.TextView
 import com.reco1l.rimu.ui.views.view
 import kotlin.reflect.KClass
 
+
+fun IWithContext.ToastView(block: ToastView.() -> Unit) = ToastView(ctx).apply(block)
 
 class ToastView(ctx: MainContext) :
     ModelLayout(
@@ -51,7 +55,7 @@ class ToastView(ctx: MainContext) :
         }
 
 
-    private val headerText = view<TextView> {
+    private val headerText = TextView {
 
         setDimensions {
             fontSize = 10
@@ -70,7 +74,7 @@ class ToastView(ctx: MainContext) :
         )
     }
 
-    private val messageText = view<TextView> {
+    private val messageText = TextView {
 
         setDimensions {
             fontSize = 14

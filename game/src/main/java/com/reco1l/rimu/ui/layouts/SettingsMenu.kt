@@ -50,7 +50,7 @@ class SettingsMenu(ctx: MainContext) :
     )
 {
 
-    private val body = view<LinearLayout> {
+    private val body = LinearLayout {
 
         z = 1f
         orientation = HORIZONTAL
@@ -67,7 +67,7 @@ class SettingsMenu(ctx: MainContext) :
         setConstraints(rightToTarget = Anchor.RIGHT)
     }
 
-    private val tabContents = view<RecyclerView>(body) {
+    private val tabContents = body.RecyclerView {
 
         setDimensions {
             height = MATCH_PARENT
@@ -86,7 +86,7 @@ class SettingsMenu(ctx: MainContext) :
         )
     }
 
-    private val tabSelector = view<RecyclerView>(body) {
+    private val tabSelector = body.RecyclerView {
 
         orientation = VERTICAL
         adapter = Adapter(entries, { TabIconButton() })
@@ -101,7 +101,7 @@ class SettingsMenu(ctx: MainContext) :
         }
     }
 
-    private val bodyShadow = view<DummyView> {
+    private val bodyShadow = DummyView {
 
         setDimensions {
             width = tabContents.dimensions.width + 70 // Tab selection bar width.
@@ -221,8 +221,12 @@ class SettingsMenu(ctx: MainContext) :
 
     inner class TabIconButton : IconButton(ctx), IHeldView<SettingTab>
     {
-        override fun onAssignData(data: SettingTab, position: Int)
+        override var boundData: SettingTab? = null
+
+        override fun onBindData(data: SettingTab, position: Int)
         {
+            super.onBindData(data, position)
+
             skinningRules.image = when (data)
             {
                 SKINS -> "icon-skin"
@@ -237,8 +241,10 @@ class SettingsMenu(ctx: MainContext) :
         LinearLayout(ctx),
         IHeldView<SettingTab>
     {
+        override var boundData: SettingTab? = null
 
-        val title = view<TextView> {
+
+        val title = TextView {
 
             setDimensions {
                 width = MATCH_PARENT
@@ -253,6 +259,7 @@ class SettingsMenu(ctx: MainContext) :
 
             gravity = Gravity.CENTER
         }
+
 
         init
         {
@@ -270,6 +277,7 @@ class SettingsMenu(ctx: MainContext) :
             block()
         }
 
-        override fun onAssignData(data: SettingTab, position: Int) = Unit
+
+        override fun onBindData(data: SettingTab, position: Int) = super.onBindData(data, position)
     }
 }

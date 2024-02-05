@@ -4,47 +4,25 @@ import androidx.core.animation.doOnEnd
 import com.reco1l.basskt.stream.AudioStream
 import com.reco1l.toolkt.animation.animateTo
 import com.reco1l.toolkt.forEachObserver
-import com.rian.osu.beatmap.BeatmapData
-import com.rian.osu.beatmap.timings.ControlPoint
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.constants.RimuSetting.MUSIC_VOLUME
 import com.reco1l.rimu.data.Beatmap
-import com.reco1l.rimu.management.time.ControlPointType.DIFFICULTY
-import com.reco1l.rimu.management.time.ControlPointType.TIMING
 import com.reco1l.rimu.data.asset.ExternalAssetBundle
 import com.reco1l.rimu.mainThread
-import com.reco1l.rimu.management.time.ControlPointCursor
 import com.reco1l.rimu.management.time.GameClock
+import com.reco1l.rimu.management.time.IClockObserver
 import com.reco1l.rimu.ui.layouts.DebugOverlay
 import com.reco1l.rimu.updateThread
 import com.reco1l.toolkt.roundBy
+import com.rian.osu.beatmap.parser.BeatmapDecoder
+import com.rian.osu.beatmap.timings.ControlPoint
 import com.rian.osu.beatmap.timings.TimingControlPoint
 
-class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) : IWithContext
+open class WorkingBeatmap(final override val ctx: MainContext, val source: Beatmap) :
+    IWithContext,
+    IClockObserver
 {
-
-    /**
-     * Determine if the working beatmap is in gameplay mode.
-     *
-     * If this is set to `true` the beatmap hit objets will be load.
-     */
-    var isInGameplay = false
-        set(value)
-        {
-            // Decoding hit objects only if they weren't yet.
-            if (value && data.hitObjects == null)
-                data = onDecodeSource(true)
-
-            field = value
-        }
-
-    /**
-     * The current decoded data from this beatmap, it can never be null.
-     */
-    var data = onDecodeSource(false)
-        private set
-
 
     /**
      * The current assets from the beatmap.
@@ -57,9 +35,7 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) : IWith
     val stream = AudioStream().also {
 
         // Getting the audio file key, usually this contains the extension so we're removing it first.
-        val key = source.audio.substringBeforeLast('.')
-
-        it.source = assets.getAssetPath(key)
+        it.source = assets.getAssetPath(source.audio.substringBeforeLast('.'))
     }
 
     /**
@@ -69,18 +45,15 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) : IWith
 
 
     /**
+     * The current decoded data from this beatmap.
+     */
+    open var data = BeatmapDecoder().decode(source.toFile(ctx), false)
+
+    /**
      * The cursors for every control point type.
      */
-    private val cursors = data.controlPoints.let {
+    open var controlPointTimeline = ControlPointTimeline(data.controlPoints, ::onControlPointChange)
 
-        mutableMapOf(
-            // Cursor for timing control points
-            TIMING to ControlPointCursor(it.timing, ::onTimingControlPointChange),
-
-            // Cursor for difficulty control points
-            DIFFICULTY to ControlPointCursor(it.difficulty) { _, _, _ -> }
-        )
-    }
 
     private val onVolumeChange = { value: Any? -> stream.volume = value as Float }
 
@@ -89,21 +62,16 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) : IWith
     {
         ctx.settings.bindObserver(MUSIC_VOLUME, observer = onVolumeChange)
 
-        // Binding the cursors to the clock.
-        cursors.values.forEach { clock.bindObserver(observer = it) }
+        clock.bindObserver(observer = this)
     }
 
 
-    private fun onDecodeSource(withHitObjects: Boolean): BeatmapData
-    {
-        return BeatmapDecoder().decode(source.toFile(ctx), withHitObjects)
-    }
-
+    // Actions
 
     /**
      * Called by the [BeatmapManager] when this beatmap is no longer the current one.
      */
-    internal fun onRelease()
+    fun onRelease()
     {
         ctx.settings.unbindObserver(MUSIC_VOLUME, observer = onVolumeChange)
 
@@ -112,11 +80,17 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) : IWith
         }
 
         mainThread {
-            stream::volume.animateTo(0f, 300).doOnEnd {
-                stream.free()
-            }
+            stream::volume.animateTo(0f, 300).doOnEnd { stream.free() }
         }
     }
+
+    override fun onClockUpdate(sElapsedTime: Double, sDeltaTime: Float)
+    {
+        controlPointTimeline.onClockUpdate(sElapsedTime, sDeltaTime)
+    }
+
+
+    // Music control
 
     /**
      * Play the beatmap.
@@ -128,7 +102,7 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) : IWith
         stream.play(restart)
 
         updateThread {
-            ctx.engine.registerUpdateHandler(clock)
+            //ctx.engine.registerUpdateHandler(clock)
         }
 
         if (ctx.beatmaps.current == this)
@@ -169,18 +143,21 @@ class WorkingBeatmap(override val ctx: MainContext, val source: Beatmap) : IWith
 
     // Control points
 
-    private fun onTimingControlPointChange(
-        previous: TimingControlPoint,
-        current: TimingControlPoint,
-        next: TimingControlPoint
+    protected open fun onControlPointChange(
+        previous: ControlPoint,
+        current: ControlPoint,
+        next: ControlPoint
     )
     {
-        ctx.layouts[DebugOverlay::class].setSection("TimingPoint", """
-            current_start_time: ${(current.time / 1000.0).roundBy(3)}s
-            current_beat_length: ${current.msPerBeat.roundBy(3)}s (BPM: ${current.BPM.roundBy(3)})
-            current_time_signature: 1/${current.timeSignature}
-            next_start_time: ${(next.time / 1000.0).roundBy(3)}s
-        """.trimIndent())
+        if (current is TimingControlPoint)
+        {
+            ctx.layouts[DebugOverlay::class].setSection("TimingPoint", """
+                current_start_time: ${(current.time / 1000.0).roundBy(3)}s
+                current_beat_length: ${current.msPerBeat.roundBy(3)}s (BPM: ${current.BPM.roundBy(3)})
+                current_time_signature: 1/${current.timeSignature}
+                next_start_time: ${(next.time / 1000.0).roundBy(3)}s
+            """.trimIndent())
+        }
     }
 }
 

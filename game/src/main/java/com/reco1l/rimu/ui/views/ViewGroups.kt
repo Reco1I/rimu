@@ -15,6 +15,11 @@ import androidx.constraintlayout.widget.ConstraintLayout as AndroidConstraintLay
 
 // ConstraintLayout
 
+fun ViewGroup.ConstraintLayout(block: ConstraintLayout.() -> Unit) = ConstraintLayout(context as MainContext).also {
+    addView(it)
+    it.block()
+}
+
 open class ConstraintLayout(override val ctx: MainContext) :
     AndroidConstraintLayout(ctx),
     IWithContext,
@@ -49,6 +54,11 @@ open class ConstraintLayout(override val ctx: MainContext) :
 
 
 // LinearLayout
+
+fun ViewGroup.LinearLayout(block: LinearLayout.() -> Unit) = LinearLayout(context as MainContext).also {
+    addView(it)
+    it.block()
+}
 
 open class LinearLayout(override val ctx: MainContext) :
     AndroidLinearLayout(ctx),

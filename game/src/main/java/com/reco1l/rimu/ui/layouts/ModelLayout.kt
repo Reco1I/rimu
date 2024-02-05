@@ -8,6 +8,7 @@ import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.ui.BaseLayer
 import com.reco1l.rimu.ui.scenes.BaseScene
 import com.reco1l.rimu.ui.views.ConstraintLayout
+import com.reco1l.rimu.ui.views.ViewDimensions
 import kotlin.reflect.KClass
 
 abstract class ModelLayout(
@@ -26,6 +27,12 @@ abstract class ModelLayout(
 
 ) : ConstraintLayout(ctx)
 {
+
+    override val dimensions = super.dimensions.apply {
+
+        size(MATCH_PARENT)
+    }
+
 
     /**
      * Determine the time in ms that the layout will take to automatically hide.
@@ -62,8 +69,6 @@ abstract class ModelLayout(
 
     init
     {
-        dimensions.size(MATCH_PARENT)
-
         // Invalidating the timer
         invalidateHideTimer()
     }

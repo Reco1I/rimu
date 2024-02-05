@@ -34,6 +34,11 @@ data class Beatmap(
      */
     val audio: String,
 
+    /**
+     * The background filename.
+     */
+    val background: String?,
+
 
     // Online
 
@@ -119,6 +124,7 @@ data class Beatmap(
             hash = data.md5,
             id = data.metadata.beatmapID.toLong(),
             audio = data.general.audioFilename,
+            background = data.events.backgroundFilename,
 
             // Online
             status = null,
@@ -208,4 +214,10 @@ data class BeatmapSet(
     val beatmaps: List<Beatmap>
 
 )
+{
+    /**
+     * Get a beatmap from its index.
+     */
+    operator fun get(index: Int) = beatmaps[index]
+}
 

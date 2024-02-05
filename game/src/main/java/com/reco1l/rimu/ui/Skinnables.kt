@@ -3,11 +3,11 @@ package com.reco1l.rimu.ui
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.forEach
+import com.badlogic.gdx.scenes.scene2d.Group
 import com.reco1l.toolkt.kotlin.isLazyInitialized
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin
-import org.andengine.entity.IEntity
 
 /**
  * Indicates that a View or Entity is skinnable.
@@ -19,19 +19,21 @@ interface ISkinnable
 
     fun onApplySkin(skin: WorkingSkin)
     {
-        if (this is View)
+        when (this)
         {
-            (background as? ISkinnable)?.onApplySkin(skin)
-            (foreground as? ISkinnable)?.onApplySkin(skin)
+            is View -> {
 
-            if (this is ViewGroup)
-                forEach { (it as? ISkinnable)?.onApplySkin(skin) }
+                (background as? ISkinnable)?.onApplySkin(skin)
+                (foreground as? ISkinnable)?.onApplySkin(skin)
 
-            return
+                if (this is ViewGroup)
+                    forEach { (it as? ISkinnable)?.onApplySkin(skin) }
+
+                return
+            }
+
+            is Group -> children.forEach { (it as? ISkinnable)?.onApplySkin(skin) }
         }
-
-        if (this is IEntity)
-            callOnChildren { (it as? ISkinnable)?.onApplySkin(skin) }
     }
 
     /**
@@ -79,7 +81,7 @@ interface ISkinnableWithRules<T : Any, D : SkinningRules<T>> : ISkinnable
  * The skinning rules to be used, defines how the View or Entity has to behave skin changes.
  * @see ISkinnableWithRules
  */
-open class SkinningRules<T>
+abstract class SkinningRules<T>
 {
-    open fun onApplySkin(target: T, skin: WorkingSkin) = Unit
+    abstract fun onApplySkin(target: T, skin: WorkingSkin)
 }

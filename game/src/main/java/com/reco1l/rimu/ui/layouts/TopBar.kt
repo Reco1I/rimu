@@ -42,7 +42,7 @@ class TopBarLayout(ctx: MainContext) :
     val navigationTree = mutableListOf<() -> Boolean>()
 
 
-    val backButton = view<IconButton> {
+    val backButton = IconButton {
 
         setSkinning { image = "icon-back" }
 
@@ -50,7 +50,7 @@ class TopBarLayout(ctx: MainContext) :
     }
 
 
-    val leftLayout = view<LinearLayout> { 
+    val leftLayout = LinearLayout {
 
         setBackgroundColor(0x26000000)
 
@@ -66,7 +66,7 @@ class TopBarLayout(ctx: MainContext) :
             leftToTarget = Anchor.RIGHT
         )
 
-        view<IconButton> {
+        IconButton {
 
             setSkinning {
                 image = "icon-music"
@@ -80,7 +80,7 @@ class TopBarLayout(ctx: MainContext) :
         }
     }
 
-    val rightLayout = view<LinearLayout> { 
+    val rightLayout = LinearLayout {
 
         orientation = HORIZONTAL
         gravity = CENTER_VERTICAL or RIGHT
@@ -91,7 +91,7 @@ class TopBarLayout(ctx: MainContext) :
 
         setConstraints(rightToTarget = Anchor.RIGHT)
 
-        view<IconButton> {
+        IconButton {
 
             setSkinning {
                 image = "icon-notification"
@@ -102,7 +102,7 @@ class TopBarLayout(ctx: MainContext) :
 
         UserBoxView(ctx) attachTo this
 
-        view<IconButton> {
+        IconButton {
 
             setSkinning {
                 image = "icon-settings"
@@ -152,7 +152,7 @@ class UserBoxView(ctx: MainContext) : LinearLayout(ctx)
         }
     }
 
-    private val avatar = view<ImageView> {
+    private val avatar = ImageView {
 
         setDimensions {
             width = 26
@@ -163,7 +163,7 @@ class UserBoxView(ctx: MainContext) : LinearLayout(ctx)
         skinningRules.image = "avatar-default"
     }
 
-    private val username = view<TextView> {
+    private val username = TextView {
 
         text = "Reco1l"
 

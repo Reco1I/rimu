@@ -1,8 +1,15 @@
 package com.reco1l.rimu.ui.views
 
 import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
 import com.reco1l.rimu.MainContext
 
+
+fun ViewGroup.IconButton(block: IconButton.() -> Unit) = IconButton(context as MainContext).also {
+    addView(it)
+    it.block()
+}
 
 /**
  * Button with icon in center.
@@ -28,6 +35,11 @@ open class IconButton(ctx: MainContext) : ImageView(ctx)
     }
 }
 
+
+fun ViewGroup.TextButton(block: TextButton.() -> Unit) = TextButton(context as MainContext).also {
+    addView(it)
+    it.block()
+}
 
 /**
  * Button with text in center.

@@ -29,14 +29,14 @@ sealed class SettingView(ctx: MainContext) : ConstraintLayout(ctx)
 
     protected var hasSummary = false
 
-    protected open val titleView = view<TextView> {}
+    protected open val titleView = TextView {}
 
     protected open val summaryView by lazy {
 
         // Summary view will not be created unless the summary has been set.
         hasSummary = true
 
-        view<TextView> {
+        TextView {
 
             setDimensions {
                 fontSize = 8
@@ -89,7 +89,7 @@ fun IWithContext.ButtonSettingView(
 class ButtonSettingView(ctx: MainContext) : SettingView(ctx)
 {
 
-    override val titleView = view<TextButton> {
+    override val titleView = TextButton {
 
         setDimensions {
             width = MATCH_PARENT
@@ -166,7 +166,7 @@ class SeekBarSettingView(
         }
 
 
-    private val seekBar = view<SeekBar> {
+    private val seekBar = SeekBar {
 
         setDimensions {
             width = MATCH_PARENT

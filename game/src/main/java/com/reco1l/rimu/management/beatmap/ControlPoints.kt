@@ -1,16 +1,38 @@
-package com.reco1l.rimu.management.time
+package com.reco1l.rimu.management.beatmap
 
+import com.reco1l.rimu.management.time.IClockObserver
 import com.reco1l.toolkt.kotlin.BoundConflict
 import com.reco1l.toolkt.kotlin.nextOf
 import com.reco1l.toolkt.kotlin.previousOf
+import com.rian.osu.beatmap.sections.BeatmapControlPoints
 import com.rian.osu.beatmap.timings.ControlPoint
 import com.rian.osu.beatmap.timings.ControlPointManager
 
 
-fun interface CursorListener<T : ControlPoint>
+class ControlPointTimeline(
+
+    data: BeatmapControlPoints,
+
+    /**
+     * Called when the [current] control point has been changed.
+     */
+    onChange: (previous: ControlPoint, current: ControlPoint, next: ControlPoint) -> Unit
+
+): IClockObserver
 {
-    fun onControlPointChange(previous: T, current: T, next: T)
+
+    val timing = ControlPointCursor(data.timing, onChange)
+
+    val difficulty = ControlPointCursor(data.difficulty, onChange)
+
+
+    override fun onClockUpdate(sElapsedTime: Double, sDeltaTime: Float)
+    {
+        timing.onClockUpdate(sElapsedTime, sDeltaTime)
+        difficulty.onClockUpdate(sElapsedTime, sDeltaTime)
+    }
 }
+
 
 /**
  * Cursor to determine the current control point at current time defined by a [GameClock].
@@ -88,8 +110,3 @@ class ControlPointCursor<T : ControlPoint>(
     }
 }
 
-enum class ControlPointType
-{
-    TIMING,
-    DIFFICULTY
-}

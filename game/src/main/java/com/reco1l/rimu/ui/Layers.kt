@@ -27,8 +27,6 @@ class LayerBackground(ctx: MainContext) : BaseLayer(ctx)
     {
         ctx.onPostInitialization {
 
-            addView(engine.renderView)
-
             layouts[Background::class]
         }
     }

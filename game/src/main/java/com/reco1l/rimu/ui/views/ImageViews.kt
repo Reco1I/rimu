@@ -46,6 +46,12 @@ open class ImageSkinningRules<T : ImageView> : ViewSkinningRules<T>()
     }
 }
 
+
+fun ViewGroup.ImageView(block: ImageView.() -> Unit) = ImageView(context as MainContext).also {
+    addView(it)
+    it.block()
+}
+
 /**
  * View containing an image.
  */
@@ -70,6 +76,10 @@ open class ImageView(override val ctx: MainContext) :
 }
 
 
+fun ViewGroup.FadeImageView(block: FadeImageView.() -> Unit) = FadeImageView(context as MainContext).also {
+    addView(it)
+    it.block()
+}
 
 /**
  * ImageView that fades when the drawable is changed.

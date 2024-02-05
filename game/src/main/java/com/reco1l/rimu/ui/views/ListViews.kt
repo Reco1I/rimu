@@ -1,6 +1,7 @@
 package com.reco1l.rimu.ui.views
 
 import android.view.View
+import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
@@ -13,6 +14,11 @@ import com.reco1l.toolkt.android.orientation
 import kotlin.math.abs
 import androidx.recyclerview.widget.RecyclerView as AndroidRecyclerView
 
+
+fun ViewGroup.RecyclerView(block: RecyclerView.() -> Unit) = RecyclerView(context as MainContext).also {
+    addView(it)
+    it.block()
+}
 
 open class RecyclerView(final override val ctx: MainContext) :
     AndroidRecyclerView(ctx),
@@ -33,6 +39,11 @@ open class RecyclerView(final override val ctx: MainContext) :
 
 
 // Carrousel
+
+fun ViewGroup.CarrouselRecyclerView(block: CarrouselRecyclerView.() -> Unit) = CarrouselRecyclerView(context as MainContext).also {
+    addView(it)
+    it.block()
+}
 
 class CarrouselRecyclerView(ctx: MainContext) : RecyclerView(ctx)
 {
@@ -148,14 +159,20 @@ open class DropdownMenu(ctx: MainContext) : RecyclerView(ctx)
 
     inner class ItemView : TextView(ctx), IHeldView<Item>
     {
+
+        override var boundData: Item? = null
+
+
         override val dimensions = super.dimensions.apply {
 
             cornerRadius = 8f
             padding(12, 8)
         }
 
-        override fun onAssignData(data: Item, position: Int)
+        override fun onBindData(data: Item, position: Int)
         {
+            super.onBindData(data, position)
+
             text = data.name
             setTouchHandler { onActionUp = data.onTouch }
         }

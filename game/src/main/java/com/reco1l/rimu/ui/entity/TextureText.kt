@@ -1,122 +1,128 @@
 package com.reco1l.rimu.ui.entity
 
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
+import com.reco1l.rimu.graphics.setTexture
 import com.reco1l.rimu.management.skin.WorkingSkin
 import com.reco1l.rimu.ui.ISkinnableWithRules
 import com.reco1l.rimu.ui.SkinningRules
-import org.andengine.entity.IEntity
 
 
 class TextureTextSkinningRules<T : TextureText> : SkinningRules<T>()
 {
 
     /**
-     * Define how the texture keys should be resolved given the character.
+     * Prefix of the texture to be used.
      */
-    var textureProvider: (Char) -> String = { it.toString() }
+    var texturePrefix: String = ""
 
+    override fun onApplySkin(target: T, skin: WorkingSkin) = target.invalidateText()
 }
 
 
 fun IWithContext.TextureText(
-    parent: Entity? = this as? Entity,
+    parent: Group? = this as? Group,
     init: TextureText.() -> Unit
 ) = TextureText(ctx).apply {
-    parent?.attachChild(this)
+    parent?.addActor(this)
     init()
 }
 
 open class TextureText(ctx: MainContext) :
-    Entity(ctx),
+    Group(ctx),
     ISkinnableWithRules<TextureText, TextureTextSkinningRules<TextureText>>
 {
 
 
     override val skinningRules = TextureTextSkinningRules<TextureText>()
 
-
+    /**
+     * Text to be displayed.
+     */
     var text: String = ""
         set(value)
         {
             if (field != value)
-                invalidate = true
+                invalidateText()
 
             field = value
         }
 
+    /**
+     * Overlap between each character.
+     */
     var overlap = 0f
         set(value)
         {
             if (field != value)
-                invalidate = true
+                invalidateText()
+
+            field = value
+        }
+
+    /**
+     * Scale of each character.
+     */
+    var charScale: Float = 1f
+        set(value)
+        {
+            if (field != value)
+                invalidateText()
 
             field = value
         }
 
 
-    private var invalidate = false
-
-
     private fun onAllocateSprites(length: Int) = when
     {
-        childCount < length ->
+        children.size < length ->
         {
-            for (i in childCount until length)
-                attachChild(Sprite(ctx))
+            for (i in children.size until length)
+                addActor(Image(ctx))
         }
 
-        childCount > length ->
+        children.size > length ->
         {
             // Temporal array to avoid concurrency.
-            val toDetach = mutableListOf<IEntity>()
+            val toDetach = mutableListOf<Actor>()
 
-            for (i in length until childCount)
-                toDetach.add(mChildren[i])
+            for (i in length until children.size)
+                toDetach.add(children[i])
 
-            toDetach.forEach { it.detachSelf() }
+            toDetach.forEach { it.remove() }
         }
 
         else -> Unit
     }
 
 
-    override fun onManagedUpdate(sElapsed: Float)
+    fun invalidateText()
     {
         val text = text
 
-        if (childCount != text.length)
+        if (children.size != text.length)
             onAllocateSprites(text.length)
 
-        super.onManagedUpdate(sElapsed)
-
-        if (!invalidate || childCount == 0)
+        if (children.size == 0)
             return
 
         // Accounting last right bound from the previous sprite so we can place each one at the right
         // side of the previous.
         var lastRight = 0f
 
-        mChildren.forEachIndexed { index, sprite -> sprite as Sprite
+        children.forEachIndexed { index, sprite -> sprite as Image
 
             // Assigning the character according to the index.
-            val key = skinningRules.textureProvider(text[index])
+            val key = skinningRules.texturePrefix + text[index]
 
             sprite.setTexture(ctx.resources[key, 0])
             sprite.setPosition(lastRight, 0f)
+            sprite.setScale(charScale)
 
-            lastRight += sprite.width * sprite.scaleX - overlap
+            lastRight += sprite.width * scaleX - overlap
         }
 
-        invalidate = false
-    }
-
-    override fun onApplySkin(skin: WorkingSkin)
-    {
-        // No need to call ISkinnableWithRules super type because these skinning rules doesn't
-        // override onApplySkin.
-        super<Entity>.onApplySkin(skin)
-
-        this.invalidate = true
+        onMeasureSize()
     }
 }

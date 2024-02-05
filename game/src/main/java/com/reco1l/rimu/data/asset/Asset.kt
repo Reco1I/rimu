@@ -140,4 +140,10 @@ enum class AssetType(vararg val formats: String)
      */
     @Query("SELECT * FROM Asset WHERE parent = :parentKey")
     fun getFromParent(parentKey: String): List<Asset>
+
+    /**
+     * Get an asset from the parent [BeatmapSet.key] or [Skin.key] by its key.
+     */
+    @Query("SELECT hash FROM Asset WHERE parent = :parentKey AND `key` = :key AND variant = :variant")
+    fun getHash(parentKey: String, key: String, variant: Int = 0): String?
 }

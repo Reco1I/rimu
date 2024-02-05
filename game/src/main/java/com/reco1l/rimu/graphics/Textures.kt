@@ -1,76 +1,29 @@
 package com.reco1l.rimu.graphics
 
-import android.graphics.Bitmap
-import android.opengl.GLES20
-import android.opengl.GLES20.GL_TEXTURE_2D
-import android.opengl.GLES20.GL_UNPACK_ALIGNMENT
-import android.opengl.GLUtils
-import com.reco1l.toolkt.isPowerOfTwo
-import org.andengine.opengl.texture.ITextureStateListener
-import org.andengine.opengl.texture.PixelFormat.RGBA_8888
-import org.andengine.opengl.texture.Texture
-import org.andengine.opengl.texture.bitmap.BitmapTexture
-import org.andengine.opengl.texture.TextureManager
-import org.andengine.opengl.texture.TextureOptions
-import org.andengine.opengl.texture.region.TextureRegion
-import org.andengine.opengl.util.GLState
-import org.andengine.opengl.util.GLState.GL_UNPACK_ALIGNMENT_DEFAULT
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 
 
 /**
- * Improved version of [BitmapTexture] from AndEngine which allows to reuse an already created bitmap
- * without recycling it (because it's not needed anymore).
+ * Creates a new [TextureRegion] based on this texture.
  */
-class WrappingTexture(
+fun Texture.toTextureRegion() = TextureRegion(this)
 
-    val bitmap: Bitmap,
+/**
+ * Creates a new [TextureRegionDrawable] from this region.
+ */
+fun TextureRegion.toDrawable() = TextureRegionDrawable(this)
 
-    manager: TextureManager,
 
-    options: TextureOptions = TextureOptions.DEFAULT,
-
-    listener: ITextureStateListener? = null
-
-) : Texture(manager, bitmap.getPixelFormat(), options, listener)
+fun Image.setTexture(texture: Texture?)
 {
-
-    /**
-     * The shared instance of the region holding this texture.
-     * Transformations shouldn't be applied to this instance, use [toTextureRegion] instead.
-     */
-    val sharedTextureRegion by lazy { toTextureRegion() }
-
-
-    private val useDefaultAlignment = pixelFormat == RGBA_8888
-            && width.isPowerOfTwo()
-            && height.isPowerOfTwo()
-
-
-    override fun getWidth() = bitmap.width
-
-    override fun getHeight() = bitmap.height
-
-
-    override fun writeTextureToHardware(gl: GLState)
+    if (texture == null)
     {
-        if (!useDefaultAlignment)
-            GLES20.glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-
-        when (mTextureOptions.mPreMultiplyAlpha)
-        {
-            true -> GLUtils.texImage2D(GL_TEXTURE_2D, 0, bitmap, 0)
-
-            false -> gl.glTexImage2D(GL_TEXTURE_2D, 0, bitmap, 0, mPixelFormat)
-        }
-
-        if (!useDefaultAlignment)
-            GLES20.glPixelStorei(GL_UNPACK_ALIGNMENT, GL_UNPACK_ALIGNMENT_DEFAULT)
+        drawable = null
+        return
     }
 
-
+    drawable = texture.toTextureRegion().toDrawable()
 }
-
-/**
- * Returns a new [TextureRegion] with this texture as source.
- */
-fun WrappingTexture.toTextureRegion() = TextureRegion(this, 0f, 0f, width.toFloat(), height.toFloat())

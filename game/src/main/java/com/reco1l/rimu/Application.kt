@@ -1,12 +1,14 @@
 package com.reco1l.rimu
 
-import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Handler
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.backends.android.AndroidApplication
+import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
 import com.reco1l.basskt.BassDevice
 import com.reco1l.rimu.management.DatabaseManager
 import com.reco1l.rimu.management.LayoutManager
@@ -107,7 +109,6 @@ class MainContext(base: Context) : ContextWrapper(base)
         setTheme(R.style.Theme_Rimu)
 
         bass.start()
-        engine.start()
     }
 
 
@@ -125,19 +126,40 @@ class MainContext(base: Context) : ContextWrapper(base)
     /**
      * Notifies that a new activity was created.
      */
-    fun onActivityCreate(newActivity: Activity)
+    fun onActivityCreate(newActivity: AndroidApplication)
     {
-        // Notify layout manager and replace content view.
-        layouts.onActivityCreate(newActivity)
+        val config = AndroidApplicationConfiguration().apply {
 
-        if (!isInitialized) async {
+            // By default libGDX set 0 bits to alpha channel.
+            a = 8
+
+            // By default libGDX set 16 bits to depth
+            depth = 24
+
+            // Setting MSAA enabled by default.
+            numSamples = 2
+
+            // We're using BASS library as audio engine.
+            disableAudio = true
+
+            // Allowing to keep the screen on.
+            useWakelock = true
+
+            // This will not always use OpenGL ES 3.0 but will try to use it if it's compatible, if
+            // it's not then it will fallback OpenGL ES 2.0.
+            useGL30 = true
+        }
+
+        val renderView = newActivity.initializeForView(engine, config)
+
+        layouts.onActivityCreate(newActivity, renderView)
+
+        if (!isInitialized) Gdx.app.postRunnable {
 
             // Iterating all over the task submitted to the initialization tree and executing them
             // in asynchronous from UI thread.
             initializationQueue!!.forEachTrim { it() }
             initializationQueue = null
-
-            engine.startUpdateThread()
         }
     }
 
@@ -174,7 +196,7 @@ interface IWithContext
  *
  * @param waitEngine If `true` and the engine is paused the task will wait for the engine to start.
  */
-fun IWithContext.updateThread(waitEngine: Boolean = false, block: () -> Unit) = ctx.engine.runOnUpdateThread(block, waitEngine)
+fun IWithContext.updateThread(block: () -> Unit) = Unit // ctx.engine.runOnUpdateThread(block, waitEngine)
 
 /**
  * Run a block into the main thread.

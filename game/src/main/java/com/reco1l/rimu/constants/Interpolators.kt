@@ -1,20 +1,22 @@
 package com.reco1l.rimu.constants
 
 import android.animation.TimeInterpolator
+import com.badlogic.gdx.math.Interpolation
 import com.reco1l.toolkt.MathF
-import org.andengine.util.modifier.ease.IEaseFunction
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 
-
-fun interface TimeEasing : TimeInterpolator, IEaseFunction
+private fun TimeEasing(function: (Float) -> Float) = object : TimeEasing()
 {
+    override fun getInterpolation(input: Float) = function(input)
+}
 
+abstract class TimeEasing : Interpolation(), TimeInterpolator
+{
     operator fun invoke(input: Float) = getInterpolation(input)
 
-    // AndEngine integration.
-    override fun getPercentage(elapsed: Float, duration: Float) = getInterpolation(elapsed / duration)
+    override fun apply(a: Float) = getInterpolation(a)
 }
 
 
@@ -47,19 +49,8 @@ object Ease
         }
     }
 
-    val BOUNCE_IN = TimeEasing { 1f - BOUNCE_OUT.getInterpolation(1f - it) }
-
-    // Sine
-
-    val SINE_IN = TimeEasing { -cos(it * MathF.PI_HALF) + 1f }
-
-    val SINE_OUT = TimeEasing { sin(it * MathF.PI_HALF) }
-
-
     // Acceleration
 
     val DECELERATE = TimeEasing { 1.0f - (1.0f - it).pow(2) }
-
-    val ACCELERATE = TimeEasing { it.pow(2) }
 
 }

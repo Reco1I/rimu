@@ -2,9 +2,9 @@ package com.reco1l.rimu.data
 
 import androidx.annotation.IntRange
 import androidx.core.graphics.drawable.toDrawable
+import com.badlogic.gdx.graphics.Color
 import com.reco1l.skindecoder.serializers.ColorSerializer
 import kotlinx.serialization.Serializable
-import org.andengine.util.adt.color.Color
 
 /**
  * [Color] extension that allows to pass a non-component color (8 bit 0-255) in its constructor,
@@ -16,24 +16,24 @@ import org.andengine.util.adt.color.Color
 @Serializable(ColorSerializer::class)
 open class Color4 @JvmOverloads constructor(
 
-    @IntRange(0, 255) red: Int,
+    @IntRange(0, 255) r: Int,
 
-    @IntRange(0, 255) green: Int,
+    @IntRange(0, 255) g: Int,
 
-    @IntRange(0, 255) blue: Int,
+    @IntRange(0, 255) b: Int,
 
     @IntRange(0, 255) alpha: Int = 255
 
-) : Color(red / 255f, green / 255f, blue / 255f, alpha / 255f)
+) : Color(r / 255f, g / 255f, b / 255f, alpha / 255f)
 {
 
     /**
      * Create a [Color4] from an HEX Integer.
      */
     constructor(argb: Long) : this(
-        red = ((argb shr 16) and 0xFF).toInt(),
-        green = ((argb shr 8) and 0xFF).toInt(),
-        blue = (argb and 0xFF).toInt(),
+        r = ((argb shr 16) and 0xFF).toInt(),
+        g = ((argb shr 8) and 0xFF).toInt(),
+        b = (argb and 0xFF).toInt(),
         alpha = ((argb shr 24) and 0xFF).toInt()
     )
 
@@ -47,36 +47,44 @@ open class Color4 @JvmOverloads constructor(
         copy.alpha8bit
     )
 
-    /**`getRed() * 255`*/
+    /**
+     * `getRed() * 255`
+     */
     var red8bit
-        get() = (255f * red).toInt()
+        get() = (255f * r).toInt()
         set(value)
         {
-            red = value.coerceIn(0, 255) / 255f
+            r = value.coerceIn(0, 255) / 255f
         }
 
-    /**`getGreen() * 255`*/
+    /**
+     * `getGreen() * 255`
+     */
     var green8bit
-        get() = (255f * green).toInt()
+        get() = (255f * g).toInt()
         set(value)
         {
-            green = value.coerceIn(0, 255) / 255f
+            g = value.coerceIn(0, 255) / 255f
         }
 
-    /**`getBlue() * 255`*/
+    /**
+     * `getBlue() * 255`
+     */
     var blue8bit
-        get() = (255f * blue).toInt()
+        get() = (255f * b).toInt()
         set(value)
         {
-            blue = value.coerceIn(0, 255) / 255f
+            b = value.coerceIn(0, 255) / 255f
         }
 
-    /**`getAlpha() * 255`*/
+    /**
+     * `getAlpha() * 255`
+     */
     var alpha8bit
-        get() = (255f * alpha).toInt()
+        get() = (255f * a).toInt()
         set(value)
         {
-            alpha = value.coerceIn(0, 255) / 255f
+            a = value.coerceIn(0, 255) / 255f
         }
 
 
@@ -89,51 +97,43 @@ open class Color4 @JvmOverloads constructor(
         alpha8bit
     )
 
-    fun set(hex: Int)
-    {
-        red8bit = (hex shr 16) and 0xFF
-        green8bit = (hex shr 8) and 0xFF
-        blue8bit = hex and 0xFF
-        alpha8bit = (hex shr 24) and 0xFF
-    }
 
 
     // Conversion
-
 
     /**
      * Returns the color in a hexadecimal integer format.
      */
     fun toInt(
-        red: Float = getRed(),
-        blue: Float = getBlue(),
-        green: Float = getGreen(),
-        alpha: Float = getAlpha(),
+        r: Float = this.r,
+        g: Float = this.g,
+        b: Float = this.b,
+        alpha: Float = this.a,
         factor: Float = 1f
     ): Int
     {
         return ((255 * alpha).toInt() shl 24)
-            .or((255 * red * factor).toInt() shl 16)
-            .or((255 * green * factor).toInt() shl 8)
-            .or((255 * blue * factor).toInt() shl 0)
+            .or((255 * r * factor).toInt() shl 16)
+            .or((255 * g * factor).toInt() shl 8)
+            .or((255 * b * factor).toInt() shl 0)
     }
 
     fun toDrawable(
-        red: Float = getRed(),
-        blue: Float = getBlue(),
-        green: Float = getGreen(),
-        alpha: Float = getAlpha(),
+        r: Float = this.r,
+        g: Float = this.g,
+        b: Float = this.b,
+        alpha: Float = this.a,
         factor: Float = 1f
-    ) = toInt(red, blue, green, alpha, factor).toDrawable()
+    ) = toInt(r, g, b, alpha, factor).toDrawable()
 
 
     // Generated
 
     override fun equals(other: Any?) = other === this || other is Color4
-            && red == other.red
-            && green == other.green
-            && blue == other.blue
-            && alpha == other.alpha
+            && r == other.r
+            && g == other.g
+            && b == other.b
+            && a == other.a
 
 
     override fun hashCode(): Int

@@ -83,6 +83,11 @@ data class TextViewSkinningRules<T : TextView>(
 
 // Base
 
+fun ViewGroup.TextView(block: TextView.() -> Unit) = TextView(context as MainContext).also {
+    addView(it)
+    it.block()
+}
+
 /**
  * Base class for every [TextView][AppCompatTextView] in rimu!, it has an special handling for icons.
  */
@@ -183,6 +188,11 @@ open class TextView(final override val ctx: MainContext) :
     )
 }
 
+
+fun ViewGroup.TextField(block: TextField.() -> Unit) = TextField(context as MainContext).also {
+    addView(it)
+    it.block()
+}
 
 /**
  * A field to write text, also known as input.

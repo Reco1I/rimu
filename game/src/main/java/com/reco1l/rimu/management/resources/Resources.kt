@@ -24,8 +24,6 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
      */
     val directory = ctx.getExternalFilesDir(null)!!.subDirectory("resources/")
 
-
-
     /**
      * Map of assets sources and its getters.
      */
@@ -82,6 +80,25 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
     val defaultAssets by lazy { InternalAssetsBundle(ctx, Skin.BASE) }
 
 
+    init
+    {
+        File(directory, "Important.txt").apply {
+
+            if (exists())
+                return@apply
+
+            createNewFile()
+
+            writeText("""
+                Please do not touch or modify any file or folder inside this directory, otherwise the game may not recognize them. 
+                If you wanna delete all resources consider using the "Clear data" option in device settings.
+            """.trimIndent())
+        }
+    }
+
+
+    // Management
+
     /**
      * Check if a file is in use by the game, this prevents unused files being stored in the resource
      * directory.
@@ -134,23 +151,6 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
     }
 
 
-    init
-    {
-        File(directory, "Important.txt").apply {
-
-            if (exists())
-                return@apply
-
-            createNewFile()
-
-            writeText("""
-                Please do not touch or modify any file or folder inside this directory, otherwise the game may not recognize them. 
-                If you wanna delete all resources consider using the "Clear data" option in device settings.
-            """.trimIndent())
-        }
-    }
-
-
     // Getters
 
     /**
@@ -174,7 +174,7 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
         }
 
         if (fallbackToDefault)
-            Log.w(javaClass.simpleName, "Expected asset $key with variant $variant, wasn't found.")
+            Log.w(javaClass.simpleName, "Expected asset \"$key\" with variant $variant, wasn't found.")
 
         return null
     }
@@ -203,6 +203,19 @@ class ResourceManager(override val ctx: MainContext) : IWithContext
         return null
     }
 
+    /**
+     * Returns the resource file.
+     */
+    fun getFile(parentKey: String, key: String, variant: Int = 0): File?
+    {
+        val hash = ctx.database.assetTable.getHash(parentKey, key, variant) ?: run {
+
+            Log.w(javaClass.simpleName, "Expected hash for asset with key \"$key\" and variant $variant, wasn't found.")
+            return null
+        }
+
+        return File(directory, "${hash[0]}/${hash[0]}${hash[1]}/$hash")
+    }
 }
 
 /**

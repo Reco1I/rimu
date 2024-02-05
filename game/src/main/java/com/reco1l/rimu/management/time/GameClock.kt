@@ -1,24 +1,22 @@
 package com.reco1l.rimu.management.time
 
-import android.util.Log
 import com.reco1l.basskt.AudioState.PLAYING
 import com.reco1l.basskt.stream.AudioStream
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
+import com.reco1l.rimu.UpdateHandler
 import com.reco1l.rimu.ui.layouts.DebugOverlay
 import com.reco1l.toolkt.IObservable
 import com.reco1l.toolkt.forEachObserver
 import com.reco1l.toolkt.roundBy
-import org.andengine.engine.handler.IUpdateHandler
 import kotlin.math.abs
-import kotlin.math.absoluteValue
 
 /**
- * Despite a normal [IUpdateHandler] it listens to time modifications in an [AudioStream].
+ * Despite a normal [UpdateHandler] it listens to time modifications in an [AudioStream].
  */
 class GameClock(override val ctx: MainContext, var audioStream: AudioStream) :
     IObservable<IClockObserver>,
-    IUpdateHandler,
+    UpdateHandler,
     IWithContext
 {
 
@@ -110,13 +108,6 @@ class GameClock(override val ctx: MainContext, var audioStream: AudioStream) :
         """.trimIndent())
     }
 
-    override fun reset()
-    {
-        Log.v(javaClass.simpleName, "Game clock resetted.")
-
-        msElapsedTime = 0.0
-        rate = 1f
-    }
 }
 
 /**

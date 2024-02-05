@@ -137,7 +137,7 @@ class SkinManager(override val ctx: MainContext) :
             {
                 mainThread {
 
-                    view<ToastView> {
+                    ToastView {
 
                         header = "Skin changed"
                         message = current!!.data.general.name + (current!!.data.general.author?.let { " by $it" } ?: "")

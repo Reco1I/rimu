@@ -4,20 +4,22 @@ import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.Typeface
 import android.util.Log
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.caverock.androidsvg.SVG
 import com.reco1l.basskt.stream.AssetSampleStream
 import com.reco1l.basskt.stream.BaseStream
 import com.reco1l.basskt.stream.SampleStream
 import com.reco1l.toolkt.kotlin.orCatch
-import com.reco1l.rimu.graphics.WrappingTexture
 import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.data.Skin
 import com.reco1l.rimu.graphics.toBitmap
-import com.reco1l.rimu.graphics.toTexture
-import org.andengine.opengl.font.Font
+import org.jetbrains.kotlin.library.impl.buffer
 import java.io.File
 import java.io.InputStream
+import java.nio.ByteBuffer
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
@@ -51,7 +53,7 @@ sealed class AssetBundle(override val ctx: MainContext) : IWithContext
     fun onRelease()
     {
         // Unloading loaded textures from engine.
-        getMapOf<WrappingTexture>().forEach { (it.value as WrappingTexture).unload() }
+        //getMapOf<WrappingTexture>().forEach { (it.value as WrappingTexture).unload() }
     }
 
 
@@ -145,11 +147,11 @@ sealed class AssetBundle(override val ctx: MainContext) : IWithContext
          * List of supported types.
          */
         val SUPPORTED_TYPES = arrayOf(
-            Font::class,
             Bitmap::class,
+            Texture::class,
             Typeface::class,
-            BaseStream::class,
-            WrappingTexture::class
+            BitmapFont::class,
+            BaseStream::class
         )
 
         /**
@@ -216,12 +218,13 @@ class InternalAssetsBundle(ctx: MainContext, val directory: String) : AssetBundl
 
 
         // Image formats
-        WrappingTexture::class -> get<Bitmap>(key, variant)?.let {
+        Texture::class -> getInputStream(key, variant)?.use {
 
-            it.toTexture(ctx.engine.textureManager).apply { load() }
+            val bytes = it.readBytes()
+            val pixmap = Pixmap(bytes, 0, bytes.size)
 
+            Texture(pixmap)
         } as? T
-
 
         Bitmap::class -> getInputStream(key, variant)?.use {
 
@@ -268,10 +271,12 @@ class ExternalAssetBundle(ctx: MainContext, key: String) : AssetBundle(ctx)
                 SampleStream::class -> SampleStream(getAssetPath(key, variant)) as? T
 
                 // Image formats
-                WrappingTexture::class -> get<Bitmap>(key, variant)?.let {
+                Texture::class -> getInputStream(key, variant)?.use {
 
-                    it.toTexture(ctx.engine.textureManager).apply { load() }
+                    val bytes = it.readBytes().buffer
+                    val pixmap = Pixmap(bytes)
 
+                    Texture(pixmap)
                 } as? T
 
                 Bitmap::class -> getInputStream(key, variant)?.use {

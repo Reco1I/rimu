@@ -8,13 +8,17 @@ import android.view.MotionEvent.*
 import android.view.ViewGroup
 import com.reco1l.toolkt.graphics.drawRoundRect
 
-import com.reco1l.rimu.IWithContext
 import com.reco1l.rimu.MainContext
 import com.reco1l.rimu.management.skin.WorkingSkin
 
 
 
-open class SeekBar(ctx: MainContext) : LinearProgressIndicator(ctx)
+fun ViewGroup.SeekBar(block: SeekBar.() -> Unit) = SeekBar(context as MainContext).also {
+    addView(it)
+    it.block()
+}
+
+open class SeekBar(ctx: MainContext) : ProgressIndicator(ctx)
 {
 
     override val dimensions = super.dimensions.apply {
