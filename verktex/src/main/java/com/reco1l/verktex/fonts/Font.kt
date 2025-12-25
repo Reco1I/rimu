@@ -4,7 +4,7 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.graphics.GraphicsTexture
 
 /**
- * Represents a specific font with its associated metrics, texture, and glyphs.
+ * Represents a specific font with its associated metrics, atlas pages, and glyphs.
  * This class is responsible for managing the rendering of individual glyphs and their corresponding
  * texture regions.
  */
@@ -22,9 +22,14 @@ abstract class Font {
     abstract val metrics: Metrics
 
     /**
-     * The underlying texture that contains the rendered glyphs of the font.
+     * The atlas pages that contain the rendered glyphs of the font, in creation order. A page is
+     * added when the current one has no room left for a glyph, so placed glyphs never move.
+     * Each glyph's [Glyph.region] names its page.
      */
-    abstract val texture: GraphicsTexture
+    val pages: List<GraphicsTexture>
+        get() = mutablePages
+
+    private val mutablePages = mutableListOf<GraphicsTexture>()
 
     /**
      * Indicates whether kerning is supported for this font. Kerning is the adjustment of space
@@ -38,16 +43,56 @@ abstract class Font {
 
     operator fun get(codePoint: Int): Glyph {
         return glyphs.getOrPut(codePoint) {
-            onCreateGlyph(codePoint, texture)
+            onCreateGlyph(codePoint)
         }
     }
 
 
     /**
-     * This function should be implemented to render a single glyph into the texture and return its
-     * corresponding texture region.
+     * Places [source] on the current atlas page, or on a new page when it does not fit there.
+     *
+     * @throws IllegalStateException if the source does not fit on an empty page either.
      */
-    abstract fun onCreateGlyph(codePoint: Int, texture: GraphicsTexture): Glyph
+    protected fun addGlyphSource(source: GraphicsTexture.Source): GraphicsTexture.Region {
+        mutablePages.lastOrNull()?.addSource(source)?.let { return it }
+
+        val page = onCreatePage()
+        val region = page.addSource(source)
+
+        if (region == null) {
+            page.dispose()
+            throw IllegalStateException(
+                "Glyph source (${source.width}x${source.height}) does not fit on an empty " +
+                "${page.width}x${page.height} font atlas page."
+            )
+        }
+
+        mutablePages += page
+        return region
+    }
+
+    /**
+     * Disposes every atlas page and forgets the glyphs. The font must not be drawn afterwards.
+     */
+    fun dispose() {
+        for (page in mutablePages) {
+            page.dispose()
+        }
+        mutablePages.clear()
+        glyphs.clear()
+    }
+
+
+    /**
+     * This function should be implemented to render a single glyph into an atlas page (see
+     * [addGlyphSource]) and return it with its corresponding texture region.
+     */
+    abstract fun onCreateGlyph(codePoint: Int): Glyph
+
+    /**
+     * Creates a new, empty atlas page. Every page of a font has the same size.
+     */
+    protected abstract fun onCreatePage(): GraphicsTexture
 
     /**
      * Provides the kerning value between two characters, which is the additional adjustment of space

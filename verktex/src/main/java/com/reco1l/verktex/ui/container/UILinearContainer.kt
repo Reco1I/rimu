@@ -20,7 +20,7 @@ open class UILinearContainer : UIContainer() {
         set(value) {
             if (field == value) return
             field = value
-            invalidateLayout()
+            invalidateMeasure()
         }
 
     /**
@@ -30,7 +30,7 @@ open class UILinearContainer : UIContainer() {
         set(value) {
             if (field == value) return
             field = value
-            invalidateLayout()
+            invalidateMeasure()
         }
 
 
@@ -58,7 +58,7 @@ open class UILinearContainer : UIContainer() {
                 continue
             }
 
-            val childMeasuredSize = child.measure(contentConstraints.loosen())
+            val childMeasuredSize = child.measure(contentConstraints.loosen().withoutFillLimits(child))
 
             when (orientation) {
                 Orientation.Horizontal -> {
@@ -108,7 +108,7 @@ open class UILinearContainer : UIContainer() {
                     }
                 }
 
-                val childMeasuredSize = child.measure(constraints)
+                val childMeasuredSize = child.measure(constraints.withoutFillLimits(child))
 
                 when (orientation) {
                     Orientation.Horizontal -> {
@@ -123,10 +123,26 @@ open class UILinearContainer : UIContainer() {
             }
         }
 
-        val measuredSize = Vec2(totalWidth, totalHeight).expand(padding.toVec4())
+        val measuredSize = parentConstraints.constrain(Vec2(totalWidth, totalHeight).expand(padding.toVec4()))
 
-        return parentConstraints.constrain(measuredSize)
+        // The main axis keeps the size the child got in the first pass.
+        stretchFillingChildren(measuredSize) { child ->
+            when (orientation) {
+                Orientation.Horizontal -> contentConstraints.loosen().copy(minWidth = child.measuredSize.x, maxWidth = child.measuredSize.x)
+                Orientation.Vertical -> contentConstraints.loosen().copy(minHeight = child.measuredSize.y, maxHeight = child.measuredSize.y)
+            }
+        }
+
+        return measuredSize
     }
+
+    // Fills on the main axis share the free space instead, only the cross axis is stretched.
+    override fun fillsWrappedWidth(child: UIComponent) =
+        orientation == Orientation.Vertical && super.fillsWrappedWidth(child)
+
+    override fun fillsWrappedHeight(child: UIComponent) =
+        orientation == Orientation.Horizontal && super.fillsWrappedHeight(child)
+
 
     override fun onLayout(bounds: Vec4) {
 

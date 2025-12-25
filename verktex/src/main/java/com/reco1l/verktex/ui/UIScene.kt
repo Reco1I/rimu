@@ -42,8 +42,8 @@ open class UIScene : UIContainer() {
      */
     open fun onPerformLayout() {
 
-        val windowWidth = Verktex.graphics.window.width.toFloat()
-        val windowHeight = Verktex.graphics.window.height.toFloat()
+        val windowWidth = Verktex.graphics.window.windowWidth.toFloat()
+        val windowHeight = Verktex.graphics.window.windowHeight.toFloat()
 
         val constraints = LayoutConstraints(
             minWidth = 0f,

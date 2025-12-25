@@ -1,9 +1,8 @@
 package com.reco1l.verktex.fonts
 
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.UIComponent
-import kotlin.concurrent.atomics.AtomicReference
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import com.reco1l.verktex.data.px
 
 /**
  * Represents a family of fonts, which can be used to retrieve specific [Font] instances based on their
@@ -19,7 +18,6 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
  * Due to this, fonts could be **rendered differently** on different platforms, and the same font family
  * may look different on Android, iOS, or other platforms.
  */
-@OptIn(ExperimentalAtomicApi::class)
 class FontFamily(
 
     /**
@@ -33,14 +31,15 @@ class FontFamily(
 ) {
 
     private val fonts = mutableMapOf<Font.Descriptor, Font>()
-    private val subscribers = mutableMapOf<Font, MutableList<AtomicReference<UIComponent>>>()
 
 
     /**
      * Retrieves a [Font] instance based on the provided size, weight, and style.
      */
     operator fun get(size: Dimension.Fixed, weight: Font.Weight = Font.Weight.Normal, style: Font.Style = Font.Style.Normal): Font {
-        return get(Font.Descriptor(this, size, weight, style))
+        // Every font size follows the user's font scale.
+        val scaledSize = if (Verktex.fontScale == 1f) size else (size.toPixels() * Verktex.fontScale).px
+        return get(Font.Descriptor(this, scaledSize, weight, style))
     }
 
     /**
@@ -48,21 +47,6 @@ class FontFamily(
      */
     operator fun get(descriptor: Font.Descriptor): Font {
         return fonts.getOrPut(descriptor) { source.onCreateFont(descriptor) }
-    }
-
-
-    fun subscribe(font: Font, component: UIComponent) {
-        if (font.descriptor.family != this) {
-            throw IllegalArgumentException("Font does not belong to this FontFamily.")
-        }
-
-        subscribers[font] = subscribers.getOrPut(font) { mutableListOf() }.apply {
-            add(AtomicReference(component))
-        }
-    }
-
-    fun unsubscribe(font: Font, component: UIComponent) {
-        subscribers[font]?.removeIf { it.load() == component }
     }
 
 
@@ -76,7 +60,7 @@ class FontFamily(
         while (fonts.isNotEmpty()) {
             val font = fonts.values.first()
             fonts.remove(font.descriptor)
-            font.texture.dispose()
+            font.dispose()
         }
     }
 

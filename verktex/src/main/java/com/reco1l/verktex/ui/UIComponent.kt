@@ -100,7 +100,7 @@ abstract class UIComponent {
         set(value) {
             if (field == value) return
             field = value
-            invalidateLayout()
+            invalidateMeasure()
         }
 
     /**
@@ -115,7 +115,7 @@ abstract class UIComponent {
         set(value) {
             if (field == value) return
             field = value
-            invalidateLayout()
+            invalidateMeasure()
         }
 
     /**
@@ -175,7 +175,7 @@ abstract class UIComponent {
     /**
      * The scale in the X axis.
      */
-    var scaleX = 0f
+    var scaleX = 1f
         set(value) {
             if (field.almostEquals(value)) return
             field = value
@@ -185,7 +185,7 @@ abstract class UIComponent {
     /**
      * The scale in the Y axis.
      */
-    var scaleY = 0f
+    var scaleY = 1f
         set(value) {
             if (field.almostEquals(value)) return
             field = value
@@ -305,12 +305,12 @@ abstract class UIComponent {
      * [x], [y], [scaleX], [scaleY], [rotationX], [rotationY], [rotationZ]
      */
     open fun calculateTransformations() {
+        // Mat2 operations are applied after the existing ones, so the order here is the order in
+        // which they affect a local point: scale, rotate and finally move to the layout position.
         localToParentMatrix.apply {
             identity()
 
-            translate(bounds.x, bounds.y)
-
-            if (scaleX != 0f || scaleY != 0f) {
+            if (scaleX != 1f || scaleY != 1f) {
                 val scaleCenterX = bounds.width * scaleOrigin.x
                 val scaleCenterY = bounds.height * scaleOrigin.y
 
@@ -327,18 +327,26 @@ abstract class UIComponent {
                 rotate(rotationZ)
                 translate(rotationCenterX, rotationCenterY)
             }
+
+            // Fractions of the translation are relative to the component's own size, as in CSS.
+            translate(bounds.x + translationX.resolve(bounds.width), bounds.y + translationY.resolve(bounds.height))
         }
 
         parentToLocalMatrix.set(localToParentMatrix)
-        parentToLocalMatrix.invert()
+        parentToLocalMatrix.invertOrNaN()
 
         val parent = parent
 
-        localToSceneMatrix.set(localToParentMatrix)
-        if (parent != null) localToSceneMatrix.concat(parent.localToSceneMatrix)
+        // concat() applies the given matrix first, so the local transform goes into the parent's.
+        if (parent != null) {
+            localToSceneMatrix.set(parent.localToSceneMatrix)
+            localToSceneMatrix.concat(localToParentMatrix)
+        } else {
+            localToSceneMatrix.set(localToParentMatrix)
+        }
 
         sceneToLocalMatrix.set(localToSceneMatrix)
-        sceneToLocalMatrix.invert()
+        sceneToLocalMatrix.invertOrNaN()
     }
 
     /**
@@ -388,6 +396,20 @@ abstract class UIComponent {
      * The color of the component boxed in a [Color4] object.
      */
     var color = Color4.White
+
+    /**
+     * When true, this component's RGB is multiplied into its descendants' colours (the alpha always is).
+     * The component's own content, background and border are never tinted by its own RGB. Only
+     * containers have descendants, so it has no effect on other components. Default false.
+     */
+    var tintChildren: Boolean = false
+
+    /**
+     * The [color] without its alpha, used to draw the component's own content. The alpha is
+     * already applied to everything the component draws through the renderer's color stack.
+     */
+    protected val contentColor
+        get() = color.copy(alpha = 1f)
 
     /**
      * The alpha component of the compoent's color.
@@ -451,6 +473,14 @@ abstract class UIComponent {
     }
 
     /**
+     * Called when the theme or the font scale changed, after the style was applied again.
+     * Cached values depending on them must be invalidated here.
+     */
+    open fun onThemeChanged() {
+        invalidateMeasure()
+    }
+
+    /**
      * Called when the style of the component needs to be applied.
      *
      * Usually this calls the [style] lambda with the current theme.
@@ -466,10 +496,17 @@ abstract class UIComponent {
     /**
      * Whether the component's layout is invalid and needs to be processed next frame.
      */
-    // Components start invalid so they get measured and laid out on their first frame.
-    // TODO: Reset these flags once every property setter reliably invalidates the component.
+    // Laying out is cheap, so it runs every frame and this flag is never reset. Scrolling and
+    // animated positions rely on it. Only a static layout resets it, see [isLayoutStatic].
     var layoutInvalid = true
         private set
+
+    /**
+     * Whether this component keeps its layout until it is invalidated, instead of laying out every
+     * frame. See [UIContainer.staticLayout].
+     */
+    protected open val isLayoutStatic
+        get() = false
 
     /**
      * Whether the component's measurement is invalid and needs to be processed next frame.
@@ -489,14 +526,17 @@ abstract class UIComponent {
      */
     fun invalidateLayout() {
         layoutInvalid = true
+        // A static ancestor skips its pass while valid, so the change has to reach it to lay this
+        // component out again. Every other component is always invalid, there it changes nothing.
+        parent?.invalidateLayout()
     }
 
     /**
      * Marks this component's measure as invalid.
      */
     fun invalidateMeasure() {
-        if (measureInvalid) return
         measureInvalid = true
+        // The parent's size can depend on this component's one.
         parent?.invalidateMeasure()
     }
 
@@ -530,7 +570,8 @@ abstract class UIComponent {
      * This is usually called when the component is added to a container.
      */
     open fun onAttached() {
-        style()
+        // The style is already applied when assigned, applying it again here would override the
+        // values set by the builder after construction.
     }
 
     /**
@@ -560,6 +601,25 @@ abstract class UIComponent {
     var isVisible = true
 
     /**
+     * Whether the bounds of this component, transformed to scene space, overlap the given scene
+     * rectangle. Anything drawn outside of the bounds is not considered.
+     */
+    fun intersectsSceneRect(x: Float, y: Float, width: Float, height: Float): Boolean {
+        if (transformationsInvalid) {
+            transformationsInvalid = false
+            calculateTransformations()
+        }
+
+        val (x0, y0) = localToSceneMatrix.transform(0f, 0f)
+        val (x1, y1) = localToSceneMatrix.transform(bounds.width, 0f)
+        val (x2, y2) = localToSceneMatrix.transform(bounds.width, bounds.height)
+        val (x3, y3) = localToSceneMatrix.transform(0f, bounds.height)
+
+        return minOf(x0, x1, x2, x3) <= x + width && maxOf(x0, x1, x2, x3) >= x
+            && minOf(y0, y1, y2, y3) <= y + height && maxOf(y0, y1, y2, y3) >= y
+    }
+
+    /**
      * Draws the component using the given renderer. This method is responsible for setting up the
      * rendering context, applying transformations, and calling [onDraw] to perform the actual
      * drawing of the component.
@@ -578,20 +638,7 @@ abstract class UIComponent {
         renderer.pushMatrix(localToSceneMatrix)
         renderer.pushColor(color)
 
-        if (clipping != ClipMode.Disabled) {
-            val clippingBounds = if (clipping == ClipMode.Bounds)
-                bounds
-            else
-                bounds.shrink(padding.toVec4())
-
-            renderer.pushScissor(
-                x = if (clipping == ClipMode.Bounds) 0f else paddingLeft.toPixels(),
-                y = if (clipping == ClipMode.Bounds) 0f else paddingTop.toPixels(),
-                width = clippingBounds.width,
-                height = clippingBounds.height
-            )
-        }
-
+        // The background is drawn before clipping, padding clipping must only affect the content.
         if (backgroundColor.alpha > 0f || (borderColor.alpha > 0f && borderWidth.value > 0f)) {
             renderer.drawRect(
                 x = 0f,
@@ -605,8 +652,21 @@ abstract class UIComponent {
             )
         }
 
-        // Render component and children
-        onDraw(renderer)
+        if (clipping != ClipMode.Disabled) {
+            val clippingBounds = if (clipping == ClipMode.Bounds)
+                bounds
+            else
+                bounds.shrink(padding.toVec4())
+
+            renderer.pushScissor(
+                x = if (clipping == ClipMode.Bounds) 0f else paddingLeft.toPixels(),
+                y = if (clipping == ClipMode.Bounds) 0f else paddingTop.toPixels(),
+                width = clippingBounds.width.coerceAtLeast(0f),
+                height = clippingBounds.height.coerceAtLeast(0f)
+            )
+        }
+
+        drawContent(renderer)
 
         // Debug outline
         if (showComponentBoundaries) {
@@ -617,6 +677,14 @@ abstract class UIComponent {
 
         renderer.popColor()
         renderer.popMatrix()
+    }
+
+    /**
+     * Draws the component and its children by calling [onDraw]. Subclasses can wrap it to set up
+     * render state around the drawing, see [UICanvas].
+     */
+    protected open fun drawContent(renderer: GraphicsRenderer) {
+        onDraw(renderer)
     }
 
     /**
@@ -672,7 +740,7 @@ abstract class UIComponent {
         set(value) {
             if (field == value) return
             field = value
-            invalidateLayout()
+            invalidateMeasure()
         }
 
     /**
@@ -736,21 +804,39 @@ abstract class UIComponent {
     var measuredSize = Vec2.Zero
         protected set
 
+    private var lastMeasureConstraints: LayoutConstraints? = null
+
+    private var lastLayoutBounds: Vec4? = null
+
     /**
      * Measures the component with the given layout constraints. This method will call [onMeasure]
      * to perform the actual measurement.
      */
     fun measure(parentContraints: LayoutConstraints): Vec2 {
 
-        if (!measureInvalid) {
+        if (!measureInvalid && parentContraints == lastMeasureConstraints) {
             return measuredSize
+        }
+
+        // Reset before measuring, invalidations made meanwhile must trigger another pass.
+        measureInvalid = false
+        lastMeasureConstraints = parentContraints
+
+        // A measure pass means a size, position or child changed, which a static layout must apply.
+        if (isLayoutStatic) {
+            layoutInvalid = true
         }
 
         val ownConstraints = parentContraints.resolve(width, height)
         val contentConstraints = ownConstraints.shrink(padding)
 
         val oldMeasuredSize = measuredSize
-        measuredSize = ownConstraints.constrain(onMeasure(parentContraints, contentConstraints))
+
+        val contentSize = onMeasure(parentContraints, contentConstraints)
+        val widthFactor = (width as? Dimension.ContentSizeFraction)?.factor ?: 1f
+        val heightFactor = (height as? Dimension.ContentSizeFraction)?.factor ?: 1f
+
+        measuredSize = ownConstraints.constrain(Vec2(contentSize.x * widthFactor, contentSize.y * heightFactor))
 
         if (oldMeasuredSize != measuredSize) {
             invalidateLayout()
@@ -765,7 +851,15 @@ abstract class UIComponent {
      * the actual layout of the component. The bounds are expected to be in the parent's coordinate system.
      */
     open fun layout(assignedBounds: Vec4) {
-        if (!layoutInvalid) {
+        if (isLayoutStatic) {
+            if (!layoutInvalid && assignedBounds == lastLayoutBounds) {
+                return
+            }
+
+            // Reset before laying out, invalidations made meanwhile must trigger another pass.
+            layoutInvalid = false
+            lastLayoutBounds = assignedBounds
+        } else if (!layoutInvalid) {
             return
         }
 

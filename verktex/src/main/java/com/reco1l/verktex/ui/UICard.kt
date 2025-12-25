@@ -4,7 +4,10 @@ import com.reco1l.verktex.*
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.horizontalPadding
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.wrap
@@ -23,6 +26,10 @@ open class UICard : UILinearContainer() {
      * The title to show in the card's title bar. If `null` or empty, the title bar will not be shown.
      */
     var title: String? = null
+        set(value) {
+            field = value
+            titleText.text = value ?: ""
+        }
 
     /**
      * Whether the card can be collapsed or not. If true, the title bar will be clickable and the
@@ -72,6 +79,7 @@ open class UICard : UILinearContainer() {
     //region Components
 
     private val titleBar = clickableContainer {
+        width = fill()
 
         style = Style { theme ->
             height = theme.controlStyle.minimumHeight
@@ -106,7 +114,14 @@ open class UICard : UILinearContainer() {
     }
 
     private val content = linearContainer {
+        width = fill()
         height = wrap()
+        // Hides the overflowing children while collapsing.
+        clipping = ClipMode.Bounds
+
+        style = Style { theme ->
+            padding = Padding(theme.gap.md)
+        }
         orientation = Orientation.Vertical
     }
 
@@ -125,6 +140,7 @@ open class UICard : UILinearContainer() {
 
         // Divider
         titleBar += UIBox().apply {
+            width = fill()
             height = 2f.px
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
@@ -132,8 +148,6 @@ open class UICard : UILinearContainer() {
                 backgroundColor = theme.palette.divider
             }
         }
-
-        +content
     }
 
 

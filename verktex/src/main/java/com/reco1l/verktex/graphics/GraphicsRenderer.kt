@@ -1,16 +1,17 @@
 package com.reco1l.verktex.graphics
 
-import com.osudroid.math.toRadians
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Mat2
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Logger
+import com.reco1l.verktex.PerformanceStats
 import com.reco1l.verktex.fonts.Font
 import com.reco1l.verktex.math.toRadians
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
@@ -44,13 +45,27 @@ abstract class GraphicsRenderer {
 
 
     private val commandBatch = ArrayDeque<DrawCommand>()
+
+    // Vertex buffers are reused across frames, creating and deleting them per command is costly.
+    private val bufferPool = ArrayList<GraphicsBuffer>()
+    private var buffersUsed = 0
+
+    /**
+     * The draw commands recorded for the current frame so far.
+     */
+    val commandCount
+        get() = commandBatch.size
     private val gpuResources = ArrayDeque<GraphicsResource>()
 
 
     //region Stacks
     private val matrixStack = ArrayDeque<Mat2>()
     private val colorStack = ArrayDeque<Color4>()
+    private val tintStack = ArrayDeque<Color4>()
     private val scissorStack = ArrayDeque<Vec4>()
+    private val blendModeStack = ArrayDeque<BlendMode>()
+    private val depthStateStack = ArrayDeque<DepthState>()
+    private val shaderStack = ArrayDeque<GraphicsShader>()
     //endregion
 
     //region State
@@ -58,26 +73,15 @@ abstract class GraphicsRenderer {
     private var activeBuffer: GraphicsBuffer? = null
     private var activeTexture: GraphicsTexture? = null
     private var activeScissor: Vec4? = null
-    private var activeBlendMode: BlendMode = BlendMode.Alpha
-    private var activeDepthState: DepthState = DepthState.Default
-    private var activeUniformSet: GraphicsShader.UniformSet = GraphicsShader.UniformSet()
+    private var activeUniformSet: GraphicsShader.UniformSet = EMPTY_UNIFORMS
 
+    // The uniforms of the last drawn external texture, reused so consecutive draws of it merge.
+    private var externalUniformsTexture: GraphicsTexture? = null
+    private var externalUniforms: GraphicsShader.UniformSet = EMPTY_UNIFORMS
 
-    private fun DrawCommand.canReuse(
-        shader: GraphicsShader?,
-        texture: GraphicsTexture?,
-        scissor: Vec4?,
-        blendMode: BlendMode,
-        depthState: DepthState,
-        uniformSet: GraphicsShader.UniformSet,
-    ): Boolean {
-        return this.shader == shader &&
-                this.uniformSet == uniformSet &&
-                this.texture == texture &&
-                this.blendMode == blendMode &&
-                this.depthState == depthState &&
-                this.scissor == scissor
-    }
+    // Transformed positions are written here instead of allocating a Vec2 per vertex. It is only
+    // used within one draw helper call at a time, the renderer is driven by a single thread.
+    private val points = FloatArray(8)
 
 
     /**
@@ -91,14 +95,17 @@ abstract class GraphicsRenderer {
         shader: GraphicsShader? = activeShader,
         texture: GraphicsTexture? = activeTexture,
         scissor: Vec4? = scissorStack.lastOrNull(),
-        blendMode: BlendMode = activeBlendMode,
-        depthState: DepthState = activeDepthState,
+        blendMode: BlendMode = blendModeStack.lastOrNull() ?: BlendMode.Alpha,
+        depthState: DepthState = depthStateStack.lastOrNull() ?: DepthState.Default,
         uniformSet: GraphicsShader.UniformSet = activeUniformSet
     ) {
+        // A pushed shader replaces the one the draw call asked for, see pushShader.
+        val usedShader = shaderStack.lastOrNull() ?: shader
+
         val lastCommand = commandBatch.lastOrNull()
         if (lastCommand != null &&
             lastCommand.canReuse(
-                shader,
+                usedShader,
                 texture,
                 scissor,
                 blendMode,
@@ -107,20 +114,19 @@ abstract class GraphicsRenderer {
             )
         ) return
 
-        // Per-frame buffers are disposed right after being drawn, see end().
-        val vertexBuffer = device.createBuffer()
+        val vertexBuffer = bufferPool.getOrNull(buffersUsed) ?: createVertexBuffer().also(bufferPool::add)
+        buffersUsed++
+        vertexBuffer.clear()
 
         activeTexture = texture
-        activeShader = shader
+        activeShader = usedShader
         activeBuffer = vertexBuffer
         activeScissor = scissor
-        activeBlendMode = blendMode
-        activeDepthState = depthState
         activeUniformSet = uniformSet
 
         val command = DrawCommand(
             buffer = vertexBuffer,
-            shader = shader,
+            shader = usedShader,
             texture = texture,
             scissor = scissor,
             blendMode = blendMode,
@@ -129,6 +135,17 @@ abstract class GraphicsRenderer {
         )
 
         commandBatch.addLast(command)
+    }
+
+    /**
+     * Clears the depth buffer at this point of the frame. Draws recorded before stay before the clear
+     * and the next draw starts a new command.
+     */
+    fun clearDepth() {
+        commandBatch.addLast(DrawCommand(clearDepth = true))
+
+        // A geometry draw without a new setState() would otherwise write into a buffer already queued before the clear.
+        activeBuffer = null
     }
 
     /**
@@ -146,10 +163,11 @@ abstract class GraphicsRenderer {
     }
 
     /**
-     * Pushes a color onto the color stack. This color will be used to transform subsequent drawing operations.
+     * Pushes a color onto the color stack. Its alpha is multiplied into subsequent colors, its RGB
+     * is not, see [pushTint] for that.
      */
     fun pushColor(color: Color4) {
-        colorStack.addLast(transformColor(color))
+        colorStack.addLast(color.copy(alpha = color.alpha * (colorStack.lastOrNull()?.alpha ?: 1f)))
     }
 
     /**
@@ -160,14 +178,88 @@ abstract class GraphicsRenderer {
     }
 
     /**
+     * Pushes a tint onto the tint stack: the RGB of [color] (its alpha is ignored) is multiplied
+     * into the RGB of everything drawn until the matching [popTint], on top of the tints already pushed.
+     */
+    fun pushTint(color: Color4) {
+        val parent = tintStack.lastOrNull() ?: Color4.White
+        tintStack.addLast(Color4(parent.red * color.red, parent.green * color.green, parent.blue * color.blue))
+    }
+
+    /**
+     * Pops the last tint pushed with [pushTint].
+     */
+    fun popTint() {
+        tintStack.removeLastOrNull()
+    }
+
+    /**
+     * The area drawing is currently limited to, in scene space as x, y, width and height: the
+     * innermost scissor, or the window when nothing is clipped.
+     */
+    val clipBounds: Vec4
+        get() = scissorStack.lastOrNull() ?: Vec4(0f, 0f, window.windowWidth.toFloat(), window.windowHeight.toFloat())
+
+    /**
+     * Pushes a shader onto the shader stack. It replaces the shader of subsequent drawing operations,
+     * so it must use the built-in vertex layout: position at location 0, UV at 1 and color at 2.
+     * Uniforms it does not declare are skipped.
+     *
+     * It also replaces `BuiltIn.Shaders.Video` for external textures, so a shader with a 2D sampler
+     * must not be pushed while an external texture is drawn.
+     */
+    fun pushShader(shader: GraphicsShader) {
+        shaderStack.addLast(shader)
+    }
+
+    /**
+     * Pops a shader from the shader stack and returns it.
+     */
+    fun popShader(): GraphicsShader? {
+        return shaderStack.removeLastOrNull()
+    }
+
+    /**
+     * Pushes a blend mode onto the blend mode stack. It will be used for subsequent drawing operations.
+     */
+    fun pushBlendMode(blendMode: BlendMode) {
+        blendModeStack.addLast(blendMode)
+    }
+
+    /**
+     * Pops a blend mode from the blend mode stack and returns it.
+     */
+    fun popBlendMode(): BlendMode? {
+        return blendModeStack.removeLastOrNull()
+    }
+
+    /**
+     * Pushes a depth state onto the depth state stack. It will be used for subsequent drawing operations.
+     */
+    fun pushDepthState(depthState: DepthState) {
+        depthStateStack.addLast(depthState)
+    }
+
+    /**
+     * Pops a depth state from the depth state stack and returns it.
+     */
+    fun popDepthState(): DepthState? {
+        return depthStateStack.removeLastOrNull()
+    }
+
+    /**
      * Pushes a scissor rectangle onto the scissor stack. This rectangle will be used to clip subsequent drawing operations.
      */
     fun pushScissor(x: Float, y: Float, width: Float, height: Float) {
 
         val currentMatrix = matrixStack.lastOrNull() ?: Mat2.Identity
 
-        val (x0, y0) = currentMatrix.transform(x, y)
-        val (x1, y1) = currentMatrix.transform(x + width, y + height)
+        currentMatrix.transform(x, y, points, 0)
+        currentMatrix.transform(x + width, y + height, points, 2)
+        val x0 = points[0]
+        val y0 = points[1]
+        val x1 = points[2]
+        val y1 = points[3]
 
         val x = min(x0, x1)
         val y = min(y0, y1)
@@ -194,8 +286,9 @@ abstract class GraphicsRenderer {
 
             intersectedX = minX
             intersectedY = minY
-            intersectedWidth = (maxX - minX)
-            intersectedHeight = (maxY - minY)
+            // Without overlap nothing must be drawn, a negative size would be rejected by GL.
+            intersectedWidth = (maxX - minX).coerceAtLeast(0f)
+            intersectedHeight = (maxY - minY).coerceAtLeast(0f)
         }
 
         val rect = Vec4(intersectedX, intersectedY, intersectedWidth, intersectedHeight)
@@ -211,12 +304,20 @@ abstract class GraphicsRenderer {
 
     /**
      * Transforms the given color by multiplying its alpha value with the alpha of the last color in
-     * the color stack.
+     * the color stack. If any tint is pushed ([pushTint]), the RGB is also multiplied by the product of
+     * those tints.
      *
      * If the color stack is empty, the original color is returned.
      */
     fun transformColor(color: Color4): Color4 {
-        return color.copy(alpha = color.alpha * (colorStack.lastOrNull()?.alpha ?: 1f))
+        val tint = tintStack.lastOrNull() ?: Color4.White
+
+        return Color4(
+            color.red * tint.red,
+            color.green * tint.green,
+            color.blue * tint.blue,
+            color.alpha * (colorStack.lastOrNull()?.alpha ?: 1f)
+        )
     }
 
     //endregion
@@ -227,21 +328,24 @@ abstract class GraphicsRenderer {
      * Registers a GPU resource with the renderer. This allows the renderer to manage the resource's
      * lifecycle and handle context loss events.
      */
-    fun registerResource(resource: GraphicsResource) {
+    fun registerResource(resource: GraphicsResource) = synchronized(gpuResources) {
         gpuResources.addLast(resource)
     }
 
     /**
      * Unregisters a GPU resource from the renderer.
      */
-    fun unregisterResource(resource: GraphicsResource) {
+    fun unregisterResource(resource: GraphicsResource) = synchronized(gpuResources) {
         gpuResources.remove(resource)
     }
 
     /**
      * Marks all registered GPU resources as lost due to a context loss event and should be recreated.
+     *
+     * Resources are registered from the update worker while the GL thread marks them, so the list is
+     * locked while it is iterated.
      */
-    fun markContextLoss() {
+    fun markContextLoss() = synchronized(gpuResources) {
         for (resource in gpuResources) {
             resource.markContextLost()
         }
@@ -261,6 +365,16 @@ abstract class GraphicsRenderer {
      */
     fun createTexture(width: Float, height: Float): GraphicsTexture {
         val texture = device.createTexture(width, height)
+        registerResource(texture)
+        return texture
+    }
+
+    /**
+     * Creates a new external texture (such as one fed with video frames) with the specified width and
+     * height, registered so that it is recreated after a context loss.
+     */
+    fun createExternalTexture(width: Float, height: Float): GraphicsTexture {
+        val texture = device.createExternalTexture(width, height)
         registerResource(texture)
         return texture
     }
@@ -329,21 +443,22 @@ abstract class GraphicsRenderer {
         drawGeometry { transform, baseColor ->
 
             val color = transformColor(color)
+            val p = points
 
-            val (x0, y0) = transform.transform(x, y)
-            val (x1, y1) = transform.transform(x + width, y)
-            val (x2, y2) = transform.transform(x + width, y + height)
-            val (x3, y3) = transform.transform(x, y + height)
+            transform.transform(x, y, p, 0)
+            transform.transform(x + width, y, p, 2)
+            transform.transform(x + width, y + height, p, 4)
+            transform.transform(x, y + height, p, 6)
 
             // Triangle 1
-            addVertex(x0, y0, 0f, 0f, color)
-            addVertex(x1, y1, 1f, 0f, color)
-            addVertex(x2, y2, 1f, 1f, color)
+            addVertex(p[0], p[1], 0f, 0f, color)
+            addVertex(p[2], p[3], 1f, 0f, color)
+            addVertex(p[4], p[5], 1f, 1f, color)
 
             // Triangle 2
-            addVertex(x0, y0, 0f, 0f, color)
-            addVertex(x2, y2, 1f, 1f, color)
-            addVertex(x3, y3, 0f, 1f, color)
+            addVertex(p[0], p[1], 0f, 0f, color)
+            addVertex(p[4], p[5], 1f, 1f, color)
+            addVertex(p[6], p[7], 0f, 1f, color)
         }
     }
 
@@ -360,19 +475,93 @@ abstract class GraphicsRenderer {
     ) {
         setState(
             shader = BuiltIn.Shaders.SolidQuad,
-            uniformSet = GraphicsShader.UniformSet()
+            uniformSet = EMPTY_UNIFORMS
+        )
+
+        // The quad shader fades out at UV edges, so every vertex samples its center to keep the
+        // shape opaque up to its geometric edges.
+        drawGeometry { transform, baseColor ->
+            val color = transformColor(color)
+
+            val p = points
+
+            transform.transform(x, y, p, 0)
+            transform.transform(x + width, y, p, 2)
+            transform.transform(x + width * middle, y + height, p, 4)
+
+            addVertex(p[0], p[1], 0.5f, 0.5f, color)
+            addVertex(p[2], p[3], 0.5f, 0.5f, color)
+            addVertex(p[4], p[5], 0.5f, 0.5f, color)
+        }
+    }
+
+    /**
+     * Draws a triangle mesh, [vertices] holds [vertexCount] positions in local space as x, y pairs
+     * and every three of them form a triangle.
+     *
+     * It draws with the solid shader and every vertex samples the center of the UV space (0.5) and
+     * uses [color]. A shader pushed with [pushShader] replaces the solid one.
+     */
+    fun drawTriangles(vertices: FloatArray, vertexCount: Int, color: Color4) {
+        require(vertexCount % 3 == 0) { "The vertex count must be a multiple of 3, got $vertexCount." }
+        require(vertices.size >= vertexCount * 2) { "Expected ${vertexCount * 2} floats, got ${vertices.size}." }
+
+        setState(
+            shader = BuiltIn.Shaders.SolidQuad,
+            uniformSet = EMPTY_UNIFORMS
+        )
+
+        drawGeometry { transform, _ ->
+            val color = transformColor(color)
+            val p = points
+
+            for (i in 0 until vertexCount) {
+                transform.transform(vertices[i * 2], vertices[i * 2 + 1], p, 0)
+                addVertex(p[0], p[1], 0.5f, 0.5f, color)
+            }
+        }
+    }
+
+    /**
+     * Draws a line between two points with the specified width and color.
+     */
+    fun drawLine(
+        x1: Float,
+        y1: Float,
+        x2: Float,
+        y2: Float,
+        lineWidth: Float,
+        color: Color4 = Color4.White
+    ) {
+        val length = hypot(x2 - x1, y2 - y1)
+        if (length <= 0f || lineWidth <= 0f) return
+
+        setState(
+            shader = BuiltIn.Shaders.SolidQuad,
+            uniformSet = EMPTY_UNIFORMS
         )
 
         drawGeometry { transform, baseColor ->
             val color = transformColor(color)
 
-            val (x0, y0) = transform.transform(x, y)
-            val (x1, y1) = transform.transform(x + width, y)
-            val (x2, y2) = transform.transform(x + width * middle, y + height)
+            // Perpendicular offset of half the line width.
+            val nx = -(y2 - y1) / length * lineWidth / 2f
+            val ny = (x2 - x1) / length * lineWidth / 2f
 
-            addVertex(x0, y0, 0f, 0f, color)
-            addVertex(x1, y1, 1f, 0f, color)
-            addVertex(x2, y2, 0.5f, 1f, color)
+            val p = points
+
+            transform.transform(x1 + nx, y1 + ny, p, 0)
+            transform.transform(x2 + nx, y2 + ny, p, 2)
+            transform.transform(x2 - nx, y2 - ny, p, 4)
+            transform.transform(x1 - nx, y1 - ny, p, 6)
+
+            addVertex(p[0], p[1], 0.5f, 0.5f, color)
+            addVertex(p[2], p[3], 0.5f, 0.5f, color)
+            addVertex(p[4], p[5], 0.5f, 0.5f, color)
+
+            addVertex(p[0], p[1], 0.5f, 0.5f, color)
+            addVertex(p[4], p[5], 0.5f, 0.5f, color)
+            addVertex(p[6], p[7], 0.5f, 0.5f, color)
         }
     }
 
@@ -399,7 +588,7 @@ abstract class GraphicsRenderer {
 
         setState(
             shader = BuiltIn.Shaders.SolidQuad,
-            uniformSet = GraphicsShader.UniformSet()
+            uniformSet = EMPTY_UNIFORMS
         )
 
         drawGeometry { transform, baseColor ->
@@ -409,7 +598,10 @@ abstract class GraphicsRenderer {
             val cy = y + height / 2f
             val w = width / 2f
             val h = height / 2f
-            val (centerX, centerY) = transform.transform(cx, cy)
+            val p = points
+            transform.transform(cx, cy, p, 0)
+            val centerX = p[0]
+            val centerY = p[1]
 
             if (segments <= 0) {
                 Logger.w(
@@ -434,16 +626,74 @@ abstract class GraphicsRenderer {
                 val y = cy + h * sin(angle)
 
                 if (j > 0) {
-                    val (px, py) = transform.transform(previousX, previousY)
-                    val (nx, ny) = transform.transform(x, y)
+                    transform.transform(previousX, previousY, p, 2)
+                    transform.transform(x, y, p, 4)
 
-                    addVertex(px, py, 0f, 0f, color)
-                    addVertex(nx, ny, 1f, 1f, color)
+                    addVertex(p[2], p[3], 0.5f, 0.5f, color)
+                    addVertex(p[4], p[5], 0.5f, 0.5f, color)
                     addVertex(centerX, centerY, 0.5f, 0.5f, color)
                 }
 
                 previousX = x
                 previousY = y
+            }
+        }
+    }
+
+    /**
+     * Draws the outline of an arc with the specified thickness, angles are in degrees starting
+     * from the top and going clockwise, as in [drawArc].
+     */
+    fun drawArcStroke(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        thickness: Float,
+        startAngle: Float = 0f,
+        endAngle: Float = 360f,
+        color: Color4 = Color4.White
+    ) {
+        val segments = calculateArcResolution(width, height, abs(endAngle - startAngle))
+        if (segments <= 0 || thickness <= 0f) return
+
+        setState(
+            shader = BuiltIn.Shaders.SolidQuad,
+            uniformSet = EMPTY_UNIFORMS
+        )
+
+        drawGeometry { transform, _ ->
+            val color = transformColor(color)
+
+            val cx = x + width / 2f
+            val cy = y + height / 2f
+            val outerX = width / 2f
+            val outerY = height / 2f
+            val innerX = (outerX - thickness).coerceAtLeast(0f)
+            val innerY = (outerY - thickness).coerceAtLeast(0f)
+
+            val start = (startAngle - 90f).toRadians()
+            val delta = ((endAngle - 90f).toRadians() - start) / segments
+
+            val p = points
+
+            for (segment in 0 until segments) {
+                val a0 = start + segment * delta
+                val a1 = a0 + delta
+
+                // Outer start and end, then inner start and end.
+                transform.transform(cx + outerX * cos(a0), cy + outerY * sin(a0), p, 0)
+                transform.transform(cx + outerX * cos(a1), cy + outerY * sin(a1), p, 2)
+                transform.transform(cx + innerX * cos(a0), cy + innerY * sin(a0), p, 4)
+                transform.transform(cx + innerX * cos(a1), cy + innerY * sin(a1), p, 6)
+
+                addVertex(p[0], p[1], 0.5f, 0.5f, color)
+                addVertex(p[2], p[3], 0.5f, 0.5f, color)
+                addVertex(p[6], p[7], 0.5f, 0.5f, color)
+
+                addVertex(p[0], p[1], 0.5f, 0.5f, color)
+                addVertex(p[6], p[7], 0.5f, 0.5f, color)
+                addVertex(p[4], p[5], 0.5f, 0.5f, color)
             }
         }
     }
@@ -461,42 +711,62 @@ abstract class GraphicsRenderer {
         color: Color4 = Color4.White,
         borderWidth: Float = 0f,
         borderColor: Color4 = Color4.Transparent,
-        radius: Float = 0f
+        radius: Float = 0f,
+        uv: Vec4 = Vec4(region.u0, region.v0, region.u1, region.v1)
     ) {
-        setState(
-            shader = BuiltIn.Shaders.TextureQuad,
-            uniformSet = GraphicsShader.UniformSet().apply {
+        val externalTransform = texture.transform
+
+        // The texture shader only reads the uniforms for rounded corners, so plain textures share
+        // an empty set and consecutive ones from the same texture end up in one draw call.
+        val uniformSet = if (texture.isExternal && externalTransform != null) {
+            // External textures are sampled through their transform, which the draw reads by reference
+            // after the bind latched the latest frame. Rounded corners are not supported for them.
+            if (externalUniformsTexture !== texture) {
+                externalUniformsTexture = texture
+                externalUniforms = GraphicsShader.UniformSet().apply { set("uTransform", externalTransform) }
+            }
+            externalUniforms
+        } else if (radius > 0f) {
+            GraphicsShader.UniformSet().apply {
                 set("uRadius", radius)
-                set("uBorderWidth", borderWidth)
-                set("uBorderColor", borderColor)
                 set("uSize", Vec2(width, height))
-            },
+            }
+        } else {
+            EMPTY_UNIFORMS
+        }
+
+        // A pushed shader replaces the video one too, see pushShader.
+        setState(
+            shader = if (texture.isExternal) BuiltIn.Shaders.Video else BuiltIn.Shaders.TextureQuad,
+            uniformSet = uniformSet,
             texture = texture
         )
 
         drawGeometry { transform, baseColor ->
             val color = transformColor(color)
 
-            val (x0, y0) = transform.transform(x, y)
-            val (x1, y1) = transform.transform(x + width, y)
-            val (x2, y2) = transform.transform(x + width, y + height)
-            val (x3, y3) = transform.transform(x, y + height)
+            val p = points
+
+            transform.transform(x, y, p, 0)
+            transform.transform(x + width, y, p, 2)
+            transform.transform(x + width, y + height, p, 4)
+            transform.transform(x, y + height, p, 6)
 
             // Triangle 1
-            addVertex(x0, y0, region.u0, region.v0, color)
-            addVertex(x1, y1, region.u1, region.v0, color)
-            addVertex(x2, y2, region.u1, region.v1, color)
+            addVertex(p[0], p[1], uv.x, uv.y, color)
+            addVertex(p[2], p[3], uv.z, uv.y, color)
+            addVertex(p[4], p[5], uv.z, uv.w, color)
 
             // Triangle 2
-            addVertex(x0, y0, region.u0, region.v0, color)
-            addVertex(x2, y2, region.u1, region.v1, color)
-            addVertex(x3, y3, region.u0, region.v1, color)
+            addVertex(p[0], p[1], uv.x, uv.y, color)
+            addVertex(p[4], p[5], uv.z, uv.w, color)
+            addVertex(p[6], p[7], uv.x, uv.w, color)
         }
     }
 
     /**
      * Draws text using the specified font, position, and color. The text is rendered using the
-     * font's texture atlas.
+     * font's atlas pages, each run of glyphs on the same page is one draw command.
      */
     fun drawText(
         text: String,
@@ -505,60 +775,77 @@ abstract class GraphicsRenderer {
         y: Float,
         color: Color4 = Color4.White
     ) {
-        setState(
-            shader = BuiltIn.Shaders.TextureQuad,
-            texture = font.texture,
-            uniformSet = GraphicsShader.UniformSet()
-        )
+        val transform = matrixStack.lastOrNull() ?: Mat2.Identity
+        val color = transformColor(color)
 
-        drawGeometry { transform, baseColor ->
-            val color = transformColor(color)
+        // Glyphs are laid out in local space and every corner is transformed, so rotation and
+        // scale apply to text as well.
+        val baseline = y - font.metrics.ascent
 
-            val (x, y) = transform.transform(x, y)
-            val baseline = y - font.metrics.ascent
+        var charIndex = 0
+        var cursor = x
+        var previousCodePoint = -1
 
-            var charIndex = 0
-            var cursor = x
+        // The page the current draw command samples from; a glyph on another page starts a new one.
+        var page: GraphicsTexture? = null
+        var buffer: GraphicsBuffer? = null
 
-            while (charIndex < text.length) {
+        while (charIndex < text.length) {
 
-                val codePoint = text.codePointAt(charIndex)
-                val charCount = Character.charCount(codePoint)
+            val codePoint = text.codePointAt(charIndex)
+            val charCount = Character.charCount(codePoint)
 
-                if (charIndex > 0) {
-                    val previousCodePoint = text.codePointAt(charIndex - 1)
-                    cursor += font.getKerning(previousCodePoint, codePoint)
+            if (previousCodePoint != -1) {
+                cursor += font.getKerning(previousCodePoint, codePoint)
+            }
+            previousCodePoint = codePoint
+
+            val glyph = font[codePoint]
+
+            // Some glyphs may not have a texture region if they not need a visible representation
+            // (like a space). In such cases, we skip rendering but still advance the cursor.
+            if (glyph.region != null) {
+                if (glyph.region.texture !== page) {
+                    page = glyph.region.texture
+                    setState(
+                        shader = BuiltIn.Shaders.TextureQuad,
+                        texture = page,
+                        uniformSet = EMPTY_UNIFORMS
+                    )
+                    buffer = activeBuffer
                 }
 
-                val glyph = font[codePoint]
+                val left = cursor + glyph.bearingX
+                val top = baseline + glyph.bearingY
 
-                // Some glyphs may not have a texture region if they not need a visible representation
-                // (like a space). In such cases, we skip rendering but still advance the cursor.
-                if (glyph.region != null) {
-                    val left = cursor + glyph.bearingX
-                    val top = baseline + glyph.bearingY
+                val right = left + glyph.width
+                val bottom = top + glyph.height
 
-                    val right = left + glyph.width
-                    val bottom = top + glyph.height
+                val u0 = glyph.region.u0
+                val v0 = glyph.region.v0
+                val u1 = glyph.region.u1
+                val v1 = glyph.region.v1
 
-                    val u0 = glyph.region.u0
-                    val v0 = glyph.region.v0
-                    val u1 = glyph.region.u1
-                    val v1 = glyph.region.v1
+                val p = points
 
-                    addVertex(left, top, u0, v0, color)
-                    addVertex(left, bottom, u0, v1, color)
-                    addVertex(right, bottom, u1, v1, color)
+                transform.transform(left, top, p, 0)
+                transform.transform(left, bottom, p, 2)
+                transform.transform(right, bottom, p, 4)
+                transform.transform(right, top, p, 6)
 
-                    addVertex(right, bottom, u1, v1, color)
-                    addVertex(right, top, u1, v0, color)
-                    addVertex(left, top, u0, v0, color)
+                buffer!!.apply {
+                    addVertex(p[0], p[1], u0, v0, color)
+                    addVertex(p[2], p[3], u0, v1, color)
+                    addVertex(p[4], p[5], u1, v1, color)
+
+                    addVertex(p[4], p[5], u1, v1, color)
+                    addVertex(p[6], p[7], u1, v0, color)
+                    addVertex(p[0], p[1], u0, v0, color)
                 }
-
-                cursor += glyph.advance
-                charIndex += charCount
             }
 
+            cursor += glyph.advance
+            charIndex += charCount
         }
     }
 
@@ -578,22 +865,21 @@ abstract class GraphicsRenderer {
         activeShader = null
         activeTexture = null
         activeScissor = null
-        activeBlendMode = BlendMode.Alpha
-        activeDepthState = DepthState.Default
-        activeUniformSet = GraphicsShader.UniformSet()
+        activeUniformSet = EMPTY_UNIFORMS
 
         // Should not happen but just in case, clear the command batch to avoid rendering stale commands.
         commandBatch.clear()
+        buffersUsed = 0
     }
 
     abstract fun drawCommand(command: DrawCommand)
 
     open fun end() {
         while (commandBatch.isNotEmpty()) {
-            val command = commandBatch.removeFirst()
-            drawCommand(command)
-            command.buffer?.dispose()
+            drawCommand(commandBatch.removeFirst())
         }
+        buffersUsed = 0
+        PerformanceStats.onFrameDrawn()
     }
 
     //endregion
@@ -601,6 +887,10 @@ abstract class GraphicsRenderer {
 
     companion object {
         const val VERTEX_2D_STRIDE = 20 // 8 bytes for position, 8 bytes for UV, 4 bytes for color
+
+        // Shared by every draw without uniforms of its own. Nothing writes to it, commands and
+        // shaders only read their set.
+        private val EMPTY_UNIFORMS = GraphicsShader.UniformSet()
     }
 
 }

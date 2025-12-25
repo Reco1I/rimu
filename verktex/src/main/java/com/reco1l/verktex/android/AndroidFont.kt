@@ -3,6 +3,7 @@ package com.reco1l.verktex.android
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.fonts.Font
 import com.reco1l.verktex.graphics.GraphicsTexture
 import androidx.core.graphics.createBitmap
@@ -11,7 +12,10 @@ class AndroidFont(
     private val typeface: Typeface,
     override val descriptor: Descriptor,
     override val metrics: Metrics,
-    override val texture: GraphicsTexture
+    /**
+     * The width and height of every atlas page of this font, in pixels.
+     */
+    private val pageSize: Float
 ) : Font() {
 
     override val isKerningSupported = false
@@ -34,10 +38,11 @@ class AndroidFont(
     private val rect = Rect()
 
 
-    override fun onCreateGlyph(
-        codePoint: Int,
-        texture: GraphicsTexture
-    ): Glyph {
+    override fun onCreatePage(): GraphicsTexture {
+        return Verktex.graphics.createTexture(pageSize, pageSize)
+    }
+
+    override fun onCreateGlyph(codePoint: Int): Glyph {
         val characters = Character.toChars(codePoint)
 
         paint.getTextBounds(characters, 0, characters.size, rect)
@@ -70,7 +75,7 @@ class AndroidFont(
             height = height,
             bearingX = bearingX,
             bearingY = bearingY,
-            region = texture.addSource(AndroidTextureSource(bitmap)) ?: throw IllegalStateException("Failed to add glyph bitmap to texture atlas."),
+            region = addGlyphSource(AndroidTextureSource(bitmap)),
         )
     }
 

@@ -15,16 +15,16 @@ class BASSAudioStreamFileSource(
 
     override fun createStream(): AudioStream {
 
-        var channelId: Int
+        // The tempo stream processes a decoding channel, which must not be played on its own.
+        val flags = BASS.BASS_STREAM_PRESCAN or BASS.BASS_STREAM_DECODE
 
-        if (isExternal) {
-            channelId = BASS.BASS_StreamCreateFile(filePath, 0, 0, BASS.BASS_STREAM_PRESCAN or BASS.BASS_STREAM_DECODE)
-            channelId = BASS_FX.BASS_FX_TempoCreate(channelId, BASS.BASS_STREAM_AUTOFREE)
+        val decodingChannel = if (isExternal) {
+            BASS.BASS_StreamCreateFile(filePath, 0, 0, flags)
         } else {
-            val asset = BASS.Asset(context.assets, filePath)
-            channelId = BASS.BASS_StreamCreateFile(asset, 0, 0, BASS.BASS_STREAM_PRESCAN)
-            channelId = BASS_FX.BASS_FX_TempoCreate(channelId, BASS.BASS_STREAM_AUTOFREE)
+            BASS.BASS_StreamCreateFile(BASS.Asset(context.assets, filePath), 0, 0, flags)
         }
+
+        val channelId = BASS_FX.BASS_FX_TempoCreate(decodingChannel, BASS.BASS_STREAM_AUTOFREE)
 
         return BASSAudioStream(channelId)
     }

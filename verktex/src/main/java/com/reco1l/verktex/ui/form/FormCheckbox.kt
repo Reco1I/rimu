@@ -1,15 +1,13 @@
 package com.reco1l.verktex.ui.form
 
-import com.reco1l.verktex.*
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.container
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.ui.control.UICheckbox
-import com.reco1l.verktex.ui.linearContainer
-import org.anddev.andengine.input.touch.*
-import ru.nsu.ccfit.zuev.osu.*
 
+/**
+ * A form control with a checkbox. Tapping anywhere on the row toggles it.
+ */
 @Suppress("LeakingThis")
 open class FormCheckbox(initialValue: Boolean = false) : FormControl<Boolean, UICheckbox>(initialValue) {
 
@@ -19,38 +17,46 @@ open class FormCheckbox(initialValue: Boolean = false) : FormControl<Boolean, UI
     }
 
 
+    // The finger that pressed the row outside of the checkbox and the reset button.
+    private var rowPointerId = -1
+
+
     init {
-        container {
-            width = Dimension.FillAvailable
+        +createHeader { +control }
+    }
 
-            linearContainer {
-                anchor = Anchor.CenterLeft
-                origin = Anchor.CenterLeft
-                style = {
-                    spacing = 2f.srem
-                }
 
-                +labelText
-                +resetButton
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
+            return true
+        }
+
+        if (event !is PointerEvent) {
+            return false
+        }
+
+        return when (event.action) {
+            PointerEvent.Action.Down -> {
+                rowPointerId = event.pointerId
+                true
             }
 
-            +control
+            PointerEvent.Action.Up -> {
+                if (event.pointerId != rowPointerId) return false
+                rowPointerId = -1
+                if (containsScenePoint(event.x, event.y)) {
+                    value = !value
+                }
+                true
+            }
+
+            PointerEvent.Action.Unknown, PointerEvent.Action.Cancel -> {
+                rowPointerId = -1
+                false
+            }
+
+            PointerEvent.Action.Move -> event.pointerId == rowPointerId
         }
     }
 
-
-    override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-        if (!super.onAreaTouched(event, localX, localY) && event.isActionUp) {
-            control.value = !control.value
-        }
-        return true
-    }
-
-}
-
-class PreferenceCheckbox(private val preferenceKey: String, fallback: Boolean = false) : FormCheckbox(Config.getBoolean(preferenceKey, fallback)) {
-    override fun onControlValueChanged() {
-        Config.setBoolean(preferenceKey, value)
-        super.onControlValueChanged()
-    }
 }

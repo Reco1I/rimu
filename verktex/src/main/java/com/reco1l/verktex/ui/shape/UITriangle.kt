@@ -20,9 +20,10 @@ open class UITriangle : UICanvas() {
         renderer.drawTriangle(
             x = 0f,
             y = 0f,
-            width = widthPx,
-            height = heightPx,
-            middle = middle
+            width = bounds.width,
+            height = bounds.height,
+            middle = middle,
+            color = contentColor
         )
     }
 }

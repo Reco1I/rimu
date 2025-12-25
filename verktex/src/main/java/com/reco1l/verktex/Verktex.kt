@@ -1,13 +1,20 @@
 package com.reco1l.verktex
 
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import com.reco1l.verktex.audio.AudioDriver
+import com.reco1l.verktex.audio.Sounds
+import com.reco1l.verktex.fonts.Fonts
+import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.settings.Setting
+import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.time.SystemBasedFrameClock
 import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.worker.LoopWorker
 import com.reco1l.verktex.worker.RunOnDrawWorker
 import com.reco1l.verktex.worker.RunOnUpdateWorker
@@ -89,6 +96,13 @@ object Verktex {
         private set
 
 
+    /**
+     * The vertical offset of the content caused by the on-screen keyboard, in window pixels. It is
+     * zero while the keyboard is hidden and negative while it is shown (content moves up).
+     */
+    val imeOffset: Float
+        get() = graphics.window.insets.offsets.y
+
     private var isInitialized = false
 
 
@@ -103,13 +117,17 @@ object Verktex {
         this.audio = audio
         this.host = host
 
+        // Activates the first device, without it no audio can be played.
+        audio.enumerateDevices()
+
         isInitialized = true
     }
 
     //endregion
 
     private val sceneStack = ArrayDeque<UIScene>().apply { addLast(UIScene.EmptyScene) }
-    private val overlayContainer = UIContainer()
+    // A scene of its own, so overlays are measured and laid out over the whole window.
+    private val overlayContainer = UIScene()
 
 
     /**
@@ -164,18 +182,66 @@ object Verktex {
             return
         }
 
+        PerformanceStats.onFrameStart()
         graphics.begin()
-        scene.draw(graphics)
-        overlayContainer.draw(graphics)
+        treeLock.withLock {
+            scene.draw(graphics)
+            PerformanceStats.drawCommands = graphics.commandCount
+            overlayContainer.draw(graphics)
+        }
         graphics.end()
     }
 
     @RunOnUpdateWorker
     private fun update() {
         updateWorker.check()
+
+        // Without a cap the update worker spins as fast as it can, which wastes a CPU core and makes
+        // each frame so short that eased interpolations barely move.
+        val remainingNanos = UPDATE_INTERVAL_NANOS - (System.nanoTime() - lastUpdateNanos)
+        if (remainingNanos > 0) {
+            Thread.sleep(remainingNanos / 1_000_000, (remainingNanos % 1_000_000).toInt())
+        }
+        lastUpdateNanos = System.nanoTime()
+
         clock.processFrame()
-        scene.update(clock)
+        treeLock.withLock {
+            // Measured inside the lock, so waiting for the draw worker does not count.
+            val updateStartNanos = System.nanoTime()
+
+            if (showPerformanceOverlay != (performanceOverlay.parent != null)) {
+                if (showPerformanceOverlay) overlayContainer += performanceOverlay else overlayContainer -= performanceOverlay
+            }
+
+            scene.update(clock)
+            overlayContainer.update(clock)
+
+            PerformanceStats.updateTime = (System.nanoTime() - updateStartNanos) / 1_000_000f
+        }
     }
+
+    private val showPerformanceOverlay by Setting(VerktexSettings.ShowPerformanceOverlay, false)
+    private val performanceOverlay by lazy { UIPerformanceOverlay() }
+
+    /**
+     * Guards the component tree, which is traversed by the draw and update workers and modified by
+     * input events coming from the platform's UI thread. It is fair, otherwise the draw worker
+     * re-acquires it in a loop and starves the update worker.
+     */
+    private val treeLock = ReentrantLock(true)
+
+    /**
+     * Runs [block] while holding the component tree lock, for code modifying components from outside
+     * the engine workers (e.g. platform callbacks).
+     *
+     * The lock is reentrant. [block] must not wait for a task scheduled with [scheduleOnUpdate] or
+     * [scheduleOnDraw] to finish, those tasks take the same lock.
+     */
+    fun <T> withTreeLock(block: () -> T): T = treeLock.withLock(block)
+
+    private var lastUpdateNanos = 0L
+
+    private const val UPDATE_INTERVAL_NANOS = 1_000_000_000L / 240
 
 
     /**
@@ -266,10 +332,29 @@ object Verktex {
 
         clock.pause()
 
+        // Waits for both workers, nothing may use the graphics context after this.
         drawWorker.stop()
         updateWorker.stop()
 
+        // The context takes every GPU resource with it, cached textures and fonts must be forgotten.
+        graphics.context.destroy()
+        Textures.clear()
+        Fonts.clear()
+
+        Sounds.unloadAll()
+        audio.dispose()
+
+        treeLock.withLock {
+            focusedComponent = null
+            overlayContainer.clearChildren()
+            while (sceneStack.size > 1) {
+                sceneStack.removeLast()
+            }
+        }
+
         started = false
+        paused = false
+        isInitialized = false
     }
 
     //endregion
@@ -320,7 +405,7 @@ object Verktex {
      * and receiving input events.
      */
     @JvmStatic
-    fun removeOverlay(overlay: UIContainer) {
+    fun removeOverlay(overlay: UIComponent) {
         overlayContainer -= overlay
     }
 
@@ -362,7 +447,7 @@ object Verktex {
         if (!started) {
             throw IllegalStateException("Engine has not been started. Call start() before scheduling tasks.")
         }
-        return drawWorker.schedule(action)
+        return drawWorker.schedule { treeLock.withLock { action() } }
     }
 
     /**
@@ -376,23 +461,31 @@ object Verktex {
         if (!started) {
             throw IllegalStateException("Engine has not been started. Call start() before scheduling tasks.")
         }
-        return updateWorker.schedule(action)
+        return updateWorker.schedule { treeLock.withLock { action() } }
     }
 
 
-    private fun onThemeChange() {
-        sceneStack.forEach { scene ->
-            scene.propagate { child ->
-                child.onStyle(theme)
-            }
+    private fun onThemeChange() = treeLock.withLock {
+        for (root in sceneStack + listOf(overlayContainer)) {
+            // Containers apply the style to their children themselves.
+            root.style()
+            root.propagate { it.onThemeChanged() }
         }
     }
 
     internal fun onInputEvent(event: InputEvent): Boolean {
-        if (overlayContainer.propagateConsumable { it.onInputEvent(event) }) {
-            return true
+        // Containers dispatch events to their children themselves (with hit testing), so only the
+        // roots receive them here.
+        treeLock.withLock {
+            // Pressing outside the focused component removes its focus (e.g. closes the keyboard).
+            val focused = focusedComponent
+            if (event is PointerEvent && event.action == PointerEvent.Action.Down
+                && focused is UIComponent && !focused.containsScenePoint(event.x, event.y)) {
+                clearFocus()
+            }
+
+            return overlayContainer.onInputEvent(event) || scene.onInputEvent(event)
         }
-        return scene.propagateConsumable { it.onInputEvent(event) }
     }
 
     fun onGameWindowFocusChange(hasFocus: Boolean) {

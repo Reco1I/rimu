@@ -27,11 +27,16 @@ object ColorInterpolation {
 
         val t = easing.interpolate(current / duration).coerceIn(0f, 1f)
 
+        // Both colors must be converted to linear space first, otherwise converting the result back
+        // to sRGB brightens it on every call.
+        val start = startColour.toLinear()
+        val end = endColour.toLinear()
+
         return Color4(
-            startColour.red + t * (endColour.red - startColour.red),
-            startColour.green + t * (endColour.green - startColour.green),
-            startColour.blue + t * (endColour.blue - startColour.blue),
-            startColour.alpha + t * (endColour.alpha - startColour.alpha)
+            start.red + t * (end.red - start.red),
+            start.green + t * (end.green - start.green),
+            start.blue + t * (end.blue - start.blue),
+            start.alpha + t * (end.alpha - start.alpha)
         ).toSRGB()
     }
 

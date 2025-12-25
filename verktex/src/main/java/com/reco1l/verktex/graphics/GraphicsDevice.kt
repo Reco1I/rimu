@@ -28,6 +28,12 @@ interface GraphicsDevice {
      */
     fun createTexture(width: Float, height: Float): GraphicsTexture
 
+    /**
+     * Creates a new external [GraphicsTexture] (such as one fed with video frames) with the specified
+     * width and height. It has no storage of its own and is sampled with [com.reco1l.verktex.BuiltIn.Shaders.Video].
+     */
+    fun createExternalTexture(width: Float, height: Float): GraphicsTexture
+
 
     /**
      * Represents the capabilities of the device's graphics hardware.

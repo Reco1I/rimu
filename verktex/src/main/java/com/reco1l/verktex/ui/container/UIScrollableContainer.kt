@@ -9,6 +9,7 @@ import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.input.ScrollEvent
@@ -28,6 +29,11 @@ open class UIScrollableContainer : UIContainer() {
      * Determines which axes can be scrolled by the user.
      */
     var scrollAxes: Axis = Axis.Both
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidateMeasure()
+        }
 
     /**
      * Determines which axes can be overflowed by the scroll.
@@ -212,15 +218,22 @@ open class UIScrollableContainer : UIContainer() {
         var contentHeight = 0f
 
         forEach { child ->
-            val childSize = child.measure(childConstraints)
+            val childSize = child.measure(childConstraints.withoutFillLimits(child))
             contentWidth = max(contentWidth, childSize.x)
             contentHeight = max(contentHeight, childSize.y)
         }
 
         contentSize = Vec2(contentWidth, contentHeight)
 
-        return parentConstraints.constrain(contentSize.expand(padding.toVec4()))
+        val measuredSize = parentConstraints.constrain(contentSize.expand(padding.toVec4()))
+        stretchFillingChildren(measuredSize) { childConstraints }
+        return measuredSize
     }
+
+    // Scrollable axes are unbounded, so filling them is the same as wrapping.
+    override fun fillsWrappedWidth(child: UIComponent) = !scrollAxes.isHorizontal && super.fillsWrappedWidth(child)
+
+    override fun fillsWrappedHeight(child: UIComponent) = !scrollAxes.isVertical && super.fillsWrappedHeight(child)
 
     override fun onLayout(bounds: Vec4) {
         // Children are offset by the current scroll position.
@@ -244,6 +257,11 @@ open class UIScrollableContainer : UIContainer() {
     private var lastPointerX = 0f
     private var lastPointerY = 0f
     private var pointerTravel = 0f
+    private var dragX = 0f
+    private var dragY = 0f
+
+    // The finger dragging this container, other fingers are left to the children.
+    private var dragPointerId = -1
 
 
     /**
@@ -334,31 +352,30 @@ open class UIScrollableContainer : UIContainer() {
     override fun onDraw(renderer: GraphicsRenderer) {
         super.onDraw(renderer)
 
+        val indicatorThickness = INDICATOR_THICKNESS.toPixels()
+
         if (showVerticalIndicator && (scrollAxes == Axis.Both || scrollAxes == Axis.Y)) {
             val indicatorHeight = bounds.height * (bounds.height / scrollableContentHeight).coerceAtMost(1f)
 
-            renderer.pushColor(Color4.White.copy(alpha = indicatorYAlpha))
             renderer.drawRect(
-                x = bounds.width - 4f,
+                x = bounds.width - indicatorThickness,
                 y = scrollY * (bounds.height / scrollableContentHeight),
-                width = 4f,
+                width = indicatorThickness,
                 height = indicatorHeight,
                 color = Color4.White.copy(alpha = indicatorYAlpha)
             )
-            renderer.popColor()
         }
 
         if (showHorizontalIndicator && (scrollAxes == Axis.Both || scrollAxes == Axis.X)) {
             val indicatorWidth = bounds.width * (bounds.width / scrollableContentWidth).coerceAtMost(1f)
 
-            renderer.pushColor(Color4.White.copy(alpha = indicatorXAlpha))
             renderer.drawRect(
                 x = scrollX * (bounds.width / scrollableContentWidth),
-                y = bounds.height - 4f,
+                y = bounds.height - indicatorThickness,
                 width = indicatorWidth,
-                height = 4f
+                height = indicatorThickness,
+                color = Color4.White.copy(alpha = indicatorXAlpha)
             )
-            renderer.popColor()
         }
     }
 
@@ -373,7 +390,7 @@ open class UIScrollableContainer : UIContainer() {
     protected open fun updateIndicators(deltaTimeSec: Float) {
 
         if (showVerticalIndicator && (scrollAxes == Axis.Both || scrollAxes == Axis.Y)) {
-            if (alpha > 0f && velocityY == 0f) {
+            if (indicatorYAlpha > 0f && velocityY == 0f) {
                 indicatorYAlpha = (indicatorYAlpha - deltaTimeSec * 0.75f).coerceAtLeast(0f)
             }
         }
@@ -429,12 +446,21 @@ open class UIScrollableContainer : UIContainer() {
         val wasUserScrolling = isUserScrolling
 
         if (event is PointerEvent) {
+            val isDragPointer = event.pointerId == dragPointerId
+
+            if (!isDragPointer && (event.action != PointerEvent.Action.Down || dragPointerId != -1)) {
+                return super.onInputEvent(event)
+            }
+
             when (event.action) {
                 PointerEvent.Action.Down -> {
+                    dragPointerId = event.pointerId
                     dragStartTimeSec = Verktex.clock.time
                     lastPointerX = event.x
                     lastPointerY = event.y
                     pointerTravel = 0f
+                    dragX = 0f
+                    dragY = 0f
                     stopScroll()
                 }
 
@@ -444,19 +470,34 @@ open class UIScrollableContainer : UIContainer() {
                     lastPointerX = event.x
                     lastPointerY = event.y
                     pointerTravel += hypot(deltaX, deltaY)
+                    dragX += deltaX
+                    dragY += deltaY
 
-                    if (isUserScrolling || pointerTravel > minimumTravel.y) {
-                        if (!isUserScrolling) {
-                            // Cancel the press of any child now that this is a drag.
-                            super.onInputEvent(event.copy(action = PointerEvent.Action.Unknown))
+                    // Nested scrollable containers get the drag first, this one only takes it over
+                    // when none of them is scrolling and it goes along one of its scroll axes.
+                    if (!isUserScrolling) {
+                        val consumedByChild = super.onInputEvent(event)
+
+                        val isHorizontalDrag = abs(dragX) > abs(dragY)
+                        val canScrollAlongDrag = if (isHorizontalDrag) scrollAxes.isHorizontal else scrollAxes.isVertical
+
+                        if (hasScrollingDescendant() || pointerTravel <= minimumTravel.y || !canScrollAlongDrag) {
+                            return consumedByChild
                         }
-                        handleUserScroll(deltaX, deltaY)
-                        isUserScrolling = true
-                        dragStartTimeSec = Verktex.clock.time
+
+                        // Cancel the press of any child now that this is a drag.
+                        super.onInputEvent(event.copy(action = PointerEvent.Action.Unknown))
                     }
+
+                    handleUserScroll(deltaX, deltaY)
+                    isUserScrolling = true
+                    dragStartTimeSec = Verktex.clock.time
                 }
 
-                PointerEvent.Action.Up, PointerEvent.Action.Unknown -> isUserScrolling = false
+                PointerEvent.Action.Up, PointerEvent.Action.Unknown, PointerEvent.Action.Cancel -> {
+                    isUserScrolling = false
+                    dragPointerId = -1
+                }
             }
         } else {
             event as ScrollEvent
@@ -480,6 +521,10 @@ open class UIScrollableContainer : UIContainer() {
     }
 
 
+    private fun hasScrollingDescendant() = propagateConsumable {
+        it !== this && it is UIScrollableContainer && it.isUserScrolling
+    }
+
     //endregion
 
 
@@ -488,6 +533,8 @@ open class UIScrollableContainer : UIContainer() {
         const val DEFAULT_DECELERATION = 0.98f
         const val DEFAULT_MINIMUM_TRAVEL = 20f
         const val DEFAULT_MAX_VELOCITY = 3000f
+
+        private val INDICATOR_THICKNESS = 3f.dip
 
     }
 }

@@ -49,14 +49,14 @@ sealed class Dimension {
         /**
          * Represents a fixed dimension in pixels.
          */
-        class Pixels(override val value: Float) : Fixed() {
+        data class Pixels(override val value: Float) : Fixed() {
             override fun toPixels(): Float = value
         }
 
         /**
          * Represents a fixed dimension in density-independent pixels (dp).
          */
-        class DensityIndependentPixels(override val value: Float) : Fixed() {
+        data class DensityIndependentPixels(override val value: Float) : Fixed() {
             override fun toPixels(): Float {
                 return value * Platform.currentDisplay.density
             }

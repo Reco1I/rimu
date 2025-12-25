@@ -27,12 +27,12 @@ class BASSAudioStream(
             val pos = BASS.BASS_ChannelGetPosition(id, BASS.BASS_POS_BYTE)
             if (pos == -1L) return 0.0
 
-            return BASS.BASS_ChannelBytes2Seconds(id, pos) * 1000
+            return BASS.BASS_ChannelBytes2Seconds(id, pos)
         }
         set(value) {
             if (value < 0.0) throw IllegalArgumentException("Position cannot be negative")
 
-            val pos = BASS.BASS_ChannelSeconds2Bytes(id, value / 1000)
+            val pos = BASS.BASS_ChannelSeconds2Bytes(id, value)
             BASS.BASS_ChannelSetPosition(id, pos, BASS.BASS_POS_BYTE)
         }
 
@@ -67,9 +67,12 @@ class BASSAudioStream(
         }
 
 
-    override var looping: Boolean
-        get() = TODO("Not yet implemented")
-        set(value) {}
+    override var looping = false
+        set(value) {
+            if (field == value) return
+            field = value
+            BASS.BASS_ChannelFlags(id, if (value) BASS.BASS_SAMPLE_LOOP else 0, BASS.BASS_SAMPLE_LOOP)
+        }
 
 
     private val baseFrequency: Int

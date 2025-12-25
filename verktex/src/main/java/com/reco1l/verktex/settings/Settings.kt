@@ -34,6 +34,7 @@ object Settings {
     operator fun set(key: String, value: Number) = changeSetting(key, value)
     operator fun set(key: String, value: String) = changeSetting(key, value)
     operator fun set(key: String, value: Set<String>) = changeSetting(key, value)
+    @JvmName("setNumberSet")
     operator fun set(key: String, value: Set<Number>) = changeSetting(key, value)
 
     operator fun <T : Any> get(key: String, default: T): T {

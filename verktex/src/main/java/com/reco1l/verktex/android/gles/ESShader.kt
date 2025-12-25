@@ -98,6 +98,7 @@ class ESShader(
                         2 -> GLES32.glUniform2fv(location, 1, value, 0)
                         3 -> GLES32.glUniform3fv(location, 1, value, 0)
                         4 -> GLES32.glUniform4fv(location, 1, value, 0)
+                        16 -> GLES32.glUniformMatrix4fv(location, 1, false, value, 0)
                         else -> throw IllegalArgumentException("Unsupported float array size: ${value.size}")
                     }
                 }

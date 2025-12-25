@@ -72,6 +72,15 @@ abstract class GraphicsShader : GraphicsResource() {
             return this
         }
 
+        /**
+         * Sets a vector (2 to 4 floats) or a column-major 4x4 matrix (16 floats). The array is kept
+         * by reference, so its values are read when the draw runs.
+         */
+        operator fun set(name: String, value: FloatArray): UniformSet {
+            entries[name] = value
+            return this
+        }
+
     }
 }
 

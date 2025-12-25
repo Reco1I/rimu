@@ -1,6 +1,6 @@
 package com.reco1l.verktex
 
-import com.reco1l.verktex.ui.control.UITextInput
+import com.reco1l.verktex.ui.ITextInput
 
 /**
  * An interface that defines the contract for a game host, which is responsible for managing the
@@ -20,12 +20,12 @@ interface GameHost {
 
 
     /**
-     * Starts listening to IME events.
+     * Starts listening to IME events and shows the soft keyboard.
      */
-    fun attachTextInput(textInput: UITextInput)
+    fun attachTextInput(textInput: ITextInput)
 
     /**
-     * Stops listening to IME events.
+     * Stops listening to IME events and hides the soft keyboard.
      */
     fun detachTextInput()
 }

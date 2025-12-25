@@ -7,5 +7,6 @@ package com.reco1l.verktex.settings
  */
 object VerktexSettings {
     const val ShowComponentBoundaries = "show_component_boundaries"
+    const val ShowPerformanceOverlay = "show_performance_overlay"
     const val DrawTextures = "draw_textures"
 }

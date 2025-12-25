@@ -1,11 +1,7 @@
 package com.reco1l.verktex.ui.container
 
 import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.toolkt.kotlin.*
 import com.reco1l.verktex.data.Vec4
-import org.anddev.andengine.engine.camera.*
-import org.anddev.andengine.entity.*
-import javax.microedition.khronos.opengles.*
 
 
 inline fun UIContainer.constraintContainer(builder: UIConstraintContainer.() -> Unit): UIConstraintContainer {
@@ -15,7 +11,8 @@ inline fun UIContainer.constraintContainer(builder: UIConstraintContainer.() -> 
 /**
  * Container that allows to constrain nested entities to other entities in the same container.
  *
- * This is useful for creating complex layouts.
+ * A constrained child is laid out inside the bounds of its target instead of the container, so its
+ * anchor, origin and position are relative to the target. This is useful for creating complex layouts.
  */
 open class UIConstraintContainer : UIContainer() {
 
@@ -23,18 +20,26 @@ open class UIConstraintContainer : UIContainer() {
 
 
     override fun onLayout(bounds: Vec4) {
-        for (child in this) {
+        val contentBounds = contentBounds(bounds)
+        val laidOut = mutableSetOf<UIComponent>()
 
-            val target = constraints[child] ?: this
-            val targetBounds = Vec4(
-                target.bounds.x,
-                target.bounds.y,
-                target.bounds.width,
-                target.bounds.height
-            )
+        // Targets are laid out before the children constrained to them, so they use this frame's bounds.
+        fun layoutChild(child: UIComponent) {
+            if (!laidOut.add(child)) {
+                return
+            }
 
-            child.layout(targetBounds)
+            val target = constraints[child]
+
+            if (target != null) {
+                layoutChild(target)
+                child.layout(target.bounds)
+            } else {
+                child.layout(contentBounds)
+            }
         }
+
+        forEach(::layoutChild)
     }
 
     /**
@@ -46,15 +51,20 @@ open class UIConstraintContainer : UIContainer() {
             throw IllegalArgumentException("Cannot constrain a child to itself.")
         }
 
-        if (child == this) {
-            throw IllegalArgumentException("Cannot constrain the container itself. Use anchorX and anchorY child's properties instead.")
+        if (child !in this || target !in this) {
+            throw IllegalArgumentException("Both the child and the target must be children of the container.")
         }
 
-        if (target !in this) {
-            throw IllegalArgumentException("The target must be a child of the container.")
+        var next: UIComponent? = target
+        while (next != null) {
+            if (next == child) {
+                throw IllegalArgumentException("Cannot constrain a child to a target that is constrained to it.")
+            }
+            next = constraints[next]
         }
 
         constraints[child] = target
+        invalidateLayout()
     }
 
     /**
@@ -62,11 +72,14 @@ open class UIConstraintContainer : UIContainer() {
      */
     fun removeConstraint(child: UIComponent?) {
         constraints.remove(child ?: return)
+        invalidateLayout()
     }
 
 
     override fun onChildDetached(child: UIComponent) {
         removeConstraint(child)
+        // Children constrained to the detached one fall back to the container.
+        constraints.values.removeAll { it == child }
         super.onChildDetached(child)
     }
 

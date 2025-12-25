@@ -39,10 +39,11 @@ open class UICircle : UICanvas() {
         renderer.drawArc(
             x = 0f,
             y = 0f,
-            width = widthPx,
-            height = heightPx,
+            width = bounds.width,
+            height = bounds.height,
             startAngle = startAngle,
             endAngle = endAngle,
+            color = contentColor
         )
     }
 

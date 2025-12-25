@@ -1,56 +1,49 @@
 package com.reco1l.verktex.ui.form
 
-import com.reco1l.verktex.*
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.ui.control.FloatTextInput
 import com.reco1l.verktex.ui.control.IntegerTextInput
 import com.reco1l.verktex.ui.control.UITextInput
-import com.reco1l.verktex.ui.linearContainer
 
+/**
+ * A form control with a text input below its label.
+ *
+ * The input is created by [createControl], passed to the constructor so subclasses can configure
+ * it with their own arguments before their properties are initialized.
+ */
 @Suppress("LeakingThis")
-open class FormInput(private val initialValue: String = "") : FormControl<String, UITextInput>(initialValue) {
+open class FormInput(
+    initialValue: String = "",
+    createControl: (initialValue: String) -> UITextInput = ::UITextInput
+) : FormControl<String, UITextInput>(initialValue) {
 
-    final override val control = createControl().apply {
-        width = Dimension.FillAvailable
+    final override val control = createControl(initialValue).apply {
+        width = fill()
     }
-
-    override val valueText = null
 
 
     init {
         orientation = Orientation.Vertical
-        style + {
-            spacing = 2f.srem
-        }
 
-        linearContainer {
-            width = Dimension.FillAvailable
-            style = {
-                spacing = 2f.srem
-            }
-            +labelText
-            +resetButton
-        }
-
+        +createHeader()
         +control
     }
-
-    open fun createControl() = UITextInput(initialValue)
 }
 
+/**
+ * A [FormInput] that only allows [Int]s between [minValue] and [maxValue].
+ */
 open class IntegerFormInput(
     initialValue: Int?,
-    val minValue: Int? = -Int.MAX_VALUE,
-    val maxValue: Int? = Int.MAX_VALUE
-) : FormInput(initialValue?.toString() ?: "") {
-    override fun createControl() = IntegerTextInput(defaultValue.toIntOrNull(), minValue, maxValue)
-}
+    minValue: Int? = -Int.MAX_VALUE,
+    maxValue: Int? = Int.MAX_VALUE
+) : FormInput(initialValue?.toString() ?: "", { IntegerTextInput(it.toIntOrNull(), minValue, maxValue) })
 
+/**
+ * A [FormInput] that only allows [Float]s between [minValue] and [maxValue].
+ */
 open class FloatFormInput(
     initialValue: Float?,
-    val minValue: Float? = -Float.MAX_VALUE,
-    val maxValue: Float? = Float.MAX_VALUE
-) : FormInput(initialValue?.toString() ?: "") {
-    override fun createControl() = FloatTextInput(defaultValue.toFloatOrNull(), minValue, maxValue)
-}
+    minValue: Float? = -Float.MAX_VALUE,
+    maxValue: Float? = Float.MAX_VALUE
+) : FormInput(initialValue?.toString() ?: "", { FloatTextInput(it.toFloatOrNull(), minValue, maxValue) })

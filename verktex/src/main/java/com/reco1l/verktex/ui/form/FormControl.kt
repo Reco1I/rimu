@@ -1,28 +1,28 @@
 package com.reco1l.verktex.ui.form
 
-import com.reco1l.verktex.*
-import com.reco1l.verktex.component.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.ui.text.*
-import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.fill
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.math.interpolateFloat
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.control.UIControl
 import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.framework.math.*
-import com.reco1l.verktex.data.Vec4
-import com.reco1l.verktex.data.Anchor
-import com.rian.andengine.modifier.ModifierType
-import org.anddev.andengine.input.touch.*
+import com.reco1l.verktex.ui.text.faSolidIcon
 
 /**
- * Represents a form control that is used to change the value of a property.
+ * A labeled row around a [control] used to change the value of a property, with a button to reset
+ * it to its [defaultValue].
  */
 @Suppress("LeakingThis", "MemberVisibilityCanBePrivate")
-abstract class FormControl<V : Any, C: UIControl<V>>(initialValue: V): UILinearContainer() {
+abstract class FormControl<V : Any, C : UIControl<V>>(initialValue: V) : UILinearContainer() {
 
     /**
      * The control that is used to change the value.
@@ -30,52 +30,50 @@ abstract class FormControl<V : Any, C: UIControl<V>>(initialValue: V): UILinearC
     abstract val control: C
 
     /**
-     * The key that is used to identify the control.
-     */
-    var key
-        get() = control.key
-        set(value) { control.key = value }
-
-
-    /**
-     * The text that is displayed as the value of the control.
+     * The text showing the formatted [value], if the form control has one.
      */
     open val valueText: UIText? = null
 
     /**
      * The text that is displayed as the label of the control.
      */
-    open val labelText = UIText().apply {
-        anchor = Anchor.CenterLeft
-        origin = Anchor.CenterLeft
-        style = {
-            fontSize = FontSize.SM
-            color = it.accentColor
+    val labelText = UIText().apply {
+        // Stretched to the header row so the label is centered next to the reset button.
+        height = fill()
+        alignment = Anchor.CenterLeft
+        style = Style { theme ->
+            fontSettings = theme.typography.caption
         }
     }
 
     /**
-     * The button that is used to reset the value of the control to its default value.
+     * The button that resets the value of the control to its default value.
      */
-    open val resetButton = UITextButton().apply {
-        anchor = Anchor.CenterLeft
-        origin = Anchor.CenterLeft
-        scaleOrigin = Anchor.Center
+    val resetButton = UITextButton().apply {
         text = "Reset"
-        leadingIcon = UIIcon(FAIcon.RotateLeft)
-        colorVariant = ColorVariant.Primary
-        sizeVariant = SizeVariant.Small
-
-        alpha = 0f
-        translationX = -10f
-
-        onActionUp = {
-            if (this@FormControl.isVisible) {
-                value = defaultValue
-            }
-        }
+        leadingIcon = faSolidIcon(FAIcon.RotateLeft)
+        density = UIButton.Density.Small
+        variant = UIButton.Variant.Soft
+        onActionUp = { value = defaultValue }
     }
 
+    // Buttons animate their own alpha, so the reset button is faded through a holder. Hidden
+    // components still receive input, so the holder ignores it while hidden.
+    private val resetButtonHolder = object : UIContainer() {
+        override fun onInputEvent(event: InputEvent) = isVisible && super.onInputEvent(event)
+    }.apply {
+        isVisible = false
+        alpha = 0f
+        +resetButton
+    }
+
+
+    /**
+     * The key that is used to identify the control in a [FormContainer].
+     */
+    var key
+        get() = control.key
+        set(value) { control.key = value }
 
     /**
      * The value of the control.
@@ -85,7 +83,7 @@ abstract class FormControl<V : Any, C: UIControl<V>>(initialValue: V): UILinearC
         set(value) { control.value = value }
 
     /**
-     * The default value of the control.
+     * The value the reset button sets the control back to.
      */
     var defaultValue = initialValue
 
@@ -97,109 +95,94 @@ abstract class FormControl<V : Any, C: UIControl<V>>(initialValue: V): UILinearC
     /**
      * The label text.
      */
-    var label
-        get() = labelText.text
-        set(value) { labelText.text = value }
+    var label by labelText::text
 
     /**
-     * Whether the control is enabled or not. If disabled, the control will not process any
-     * touch events.
+     * Whether the control can be used. A disabled form control is faded and ignores touches.
      */
     var isEnabled = true
-        set(value) {
-            if (field != value) {
-                field = value
-                onEnableStateChange()
-            }
-        }
 
     /**
-     * The formatter that is used to format the value of the control.
+     * The formatter of the [valueText].
      */
     var valueFormatter: (value: V) -> String = Any::toString
-        set(value) {
-            if (field != value) {
-                field = value
-                onControlValueChanged()
-            }
+        set(formatter) {
+            field = formatter
+            valueText?.text = formatter(value)
         }
 
     /**
-     * Whether to show the reset button or not. If true, the reset button will be shown when the
-     * value of the control is not equal to the default value.
+     * Whether to show the reset button while the value is not the default one.
      */
     var showResetButton = true
-        set(value) {
-            if (field != value) {
-                field = value
-                updateResetButtonVisibility()
-            }
-        }
 
     /**
-     * Whether the current [value] equals to [defaultValue]. Can be overridden to provide a custom behavior.
+     * Whether the current [value] equals to [defaultValue].
      */
     protected open val isDefault
         get() = value == defaultValue
 
+
     init {
-        width = Dimension.FillAvailable
-        style = {
-            padding = Vec4(2f.srem)
+        width = fill()
+        style = Style { theme ->
+            padding = Padding(theme.gap.sm)
+            spacing = theme.gap.sm
         }
     }
 
 
-    //region Callbacks
+    /**
+     * Creates the header of the form control: the label and the reset button on the left, and
+     * [trailing] on the right.
+     */
+    protected fun createHeader(trailing: UIContainer.() -> Unit = {}) = UIContainer().apply {
+        width = fill()
+
+        +UILinearContainer().apply {
+            anchor = Anchor.CenterLeft
+            origin = Anchor.CenterLeft
+            style = Style { theme -> spacing = theme.gap.sm }
+
+            +labelText
+            +resetButtonHolder
+        }
+
+        trailing()
+    }
+
 
     /**
-     * Called when the value of the control changes.
+     * Called when the value of the [control] changes.
      */
     open fun onControlValueChanged() {
         valueText?.text = valueFormatter(value)
-        updateResetButtonVisibility()
-        onValueChanged?.invoke(control.value)
+        onValueChanged?.invoke(value)
     }
 
-    /**
-     * Called when the enable state of the button changes.
-     */
-    open fun onEnableStateChange() {
-        clearModifiers(ModifierType.Alpha)
+    override fun onUpdate(clock: FrameClock) {
+        alpha = clock.interpolateFloat(0.2f, alpha, if (isEnabled) 1f else DISABLED_ALPHA)
 
-        if (isEnabled) {
-            fadeTo(1f, 0.2f)
-        } else {
-            fadeTo(0.25f, 0.2f)
-        }
+        // The reset button slides in from the left while the value differs from the default.
+        val showReset = showResetButton && !isDefault
+        resetButtonHolder.alpha = clock.interpolateFloat(0.1f, resetButtonHolder.alpha, if (showReset) 1f else 0f)
+        resetButtonHolder.translationX = (RESET_BUTTON_OFFSET * (1f - resetButtonHolder.alpha)).dip
+        resetButtonHolder.isVisible = showReset || resetButtonHolder.alpha > 0f
+
+        super.onUpdate(clock)
     }
 
-    //endregion
-
-    private fun updateResetButtonVisibility() {
-        if (showResetButton) {
-            resetButton.apply {
-                if (!isVisible && !isDefault) {
-                    clearEntityModifiers()
-                    isVisible = true
-                    translateToX(0f, 0.1f)
-                    fadeIn(0.1f)
-                } else if (isVisible && isDefault) {
-                    clearEntityModifiers()
-                    translateToX(-10f, 0.1f)
-                    fadeOut(0.1f).after { isVisible = false }
-                }
-            }
-        } else {
-            resetButton.isVisible = false
-        }
-    }
-
-    override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
+    override fun onInputEvent(event: InputEvent): Boolean {
+        // Disabled form controls swallow presses, so nothing below reacts to them either.
         if (!isEnabled) {
-            return true
+            return event is PointerEvent && event.action == PointerEvent.Action.Down
         }
-        return super.onAreaTouched(event, localX, localY)
+        return super.onInputEvent(event)
     }
 
+
+    companion object {
+        private const val DISABLED_ALPHA = 0.25f
+        private const val RESET_BUTTON_OFFSET = -10f
+    }
 }

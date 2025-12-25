@@ -14,8 +14,19 @@ import kotlin.math.min
 object Textures {
 
     private val atlases = mutableListOf<GraphicsTexture>()
+    private val standaloneTextures = mutableListOf<GraphicsTexture>()
     private val textureRegions = mutableMapOf<String, GraphicsTexture.Region>()
 
+
+    /**
+     * Forgets every texture without releasing it, for when the graphics context they belong to was
+     * destroyed along with them.
+     */
+    internal fun clear() {
+        atlases.clear()
+        standaloneTextures.clear()
+        textureRegions.clear()
+    }
 
     //region Load and Unload
 
@@ -60,7 +71,7 @@ object Textures {
      * @param isInternal A boolean indicating whether the file path is internal to the application.
      * @return A [GraphicsTexture.Region] representing the loaded texture.
      */
-    open fun load(key: String, path: String, isInternal: Boolean = false, destinationAtlas: GraphicsTexture? = null): GraphicsTexture.Region? {
+    fun load(key: String, path: String, isInternal: Boolean = false, destinationAtlas: GraphicsTexture? = null): GraphicsTexture.Region? {
 
         /*val highDefinitionVariantPath = filePath.substringAfterLast('.') + "@2x." + filePath.substringAfterLast('.')
 
@@ -76,13 +87,42 @@ object Textures {
                 return null
             }
 
-        val existingRegion = textureRegions[key]
+        return load(key, textureSource, destinationAtlas = destinationAtlas)
+    }
+
+    /**
+     * Loads a texture from an already created source and stores it under the specified key, replacing any
+     * previous region with the same key.
+     *
+     * @param key A unique key to associate with the loaded texture.
+     * @param source The texture source to upload.
+     * @param standalone Whether the source gets its own texture instead of being packed into an atlas. Sources
+     * larger than the atlas size are always standalone.
+     * @param destinationAtlas The atlas to store the source in, if any.
+     * @return A [GraphicsTexture.Region] representing the loaded texture, or null if the source exceeds the
+     * maximum texture size.
+     */
+    fun load(
+        key: String,
+        source: GraphicsTexture.Source,
+        standalone: Boolean = false,
+        destinationAtlas: GraphicsTexture? = null
+    ): GraphicsTexture.Region? {
+
+        val existingRegion = textureRegions.remove(key)
         if (existingRegion != null) {
             Logger.w("TextureManager", "Texture with key '$key' already exists. Overwriting...")
-            existingRegion.texture.removeRegion(existingRegion)
+            release(existingRegion)
         }
 
-        val region = storeOnTextureAtlas(textureSource, destinationAtlas)
+        val region = if (destinationAtlas == null && (standalone || source.width > atlasSize() || source.height > atlasSize())) {
+            storeStandalone(source) ?: run {
+                Logger.w("TextureManager", "Texture '$key' (${source.width}x${source.height}) exceeds the maximum texture size.")
+                return null
+            }
+        } else {
+            storeOnTextureAtlas(source, destinationAtlas)
+        }
         textureRegions[key] = region
         return region
     }
@@ -93,7 +133,7 @@ object Textures {
      *
      * @param key The key associated with the texture region to unload.
      */
-    open fun unload(key: String) {
+    fun unload(key: String) {
         val region = textureRegions[key] ?: run {
             Logger.w(
                 "TextureManager",
@@ -103,7 +143,25 @@ object Textures {
         }
 
         textureRegions.remove(key)
-        region.texture.removeRegion(region)
+        release(region)
+    }
+
+    /**
+     * Detaches [region] from its texture, and disposes the texture if it is a standalone one.
+     */
+    private fun release(region: GraphicsTexture.Region) {
+        val texture = region.texture
+
+        if (standaloneTextures.remove(texture)) {
+            // The GPU delete must happen on the draw worker (GL thread). The texture stays registered until
+            // then, so a context loss in between still marks it and the old name is not deleted in the new context.
+            Verktex.scheduleOnDraw {
+                texture.dispose()
+                Verktex.graphics.unregisterResource(texture)
+            }
+        } else {
+            texture.removeRegion(region)
+        }
     }
 
     /**
@@ -152,8 +210,34 @@ object Textures {
     }
 
 
+    private fun atlasSize(): Float = min(2048f, Verktex.graphics.device.capabilities.maxTextureSize)
+
+    /**
+     * Stores a [GraphicsTexture.Source] larger than an atlas on a texture of exactly its own size.
+     * Returns null when the source exceeds the device's maximum texture size.
+     */
+    private fun storeStandalone(source: GraphicsTexture.Source): GraphicsTexture.Region? {
+        val maxSize = Verktex.graphics.device.capabilities.maxTextureSize
+
+        if (source.width > maxSize || source.height > maxSize) {
+            return null
+        }
+
+        val texture = Verktex.graphics.createTexture(width = source.width, height = source.height)
+        val region = texture.addSource(source)
+
+        if (region == null) {
+            texture.dispose()
+            Verktex.graphics.unregisterResource(texture)
+            return null
+        }
+
+        standaloneTextures += texture
+        return region
+    }
+
     private fun createNewAtlas(): GraphicsTexture {
-        val preferedSize = min(2048f, Verktex.graphics.device.capabilities.maxTextureSize)
+        val preferedSize = atlasSize()
 
         val newAtlas = Verktex.graphics.createTexture(
             width = preferedSize,

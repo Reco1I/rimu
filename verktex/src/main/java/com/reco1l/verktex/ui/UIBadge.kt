@@ -1,6 +1,8 @@
 package com.reco1l.verktex.ui
 
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.text.UIText
@@ -37,6 +39,9 @@ open class UIBadge : UIText() {
 
     init {
         style = Style { theme ->
+            borderWidth = if (variant == Variant.Outline) 1.5f.dip else Dimension.Zero
+            color = if (variant == Variant.Solid) theme.palette.contentOnSolid else Color4.White
+
             when (variant) {
                 Variant.Solid -> {
                     backgroundColor = theme.palette.badgeBackgroundSolid

@@ -57,4 +57,11 @@ abstract class AudioDriver {
      */
     abstract fun onEnumerateDevices(): List<AudioDevice>
 
+    /**
+     * Releases the audio backend, no audio can be played afterwards.
+     */
+    open fun dispose() {
+        activeDevice = null
+    }
+
 }

@@ -1,21 +1,18 @@
 package com.reco1l.verktex.ui.dialog
 
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.verktex.data.Vec4
 
+/**
+ * A dialog showing a text message.
+ */
 open class UIMessageDialog : UIDialog<UIText>(
     innerContent = UIText().apply {
-        width = Dimension.FillAvailable
-        fontSize = FontSize.SM
-        alignment = Anchor.Center
-        padding = Vec4(24f)
-
-        style = {
-            color = it.accentColor
-        }
+        width = fill()
+        alignment = Anchor.TopCenter
+        style = Style { theme -> padding = Padding(theme.gap.lg) }
     }
 ) {
 

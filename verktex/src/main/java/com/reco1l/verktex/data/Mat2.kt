@@ -1,6 +1,6 @@
 package com.reco1l.verktex.data
 
-import com.osudroid.math.toRadians
+import com.reco1l.verktex.math.toRadians
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
@@ -57,8 +57,8 @@ data class Mat2(
      */
     fun scale(sx: Float, sy: Float) {
         a *= sx
-        b *= sx
-        c *= sy
+        c *= sx
+        b *= sy
         d *= sy
         tx *= sx
         ty *= sy
@@ -92,10 +92,10 @@ data class Mat2(
         val cos = cos(angleRad)
         val sin = sin(angleRad)
 
-        val a1 = a * cos - c * sin
-        val b1 = b * cos - d * sin
-        val c1 = a * sin + c * cos
-        val d1 = b * sin + d * cos
+        val a1 = a * cos - b * sin
+        val b1 = a * sin + b * cos
+        val c1 = c * cos - d * sin
+        val d1 = c * sin + d * cos
         val tx1 = tx * cos - ty * sin
         val ty1 = tx * sin + ty * cos
 
@@ -139,6 +139,15 @@ data class Mat2(
     }
 
     /**
+     * Transforms a point (x, y) using this matrix and writes the result into [out] at [offset] and
+     * [offset] + 1, without allocating.
+     */
+    fun transform(x: Float, y: Float, out: FloatArray, offset: Int = 0) {
+        out[offset] = a * x + c * y + tx
+        out[offset + 1] = b * x + d * y + ty
+    }
+
+    /**
      * Transforms a 4D vector (x, y, w, z) using this matrix and returns the resulting vector as a Vec4.
      * The transformation is applied in the order of scaling, rotation, and translation.
      */
@@ -176,6 +185,24 @@ data class Mat2(
         d = d1
         tx = tx1
         ty = ty1
+    }
+
+    /**
+     * Same as [invert] but a non invertible matrix (e.g. scaled to zero) is turned into one that
+     * maps every point to NaN instead of throwing, so it never matches any coordinate.
+     */
+    fun invertOrNaN() {
+        if (a * d - b * c != 0f) {
+            invert()
+            return
+        }
+
+        a = Float.NaN
+        b = Float.NaN
+        c = Float.NaN
+        d = Float.NaN
+        tx = Float.NaN
+        ty = Float.NaN
     }
 
 

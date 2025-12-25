@@ -1,18 +1,16 @@
 package com.reco1l.verktex.ui.form
 
-import com.reco1l.verktex.*
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.ui.control.UISelect
-import com.reco1l.verktex.ui.linearContainer
 
+/**
+ * A form control with a select below its label.
+ */
 open class FormSelect<T : Any>(initialValues: List<T> = emptyList()) : FormControl<List<T>, UISelect<T>>(initialValues) {
 
-    final override val control = UISelect<T>().apply {
-        width = Dimension.FillAvailable
+    final override val control = UISelect(initialValues).apply {
+        width = fill()
     }
-
-    override val valueText = null
 
 
     //region Shortcuts
@@ -26,19 +24,8 @@ open class FormSelect<T : Any>(initialValues: List<T> = emptyList()) : FormContr
 
     init {
         orientation = Orientation.Vertical
-        style + {
-            spacing = 2f.srem
-        }
 
-        linearContainer {
-            width = Dimension.FillAvailable
-            style = {
-                spacing = 2f.srem
-            }
-            +labelText
-            +resetButton
-        }
-
+        +createHeader()
         +control
     }
 

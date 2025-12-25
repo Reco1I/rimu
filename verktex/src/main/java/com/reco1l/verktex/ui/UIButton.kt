@@ -2,14 +2,16 @@ package com.reco1l.verktex.ui
 
 import com.reco1l.verktex.ui.container.UIClickableContainer
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.horizontalPadding
-import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.text.text
-import com.rian.andengine.timing.IFrameBasedClock
+import com.reco1l.verktex.time.FrameClock
 
 fun UIContainer.button(builder: UIButton.() -> Unit) = UIButton().apply(builder).also { +it }
 
@@ -42,10 +44,16 @@ open class UIButton : UIClickableContainer() {
     var isEnabled = true
 
     /**
-     * Whether the button is selected or not.
+     * Whether the button is selected or not, e.g. the chosen option of a select. Selected buttons
+     * are highlighted regardless of their [variant].
      */
-    @Deprecated("Use colorVariant instead", ReplaceWith("variant"))
     var isSelected = false
+        set(value) {
+            if (field != value) {
+                field = value
+                style()
+            }
+        }
 
 
     //endregion
@@ -55,6 +63,8 @@ open class UIButton : UIClickableContainer() {
         scaleOrigin = Anchor.Center
 
         style = Style { theme ->
+            borderWidth = if (variant == Variant.Outline) 1.5f.dip else Dimension.Zero
+
             when (variant) {
                 Variant.Solid -> {
                     backgroundColor = theme.palette.buttonBackgroundSolid
@@ -76,6 +86,10 @@ open class UIButton : UIClickableContainer() {
                     backgroundColor = Color4.Transparent
                     borderColor = Color4.Transparent
                 }
+            }
+
+            if (isSelected) {
+                backgroundColor = theme.palette.controlActiveBackground
             }
 
             when (density) {
@@ -101,13 +115,13 @@ open class UIButton : UIClickableContainer() {
     }
 
 
-    override fun onUpdate(clock: IFrameBasedClock) {
+    override fun onUpdate(clock: FrameClock) {
 
-        val targetScale = if (isPressed) 1f else 0.9f
+        val targetScale = if (isPressed) 0.9f else 1f
         val targetAlpha = if (isEnabled) 1f else 0.5f
 
-        alpha = clock.interpolateFloat(0.2f, alpha, targetAlpha, Easing.OutExpo)
-        scale = clock.interpolateFloat(0.2f, scale, targetScale, Easing.OutExpo)
+        alpha = clock.interpolateFloat(0.2f, alpha, targetAlpha)
+        scale = clock.interpolateFloat(0.2f, scale, targetScale)
 
         super.onUpdate(clock)
     }
@@ -116,7 +130,8 @@ open class UIButton : UIClickableContainer() {
 
     override fun onInputEvent(event: InputEvent): Boolean {
         if (!isEnabled) {
-            return true
+            // Swallow presses but let up and cancel events reach other pressed components.
+            return event is PointerEvent && event.action == PointerEvent.Action.Down
         }
         return super.onInputEvent(event)
     }
