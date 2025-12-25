@@ -23,6 +23,11 @@ object BuiltIn {
          * A shader for rendering textured quads.
          */
         lateinit var TextureQuad: GraphicsShader
+
+        /**
+         * A shader for rendering external (video) textures, sampled through their transform.
+         */
+        lateinit var Video: GraphicsShader
     }
 
     /**

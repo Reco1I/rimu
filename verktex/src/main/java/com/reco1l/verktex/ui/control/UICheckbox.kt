@@ -5,11 +5,11 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.math.FloatAnimation
 import com.reco1l.verktex.math.interpolateColor
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.time.FrameClock
 
 class UICheckbox(initialValue: Boolean = false) : UIControl<Boolean>(initialValue) {
@@ -18,20 +18,20 @@ class UICheckbox(initialValue: Boolean = false) : UIControl<Boolean>(initialValu
         anchor = Anchor.Center
         origin = Anchor.Center
         style = Style {
-            width = 1.075f.dip
-            height = 1.075f.dip
             color = it.palette.accent
         }
 
         if (!initialValue) {
-            scaleX = 0f
-            scaleY = 0f
+            scale = 0f
             alpha = 0f
         }
     }
 
+    private val checkScale = FloatAnimation(if (initialValue) 1f else 0f, 0.4f, Easing.OutBounce)
+
 
     private var isPressed = false
+    private var pressPointerId = -1
 
 
     init {
@@ -50,30 +50,46 @@ class UICheckbox(initialValue: Boolean = false) : UIControl<Boolean>(initialValu
         val targetScaleAndAlpha = if (value) 1f else 0f
         val targetBackgroundCOlor = if (value) Verktex.theme.palette.controlActiveBackground else Verktex.theme.palette.controlInactiveBackground
 
-        checkIcon.scale = clock.interpolateFloat(0.2f, checkIcon.scale, targetScaleAndAlpha, Easing.OutBounce)
-        checkIcon.alpha = clock.interpolateFloat(0.2f, checkIcon.alpha, targetScaleAndAlpha, Easing.OutSine)
-        backgroundColor = clock.interpolateColor(0.2f, backgroundColor, targetBackgroundCOlor, Easing.OutSine)
+        checkScale.target = targetScaleAndAlpha
+        checkIcon.scale = checkScale.update(clock)
+        checkIcon.alpha = clock.interpolateFloat(0.2f, checkIcon.alpha, targetScaleAndAlpha)
+        backgroundColor = clock.interpolateColor(0.2f, backgroundColor, targetBackgroundCOlor)
 
         super.onUpdate(clock)
     }
 
 
     override fun onInputEvent(event: InputEvent): Boolean {
-        if (event is PointerEvent) {
-            when (event.action) {
-                PointerEvent.Action.Down -> {
-                    isPressed = true
-                }
-                PointerEvent.Action.Up, PointerEvent.Action.Unknown -> {
-                    if (isPressed) {
-                        isPressed = false
-                        value = !value
-                    }
-                }
-                else -> {}
-            }
-            return true
+        if (event !is PointerEvent) {
+            return super.onInputEvent(event)
         }
-        return super.onInputEvent(event)
+
+        // Up and cancel events are dispatched to every component, only the finger that pressed
+        // this checkbox can release it.
+        if (event.action != PointerEvent.Action.Down && (!isPressed || event.pointerId != pressPointerId)) {
+            return false
+        }
+
+        return when (event.action) {
+            PointerEvent.Action.Down -> {
+                if (!isPressed) {
+                    isPressed = true
+                    pressPointerId = event.pointerId
+                }
+                true
+            }
+            PointerEvent.Action.Up -> {
+                isPressed = false
+                if (containsScenePoint(event.x, event.y)) {
+                    value = !value
+                }
+                true
+            }
+            PointerEvent.Action.Unknown, PointerEvent.Action.Cancel -> {
+                isPressed = false
+                false
+            }
+            PointerEvent.Action.Move -> true
+        }
     }
 }

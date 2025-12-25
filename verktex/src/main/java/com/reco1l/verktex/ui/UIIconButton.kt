@@ -1,6 +1,7 @@
 package com.reco1l.verktex.ui
 
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.text.UIText
@@ -21,6 +22,8 @@ open class UIIconButton : UIButton() {
         origin = Anchor.Center
 
         style = Style { theme ->
+            color = if (variant == Variant.Solid) theme.palette.contentOnSolid else Color4.White
+
             iconSize = when (density) {
                 Density.Small -> theme.typography.smallBody.size
                 Density.Medium -> theme.typography.body.size

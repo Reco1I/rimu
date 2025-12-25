@@ -27,6 +27,9 @@ interface LoopWorker {
      * Stops the worker thread, terminating its execution. This method should be called when the worker is no longer needed or when the application is shutting down.
      * It ensures that the worker thread is properly terminated and any resources it was using are released.
      */
+    /**
+     * Stops the worker and waits until its thread finished.
+     */
     fun stop()
 
     /**

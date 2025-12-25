@@ -13,6 +13,14 @@ object Fonts {
     private val fontFamilies = mutableMapOf<String, FontFamily>()
 
 
+    /**
+     * Forgets every font without releasing it, for when the graphics context their textures belong
+     * to was destroyed along with them.
+     */
+    internal fun clear() {
+        fontFamilies.clear()
+    }
+
     //region Fonts
 
     /**

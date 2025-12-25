@@ -25,6 +25,18 @@ abstract class GraphicsTexture : GraphicsResource() {
      */
     open val packingAlgorithm: TexturePackingAlgorithm = TexturePackingAlgorithm.MaxRects
 
+    /**
+     * Whether the texture is an external image (such as video frames) that must be sampled with
+     * [com.reco1l.verktex.BuiltIn.Shaders.Video] instead of the regular texture shader.
+     */
+    open val isExternal: Boolean get() = false
+
+    /**
+     * The column-major 4x4 matrix applied to texture coordinates when sampling an external texture,
+     * null for regular textures.
+     */
+    open val transform: FloatArray? get() = null
+
 
     private val freeRegions = mutableListOf<Vec4>()
 
@@ -32,7 +44,9 @@ abstract class GraphicsTexture : GraphicsResource() {
     private val pendingUploads = mutableListOf<Region>()
 
     private var freeRegionsInitialized = false
-    private var needsRepack = false
+
+    // Textures are loaded and unloaded from any thread while the draw worker binds the texture.
+    private val lock = Any()
 
 
     //region Source allocation
@@ -49,9 +63,9 @@ abstract class GraphicsTexture : GraphicsResource() {
      *
      * @see TexturePackingAlgorithm
      */
-    fun fitsSource(source: Source): Boolean {
+    open fun fitsSource(source: Source): Boolean = synchronized(lock) {
         ensureFreeRegions()
-        return packingAlgorithm.fits(source.width, source.height, freeRegions)
+        packingAlgorithm.fits(source.width, source.height, freeRegions)
     }
 
     /**
@@ -61,7 +75,7 @@ abstract class GraphicsTexture : GraphicsResource() {
      * @see TexturePackingAlgorithm
      * @return The newly created [Region] if the source fits, or null if it does not fit.
      */
-    fun addSource(source: Source): Region? {
+    open fun addSource(source: Source): Region? = synchronized(lock) {
 
         val existingRegion = regions.find { it.source == source }
         if (existingRegion != null) {
@@ -75,7 +89,7 @@ abstract class GraphicsTexture : GraphicsResource() {
 
         regions += region
         pendingUploads += region
-        return region
+        region
     }
 
     //endregion
@@ -84,34 +98,40 @@ abstract class GraphicsTexture : GraphicsResource() {
     /**
      * Removes the specified [region] from the texture.
      *
-     * The texture atlas will be repacked on the next bind to free up space for other regions.
+     * The remaining regions are repacked right away, so the freed space can be used immediately.
+     * They are uploaded again at their new positions on the next bind. When they do not repack, they
+     * keep their positions and the region's space is returned to the free space instead.
      */
-    fun removeRegion(region: Region) {
+    fun removeRegion(region: Region) = synchronized(lock) {
         if (regions.remove(region)) {
-            pendingUploads.remove(region)
-            needsRepack = true
+            freeRegionsInitialized = true
+
+            if (packingAlgorithm.pack(regions, freeRegions, width, height)) {
+                pendingUploads.clear()
+                pendingUploads += regions
+            } else {
+                pendingUploads.remove(region)
+                // The removed rectangle was a used one, and MaxRects keeps free rectangles disjoint from used ones, so giving it back cannot create overlaps.
+                freeRegions += Vec4(region.x, region.y, region.x + region.width, region.y + region.height)
+            }
         }
     }
 
 
     final override fun onLoad() {
-        onCreateTexture()
+        synchronized(lock) {
+            onCreateTexture()
 
-        // The texture storage was (re)created, so every region must be uploaded again.
-        pendingUploads.clear()
-        pendingUploads += regions
-    }
-
-    final override fun onBind() {
-        onBindTexture()
-
-        if (needsRepack) {
-            needsRepack = false
-            packingAlgorithm.pack(regions, freeRegions, width, height)
-
+            // The texture storage was (re)created, so every region must be uploaded again.
             pendingUploads.clear()
             pendingUploads += regions
         }
+
+        onTextureCreated()
+    }
+
+    final override fun onBind() = synchronized(lock) {
+        onBindTexture()
 
         if (pendingUploads.isNotEmpty()) {
             for (region in pendingUploads) {
@@ -126,6 +146,11 @@ abstract class GraphicsTexture : GraphicsResource() {
      * The texture must be left bound after this call.
      */
     protected abstract fun onCreateTexture()
+
+    /**
+     * Called after [onCreateTexture] once the texture's lock is released, on the same thread.
+     */
+    protected open fun onTextureCreated() = Unit
 
     /**
      * Called when the texture should be bound so that sources can be uploaded to it or it can be drawn.

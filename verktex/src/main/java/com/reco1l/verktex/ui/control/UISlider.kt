@@ -1,71 +1,69 @@
 package com.reco1l.verktex.ui.control
 
-import com.reco1l.verktex.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.Theme
-import com.reco1l.verktex.ui.shape.UIBox
-import com.reco1l.verktex.ui.container.setHierarchyScrollPrevention
-import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.fill
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.math.FloatAnimation
 import com.reco1l.verktex.math.interpolateFloat
-import kotlin.math.*
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.setHierarchyScrollPrevention
+import com.reco1l.verktex.ui.shape.UIBox
+import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.round
 
-@Suppress("LeakingThis")
+inline fun UIContainer.slider(builder: UISlider.() -> Unit): UISlider {
+    return UISlider().apply(builder).also(::plusAssign)
+}
+
+/**
+ * A horizontal slider to pick a value between [min] and [max] by dragging its thumb.
+ */
 open class UISlider(initialValue: Float = 0f) : UIControl<Float>(initialValue) {
 
     /**
      * The minimum allowed value of the slider.
      */
     var min = 0f
-        set(min) {
-            if (field != min) {
-                field = min(min, max)
-                value = onProcessValue(value)
-            }
+        set(value) {
+            if (field == value) return
+            field = value
+            this.value = onProcessValue(this.value)
         }
 
     /**
      * The maximum allowed value of the slider.
      */
     var max = 1f
-        set(max) {
-            if (field != max) {
-                field = max(min, max)
-                value = onProcessValue(value)
-            }
+        set(value) {
+            if (field == value) return
+            field = value
+            this.value = onProcessValue(this.value)
         }
 
     /**
-     * The step size of the slider. If set to 0, the slider will allow any value between min and max.
+     * The step size of the slider. If set to 0, the slider allows any value between [min] and [max].
      */
-    var step = 0.0f
-        set(step) {
-            if (step < 0f) {
-                throw IllegalArgumentException("step must be greater than or equal to 0")
-            }
-            field = step
+    var step = 0f
+        set(value) {
+            require(value >= 0f) { "step must be greater than or equal to 0" }
+            field = value
         }
 
     /**
-     * The number of decimal places to round [value] to.
-     *
-     * When set to `null`, no rounding will happen.
+     * The number of decimal places to round [value] to, or `null` to not round it.
      */
     var precision: Int? = null
-        set(precision) {
-            if (field != precision) {
-                if (precision != null && precision < 0) {
-                    throw IllegalArgumentException("precision must be greater than or equal to 0")
-                }
-
-                field = precision
-
-                if (precision != null) {
-                    // Reapply the current value to apply the new precision.
-                    value = onProcessValue(value)
-                }
-            }
+        set(value) {
+            require(value == null || value >= 0) { "precision must be greater than or equal to 0" }
+            if (field == value) return
+            field = value
+            this.value = onProcessValue(this.value)
         }
 
     /**
@@ -79,177 +77,152 @@ open class UISlider(initialValue: Float = 0f) : UIControl<Float>(initialValue) {
     var onStopDragging: () -> Unit = {}
 
 
-    private val thumb = UIBox().apply {
-        height = Dimension.FillAvailable
-        anchor = Anchor.CenterLeft
-        origin = Anchor.Center
-        //depthInfo = DepthInfo.Less
-        //clearInfo = ClearInfo.ClearDepthBuffer
-        style = {
-            width = 1f.rem
-            radius = Radius.LG
-        }
-    }
-
     private val progressBar = UIBox().apply {
-        height = Dimension.FillAvailable
+        height = fill()
         anchor = Anchor.CenterLeft
         origin = Anchor.CenterLeft
-        //depthInfo = DepthInfo.Default
-        style = {
-            radius = Radius.LG
-        }
+    }
+
+    private val thumb = UIBox().apply {
+        height = fill()
+        anchor = Anchor.CenterLeft
+        origin = Anchor.Center
     }
 
 
-    private var isPressed = false
-        set(value) {
-            if (field != value) {
-                field = value
-                thumb.clearModifiers(ModifierType.ScaleXY)
-                if (value) {
-                    thumb.scaleTo(1.25f, 0.1f, Easing.InExpo)
-                } else {
-                    thumb.scaleTo(1f, 0.3f, Easing.OutBounce)
-                }
-            }
-        }
+    private var thumbX = 0f
 
-    private var targetProgressBarWidth = 0f
-    private var targetThumbX = 0f
+    private val thumbScale = FloatAnimation(1f, 0.3f)
 
-    private var isStretching = false
+    // How far the slider is stretched by dragging past its ends, from 0 to 1.
+    private val stretch = FloatAnimation(0f, 0.4f, Easing.OutElastic)
+
+    // The finger dragging the slider, others are ignored.
+    private var pressPointerId = -1
+
+    private val isPressed
+        get() = pressPointerId != -1
 
 
     init {
-        style = {
-            height = 2.15f.rem
-            backgroundColor = it.accentColor * 0.25f
-            radius = Radius.LG
-            progressBar.color = it.accentColor * 0.5f
-            thumb.color = it.accentColor
-        }
+        width = fill()
 
-        width = Dimension.FillAvailable
+        style = Style { theme ->
+            height = theme.controlStyle.minimumHeight
+            radius = theme.radius.lg
+            backgroundColor = theme.palette.controlInactiveBackground
+
+            progressBar.radius = theme.radius.lg
+            progressBar.backgroundColor = theme.palette.controlActiveBackground
+
+            thumb.width = 16f.dip
+            thumb.radius = theme.radius.lg
+            thumb.backgroundColor = theme.palette.accent
+        }
 
         +progressBar
         +thumb
-
-        style(Theme.current)
     }
 
-
-    override fun onSizeChanged() {
-        super.onSizeChanged()
-        updateProgress()
-    }
-
-    override fun onValueChanged() {
-        super.onValueChanged()
-        updateProgress()
-    }
-
-    override fun onContentChanged() {
-        super.onContentChanged()
-        updateProgress()
-    }
 
     override fun onProcessValue(value: Float): Float {
         var result = value
-        val precision = precision
 
         if (step > 0f) {
-            result = min + step * round((value - min) / step)
+            result = min + step * round((result - min) / step)
         }
 
+        val precision = precision
         if (precision != null) {
-            result = result.roundBy(precision)
+            val factor = 10f.pow(precision)
+            result = round(result * factor) / factor
         }
 
         return result.coerceIn(min, max)
     }
 
 
-    private fun updateProgress() {
+    //region Update
 
-        val absoluteProgress = (value - min) / (max - min)
+    override fun onUpdate(clock: FrameClock) {
+        val width = bounds.width
+        val thumbWidth = thumb.bounds.width
+        val progress = if (max > min) (value - min) / (max - min) else 0f
 
-        targetThumbX = (width * absoluteProgress).coerceAtLeast(thumb.width / 2f).coerceAtMost(width - thumb.width / 2f)
+        // The thumb stays inside the track, the bar ends at its center.
+        val targetThumbX = (width * progress).coerceIn(thumbWidth / 2f, (width - thumbWidth / 2f).coerceAtLeast(thumbWidth / 2f))
 
-        if (min >= 0f) {
-            progressBar.anchor = Anchor.CenterLeft
-            progressBar.origin = Anchor.CenterLeft
-            targetProgressBarWidth = (width * absoluteProgress + thumb.width / 2f).coerceAtLeast(thumb.width).coerceAtMost(width)
-            return
-        }
+        // Ranges crossing zero fill from zero, so negative and positive values grow in opposite ways.
+        val zeroX = if (min < 0f && max > 0f) width * (-min / (max - min)) else 0f
 
-        val barCenter = -min / (max - min)
+        // The bar follows the animated thumb, so both always meet.
+        thumbX = clock.interpolateFloat(0.15f, thumbX, targetThumbX)
+        thumb.x = thumbX.px
+        progressBar.x = minOf(zeroX, thumbX).px
+        progressBar.width = abs(thumbX - zeroX).px
 
-        if (progressBar.anchor.x != barCenter) {
-            progressBar.anchor = Vec2(barCenter, 0.5f)
-        }
+        thumb.scale = thumbScale.update(clock)
 
-        val partitionWidth = width * if (value < min) barCenter else 1f - barCenter
+        val stretch = stretch.update(clock)
+        scaleX = 1f + stretch * 0.15f
+        scaleY = 1f - stretch * 0.3f
 
-        targetProgressBarWidth = partitionWidth * abs(value / max)
-
-        val innerCenterX = if (value < 0f) 1f else 0f
-
-        if (progressBar.origin.x != innerCenterX) {
-            progressBar.origin = Vec2(innerCenterX, 0.5f)
-        }
-
-    }
-
-    override fun onUpdate(clock: IFrameBasedClock) {
-        progressBar.width = clock.interpolateFloat(0.3f, progressBar.width, targetProgressBarWidth, Easing.OutExpo)
-        thumb.x = clock.interpolateFloat(0.3f, thumb.x, targetThumbX, Easing.OutExpo)
         super.onUpdate(clock)
     }
 
+    //endregion
 
-    override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-        if (event.isActionDown || event.isActionMove) {
-            if (event.isActionDown) {
+    //region Input
+
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (event !is PointerEvent) {
+            return super.onInputEvent(event)
+        }
+
+        if (event.action != PointerEvent.Action.Down && (!isPressed || event.pointerId != pressPointerId)) {
+            return false
+        }
+
+        when (event.action) {
+            PointerEvent.Action.Down -> {
+                if (isPressed) return true
+
+                pressPointerId = event.pointerId
+                // Dragging the slider must not scroll its parents.
                 setHierarchyScrollPrevention(true)
                 onStartDragging()
+                thumbScale.animateTo(1.25f, 0.1f, Easing.InExpo)
+                updateValueFromPointer(event.x, event.y)
             }
 
-            val overflowLeft = max(0f, -localX)
-            val overflowRight = max(0f, localX - width)
-            val isOutOfBounds = overflowLeft > 0f || overflowRight > 0f
+            PointerEvent.Action.Move -> updateValueFromPointer(event.x, event.y)
 
-            if (isOutOfBounds) {
-                isStretching = true
-
-                val overflow = max(overflowLeft, overflowRight)
-                val stretchAmount = min(overflow / width, 1f)
-
-                scaleOrigin = if (overflowLeft > 0f) Anchor.CenterRight else Anchor.CenterLeft
-                scaleX = 1f + stretchAmount * 0.15f
-                scaleY = 1f - stretchAmount * 0.3f
-
-            } else {
-                isStretching = false
-                scaleX = 1f
-                scaleY = 1f
-            }
-
-            value = (localX / width) * (max - min) + min
-            isPressed = true
-        } else {
-            setHierarchyScrollPrevention(false)
-            onStopDragging()
-            isPressed = false
-
-            if (isStretching) {
-                isStretching = false
-
-                clearModifiers(ModifierType.ScaleXY)
-                scaleTo(1f, 0.4f, Easing.OutElastic)
+            PointerEvent.Action.Up, PointerEvent.Action.Unknown, PointerEvent.Action.Cancel -> {
+                pressPointerId = -1
+                setHierarchyScrollPrevention(false)
+                onStopDragging()
+                thumbScale.animateTo(1f, 0.3f, Easing.OutBounce)
+                // Springs back from the stretch.
+                stretch.target = 0f
+                return event.action == PointerEvent.Action.Up
             }
         }
         return true
     }
+
+    private fun updateValueFromPointer(sceneX: Float, sceneY: Float) {
+        val localX = toLocalSpaceFromScene(sceneX, sceneY).x
+        val width = bounds.width
+
+        // Dragging past an end stretches the slider towards the finger, anchored at the other end.
+        val overflow = maxOf(-localX, localX - width, 0f)
+        scaleOrigin = if (localX < 0f) Anchor.CenterRight else Anchor.CenterLeft
+        stretch.jumpTo(if (width > 0f) minOf(overflow / width, 1f) else 0f)
+
+        val progress = if (width > 0f) (localX / width).coerceIn(0f, 1f) else 0f
+        value = min + progress * (max - min)
+    }
+
+    //endregion
 
 }

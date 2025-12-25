@@ -48,12 +48,12 @@ class BASSAudioSample(
                 val pos = BASS.BASS_ChannelGetPosition(channelId, BASS.BASS_POS_BYTE)
                 if (pos == -1L) return 0.0
 
-                return BASS.BASS_ChannelBytes2Seconds(channelId, pos) * 1000
+                return BASS.BASS_ChannelBytes2Seconds(channelId, pos)
             }
             set(value) {
                 if (value < 0.0) throw IllegalArgumentException("Position cannot be negative")
 
-                val pos = BASS.BASS_ChannelSeconds2Bytes(channelId, value / 1000)
+                val pos = BASS.BASS_ChannelSeconds2Bytes(channelId, value)
                 BASS.BASS_ChannelSetPosition(channelId, pos, BASS.BASS_POS_BYTE)
             }
 
@@ -107,7 +107,7 @@ class BASSAudioSample(
                 frequency *= speed
             }
 
-            BASS.BASS_ChannelSetAttribute(channelId, BASS.BASS_ATTRIB_FREQ, baseFrequency * frequency)
+            BASS.BASS_ChannelSetAttribute(channelId, BASS.BASS_ATTRIB_FREQ, frequency)
         }
 
 

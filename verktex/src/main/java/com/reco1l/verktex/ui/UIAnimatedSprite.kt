@@ -1,44 +1,27 @@
 package com.reco1l.verktex.ui
 
-import org.anddev.andengine.opengl.texture.region.*
-import ru.nsu.ccfit.zuev.osu.*
-import kotlin.math.*
+import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.container.UIContainer
 
 
+inline fun UIContainer.animatedSprite(builder: UIAnimatedSprite.() -> Unit): UIAnimatedSprite {
+    return UIAnimatedSprite().apply(builder).also(::plusAssign)
+}
 
-
-open class UIAnimatedSprite(frames: Array<TextureRegion?>) : UISprite() {
+/**
+ * Sprite that plays a sequence of texture regions as an animation.
+ */
+open class UIAnimatedSprite(frames: List<GraphicsTexture.Region> = emptyList()) : UISprite(frames.firstOrNull()) {
 
     /**
-     * Creates an animated sprite with the texture name and frame count.
-     *
-     * @param textureName The base name of the texture (do not include the frame number or the hyphen if it has).
-     * @param withHyphen Whether the texture name has a hyphen before the frame number.
-     * @param framePerSecond The frame rate of the animation, or 0 to use the amount of frames as the frame rate.
+     * Creates an animated sprite playing [frames] at [framesPerSecond]. When it is 0 the amount of
+     * frames is used instead, so the whole animation takes one second.
      */
-    constructor(textureName: String, withHyphen: Boolean, framePerSecond: Float): this(mutableListOf<TextureRegion?>().also { frames ->
+    constructor(frames: List<GraphicsTexture.Region>, framesPerSecond: Float) : this(frames) {
+        val fps = if (framesPerSecond > 0f) framesPerSecond else frames.size.toFloat()
 
-        val frameCount = ResourceManager.getInstance().getFrameCount(textureName)
-
-        for (i in 0 until frameCount) {
-            val frameName = textureName + (if (withHyphen) "-" else "") + i
-
-            if (ResourceManager.getInstance().isTextureLoaded(frameName)) {
-                frames.add(ResourceManager.getInstance().getTexture(frameName))
-            }
-        }
-
-        if (frames.isEmpty()) {
-            frames.add(ResourceManager.getInstance().getTexture(textureName))
-        }
-
-    }.toTypedArray()) {
-
-        // When the frame rate is 0, use the amount of frames as the frame rate.
-        // If there are no frames, use the default frame rate which is 60 FPS.
-        val fps = if (framePerSecond > 0) framePerSecond else frames.size.toFloat()
-
-        if (fps > 0) {
+        if (fps > 0f) {
             frameTime = 1f / fps
         }
     }
@@ -47,13 +30,14 @@ open class UIAnimatedSprite(frames: Array<TextureRegion?>) : UISprite() {
     /**
      * List of frames for the animation.
      *
-     * Changing this value will reset the animation.
+     * Changing this value will restart the animation from the first frame.
      */
     var frames = frames
         set(value) {
-            if (!field.contentEquals(value)) {
-                stop()
+            if (field != value) {
                 field = value
+                elapsedSec = 0f
+                frameIndex = 0
                 textureRegion = value.firstOrNull()
             }
         }
@@ -62,6 +46,10 @@ open class UIAnimatedSprite(frames: Array<TextureRegion?>) : UISprite() {
      * The duration of each frame in seconds.
      */
     var frameTime = DEFAULT_FRAME_TIME
+        set(value) {
+            require(value > 0f) { "The frame time must be greater than 0." }
+            field = value
+        }
 
     /**
      * Whether the animation should loop.
@@ -86,7 +74,7 @@ open class UIAnimatedSprite(frames: Array<TextureRegion?>) : UISprite() {
         private set(value) {
             if (field != value) {
                 field = value
-                textureRegion = frames[value]
+                textureRegion = frames.getOrNull(value)
             }
         }
 
@@ -98,20 +86,12 @@ open class UIAnimatedSprite(frames: Array<TextureRegion?>) : UISprite() {
         get() = frames.size * frameTime
 
 
-    init {
-        if (frames.isNotEmpty()) {
-            @Suppress("LeakingThis")
-            textureRegion = frames[0]
-        }
-    }
-
-
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
 
         if (frames.isNotEmpty()) {
 
             if (isPlaying) {
-                elapsedSec += deltaTimeSec
+                elapsedSec += clock.elapsedFrameTime
 
                 if (elapsedSec >= duration) {
 
@@ -124,10 +104,10 @@ open class UIAnimatedSprite(frames: Array<TextureRegion?>) : UISprite() {
                 }
             }
 
-            frameIndex = (elapsedSec / frameTime).toInt().coerceIn(0, max(0, frames.size - 1))
+            frameIndex = (elapsedSec / frameTime).toInt().coerceIn(0, frames.size - 1)
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
 
@@ -143,13 +123,6 @@ open class UIAnimatedSprite(frames: Array<TextureRegion?>) : UISprite() {
         isPlaying = false
         elapsedSec = 0f
         frameIndex = 0
-    }
-
-
-    override fun reset() {
-        stop()
-        isPlaying = true
-        super.reset()
     }
 
 

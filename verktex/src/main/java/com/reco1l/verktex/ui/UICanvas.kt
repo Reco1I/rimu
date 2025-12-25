@@ -12,25 +12,37 @@ import com.reco1l.verktex.graphics.GraphicsShader
 abstract class UICanvas : UIComponent() {
 
     /**
-     * The shader to use for rendering the canvas. If null, the default shader will be used.
+     * The shader to use for rendering the canvas. If null, the default shader will be used. It must
+     * use the built-in vertex layout, see [GraphicsRenderer.pushShader].
      */
-    val shader: GraphicsShader? = null
+    var shader: GraphicsShader? = null
 
     /**
      * The blend mode to use for rendering the canvas.
      */
-    val blendMode: BlendMode = BlendMode.Additive
+    var blendMode: BlendMode = BlendMode.Alpha
 
     /**
      * The state of the depth buffer for rendering the canvas.
      */
-    val depthState: DepthState = DepthState.Default
+    var depthState: DepthState = DepthState.Default
+
+    /**
+     * Whether the depth buffer is cleared before the canvas draws, so its depth testing is not affected
+     * by anything drawn earlier in the frame.
+     */
+    var clearDepthBeforeDraw = false
 
 
-    override fun onDraw(renderer: GraphicsRenderer) {
-        renderer.setState(
-            blendMode = blendMode,
-            depthState = depthState,
-        )
+    override fun drawContent(renderer: GraphicsRenderer) {
+        val shader = shader
+        if (shader != null) renderer.pushShader(shader)
+        renderer.pushBlendMode(blendMode)
+        renderer.pushDepthState(depthState)
+        if (clearDepthBeforeDraw) renderer.clearDepth()
+        onDraw(renderer)
+        renderer.popDepthState()
+        renderer.popBlendMode()
+        if (shader != null) renderer.popShader()
     }
 }

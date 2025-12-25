@@ -17,6 +17,11 @@ class BASSAudioDriver : AudioDriver() {
     }
 
 
+    override fun dispose() {
+        super.dispose()
+        BASS.BASS_Free()
+    }
+
     override fun onEnumerateDevices(): List<AudioDevice> {
         // Device ID 0 is "no sound" so we start from 1.
         // https://www.un4seen.com/doc/#bass/BASS_GetDeviceInfo.html

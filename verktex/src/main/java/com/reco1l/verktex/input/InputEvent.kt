@@ -106,6 +106,8 @@ data class KeyboardEvent(
         Backspace,
         Enter,
         Escape,
+        Back,
+        Menu,
         Tab,
         Space,
 
@@ -165,6 +167,12 @@ data class PointerEvent(
      * The change in the y-coordinate since the last pointer event, useful for detecting movement or drag gestures.
      */
     var deltaY: Float = 0f,
+
+    /**
+     * The time the event happened, in milliseconds on the host's uptime clock (e.g. Android's
+     * `MotionEvent.getEventTime`), or zero when the host does not provide it.
+     */
+    var time: Long = 0,
 ) : InputEvent {
 
 
@@ -175,6 +183,12 @@ data class PointerEvent(
         Down,
         Up,
         Move,
+
+        /**
+         * The gesture was aborted by the system (e.g. Android's `ACTION_CANCEL`), components release
+         * the pointer the same way as for [Unknown].
+         */
+        Cancel,
         Unknown
     }
 

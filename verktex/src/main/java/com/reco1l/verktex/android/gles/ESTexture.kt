@@ -32,6 +32,12 @@ class ESTexture(
         GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_WRAP_T, GLES32.GL_CLAMP_TO_EDGE)
     }
 
+    override fun onContextLost() {
+        // The GL name died with the context, a fresh one is generated on the next load.
+        id = 0
+        super.onContextLost()
+    }
+
     override fun onUnload() {
         if (id != 0) {
             GLES32Helper.glDeleteTexture(id)

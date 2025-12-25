@@ -7,6 +7,11 @@ abstract class GraphicsBuffer : GraphicsResource() {
 
     fun isEmpty() = position == 0
 
+    /**
+     * Discards the written data, so the buffer can be filled again.
+     */
+    abstract fun clear()
+
     abstract fun requireCapacity(requiredBytes: Int)
     abstract fun putFloat(float: Float)
     abstract fun putByte(byte: Byte)

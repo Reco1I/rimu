@@ -1,7 +1,7 @@
 package com.reco1l.verktex.android.gles
 
 import android.opengl.GLES32
-import com.reco1l.verktex.graphics.BlendMode
+import com.reco1l.verktex.graphics.BlendFactor
 import com.reco1l.verktex.graphics.CompareFunction
 
 fun CompareFunction.toGLES(): Int = when (this) {
@@ -15,16 +15,15 @@ fun CompareFunction.toGLES(): Int = when (this) {
     CompareFunction.Always -> GLES32.GL_ALWAYS
 }
 
-fun BlendMode.toGLESSource(): Int = when (this) {
-    BlendMode.Opaque -> GLES32.GL_ONE
-    BlendMode.Alpha -> GLES32.GL_SRC_ALPHA
-    BlendMode.Additive -> GLES32.GL_SRC_ALPHA
-    BlendMode.Multiply -> GLES32.GL_DST_COLOR
-}
-
-fun BlendMode.toGLESDestination(): Int = when (this) {
-    BlendMode.Opaque -> GLES32.GL_ZERO
-    BlendMode.Alpha -> GLES32.GL_ONE_MINUS_SRC_ALPHA
-    BlendMode.Additive -> GLES32.GL_ONE
-    BlendMode.Multiply -> GLES32.GL_ZERO
+fun BlendFactor.toGLES(): Int = when (this) {
+    BlendFactor.Zero -> GLES32.GL_ZERO
+    BlendFactor.One -> GLES32.GL_ONE
+    BlendFactor.SrcAlpha -> GLES32.GL_SRC_ALPHA
+    BlendFactor.OneMinusSrcAlpha -> GLES32.GL_ONE_MINUS_SRC_ALPHA
+    BlendFactor.DstAlpha -> GLES32.GL_DST_ALPHA
+    BlendFactor.OneMinusDstAlpha -> GLES32.GL_ONE_MINUS_DST_ALPHA
+    BlendFactor.DstColor -> GLES32.GL_DST_COLOR
+    BlendFactor.SrcColor -> GLES32.GL_SRC_COLOR
+    BlendFactor.OneMinusSrcColor -> GLES32.GL_ONE_MINUS_SRC_COLOR
+    BlendFactor.OneMinusDstColor -> GLES32.GL_ONE_MINUS_DST_COLOR
 }

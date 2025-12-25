@@ -76,6 +76,14 @@ object Sounds {
     /**
      * Unloads an audio resource from memory.
      */
+    /**
+     * Releases every loaded audio resource.
+     */
+    fun unloadAll() {
+        resources.values.forEach { it.dispose() }
+        resources.clear()
+    }
+
     fun unload(key: String) {
         val resource = resources[key] ?: return
         resource.dispose()

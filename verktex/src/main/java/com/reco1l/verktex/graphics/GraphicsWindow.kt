@@ -8,12 +8,12 @@ interface GraphicsWindow {
     /**
      * The width of the window in pixels.
      */
-    var width: Int
+    var windowWidth: Int
 
     /**
      * The height of the window in pixels.
      */
-    var height: Int
+    var windowHeight: Int
 
     /**
      * The insets of the window, which represent the safe area and offsets.

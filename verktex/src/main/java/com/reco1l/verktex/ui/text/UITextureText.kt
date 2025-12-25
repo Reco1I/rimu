@@ -1,20 +1,17 @@
 package com.reco1l.verktex.ui.text
 
-import com.reco1l.verktex.old.*
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.LayoutConstraints
+import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.ui.UICanvas
-import org.anddev.andengine.engine.camera.*
-import org.anddev.andengine.opengl.texture.region.*
-import javax.microedition.khronos.opengles.*
 import kotlin.math.*
-import kotlin.text.iterator
 
 /**
  * A text component that uses textures for each character.
  */
-open class UITextureText(val characters: MutableMap<Char, GraphicsTexture.Region?>) : UICanvas() {
+open class UITextureText(val characters: Map<Char, GraphicsTexture.Region?>) : UICanvas() {
 
     /**
      * The spacing between glyphs.
@@ -23,7 +20,7 @@ open class UITextureText(val characters: MutableMap<Char, GraphicsTexture.Region
         set(value) {
             if (field != value) {
                 field = value
-                onUpdateText()
+                invalidateMeasure()
             }
         }
 
@@ -34,7 +31,7 @@ open class UITextureText(val characters: MutableMap<Char, GraphicsTexture.Region
         set(value) {
             if (field != value) {
                 field = value
-                onUpdateText()
+                invalidateMeasure()
             }
         }
 
@@ -45,7 +42,7 @@ open class UITextureText(val characters: MutableMap<Char, GraphicsTexture.Region
         set(value) {
             if (field != value) {
                 field = value
-                onUpdateText()
+                invalidateMeasure()
             }
         }
 
@@ -56,7 +53,7 @@ open class UITextureText(val characters: MutableMap<Char, GraphicsTexture.Region
         set(value) {
             if (field != value) {
                 field = value
-                onUpdateText()
+                invalidateMeasure()
             }
         }
 
@@ -69,7 +66,7 @@ open class UITextureText(val characters: MutableMap<Char, GraphicsTexture.Region
         set(value) {
             if (field != value) {
                 field = value
-                onUpdateText()
+                invalidateMeasure()
             }
         }
 
@@ -82,23 +79,14 @@ open class UITextureText(val characters: MutableMap<Char, GraphicsTexture.Region
         set(value) {
             if (field != value) {
                 field = value
-                onUpdateText()
+                invalidateMeasure()
             }
         }
 
     /**
-     * Horizontal alignment of the rendered text within the content bounds.
+     * Horizontal alignment of the rendered text within the component bounds.
      */
     var textAlign = TextAlign.Left
-        set(value) {
-            if (field != value) {
-                field = value
-                onUpdateText()
-            }
-        }
-
-    private val textureRegions = mutableListOf<Pair<Char, GraphicsTexture.Region>>()
-    private var textContentWidth = 0f
 
 
     init {
@@ -113,73 +101,53 @@ open class UITextureText(val characters: MutableMap<Char, GraphicsTexture.Region
     }
 
 
-    private fun onUpdateText() {
-        textureRegions.clear()
-        textContentWidth = 0f
+    private fun cellWidth(char: Char, region: GraphicsTexture.Region) =
+        (fixedCharWidths?.get(char) ?: region.width) * textureScaleX
+
+    private fun measureWidth(text: String): Float {
+        var width = 0f
+        var glyphs = 0
 
         for (char in text) {
-            val textureRegion = characters[char] ?: continue
-            val cellWidth = (fixedCharWidths?.get(char) ?: textureRegion.width) * textureScaleX
-            textureRegions.add(char to textureRegion)
-            textContentWidth += cellWidth + spacing
+            val region = characters[char] ?: continue
+            width += cellWidth(char, region)
+            glyphs++
         }
 
-        if (textureRegions.isNotEmpty()) {
-            textContentWidth -= spacing
-        }
-
-        var contentWidth = 0f
-        var contentHeight = 0f
-
-        for (char in measureText ?: text) {
-            val textureRegion = characters[char] ?: continue
-            val cellWidth = (fixedCharWidths?.get(char) ?: textureRegion.width.toFloat()) * textureScaleX
-
-            contentWidth += cellWidth + spacing
-            contentHeight = max(contentHeight, textureRegion.height * textureScaleY)
-        }
-
-        contentWidth -= spacing
-
-        super.contentWidth = contentWidth
-        super.contentHeight = contentHeight
+        return width + spacing * max(0, glyphs - 1)
     }
 
-    override fun onDraw() {
-        super.onDraw()
 
+    override fun onMeasure(parentConstraints: LayoutConstraints, contentConstraints: LayoutConstraints): Vec2 {
+        val measured = measureText ?: text
+        val height = measured.maxOfOrNull { char -> characters[char]?.height ?: 0f } ?: 0f
+
+        return parentConstraints.constrain(Vec2(measureWidth(measured), height * textureScaleY))
+    }
+
+    override fun onDraw(renderer: GraphicsRenderer) {
         var offsetX = when (textAlign) {
             TextAlign.Left -> 0f
             TextAlign.Center -> 0.5f
             TextAlign.Right -> 1f
-        } * (contentWidth - textContentWidth)
+        } * (bounds.width - measureWidth(text))
 
-        for (i in textureRegions.indices) {
+        for (char in text) {
+            val region = characters[char] ?: continue
+            val textureWidth = region.width * textureScaleX
+            val cellWidth = cellWidth(char, region)
 
-            val (char, texture) = textureRegions[i]
-            val textureWidth = texture.width * textureScaleX
-            val textureHeight = texture.height * textureScaleY
-            val cellWidth = (fixedCharWidths?.get(char) ?: texture.width.toFloat()) * textureScaleX
-
-            gl.glPushMatrix()
-            gl.glTranslatef(offsetX + (cellWidth - textureWidth) / 2f, 0f, 0f)
-
-            texture.onApply(gl)
-
-            QuadRenderer.renderQuad(0f, 0f, textureWidth, textureHeight)
-
-            gl.glPopMatrix()
+            renderer.drawTexture(
+                region.texture,
+                region,
+                offsetX + (cellWidth - textureWidth) / 2f,
+                0f,
+                textureWidth,
+                region.height * textureScaleY,
+                color = contentColor
+            )
 
             offsetX += cellWidth + spacing
         }
     }
-
-
-    override fun onDraw(renderer: GraphicsRenderer) {
-        super.onDraw(renderer)
-
-
-
-    }
 }
-

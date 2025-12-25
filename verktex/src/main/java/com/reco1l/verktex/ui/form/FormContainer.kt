@@ -1,12 +1,16 @@
 package com.reco1l.verktex.ui.form
 
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.control.UIControl
 import com.reco1l.verktex.ui.control.UISelect
-import org.anddev.andengine.entity.IEntity
 import org.json.JSONArray
 import org.json.JSONObject
 
+/**
+ * A container that collects the values of every control with a [UIControl.key] inside of it.
+ */
 open class FormContainer : UILinearContainer() {
 
     /**
@@ -15,6 +19,9 @@ open class FormContainer : UILinearContainer() {
     var onSubmit: ((data: JSONObject) -> Unit)? = null
 
 
+    /**
+     * Encodes the value of a control into a JSON compatible value.
+     */
     open fun onEncodeControlData(control: UIControl<*>): Any? {
         if (control is UISelect<*>) {
             return JSONArray(control.value)
@@ -22,20 +29,24 @@ open class FormContainer : UILinearContainer() {
         return control.value
     }
 
+    /**
+     * Collects the values of every keyed control and passes them to [onSubmit].
+     */
     fun submit(): JSONObject {
         val json = JSONObject()
 
-        fun IEntity.findFormControls() {
-            forEach { child ->
-                if (child is UIControl<*> && child.key != null) {
-                    json.put(child.key!!, onEncodeControlData(child))
-                } else {
-                    child.findFormControls()
-                }
+        fun UIComponent.collect() {
+            val control = this as? UIControl<*>
+            val key = control?.key
+
+            if (control != null && key != null) {
+                json.put(key, onEncodeControlData(control))
+            } else if (this is UIContainer) {
+                forEach { it.collect() }
             }
         }
 
-        findFormControls()
+        forEach { it.collect() }
         onSubmit?.invoke(json)
         return json
     }

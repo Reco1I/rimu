@@ -19,7 +19,7 @@ interface AudioPlayback {
     //region Settings
 
     /**
-     * The current position of the playback.
+     * The current position of the playback in seconds.
      */
     var position: Double
 

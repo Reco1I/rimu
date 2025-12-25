@@ -1,6 +1,7 @@
 package com.reco1l.verktex.android
 
 import com.reco1l.verktex.worker.LoopWorker
+import java.util.concurrent.ConcurrentLinkedQueue
 
 abstract class AndroidLoopWorker(override val name: String) : LoopWorker {
 
@@ -9,7 +10,9 @@ abstract class AndroidLoopWorker(override val name: String) : LoopWorker {
 
     private var isLooping = false
 
-    private val taskQueue = ArrayDeque<LoopWorker.TaskState>()
+    // Tasks are scheduled from other threads, so the queue must be thread safe.
+    private val taskQueue = ConcurrentLinkedQueue<LoopWorker.TaskState>()
+    // java.lang.Object on purpose, the thread waits and is notified on it.
     private val lock = Object()
 
     private val thread = object : Thread(name) {
@@ -23,8 +26,8 @@ abstract class AndroidLoopWorker(override val name: String) : LoopWorker {
                     }
                 }
 
-                while (running && taskQueue.isNotEmpty()) {
-                    val task = taskQueue.removeFirst()
+                while (running) {
+                    val task = taskQueue.poll() ?: break
                     task.task()
                     task.isCompleted = true
                 }
@@ -55,7 +58,13 @@ abstract class AndroidLoopWorker(override val name: String) : LoopWorker {
     override fun stop() {
         synchronized(lock) {
             running = false
+            // A paused worker would otherwise keep waiting forever.
+            paused = false
             lock.notifyAll()
+        }
+
+        if (Thread.currentThread() != thread) {
+            thread.join()
         }
     }
 
@@ -75,7 +84,7 @@ abstract class AndroidLoopWorker(override val name: String) : LoopWorker {
 
     override fun schedule(task: () -> Unit): LoopWorker.TaskState {
         val taskState = LoopWorker.TaskState(task)
-        taskQueue.addLast(taskState)
+        taskQueue.add(taskState)
         return taskState
     }
 

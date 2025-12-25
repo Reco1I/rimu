@@ -15,8 +15,8 @@ import android.content.Context as AndroidContext
 
 class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), SurfaceHolder.Callback, GraphicsWindow {
 
-    override var width: Int = 0
-    override var height: Int = 0
+    override var windowWidth: Int = 0
+    override var windowHeight: Int = 0
     override var insets = GraphicsWindow.Insets(
         safeArea = Vec4.Zero,
         offsets = Vec2.Zero
@@ -112,8 +112,8 @@ class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), Su
         surfaceWidth: Int,
         surfaceHeight: Int
     ) {
-        width = surfaceWidth
-        height = surfaceHeight
+        windowWidth = surfaceWidth
+        windowHeight = surfaceHeight
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {

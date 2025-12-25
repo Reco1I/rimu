@@ -8,6 +8,6 @@ inline fun UIContainer.box(builder: UIBox.() -> Unit) = UIBox().apply(builder).a
 
 open class UIBox : UICanvas() {
     override fun onDraw(renderer: GraphicsRenderer) {
-        renderer.drawRect(0f, 0f, widthPx, heightPx, radius = radiusPx)
+        renderer.drawRect(0f, 0f, bounds.width, bounds.height, radius = radius.toPixels())
     }
 }

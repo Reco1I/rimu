@@ -25,22 +25,30 @@ abstract class TexturePackingAlgorithm {
 
     /**
      * Packs a list of texture regions into a texture atlas of the specified width and height.
+     *
+     * The heuristic can fail on regions that fit when they were added one by one, so the regions and
+     * [freeRegions] are only changed when every region fits.
+     *
+     * @return Whether every region fit.
      */
-    fun pack(regions: List<GraphicsTexture.Region>, freeRegions: MutableList<Vec4>, rootWidth: Float, rootHeight: Float) {
+    fun pack(regions: List<GraphicsTexture.Region>, freeRegions: MutableList<Vec4>, rootWidth: Float, rootHeight: Float): Boolean {
 
-        freeRegions.clear()
-        freeRegions.add(Vec4(0f, 0f, rootWidth, rootHeight))
+        val packedFreeRegions = mutableListOf(Vec4(0f, 0f, rootWidth, rootHeight))
 
-        for (region in regions) {
+        val allocatedNodes = regions.map { region ->
+            allocate(region.source.width, region.source.height, packedFreeRegions) ?: return false
+        }
 
-            val allocatedNode = allocate(region.source.width, region.source.height, freeRegions)
-                ?: throw IllegalStateException("Failed to allocate region: $region")
-
+        for ((region, allocatedNode) in regions.zip(allocatedNodes)) {
             region.x = allocatedNode.x
             region.y = allocatedNode.y
             region.width = region.source.width
             region.height = region.source.height
         }
+
+        freeRegions.clear()
+        freeRegions.addAll(packedFreeRegions)
+        return true
     }
 
 

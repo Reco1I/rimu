@@ -1,294 +1,260 @@
 package com.reco1l.verktex.ui.control
 
-import android.view.*
-import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
-import androidx.core.content.getSystemService
 import androidx.core.text.isDigitsOnly
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.reco1l.verktex.*
-import com.reco1l.verktex.ui.text.*
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.horizontalPadding
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.math.interpolateColor
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.IFocusable
+import com.reco1l.verktex.ui.ITextInput
 import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec4
-import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.data.Padding
-import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.data.px
-import com.reco1l.verktex.math.FloatInterpolation
-import com.reco1l.verktex.time.FrameClock
-import kotlin.math.*
-import kotlin.text.substring
+import kotlin.math.min
 
-open class UITextInput(initialValue: String) : UIControl<String>(initialValue), IFocusable {
+inline fun UIContainer.textInput(builder: UITextInput.() -> Unit): UITextInput {
+    return UITextInput().apply(builder).also(::plusAssign)
+}
 
-    private val placeholderEntity = UIText().apply {
+/**
+ * A single line text field. The text is typed with the platform's IME, which is attached while the
+ * field is focused.
+ */
+open class UITextInput(initialValue: String = "") : UIControl<String>(initialValue), IFocusable {
+
+    private val placeholderText = UIText().apply {
         anchor = Anchor.CenterLeft
         origin = Anchor.CenterLeft
-        wrapText = true
+        wrapText = false
+        maxLines = 1
     }
 
     private val textComponent = UIText().apply {
         anchor = Anchor.CenterLeft
         origin = Anchor.CenterLeft
-        wrapText = true
+        wrapText = false
     }
 
     private val caret = UIBox().apply {
-        width = 2f.px
-        anchor = Anchor.CenterLeft
-        origin = Anchor.CenterLeft
-        isVisible = false
-    }
-
-    private val selectionBox = UIBox().apply {
+        width = 2f.dip
         anchor = Anchor.CenterLeft
         origin = Anchor.CenterLeft
     }
 
 
     /**
-     * Whether to confirm the input on enter key press.
+     * The placeholder text displayed while the field is empty.
      */
-    var confirmOnEnter = true
+    var placeholder by placeholderText::text
 
     /**
-     * A callback that is invoked when the input is confirmed by pressing the enter key.
-     */
-    var onConfirm: (() -> Unit)? = null
-
-    /**
-     * The maximum number of characters allowed in the text field. If set to 0, there is no limit.
+     * The maximum number of characters allowed in the field. If set to 0, there is no limit.
      */
     var maxCharacters = 0
 
     /**
-     * The placeholder text displayed when the input field is empty.
+     * Whether the IME action (e.g. the enter key) confirms the input, calling [onConfirm] and
+     * blurring the field.
      */
-    var placeholder by placeholderEntity::text
+    var confirmOnEnter = true
+
+    /**
+     * A callback that is invoked when the input is confirmed.
+     */
+    var onConfirm: (() -> Unit)? = null
+
+    /**
+     * Whether this field is currently focused and receiving text.
+     */
+    val isFocused
+        get() = Verktex.focusedComponent === this
+
+    override val canFocus = true
 
 
-    private var cursorFading = false
-    private var elapsedTimeSec = 0f
-    private var targetSelectionBoxWidth = 0f
-    private var targetCursorPosition = 0f
+    private var isPressed = false
+    private var caretTime = 0f
+    private var errorColor: Color4? = null
 
-    private var cursorPositions = intArrayOf(0)
+
+    // A separate object since the value property is inherited from UIControl.
+    private val imeTarget = object : ITextInput {
+
+        override var value: String
+            get() = this@UITextInput.value
+            set(value) { this@UITextInput.value = value }
+
+        override val maxCharacters
+            get() = this@UITextInput.maxCharacters
+
+        override fun isCharacterAllowed(char: String) = this@UITextInput.isCharacterAllowed(char)
+
+        override fun isTextValid(text: String) = this@UITextInput.isTextValid(text)
+
+        override fun notifyInputError() = this@UITextInput.notifyInputError()
+
+        override fun onImeAction() {
+            if (confirmOnEnter) {
+                onConfirm?.invoke()
+                blur()
+            }
+        }
+    }
 
 
     init {
-        style = Style { theme ->
-            height = 40f.dip
-            padding = Padding(8f.dip)
+        // Text scrolled past the start is hidden.
+        clipping = ClipMode.Padding
 
-            backgroundColor = it.accentColor * 0.25f
-            borderColor = if (isFocused) it.accentColor else it.accentColor * 0.4f
-            borderWidth = 0.2f.srem
-            radius = Radius.LG
-            textComponent.color = it.accentColor
-            placeholderEntity.color = it.accentColor * 0.6f
+        style = Style { theme ->
+            height = theme.controlStyle.minimumHeight
+            padding = horizontalPadding(theme.gap.md)
+            radius = theme.radius.md
+            borderWidth = 1.5f.dip
+            backgroundColor = theme.palette.controlInactiveBackground
+            borderColor = borderTargetColor(theme)
+
+            textComponent.color = Color4.White
+            placeholderText.color = Color4.White.copy(alpha = 0.5f)
+            caret.backgroundColor = theme.palette.accent
         }
 
-        +placeholderEntity
+        +placeholderText
         +textComponent
         +caret
-        +selectionBox
 
         updateVisuals()
-        style(Theme.current)
+    }
+
+
+    //region Focus
+
+    /**
+     * Focuses this field, showing the soft keyboard.
+     */
+    fun focus() = Verktex.requestFocus(this)
+
+    /**
+     * Removes the focus from this field, hiding the soft keyboard.
+     */
+    fun blur() {
+        if (isFocused) Verktex.clearFocus()
     }
 
     override fun onFocusGained() {
-        setKeyboardVisibility(true)
-        caret.isVisible = true
-        borderColor = Theme.current.accentColor
+        caretTime = 0f
+        Verktex.host.attachTextInput(imeTarget)
     }
 
     override fun onFocusLost() {
-        setKeyboardVisibility(false)
-        caret.isVisible = false
-        borderColor = Theme.current.accentColor * 0.4f
+        Verktex.host.detachTextInput()
     }
 
-    private fun setKeyboardVisibility(value: Boolean) = mainThread {
-        val root = Engine.current.context.window.decorView as ViewGroup
+    //endregion
 
-        val inputMethodManager = Engine.current.context.getSystemService<InputMethodManager>()!!
+    //region Update
 
-        val windowInsets = ViewCompat.getRootWindowInsets(Engine.current.context.window.decorView)
-        val keyboardHeight = windowInsets!!.getInsets(WindowInsetsCompat.Type.ime()).bottom
-
-        // Tricky prevention from opening the keyboard while it should be closed and vice versa.
-        if (value && keyboardHeight > 0) {
-            return@mainThread
-        }
-
-        internalEditText.apply {
-            if (value) {
-                if (parent == null) {
-                    root.addView(internalEditText)
-                }
-
-                requestFocus()
-                setText(this@UITextInput.value, TextView.BufferType.EDITABLE)
-
-                post {
-                    inputMethodManager.showSoftInput(internalEditText, InputMethodManager.SHOW_IMPLICIT)
-                }
-            } else {
-                inputMethodManager.hideSoftInputFromWindow(internalEditText.windowToken, 0)
-                clearFocus()
-
-                if (parent != null) {
-                    root.removeView(this)
-                }
-            }
-        }
-    }
+    private fun borderTargetColor(theme: Theme) =
+        if (isFocused) theme.palette.accent else theme.palette.accent.copy(alpha = 0f)
 
     override fun onUpdate(clock: FrameClock) {
 
-        selectionBox.width = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), selectionBox.width, targetSelectionBoxWidth, 0f, 0.3f, Easing.OutExpo)
-        caret.x = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), caret.x, textComponent.x + targetCursorPosition, 0f, 0.3f, Easing.OutExpo)
-        selectionBox.x = caret.x
+        // Errors flash the border red, then it goes back to its normal color.
+        val targetBorderColor = errorColor ?: borderTargetColor(Verktex.theme)
+        errorColor = null
+        borderColor = clock.interpolateColor(0.2f, borderColor, targetBorderColor)
 
-        textComponent.maxWidth = innerWidth
-        placeholderEntity.maxWidth = innerWidth
+        val contentWidth = bounds.width - paddingLeft.toPixels() - paddingRight.toPixels()
+        val textWidth = if (value.isEmpty()) 0f else textComponent.measuredSize.x
+        val caretWidth = caret.measuredSize.x
 
-        selectionBox.width = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), selectionBox.width, targetSelectionBoxWidth, 0f, 0.3f, Easing.OutExpo)
-        caret.x = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), caret.x, textComponent.x + targetCursorPosition, 0f, 0.3f, Easing.OutExpo)
-        selectionBox.x = caret.x
+        // Keeps the end of the text (where the caret is) visible when it overflows.
+        val textX = min(0f, contentWidth - textWidth - caretWidth)
+        textComponent.x = textX.px
 
-        if (caret.isVisible) {
-            targetCursorPosition = cursorPositions.getOrNull(internalEditText.selectionEnd)?.toFloat() ?: (textComponent.x + textComponent.width)
-            caret.y = textComponent.y
-            caret.height = textComponent.height
+        caretTime += clock.elapsedFrameTime
+        caret.isVisible = isFocused && caretTime % 1f < 0.5f
+        caret.x = (textX + textWidth).px
+        caret.height = textComponent.measuredSize.y.px
 
-            if (elapsedTimeSec >= 0.5f) {
-                cursorFading = !cursorFading
-                elapsedTimeSec = 0f
-            }
-
-            val alphaFactor = elapsedTimeSec / 0.5f
-            caret.alpha = if (cursorFading) 1f - alphaFactor else alphaFactor
-
-            elapsedTimeSec += deltaTimeSec
-
-            if (internalEditText.selectionStart != internalEditText.selectionEnd) {
-                val startX = cursorPositions.getOrNull(internalEditText.selectionStart)?.toFloat() ?: 0f
-                val endX = cursorPositions.getOrNull(internalEditText.selectionEnd)?.toFloat() ?: 0f
-
-                selectionBox.origin = if (startX >= endX) Anchor.CenterLeft else Anchor.CenterRight
-                selectionBox.height = textComponent.height
-                targetSelectionBoxWidth = abs(endX - startX)
-            } else {
-                targetSelectionBoxWidth = 0f
-            }
-        }
         super.onUpdate(clock)
     }
 
-    override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-        if (event.isActionUp) {
-            if (!isFocused) {
-                focus()
-            } else {
-                val x = localX - padding.left
+    //endregion
 
-                // Find the closest letter position to the touch
-                var distance = 0f
-                var position = 0
+    //region Input
 
-                for (i in cursorPositions.indices) {
-                    val letterX = cursorPositions[i].toFloat()
-                    val newDistance = abs(letterX - x)
-
-                    if (newDistance < distance || i == 0) {
-                        distance = newDistance
-                        position = i
-                    }
-                }
-
-                mainThread {
-                    internalEditText.setSelection(position)
-                }
-            }
-        }
-        return true
-    }
-
-
-    override fun onProcessValue(value: String): String {
-
-        val codePointCount = value.codePointCount(0, value.length)
-        cursorPositions = IntArray(codePointCount + 1) { cursorIndex ->
-
-            // First position is always the beginning of the line.
-            if (cursorIndex <= 0) {
-                return@IntArray 0
-            }
-
-            var totalAdvance = 0
-            var stringIndex = 0
-            var codePointIndex = 0
-
-            // Iterar a través de los code points hasta llegar a la posición del cursor
-            while (codePointIndex < cursorIndex && stringIndex < value.length) {
-                val codePoint = value.codePointAt(stringIndex)
-                val charCount = Character.charCount(codePoint)
-
-                // Extraer el carácter completo como String (incluyendo pares sustitutos)
-                val characterString = value.substring(stringIndex, stringIndex + charCount)
-                totalAdvance += font?.getLetter(characterString)?.mAdvance ?: 0
-
-                stringIndex += charCount
-                codePointIndex++
-            }
-
-            return@IntArray totalAdvance
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (event !is PointerEvent) {
+            return super.onInputEvent(event)
         }
 
-        return super.onProcessValue(value)
+        return when (event.action) {
+            PointerEvent.Action.Down -> {
+                isPressed = true
+                true
+            }
+            PointerEvent.Action.Up -> {
+                if (!isPressed) return false
+                isPressed = false
+                if (containsScenePoint(event.x, event.y)) {
+                    focus()
+                }
+                true
+            }
+            PointerEvent.Action.Unknown, PointerEvent.Action.Cancel -> {
+                isPressed = false
+                false
+            }
+            else -> isPressed
+        }
     }
+
+    //endregion
+
+    //region Validation
 
     /**
-     * Checks if a [Char] is allowed to be appended to this [UITextInput].
-     *
-     * @param char The [Char] to check.
-     * @return `true` if [char] is allowed to be appended to this [UITextInput], `false` otherwise.
+     * Checks if a character is allowed to be typed in this field.
      */
     open fun isCharacterAllowed(char: String) = true
 
     /**
-     * Checks whether a text is valid as a [value] for this [UITextInput].
-     *
-     * @param text The text to check.
-     * @return `true` if [text] is valid as a [value] for this [UITextInput], `false` otherwise.
+     * Checks whether a text is valid as a [value] for this field.
      */
     open fun isTextValid(text: String) = true
 
-    internal fun notifyInputError() {
-        textComponent.apply {
-            clearModifiers(ModifierType.Color)
-            color = Color4.Red
-            colorTo(Theme.current.accentColor, 0.2f)
-        }
-
-        borderColor = Color4.Red
+    /**
+     * Called when the last typed text was rejected.
+     */
+    open fun notifyInputError() {
+        errorColor = ERROR_COLOR
+        borderColor = ERROR_COLOR
     }
+
+    //endregion
 
     private fun updateVisuals() {
         textComponent.text = value
-        placeholderEntity.isVisible = value.isEmpty()
+        placeholderText.isVisible = value.isEmpty()
     }
 
     override fun onValueChanged() {
         super.onValueChanged()
         updateVisuals()
+    }
+
+
+    companion object {
+        private val ERROR_COLOR = Color4(0xFFF38BA8)
     }
 
 }
@@ -328,7 +294,7 @@ sealed class RangeConstrainedTextInput<T : Comparable<T>?>(
 
         val value = convertValue(text)
 
-        return value == null || (value >= minValue!! && value <= maxValue!!)
+        return value == null || ((minValue == null || value >= minValue) && (maxValue == null || value <= maxValue))
     }
 
     /**
@@ -352,7 +318,7 @@ class IntegerTextInput(
 
     override fun isTextValid(text: String) =
         // Check for underflow/overflow
-        super.isTextValid(text) && (text.isEmpty() || text.toIntOrNull() != null)
+        super.isTextValid(text) && (text.isEmpty() || text == "-" || text.toIntOrNull() != null)
 
     override fun convertValue(value: String) = value.toIntOrNull()
 }
@@ -370,7 +336,7 @@ class FloatTextInput(
 
     override fun isTextValid(text: String) =
         // Check for underflow/overflow
-        super.isTextValid(text) && (text.isEmpty() || text.toFloatOrNull() != null)
+        super.isTextValid(text) && (text.isEmpty() || text == "-" || text.toFloatOrNull() != null)
 
     override fun convertValue(value: String) = value.toFloatOrNull()
 }

@@ -2,7 +2,7 @@ package com.reco1l.verktex.ui.container
 
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
-import com.rian.andengine.timing.IFrameBasedClock
+import com.reco1l.verktex.time.FrameClock
 
 
 inline fun UIContainer.clickableContainer(builder: UIClickableContainer.() -> Unit) = UIClickableContainer().apply(builder).also { +it }
@@ -39,7 +39,11 @@ open class UIClickableContainer : UIContainer() {
 
     //endregion
 
-    private var pressStartTime = 0L
+    // Seconds the current press lasted so far, counted with the game clock.
+    private var pressedTime = 0f
+
+    // The finger pressing this container, others must not release or cancel it.
+    private var pressPointerId = -1
 
 
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -48,46 +52,63 @@ open class UIClickableContainer : UIContainer() {
             return true
         }
 
-        if (event is PointerEvent) {
-            when(event.action) {
-                PointerEvent.Action.Down -> {
-                    isPressed = true
-                    onActionDown?.invoke()
-                    pressStartTime = System.currentTimeMillis()
-                }
+        // Other events (e.g. keys) are not handled by clickable containers.
+        if (event !is PointerEvent) {
+            return false
+        }
 
-                PointerEvent.Action.Up -> {
-                    if (!isPressed) {
-                        return false
-                    }
+        if (event.action != PointerEvent.Action.Down && (!isPressed || event.pointerId != pressPointerId)) {
+            return false
+        }
 
-                    if (containsScenePoint(event.x, event.y)) {
-                        onActionUp?.invoke()
-                    } else {
-                        onActionCancel?.invoke()
-                    }
-                    isPressed = false
-                }
+        return when (event.action) {
+            PointerEvent.Action.Down -> {
+                // Already held by another finger.
+                if (isPressed) return true
 
-                PointerEvent.Action.Move -> {}
+                isPressed = true
+                pressPointerId = event.pointerId
+                onActionDown?.invoke()
+                pressedTime = 0f
+                true
+            }
 
-                PointerEvent.Action.Unknown -> {
+            PointerEvent.Action.Up -> {
+                if (containsScenePoint(event.x, event.y)) {
+                    onActionUp?.invoke()
+                } else {
                     onActionCancel?.invoke()
-                    isPressed = false
                 }
+                isPressed = false
+                true
+            }
+
+            PointerEvent.Action.Move -> true
+
+            // Cancel events are dispatched to every component, so they must not be consumed.
+            PointerEvent.Action.Unknown, PointerEvent.Action.Cancel -> {
+                onActionCancel?.invoke()
+                isPressed = false
+                false
             }
         }
-        return true
     }
 
-    override fun onUpdate(clock: IFrameBasedClock) {
-        if (onActionLongPress != null) {
-            if (isPressed && clock.currentTime - pressStartTime >= 500L) {
+    override fun onUpdate(clock: FrameClock) {
+        if (isPressed) {
+            pressedTime += clock.elapsedFrameTime
+
+            if (onActionLongPress != null && pressedTime >= LONG_PRESS_DURATION) {
                 isPressed = false
                 onActionLongPress?.invoke()
             }
         }
         super.onUpdate(clock)
+    }
+
+
+    companion object {
+        private const val LONG_PRESS_DURATION = 0.5f
     }
 
 }

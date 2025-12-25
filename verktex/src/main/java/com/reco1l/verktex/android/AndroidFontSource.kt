@@ -57,10 +57,20 @@ class AndroidFontSource(
             leading = androidMetrics.leading,
         )
 
-        val atlasSize = min(1024f, Verktex.graphics.device.capabilities.maxTextureSize)
-        val texture = Verktex.graphics.createTexture(atlasSize, atlasSize)
+        // Pages are created as the font needs them, every page of this size.
+        val pageSize = min(PAGE_SIZE, Verktex.graphics.device.capabilities.maxTextureSize)
 
-        return AndroidFont(typeface, descriptor, metrics, texture)
+        return AndroidFont(typeface, descriptor, metrics, pageSize)
+    }
+
+
+    companion object {
+
+        /**
+         * The width and height of a glyph atlas page. Each font variant (size, weight, style) has its
+         * own pages and a page is only allocated once a glyph needs it, so this is kept small.
+         */
+        private const val PAGE_SIZE = 1024f
     }
 
 }

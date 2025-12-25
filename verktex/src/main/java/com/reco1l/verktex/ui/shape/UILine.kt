@@ -28,13 +28,6 @@ class UILine : UICanvas() {
 
 
     override fun onDraw(renderer: GraphicsRenderer) {
-        val lineWidth = lineWidth.resolve(this, Axis.X)
-
-        val x1 = fromPoint.x - lineWidth / 2
-        val y1 = fromPoint.y - lineWidth / 2
-        val x2 = toPoint.x + lineWidth / 2
-        val y2 = toPoint.y + lineWidth / 2
-
-        renderer.drawRect(x1, y1, x2, y2)
+        renderer.drawLine(fromPoint.x, fromPoint.y, toPoint.x, toPoint.y, lineWidth.toPixels(), contentColor)
     }
 }

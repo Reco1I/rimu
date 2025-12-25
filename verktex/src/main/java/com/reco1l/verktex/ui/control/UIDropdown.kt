@@ -13,6 +13,7 @@ import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.math.FloatAnimation
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.ui.UIButton
@@ -47,6 +48,14 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
 
     private var parentScene: UIScene? = null
 
+    @Volatile
+    private var isRemovalScheduled = false
+
+    private val menuScale = FloatAnimation(0f, 0.2f)
+
+    private var menuX = 0f
+    private var menuY = 0f
+
 
     private val optionsContainer: UILinearContainer
 
@@ -60,13 +69,20 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
 
         override fun onInputEvent(event: InputEvent): Boolean {
 
+            // While closing the menu must not block the scene below.
+            if (!isExpanded) {
+                return false
+            }
+
             if (event is PointerEvent) {
 
+                // The menu is modal, presses outside of it must not reach the scene below.
                 if (event.action == PointerEvent.Action.Down) {
-                    return super.onInputEvent(event)
+                    super.onInputEvent(event)
+                    return true
                 }
 
-                if (!super.onInputEvent(event) && this@UIDropdown.bounds.contains(event.x, event.y)) {
+                if (!super.onInputEvent(event) && !this@UIDropdown.bounds.contains(event.x, event.y)) {
                     hide()
                 }
 
@@ -99,8 +115,8 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
             width = fill()
             orientation = Orientation.Vertical
             style = Style { theme ->
-                spacing = theme.gap.md
-                padding = Padding(0.25f.dip)
+                spacing = 4f.dip
+                padding = Padding(4f.dip)
             }
         }
 
@@ -110,24 +126,6 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
     override fun onUpdate(clock: FrameClock) {
 
         if (isExpanded) {
-            // Determine the menu width by finding the button with the largest width and setting
-            // all other buttons to that width.
-            var maxWidthButton: UIComponent? = null
-
-            optionsContainer.forEach { button ->
-                button as UITextButton
-
-                if (button.measuredSize.x > (maxWidthButton?.measuredSize?.x ?: 0f)) {
-                    maxWidthButton = button
-                }
-
-                if (button != maxWidthButton) {
-                    button.width = (maxWidthButton?.measuredSize?.x ?: 0f).px
-                } else {
-                    button.width = wrap()
-                }
-            }
-
             val (triggerTopLeftX, triggerTopLeftY) = trigger.toSceneSpace(0f, 0f)
             val (triggerBottomRightX, triggerBottomRightY) = trigger.toSceneSpace(trigger.bounds.width, trigger.bounds.height)
 
@@ -150,21 +148,38 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
                 triggerBottomRightY
             }
 
-            x = clock.interpolateFloat(0.2f, bounds.x, targetX, Easing.OutExpo).px
-            y = clock.interpolateFloat(0.2f, bounds.y, targetY, Easing.OutExpo).px
+            // Bounds are only updated on the draw worker, so the position is tracked separately.
+            if (alpha == 0f) {
+                menuX = targetX
+                menuY = targetY
+            }
+            menuX = clock.interpolateFloat(0.2f, menuX, targetX)
+            menuY = clock.interpolateFloat(0.2f, menuY, targetY)
+
+            x = menuX.px
+            y = menuY.px
 
             // Expansion animation
             scaleOrigin = if (expandUpwards) Anchor.BottomCenter else Anchor.TopCenter
             alpha = clock.interpolateFloat(0.2f, alpha, 1f)
-            scale = clock.interpolateFloat(0.3f, scale, 1f, Easing.OutBounce)
+            menuScale.animateTo(1f, 0.4f, Easing.OutBounce)
+            scale = menuScale.update(clock)
 
         } else {
             alpha = clock.interpolateFloat(0.2f, alpha, 0f)
-            scale = clock.interpolateFloat(0.2f, scale, 0f, Easing.OutExpo)
+            menuScale.animateTo(0f, 0.2f, Easing.OutExpo)
+            scale = menuScale.update(clock)
 
-            if (alpha == 0f) {
+            // Scheduled once, the update worker runs more often than the draw worker.
+            if (alpha == 0f && !isRemovalScheduled) {
+                isRemovalScheduled = true
+
                 Verktex.scheduleOnDraw {
-                    wrapper.removeSelf()
+                    // It might have been shown again meanwhile.
+                    if (!isExpanded) {
+                        wrapper.removeSelf()
+                    }
+                    isRemovalScheduled = false
                 }
             }
         }

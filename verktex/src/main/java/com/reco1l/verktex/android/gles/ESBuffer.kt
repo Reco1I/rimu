@@ -19,6 +19,10 @@ class ESBuffer : GraphicsBuffer() {
         get() = data.position()
 
 
+    override fun clear() {
+        data.clear()
+    }
+
     override fun requireCapacity(requiredBytes: Int) {
         if (data.remaining() >= requiredBytes) {
             return
@@ -70,6 +74,12 @@ class ESBuffer : GraphicsBuffer() {
             GLES32Helper.glDeleteBuffers(id)
             id = 0
         }
+    }
+
+    override fun onContextLost() {
+        super.onContextLost()
+        // The GL buffer went away with the context, a new one is generated on the next load.
+        id = 0
     }
 
 }

@@ -32,7 +32,7 @@ open class Theme(
     val gap: FixedSizeBreakpoints = FixedSizeBreakpoints(
         xs = 8f.dip,
         sm = 12f.dip,
-        md = 4f.dip,
+        md = 16f.dip,
         lg = 24f.dip,
         xl = 32f.dip,
     ),
@@ -124,6 +124,11 @@ open class Theme(
         val controlActiveBackground = accent.darken(1f)
 
         val divider = accent.darken(4f)
+
+        /**
+         * Color of text and icons drawn over solid backgrounds, which use the light accent color.
+         */
+        val contentOnSolid = accent.darken(5f)
     }
 
     /**
