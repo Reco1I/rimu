@@ -461,16 +461,18 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
 
                                 when (Multiplayer.player!!.status) {
 
-                                    PlayerStatus.NotReady -> {
-                                        if (room.beatmap == null) {
-                                            ToastLogger.showText(R.string.multiplayer_room_cannot_ready_changing_beatmap, true)
-                                            isWaitingForStatusChange = false
-                                        }
+                            PlayerStatus.NotReady -> {
+                                if (room.beatmap == null) {
+                                    ToastLogger.showText(R.string.multiplayer_room_cannot_ready_changing_beatmap, true)
+                                    isWaitingForStatusChange = false
+                                    return@callback
+                                }
 
-                                        if (room.teamMode == TeamMode.TeamVersus && Multiplayer.player!!.team == null) {
-                                            ToastLogger.showText(R.string.multiplayer_room_cannot_ready_no_team, true)
-                                            isWaitingForStatusChange = false
-                                        }
+                                if (room.teamMode == TeamMode.TeamVersus && Multiplayer.player!!.team == null) {
+                                    ToastLogger.showText(R.string.multiplayer_room_cannot_ready_no_team, true)
+                                    isWaitingForStatusChange = false
+                                    return@callback
+                                }
 
                                         RoomAPI.setPlayerStatus(PlayerStatus.Ready)
                                     }
