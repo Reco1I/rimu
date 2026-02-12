@@ -502,8 +502,6 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
             }
 
         }
-
-        Multiplayer.roomScene = this
     }
 
     // Update events
