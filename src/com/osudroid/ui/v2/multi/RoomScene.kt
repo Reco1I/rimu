@@ -40,6 +40,7 @@ import com.reco1l.andengine.fillContainer
 import com.reco1l.andengine.labeledBadge
 import com.reco1l.andengine.linearContainer
 import com.reco1l.andengine.scrollableContainer
+import com.reco1l.andengine.shape.PaintStyle
 import com.reco1l.andengine.sprite
 import com.reco1l.andengine.sprite.ScaleType
 import com.reco1l.andengine.sprite.UISprite
@@ -324,6 +325,12 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
                                 padding = Vec4(3f.srem)
                                 backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.5f)
                             }
+                            foreground = UIBox().apply {
+                                cornerRadius = 12f
+                                paintStyle = PaintStyle.Outline
+                                lineWidth = 1f
+                                applyTheme = { color = it.accentColor }
+                            }
                             isVisible = false
 
                             beatmapInfoLayout = this
@@ -336,6 +343,12 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
                                 radius = Radius.MD
                                 padding = Vec4(3f.srem)
                                 backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.5f)
+                            }
+                            foreground = UIBox().apply {
+                                cornerRadius = 12f
+                                paintStyle = PaintStyle.Outline
+                                lineWidth = 1f
+                                applyTheme = { color = it.accentColor }
                             }
                         }
 
