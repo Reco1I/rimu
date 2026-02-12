@@ -252,6 +252,7 @@ class RoomChat : UILinearContainer() {
 
         private lateinit var tagText: UIText
         private lateinit var messageText: UIText
+        private var isPressed = false
 
 
         init {
@@ -313,13 +314,24 @@ class RoomChat : UILinearContainer() {
 
 
         override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-            if (event.isActionUp) {
-                if (!isExpanded) {
-                    expand()
-                } else {
-                    collapse()
+            when {
+                event.isActionDown -> isPressed = true
+
+                event.isActionUp -> {
+                    if (localX <= width && localY <= height && isPressed) {
+                        if (!isExpanded) {
+                            expand()
+                        } else {
+                            collapse()
+                        }
+                    }
+
+                    isPressed = false
                 }
+
+                event.isActionOutside || event.isActionCancel || !event.isActionMove -> isPressed = false
             }
+
             return true
         }
 
