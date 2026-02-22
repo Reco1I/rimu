@@ -353,6 +353,57 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
      */
     protected open fun isTextValid(text: String) = true
 
+    private fun appendCharacter(char: Char): Boolean {
+
+        if (value.length == maxCharacters && maxCharacters != 0) {
+            return false
+        }
+
+        if (!isCharacterAllowed(char)) {
+            notifyInputError()
+            return false
+        }
+
+        val currentText = value
+        val currentCaretPosition = caretPosition
+        val newText =
+            currentText.take(currentCaretPosition) + char + currentText.substring(currentCaretPosition)
+
+        if (newText.isNotEmpty() && !isTextValid(newText)) {
+            notifyInputError()
+            return false
+        }
+
+        value = newText
+        caretPosition++
+
+        return true
+    }
+
+    private fun deleteCharacterAt(position: Int) {
+        if (value.isEmpty()) {
+            return
+        }
+
+        val currentText = value
+        val currentCaretPosition = caretPosition
+
+        val newText =
+            if (position > 0) currentText.take(position - 1) + currentText.substring(position)
+            else currentText.substring(1)
+
+        if (newText.isNotEmpty() && !isTextValid(newText)) {
+            notifyInputError()
+            return
+        }
+
+        value = newText
+
+        // Move the caret to the left if it's located after the deleted character
+        if (position < currentCaretPosition) {
+            caretPosition = max(0, currentCaretPosition - 1)
+        }
+    }
 
     private fun notifyInputError() {
         textComponent.apply {
@@ -374,6 +425,7 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
         updateVisuals()
     }
 
+    @Suppress("DEPRECATION")
     override fun onKeyPress(keyCode: Int, event: KeyEvent): Boolean = synchronized(value) {
 
         if (!isFocused) {
@@ -384,6 +436,19 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
             if (event.action == ACTION_UP) {
                 blur()
             }
+            return true
+        }
+
+        // See https://developer.android.com/reference/android/view/KeyEvent#ACTION_MULTIPLE.
+        if (event.action == ACTION_MULTIPLE && keyCode == KEYCODE_UNKNOWN) {
+            val characters = event.characters ?: return false
+
+            for (char in characters) {
+                if (char.isNullCharacter() || !appendCharacter(char)) {
+                    break
+                }
+            }
+
             return true
         }
 
@@ -406,11 +471,11 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
                 KEYCODE_DPAD_RIGHT -> caretPosition = min(value.length, caretPosition + 1)
 
                 else -> {
-                    val unicodeChar = event.unicodeChar
+                    val char = event.unicodeChar.toChar()
 
                     // Key event might not have a Unicode character (e.g. shift key), in that case we ignore it.
-                    if (unicodeChar != 0) {
-                        appendCharacter(unicodeChar.toChar())
+                    if (!char.isNullCharacter()) {
+                        appendCharacter(char)
                     }
                 }
             }
@@ -419,6 +484,7 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
         return true
     }
 
+    private fun Char.isNullCharacter() = this == '\u0000'
 }
 
 /**
