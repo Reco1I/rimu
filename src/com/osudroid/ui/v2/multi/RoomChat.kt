@@ -76,65 +76,71 @@ class RoomChat : UILinearContainer() {
         // Two or more instances of these can present after a player successfully reconnects.
         overlay.detachChildren { it is RoomChat }
 
-        width = Size.Full
-        orientation = Orientation.Vertical
-        anchor = Anchor.BottomCenter
-        origin = Anchor.BottomCenter
-        style = {
-            backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.9f)
-            y = if (isExpanded) 0f else BODY_HEIGHT.rem
-        }
+        // Force the main container to fill the entire screen so that the chat can be closed by
+        // tapping outside of it (see onAreaTouched).
+        width = FillParent
+        height = FillParent
 
-        +button
-
-        body = fillContainer {
+        linearContainer {
             width = Size.Full
             orientation = Orientation.Vertical
+            anchor = Anchor.BottomCenter
+            origin = Anchor.BottomCenter
             style = {
+                    backgroundColor = (it.accentColor * 0.1f
+                    ).copy(alpha = 0.9f)
+                y = if (isExpanded) 0f else BODY_HEIGHT.rem
+            }
+
+            +button
+            body = fillContainer {
+                width = Size.Full
+                orientation = Orientation.Verticalstyle = {
                 height = BODY_HEIGHT.rem
             }
 
-            scrollableContainer {
-                width = Size.Full
-                height = Size.Full
-                scrollAxes = Axes.Y
-                clipToBounds = true
-
-                messageContainer = linearContainer {
+                scrollableContainer {
                     width = Size.Full
-                    orientation = Orientation.Vertical
+                    height = Size.Full
+                    scrollAxes = Axes.Y
+                    clipToBounds = true
 
-                    repeat(MAX_MESSAGES) {
-                        attachChild(MessageComponent())
+                    messageContainer = linearContainer {
+                        width = Size.Full
+                        orientation = Orientation.Vertical
+
+                        repeat(MAX_MESSAGES) {
+                            attachChild(MessageComponent())
+                        }
                     }
                 }
-            }
 
-            fillContainer {
-                width = Size.Full
+                fillContainer {
+                    width = Size.Full
                 style = {
                     spacing = 2f.srem
                     padding = UIEngine.current.safeArea.copy(y = 2f.srem, w = 3f.srem)
-                }
+                    }
 
-                +UITextInput("").apply {
-                    width = Size.Full
+                    +UITextInput("").apply {
+                        width = Size.Full
                     height = Size.Full
-                    placeholder = "Type a message..."
-                    onConfirm = { sendMessage() }
+                        placeholder = "Type a message..."
+                        onConfirm = { sendMessage() }
 
-                    input = this
-                }
 
-                textButton {
-                    trailingIcon = FontAwesomeIcon(Icon.PaperPlane)
-                    colorVariant = ColorVariant.Primary
-                    setText(R.string.multiplayer_room_chat_send)
-                    onActionUp = { sendMessage() }
+                        input = this
+                    }
+
+                    textButton {
+                        trailingIcon = FontAwesomeIcon(Icon.PaperPlane)
+                        colorVariant = ColorVariant.Primary
+                        setText(R.string.multiplayer_room_chat_send)
+                        onActionUp = { sendMessage() }
+                    }
                 }
             }
         }
-
     }
 
 
@@ -236,7 +242,7 @@ class RoomChat : UILinearContainer() {
     }
 
     override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-        if (super.onAreaTouched(event, localX, localY) || isExpanded) {
+        if (super.onAreaTouched(event, localX, localY)) {
             return true
         }
 

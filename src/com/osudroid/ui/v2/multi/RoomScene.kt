@@ -752,18 +752,6 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
         chat.show()
     }
 
-    override fun onSceneTouchEvent(pSceneTouchEvent: TouchEvent?): Boolean {
-        if (super.onSceneTouchEvent(pSceneTouchEvent)) {
-            return true
-        }
-
-        if (chat.isExpanded) {
-            chat.collapse()
-        }
-
-        return false
-    }
-
 
     // Communication
 
