@@ -374,6 +374,51 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
         updateVisuals()
     }
 
+    override fun onKeyPress(keyCode: Int, event: KeyEvent): Boolean = synchronized(value) {
+
+        if (!isFocused) {
+            return false
+        }
+
+        if (keyCode == KEYCODE_BACK && isFocused) {
+            if (event.action == ACTION_UP) {
+                blur()
+            }
+            return true
+        }
+
+        if (event.action == ACTION_DOWN) {
+
+            when (keyCode) {
+
+                KEYCODE_DEL -> deleteCharacterAt(caretPosition)
+
+                KEYCODE_ENTER -> {
+                    if (confirmOnEnter) {
+                        blur()
+                        onConfirm?.invoke()
+                    } else {
+                        appendCharacter('\n')
+                    }
+                }
+
+                KEYCODE_DPAD_LEFT -> caretPosition = max(0, caretPosition - 1)
+                KEYCODE_DPAD_RIGHT -> caretPosition = min(value.length, caretPosition + 1)
+
+                else -> {
+                    val unicodeChar = event.unicodeChar
+
+                    // Key event might not have a Unicode character (e.g. shift key), in that case we ignore it.
+                    if (unicodeChar != 0) {
+                        appendCharacter(unicodeChar.toChar())
+                    }
+                }
+            }
+        }
+
+        return true
+    }
+
 }
 
 /**
