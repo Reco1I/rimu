@@ -104,7 +104,7 @@ class OsuDirectDownloadRequestModel : BeatmapMirrorDownloadRequestModel {
     override fun invoke(beatmapSetId: Long, withVideo: Boolean): HttpUrl {
         val url = "https://osu.direct/api/d/$beatmapSetId".toHttpUrl()
 
-        return if (withVideo) url.newBuilder().addQueryParameter("noVideo", "1").build() else url
+        return if (!withVideo) url.newBuilder().addQueryParameter("noVideo", "1").build() else url
     }
 }
 

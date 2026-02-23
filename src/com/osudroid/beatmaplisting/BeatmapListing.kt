@@ -450,7 +450,7 @@ class BeatmapSetDetails(val beatmapSet: BeatmapSetModel, val holder: BeatmapSetV
 
         downloadButton.setOnClickListener {
             BeatmapDownloader.download(
-                url = BeatmapListing.mirror.download.request(beatmapSet.id, false).toString(),
+                url = BeatmapListing.mirror.download.request(beatmapSet.id, true).toString(),
                 suggestedFilename = suggestedDownloadFilename
             )
         }
@@ -460,7 +460,7 @@ class BeatmapSetDetails(val beatmapSet: BeatmapSetModel, val holder: BeatmapSetV
                 visibility = VISIBLE
                 setOnClickListener {
                     BeatmapDownloader.download(
-                        url = BeatmapListing.mirror.download.request(beatmapSet.id, true).toString(),
+                        url = BeatmapListing.mirror.download.request(beatmapSet.id, false).toString(),
                         suggestedFilename = "$suggestedDownloadFilename [no video]"
                     )
                 }
@@ -674,7 +674,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
 
         downloadButton.setOnClickListener {
             BeatmapDownloader.download(
-                url = BeatmapListing.mirror.download.request(beatmapSet.id, false).toString(),
+                url = BeatmapListing.mirror.download.request(beatmapSet.id, true).toString(),
                 suggestedFilename = suggestedDownloadFilename
             )
         }
@@ -684,7 +684,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
                 visibility = VISIBLE
                 setOnClickListener {
                     BeatmapDownloader.download(
-                        url = BeatmapListing.mirror.download.request(beatmapSet.id, true).toString(),
+                        url = BeatmapListing.mirror.download.request(beatmapSet.id, false).toString(),
                         suggestedFilename = "$suggestedDownloadFilename [no video]"
                     )
                 }
