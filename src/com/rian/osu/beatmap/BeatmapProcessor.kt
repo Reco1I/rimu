@@ -139,6 +139,8 @@ class BeatmapProcessor @JvmOverloads constructor(
         }
 
         // Reverse pass for stack calculation.
+        var extendedStartIndex = startIndex
+
         for (i in extendedEndIndex downTo startIndex + 1) {
             scope?.ensureActive()
 
@@ -180,8 +182,12 @@ class BeatmapProcessor @JvmOverloads constructor(
                     }
 
                     // Hit objects before the specified update range haven't been reset yet
-                    objectN.difficultyStackHeight = 0
-                    objectN.gameplayStackHeight = 0
+                    @Suppress("KotlinConstantConditions")
+                    if (n < extendedStartIndex) {
+                        objectN.difficultyStackHeight = 0
+                        objectN.gameplayStackHeight = 0
+                        extendedStartIndex = n
+                    }
 
                     // This is a special case where hit circles are moved DOWN and RIGHT (negative stacking) if they are under the *last* slider in a stacked pattern.
                     // o==o <- slider is at original location
