@@ -266,7 +266,7 @@ class DroidDifficultyCalculator : DifficultyCalculator<DroidPlayableBeatmap, Dro
 
         flashlightDifficulty = calculateRating(flashlight)
         flashlightDifficultStrainCount = flashlight.countTopWeightedStrains()
-        flashlightDifficulty =
+        flashlightSliderFactor =
             if (flashlightNoSlider != null && flashlightDifficulty > 0) calculateRating(flashlightNoSlider) / flashlightDifficulty
             else 1.0
     }
