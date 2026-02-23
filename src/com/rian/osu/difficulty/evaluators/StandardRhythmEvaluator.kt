@@ -135,7 +135,7 @@ object StandardRhythmEvaluator {
                     }
 
                     // Scale down the difficulty if the object is doubletappable.
-                    effectiveRatio *= 1 - prevObject.getDoubletapness(currentObject) * 0.75
+                    effectiveRatio *= 1 - prevObject.getDoubletapness(prevObject.next(0)) * 0.75
 
                     rhythmComplexitySum += sqrt(effectiveRatio * startRatio) * currentHistoricalDecay
 
