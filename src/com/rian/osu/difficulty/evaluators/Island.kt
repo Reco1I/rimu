@@ -8,27 +8,25 @@ internal class Island(epsilon: Double) {
     private val deltaDifferenceEpsilon = epsilon
 
     var delta = Int.MAX_VALUE
-        private set(value) {
-            if (field == Int.MAX_VALUE) {
-                field = max(value, DifficultyHitObject.MIN_DELTA_TIME)
-            }
-
-            ++deltaCount
-        }
+        private set
 
     var deltaCount = 0
         private set
 
     constructor(delta: Int, deltaDifferenceEpsilon: Double) : this(deltaDifferenceEpsilon) {
-        this.delta = max(delta, DifficultyHitObject.MIN_DELTA_TIME)
+        this.addDelta(delta)
     }
 
     fun addDelta(delta: Int) {
-        this.delta = delta
+        if (this.delta == Int.MAX_VALUE) {
+            this.delta = max(delta, DifficultyHitObject.MIN_DELTA_TIME)
+        }
+
+        ++deltaCount
     }
 
     fun isSimilarPolarity(other: Island) =
-    // TODO: consider islands to be of similar polarity only if they're having the same average delta (we don't want to consider 3 singletaps similar to a triple)
+        // TODO: consider islands to be of similar polarity only if they're having the same average delta (we don't want to consider 3 singletaps similar to a triple)
         // naively adding delta check here breaks _a lot_ of maps because of the flawed ratio calculation
         deltaCount % 2 == other.deltaCount % 2
 
