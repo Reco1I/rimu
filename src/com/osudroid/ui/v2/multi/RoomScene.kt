@@ -326,12 +326,6 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
                                 padding = Vec4(3f.srem)
                                 backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.5f)
                             }
-                            foreground = UIBox().apply {
-                                cornerRadius = 12f
-                                paintStyle = PaintStyle.Outline
-                                lineWidth = 1f
-                                applyTheme = { color = it.accentColor }
-                            }
                             isVisible = false
 
                             beatmapInfoLayout = this
