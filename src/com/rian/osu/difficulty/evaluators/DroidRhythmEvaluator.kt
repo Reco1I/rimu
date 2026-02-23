@@ -24,12 +24,7 @@ object DroidRhythmEvaluator {
      */
     @JvmStatic
     fun evaluateDifficultyOf(current: DroidDifficultyHitObject, useSliderAccuracy: Boolean): Double {
-        if (
-            current.index <= 1 ||
-            current.obj is Spinner ||
-            // Exclude overlapping objects that can be tapped at once.
-            current.isOverlapping(false)
-        ) {
+        if (current.obj is Spinner) {
             return 1.0
         }
 
@@ -77,7 +72,7 @@ object DroidRhythmEvaluator {
 
             // Scale note 0 to 1 from history to now.
             val timeDecay = (HISTORY_TIME_MAX - (current.startTime - currentObject.startTime)) / HISTORY_TIME_MAX
-            val noteDecay = (historicalNoteCount - i).toDouble() / historicalNoteCount
+            val noteDecay = (validPrevious.size - i).toDouble() / validPrevious.size
 
             // Either we're limited by time or limited by object count.
             val currentHistoricalDecay = min(noteDecay, timeDecay)
@@ -140,20 +135,33 @@ object DroidRhythmEvaluator {
                         effectiveRatio /= 2
                     }
 
-                    if (island in islandCounts) {
+                    var islandFound = false
+
+                    for ((otherIsland, count) in islandCounts) {
+                        if (island != otherIsland) {
+                            continue
+                        }
+
+                        islandFound = true
+                        var islandCount = count
+
                         // Only add island to island counts if they're going one after another.
                         if (previousIsland == island) {
-                            islandCounts[island] = islandCounts[island]!! + 1
+                            islandCounts[otherIsland] = ++islandCount
                         }
 
                         // Repeated island (ex: triplet -> triplet)
                         effectiveRatio *= min(
-                            3.0 / islandCounts[island]!!,
-                            (1.0 / islandCounts[island]!!).pow(
+                            3.0 / islandCount,
+                            (1.0 / islandCount).pow(
                                 DifficultyCalculationUtils.logistic(island.delta.toDouble(), 58.33, 0.24, 2.75)
                             )
                         )
-                    } else {
+
+                        break
+                    }
+
+                    if (!islandFound) {
                         islandCounts[island] = 1
                     }
 
