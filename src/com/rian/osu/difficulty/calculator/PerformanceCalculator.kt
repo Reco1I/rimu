@@ -132,7 +132,7 @@ abstract class PerformanceCalculator<
      */
     protected open fun resetDefaults() {
         scoreMaxCombo = difficultyAttributes.maxCombo
-        countGreat = totalHits
+        countGreat = difficultyAttributes.hitCircleCount + difficultyAttributes.sliderCount + difficultyAttributes.spinnerCount
         countOk = 0
         countMeh = 0
         countMiss = 0
