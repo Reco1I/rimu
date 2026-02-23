@@ -75,4 +75,7 @@
 
     <string name="mp_room_prefer_mod_acronym_title">Prefer mod acronyms over icons</string>
     <string name="mp_room_prefer_mod_acronym_summary">Replace mod icons in player cards with mod acronyms</string>
+
+    <string name="opt_prefer_no_video_downloads_title">Prefer downloads without video</string>
+    <string name="opt_prefer_no_video_downloads_summary">Prefer downloading beatmaps without video in beatmap downloader if the selected beatmap mirror supports it</string>
 </resources>

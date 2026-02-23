@@ -122,6 +122,7 @@
                     android:id="@+id/download_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginRight="8dp"
                     android:background="@drawable/rounded_rect"
                     android:backgroundTint="#363653"
                     android:drawableLeft="@drawable/download_24px"
@@ -129,6 +130,20 @@
                     android:drawableTint="#FFF"
                     android:paddingHorizontal="12dp"
                     android:text="Download"
+                    android:textAllCaps="false"
+                    android:textColor="#FFF" />
+
+                <Button
+                    android:id="@+id/download_no_video_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/rounded_rect"
+                    android:backgroundTint="#363653"
+                    android:drawableLeft="@drawable/download_24px"
+                    android:drawablePadding="6dp"
+                    android:drawableTint="#FFF"
+                    android:paddingHorizontal="12dp"
+                    android:text="Download (no video)"
                     android:textAllCaps="false"
                     android:textColor="#FFF" />
 

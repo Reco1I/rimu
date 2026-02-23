@@ -85,6 +85,7 @@ class CatboySearchResponseModel : BeatmapMirrorSearchResponseModel {
                 artistUnicode = json.getString("artist_unicode"),
                 status = RankedStatus.valueOf(json.getInt("ranked")),
                 creator = json.getString("creator"),
+                hasVideo = json.getBoolean("video"),
                 thumbnail = "https://assets.ppy.sh/beatmaps/${json.getLong("id")}/covers/card.jpg",
                 beatmaps = json.getJSONArray("beatmaps").let {
 
@@ -116,7 +117,7 @@ class CatboySearchResponseModel : BeatmapMirrorSearchResponseModel {
 
 
 class CatboyDownloadRequestModel : BeatmapMirrorDownloadRequestModel {
-    override fun invoke(beatmapSetId: Long): HttpUrl {
+    override fun invoke(beatmapSetId: Long, withVideo: Boolean): HttpUrl {
         return "https://catboy.best/d/$beatmapSetId".toHttpUrl()
     }
 }

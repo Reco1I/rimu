@@ -30,9 +30,14 @@ enum class BeatmapMirror(
     /**
      * The resource ID of the logo image to be displayed in the UI.
      */
-    @DrawableRes
+    @field:DrawableRes
     val logoResource: Int,
 
+    /**
+     * Whether this beatmap mirror supports downloading beatmaps without video. If `false`, the download action will
+     * always include the video if available.
+     */
+    val supportsNoVideoDownloads: Boolean,
 
     // Actions / Endpoints
 
@@ -62,6 +67,7 @@ enum class BeatmapMirror(
         homeUrl = "https://osu.direct",
         description = "osu.direct",
         logoResource = R.drawable.osudirect,
+        supportsNoVideoDownloads = true,
 
         search = BeatmapMirrorActionWithResponse(
             request = OsuDirectSearchRequestModel(),
@@ -80,6 +86,7 @@ enum class BeatmapMirror(
         homeUrl = "https://catboy.best",
         description = "Mino",
         logoResource = R.drawable.catboy,
+        supportsNoVideoDownloads = false,
 
         search = BeatmapMirrorActionWithResponse(
             request = CatboySearchRequestModel(),

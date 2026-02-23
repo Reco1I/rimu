@@ -41,8 +41,9 @@ fun interface BeatmapMirrorSearchRequestModel {
 fun interface BeatmapMirrorDownloadRequestModel {
     /**
      * @param beatmapSetId The beatmap set ID.
+     * @param withVideo Whether to include the video in the download if available.
      */
-    operator fun invoke(beatmapSetId: Long): HttpUrl
+    operator fun invoke(beatmapSetId: Long, withVideo: Boolean): HttpUrl
 }
 
 fun interface BeatmapMirrorPreviewRequestModel {

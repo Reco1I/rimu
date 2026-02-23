@@ -666,7 +666,10 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
                 leadingIcon = UISprite(ResourceManager.getInstance().getTexture("download"))
                 setText(R.string.multiplayer_room_download_beatmap)
                 onActionUp = {
-                    val url = BeatmapListing.mirror.download.request(roomBeatmap.parentSetID!!).toString()
+                    val url = BeatmapListing.mirror.download.request(
+                        roomBeatmap.parentSetID!!,
+                        !Config.isPreferNoVideoDownloads()
+                    ).toString()
 
                     async {
                         try {

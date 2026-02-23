@@ -71,6 +71,7 @@ class OsuDirectSearchResponseModel : BeatmapMirrorSearchResponseModel {
                 status = RankedStatus.valueOf(json.getInt("ranked")),
                 creator = json.getString("creator"),
                 thumbnail = json.optJSONObject("covers")?.optString("card"),
+                hasVideo = json.getBoolean("video"),
                 beatmaps = json.getJSONArray("beatmaps").let {
 
                     MutableList(it.length()) { i ->
@@ -100,8 +101,10 @@ class OsuDirectSearchResponseModel : BeatmapMirrorSearchResponseModel {
 }
 
 class OsuDirectDownloadRequestModel : BeatmapMirrorDownloadRequestModel {
-    override fun invoke(beatmapSetId: Long): HttpUrl {
-        return "https://osu.direct/api/d/$beatmapSetId".toHttpUrl()
+    override fun invoke(beatmapSetId: Long, withVideo: Boolean): HttpUrl {
+        val url = "https://osu.direct/api/d/$beatmapSetId".toHttpUrl()
+
+        return if (withVideo) url.newBuilder().addQueryParameter("noVideo", "1").build() else url
     }
 }
 

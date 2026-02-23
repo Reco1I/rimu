@@ -383,6 +383,8 @@ class BeatmapSetDetails(val beatmapSet: BeatmapSetModel, val holder: BeatmapSetV
 
     private lateinit var downloadButton: Button
 
+    private lateinit var downloadNoVideoButton: Button
+
     private lateinit var creator: TextView
 
     private lateinit var difficulty: LinearLayout
@@ -408,6 +410,7 @@ class BeatmapSetDetails(val beatmapSet: BeatmapSetModel, val holder: BeatmapSetV
         difficulty = findViewById(R.id.difficulty)!!
         previewButton = findViewById(R.id.preview_button)!!
         downloadButton = findViewById(R.id.download_button)!!
+        downloadNoVideoButton = findViewById(R.id.download_no_video_button)!!
 
         status.text = holder.status.text
         creator.text = holder.creator.text
@@ -443,11 +446,28 @@ class BeatmapSetDetails(val beatmapSet: BeatmapSetModel, val holder: BeatmapSetV
             }
         }
 
+        val suggestedDownloadFilename = "${beatmapSet.id} ${beatmapSet.artist} - ${beatmapSet.title}"
+
         downloadButton.setOnClickListener {
             BeatmapDownloader.download(
-                url = BeatmapListing.mirror.download.request(beatmapSet.id).toString(),
-                suggestedFilename = "${beatmapSet.id} ${beatmapSet.artist} - ${beatmapSet.title}"
+                url = BeatmapListing.mirror.download.request(beatmapSet.id, false).toString(),
+                suggestedFilename = suggestedDownloadFilename
             )
+        }
+
+        downloadNoVideoButton.apply {
+            if (BeatmapListing.mirror.supportsNoVideoDownloads && beatmapSet.hasVideo) {
+                visibility = VISIBLE
+                setOnClickListener {
+                    BeatmapDownloader.download(
+                        url = BeatmapListing.mirror.download.request(beatmapSet.id, true).toString(),
+                        suggestedFilename = "$suggestedDownloadFilename [no video]"
+                    )
+                }
+            } else {
+                visibility = GONE
+                setOnClickListener(null)
+            }
         }
 
         cover.setImageDrawable(holder.cover.drawable)
@@ -562,6 +582,8 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
 
     val downloadButton: Button = itemView.findViewById(R.id.download_button)
 
+    val downloadNoVideoButton: Button = itemView.findViewById(R.id.download_no_video_button)
+
 
     private var coverJob: Job? = null
 
@@ -648,13 +670,29 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
             }
         }
 
+        val suggestedDownloadFilename = "${beatmapSet.id} ${beatmapSet.artist} - ${beatmapSet.title}"
+
         downloadButton.setOnClickListener {
             BeatmapDownloader.download(
-                url = BeatmapListing.mirror.download.request(beatmapSet.id).toString(),
-                suggestedFilename = "${beatmapSet.id} ${beatmapSet.artist} - ${beatmapSet.title}"
+                url = BeatmapListing.mirror.download.request(beatmapSet.id, false).toString(),
+                suggestedFilename = suggestedDownloadFilename
             )
         }
 
+        downloadNoVideoButton.apply {
+            if (BeatmapListing.mirror.supportsNoVideoDownloads && beatmapSet.hasVideo) {
+                visibility = VISIBLE
+                setOnClickListener {
+                    BeatmapDownloader.download(
+                        url = BeatmapListing.mirror.download.request(beatmapSet.id, true).toString(),
+                        suggestedFilename = "$suggestedDownloadFilename [no video]"
+                    )
+                }
+            } else {
+                visibility = GONE
+                setOnClickListener(null)
+            }
+        }
 
         itemView.setOnClickListener {
             BeatmapSetDetails(beatmapSet, this).show()

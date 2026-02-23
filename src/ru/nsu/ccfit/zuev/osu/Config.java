@@ -800,6 +800,10 @@ public class Config {
         return backButtonPressTime;
     }
 
+    public static boolean isPreferNoVideoDownloads() {
+        return getBoolean("preferNoVideoDownloads", false);
+    }
+
     // Shared Preferences
     // It's preferred to use these methods to access shared preferences instead of adding new fields to this class.
     // If the option is expected to be accessed frequently consider storing it locally as a field where it's needed.

@@ -14,7 +14,8 @@ data class BeatmapSetModel(
     val status: RankedStatus,
     val creator: String,
     val thumbnail: String?,
-    val beatmaps: List<BeatmapModel>
+    val beatmaps: List<BeatmapModel>,
+    val hasVideo: Boolean
 )
 
 /**
