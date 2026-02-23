@@ -58,6 +58,7 @@ class BeatmapInfoLayout : UILinearContainer() {
                     fontSize = FontSize.SM
                     text = "Unknown"
                     style = { color = it.accentColor * 0.9f }
+                    clipToBounds = true
                 }
 
                 titleText = text {
@@ -72,6 +73,7 @@ class BeatmapInfoLayout : UILinearContainer() {
                     fontSize = FontSize.SM
                     text = "Unknown"
                     style = { color = it.accentColor * 0.8f }
+                    clipToBounds = true
                 }
 
                 creatorText = text {
