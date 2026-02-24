@@ -97,15 +97,15 @@ public class FileUtils {
 
         try {
             MessageDigest digest = MessageDigest.getInstance(algorithm);
-            BufferedInputStream in = new BufferedInputStream(
-                new FileInputStream(file));
-            byte[] byteArray = new byte[1024];
-            int bytesCount = 0; 
 
-            while((bytesCount = in.read(byteArray)) != -1) {
-                digest.update(byteArray, 0, bytesCount);
+            try (var in = new BufferedInputStream(new FileInputStream(file))) {
+                byte[] byteArray = new byte[1024];
+                int bytesCount;
+
+                while ((bytesCount = in.read(byteArray)) != -1) {
+                    digest.update(byteArray, 0, bytesCount);
+                }
             }
-            in.close();
 
             byte[] bytes = digest.digest();
             for (byte aByte : bytes) {
