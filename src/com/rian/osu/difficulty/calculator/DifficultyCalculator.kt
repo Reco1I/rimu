@@ -11,7 +11,6 @@ import com.rian.osu.difficulty.attributes.DifficultyAttributes
 import com.rian.osu.difficulty.attributes.TimedDifficultyAttributes
 import com.rian.osu.difficulty.skills.Skill
 import com.rian.osu.mods.*
-import kotlin.math.sqrt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
 
