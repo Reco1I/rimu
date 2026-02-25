@@ -330,17 +330,17 @@ class BeatmapParserTest {
         fun setup() {
             v3Beatmap = BeatmapParser(
                 TestResourceManager.getBeatmapFile("Kenji Ninuma - DISCOPRINCE (peppy) [Normal]")!!
-            ).parse(true)!!
+            ).parse(true)
 
             v14Beatmap =
                 BeatmapParser(
                     TestResourceManager.getBeatmapFile(
                         "YOASOBI - Love Letter (ohm002) [Please accept my overflowing emotions.]"
                     )!!
-                ).parse(true)!!
+                ).parse(true)
 
             nanBeatmap =
-                BeatmapParser(TestResourceManager.getBeatmapFile("nan-control-points")!!).parse(true)!!
+                BeatmapParser(TestResourceManager.getBeatmapFile("nan-control-points")!!).parse(true)
         }
     }
 }

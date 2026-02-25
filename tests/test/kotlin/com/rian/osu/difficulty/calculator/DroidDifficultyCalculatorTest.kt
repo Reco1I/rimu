@@ -32,7 +32,7 @@ class DroidDifficultyCalculatorTest {
                 TestResourceManager.getBeatmapFile(
                     "YOASOBI - Love Letter (ohm002) [Please accept my overflowing emotions.]"
                 )!!
-            ).parse(true, GameMode.Droid)!!
+            ).parse(true, GameMode.Droid)
 
         calculator.calculate(beatmap).apply {
             // These results are off by a margin from server-side results due to floating point differences.
