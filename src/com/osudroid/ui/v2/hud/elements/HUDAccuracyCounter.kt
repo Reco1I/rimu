@@ -2,6 +2,7 @@ package com.osudroid.ui.v2.hud.elements
 
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.SpriteFont
+import com.rian.framework.RollingFloatCounter
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import java.text.DecimalFormat
@@ -21,13 +22,20 @@ class HUDAccuracyCounter : HUDElement() {
             }
         }
 
+    private val counter = RollingFloatCounter(1f).apply {
+        rollingDuration = 1000f
+    }
+
     init {
         sprite.text = "100.00%"
         attachChild(sprite)
     }
 
     override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
-        value = gameScene.stat.accuracy
+        counter.update(secondsElapsed * 1000f)
+
+        counter.targetValue = gameScene.stat.accuracy
+        value = counter.currentValue
     }
 
 }
