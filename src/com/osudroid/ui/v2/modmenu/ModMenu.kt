@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.osudroid.beatmaps.BeatmapCache
 import com.reco1l.andengine.*
 import com.reco1l.andengine.container.*
 import com.reco1l.andengine.shape.*
@@ -24,7 +25,6 @@ import com.reco1l.toolkt.kotlin.*
 import com.reco1l.toolkt.kotlin.async
 import com.rian.osu.*
 import com.rian.osu.beatmap.Beatmap
-import com.rian.osu.beatmap.parser.*
 import com.rian.osu.difficulty.BeatmapDifficultyCalculator.calculateDroidDifficulty
 import com.rian.osu.difficulty.BeatmapDifficultyCalculator.calculateStandardDifficulty
 import com.rian.osu.mods.*
@@ -325,17 +325,12 @@ object ModMenu : UIScene() {
 
             val difficultyAlgorithm = Config.getDifficultyAlgorithm()
             val gameMode = if (difficultyAlgorithm == droid) GameMode.Droid else GameMode.Standard
-            val beatmap: Beatmap?
 
             if (parsedBeatmap?.md5 != selectedBeatmap.md5 || parsedBeatmap?.mode != gameMode) {
-                BeatmapParser(selectedBeatmap.path, this@scope).use { parser ->
-                    beatmap = parser.parse(withHitObjects = true, mode = gameMode)
-                    parsedBeatmap = beatmap
-                }
-            } else {
-                beatmap = parsedBeatmap
+                parsedBeatmap = BeatmapCache.getBeatmap(selectedBeatmap, true, gameMode, this)
             }
 
+            val beatmap = parsedBeatmap
             val songMenu = GlobalManager.getInstance().songMenu
 
             if (beatmap == null) {

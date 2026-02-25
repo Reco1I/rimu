@@ -5,11 +5,13 @@ import static com.osudroid.data.BeatmapsKt.BeatmapInfo;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.util.Log;
 
 import com.edlplan.framework.easing.Easing;
 import com.edlplan.ui.fragment.SearchBarFragment;
 import com.edlplan.ui.fragment.BeatmapPropertiesFragment;
 import com.edlplan.ui.fragment.ScoreMenuFragment;
+import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.ui.v1.BeatmapAttributeDisplay;
 import com.osudroid.utils.Execution;
 import com.reco1l.andengine.UIScene;
@@ -25,7 +27,6 @@ import com.osudroid.multiplayer.Multiplayer;
 
 import com.osudroid.ui.v2.modmenu.ModMenu;
 import com.rian.osu.GameMode;
-import com.rian.osu.beatmap.parser.BeatmapParser;
 import com.rian.osu.difficulty.BeatmapDifficultyCalculator;
 import com.rian.osu.math.Precision;
 import com.rian.osu.mods.LegacyModConverter;
@@ -1038,20 +1039,20 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
         cancelCalculationJobs();
 
         calculationJob = Execution.async(scope -> {
-            try (var parser = new BeatmapParser(beatmapInfo.getPath(), scope)) {
-                var data = parser.parse(true);
+            try {
+                var mode = switch (Config.getDifficultyAlgorithm()) {
+                    case droid -> GameMode.Droid;
+                    case standard -> GameMode.Standard;
+                };
+
+                var beatmap = BeatmapCache.getBeatmap(beatmapInfo, true, mode, scope);
 
                 // Do not update if the beatmap has been changed.
-                if (data != null && selectedBeatmap != null && !data.getMd5().equals(selectedBeatmap.getMD5())) {
+                if (selectedBeatmap != null && !beatmap.getMd5().equals(selectedBeatmap.getMD5())) {
                     return;
                 }
 
-                if (data == null) {
-                    setStarsDisplay(0);
-                    return;
-                }
-
-                var newInfo = BeatmapInfo(data, beatmapInfo.getDateImported(), true, scope);
+                var newInfo = BeatmapInfo(beatmap, beatmapInfo.getDateImported(), true, scope);
                 beatmapInfo.apply(newInfo);
                 DatabaseManager.getBeatmapInfoTable().update(newInfo);
 
@@ -1061,11 +1062,14 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
                 var mods = ModMenu.INSTANCE.getEnabledMods().deepCopy().values();
 
                 var attributes = switch (Config.getDifficultyAlgorithm()) {
-                    case droid -> BeatmapDifficultyCalculator.calculateDroidDifficulty(data, mods, scope);
-                    case standard -> BeatmapDifficultyCalculator.calculateStandardDifficulty(data, mods, scope);
+                    case droid -> BeatmapDifficultyCalculator.calculateDroidDifficulty(beatmap, mods, scope);
+                    case standard -> BeatmapDifficultyCalculator.calculateStandardDifficulty(beatmap, mods, scope);
                 };
 
                 setStarsDisplay((float) attributes.starRating);
+            } catch (Exception e) {
+                Log.e("SongMenu", "Unable to calculate star rating", e);
+                setStarsDisplay(0);
             }
         });
     }

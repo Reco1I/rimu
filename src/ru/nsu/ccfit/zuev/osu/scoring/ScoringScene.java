@@ -3,6 +3,7 @@ package ru.nsu.ccfit.zuev.osu.scoring;
 import android.util.Log;
 
 import com.edlplan.framework.utils.functionality.SmartIterator;
+import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.data.DatabaseManager;
 import com.osudroid.multiplayer.Multiplayer;
 import com.osudroid.ui.v2.modmenu.ModIcon;
@@ -14,7 +15,6 @@ import com.reco1l.osu.ui.entity.StatisticSelector;
 
 import com.rian.osu.GameMode;
 import com.rian.osu.beatmap.Beatmap;
-import com.rian.osu.beatmap.parser.BeatmapParser;
 import com.rian.osu.difficulty.BeatmapDifficultyCalculator;
 import com.rian.osu.difficulty.attributes.DifficultyAttributes;
 import com.rian.osu.difficulty.attributes.DroidDifficultyAttributes;
@@ -418,11 +418,18 @@ public class ScoringScene {
             StringBuilder ppinfo = new StringBuilder();
             Beatmap beatmapData;
 
-            try (var parser = new BeatmapParser(beatmapInfo.getPath())) {
-                beatmapData = parser.parse(
+            try {
+                beatmapData = BeatmapCache.getBeatmap(
+                    beatmapInfo,
                     true,
-                    Config.getDifficultyAlgorithm() == DifficultyAlgorithm.droid ? GameMode.Droid : GameMode.Standard
+                    switch (Config.getDifficultyAlgorithm()) {
+                        case droid -> GameMode.Droid;
+                        case standard -> GameMode.Standard;
+                    }
                 );
+            } catch (Exception e) {
+                Log.e("ScoringScene", "Failed to parse beatmap for difficulty calculation", e);
+                beatmapData = null;
             }
 
             if (beatmapData != null) {

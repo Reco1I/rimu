@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.acivev.VibratorManager;
 import com.edlplan.framework.easing.Easing;
+import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.utils.Execution;
 import com.reco1l.andengine.Anchor;
 import com.reco1l.andengine.shape.UIBox;
@@ -26,7 +27,6 @@ import com.osudroid.beatmaplisting.BeatmapListing;
 import com.reco1l.andengine.ui.UIConfirmDialog;
 import com.reco1l.framework.Color4;
 import com.reco1l.osu.ui.HorizontalMessageDialog;
-import com.rian.osu.beatmap.parser.BeatmapParser;
 import com.rian.osu.beatmap.timings.EffectControlPoint;
 import com.rian.osu.beatmap.timings.TimingControlPoint;
 
@@ -60,6 +60,7 @@ import org.anddev.andengine.util.modifier.IModifier;
 import org.anddev.andengine.util.modifier.ease.EaseBounceOut;
 import org.anddev.andengine.util.modifier.ease.EaseExponentialOut;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.TimerTask;
@@ -895,44 +896,44 @@ public class MainScene implements IUpdateHandler {
         Arrays.fill(peakDownRate, 1f);
         Arrays.fill(peakAlpha, 0f);
 
-        try (var parser = new BeatmapParser(beatmapInfo.getPath())) {
-            var beatmap = parser.parse(false);
+        try {
+            var beatmap = BeatmapCache.getBeatmap(beatmapInfo, false);
 
-            if (beatmap != null) {
-                var timingControlPoints = new LinkedList<>(beatmap.getControlPoints().timing.controlPoints);
-                var effectControlPoints = new LinkedList<>(beatmap.getControlPoints().effect.controlPoints);
+            var timingControlPoints = new LinkedList<>(beatmap.getControlPoints().timing.controlPoints);
+            var effectControlPoints = new LinkedList<>(beatmap.getControlPoints().effect.controlPoints);
 
-                // Getting the first timing point is not always accurate - case in point is when the music is not reloaded.
-                int position = GlobalManager.getInstance().getSongService() != null ?
-                        GlobalManager.getInstance().getSongService().getPosition() : 0;
+            // Getting the first timing point is not always accurate - case in point is when the music is not reloaded.
+            int position = GlobalManager.getInstance().getSongService() != null ?
+                    GlobalManager.getInstance().getSongService().getPosition() : 0;
 
-                TimingControlPoint currentTimingPoint = null;
-                EffectControlPoint currentEffectPoint = null;
+            TimingControlPoint currentTimingPoint = null;
+            EffectControlPoint currentEffectPoint = null;
 
-                while (!timingControlPoints.isEmpty() && position > timingControlPoints.peek().time) {
-                    currentTimingPoint = timingControlPoints.pop();
-                }
-
-                while (!effectControlPoints.isEmpty() && position > effectControlPoints.peek().time) {
-                    currentEffectPoint = effectControlPoints.pop();
-                }
-
-                if (currentTimingPoint == null) {
-                    currentTimingPoint = beatmap.getControlPoints().timing.defaultControlPoint;
-                }
-
-                if (currentEffectPoint == null) {
-                    currentEffectPoint = beatmap.getControlPoints().effect.defaultControlPoint;
-                }
-
-                this.timingControlPoints = timingControlPoints;
-                this.effectControlPoints = effectControlPoints;
-                this.currentTimingPoint = currentTimingPoint;
-                this.currentEffectPoint = currentEffectPoint;
-
-                bpmLength = currentTimingPoint.msPerBeat;
-                beatPassTime = (position - currentTimingPoint.time) % bpmLength;
+            while (!timingControlPoints.isEmpty() && position > timingControlPoints.peek().time) {
+                currentTimingPoint = timingControlPoints.pop();
             }
+
+            while (!effectControlPoints.isEmpty() && position > effectControlPoints.peek().time) {
+                currentEffectPoint = effectControlPoints.pop();
+            }
+
+            if (currentTimingPoint == null) {
+                currentTimingPoint = beatmap.getControlPoints().timing.defaultControlPoint;
+            }
+
+            if (currentEffectPoint == null) {
+                currentEffectPoint = beatmap.getControlPoints().effect.defaultControlPoint;
+            }
+
+            this.timingControlPoints = timingControlPoints;
+            this.effectControlPoints = effectControlPoints;
+            this.currentTimingPoint = currentTimingPoint;
+            this.currentEffectPoint = currentEffectPoint;
+
+            bpmLength = currentTimingPoint.msPerBeat;
+            beatPassTime = (position - currentTimingPoint.time) % bpmLength;
+        } catch (IOException e) {
+            Debug.e("Failed to load beatmap for timing points: " + e);
         }
     }
 

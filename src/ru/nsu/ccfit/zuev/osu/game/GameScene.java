@@ -21,6 +21,7 @@ import com.edlplan.framework.math.line.LinePath;
 import com.edlplan.framework.support.ProxySprite;
 import com.edlplan.framework.support.osb.StoryboardSprite;
 import com.edlplan.framework.utils.functionality.SmartIterator;
+import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.game.Cursor;
 import com.osudroid.game.CursorEvent;
 import com.osudroid.multiplayer.api.RoomAPI;
@@ -59,7 +60,6 @@ import com.rian.osu.beatmap.hitobject.HitCircle;
 import com.rian.osu.beatmap.hitobject.HitObject;
 import com.rian.osu.beatmap.hitobject.Slider;
 import com.rian.osu.beatmap.hitobject.Spinner;
-import com.rian.osu.beatmap.parser.BeatmapParser;
 import com.rian.osu.beatmap.sections.BeatmapDifficulty;
 import com.rian.osu.beatmap.timings.EffectControlPoint;
 import com.rian.osu.beatmap.timings.TimingControlPoint;
@@ -595,14 +595,8 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         boolean shouldParseBeatmap = parsedBeatmap == null || !parsedBeatmap.getMd5().equals(beatmapInfo.getMD5());
 
         if (shouldParseBeatmap) {
-            try (var parser = new BeatmapParser(beatmapInfo.getPath(), scope)) {
-                if (parser.openFile()) {
-                    parsedBeatmap = parser.parse(true, GameMode.Droid);
-                } else {
-                    Debug.e("startGame: cannot open file");
-                    ToastLogger.showText(StringTable.format(com.osudroid.resources.R.string.message_error_open, beatmapInfo.getFilename()), true);
-                    return false;
-                }
+            try {
+                parsedBeatmap = BeatmapCache.getBeatmap(beatmapInfo, true, GameMode.Droid, scope);
             } catch (Exception e) {
                 Debug.e("startGame: " + e.getMessage());
                 ToastLogger.showText(e.getMessage(), true);
