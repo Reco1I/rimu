@@ -4,6 +4,7 @@ import static com.osudroid.data.BeatmapsKt.BeatmapInfo;
 
 import android.util.Log;
 
+import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.beatmaps.DifficultyCalculationManager;
 import com.osudroid.data.BeatmapSetInfo;
 import com.osudroid.data.DatabaseManager;
@@ -125,6 +126,7 @@ public class LibraryManager {
     public static void deleteBeatmapSet(BeatmapSetInfo beatmapSet) {
         FilesKt.deleteRecursively(new File(beatmapSet.getPath()));
         DatabaseManager.getBeatmapInfoTable().deleteBeatmapSet(beatmapSet.getDirectory());
+        BeatmapCache.invalidate(beatmapSet);
         loadLibrary();
     }
 
