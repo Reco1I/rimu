@@ -17,14 +17,16 @@ import kotlinx.coroutines.ensureActive
 
 /**
  * Represents a beatmap.
+ *
+ * @param mode The [GameMode] this [Beatmap] was parsed as.
  */
-open class Beatmap(
+open class Beatmap(mode: GameMode) : IBeatmap, Cloneable {
     /**
      * The [GameMode] this [Beatmap] was parsed as.
      */
-    @JvmField
-    val mode: GameMode
-) : IBeatmap, Cloneable {
+    var mode = mode
+        private set
+
     override var formatVersion = 14
     override val general = BeatmapGeneral()
     override val metadata = BeatmapMetadata()
@@ -99,6 +101,7 @@ open class Beatmap(
 
         // Convert
         val converted = converter.convert()
+        converted.mode = mode
 
         // Apply difficulty mods
         mods?.filterIsInstance<IModApplicableToDifficulty>()?.forEach {
