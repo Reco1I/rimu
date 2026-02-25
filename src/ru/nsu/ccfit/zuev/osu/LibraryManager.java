@@ -142,19 +142,8 @@ public class LibraryManager {
         var beatmapsFound = 0;
 
         for (var osuFile : osuFiles) {
-
-            try (var parser = new BeatmapParser(osuFile)) {
-
-                var data = parser.parse(false);
-
-                if (data == null) {
-                    if (Config.isDeleteUnimportedBeatmaps()) {
-                        //noinspection ResultOfMethodCallIgnored
-                        osuFile.delete();
-                    }
-                    continue;
-                }
-
+            try {
+                var data = new BeatmapParser(osuFile).parse(false);
                 var beatmapInfo = BeatmapInfo(data, directory.lastModified(), false);
 
                 if (data.getEvents().videoFilename != null && Config.isDeleteUnsupportedVideos()) {
@@ -172,6 +161,14 @@ public class LibraryManager {
 
                 pendingBeatmaps.add(beatmapInfo);
                 beatmapsFound++;
+            } catch (Exception e) {
+                Log.e("LibraryManager", "Failed to parse beatmap file: " + osuFile.getPath(), e);
+                if (Config.isDeleteUnimportedBeatmaps()) {
+                    try {
+                        //noinspection ResultOfMethodCallIgnored
+                        osuFile.delete();
+                    } catch (Exception ignored) {}
+                }
             }
         }
 

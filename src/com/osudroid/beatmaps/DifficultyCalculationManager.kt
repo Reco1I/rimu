@@ -107,9 +107,7 @@ object DifficultyCalculationManager {
                                 if (beatmapInfo.needsDifficultyCalculation) {
                                     val msStartTime = System.currentTimeMillis()
 
-                                    val beatmap = BeatmapParser(beatmapInfo.path, this).use { parser ->
-                                        parser.parse(true)!!
-                                    }
+                                    val beatmap = BeatmapParser(beatmapInfo.path, this).parse(true)
 
                                     beatmapInfo.apply(beatmap, this)
 
