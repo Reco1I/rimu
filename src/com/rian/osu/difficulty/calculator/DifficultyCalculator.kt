@@ -143,7 +143,7 @@ abstract class DifficultyCalculator<TBeatmap : PlayableBeatmap, TObject : Diffic
         }
 
         val attributes = arrayOfNulls<TimedDifficultyAttributes<TAttributes>>(beatmap.hitObjects.objects.size)
-        val skills = createSkills(beatmap, true)
+        val skills = createSkills(beatmap, false)
         val progressiveBeatmap = ProgressiveCalculationBeatmap(beatmap)
 
         val difficultyObjects = createDifficultyHitObjects(beatmap, scope)
