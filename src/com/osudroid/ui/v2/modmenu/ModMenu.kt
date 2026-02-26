@@ -30,6 +30,7 @@ import com.rian.osu.difficulty.BeatmapDifficultyCalculator.calculateStandardDiff
 import com.rian.osu.mods.*
 import com.rian.osu.utils.*
 import com.rian.osu.utils.ModUtils
+import java.io.IOException
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.*
@@ -327,7 +328,14 @@ object ModMenu : UIScene() {
             val gameMode = if (difficultyAlgorithm == droid) GameMode.Droid else GameMode.Standard
 
             if (parsedBeatmap?.md5 != selectedBeatmap.md5 || parsedBeatmap?.mode != gameMode) {
-                parsedBeatmap = BeatmapCache.getBeatmap(selectedBeatmap, true, gameMode, this)
+                parsedBeatmap = try {
+                    BeatmapCache.getBeatmap(selectedBeatmap, true, gameMode, this)
+                } catch (e: Exception) {
+                    when (e) {
+                        is IOException, is IllegalArgumentException -> null
+                        else -> throw e
+                    }
+                }
             }
 
             val beatmap = parsedBeatmap

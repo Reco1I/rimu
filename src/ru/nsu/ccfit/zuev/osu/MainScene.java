@@ -932,7 +932,7 @@ public class MainScene implements IUpdateHandler {
 
             bpmLength = currentTimingPoint.msPerBeat;
             beatPassTime = (position - currentTimingPoint.time) % bpmLength;
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             Debug.e("Failed to load beatmap for timing points: " + e);
         }
     }

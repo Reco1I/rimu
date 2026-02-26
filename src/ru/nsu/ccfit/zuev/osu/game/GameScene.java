@@ -97,6 +97,7 @@ import org.anddev.andengine.util.Debug;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -597,7 +598,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         if (shouldParseBeatmap) {
             try {
                 parsedBeatmap = BeatmapCache.getBeatmap(beatmapInfo, true, GameMode.Droid, scope);
-            } catch (Exception e) {
+            } catch (IOException | IllegalArgumentException e) {
                 Debug.e("startGame: " + e.getMessage());
                 ToastLogger.showText(e.getMessage(), true);
                 return false;

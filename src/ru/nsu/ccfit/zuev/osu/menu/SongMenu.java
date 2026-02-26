@@ -54,6 +54,7 @@ import org.anddev.andengine.util.Debug;
 import org.anddev.andengine.util.HorizontalAlign;
 import org.anddev.andengine.util.MathUtils;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CancellationException;
@@ -1067,7 +1068,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
                 };
 
                 setStarsDisplay((float) attributes.starRating);
-            } catch (Exception e) {
+            } catch (IOException | IllegalArgumentException e) {
                 Log.e("SongMenu", "Unable to calculate star rating", e);
                 setStarsDisplay(0);
             }
