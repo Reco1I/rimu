@@ -10,6 +10,8 @@ import com.reco1l.andengine.ui.ColorVariant
 import com.reco1l.andengine.ui.Theme
 import com.reco1l.andengine.ui.UIBadge
 import com.reco1l.framework.Color4
+import com.rian.framework.RollingDoubleCounter
+import kotlin.math.abs
 import com.reco1l.framework.Interpolation
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 
@@ -17,21 +19,26 @@ import ru.nsu.ccfit.zuev.osu.ResourceManager
  * A [UIBadge] for displaying star ratings. Automatically adjusts its styling according to the rating.
  */
 class StarRatingBadge : UIBadge() {
+
+    private val counter = RollingDoubleCounter(0.0).apply {
+        rollingEasing = Easing.OutQuint
+    }
+
     /**
      * The star rating value displayed by this [StarRatingBadge].
+     *
+     * Visuals may not reflect this value due to rolling animation.
      */
-    var rating = 0.0
+    var rating
+        get() = counter.targetValue
         set(value) {
-            if (field != value) {
-                field = value
-                ratingColor = OsuColors.getStarRatingColor(field)
-                textColor = OsuColors.getStarRatingTextColor(field)
+            val prev = counter.targetValue
+
+            if (prev != value) {
+                counter.targetValue = value
+                counter.rollingDuration = 100 + 80 * abs(value - prev).toFloat()
             }
         }
-
-    private var ratingColor = OsuColors.getStarRatingColor(0.0)
-    private var textColor = OsuColors.getStarRatingTextColor(0.0)
-
 
     init {
         // Badge color is determined by rating and should not be styled.
@@ -44,12 +51,20 @@ class StarRatingBadge : UIBadge() {
 
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
+        if (counter.isRolling) {
+            counter.update(deltaTimeSec * 1000)
 
-        val animationDuration = 0.3f
-        val animationTime = deltaTimeSec.coerceIn(0f, 0.3f)
+            text = "%.2f".format(counter.currentValue)
+            background?.color = OsuColors.getStarRatingColor(counter.currentValue)
 
-        backgroundColor = Interpolation.colorAt(animationTime, backgroundColor, ratingColor, 0f, animationDuration, Easing.OutQuad)
-        color = Interpolation.colorAt(animationTime, color, if (rating >= 6.5) textColor else Color4.Black.copy(alpha = 0.75f), 0f, animationDuration, Easing.OutQuad)
+            if (counter.currentValue >= 6.5) {
+                color = OsuColors.getStarRatingTextColor(counter.currentValue)
+                alpha = 1f
+            } else {
+                color = Color4.Black
+                alpha = 0.75f
+            }
+        }
 
         super.onManagedUpdate(deltaTimeSec)
     }
