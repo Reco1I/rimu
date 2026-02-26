@@ -39,6 +39,12 @@ abstract class RollingCounter<T>(initialValue: T) {
             }
         }
 
+    /**
+     * Whether this [RollingCounter]'s [currentValue] is rolling towards [targetValue].
+     */
+    val isRolling
+        get() = currentValue != targetValue
+
     private var rollingTime = 0f
 
     /**
@@ -47,7 +53,7 @@ abstract class RollingCounter<T>(initialValue: T) {
      * @param deltaMs The time elapsed since the last update, in milliseconds.
      */
     fun update(deltaMs: Float) {
-        if (rollingTime < rollingDuration) {
+        if (isRolling) {
             rollingTime = (rollingTime + deltaMs).coerceAtMost(rollingDuration)
 
             val progress = rollingEasing.interpolate(rollingTime / rollingDuration)

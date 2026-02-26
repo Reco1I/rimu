@@ -15,9 +15,12 @@ class RollingCounterTest {
         counter.targetValue = 100
         counter.update(500f)
 
+        Assert.assertTrue(counter.isRolling)
         Assert.assertEquals(50, counter.currentValue)
 
         counter.update(500f)
+
+        Assert.assertFalse(counter.isRolling)
         Assert.assertEquals(100, counter.currentValue)
     }
 
@@ -28,6 +31,7 @@ class RollingCounterTest {
         counter.rollingDuration = 500f
         counter.setValueWithoutRolling(100)
 
+        Assert.assertFalse(counter.isRolling)
         Assert.assertEquals(100, counter.currentValue)
         Assert.assertEquals(100, counter.targetValue)
     }
