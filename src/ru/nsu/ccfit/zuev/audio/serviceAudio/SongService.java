@@ -28,6 +28,7 @@ public class SongService extends Service {
         // Reduce latency to a known sane minimum.
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_PERIOD, 5);
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_BUFFER, 10);
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_BUFFER, 100);
 
         // Ensure there are no brief delays on audio operations (causing stream stalls etc.) after periods of silence.
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_NONSTOP, 1);
