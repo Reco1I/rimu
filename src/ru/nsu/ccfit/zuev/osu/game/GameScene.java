@@ -705,8 +705,11 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         videoStarted = false;
         videoOffset = playableBeatmap.getEvents().videoStartTime / 1000f;
 
-        if (differentPlayableBeatmap) {
+        if (shouldParseBeatmap) {
             objects = new HitObject[playableBeatmap.getHitObjects().objects.size()];
+        }
+
+        if (differentPlayableBeatmap) {
             System.arraycopy(playableBeatmap.getHitObjects().objects.toArray(), 0, objects, 0, objects.length);
         }
 
