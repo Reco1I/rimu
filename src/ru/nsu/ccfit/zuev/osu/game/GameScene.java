@@ -61,6 +61,7 @@ import com.rian.osu.beatmap.hitobject.HitObject;
 import com.rian.osu.beatmap.hitobject.Slider;
 import com.rian.osu.beatmap.hitobject.Spinner;
 import com.rian.osu.beatmap.sections.BeatmapDifficulty;
+import com.rian.osu.beatmap.timings.BreakPeriod;
 import com.rian.osu.beatmap.timings.EffectControlPoint;
 import com.rian.osu.beatmap.timings.TimingControlPoint;
 import com.rian.osu.difficulty.BeatmapDifficultyCalculator;
@@ -159,7 +160,8 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
     private ArrayList<GameObject> activeObjects;
     private ArrayList<GameObject> expiredObjects;
     private GameObject judgeableObject;
-    private Queue<BreakPeriod> breakPeriods = new LinkedList<>();
+    private BreakPeriod[] breakPeriods;
+    private int breakPeriodIndex;
     private Metronome metronome;
     private float scale;
     public StatisticV2 stat;
@@ -649,12 +651,10 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         // TODO skin manager
         BeatmapSkinManager.getInstance().loadBeatmapSkin(playableBeatmap.getBeatmapsetPath());
 
-        breakPeriods = new LinkedList<>();
-        for (var period : playableBeatmap.getEvents().breaks) {
-            if (scope != null) {
-                ensureActive(scope.getCoroutineContext());
-            }
-            breakPeriods.add(new BreakPeriod(period.startTime / 1000f, period.endTime / 1000f));
+        if (shouldParseBeatmap) {
+            var breaks = playableBeatmap.getEvents().breaks;
+            breakPeriods = new BreakPeriod[breaks.size()];
+            System.arraycopy(breaks.toArray(), 0, breakPeriods, 0, breakPeriods.length);
         }
 
         try {
@@ -697,6 +697,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
 
         totalLength = GlobalManager.getInstance().getSongService().getLength();
         judgeableObject = null;
+        breakPeriodIndex = 0;
         objectIndex = 0;
         lastObjectId = -1;
         hitWindow = playableBeatmap.getHitWindow();
@@ -1507,10 +1508,12 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
 
         if (!isGameOver) {
 
-            if (!breakPeriods.isEmpty()) {
-                if (!breakAnimator.isBreak() && breakPeriods.peek().getStart() <= elapsedTime) {
+            if (breakPeriodIndex < breakPeriods.length) {
+                if (!breakAnimator.isBreak() && breakPeriods[breakPeriodIndex].startTime / 1000 <= elapsedTime) {
+                    var period = breakPeriods[breakPeriodIndex++];
+
                     gameStarted = false;
-                    breakAnimator.init(breakPeriods.peek().getLength());
+                    breakAnimator.init(period.getDuration() / 1000);
                     if(GameHelper.isFlashlight()){
                         flashlightSprite.onBreak(true);
                     }
@@ -1519,7 +1522,6 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                         Multiplayer.roomScene.getChat().show();
 
                     hud.onBreakStateChange(true);
-                    breakPeriods.poll();
                 }
             }
 
@@ -1759,7 +1761,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             objects = null;
             activeObjects.clear();
             expiredObjects.clear();
-            breakPeriods.clear();
+            breakPeriods = null;
             cursorSprites = null;
             this.playableBeatmap = null;
             droidTimedDifficultyAttributes = null;
@@ -1969,7 +1971,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             if (expiredObjects != null) {
                 expiredObjects.clear();
             }
-            breakPeriods.clear();
+            breakPeriods = null;
             objects = null;
             timingControlPoints = null;
             effectControlPoints = null;
