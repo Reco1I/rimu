@@ -1541,7 +1541,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             }
         }
 
-        if (objects.length == 0 && activeObjects.isEmpty() && GameHelper.isFlashlight()) {
+        if (objectIndex >= objects.length && activeObjects.isEmpty() && GameHelper.isFlashlight()) {
             flashlightSprite.onBreak(true);
         }
 
