@@ -149,7 +149,8 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
     private EffectControlPoint activeEffectPoint;
     private int lastObjectId = -1;
     private float leadOut = 0;
-    private LinkedList<HitObject> objects;
+    private HitObject[] objects;
+    private int objectIndex;
     private ArrayList<Color4> comboColors;
     private boolean comboWasMissed = false;
     private boolean comboWas100 = false;
@@ -688,17 +689,20 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         }
 
         totalLength = GlobalManager.getInstance().getSongService().getLength();
-        objects = new LinkedList<>(playableBeatmap.getHitObjects().objects);
+        objects = new HitObject[playableBeatmap.getHitObjects().objects.size()];
         activeObjects = new LinkedList<>();
         expiredObjects = new LinkedList<>();
         judgeableObject = null;
+        objectIndex = 0;
         lastObjectId = -1;
         hitWindow = playableBeatmap.getHitWindow();
         videoStarted = false;
         videoOffset = playableBeatmap.getEvents().videoStartTime / 1000f;
 
+        System.arraycopy(playableBeatmap.getHitObjects().objects.toArray(), 0, objects, 0, objects.length);
+
         firstObjectStartTime = (float) firstObject.startTime / 1000;
-        lastObjectEndTime = (float) objects.getLast().getEndTime() / 1000;
+        lastObjectEndTime = (float) objects[objects.length - 1].getEndTime() / 1000;
 
         float firstObjectTimePreempt = (float) firstObject.timePreempt / 1000;
         float skipTargetTime = firstObjectStartTime - Math.max(2f, firstObjectTimePreempt);
@@ -782,7 +786,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
 
         replaying = false;
         replay = new Replay(true);
-        replay.setObjectCount(objects.size());
+        replay.setObjectCount(objects.length);
         replay.setBeatmap(beatmapInfo.getFullBeatmapsetName(), beatmapInfo.getFullBeatmapName(), parsedBeatmap.getMd5());
 
         if (replayFilePath != null) {
@@ -961,7 +965,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         difficultyScoreMultiplier += (Math.min(parsedBeatmap.getDifficulty().gameplayCS, 17.62f) - 3) / 4f;
 
         stat.setDiffModifier(difficultyScoreMultiplier);
-        stat.setBeatmapNoteCount(objects.size());
+        stat.setBeatmapNoteCount(objects.length);
         stat.setBeatmapMaxCombo(parsedBeatmap.getMaxCombo());
 
         GameHelper.setHardRock(lastMods.ofType(ModHardRock.class));
@@ -1493,7 +1497,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             }
         }
 
-        if (objects.isEmpty() && activeObjects.isEmpty() && GameHelper.isFlashlight()) {
+        if (objects.length == 0 && activeObjects.isEmpty() && GameHelper.isFlashlight()) {
             flashlightSprite.onBreak(true);
         }
 
@@ -1576,13 +1580,17 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
 
         boolean shouldBePunished = false;
 
-        while (!objects.isEmpty()
-                // This can be simplified, but it is necessary to prevent floating point errors (see how
-                // GameplayHitCircle and GameplaySlider track their passed time, where startTime and timePreempt
-                // are cast and converted to seconds individually).
-                && elapsedTime >= (float) objects.peek().startTime / 1000 - (float) objects.peek().timePreempt / 1000) {
-            gameStarted = true;
-            final var obj = objects.poll();
+        while (objectIndex < objects.length) {
+            var obj = objects[objectIndex];
+
+            // The casts can be simplified, but it is necessary to prevent floating point errors (see how
+            // GameplayHitCircle and GameplaySlider track their passed time, where startTime and timePreempt
+            // are cast and converted to seconds individually).
+            if (elapsedTime < (float) obj.startTime / 1000 - (float) obj.timePreempt / 1000) {
+                break;
+            }
+
+            ++objectIndex;
 
             if (unrankedSprite != null) {
                 unrankedSprite.registerEntityModifier(
@@ -1604,9 +1612,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                 break;
             }
 
-            // Next object from the polled one, this returns null if the list is empty. That's why every
-            // usage of this is done if condition 'objects.isEmpty()' is false. Ignore IDE warnings.
-            final var nextObj = objects.peek();
+            final var nextObj = objectIndex < objects.length ? objects[objectIndex] : null;
 
             distToNextObject = nextObj != null ?
                 Math.max(nextObj.startTime - obj.startTime, activeTimingPoint.msPerBeat / 2) / 1000 :
@@ -1692,7 +1698,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             );
         }
 
-        if (shouldBePunished || (!isGameOver && objects.isEmpty() && activeObjects.isEmpty() && leadOut > 2)) {
+        if (shouldBePunished || (!isGameOver && objectIndex >= objects.length && activeObjects.isEmpty() && leadOut > 2)) {
 
             // Reset the game to continue the HUD editor session.
             if (startedFromHUDEditor && isHUDEditorMode) {
@@ -1708,7 +1714,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             GameObjectPool.getInstance().purge();
             timingControlPoints.clear();
             effectControlPoints.clear();
-            objects.clear();
+            objects = null;
             activeObjects.clear();
             expiredObjects.clear();
             breakPeriods.clear();
@@ -1777,7 +1783,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                 videoStarted = false;
             }
 
-        } else if (objects.isEmpty() && activeObjects.isEmpty()) {
+        } else if (objectIndex >= objects.length && activeObjects.isEmpty()) {
             gameStarted = false;
             leadOut += dt;
         }
@@ -1920,9 +1926,6 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             if (expiredObjects != null) {
                 expiredObjects.clear();
             }
-            if (objects != null) {
-                objects.clear();
-            }
             if (timingControlPoints != null) {
                 timingControlPoints.clear();
             }
@@ -1930,6 +1933,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                 effectControlPoints.clear();
             }
             breakPeriods.clear();
+            objects = null;
             playableBeatmap = null;
             cursorSprites = null;
             lastMods = null;
@@ -3012,8 +3016,8 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                 stat.registerHit(0, false, false);
                 replay.addObjectScore(obj.getId(), ResultType.MISS);
             }
-            while (!objects.isEmpty()){
-                objects.poll();
+            while (objectIndex < objects.length) {
+                ++objectIndex;
                 stat.registerHit(0, false, false);
                 replay.addObjectScore(++lastObjectId, ResultType.MISS);
             }
