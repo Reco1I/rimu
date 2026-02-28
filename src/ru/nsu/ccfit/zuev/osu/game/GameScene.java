@@ -764,11 +764,15 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         var timingControlPointManager = playableBeatmap.getControlPoints().timing;
         var effectControlPointManager = playableBeatmap.getControlPoints().effect;
 
-        timingControlPoints = new TimingControlPoint[timingControlPointManager.controlPoints.size()];
-        effectControlPoints = new EffectControlPoint[effectControlPointManager.controlPoints.size()];
+        if (shouldParseBeatmap || timingControlPoints == null) {
+            timingControlPoints = new TimingControlPoint[timingControlPointManager.controlPoints.size()];
+            System.arraycopy(timingControlPointManager.controlPoints.toArray(), 0, timingControlPoints, 0, timingControlPoints.length);
+        }
 
-        System.arraycopy(timingControlPointManager.controlPoints.toArray(), 0, timingControlPoints, 0, timingControlPoints.length);
-        System.arraycopy(effectControlPointManager.controlPoints.toArray(), 0, effectControlPoints, 0, effectControlPoints.length);
+        if (shouldParseBeatmap || effectControlPoints == null) {
+            effectControlPoints = new EffectControlPoint[effectControlPointManager.controlPoints.size()];
+            System.arraycopy(effectControlPointManager.controlPoints.toArray(), 0, effectControlPoints, 0, effectControlPoints.length);
+        }
 
         activeTimingPoint = timingControlPoints.length > 0 ? timingControlPoints[0] : timingControlPointManager.defaultControlPoint;
         activeEffectPoint = effectControlPoints.length > 0 ? effectControlPoints[0] : effectControlPointManager.defaultControlPoint;
