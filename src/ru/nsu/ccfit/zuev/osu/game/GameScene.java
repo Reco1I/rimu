@@ -1746,6 +1746,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             expiredObjects.clear();
             breakPeriods.clear();
             cursorSprites = null;
+            parsedBeatmap = null;
             this.playableBeatmap = null;
             droidTimedDifficultyAttributes = null;
             standardTimedDifficultyAttributes = null;
@@ -1957,6 +1958,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             objects = null;
             timingControlPoints = null;
             effectControlPoints = null;
+            parsedBeatmap = null;
             playableBeatmap = null;
             cursorSprites = null;
             lastMods = null;
