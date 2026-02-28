@@ -156,8 +156,8 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
     private ArrayList<Color4> comboColors;
     private boolean comboWasMissed = false;
     private boolean comboWas100 = false;
-    private LinkedList<GameObject> activeObjects;
-    private LinkedList<GameObject> expiredObjects;
+    private ArrayList<GameObject> activeObjects;
+    private ArrayList<GameObject> expiredObjects;
     private GameObject judgeableObject;
     private Queue<BreakPeriod> breakPeriods = new LinkedList<>();
     private Metronome metronome;
@@ -692,8 +692,8 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
 
         totalLength = GlobalManager.getInstance().getSongService().getLength();
         objects = new HitObject[playableBeatmap.getHitObjects().objects.size()];
-        activeObjects = new LinkedList<>();
-        expiredObjects = new LinkedList<>();
+        activeObjects = new ArrayList<>();
+        expiredObjects = new ArrayList<>();
         judgeableObject = null;
         objectIndex = 0;
         lastObjectId = -1;
@@ -1551,16 +1551,16 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         }
 
         // Clearing expired objects.
-        while (!expiredObjects.isEmpty()) {
-            var object = expiredObjects.poll();
-            activeObjects.remove(object);
+        if (!expiredObjects.isEmpty()) {
+            activeObjects.removeAll(expiredObjects);
+            expiredObjects.clear();
         }
 
         updatePassiveObjects(dt);
         updateActiveObjects(dt);
 
         if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
-            autoCursor.moveToObject(activeObjects.peek(), elapsedTime, this);
+            autoCursor.moveToObject(activeObjects.isEmpty() ? null : activeObjects.get(0), elapsedTime, this);
         }
 
         if (videoEnabled && video != null && elapsedTime >= videoOffset)
@@ -1867,7 +1867,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
     @Nullable
     private GameObject searchJudgeableObject(int startIndex) {
         if (!Config.isRemoveSliderLock()) {
-            return activeObjects.isEmpty() ? null : activeObjects.peek();
+            return activeObjects.isEmpty() ? null : activeObjects.get(0);
         }
 
         for (int i = startIndex, size = activeObjects.size(); i < size; i++) {
