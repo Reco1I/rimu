@@ -44,6 +44,7 @@ import com.edlplan.ui.ActivityOverlay;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.osudroid.BuildSettings;
+import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.debug.DebugPlaygroundScene;
 import com.osudroid.ui.v2.GameLoaderScene;
 import com.osudroid.utils.Execution;
@@ -876,7 +877,10 @@ public class MainActivity extends BaseGameActivity implements
         if (level >= TRIM_MEMORY_BACKGROUND) {
             Debug.i("onTrimMemory: Clearing resources (level=" + level + ")");
 
-            Execution.async(BeatmapDifficultyCalculator::clearCache);
+            Execution.async(() -> {
+                BeatmapDifficultyCalculator.clearCache();
+                BeatmapCache.clear();
+            });
         }
     }
 
