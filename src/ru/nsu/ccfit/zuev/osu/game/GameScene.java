@@ -1634,6 +1634,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                 break;
             }
 
+            gameStarted = true;
             ++objectIndex;
 
             if (unrankedSprite != null) {
