@@ -718,12 +718,14 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         int estimatedMaxActiveObjects = Math.max(10, estimateMaximumActiveObjects());
 
         if (activeObjects != null) {
+            activeObjects.clear();
             activeObjects.ensureCapacity(estimatedMaxActiveObjects);
         } else {
             activeObjects = new ArrayList<>(estimatedMaxActiveObjects);
         }
 
         if (expiredObjects != null) {
+            expiredObjects.clear();
             expiredObjects.ensureCapacity(estimatedMaxActiveObjects);
         } else {
             expiredObjects = new ArrayList<>(estimatedMaxActiveObjects);
