@@ -625,7 +625,12 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         // Ensure that only relevant mods are applied.
         mods.values().removeIf(m -> !m.isRelevant());
 
-        var playableBeatmap = parsedBeatmap.createDroidPlayableBeatmap(mods.values());
+        boolean differentPlayableBeatmap = shouldParseBeatmap || lastMods == null || !lastMods.equals(mods);
+
+        var playableBeatmap = differentPlayableBeatmap
+            ? parsedBeatmap.createDroidPlayableBeatmap(mods.values())
+            : this.playableBeatmap;
+
         this.playableBeatmap = playableBeatmap;
 
         // Load backgrounds early to minimize waiting time.
@@ -691,7 +696,6 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         }
 
         totalLength = GlobalManager.getInstance().getSongService().getLength();
-        objects = new HitObject[playableBeatmap.getHitObjects().objects.size()];
         activeObjects = new ArrayList<>();
         expiredObjects = new ArrayList<>();
         judgeableObject = null;
@@ -701,7 +705,10 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         videoStarted = false;
         videoOffset = playableBeatmap.getEvents().videoStartTime / 1000f;
 
-        System.arraycopy(playableBeatmap.getHitObjects().objects.toArray(), 0, objects, 0, objects.length);
+        if (differentPlayableBeatmap) {
+            objects = new HitObject[playableBeatmap.getHitObjects().objects.size()];
+            System.arraycopy(playableBeatmap.getHitObjects().objects.toArray(), 0, objects, 0, objects.length);
+        }
 
         firstObjectStartTime = (float) firstObject.startTime / 1000;
         lastObjectEndTime = (float) objects[objects.length - 1].getEndTime() / 1000;
