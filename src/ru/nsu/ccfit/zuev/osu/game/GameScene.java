@@ -143,8 +143,10 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
     private DroidPlayableBeatmap playableBeatmap;
     private BeatmapInfo lastBeatmapInfo;
     private ScoringScene scoringScene;
-    private LinkedList<TimingControlPoint> timingControlPoints;
-    private LinkedList<EffectControlPoint> effectControlPoints;
+    private TimingControlPoint[] timingControlPoints;
+    private int timingControlPointIndex;
+    private EffectControlPoint[] effectControlPoints;
+    private int effectControlPointIndex;
     private TimingControlPoint activeTimingPoint;
     private EffectControlPoint activeEffectPoint;
     private int lastObjectId = -1;
@@ -752,19 +754,19 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             ensureActive(scope.getCoroutineContext());
         }
 
-        timingControlPoints = new LinkedList<>(playableBeatmap.getControlPoints().timing.controlPoints);
-        effectControlPoints = new LinkedList<>(playableBeatmap.getControlPoints().effect.controlPoints);
+        var timingControlPointManager = playableBeatmap.getControlPoints().timing;
+        var effectControlPointManager = playableBeatmap.getControlPoints().effect;
 
-        activeTimingPoint = timingControlPoints.poll();
-        activeEffectPoint = effectControlPoints.poll();
+        timingControlPoints = new TimingControlPoint[timingControlPointManager.controlPoints.size()];
+        effectControlPoints = new EffectControlPoint[effectControlPointManager.controlPoints.size()];
 
-        if (activeTimingPoint == null) {
-            activeTimingPoint = playableBeatmap.getControlPoints().timing.defaultControlPoint;
-        }
+        System.arraycopy(timingControlPointManager.controlPoints.toArray(), 0, timingControlPoints, 0, timingControlPoints.length);
+        System.arraycopy(effectControlPointManager.controlPoints.toArray(), 0, effectControlPoints, 0, effectControlPoints.length);
 
-        if (activeEffectPoint == null) {
-            activeEffectPoint = playableBeatmap.getControlPoints().effect.defaultControlPoint;
-        }
+        activeTimingPoint = timingControlPoints.length > 0 ? timingControlPoints[0] : timingControlPointManager.defaultControlPoint;
+        activeEffectPoint = effectControlPoints.length > 0 ? effectControlPoints[0] : effectControlPointManager.defaultControlPoint;
+        timingControlPointIndex = 0;
+        effectControlPointIndex = 0;
 
         GameHelper.setBeatLength(activeTimingPoint.msPerBeat / 1000);
         GameHelper.setKiai(activeEffectPoint.isKiai);
@@ -1451,12 +1453,26 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             flashlightSprite.onUpdate(stat.getCombo());
         }
 
-        while (!timingControlPoints.isEmpty() && timingControlPoints.peek().time <= mSecPassed) {
-            activeTimingPoint = timingControlPoints.poll();
+        while (timingControlPointIndex + 1 < timingControlPoints.length) {
+            var nextTimingPoint = timingControlPoints[timingControlPointIndex + 1];
+
+            if (nextTimingPoint.time > mSecPassed) {
+                break;
+            }
+
+            activeTimingPoint = nextTimingPoint;
+            ++timingControlPointIndex;
         }
 
-        while (!effectControlPoints.isEmpty() && effectControlPoints.peek().time <= mSecPassed) {
-            activeEffectPoint = effectControlPoints.poll();
+        while (effectControlPointIndex + 1 < effectControlPoints.length) {
+            var nextEffectPoint = effectControlPoints[effectControlPointIndex + 1];
+
+            if (nextEffectPoint.time > mSecPassed) {
+                break;
+            }
+
+            activeEffectPoint = nextEffectPoint;
+            ++effectControlPointIndex;
         }
 
         GameHelper.setBeatLength(activeTimingPoint.msPerBeat / 1000);
@@ -1712,8 +1728,8 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             scene = createMainScene();
             BeatmapSkinManager.setSkinEnabled(false);
             GameObjectPool.getInstance().purge();
-            timingControlPoints.clear();
-            effectControlPoints.clear();
+            timingControlPoints = null;
+            effectControlPoints = null;
             objects = null;
             activeObjects.clear();
             expiredObjects.clear();
@@ -1926,14 +1942,10 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             if (expiredObjects != null) {
                 expiredObjects.clear();
             }
-            if (timingControlPoints != null) {
-                timingControlPoints.clear();
-            }
-            if (effectControlPoints != null) {
-                effectControlPoints.clear();
-            }
             breakPeriods.clear();
             objects = null;
+            timingControlPoints = null;
+            effectControlPoints = null;
             playableBeatmap = null;
             cursorSprites = null;
             lastMods = null;
