@@ -1761,7 +1761,6 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             expiredObjects.clear();
             breakPeriods.clear();
             cursorSprites = null;
-            parsedBeatmap = null;
             this.playableBeatmap = null;
             droidTimedDifficultyAttributes = null;
             standardTimedDifficultyAttributes = null;
@@ -1826,6 +1825,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                 videoStarted = false;
             }
 
+            parsedBeatmap = null;
         } else if (objectIndex >= objects.length && activeObjects.isEmpty()) {
             gameStarted = false;
             leadOut += dt;
