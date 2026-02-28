@@ -696,8 +696,6 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         }
 
         totalLength = GlobalManager.getInstance().getSongService().getLength();
-        activeObjects = new ArrayList<>();
-        expiredObjects = new ArrayList<>();
         judgeableObject = null;
         objectIndex = 0;
         lastObjectId = -1;
@@ -715,6 +713,20 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
 
         firstObjectStartTime = (float) firstObject.startTime / 1000;
         lastObjectEndTime = (float) objects[objects.length - 1].getEndTime() / 1000;
+
+        int estimatedMaxActiveObjects = Math.max(10, estimateMaximumActiveObjects());
+
+        if (activeObjects != null) {
+            activeObjects.ensureCapacity(estimatedMaxActiveObjects);
+        } else {
+            activeObjects = new ArrayList<>(estimatedMaxActiveObjects);
+        }
+
+        if (expiredObjects != null) {
+            expiredObjects.ensureCapacity(estimatedMaxActiveObjects);
+        } else {
+            expiredObjects = new ArrayList<>(estimatedMaxActiveObjects);
+        }
 
         float firstObjectTimePreempt = (float) firstObject.timePreempt / 1000;
         float skipTargetTime = firstObjectStartTime - Math.max(2f, firstObjectTimePreempt);
@@ -3231,5 +3243,39 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
 
         camera.setZoomFactorDirect(1f);
         camera.setCenterDirect(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f);
+    }
+
+    private int estimateMaximumActiveObjects() {
+        if (objects == null) {
+            return 0;
+        }
+
+        // Estimate the maximum number of simultaneously active objects to pre-size the lists and minimize
+        // array reallocations.
+        var lifetimeEnds = new PriorityQueue<Double>(Math.max(1, objects.length / 4));
+        int estimatedMaxActiveObjects = 0;
+
+        for (var object : objects) {
+            double lifetimeStart = object.startTime - object.timePreempt;
+
+            // Remove all objects that have expired by the time this object's lifetime starts.
+            while (!lifetimeEnds.isEmpty() && lifetimeEnds.peek() <= lifetimeStart) {
+                lifetimeEnds.poll();
+            }
+
+            double lifetimeEnd;
+
+            if (object instanceof HitCircle) {
+                var hitWindow = object.hitWindow;
+                lifetimeEnd = object.startTime + (hitWindow != null ? hitWindow.getMehWindow() : 0);
+            } else {
+                lifetimeEnd = object.getEndTime();
+            }
+
+            lifetimeEnds.add(lifetimeEnd);
+            estimatedMaxActiveObjects = Math.max(estimatedMaxActiveObjects, lifetimeEnds.size());
+        }
+
+        return estimatedMaxActiveObjects;
     }
 }
