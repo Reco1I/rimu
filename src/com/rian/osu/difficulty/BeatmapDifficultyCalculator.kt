@@ -468,22 +468,10 @@ object BeatmapDifficultyCalculator {
     }
 
     /**
-     * Invalidates expired cache.
+     * Clears all entries from the difficulty cache.
      */
     @JvmStatic
-    fun invalidateExpiredCache() = difficultyCacheManager.entries.iterator().run {
-        val currentTime = System.currentTimeMillis()
-
-        while (hasNext()) {
-            next().value.let {
-                it.invalidateExpiredCache(currentTime)
-
-                if (it.isEmpty) {
-                    remove()
-                }
-            }
-        }
-    }
+    fun clearCache() = difficultyCacheManager.clear()
 
     /**
      * Adds a cache to the difficulty cache.
@@ -493,7 +481,7 @@ object BeatmapDifficultyCalculator {
      * @param forReplay Whether this cache is for replay-based calculations.
      */
     private fun addCache(beatmap: IBeatmap, attributes: DroidDifficultyAttributes, forReplay: Boolean) =
-        difficultyCacheManager[beatmap.md5, { BeatmapDifficultyCacheManager() }].run { addCache(attributes, forReplay, 60 * 1000) }
+        difficultyCacheManager[beatmap.md5, { BeatmapDifficultyCacheManager() }].run { addCache(attributes, forReplay) }
 
     /**
      * Adds a cache to the difficulty cache.
@@ -502,7 +490,7 @@ object BeatmapDifficultyCalculator {
      * @param attributes The [DifficultyAttributes] to cache.
      */
     private fun addCache(beatmap: IBeatmap, attributes: StandardDifficultyAttributes) =
-        difficultyCacheManager[beatmap.md5, { BeatmapDifficultyCacheManager() }].run { addCache(attributes, 60 * 1000) }
+        difficultyCacheManager[beatmap.md5, { BeatmapDifficultyCacheManager() }].run { addCache(attributes) }
 
     private fun PerformanceCalculationParameters.populateNestedSliderObjectParameters(
         beatmap: IBeatmap,
@@ -554,10 +542,7 @@ object BeatmapDifficultyCalculator {
         attributes: Array<TimedDifficultyAttributes<DroidDifficultyAttributes>>
     ) =
         // Allow a maximum of 5 minutes of living cache.
-        difficultyCacheManager[beatmap.md5, { BeatmapDifficultyCacheManager() }].run { addCache(attributes, min(
-            beatmap.duration.toLong(),
-            5 * 60 * 1000
-        )) }
+        difficultyCacheManager[beatmap.md5, { BeatmapDifficultyCacheManager() }].run { addCache(attributes) }
 
     /**
      * Adds a cache to the difficulty cache.
@@ -571,10 +556,7 @@ object BeatmapDifficultyCalculator {
         attributes: Array<TimedDifficultyAttributes<StandardDifficultyAttributes>>
     ) =
         // Allow a maximum of 5 minutes of living cache.
-        difficultyCacheManager[beatmap.md5, { BeatmapDifficultyCacheManager() }].run { addCache(attributes, min(
-            beatmap.duration.toLong(),
-            5 * 60 * 1000
-        )) }
+        difficultyCacheManager[beatmap.md5, { BeatmapDifficultyCacheManager() }].run { addCache(attributes) }
 }
 
 /**
@@ -595,39 +577,35 @@ private class BeatmapDifficultyCacheManager {
      *
      * @param attributes The [DroidDifficultyAttributes] to cache.
      * @param forReplay Whether this cache is for replay-based calculations.
-     * @param timeToLive The duration at which this cache is allowed to live, in milliseconds.
      */
-    fun addCache(attributes: DroidDifficultyAttributes, forReplay: Boolean, timeToLive: Long) =
-        addCache(attributes.mods, GameMode.Droid, attributes, droidAttributeCache, forReplay, timeToLive)
+    fun addCache(attributes: DroidDifficultyAttributes, forReplay: Boolean) =
+        addCache(attributes.mods, GameMode.Droid, attributes, droidAttributeCache, forReplay)
 
     /**
      * Adds a [StandardDifficultyAttributes] cache to this [BeatmapDifficultyCacheManager].
      *
      * @param attributes The [StandardDifficultyAttributes] to cache.
-     * @param timeToLive The duration at which this cache is allowed to live, in milliseconds.
      */
-    fun addCache(attributes: StandardDifficultyAttributes, timeToLive: Long) =
-        addCache(attributes.mods, GameMode.Standard, attributes, standardAttributeCache, false, timeToLive)
+    fun addCache(attributes: StandardDifficultyAttributes) =
+        addCache(attributes.mods, GameMode.Standard, attributes, standardAttributeCache, false)
 
     /**
      * Adds a set of [TimedDifficultyAttributes] cache to this [BeatmapDifficultyCacheManager].
      *
      * @param attributes The set of [TimedDifficultyAttributes] to cache.
-     * @param timeToLive The duration at which this cache is allowed to live, in milliseconds.
      */
     @JvmName("addDroidTimedCache")
-    fun addCache(attributes: Array<TimedDifficultyAttributes<DroidDifficultyAttributes>>, timeToLive: Long) =
-        addCache(attributes.first().attributes.mods, GameMode.Droid, attributes, droidTimedAttributeCache, false, timeToLive)
+    fun addCache(attributes: Array<TimedDifficultyAttributes<DroidDifficultyAttributes>>) =
+        addCache(attributes.first().attributes.mods, GameMode.Droid, attributes, droidTimedAttributeCache, false)
 
     /**
      * Adds a set of [TimedDifficultyAttributes] cache to this [BeatmapDifficultyCacheManager].
      *
      * @param attributes The set of [TimedDifficultyAttributes] to cache.
-     * @param timeToLive The duration at which this cache is allowed to live, in milliseconds.
      */
     @JvmName("addStandardTimedCache")
-    fun addCache(attributes: Array<TimedDifficultyAttributes<StandardDifficultyAttributes>>, timeToLive: Long) =
-        addCache(attributes.first().attributes.mods, GameMode.Standard, attributes, standardTimedAttributeCache, false, timeToLive)
+    fun addCache(attributes: Array<TimedDifficultyAttributes<StandardDifficultyAttributes>>) =
+        addCache(attributes.first().attributes.mods, GameMode.Standard, attributes, standardTimedAttributeCache, false)
 
     /**
      * Retrieves the [DroidDifficultyAttributes] cache of a set of [Mod]s.
@@ -670,35 +648,6 @@ private class BeatmapDifficultyCacheManager {
                 standardAttributeCache.isEmpty() && standardTimedAttributeCache.isEmpty()
 
     /**
-     * Invalidates all expired cache in this manager.
-     *
-     * @param currentTime The time to invalidate the cache against, in milliseconds.
-     */
-    fun invalidateExpiredCache(currentTime: Long) {
-        invalidateExpiredCache(currentTime, droidAttributeCache)
-        invalidateExpiredCache(currentTime, droidTimedAttributeCache)
-        invalidateExpiredCache(currentTime, standardAttributeCache)
-        invalidateExpiredCache(currentTime, standardTimedAttributeCache)
-    }
-
-    /**
-     * Invalidates all expired cache of a cache map in this manager.
-     *
-     * @param currentTime The time to invalidate the cache against, in milliseconds.
-     * @param cacheMap The map.
-     */
-    private fun <T> invalidateExpiredCache(
-        currentTime: Long,
-        cacheMap: HashMap<Set<Mod>, BeatmapDifficultyCache<T>>
-    ) = cacheMap.iterator().run {
-            for ((_, value) in this) {
-                if (value.isExpired(currentTime)) {
-                    remove()
-                }
-            }
-        }
-
-    /**
      * Adds a difficulty attributes cache to a cache map.
      *
      * @param mods The [ModHashMap] to cache for.
@@ -706,12 +655,11 @@ private class BeatmapDifficultyCacheManager {
      * @param cache The difficulty attributes cache to add.
      * @param cacheMap The map to add the cache to.
      * @param forReplay Whether this cache is for replay-based calculations.
-     * @param timeToLive The duration at which this cache is allowed to live, in milliseconds.
      */
     private fun <T> addCache(
         mods: Iterable<Mod>?, mode: GameMode, cache: T,
         cacheMap: HashMap<Set<Mod>, BeatmapDifficultyCache<T>>,
-        forReplay: Boolean, timeToLive: Long
+        forReplay: Boolean
     ) {
         val existing = cacheMap[processMods(mods, mode)]
 
@@ -720,7 +668,7 @@ private class BeatmapDifficultyCacheManager {
             return
         }
 
-        cacheMap[processMods(mods, mode)] = BeatmapDifficultyCache(cache, forReplay, timeToLive)
+        cacheMap[processMods(mods, mode)] = BeatmapDifficultyCache(cache, forReplay)
     }
 
     /**
@@ -745,8 +693,6 @@ private class BeatmapDifficultyCacheManager {
             return null
         }
 
-        cache?.refresh()
-
         return cache?.cache
     }
 
@@ -766,7 +712,7 @@ private class BeatmapDifficultyCacheManager {
 /**
  * Represents a beatmap difficulty cache.
  */
-private class BeatmapDifficultyCache<T>(
+private data class BeatmapDifficultyCache<T>(
     /**
      * The cached data.
      */
@@ -775,34 +721,8 @@ private class BeatmapDifficultyCache<T>(
     /**
      * Whether this cache is for replay-based calculations.
      */
-    val forReplay: Boolean,
-
-    /**
-     * The duration at which this cache is allowed to live, in milliseconds.
-     */
-    val timeToLive: Long
-) {
-    /**
-     * The time at which this cache was last accessed, in milliseconds.
-     */
-    var lastAccessedTime = System.currentTimeMillis()
-        private set
-
-    /**
-     * Refreshes the cache.
-     */
-    fun refresh() {
-        lastAccessedTime = System.currentTimeMillis()
-    }
-
-    /**
-     * Determines whether this cache has expired.
-     *
-     * @param time The time to test against, in milliseconds.
-     * @return Whether the cache has expired.
-     */
-    fun isExpired(time: Long) = lastAccessedTime + timeToLive < time
-}
+    val forReplay: Boolean
+)
 
 operator fun <K : Any, V : Any> MutableMap<K, V>.get(
     key: K,

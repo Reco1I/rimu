@@ -330,7 +330,6 @@ public class MainActivity extends BaseGameActivity implements
                     }
 
                     AccessibilityDetector.check(MainActivity.this);
-                    BeatmapDifficultyCalculator.invalidateExpiredCache();
                 }, 0, 100, TimeUnit.MILLISECONDS);
 
                 if (roomInviteLink != null) {
@@ -868,6 +867,17 @@ public class MainActivity extends BaseGameActivity implements
         }
 
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+
+        if (level >= TRIM_MEMORY_BACKGROUND) {
+            Debug.i("onTrimMemory: Clearing resources (level=" + level + ")");
+
+            Execution.async(BeatmapDifficultyCalculator::clearCache);
+        }
     }
 
     public void forcedExit() {
