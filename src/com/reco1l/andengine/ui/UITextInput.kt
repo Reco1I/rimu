@@ -190,6 +190,14 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
         setKeyboardVisibility(true)
         caret.isVisible = true
         borderColor = Theme.current.accentColor
+
+        ViewCompat.setOnApplyWindowInsetsListener(UIEngine.current.context.window.decorView) { _, insets ->
+            if (isFocused && !insets.isVisible(WindowInsetsCompat.Type.ime())) {
+                blur()
+            }
+
+            return@setOnApplyWindowInsetsListener insets
+        }
     }
 
     override fun onBlur() {
