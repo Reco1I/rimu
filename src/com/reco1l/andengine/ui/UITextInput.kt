@@ -14,6 +14,7 @@ import androidx.core.widget.addTextChangedListener
 import com.edlplan.framework.easing.Easing
 import com.osudroid.utils.mainThread
 import com.reco1l.andengine.*
+import com.reco1l.andengine.component.UIComponent
 import com.reco1l.andengine.modifier.*
 import com.reco1l.andengine.shape.*
 import com.reco1l.andengine.text.*
@@ -25,6 +26,7 @@ import com.reco1l.andengine.theme.srem
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
 import org.anddev.andengine.input.touch.*
+import ru.nsu.ccfit.zuev.osu.ResourceManager
 import kotlin.math.*
 import kotlin.text.substring
 
@@ -190,14 +192,6 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
         setKeyboardVisibility(true)
         caret.isVisible = true
         borderColor = Theme.current.accentColor
-
-        ViewCompat.setOnApplyWindowInsetsListener(UIEngine.current.context.window.decorView) { _, insets ->
-            if (isFocused && !insets.isVisible(WindowInsetsCompat.Type.ime())) {
-                blur()
-            }
-
-            return@setOnApplyWindowInsetsListener insets
-        }
     }
 
     override fun onBlur() {
@@ -244,6 +238,9 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
 
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
+        selectionBox.width = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), selectionBox.width, targetSelectionBoxWidth, 0f, 0.3f, Easing.OutExpo)
+        caret.x = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), caret.x, textEntity.x + targetCursorPosition, 0f, 0.3f, Easing.OutExpo)
+        selectionBox.x = caret.x
 
         textComponent.maxWidth = innerWidth
         placeholderEntity.maxWidth = innerWidth
@@ -361,58 +358,6 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
      */
     protected open fun isTextValid(text: String) = true
 
-    private fun appendCharacter(char: Char): Boolean {
-
-        if (value.length == maxCharacters && maxCharacters != 0) {
-            return false
-        }
-
-        if (!isCharacterAllowed(char)) {
-            notifyInputError()
-            return false
-        }
-
-        val currentText = value
-        val currentCaretPosition = caretPosition
-        val newText =
-            currentText.take(currentCaretPosition) + char + currentText.substring(currentCaretPosition)
-
-        if (newText.isNotEmpty() && !isTextValid(newText)) {
-            notifyInputError()
-            return false
-        }
-
-        value = newText
-        caretPosition++
-
-        return true
-    }
-
-    private fun deleteCharacterAt(position: Int) {
-        if (value.isEmpty()) {
-            return
-        }
-
-        val currentText = value
-        val currentCaretPosition = caretPosition
-
-        val newText =
-            if (position > 0) currentText.take(position - 1) + currentText.substring(position)
-            else currentText.substring(1)
-
-        if (newText.isNotEmpty() && !isTextValid(newText)) {
-            notifyInputError()
-            return
-        }
-
-        value = newText
-
-        // Move the caret to the left if it's located after the deleted character
-        if (position < currentCaretPosition) {
-            caretPosition = max(0, currentCaretPosition - 1)
-        }
-    }
-
     private fun notifyInputError() {
         textComponent.apply {
             clearModifiers(ModifierType.Color)
@@ -433,66 +378,6 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
         updateVisuals()
     }
 
-    @Suppress("DEPRECATION")
-    override fun onKeyPress(keyCode: Int, event: KeyEvent): Boolean = synchronized(value) {
-
-        if (!isFocused) {
-            return false
-        }
-
-        if (keyCode == KEYCODE_BACK && isFocused) {
-            if (event.action == ACTION_UP) {
-                blur()
-            }
-            return true
-        }
-
-        // See https://developer.android.com/reference/android/view/KeyEvent#ACTION_MULTIPLE.
-        if (event.action == ACTION_MULTIPLE && keyCode == KEYCODE_UNKNOWN) {
-            val characters = event.characters ?: return false
-
-            for (char in characters) {
-                if (char.isNullCharacter() || !appendCharacter(char)) {
-                    break
-                }
-            }
-
-            return true
-        }
-
-        if (event.action == ACTION_DOWN) {
-
-            when (keyCode) {
-
-                KEYCODE_DEL -> deleteCharacterAt(caretPosition)
-
-                KEYCODE_ENTER -> {
-                    if (confirmOnEnter) {
-                        blur()
-                        onConfirm?.invoke()
-                    } else {
-                        appendCharacter('\n')
-                    }
-                }
-
-                KEYCODE_DPAD_LEFT -> caretPosition = max(0, caretPosition - 1)
-                KEYCODE_DPAD_RIGHT -> caretPosition = min(value.length, caretPosition + 1)
-
-                else -> {
-                    val char = event.unicodeChar.toChar()
-
-                    // Key event might not have a Unicode character (e.g. shift key), in that case we ignore it.
-                    if (!char.isNullCharacter()) {
-                        appendCharacter(char)
-                    }
-                }
-            }
-        }
-
-        return true
-    }
-
-    private fun Char.isNullCharacter() = this == '\u0000'
 }
 
 /**
@@ -554,7 +439,7 @@ class IntegerTextInput(
 
     override fun isTextValid(text: String) =
         // Check for underflow/overflow
-        super.isTextValid(text) && text.toIntOrNull() != null
+        super.isTextValid(text) && (text.isEmpty() || text.toIntOrNull() != null)
 
     override fun convertValue(value: String) = value.toIntOrNull()
 }
@@ -572,7 +457,7 @@ class FloatTextInput(
 
     override fun isTextValid(text: String) =
         // Check for underflow/overflow
-        super.isTextValid(text) && text.toFloatOrNull() != null
+        super.isTextValid(text) && (text.isEmpty() || text.toFloatOrNull() != null)
 
     override fun convertValue(value: String) = value.toFloatOrNull()
 }
