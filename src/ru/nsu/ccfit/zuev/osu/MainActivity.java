@@ -14,6 +14,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -112,6 +113,8 @@ public class MainActivity extends BaseGameActivity implements
     private static boolean activityVisible = true;
     private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
     private Display display;
+    private DisplayManager.DisplayListener displayListener;
+    private float currentRefreshRate = 60;
     private float maxRefreshRate = 60;
 
     // Multiplayer
@@ -135,6 +138,24 @@ public class MainActivity extends BaseGameActivity implements
         final DisplayMetrics dm = new DisplayMetrics();
         display = getWindowManager().getDefaultDisplay();
         display.getMetrics(dm);
+        currentRefreshRate = display.getRefreshRate();
+
+        displayListener = new DisplayManager.DisplayListener() {
+            @Override
+            public void onDisplayAdded(int displayId) {}
+
+            @Override
+            public void onDisplayRemoved(int displayId) {}
+
+            @Override
+            public void onDisplayChanged(int displayId) {
+                if (displayId == display.getDisplayId()) {
+                    currentRefreshRate = display.getRefreshRate();
+                }
+            }
+        };
+
+        ((DisplayManager) getSystemService(DISPLAY_SERVICE)).registerDisplayListener(displayListener, null);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             for (var mode : display.getSupportedModes()) {
@@ -694,6 +715,12 @@ public class MainActivity extends BaseGameActivity implements
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ((DisplayManager) getSystemService(DISPLAY_SERVICE)).unregisterDisplayListener(displayListener);
+    }
+
+    @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (this.mEngine == null) {
@@ -909,7 +936,7 @@ public class MainActivity extends BaseGameActivity implements
     }
 
     public float getRefreshRate() {
-        return display.getRefreshRate();
+        return currentRefreshRate;
     }
 
     private boolean checkPermissions() {
