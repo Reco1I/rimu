@@ -84,6 +84,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject;
@@ -109,6 +110,7 @@ public class MainActivity extends BaseGameActivity implements
     private boolean willReplay = false;
     private static boolean activityVisible = true;
     private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> logFlushFuture;
     private Display display;
     private DisplayManager.DisplayListener displayListener;
     private float currentRefreshRate = 60;
@@ -350,6 +352,8 @@ public class MainActivity extends BaseGameActivity implements
 
                     AccessibilityDetector.check(MainActivity.this);
                 }, 0, 100, TimeUnit.MILLISECONDS);
+
+                logFlushFuture = scheduledExecutor.scheduleAtFixedRate(Multiplayer::flushLog, 0, 5, TimeUnit.SECONDS);
 
                 if (roomInviteLink != null) {
                     Multiplayer.connectFromLink(roomInviteLink);
@@ -664,6 +668,8 @@ public class MainActivity extends BaseGameActivity implements
         super.onResume();
         activityVisible = true;
 
+        logFlushFuture = scheduledExecutor.scheduleAtFixedRate(Multiplayer::flushLog, 0, 5, TimeUnit.SECONDS);
+
         if (mEngine == null) {
             return;
         }
@@ -679,6 +685,12 @@ public class MainActivity extends BaseGameActivity implements
     public void onPause() {
         super.onPause();
         activityVisible = false;
+
+        if (logFlushFuture != null && !logFlushFuture.isCancelled()) {
+            logFlushFuture.cancel(false);
+        }
+
+        Multiplayer.flushLog();
 
         if (mEngine == null) {
             return;
@@ -704,12 +716,21 @@ public class MainActivity extends BaseGameActivity implements
     @Override
     public void onStop() {
         super.onStop();
+
+        if (logFlushFuture != null && !logFlushFuture.isCancelled()) {
+            logFlushFuture.cancel(false);
+        }
+
+        Multiplayer.flushLog();
+
         activityVisible = false;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        Multiplayer.flushLog();
         ((DisplayManager) getSystemService(DISPLAY_SERVICE)).unregisterDisplayListener(displayListener);
     }
 
