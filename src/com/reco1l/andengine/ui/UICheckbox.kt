@@ -55,6 +55,7 @@ class UICheckbox(initialValue: Boolean = false) : UIControl<Boolean>(initialValu
         }
 
         checkIcon.fadeIn(0.2f)
+        onChange?.invoke(value)
     }
 
     override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
