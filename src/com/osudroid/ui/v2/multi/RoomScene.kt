@@ -632,10 +632,10 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
         beatmapInfoLayout.isVisible = true
         beatmapInfoAlert.isVisible = false
 
-        val beatmapInfo = GlobalManager.getInstance().selectedBeatmap
-        beatmapInfoLayout.setBeatmapInfo(beatmapInfo)
+        updateBeatmapInfo(roomBeatmap)
 
         downloadBeatmapButton.apply {
+            val beatmapInfo = GlobalManager.getInstance().selectedBeatmap
 
             if (beatmapInfo == null) {
                 isVisible = true
@@ -673,8 +673,15 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
         }
     }
 
-    fun updateBeatmapInfo() {
-        beatmapInfoLayout.setBeatmapInfo(GlobalManager.getInstance().selectedBeatmap)
+    @JvmOverloads
+    fun updateBeatmapInfo(roomBeatmap: RoomBeatmap? = room.beatmap) {
+        val beatmapInfo = GlobalManager.getInstance().selectedBeatmap
+
+        if (beatmapInfo != null) {
+            beatmapInfoLayout.setBeatmapInfo(beatmapInfo)
+        } else {
+            beatmapInfoLayout.setBeatmapInfo(roomBeatmap)
+        }
     }
 
 
@@ -849,7 +856,7 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
 
         GlobalManager.getInstance().selectedBeatmap = LibraryManager.findBeatmapByMD5(beatmap?.md5)
 
-        beatmapInfoLayout.setBeatmapInfo(GlobalManager.getInstance().selectedBeatmap)
+        updateBeatmapInfo()
 
         if (GlobalManager.getInstance().engine.scene != this) {
             isWaitingForBeatmapChange = false
