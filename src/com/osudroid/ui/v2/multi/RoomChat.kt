@@ -186,6 +186,8 @@ class RoomChat : UILinearContainer() {
     }
 
     fun hide() {
+        input.blur()
+        collapse(true)
         detachSelf()
     }
 
@@ -197,11 +199,14 @@ class RoomChat : UILinearContainer() {
         }
     }
 
-    fun collapse() {
+    fun collapse(collapseQuickly: Boolean = false) {
         if (isExpanded) {
             isExpanded = false
-            clearModifiers(ModifierType.SizeY)
-            moveToY(BODY_HEIGHT.rem, 0.4f).eased(Easing.OutExpo)
+            val animateForSec = if (collapseQuickly) 0f else 0.4f
+            body.apply {
+                clearModifiers(ModifierType.SizeY)
+                sizeToY(0f, animateForSec).eased(Easing.OutExpo)
+            }
         }
     }
 
