@@ -36,7 +36,9 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options) 
     /**
      * The global HUD used for overlays (menus, dialogs, etc).
      */
-    val overlay = HUD()
+    val overlay = HUD().apply {
+        setOnAreaTouchTraversalFrontToBack()
+    }
 
     /**
      * The resource manager for loading and accessing UI resources (fonts, textures, etc).
