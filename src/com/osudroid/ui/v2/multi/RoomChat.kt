@@ -186,7 +186,6 @@ class RoomChat : UILinearContainer() {
     }
 
     fun hide() {
-        collapse(true)
         detachSelf()
     }
 
@@ -237,6 +236,9 @@ class RoomChat : UILinearContainer() {
         )
     }
 
+    override fun onDetached() {
+        collapse(true)
+    }
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
 
