@@ -239,7 +239,8 @@ public class GameplaySlider extends GameObject {
         lastSnakeOutEndLength = Float.NaN;
         bodyColor = comboColor;
         if (!OsuSkin.get().isSliderFollowComboColor()) {
-            bodyColor = OsuSkin.get().getSliderBodyColor();
+            var skinBodyColor = OsuSkin.get().getSliderBodyColor();
+            bodyColor = skinBodyColor != null ? skinBodyColor : comboColor;
         }
         circleColor = comboColor;
         currentNestedObjectIndex = 0;
