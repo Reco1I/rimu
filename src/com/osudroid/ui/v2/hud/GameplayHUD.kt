@@ -12,6 +12,7 @@ import com.reco1l.andengine.UIEngine
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.theme.Size
 import com.reco1l.toolkt.kotlin.*
+import com.rian.osu.beatmap.constants.HitObjectType
 import com.rian.osu.beatmap.hitobject.HitObject
 import org.anddev.andengine.entity.IEntity
 import org.anddev.andengine.input.touch.TouchEvent
@@ -298,9 +299,9 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
         elementSelector?.onBreakStateChange(isBreak)
     }
 
-    override fun onAccuracyRegister(accuracy: Float) {
-        forEachElement { it.onAccuracyRegister(accuracy) }
-        elementSelector?.onAccuracyRegister(accuracy)
+    override fun onAccuracyRegister(type: HitObjectType, accuracy: Float) {
+        forEachElement { it.onAccuracyRegister(type, accuracy) }
+        elementSelector?.onAccuracyRegister(type, accuracy)
     }
 
     //endregion
