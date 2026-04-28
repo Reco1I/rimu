@@ -1821,6 +1821,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                     gameplaySpinner.setReplayData(replay.objectData[gameplaySpinner.getId()]);
                 }
 
+                gameplaySpinner.updateAfterInit(lifetimeDt);
             } else if (obj instanceof Slider parsedSlider) {
                 final var gameplaySlider = GameObjectPool.getInstance().getSlider();
 
