@@ -2494,7 +2494,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                 scoreName = "hit0";
                 yield hitWindow.getMehWindow() + 1;
             }
-        };
+        } / 1000;
 
         createHitEffect(pos, scoreName, null);
 
