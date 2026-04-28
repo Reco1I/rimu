@@ -205,7 +205,7 @@ public class GameplaySlider extends GameObject {
 
         hitTime = (float) beatmapSlider.startTime / 1000;
         endsCombo = beatmapSlider.isLastInCombo();
-        elapsedSpanTime = -hitTime;
+        elapsedSpanTime = -timePreempt;
         duration = beatmapSlider.getDuration() / 1000;
         spanDuration = beatmapSlider.getSpanDuration() / 1000;
         path = sliderPath;
