@@ -273,6 +273,7 @@ public class GameplayHitCircle extends GameObject {
 
         if (autoPlay) {
             // Remove circle and register hit in update thread
+            listener.registerAccuracy(HitObjectType.Normal, 0);
             listener.onCircleHit(id, 0, position, endsCombo, ResultType.HIT300.getId(), comboColor);
             startHit = true;
             successfulHit = true;
