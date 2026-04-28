@@ -1748,7 +1748,10 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             // The casts can be simplified, but it is necessary to prevent floating point errors (see how
             // GameplayHitCircle and GameplaySlider track their passed time, where startTime and timePreempt
             // are cast and converted to seconds individually).
-            if (elapsedTime < (float) obj.startTime / 1000 - (float) obj.timePreempt / 1000) {
+            float lifetimeStart = (float) obj.startTime / 1000 - (float) obj.timePreempt / 1000;
+            float lifetimeDt = elapsedTime - lifetimeStart;
+
+            if (lifetimeDt < 0) {
                 break;
             }
 
@@ -1788,7 +1791,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             if (obj instanceof HitCircle parsedCircle) {
                 final var gameplayCircle = GameObjectPool.getInstance().getCircle();
 
-                gameplayCircle.init(this, mgScene, parsedCircle, elapsedTime, comboColor);
+                gameplayCircle.init(this, mgScene, parsedCircle, comboColor);
                 addObject(gameplayCircle);
 
                 if (GameHelper.isAutoplay()) {
@@ -1801,6 +1804,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                     gameplayCircle.setReplayData(replay.objectData[gameplayCircle.getId()]);
                 }
 
+                gameplayCircle.updateAfterInit(lifetimeDt);
             } else if (obj instanceof Spinner parsedSpinner) {
                 final float rps = 2 + 2 * playableBeatmap.getDifficulty().od / 10f;
                 final var gameplaySpinner = GameObjectPool.getInstance().getSpinner();
