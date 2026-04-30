@@ -246,21 +246,25 @@ class LobbyScene : UIScene() {
             isFetching = false
         }) {
 
-            messageContainer.apply {
-                detachChildren()
+            // Pre-fetch UI setup must happen on the update thread — the scene graph
+            // is not thread-safe and must not be mutated from a background coroutine.
+            updateThread {
+                messageContainer.apply {
+                    detachChildren()
 
-                +CircularProgressBar().apply {
-                    anchor = Anchor.Center
-                    origin = Anchor.Center
-                    style = {
+                    +CircularProgressBar().apply {
+                        anchor = Anchor.Center
+                        origin = Anchor.Center
+                        style = {
                         width = 3f.rem
                         height = 3f.rem
                     }
+                    }
                 }
-            }
 
-            switchContainers(messageContainer)
-            roomContainer.detachChildren()
+                switchContainers(messageContainer)
+                roomContainer.detachChildren()
+            }
 
             val list = LobbyAPI.getRooms(
                 query = searchQuery,
