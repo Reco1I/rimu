@@ -419,7 +419,7 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
                             setText(R.string.multiplayer_room_start_game)
                             onActionUp = callback@{
 
-                                if (isWaitingForStatusChange || !Multiplayer.isRoomHost || Multiplayer.player!!.status != PlayerStatus.Ready) {
+                                if (isWaitingForStatusChange || !Multiplayer.isRoomHost || Multiplayer.player?.status != PlayerStatus.Ready) {
                                     return@callback
                                 }
 
@@ -464,7 +464,14 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
                                 ResourceManager.getInstance().getSound("menuclick")?.play()
                                 isWaitingForStatusChange = true
 
-                                when (Multiplayer.player!!.status) {
+                                // Guard: if back() nulled player between the isWaitingForStatusChange check
+                        // and here, reset the flag and exit instead of crashing.
+                        val player = Multiplayer.player ?: run {
+                            isWaitingForStatusChange = false
+                            return@callback
+                        }
+
+                        when (player.status) {
 
                             PlayerStatus.NotReady -> {
                                 if (room.beatmap == null) {
@@ -473,7 +480,7 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
                                     return@callback
                                 }
 
-                                if (room.teamMode == TeamMode.TeamVersus && Multiplayer.player!!.team == null) {
+                                if (room.teamMode == TeamMode.TeamVersus && player.team == null) {
                                     ToastLogger.showText(R.string.multiplayer_room_cannot_ready_no_team, true)
                                     isWaitingForStatusChange = false
                                     return@callback
@@ -569,27 +576,31 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
     }
 
     private fun updateButtons() {
+        // Guard: player is nulled by back() when the scene is tearing down; any
+        // concurrent call (socket EventThread or update thread) must exit cleanly.
+        val player = Multiplayer.player ?: return
+
         statusButton.apply {
             setText(
-                when (Multiplayer.player!!.status) {
+                when (player.status) {
                     PlayerStatus.NotReady -> R.string.multiplayer_room_ready
                     PlayerStatus.Ready -> R.string.multiplayer_room_not_ready
                     else -> R.string.multiplayer_room_unable_status
                 }
             )
 
-            isEnabled = when (Multiplayer.player!!.status) {
+            isEnabled = when (player.status) {
                 PlayerStatus.Ready, PlayerStatus.NotReady -> true
                 else -> false
             }
 
-            isSelected = Multiplayer.player!!.status == PlayerStatus.NotReady
+            isSelected = player.status == PlayerStatus.NotReady
         }
 
         val playersReady = room.activePlayers.filter { it.status == PlayerStatus.Ready }
 
         startButton.apply {
-            isVisible = Multiplayer.isRoomHost && Multiplayer.player!!.status == PlayerStatus.Ready
+            isVisible = Multiplayer.isRoomHost && player.status == PlayerStatus.Ready
 
             // isVisible does only hide the button, but we also need to disable it.
             isEnabled = isVisible
@@ -695,6 +706,9 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
             return
         }
 
+        // Guard: player is nulled by back(); if we race past the reconnecting check, exit cleanly.
+        val player = Multiplayer.player ?: return
+
         isWaitingForStatusChange = true
 
         var newStatus = PlayerStatus.NotReady
@@ -703,7 +717,7 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
             newStatus = PlayerStatus.MissingBeatmap
         }
 
-        if (Multiplayer.player!!.status != newStatus) {
+        if (player.status != newStatus) {
             RoomAPI.setPlayerStatus(newStatus)
         } else {
             isWaitingForStatusChange = false
@@ -792,7 +806,8 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
 
             // If the status returned by server is PLAYING then it means the match was forced to start while the player
             // was disconnected.
-            if (Multiplayer.player!!.status == PlayerStatus.Playing) {
+            val player = Multiplayer.player ?: return
+            if (player.status == PlayerStatus.Playing) {
                 // Handling special case when the beatmap could have been changed and match was started while player was
                 // disconnected.
                 if (GlobalManager.getInstance().selectedBeatmap != null) {
@@ -948,7 +963,8 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
 
         updatePlayerList()
 
-        if (uid == Multiplayer.player!!.id) {
+        val player = Multiplayer.player ?: return
+        if (uid == player.id) {
             isWaitingForModsChange = false
             updateBeatmapInfo()
         }
@@ -996,8 +1012,9 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
     override fun onRoomMatchPlay() {
 
         val global = GlobalManager.getInstance()
+        val player = Multiplayer.player ?: return
 
-        if (Multiplayer.player!!.status != PlayerStatus.MissingBeatmap && global.engine.scene != global.gameScene.scene) {
+        if (player.status != PlayerStatus.MissingBeatmap && global.engine.scene != global.gameScene.scene) {
 
             if (GlobalManager.getInstance().selectedBeatmap == null) {
                 Multiplayer.log("WARNING: Attempt to start match with null track.")
@@ -1069,7 +1086,9 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
 
     override fun onPlayerKick(uid: Long) {
 
-        if (uid == Multiplayer.player!!.id) {
+        val player = Multiplayer.player ?: return
+
+        if (uid == player.id) {
 
             Multiplayer.log("Kicked from room.")
 
@@ -1106,7 +1125,8 @@ class RoomScene(val room: Room) : UIScene(), IRoomEventListener, IPlayerEventLis
 
         room.playersMap[uid]!!.status = status
 
-        if (uid == Multiplayer.player!!.id) {
+        val player = Multiplayer.player
+        if (player != null && uid == player.id) {
             isWaitingForStatusChange = false
         }
 
