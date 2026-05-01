@@ -434,7 +434,7 @@ object ModMenu : UIScene() {
 
         if (Multiplayer.isConnected) {
             Multiplayer.roomScene?.chat?.show()
-            Multiplayer.roomScene?.isWaitingForModsChange = true
+            Multiplayer.roomScene?.isWaitingForModsChange?.set(true)
 
             // The room mods are the same as the host mods
             if (Multiplayer.isRoomHost) {
@@ -442,7 +442,7 @@ object ModMenu : UIScene() {
             } else if (updatePlayerMods) {
                 setPlayerMods(enabledMods.serializeMods())
             } else {
-                Multiplayer.roomScene?.isWaitingForModsChange = false
+                Multiplayer.roomScene?.isWaitingForModsChange?.set(false)
             }
         }
 
