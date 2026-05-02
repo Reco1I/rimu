@@ -86,7 +86,7 @@ class RoomPlayerCard : UILinearContainer() {
         playerButton.bannerJob?.cancel()
     }
 
-    private class RoomPlayerButton : UIButton() {
+    private inner class RoomPlayerButton : UIButton() {
 
         private lateinit var nameText: CompoundText
         private lateinit var missingIndicator: UISprite
@@ -198,8 +198,7 @@ class RoomPlayerCard : UILinearContainer() {
 
         override fun onDetached() {
             super.onDetached()
-            bannerJob?.cancel()
-            avatarJob?.cancel()
+            cancelJobs()
         }
 
         fun updateState(room: Room, player: RoomPlayer) {
@@ -209,81 +208,9 @@ class RoomPlayerCard : UILinearContainer() {
                 NotReady, MissingBeatmap -> Colors.Red200
             }
 
-            val resourceManager = ResourceManager.getInstance()
-
             if (lastPlayerId != player.id) {
-                val bannerUrl = OnlineManager.getProfileBannerURL(player.id)
-
-                bannerJob?.cancel()
-                bannerJob = null
-
-                val loadedTexture = resourceManager.getProfileBannerTextureIfLoaded(bannerUrl)
-
-                if (loadedTexture != null) {
-                    bannerSprite.textureRegion = loadedTexture
-                    background = bannerSprite
-                } else {
-                    bannerSprite.textureRegion = null
-                    background = defaultBackground
-
-                    bannerJob = async {
-                        ensureActive()
-                        if (OnlineManager.getInstance().loadProfileBannerToTextureManager(bannerUrl)) {
-                            ensureActive()
-                            val texture = resourceManager.getProfileBannerTextureIfLoaded(bannerUrl)
-
-                            updateThread {
-                                if (lastPlayerId == player.id) {
-                                    bannerSprite.textureRegion = texture
-                                    if (texture != null) {
-                                        background = bannerSprite
-                                    }
-                                }
-                            }
-                        } else {
-                            updateThread {
-                                if (lastPlayerId == player.id) {
-                                    background = defaultBackground
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (lastPlayerId != player.id) {
-                val avatarUrl = OnlineManager.getAvatarURL(player.id)
-
-                avatarJob?.cancel()
-                avatarJob = null
-
-                val loadedTexture = resourceManager.getAvatarTextureIfLoaded(avatarUrl)
-
-                if (loadedTexture != null) {
-                    avatarSprite.textureRegion = loadedTexture
-                } else {
-                    avatarSprite.textureRegion = defaultAvatar
-
-                    avatarJob = async {
-                        ensureActive()
-                        if (OnlineManager.getInstance().loadAvatarToTextureManager(avatarUrl)) {
-                            ensureActive()
-                            val texture = resourceManager.getAvatarTextureIfLoaded(avatarUrl)
-
-                            updateThread {
-                                if (lastPlayerId == player.id) {
-                                    avatarSprite.textureRegion = texture ?: defaultAvatar
-                                }
-                            }
-                        } else {
-                            updateThread {
-                                if (lastPlayerId == player.id) {
-                                    avatarSprite.textureRegion = defaultAvatar
-                                }
-                            }
-                        }
-                    }
-                }
+                loadAvatar(player.id)
+                loadBanner(player.id)
             }
 
             lastPlayerId = player.id
@@ -405,6 +332,87 @@ class RoomPlayerCard : UILinearContainer() {
                     }
 
                 }.show()
+            }
+        }
+
+        private fun loadAvatar(userId: Long) {
+            val resourceManager = ResourceManager.getInstance()
+            val avatarUrl = OnlineManager.getAvatarURL(userId)
+
+            avatarJob?.cancel()
+            avatarJob = null
+
+            val loadedTexture = resourceManager.getAvatarTextureIfLoaded(avatarUrl)
+
+            if (loadedTexture != null) {
+                avatarSprite.textureRegion = loadedTexture
+            } else {
+                avatarSprite.textureRegion = defaultAvatar
+
+                avatarJob = async {
+                    ensureActive()
+
+                    if (OnlineManager.getInstance().loadAvatarToTextureManager(avatarUrl)) {
+                        ensureActive()
+
+                        val texture = resourceManager.getAvatarTextureIfLoaded(avatarUrl)
+
+                        updateThread {
+                            if (lastPlayerId == userId) {
+                                avatarSprite.textureRegion = texture ?: defaultAvatar
+                            }
+                        }
+                    } else {
+                        updateThread {
+                            if (lastPlayerId == userId) {
+                                avatarSprite.textureRegion = defaultAvatar
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private fun loadBanner(userId: Long) {
+            val resourceManager = ResourceManager.getInstance()
+            val bannerUrl = OnlineManager.getProfileBannerURL(userId)
+
+            bannerJob?.cancel()
+            bannerJob = null
+
+            val loadedTexture = resourceManager.getProfileBannerTextureIfLoaded(bannerUrl)
+
+            if (loadedTexture != null) {
+                bannerSprite.textureRegion = loadedTexture
+                background = bannerSprite
+            } else {
+                bannerSprite.textureRegion = null
+                background = defaultBackground
+
+                bannerJob = async {
+                    ensureActive()
+
+                    if (OnlineManager.getInstance().loadProfileBannerToTextureManager(bannerUrl)) {
+                        ensureActive()
+
+                        val texture = resourceManager.getProfileBannerTextureIfLoaded(bannerUrl)
+
+                        updateThread {
+                            if (lastPlayerId == userId) {
+                                bannerSprite.textureRegion = texture
+                                if (texture != null) {
+                                    background = bannerSprite
+                                }
+                            }
+                        }
+                    } else {
+                        updateThread {
+                            if (lastPlayerId == userId) {
+                                background = defaultBackground
+                            }
+                        }
+                    }
+                }
             }
         }
     }
