@@ -125,8 +125,6 @@ class RoomPlayerCard : UILinearContainer() {
             }
 
             bannerSprite = UIShapedSprite().apply {
-                isVisible = false
-
                 shape = object : UIBox() {
                     init {
                         cornerRadius = 12f
@@ -181,7 +179,6 @@ class RoomPlayerCard : UILinearContainer() {
 
             bannerJob?.cancel()
             bannerSprite.textureRegion = null
-            bannerSprite.isVisible = false
 
             val resourceManager = ResourceManager.getInstance()
             val bannerUrl = OnlineManager.getProfileBannerURL(player.id)
@@ -189,7 +186,6 @@ class RoomPlayerCard : UILinearContainer() {
 
             if (loadedTexture != null) {
                 bannerSprite.textureRegion = loadedTexture
-                bannerSprite.isVisible = true
                 background = bannerSprite
             } else {
                 bannerJob = async {
@@ -199,7 +195,6 @@ class RoomPlayerCard : UILinearContainer() {
 
                         updateThread {
                             bannerSprite.textureRegion = texture
-                            bannerSprite.isVisible = texture != null
                             background = if (texture != null) bannerSprite else defaultBackground
                         }
                     }
