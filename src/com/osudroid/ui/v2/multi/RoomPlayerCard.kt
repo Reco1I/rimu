@@ -86,7 +86,7 @@ class RoomPlayerCard : UILinearContainer() {
         playerButton.bannerJob?.cancel()
     }
 
-    private inner class RoomPlayerButton : UIButton() {
+    private class RoomPlayerButton : UIButton() {
 
         private lateinit var nameText: CompoundText
         private lateinit var missingIndicator: UISprite
@@ -198,7 +198,9 @@ class RoomPlayerCard : UILinearContainer() {
 
         override fun onDetached() {
             super.onDetached()
-            cancelJobs()
+
+            avatarJob?.cancel()
+            bannerJob?.cancel()
         }
 
         fun updateState(room: Room, player: RoomPlayer) {
