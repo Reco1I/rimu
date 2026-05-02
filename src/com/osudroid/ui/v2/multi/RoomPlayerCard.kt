@@ -42,7 +42,7 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osuplus.R
 
 class RoomPlayerCard : UILinearContainer() {
-    private val teamColorBar: UIBox
+    private val teamColorBar: UIButton
     private val playerButton: RoomPlayerButton
 
     init {
@@ -52,7 +52,7 @@ class RoomPlayerCard : UILinearContainer() {
             spacing = 4f.srem
         }
 
-        teamColorBar = UIBox().apply {
+        teamColorBar = UIButton().apply {
             style = {
                 width = 0.025f.pct
                 height = Size.Full
@@ -72,19 +72,47 @@ class RoomPlayerCard : UILinearContainer() {
                 attachChild(teamColorBar, 0)
             }
 
-            teamColorBar.color = when (player.team) {
+            teamColorBar.background?.color = when (player.team) {
                 Blue -> Colors.Blue400 * 0.8f
                 Red -> Colors.Red400 * 0.8f
                 null -> Theme.current.accentColor * 0.6f
             }
-        } else if (teamColorBar.hasParent()) {
-            detachChild(teamColorBar)
+
+            if (player.id == OnlineManager.getInstance().userId) {
+                teamColorBar.onActionUp = { showTeamDropdown() }
+            } else {
+                teamColorBar.onActionUp = null
+            }
+        } else {
+            teamColorBar.detachSelf()
         }
     }
 
     fun cancelJobs() {
         playerButton.avatarJob?.cancel()
         playerButton.bannerJob?.cancel()
+    }
+
+    private fun showTeamDropdown() {
+        UIDropdown(teamColorBar).apply dropdown@{
+            width = 100f
+
+            addButton {
+                text = "Red"
+                onActionUp = {
+                    RoomAPI.setPlayerTeam(Red)
+                    this@dropdown.hide()
+                }
+            }
+
+            addButton {
+                text = "Blue"
+                onActionUp = {
+                    RoomAPI.setPlayerTeam(Blue)
+                    this@dropdown.hide()
+                }
+            }
+        }.show()
     }
 
     private class RoomPlayerButton : UIButton() {
