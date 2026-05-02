@@ -190,7 +190,7 @@ class RoomPlayerCard : UILinearContainer() {
                 inheritAncestorsColor = false
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                size = Vec2(40f)
+                size = Vec2(50f)
 
                 shape = object : UIBox() {
                     init {
@@ -251,7 +251,7 @@ class RoomPlayerCard : UILinearContainer() {
                     modDisplay?.detachSelf()
 
                     modDisplay = UIText().apply {
-                        minHeight = 20f // Force to take space even if no mods are enabled
+                        minHeight = 24f // Force to take space even if no mods are enabled
                         style += {
                             fontSize = FontSize.XS
                             color = it.accentColor * 0.8f
@@ -267,8 +267,8 @@ class RoomPlayerCard : UILinearContainer() {
                     modDisplay?.detachSelf()
 
                     modDisplay = ModsIndicator().apply {
-                        minHeight = 20f // Force to take space even if no mods are enabled
-                        iconSize = 20f
+                        minHeight = 24f // Force to take space even if no mods are enabled
+                        iconSize = 24f
                     }
 
                     innerContainer += modDisplay!!
