@@ -570,7 +570,10 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IModifierChain {
     override fun onAttached() {
         applyStyle()
 
-        updateClock((parent as? UIComponent)?.clock ?: return)
+        when (val parent = parent) {
+            is UIComponent -> updateClock(parent.clock)
+            is UIScene -> updateClock(parent.clock)
+        }
     }
 
     //endregion
