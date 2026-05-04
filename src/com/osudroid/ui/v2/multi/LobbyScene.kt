@@ -10,7 +10,6 @@ import com.osudroid.resources.R.string
 import com.reco1l.andengine.*
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.container.*
-import com.reco1l.andengine.modifier.*
 import com.reco1l.andengine.text.FontAwesomeIcon
 import com.reco1l.andengine.theme.FontSize
 import com.reco1l.andengine.theme.Icon
@@ -19,6 +18,7 @@ import com.reco1l.andengine.theme.rem
 import com.reco1l.andengine.theme.srem
 import com.reco1l.andengine.ui.*
 import com.reco1l.framework.math.*
+import com.rian.andengine.modifier.ModifierType
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager

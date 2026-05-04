@@ -3,6 +3,7 @@ package com.reco1l.andengine.ui
 import com.reco1l.andengine.*
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.container.*
+import com.reco1l.andengine.shape.*
 import com.reco1l.andengine.modifier.*
 import com.reco1l.andengine.text.*
 import com.reco1l.andengine.theme.FontSize
@@ -11,6 +12,7 @@ import com.reco1l.andengine.theme.Radius
 import com.reco1l.andengine.theme.Size
 import com.reco1l.andengine.theme.srem
 import com.reco1l.framework.math.*
+import com.rian.andengine.modifier.ModifierType
 import org.anddev.andengine.input.touch.*
 
 @Suppress("LeakingThis")
@@ -112,8 +114,8 @@ open class UICard(
             triangle?.clearModifiers(ModifierType.Rotation)
             triangle?.rotateTo(180f, if (immediate) 0f else 0.1f)
 
-            content.clearModifiers(ModifierType.SizeY)
-            content.sizeToY(0f, if (immediate) 0f else 0.1f).after {
+            content.clearModifiers(ModifierType.Height)
+            content.heightTo(0f, if (immediate) 0f else 0.1f).after {
                 it.isVisible = false
                 onContentChanged()
             }
@@ -134,9 +136,9 @@ open class UICard(
             triangle?.clearModifiers(ModifierType.Rotation)
             triangle?.rotateTo(0f, if (immediate) 0f else 0.1f)
 
-            content.clearModifiers(ModifierType.SizeY)
+            content.clearModifiers(ModifierType.Height)
             content.isVisible = true
-            content.sizeToY(content.contentHeight, if (immediate) 0f else 0.1f)
+            content.heightTo(content.contentHeight, if (immediate) 0f else 0.1f)
 
             onExpandStatusChange?.invoke(true)
         }

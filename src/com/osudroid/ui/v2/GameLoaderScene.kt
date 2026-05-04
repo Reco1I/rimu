@@ -6,7 +6,6 @@ import com.osudroid.multiplayer.*
 import com.reco1l.andengine.*
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.container.*
-import com.reco1l.andengine.modifier.*
 import com.reco1l.andengine.shape.*
 import com.reco1l.andengine.sprite.*
 import com.reco1l.andengine.text.FontAwesomeIcon
@@ -19,6 +18,7 @@ import com.reco1l.andengine.ui.*
 import com.reco1l.andengine.ui.form.*
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
+import com.rian.andengine.modifier.ModifierType
 import com.rian.osu.utils.*
 import kotlin.math.*
 import org.anddev.andengine.input.touch.*
