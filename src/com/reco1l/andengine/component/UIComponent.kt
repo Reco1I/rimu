@@ -1193,9 +1193,11 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IModifierChain {
     }
 
     /**
-     * Creates a [UniversalModifierSequence] that can be used to add [UniversalModifier]s to this [UIComponent].
+     * Starts a sequence of [UniversalModifier]s. The block will be provided with a [UniversalModifierSequence] that can
+     * be used to add [UniversalModifier]s.
      */
-    fun createModifierSequence() = UniversalModifierSequence.obtain(this)
+    inline fun beginSequence(crossinline block: UniversalModifierSequence.() -> Unit?) =
+        UniversalModifierSequence.obtain(this).use { it.block() }
 
     private var savedModifierStartTime = 0f
 
@@ -1209,7 +1211,7 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IModifierChain {
     fun beginAbsoluteSequence(newModifierStartTime: Float, propagateChildren: Boolean = true, block: UniversalModifierSequence.() -> Unit?) {
         adjustAbsoluteSequenceTime(newModifierStartTime, propagateChildren)
 
-        createModifierSequence().use { it.block() }
+        beginSequence(block)
 
         restoreAbsoluteSequenceTime(propagateChildren)
     }
@@ -1257,7 +1259,7 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IModifierChain {
         addDelay(delay, propagateChildren)
         val oldDelay = modifierDelay
 
-        createModifierSequence().use { it.block() }
+        beginSequence(block)
 
         val newDelay = modifierDelay
 
