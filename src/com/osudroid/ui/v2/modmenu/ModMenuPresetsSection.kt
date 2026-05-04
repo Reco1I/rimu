@@ -4,6 +4,7 @@ import com.osudroid.data.*
 import com.osudroid.ui.v2.*
 import com.osudroid.ui.v2.modmenu.ModMenu.addMod
 import com.osudroid.ui.v2.modmenu.ModMenu.removeMod
+import com.osudroid.utils.ModUtils
 import com.osudroid.utils.searchContiguously
 import com.reco1l.andengine.*
 import com.reco1l.andengine.component.*
@@ -15,7 +16,7 @@ import com.reco1l.andengine.theme.Size
 import com.reco1l.andengine.theme.rem
 import com.reco1l.andengine.ui.*
 import com.reco1l.toolkt.kotlin.*
-import com.rian.osu.utils.*
+import com.osudroid.utils.*
 
 class ModMenuPresetsSection : ModMenuSection("Presets") {
 

@@ -4,7 +4,7 @@ import com.osudroid.ui.v2.modmenu.*
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.container.*
 import com.reco1l.andengine.theme.FontSize
-import com.rian.osu.mods.*
+import com.osudroid.mods.*
 
 class ModsIndicator : UILinearContainer() {
 

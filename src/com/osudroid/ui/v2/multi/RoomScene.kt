@@ -66,7 +66,7 @@ import com.reco1l.andengine.ui.UITextButton
 import com.reco1l.framework.Color4
 import com.reco1l.framework.math.Vec4
 import com.reco1l.toolkt.kotlin.runSafe
-import com.rian.osu.mods.ModScoreV2
+import com.osudroid.mods.ModScoreV2
 import org.json.JSONArray
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager

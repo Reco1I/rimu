@@ -4,8 +4,8 @@ import com.reco1l.andengine.container.UIContainer
 import com.reco1l.andengine.theme.Size
 import com.reco1l.andengine.ui.UIControl
 import com.reco1l.andengine.ui.form.FormControl
-import com.rian.osu.mods.Mod
-import com.rian.osu.mods.settings.ModSetting
+import com.osudroid.mods.Mod
+import com.osudroid.mods.settings.ModSetting
 
 /**
  * Interface for a component that controls a [ModSetting].

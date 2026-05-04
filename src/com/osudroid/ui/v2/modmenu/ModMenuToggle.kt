@@ -15,7 +15,7 @@ import com.reco1l.andengine.theme.srem
 import com.reco1l.andengine.ui.*
 import com.reco1l.framework.math.Vec4
 import com.rian.andengine.modifier.ModifierType
-import com.rian.osu.mods.*
+import com.osudroid.mods.*
 import ru.nsu.ccfit.zuev.osu.*
 
 

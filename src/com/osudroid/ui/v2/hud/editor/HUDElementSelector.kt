@@ -15,8 +15,8 @@ import com.osudroid.ui.v2.hud.IGameplayEvents
 import com.reco1l.andengine.theme.FontSize
 import com.reco1l.andengine.theme.Size
 import com.reco1l.toolkt.kotlin.fastForEach
-import com.rian.osu.beatmap.constants.HitObjectType
-import com.rian.osu.beatmap.hitobject.HitObject
+import com.osudroid.beatmaps.constants.HitObjectType
+import com.osudroid.beatmaps.hitobjects.HitObject
 import org.anddev.andengine.input.touch.TouchEvent
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2

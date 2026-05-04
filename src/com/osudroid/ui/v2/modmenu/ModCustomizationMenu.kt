@@ -16,8 +16,8 @@ import com.reco1l.andengine.ui.*
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
 import com.reco1l.toolkt.kotlin.*
-import com.rian.osu.mods.*
-import com.rian.osu.mods.settings.*
+import com.osudroid.mods.*
+import com.osudroid.mods.settings.*
 import kotlin.reflect.KClass
 
 class ModCustomizationMenu(trigger: UIButton) : UIModal(
