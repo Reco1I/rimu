@@ -860,7 +860,10 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
     //region Update
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
-        customClock?.processFrame()
+        if (processCustomClock) {
+            customClock?.processFrame()
+        }
+
         background?.onManagedUpdate(deltaTimeSec)
         border?.onManagedUpdate(deltaTimeSec)
 
@@ -1560,6 +1563,12 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
     //endregion
 
     //region Timekeeping
+
+    /**
+     * Whether [IFrameBasedClock.processFrame] should be automatically invoked on this [UIComponent]'s [clock] in
+     * [onManagedUpdate]. This should only be set to false in scenarios where the clock is updated elsewhere.
+     */
+    var processCustomClock = true
 
     private var _clock: IFrameBasedClock? = null
     private var customClock: IFrameBasedClock? = null
