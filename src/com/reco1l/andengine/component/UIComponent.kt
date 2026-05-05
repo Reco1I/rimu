@@ -555,8 +555,6 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
      */
     open fun onChildAttached(child: IEntity) {
         invalidate(InvalidationFlag.Content)
-
-        (child as? UIComponent)?.updateClock(clock)
     }
 
     /**
@@ -573,6 +571,12 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
             is UIComponent -> updateClock(parent.clock)
             is UIScene -> updateClock(parent.clock)
         }
+    }
+
+    override fun onDetached() {
+        super.onDetached()
+
+        updateClock(null)
     }
 
     //endregion
@@ -1561,15 +1565,16 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
     private var customClock: IFrameBasedClock? = null
 
     /**
-     * The clock of this [UIComponent]. Used for keeping track of time across frames. By default, this is inherited from
-     * [parent].
+     * The [IFrameBasedClock] of this [UIComponent]. Used for keeping track of time across frames. By default, this is
+     * inherited from [parent].
      *
-     * If set, then the provided value is used as a custom clock and [parent]'s clock is ignored.
+     * If set, then the provided value is used as a custom clock and [parent]'s [IFrameBasedClock] is ignored.
      */
-    var clock: IFrameBasedClock?
+    var clock
         get() = _clock
         set(value) {
             customClock = value
+            updateClock(value)
         }
 
     /**
@@ -1579,17 +1584,13 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
         get() = clock?.timeInfo
 
     /**
-     * Updates the clock to be used. Has no effect if this [UIComponent] uses a custom clock.
+     * Updates the [IFrameBasedClock] to be used. Has no effect if this [UIComponent] uses a custom [IFrameBasedClock].
      */
-    protected open fun updateClock(clock: IFrameBasedClock?) {
+    open fun updateClock(clock: IFrameBasedClock?) {
         this._clock = customClock ?: clock
 
-        for (i in 0 until childCount) {
-            val child = getChild(i)
-
-            if (child is UIComponent) {
-                child.updateClock(this._clock)
-            }
+        mChildren?.fastForEach {
+            (it as? UIComponent)?.updateClock(this._clock)
         }
     }
 
