@@ -13,6 +13,7 @@ import com.reco1l.framework.*
 import com.reco1l.framework.math.*
 import com.reco1l.toolkt.kotlin.*
 import com.rian.andengine.modifier.*
+import com.rian.andengine.timing.IClockProvider
 import com.rian.andengine.timing.IFrameBasedClock
 import com.rian.osu.math.Precision
 import org.anddev.andengine.collision.*
@@ -566,11 +567,7 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
 
     override fun onAttached() {
         applyStyle()
-
-        when (val parent = parent) {
-            is UIComponent -> updateClock(parent.clock)
-            is UIScene -> updateClock(parent.clock)
-        }
+        updateClock((parent as? IClockProvider<*>)?.clock as? IFrameBasedClock)
     }
 
     override fun onDetached() {
