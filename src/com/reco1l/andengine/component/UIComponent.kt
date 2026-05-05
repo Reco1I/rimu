@@ -1601,6 +1601,9 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
     open fun updateClock(clock: IFrameBasedClock?) {
         this._clock = customClock ?: clock
 
+        background?.updateClock(this._clock)
+        foreground?.updateClock(this._clock)
+
         mChildren?.fastForEach {
             (it as? UIComponent)?.updateClock(this._clock)
         }
