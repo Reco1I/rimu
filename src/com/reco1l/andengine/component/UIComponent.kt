@@ -1086,8 +1086,6 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
     inline fun beginModifierSequence(crossinline block: UniversalModifierSequence.() -> Unit) =
         UniversalModifierSequence.obtain(this).use { it.block() }
 
-    private var savedModifierStartTime = 0f
-
     /**
      * Starts a sequence of [UniversalModifier]s from an absolute time value (adjusts [modifierStartTime]).
      *
@@ -1096,15 +1094,16 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
      */
     @JvmOverloads
     fun beginAbsoluteSequence(newModifierStartTime: Float, propagateChildren: Boolean = true, block: UniversalModifierSequence.() -> Unit) {
+        val prevModifierStartTime = modifierStartTime
+
         adjustAbsoluteSequenceTime(newModifierStartTime, propagateChildren)
 
         beginModifierSequence(block)
 
-        restoreAbsoluteSequenceTime(propagateChildren)
+        restoreAbsoluteSequenceTime(prevModifierStartTime, propagateChildren)
     }
 
     private fun adjustAbsoluteSequenceTime(newModifierStartTime: Float, propagateChildren: Boolean = true) {
-        savedModifierStartTime = modifierStartTime
         modifierDelay += newModifierStartTime - modifierStartTime
 
         if (propagateChildren) {
@@ -1114,24 +1113,23 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
         }
     }
 
-    private fun restoreAbsoluteSequenceTime(propagateChildren: Boolean = true) {
-        restoreFromAbsoluteSequenceTime(savedModifierStartTime)
+    private fun restoreAbsoluteSequenceTime(prevModifierStartTime: Float, propagateChildren: Boolean = true) {
+        restoreFromAbsoluteSequenceTime(prevModifierStartTime)
 
         if (propagateChildren) {
             mChildren?.fastForEach { child ->
-                (child as? UIComponent)?.restoreAbsoluteSequenceTime()
+                (child as? UIComponent)?.restoreAbsoluteSequenceTime(prevModifierStartTime)
             }
         }
     }
 
-    private fun restoreFromAbsoluteSequenceTime(savedTime: Float) {
-        val currentModifierStartTime = modifierStartTime
-        modifierDelay += savedTime - currentModifierStartTime
+    private fun restoreFromAbsoluteSequenceTime(prevModifierStartTime: Float) {
+        modifierDelay += prevModifierStartTime - modifierStartTime
 
-        if (!Precision.almostEquals(savedTime, modifierStartTime)) {
+        if (!Precision.almostEquals(prevModifierStartTime, modifierStartTime)) {
             throw IllegalStateException(
                 "${this::class.simpleName}'s modifierStartTime at the end of absolute sequence is " +
-                        "not the same as at the beginning (begin=$savedTime end=$modifierStartTime)"
+                        "not the same as at the beginning (begin=$prevModifierStartTime end=$modifierStartTime)"
             )
         }
     }
