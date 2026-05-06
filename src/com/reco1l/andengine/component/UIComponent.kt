@@ -856,13 +856,20 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
 
     //region Update
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    final override fun onUpdate(deltaTimeSec: Float) {
+        if (isIgnoreUpdate) {
+            return
+        }
+
         if (processCustomClock) {
             customClock?.processFrame()
         }
 
-        // Fallback to engine-provided delta time in case clock is not present.
-        val deltaTimeSec = clock?.elapsedFrameTime ?: deltaTimeSec
+        // Fallback to parent or engine-provided delta time in case clock is not present.
+        onManagedUpdate(clock?.elapsedFrameTime ?: deltaTimeSec)
+    }
+
+    override fun onManagedUpdate(deltaTimeSec: Float) {
 
         background?.onManagedUpdate(deltaTimeSec)
         border?.onManagedUpdate(deltaTimeSec)
