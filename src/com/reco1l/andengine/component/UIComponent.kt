@@ -1064,10 +1064,11 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
         get() = (clock?.currentTime ?: 0f) + modifierDelay
 
     /**
-     * Delay from the current time until new [UniversalModifier]s are started, in seconds.
+     * Delay from the current time until new [UniversalModifier]s are started, in seconds. **This is made public so that
+     * [beginAbsoluteSequence] and [beginDelayedSequence] can be inlined for performance and should not be altered
+     * externally**.
      */
-    protected var modifierDelay = 0f
-        private set
+    var modifierDelay = 0f
 
     /**
      * Adds a delay duration to [modifierDelay], in seconds.
@@ -1102,7 +1103,11 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
      * @param propagateChildren Whether this should be applied to children. `true` by default.
      */
     @JvmOverloads
-    fun beginAbsoluteSequence(newModifierStartTime: Float, propagateChildren: Boolean = true, block: UniversalModifierSequence.() -> Unit) {
+    inline fun beginAbsoluteSequence(
+        newModifierStartTime: Float,
+        propagateChildren: Boolean = true,
+        crossinline block: UniversalModifierSequence.() -> Unit
+    ) {
         val prevModifierStartTime = modifierStartTime
 
         adjustAbsoluteSequenceTime(newModifierStartTime, propagateChildren)
@@ -1112,7 +1117,14 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
         restoreAbsoluteSequenceTime(prevModifierStartTime, propagateChildren)
     }
 
-    private fun adjustAbsoluteSequenceTime(newModifierStartTime: Float, propagateChildren: Boolean = true) {
+    /**
+     * Adjusts [modifierStartTime] to a new absolute time value. **This is used internally for [beginAbsoluteSequence]
+     * but is made public for inlining, and should not be used externally**.
+     *
+     * @param newModifierStartTime The new [modifierStartTime].
+     * @param propagateChildren Whether to propagate [newModifierStartTime] to children. Defaults to `true`.
+     */
+    fun adjustAbsoluteSequenceTime(newModifierStartTime: Float, propagateChildren: Boolean = true) {
         modifierDelay += newModifierStartTime - modifierStartTime
 
         if (propagateChildren) {
@@ -1122,17 +1134,14 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
         }
     }
 
-    private fun restoreAbsoluteSequenceTime(prevModifierStartTime: Float, propagateChildren: Boolean = true) {
-        restoreFromAbsoluteSequenceTime(prevModifierStartTime)
-
-        if (propagateChildren) {
-            mChildren?.fastForEach { child ->
-                (child as? UIComponent)?.restoreAbsoluteSequenceTime(prevModifierStartTime)
-            }
-        }
-    }
-
-    private fun restoreFromAbsoluteSequenceTime(prevModifierStartTime: Float) {
+    /**
+     * Restores [modifierStartTime] to its previous absolute time value. **This is used internally for
+     * [beginAbsoluteSequence] but is made public for inlining, and should not be used externally**.
+     *
+     * @param prevModifierStartTime The previous [modifierStartTime].
+     * @param propagateChildren Whether to propagate [prevModifierStartTime]. Defaults to `true`.
+     */
+    fun restoreAbsoluteSequenceTime(prevModifierStartTime: Float, propagateChildren: Boolean = true) {
         modifierDelay += prevModifierStartTime - modifierStartTime
 
         if (!Precision.almostEquals(prevModifierStartTime, modifierStartTime)) {
@@ -1141,6 +1150,12 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
                         "not the same as at the beginning (begin=$prevModifierStartTime end=$modifierStartTime)"
             )
         }
+
+        if (propagateChildren) {
+            mChildren?.fastForEach { child ->
+                (child as? UIComponent)?.restoreAbsoluteSequenceTime(prevModifierStartTime)
+            }
+        }
     }
 
     /**
@@ -1148,9 +1163,14 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
      *
      * @param delay The offset in seconds from current time. Note that this stacks with other nested sequences.
      * @param propagateChildren Whether this should be applied to children. `true` by default.
+     * @param block The block to execute with the [UniversalModifierSequence] to add [UniversalModifier]s to.
      */
     @JvmOverloads
-    fun beginDelayedSequence(delay: Float, propagateChildren: Boolean = true, block: UniversalModifierSequence.() -> Unit) {
+    inline fun beginDelayedSequence(
+        delay: Float,
+        propagateChildren: Boolean = true,
+        crossinline block: UniversalModifierSequence.() -> Unit
+    ) {
         addDelay(delay, propagateChildren)
         val oldDelay = modifierDelay
 
