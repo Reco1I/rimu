@@ -9,6 +9,9 @@ import com.reco1l.andengine.component.*
 import com.reco1l.andengine.ui.*
 import com.rian.andengine.HUD
 import com.reco1l.framework.math.Vec4
+import com.rian.andengine.timing.IClockProvider
+import com.rian.andengine.timing.IFrameBasedClock
+import com.rian.andengine.timing.ThrottledFrameClock
 import org.anddev.andengine.engine.Engine
 import org.anddev.andengine.engine.options.EngineOptions
 import org.anddev.andengine.entity.IEntity
@@ -19,7 +22,10 @@ import javax.microedition.khronos.opengles.*
 import kotlin.math.*
 import org.anddev.andengine.engine.camera.Camera
 
-class UIEngine(val context: Activity, options: EngineOptions) : Engine(options) {
+class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
+    IClockProvider<IFrameBasedClock> {
+
+    override val clock: IFrameBasedClock = ThrottledFrameClock()
 
     private val displayDensity = context.resources.displayMetrics.density
 
@@ -36,7 +42,7 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options) 
     /**
      * The global HUD used for overlays (menus, dialogs, etc).
      */
-    val overlay = HUD()
+    val overlay = HUD().also { it.clock = clock }
 
     /**
      * The resource manager for loading and accessing UI resources (fonts, textures, etc).
@@ -231,6 +237,11 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options) 
         return super.onTouchScene(scene, event)
     }
 
+    override fun onUpdate(pNanosecondsElapsed: Long) {
+        clock.processFrame()
+
+        super.onUpdate((clock.elapsedFrameTime * 1e9).toLong())
+    }
 
     override fun setScene(scene: Scene?) {
         mScene?.onDetached()
