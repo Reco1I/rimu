@@ -567,7 +567,9 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
 
     override fun onAttached() {
         applyStyle()
-        updateClock((parent as? IClockProvider<*>)?.clock as? IFrameBasedClock)
+
+        val parentClock = (parent as? IClockProvider<*>)?.clock ?: (parent as? UIComponent)?.clock
+        updateClock(parentClock as? IFrameBasedClock)
     }
 
     override fun onDetached() {
