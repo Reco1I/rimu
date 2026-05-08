@@ -1496,7 +1496,7 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBa
         modifier.target = this
         modifier.type = type
         modifier.startTime = modifierStartTime
-        modifier.duration = duration
+        modifier.setDuration(duration)
         modifier.eased(easing)
         modifier.block()
 
