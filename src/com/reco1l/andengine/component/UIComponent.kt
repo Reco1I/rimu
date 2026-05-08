@@ -33,7 +33,7 @@ import kotlin.math.max
  * @author Reco1l
  */
 @Suppress("MemberVisibilityCanBePrivate")
-abstract class UIComponent : Entity(0f, 0f), ITouchArea {
+abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBasedClock?> {
 
     //region Size related properties
 
@@ -567,9 +567,7 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
 
     override fun onAttached() {
         applyStyle()
-
-        val parentClock = (parent as? IClockProvider<*>)?.clock ?: (parent as? UIComponent)?.clock
-        updateClock(parentClock as? IFrameBasedClock)
+        updateClock((parent as? IClockProvider<*>)?.clock as? IFrameBasedClock)
     }
 
     override fun onDetached() {
@@ -1608,7 +1606,7 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea {
      *
      * If set, then the provided value is used as a custom clock and [parent]'s [IFrameBasedClock] is ignored.
      */
-    var clock
+    override var clock: IFrameBasedClock?
         get() = customClock ?: inheritedClock
         set(value) {
             customClock = value
