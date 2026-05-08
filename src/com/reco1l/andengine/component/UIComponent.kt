@@ -1110,9 +1110,11 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBa
 
         adjustAbsoluteSequenceTime(newModifierStartTime, propagateChildren)
 
-        beginModifierSequence(block)
-
-        restoreAbsoluteSequenceTime(prevModifierStartTime, propagateChildren)
+        try {
+            beginModifierSequence(block)
+        } finally {
+            restoreAbsoluteSequenceTime(prevModifierStartTime, propagateChildren)
+        }
     }
 
     /**
