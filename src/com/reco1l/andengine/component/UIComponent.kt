@@ -1043,8 +1043,16 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBa
      * @param modifier The [UniversalModifier] to append.
      */
     fun appendModifier(modifier: UniversalModifier) {
-        getTrackerFor(modifier.type).add(modifier)
+        getTrackerFor(modifier.type, true)!!.add(modifier)
     }
+
+    /**
+     * Removes a [UniversalModifier] from this [UIComponent].
+     *
+     * @param modifier The [UniversalModifier] to remove.
+     * @return Whether the [UniversalModifier] was removed.
+     */
+    fun removeModifier(modifier: UniversalModifier) = getTrackerFor(modifier.type)?.remove(modifier) ?: false
 
     private inline fun appendModifier(
         type: ModifierType,
@@ -1067,19 +1075,24 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBa
     }
 
     /**
-     * Obtains the [UniversalModifierTargetTracker] for the specified [ModifierType]. If one does not exist, it will be
-     * created.
+     * Obtains the [UniversalModifierTargetTracker] for the specified [ModifierType].
      *
      * @param type The [ModifierType] to get the [UniversalModifierTargetTracker] for.
-     * @return The [UniversalModifierTargetTracker] for [type].
+     * @param createIfNotExisting Whether to create the [UniversalModifierTargetTracker] if it does not exist.
+     * @return The [UniversalModifierTargetTracker] for [type], `null` if it did not exist and [createIfNotExisting] was
+     * `false`.
      */
-    private fun getTrackerFor(type: ModifierType): UniversalModifierTargetTracker {
+    private fun getTrackerFor(type: ModifierType, createIfNotExisting: Boolean = false): UniversalModifierTargetTracker? {
         for (i in universalModifierTrackers.indices) {
             val tracker = universalModifierTrackers[i]
 
             if (tracker.targetMember == type.targetMember) {
                 return tracker
             }
+        }
+
+        if (!createIfNotExisting) {
+            return null
         }
 
         val tracker = UniversalModifierTargetTracker(type.targetMember, this)
