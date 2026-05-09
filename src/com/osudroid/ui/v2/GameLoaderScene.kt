@@ -74,9 +74,6 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 spacing = 4f.srem
             }
 
-            fadeIn(0.2f, Easing.OutCubic)
-            scaleTo(1f, 0.2f, Easing.OutCubic)
-
             container {
                 width = Size.Full
                 height = Size.Full
@@ -178,6 +175,14 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
         }
     }
 
+
+    override fun onAttached() {
+        super.onAttached()
+
+        mainContainer.paddingBottom = if (Multiplayer.isConnected) Multiplayer.roomScene!!.chat.buttonHeight + 12f else 0f
+        mainContainer.fadeIn(0.2f, Easing.OutCubic)
+        mainContainer.scaleTo(1f, 0.2f, Easing.OutCubic)
+    }
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
 
