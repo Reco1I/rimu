@@ -44,7 +44,7 @@ class UICheckbox(initialValue: Boolean = false) : UIControl<Boolean>(initialValu
     override fun onValueChanged() {
         super.onValueChanged()
 
-        checkIcon.clearModifiers(ModifierType.Alpha, ModifierType.ScaleXY)
+        checkIcon.clearModifiers(false, ModifierType.Alpha, ModifierType.ScaleXY)
 
         if (value) {
             backgroundColor = Theme.current.accentColor * 0.5f
