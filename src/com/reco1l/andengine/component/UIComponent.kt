@@ -1089,7 +1089,13 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBa
      * @param modifier The [UniversalModifier] to remove.
      * @return Whether the [UniversalModifier] was removed.
      */
-    fun removeModifier(modifier: UniversalModifier) = getTrackerFor(modifier.type)?.remove(modifier) ?: false
+    fun removeModifier(modifier: UniversalModifier): Boolean {
+        if (modifier.target != this) {
+            return false
+        }
+
+        return getTrackerFor(modifier.type)?.remove(modifier) ?: false
+    }
 
     private inline fun appendModifier(
         type: ModifierType,
