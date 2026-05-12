@@ -857,7 +857,7 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBa
     //region Update
 
     final override fun onUpdate(deltaTimeSec: Float) {
-        if (isIgnoreUpdate || loadState == LoadState.NotLoaded) {
+        if (loadState == LoadState.NotLoaded) {
             return
         }
 
@@ -870,8 +870,10 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBa
             onLoadComplete()
         }
 
-        // Fallback to parent or engine-provided delta time in case clock is not present.
-        onManagedUpdate(clock?.elapsedFrameTime ?: deltaTimeSec)
+        if (!isIgnoreUpdate) {
+            // Fallback to parent or engine-provided delta time in case clock is not present.
+            onManagedUpdate(clock?.elapsedFrameTime ?: deltaTimeSec)
+        }
     }
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
@@ -900,8 +902,8 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBa
      * This is invoked when [onUpdate] is called for the first time after this [UIComponent] receives a valid [clock]
      * **and** before [onManagedUpdate]. It is safe to start animations and modifiers here.
      *
-     * Note that this can be called multiple times during this [UIComponent]'s lifetime if it is detached and
-     * re-attached.
+     * Note that this is called regardless of [isIgnoreUpdate], and can be called multiple times during this
+     * [UIComponent]'s lifetime if it is detached and re-attached.
      */
     protected open fun onLoadComplete() {}
 
