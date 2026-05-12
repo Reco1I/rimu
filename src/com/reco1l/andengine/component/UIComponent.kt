@@ -15,6 +15,7 @@ import com.reco1l.framework.math.*
 import com.reco1l.toolkt.kotlin.*
 import com.rian.andengine.modifier.*
 import com.rian.andengine.timing.IClockProvider
+import com.rian.andengine.timing.IClockReceiver
 import com.rian.andengine.timing.IFrameBasedClock
 import org.anddev.andengine.collision.*
 import org.anddev.andengine.engine.camera.*
@@ -33,7 +34,8 @@ import kotlin.math.max
  * @author Reco1l
  */
 @Suppress("MemberVisibilityCanBePrivate")
-abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBasedClock?> {
+abstract class UIComponent : Entity(0f, 0f),
+    ITouchArea, IClockProvider<IFrameBasedClock?>, IClockReceiver<IFrameBasedClock?> {
 
     //region Size related properties
 
@@ -1804,14 +1806,7 @@ abstract class UIComponent : Entity(0f, 0f), ITouchArea, IClockProvider<IFrameBa
     val time
         get() = clock?.timeInfo
 
-    /**
-     * Updates the [IFrameBasedClock] to be used as the parent-inherited clock of this [UIComponent].
-     *
-     * To update the custom clock that this [UIComponent] uses, set the [clock] property instead.
-     *
-     * @param clock The [IFrameBasedClock] to use.
-     */
-    open fun updateClock(clock: IFrameBasedClock?) {
+    override fun updateClock(clock: IFrameBasedClock?) {
         inheritedClock = clock
         val currentClock = this.clock
 
