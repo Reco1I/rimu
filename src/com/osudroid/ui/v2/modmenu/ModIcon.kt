@@ -41,6 +41,43 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
         return ResourceManager.getInstance().getTexture(mod.iconTextureName)?.takeUnless { it is BlankTextureRegion }
     }
 
+    private fun setupContent() {
+        detachChildren()
+
+        val texture = fetchTextureRegion()
+
+        if (texture != null) {
+            backgroundColor = Color4.Transparent
+
+            attachChild(OsuSkinnableSprite(mod.iconTextureName).apply {
+                width = Size.Full
+                height = Size.Full
+                bufferReference = spriteBufferRef
+            bufferSharingMode = BufferSharingMode.Dynamic
+        } )
+            } else {
+                backgroundColor = Theme.current.accentColor * 0.1f
+
+            attachChild(UIText().apply {
+                anchor = Anchor.Center
+                origin = Anchor.Center
+                text = mod.acronym
+                fontSize = FontSize.SM
+                style = { color = it.accentColor }
+            })
+        }
+
+        shouldUpdateTexture = false
+    }
+
+
+    override fun onAttached() {
+        if (shouldUpdateTexture) {
+            setupContent()
+        }
+
+        super.onAttached()
+    }
 
     override fun onManagedDraw(gl: GL10, camera: Camera) {
 
@@ -56,32 +93,7 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
         if (shouldUpdateTexture) {
-            detachChildren()
-
-            val texture = fetchTextureRegion()
-
-            if (texture != null) {
-                backgroundColor = Color4.Transparent
-
-                attachChild(OsuSkinnableSprite(mod.iconTextureName).apply {
-                    width = Size.Full
-                    height = Size.Full
-                    bufferReference = spriteBufferRef
-                    bufferSharingMode = BufferSharingMode.Dynamic
-                })
-            } else {
-                backgroundColor = Theme.current.accentColor * 0.1f
-
-                attachChild(UIText().apply {
-                    anchor = Anchor.Center
-                    origin = Anchor.Center
-                    text = mod.acronym
-                    fontSize = FontSize.SM
-                    style = { color = it.accentColor }
-                })
-            }
-
-            shouldUpdateTexture = false
+            setupContent()
         }
 
         super.onManagedUpdate(deltaTimeSec)
