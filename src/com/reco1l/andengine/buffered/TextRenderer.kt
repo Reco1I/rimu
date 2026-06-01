@@ -10,9 +10,6 @@ import javax.microedition.khronos.opengles.GL10
 
 object TextRenderer : BufferRenderer() {
 
-    private const val VERTICES_PER_CHARACTER = 6
-
-
     private val glyphTextureCoordinatesBuffer = ResizableFloatBuffer()
 
 
@@ -30,7 +27,7 @@ object TextRenderer : BufferRenderer() {
     ) {
         val lineHeight = font.lineHeight + font.lineGap
 
-        if (color != null) ColorStack.pushColor(gl, color)
+        if (color != null) ColorStack.pushColor(gl, color, false)
 
         render(gl) {
 
@@ -109,7 +106,7 @@ object TextRenderer : BufferRenderer() {
         val lineX = viewportX + viewportWidth * alignment.x - letter.mAdvance * alignment.x
         val lineY = viewportY + viewportHeight * alignment.y - lineHeight * alignment.y
 
-        if (color != null) ColorStack.pushColor(gl, color)
+        if (color != null) ColorStack.pushColor(gl, color, false)
 
         render(gl) {
 

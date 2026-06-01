@@ -15,9 +15,6 @@ import kotlin.math.sin
 
 object QuadRenderer : BufferRenderer() {
 
-    private var lastState = ""
-
-
     fun renderQuad(
         gl: GL10,
         x: Float,
@@ -26,23 +23,10 @@ object QuadRenderer : BufferRenderer() {
         height: Float,
         paintStyle: PaintStyle = Fill,
         color: Color4? = null,
-        inheritColors: Boolean = true,
         lineWidth: Float = 1f
     ) {
 
-        val state = "x:$x,y:$y,width:$width,height:$height,paintStyle:$paintStyle,color:$color,lineWidth:$lineWidth"
-        if (state == lastState) {
-            if (color != null) ColorStack.pushColor(gl, color)
-            doRender(gl, when (paintStyle) {
-                Fill -> GL10.GL_TRIANGLE_STRIP
-                Outline -> GL10.GL_LINE_LOOP
-            })
-            if (color != null) ColorStack.popColor(gl)
-            return
-        }
-        lastState = state
-
-        if (color != null) ColorStack.pushColor(gl, color)
+        if (color != null) ColorStack.pushColor(gl, color, false)
 
         when (paintStyle) {
             Fill ->  {
@@ -76,23 +60,9 @@ object QuadRenderer : BufferRenderer() {
         radius: Float = 0f,
         paintStyle: PaintStyle = Fill,
         color: Color4? = null,
-        inheritColors: Boolean = true,
         lineWidth: Float = 1f
     ) {
-        val state = "x:$x,y:$y,width:$width,height:$height,radius:$radius,paintStyle:$paintStyle,color:$color,lineWidth:$lineWidth"
-        if (state == lastState) {
-            if (color != null) ColorStack.pushColor(gl, color)
-            if (paintStyle == Outline) GLHelper.lineWidth(gl, lineWidth)
-            doRender(gl, when (paintStyle) {
-                Fill -> GL10.GL_TRIANGLE_FAN
-                Outline -> GL10.GL_LINE_STRIP
-            })
-            if (color != null) ColorStack.popColor(gl)
-            return
-        }
-        lastState = state
-
-        if (color != null) ColorStack.pushColor(gl, color)
+        if (color != null) ColorStack.pushColor(gl, color, false)
 
         if (paintStyle == Outline) GLHelper.lineWidth(gl, lineWidth)
 

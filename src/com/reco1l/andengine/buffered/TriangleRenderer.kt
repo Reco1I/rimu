@@ -18,7 +18,7 @@ object TriangleRenderer : BufferRenderer() {
         paintStyle: PaintStyle = PaintStyle.Fill,
         strokeWidth: Float = 0f
     ) {
-        if (color != null) ColorStack.pushColor(gl, color)
+        if (color != null) ColorStack.pushColor(gl, color, false)
 
         GLHelper.lineWidth(gl, strokeWidth)
 

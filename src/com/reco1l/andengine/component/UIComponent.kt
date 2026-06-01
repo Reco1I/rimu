@@ -41,7 +41,7 @@ abstract class UIComponent : Entity(0f, 0f),
     //region Size related properties
 
     /**
-     * Whether the component can shrink below its intrinsic size. By default it
+     * Whether the component can shrink below its intrinsic size. By default, it
      * is true in order to pair default CSS's `flex-shrink` behavior.
      */
     var shrink = true
@@ -698,27 +698,26 @@ abstract class UIComponent : Entity(0f, 0f),
         ColorStack.pushColor(gl, color, inheritAncestorsColor)
 
         // Render background quad
-        if (!Precision.almostEquals(backgroundColor.alpha, 0f)) {
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, color = backgroundColor, inheritColors = false)
+        if (backgroundColor.alpha > 0f) {
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, color = backgroundColor)
         }
 
         // Render component and children
         doDraw(gl, camera)
         onDrawChildren(gl, camera)
-        ColorStack.popColor(gl)
 
         // Render border quad
-        if (!Precision.almostEquals(borderColor.alpha, 0f) && !Precision.almostEquals(borderWidth, 0f)) {
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, PaintStyle.Outline, borderColor, false, borderWidth)
+        if (borderColor.alpha > 0f && borderWidth > 0f) {
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, PaintStyle.Outline, borderColor, borderWidth)
         }
 
 
         // Debug outline
         if (BuildSettings.SHOW_ENTITY_BOUNDARIES) {
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, PaintStyle.Outline, Color4.White, false)
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, PaintStyle.Outline, Color4.White)
         }
 
-        ColorStack.pushColor(gl, color, inheritAncestorsColor)
+        ColorStack.popColor(gl)
 
         gl.glPopMatrix()
     }

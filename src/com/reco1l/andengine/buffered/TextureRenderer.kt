@@ -25,7 +25,7 @@ object TextureRenderer : BufferRenderer() {
         color: Color4? = null,
         textureRegion: TextureRegion
     ) {
-        if (color != null) ColorStack.pushColor(gl, color)
+        if (color != null) ColorStack.pushColor(gl, color, false)
 
         render(gl, GL10.GL_TRIANGLE_STRIP) {
 

@@ -16,7 +16,7 @@ object LineRenderer : BufferRenderer() {
         color: Color4? = null,
         strokeWidth: Float = 1f
     ) {
-        if (color != null) ColorStack.pushColor(gl, color)
+        if (color != null) ColorStack.pushColor(gl, color, false)
 
         GLHelper.lineWidth(gl, strokeWidth)
 

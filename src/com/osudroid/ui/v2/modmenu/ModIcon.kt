@@ -27,13 +27,6 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
 
     private var shouldUpdateTexture = true
 
-    constructor(acronym: String) : this(ModUtils.allModsInstances.find {
-        it.acronym.equals(
-            acronym,
-            ignoreCase = true
-        )
-    }!!)
-
 
     init {
         inheritAncestorsColor = false
