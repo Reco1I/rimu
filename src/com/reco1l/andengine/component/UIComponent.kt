@@ -695,26 +695,30 @@ abstract class UIComponent : Entity(0f, 0f),
         gl.glPushMatrix()
         onApplyTransformations(gl, camera)
 
+        ColorStack.pushColor(gl, color, inheritAncestorsColor)
+
         // Render background quad
         if (!Precision.almostEquals(backgroundColor.alpha, 0f)) {
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, color = backgroundColor, inheritColors = inheritAncestorsColor)
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, color = backgroundColor, inheritColors = false)
         }
 
         // Render component and children
-        ColorStack.pushColor(gl, color, inheritAncestorsColor)
         doDraw(gl, camera)
         onDrawChildren(gl, camera)
         ColorStack.popColor(gl)
 
         // Render border quad
         if (!Precision.almostEquals(borderColor.alpha, 0f) && !Precision.almostEquals(borderWidth, 0f)) {
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, PaintStyle.Outline, borderColor, inheritAncestorsColor, borderWidth)
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, PaintStyle.Outline, borderColor, false, borderWidth)
         }
+
 
         // Debug outline
         if (BuildSettings.SHOW_ENTITY_BOUNDARIES) {
             QuadRenderer.renderQuad(gl, 0f, 0f, width, height, PaintStyle.Outline, Color4.White, false)
         }
+
+        ColorStack.pushColor(gl, color, inheritAncestorsColor)
 
         gl.glPopMatrix()
     }
