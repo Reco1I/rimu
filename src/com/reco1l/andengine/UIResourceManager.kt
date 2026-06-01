@@ -5,10 +5,6 @@ package com.reco1l.andengine
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
-import android.util.Log
-import com.reco1l.andengine.buffered.Buffer
-import com.reco1l.andengine.buffered.BufferSharingMode
-import com.reco1l.andengine.buffered.IBuffer
 import com.reco1l.andengine.component.UIComponent
 import org.anddev.andengine.opengl.font.Font
 import org.anddev.andengine.opengl.texture.TextureOptions

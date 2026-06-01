@@ -3,21 +3,20 @@ package com.reco1l.andengine.sprite
 import com.reco1l.andengine.*
 import com.reco1l.andengine.buffered.*
 import com.reco1l.andengine.component.*
-import com.reco1l.andengine.sprite.UISprite.*
 import com.reco1l.andengine.sprite.ScaleType.*
 import com.reco1l.andengine.theme.Size
 import com.reco1l.framework.math.*
+import org.anddev.andengine.engine.camera.Camera
 import org.anddev.andengine.opengl.texture.region.*
 import org.anddev.andengine.opengl.util.*
 import javax.microedition.khronos.opengles.*
-import javax.microedition.khronos.opengles.GL11.*
 import kotlin.math.*
 
 /**
  * Sprite that allows to change texture once created.
  */
 @Suppress("LeakingThis")
-open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent<SpriteVBO>() {
+open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent() {
 
     /**
      * Whether the texture should be flipped horizontally.
@@ -75,12 +74,6 @@ open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent<
      * The scale type of the sprite.
      */
     open var scaleType: ScaleType = Fit
-        set(value) {
-            if (field != value) {
-                field = value
-                requestBufferUpdate()
-            }
-        }
 
     /**
      * The alignment of the texture.
@@ -88,12 +81,6 @@ open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent<
      * If the scale type is [ScaleType.Stretch] it will not take effect.
      */
     var gravity: Vec2 = Anchor.Center
-        set(value) {
-            if (field != value) {
-                field = value
-                requestBufferUpdate()
-            }
-        }
 
 
     init {
@@ -117,20 +104,6 @@ open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent<
         contentHeight = textureRegion?.height?.toFloat() ?: 0f
 
         blendInfo = if (textureRegion?.texture?.textureOptions?.mPreMultipyAlpha == true) BlendInfo.PreMultiply else BlendInfo.Mixture
-        requestBufferUpdate()
-    }
-
-
-    override fun createBuffer(): SpriteVBO {
-        return SpriteVBO()
-    }
-
-    override fun canReuseBuffer(buffer: SpriteVBO): Boolean {
-        return true
-    }
-
-    override fun onUpdateBuffer() {
-        buffer?.update(this)
     }
 
 
@@ -140,50 +113,41 @@ open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent<
         GLHelper.enableTexCoordArray(gl)
     }
 
-    override fun onDrawBuffer(gl: GL10) {
-        textureRegion?.onApply(gl)
-        super.onDrawBuffer(gl)
-    }
+    override fun doDraw(gl: GL10, camera: Camera) {
+        super.doDraw(gl, camera)
 
+        val textureRegion = textureRegion ?: return
 
-    class SpriteVBO : VertexBuffer(
-        drawTopology = GL_TRIANGLE_STRIP,
-        vertexCount = 4,
-        vertexSize = VERTEX_2D,
-        bufferUsage = GL_STATIC_DRAW
-    ) {
-        fun update(entity: UISprite) {
-            val textureWidth = entity.contentWidth
-            val textureHeight = entity.contentHeight
+        val textureWidth = contentWidth
+        val textureHeight = contentHeight
 
-            var quadWidth: Float
-            var quadHeight: Float
+        var quadWidth: Float
+        var quadHeight: Float
 
-            when (entity.scaleType) {
+        when (scaleType) {
 
-                Crop -> {
-                    val scale = max(entity.width / textureWidth, entity.height / textureHeight)
-                    quadWidth = textureWidth * scale
-                    quadHeight = textureHeight * scale
-                }
-
-                Fit -> {
-                    val scale = min(entity.width / textureWidth, entity.height / textureHeight)
-                    quadWidth = textureWidth * scale
-                    quadHeight = textureHeight * scale
-                }
-
-                Stretch -> {
-                    quadWidth = entity.width
-                    quadHeight = entity.height
-                }
+            Crop -> {
+                val scale = max(width / textureWidth, height / textureHeight)
+                quadWidth = textureWidth * scale
+                quadHeight = textureHeight * scale
             }
 
-            val x = (entity.width - quadWidth) * entity.gravity.x
-            val y = (entity.height - quadHeight) * entity.gravity.y
+            Fit -> {
+                val scale = min(width / textureWidth, height / textureHeight)
+                quadWidth = textureWidth * scale
+                quadHeight = textureHeight * scale
+            }
 
-            addQuad(0, x, y, x + quadWidth, y + quadHeight)
+            Stretch -> {
+                quadWidth = width
+                quadHeight = height
+            }
         }
+
+        val x = (width - quadWidth) * gravity.x
+        val y = (height - quadHeight) * gravity.y
+
+        TextureRenderer.renderTexture(gl, x, y, quadWidth, quadHeight, textureRegion = textureRegion)
     }
 
 }

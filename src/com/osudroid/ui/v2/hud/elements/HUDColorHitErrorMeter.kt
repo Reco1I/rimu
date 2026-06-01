@@ -27,12 +27,7 @@ class HUDColorHitErrorMeter : HUDHitErrorMeter() {
 
         setSize(width, INDICATOR_SIZE)
 
-        background = UIBox().apply {
-            applyTheme = {
-                color = Color4.Black
-                alpha = 0.6f
-            }
-        }
+        backgroundColor = Color4.Black.copy(alpha = 0.6f)
     }
 
     override fun addResult(type: HitObjectType, accuracy: Float, color: Color4) {

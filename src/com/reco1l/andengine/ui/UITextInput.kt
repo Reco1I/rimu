@@ -239,7 +239,7 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
         selectionBox.width = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), selectionBox.width, targetSelectionBoxWidth, 0f, 0.3f, Easing.OutExpo)
-        caret.x = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), caret.x, textEntity.x + targetCursorPosition, 0f, 0.3f, Easing.OutExpo)
+        caret.x = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), caret.x, textComponent.x + targetCursorPosition, 0f, 0.3f, Easing.OutExpo)
         selectionBox.x = caret.x
 
         textComponent.maxWidth = innerWidth

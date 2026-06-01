@@ -672,7 +672,7 @@ object ModMenu : UIScene() {
 
         override fun onManagedUpdate(deltaTimeSec: Float) {
             if (counter.isRolling) {
-                valueEntity.text = formatter(counter.currentValue)
+                valueComponent.text = formatter(counter.currentValue)
             }
 
             super.onManagedUpdate(deltaTimeSec)

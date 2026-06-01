@@ -2,23 +2,20 @@ package com.reco1l.andengine.text
 
 import com.reco1l.andengine.*
 import com.reco1l.andengine.buffered.*
-import com.reco1l.andengine.buffered.VertexBuffer
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.theme.FontSize
 import com.reco1l.andengine.theme.Fonts
 import com.reco1l.andengine.theme.Size
-import com.reco1l.toolkt.kotlin.*
 import org.anddev.andengine.engine.camera.*
 import org.anddev.andengine.opengl.font.*
+import org.anddev.andengine.opengl.util.GLHelper
 import javax.microedition.khronos.opengles.*
-import javax.microedition.khronos.opengles.GL10.*
-import javax.microedition.khronos.opengles.GL11.GL_STATIC_DRAW
 import kotlin.math.*
 
 /**
  * A text entity that can be displayed on the screen.
  */
-open class UIText : UIBufferedComponent<CompoundBuffer>() {
+open class UIText : UIBufferedComponent() {
 
     /**
      * The text to be displayed
@@ -27,14 +24,7 @@ open class UIText : UIBufferedComponent<CompoundBuffer>() {
         set(value) {
             if (field != value) {
                 field = value
-
-                val previousLength = currentLength
                 currentLength = value.codePointCount(0, value.length)
-
-                if (currentLength > previousLength) {
-                    requestBufferUpdate()
-                }
-
                 invalidate(InvalidationFlag.Content)
             }
         }
@@ -93,12 +83,6 @@ open class UIText : UIBufferedComponent<CompoundBuffer>() {
      * The alignment of the text.
      */
     var alignment = Anchor.TopLeft
-        set(value) {
-            if (field != value) {
-                field = value
-                requestBufferUpdate()
-            }
-        }
 
     /**
      * Which axes to scroll the text automatically when it overflows.
@@ -217,8 +201,6 @@ open class UIText : UIBufferedComponent<CompoundBuffer>() {
 
         contentWidth = if (linesWidth!!.isNotEmpty()) linesWidth!!.max().toFloat() else 0f
         contentHeight = (lines!!.size * font.lineHeight + (lines!!.size - 1) * font.lineGap).toFloat()
-
-        requestBufferUpdate()
     }
 
     override fun onSizeChanged() {
@@ -285,31 +267,28 @@ open class UIText : UIBufferedComponent<CompoundBuffer>() {
         }
     }
 
-    private fun nextPowerOfTwo(n: Int): Int {
-        if (n <= 0) return 1
-        val highest = n.takeHighestOneBit()
-        return if (highest == n) n else highest shl 1
-    }
+    override fun doDraw(gl: GL10, camera: Camera) {
+        super.doDraw(gl, camera)
 
-    override fun createBuffer(): CompoundBuffer {
-        val capacity = nextPowerOfTwo(currentLength)
-        return UITextCompoundBuffer(capacity)
-    }
+        val font = font
+        val lines = lines
+        val linesWidth = linesWidth
 
-    override fun canReuseBuffer(buffer: CompoundBuffer): Boolean {
-        val capacity = nextPowerOfTwo(currentLength)
-        val vertexBuffer = buffer.getFirstOf<TextVertexBuffer>()
-        return vertexBuffer.vertexCount >= capacity * VERTICES_PER_CHARACTER
-    }
+        if (font == null || lines == null || linesWidth == null) {
+            return
+        }
 
-    override fun onUpdateBuffer() {
-        buffer?.getFirstOf<TextTextureBuffer>()?.update(font, lines)
-        buffer?.getFirstOf<TextVertexBuffer>()?.update(this, font, lines, linesWidth)
-    }
-
-    override fun onDeclarePointers(gl: GL10) {
-        super.onDeclarePointers(gl)
-        font?.texture?.bind(gl)
+        TextRenderer.renderLines(
+            gl,
+            lines = lines,
+            linesWidth = linesWidth,
+            font = font,
+            viewportX = textViewportX,
+            viewportY = textViewportY,
+            viewportWidth = textViewportWidth,
+            viewportHeight = textViewportHeight,
+            alignment = alignment
+        )
     }
 
     override fun onApplyTransformations(gl: GL10, camera: Camera) {
@@ -384,123 +363,9 @@ open class UIText : UIBufferedComponent<CompoundBuffer>() {
     }
 
 
-    override fun finalize() {
-        super.finalize()
-
+    fun finalize() {
         val font = font ?: return
         UIEngine.current.resources.unsubscribeFromFont(font, this)
-    }
-
-
-    //region Buffers
-
-    class TextVertexBuffer(val length: Int) : VertexBuffer(
-        drawTopology = GL_TRIANGLES,
-        vertexCount = VERTICES_PER_CHARACTER * length,
-        vertexSize = VERTEX_2D,
-        bufferUsage = GL_STATIC_DRAW
-    ) {
-
-        fun update(component: UIText, font: Font?, lines: List<String>?, linesWidth: IntArray?) {
-
-            if (font == null || lines == null || linesWidth == null) {
-                mFloatBuffer.clear()
-                return
-            }
-
-            val lineHeight = font.lineHeight + font.lineGap
-            var i = 0
-
-            lines.fastForEachIndexed { lineIndex, line ->
-
-                var lineX =  component.textViewportX + component.textViewportWidth * component.alignment.x - linesWidth[lineIndex] * component.alignment.x
-                val lineY = component.textViewportY + component.textViewportHeight * component.alignment.y - lines.size * lineHeight * component.alignment.y + lineIndex * lineHeight
-
-                var charIndex = 0
-                while (charIndex < line.length) {
-                    val codePoint = line.codePointAt(charIndex)
-                    val charCount = Character.charCount(codePoint)
-                    val characterString = line.substring(charIndex, charIndex + charCount)
-
-                    val letter = font.getLetter(characterString)
-
-                    val letterX = lineX + letter.mWidth
-                    val letterY = lineY + font.lineHeight
-
-                    setPosition(0)
-
-                    putVertex(i++, lineX, lineY)
-                    putVertex(i++, lineX, letterY)
-                    putVertex(i++, letterX, letterY)
-                    putVertex(i++, letterX, letterY)
-                    putVertex(i++, letterX, lineY)
-                    putVertex(i++, lineX, lineY)
-
-                    setPosition(0)
-
-                    lineX += letter.mAdvance
-                    charIndex += charCount
-                }
-            }
-        }
-
-        override fun draw(gl: GL10, entity: UIBufferedComponent<*>) {
-            entity as UIText
-            gl.glDrawArrays(drawTopology, 0, VERTICES_PER_CHARACTER * min(entity.currentLength, length))
-        }
-    }
-
-
-    class TextTextureBuffer(length: Int) : TextureCoordinatesBuffer(
-        vertexCount = VERTICES_PER_CHARACTER * length,
-        vertexSize = VERTEX_2D,
-        bufferUsage = GL_STATIC_DRAW
-    ) {
-
-        fun update(font: Font?, lines: List<String>?) {
-
-            if (font == null || lines == null) {
-                mFloatBuffer.clear()
-                return
-            }
-
-            setPosition(0)
-
-            lines.fastForEach { line ->
-                var charIndex = 0
-                while (charIndex < line.length) {
-                    val codePoint = line.codePointAt(charIndex)
-                    val charCount = Character.charCount(codePoint)
-
-                    val characterString = line.substring(charIndex, charIndex + charCount)
-                    val letter = font.getLetter(characterString)
-
-                    val letterTextureX = letter.mTextureX
-                    val letterTextureY = letter.mTextureY
-                    val letterTextureX2 = letterTextureX + letter.mTextureWidth
-                    val letterTextureY2 = letterTextureY + letter.mTextureHeight
-
-                    putVertex(letterTextureX, letterTextureY)
-                    putVertex(letterTextureX, letterTextureY2)
-                    putVertex(letterTextureX2, letterTextureY2)
-                    putVertex(letterTextureX2, letterTextureY2)
-                    putVertex(letterTextureX2, letterTextureY)
-                    putVertex(letterTextureX, letterTextureY)
-                    
-                    charIndex += charCount
-                }
-            }
-
-            setPosition(0)
-        }
-
-    }
-
-    //endregion
-
-
-    companion object {
-        private const val VERTICES_PER_CHARACTER = 6
     }
 
 }
@@ -594,20 +459,10 @@ open class CompoundText : UIText() {
         if (width > intrinsicWidth) {
             trailingIcon?.x = innerWidth - trailingIcon.width
         }
-
-        requestBufferUpdate()
     }
 
     override fun onDrawChildren(gl: GL10, camera: Camera) {
         leadingIcon?.onDraw(gl, camera)
         trailingIcon?.onDraw(gl, camera)
     }
-}
-
-
-fun UITextCompoundBuffer(capacity: Int): CompoundBuffer {
-    return CompoundBuffer(
-        UIText.TextTextureBuffer(capacity),
-        UIText.TextVertexBuffer(capacity)
-    )
 }

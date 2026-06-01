@@ -20,7 +20,6 @@ import com.reco1l.andengine.ui.form.*
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
 import com.rian.andengine.modifier.ModifierType
-import com.rian.osu.utils.*
 import kotlin.math.*
 import org.anddev.andengine.input.touch.*
 import ru.nsu.ccfit.zuev.osu.*

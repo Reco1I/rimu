@@ -3,6 +3,7 @@ package com.reco1l.andengine.shape
 import com.reco1l.andengine.buffered.*
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.shape.UITriangle.*
+import org.anddev.andengine.engine.camera.Camera
 import org.anddev.andengine.opengl.util.*
 import javax.microedition.khronos.opengles.*
 import javax.microedition.khronos.opengles.GL11.*
@@ -10,7 +11,7 @@ import javax.microedition.khronos.opengles.GL11.*
 /**
  * A rectangle shape based on [UIComponent].
  */
-open class UITriangle : UIBufferedComponent<TriangleVBO>() {
+open class UITriangle : UIBufferedComponent() {
 
     /**
      * The style of painting for the triangle.
@@ -22,42 +23,18 @@ open class UITriangle : UIBufferedComponent<TriangleVBO>() {
      */
     var lineWidth = 1f
 
-
-    override fun createBuffer(): TriangleVBO {
-        return TriangleVBO()
-    }
-
-    override fun canReuseBuffer(buffer: TriangleVBO): Boolean {
-        return true
-    }
-
-    override fun onUpdateBuffer() {
-        buffer?.update(this)
-    }
-
-    override fun beginDraw(gl: GL10) {
-        super.beginDraw(gl)
-        GLHelper.lineWidth(gl, lineWidth)
-    }
-
-
-    class TriangleVBO : VertexBuffer(GL_TRIANGLES, 3, VERTEX_2D, GL_STATIC_DRAW) {
-
-        fun update(entity: UITriangle) {
-            addTriangle(
-                index = 0,
-                centerX = entity.width / 2f,
-                centerY = entity.height / 2f,
-                width = entity.innerWidth,
-                height = entity.innerHeight
-            )
-        }
-
-        override fun draw(gl: GL10, entity: UIBufferedComponent<*>) {
-            entity as UITriangle
-            gl.glDrawArrays(if (entity.paintStyle == PaintStyle.Fill) GL_TRIANGLES else GL_LINE_LOOP, 0, vertexCount)
-        }
-
+    override fun doDraw(gl: GL10, camera: Camera) {
+        super.doDraw(gl, camera)
+        TriangleRenderer.renderTriangle(
+            gl = gl,
+            centerX = x + width / 2f,
+            centerY = y + height / 2f,
+            width = width,
+            height = height,
+            color = color,
+            paintStyle = paintStyle,
+            strokeWidth = lineWidth
+        )
     }
 }
 

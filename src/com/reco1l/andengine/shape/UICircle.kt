@@ -2,11 +2,8 @@ package com.reco1l.andengine.shape
 
 import androidx.annotation.*
 import com.reco1l.andengine.buffered.*
-import com.reco1l.andengine.buffered.VertexBuffer
-import com.reco1l.andengine.shape.UICircle.*
-import org.anddev.andengine.opengl.util.GLHelper
+import org.anddev.andengine.engine.camera.Camera
 import javax.microedition.khronos.opengles.*
-import javax.microedition.khronos.opengles.GL11.*
 import kotlin.math.*
 
 
@@ -15,18 +12,12 @@ import kotlin.math.*
  *
  * @author Reco1l
  */
-open class UICircle : UIBufferedComponent<CircleVertexBuffer>() {
+open class UICircle : UIBufferedComponent() {
 
     /**
      * The paint style of the circle.
      */
     var paintStyle = PaintStyle.Fill
-        set(value) {
-            if (field != value) {
-                field = value
-                requestBufferUpdate()
-            }
-        }
 
     /**
      * The line width if the paint style is [PaintStyle.Outline].
@@ -36,28 +27,14 @@ open class UICircle : UIBufferedComponent<CircleVertexBuffer>() {
     /**
      * The angle where the circle starts to draw in degrees. By default, it is 0 degrees.
      */
-    var startAngle = 0f
-        set(@FloatRange(-360.0, 360.0) value) {
-            if (field != value) {
-                field = value
-                requestBufferUpdate()
-            }
-        }
+    @FloatRange(-360.0, 360.0)
+    var startAngle: Float = 0f
 
     /**
      * The angle where the circle ends to draw in degrees. By default, it is 360 degrees.
      */
+    @FloatRange(-360.0, 360.0)
     var endAngle = 360f
-        set(@FloatRange(-360.0, 360.0) value) {
-            if (field != value) {
-                field = value
-                requestBufferUpdate()
-            }
-        }
-
-
-    private val segments
-        get() = calculateArcResolution(width, height)
 
 
     /**
@@ -67,51 +44,23 @@ open class UICircle : UIBufferedComponent<CircleVertexBuffer>() {
      */
     fun setPortion(value: Float) {
         endAngle = startAngle + 360f * value.coerceIn(-1f, 1f)
-        requestBufferUpdate()
     }
 
 
-    override fun beginDraw(gl: GL10) {
-        super.beginDraw(gl)
-        GLHelper.lineWidth(gl, lineWidth)
-    }
+    override fun doDraw(gl: GL10, camera: Camera) {
+        super.doDraw(gl, camera)
 
-    override fun createBuffer(): CircleVertexBuffer {
-        return CircleVertexBuffer(segments, paintStyle)
-    }
-
-    override fun canReuseBuffer(buffer: CircleVertexBuffer): Boolean {
-        return buffer.segments == segments && buffer.paintStyle == paintStyle
-    }
-
-    override fun onUpdateBuffer() {
-        buffer?.update(this)
-    }
-
-
-    class CircleVertexBuffer(val segments: Int, val paintStyle: PaintStyle) : VertexBuffer(
-
-        // Segments + Center point
-        vertexCount = segments + if (paintStyle == PaintStyle.Fill) 1 else 0,
-
-        vertexSize = VERTEX_2D,
-        bufferUsage = GL_STATIC_DRAW,
-        drawTopology = if (paintStyle == PaintStyle.Fill) GL_TRIANGLE_FAN else GL_LINE_STRIP
-    ) {
-
-        fun update(entity: UICircle) {
-
-            val halfWidth = entity.width / 2f
-            val halfHeight = entity.height / 2f
-
-            var position = 0
-
-            if (paintStyle == PaintStyle.Fill) {
-                putVertex(position++, halfWidth, halfHeight)
-            }
-
-            addArc(position, halfWidth, halfHeight, entity.startAngle, entity.endAngle, halfWidth, halfHeight, segments)
-        }
+        CircleRenderer.renderCircle(
+            gl = gl,
+            centerX = width / 2f,
+            centerY = height / 2f,
+            width = width,
+            height = height,
+            startAngle = startAngle,
+            endAngle = endAngle,
+            paintStyle = paintStyle,
+            lineWidth = lineWidth
+        )
     }
 
 

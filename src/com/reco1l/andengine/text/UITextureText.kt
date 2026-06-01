@@ -1,19 +1,17 @@
 package com.reco1l.andengine.text
 
 import com.reco1l.andengine.buffered.*
-import com.reco1l.andengine.text.UITextureText.*
 import com.reco1l.andengine.theme.Size
 import org.anddev.andengine.engine.camera.*
 import org.anddev.andengine.opengl.texture.region.*
 import org.anddev.andengine.opengl.util.GLHelper
 import javax.microedition.khronos.opengles.*
-import javax.microedition.khronos.opengles.GL11.*
 import kotlin.math.*
 
 /**
  * A text component that uses textures for each character.
  */
-open class UITextureText(val characters: MutableMap<Char, TextureRegion>) : UIBufferedComponent<TextureTextVertexBuffer>() {
+open class UITextureText(val characters: MutableMap<Char, TextureRegion>) : UIBufferedComponent() {
 
     /**
      * The spacing between glyphs.
@@ -170,38 +168,13 @@ open class UITextureText(val characters: MutableMap<Char, TextureRegion>) : UIBu
             gl.glPushMatrix()
             gl.glTranslatef(offsetX + (cellWidth - textureWidth) / 2f, 0f, 0f)
 
-            buffer?.update(textureWidth, textureHeight)
             texture.onApply(gl)
 
-            onDeclarePointers(gl)
-            onDrawBuffer(gl)
+            QuadRenderer.renderQuad(gl, 0f, 0f, textureWidth, textureHeight)
 
             gl.glPopMatrix()
 
             offsetX += cellWidth + spacing
-        }
-    }
-
-    override fun createBuffer(): TextureTextVertexBuffer {
-        return TextureTextVertexBuffer()
-    }
-
-    override fun canReuseBuffer(buffer: TextureTextVertexBuffer): Boolean {
-        return true
-    }
-
-    override fun onUpdateBuffer() {
-        // Nothing to do here, buffer is updated in `doDraw`.
-    }
-
-    class TextureTextVertexBuffer : VertexBuffer(
-        drawTopology = GL_TRIANGLE_STRIP,
-        vertexCount = 4,
-        vertexSize = VERTEX_2D,
-        bufferUsage = GL_DYNAMIC_DRAW
-    ) {
-        fun update(textureWidth: Float, textureHeight: Float) {
-            addQuad(0, 0f, 0f, textureWidth, textureHeight)
         }
     }
 }

@@ -11,6 +11,8 @@ import com.reco1l.andengine.container.UIScrollableContainer
 import com.reco1l.andengine.linearContainer
 import com.reco1l.andengine.shape.UIBox
 import com.reco1l.andengine.text
+import com.reco1l.andengine.theme.FontSize
+import com.reco1l.andengine.theme.Size
 import com.reco1l.framework.Color4
 import com.reco1l.framework.math.Vec4
 import org.anddev.andengine.input.touch.TouchEvent
@@ -34,11 +36,11 @@ class ReplaySettingsPanel : UIContainer() {
 
         scrollAxes = Axes.Y
         width = PANEL_WIDTH
-        height = FillParent
+        height = Size.Full
         showVerticalIndicator = false
 
         linearContainer {
-            width = FillParent
+            width = Size.Full
             spacing = 20f
             padding = Vec4(0f, 20f)
             orientation = Orientation.Vertical
@@ -49,7 +51,7 @@ class ReplaySettingsPanel : UIContainer() {
 
     init {
         x = PANEL_WIDTH
-        height = FillParent
+        height = Size.Full
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
         alpha = 0f
@@ -98,10 +100,8 @@ class ReplaySettingsPanel : UIContainer() {
 
     private inner class ReplaySettingsPanelButton : UIContainer() {
         init {
-            background = UIBox().apply {
-                cornerRadius = BUTTON_RADIUS
-                color = Color4(0xFF181825)
-            }
+            backgroundColor = Color4(0xFF181825)
+            radius = BUTTON_RADIUS
 
             setSize(BUTTON_WIDTH, 150f)
             y = -125f
@@ -113,7 +113,7 @@ class ReplaySettingsPanel : UIContainer() {
                 rotation = -90f
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                font = ResourceManager.getInstance().getFont("smallFont")
+                fontSize = FontSize.SM
                 text = "Settings"
             }
         }

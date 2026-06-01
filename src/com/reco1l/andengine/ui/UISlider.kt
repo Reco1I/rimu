@@ -4,7 +4,6 @@ import com.edlplan.framework.easing.Easing
 import com.reco1l.andengine.*
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.container.*
-import com.reco1l.andengine.modifier.ModifierType
 import com.reco1l.andengine.shape.*
 import com.reco1l.andengine.theme.Radius
 import com.reco1l.andengine.theme.Size
@@ -12,6 +11,7 @@ import com.reco1l.andengine.theme.rem
 import com.reco1l.framework.Interpolation
 import com.reco1l.framework.math.*
 import com.reco1l.toolkt.roundBy
+import com.rian.andengine.modifier.ModifierType
 import org.anddev.andengine.input.touch.*
 import kotlin.math.*
 

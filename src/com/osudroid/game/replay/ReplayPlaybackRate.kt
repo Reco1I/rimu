@@ -5,6 +5,7 @@ import com.reco1l.andengine.container.Orientation
 import com.reco1l.andengine.container.UILinearContainer
 import com.reco1l.andengine.linearContainer
 import com.reco1l.andengine.textButton
+import com.reco1l.andengine.theme.Size
 import com.reco1l.andengine.ui.form.FormSlider
 import com.reco1l.framework.math.Vec4
 import java.text.DecimalFormat
@@ -20,7 +21,7 @@ class ReplayPlaybackRate : UILinearContainer() {
 
     init {
         orientation = Orientation.Vertical
-        width = FillParent
+        width = Size.Full
 
         val slider = FormSlider(rate).apply {
             label = "Playback speed"

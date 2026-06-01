@@ -78,9 +78,9 @@ public class GameplaySpinner extends GameObject {
 
         metre = new UISprite();
         metre.setScaleType(ScaleType.Stretch);
-        metre.setPosition(background.getX() - background.getWidthScaled() / 2f, position.y);
+        metre.setPosition(background.getX() - background.getTransformedWidth() / 2f, position.y);
         metre.setTextureRegion(metreRegion);
-        metre.setWidth(background.getWidthScaled());
+        metre.setWidth(background.getTransformedWidth());
         metre.setHeight(background.getTransformedHeight());
 
         approachCircle = new UISprite();
@@ -169,8 +169,8 @@ public class GameplaySpinner extends GameObject {
         circle.setAlpha(0);
         circle.beginAbsoluteSequence(fadeInStartTime, sequence -> sequence.fadeIn(fadeDuration));
 
-        metreY = background.getY() - background.getHeightScaled() / 2f;
-        metre.setY(background.getY() + background.getHeightScaled() / 2f);
+        metreY = background.getY() - background.getTransformedHeight() / 2f;
+        metre.setY(background.getY() + background.getTransformedHeight() / 2f);
 
         metre.setAlpha(0);
         metre.beginAbsoluteSequence(fadeInStartTime, sequence -> sequence.fadeIn(fadeDuration));
@@ -392,12 +392,11 @@ public class GameplaySpinner extends GameObject {
 
             float fillOffset = 1 - Math.min(1, Math.abs(percentfill));
 
-            metre.setHeight(background.getHeightScaled() * Math.min(1, Math.abs(percentfill)));
-            metre.setPosition(metre.getX(), metreY + background.getHeightScaled() * fillOffset);
+            metre.setHeight(background.getTransformedHeight() * Math.min(1, Math.abs(percentfill)));
+            metre.setPosition(metre.getX(), metreY + background.getTransformedHeight() * fillOffset);
 
             metreRegion.setHeight((int) (metreRegionOriginalHeight * Math.min(1, Math.abs(percentfill))));
             metreRegion.setTexturePosition(0, (int) (metreRegionOriginalHeight * fillOffset));
-            metre.requestBufferUpdate();
 
             oldMouse.set(currMouse);
         }

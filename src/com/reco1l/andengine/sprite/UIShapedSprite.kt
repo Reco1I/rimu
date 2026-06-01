@@ -9,7 +9,7 @@ class UIShapedSprite : UISprite() {
     /**
      * The shape that will be used to mask the sprite.
      */
-    var shape: UIBufferedComponent<*>? = null
+    var shape: UIBufferedComponent? = null
 
 
     init {

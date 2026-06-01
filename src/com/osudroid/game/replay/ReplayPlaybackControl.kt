@@ -1,5 +1,6 @@
 package com.osudroid.game.replay
 
+import com.reco1l.andengine.theme.Size
 import com.reco1l.andengine.ui.UICard
 
 /**
@@ -17,7 +18,7 @@ class ReplayPlaybackControl : UICard() {
     val seekControl = ReplayPlaybackSeek()
 
     init {
-        width = FillParent
+        width = Size.Full
         title = "Playback"
 
         content.apply {

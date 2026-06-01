@@ -6,10 +6,10 @@ import com.edlplan.framework.easing.Easing
 import com.osudroid.*
 import com.osudroid.math.Precision
 import com.reco1l.andengine.*
+import com.reco1l.andengine.buffered.QuadRenderer
 import com.reco1l.andengine.shape.*
 import com.reco1l.andengine.theme.Size
 import com.reco1l.andengine.ui.*
-import com.rian.osu.math.Precision
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
 import com.reco1l.toolkt.kotlin.*
@@ -320,14 +320,14 @@ abstract class UIComponent : Entity(0f, 0f),
      * anchor and origin in the parent's coordinate system.
      */
     val absoluteX
-        get() = (if (attachmentMode == AttachmentMode.Child) parent.padding.left else 0f) + anchorPositionX - originPositionX + x + translationX
+        get() = parent.padding.left + anchorPositionX - originPositionX + x + translationX
 
     /**
      * The absolute position for the Y axis of the entity taking into account the
      * anchor and origin in the parent's coordinate system.
      */
     val absoluteY
-        get() = (if (attachmentMode == AttachmentMode.Child) parent.padding.top else 0f) + anchorPositionY - originPositionY + y + translationY
+        get() = parent.padding.top + anchorPositionY - originPositionY + y + translationY
 
 
     //endregion
@@ -374,65 +374,26 @@ abstract class UIComponent : Entity(0f, 0f),
      */
     var clipToBounds = false
 
+
     /**
      * The background color of this component.
      */
-    var backgroundColor
-        get() = background?.color ?: Color4.Transparent
-        set(value) {
-            if (background?.color != value) {
-                initializeBackground()
-                background!!.color = value
-            }
-        }
+    var backgroundColor = Color4.Transparent
 
     /**
      * The border color of this component.
      */
-    var borderColor
-        get() = border?.color ?: Color4.Transparent
-        set(value) {
-            if (border?.color != value) {
-                initializeBorder()
-                border!!.color = value
-            }
-        }
+    var borderColor = Color4.Transparent
 
     /**
      * The border width of this component.
      */
-    var borderWidth
-        get() = border?.lineWidth ?: 0f
-        set(value) {
-            if (border?.lineWidth != value) {
-                initializeBorder()
-                border!!.lineWidth = value
-            }
-        }
+    var borderWidth = 0f
 
     /**
-     * The corner radius of this component.
+     * The radius of the corners of this component. If the radius is greater than 0, the component will be drawn with rounded corners.
      */
-    open var radius = 0f
-        set(value) {
-            if (field != value) {
-                field = value
-                background?.radius = value
-                border?.radius = value
-            }
-        }
-
-    /**
-     * The box used to draw the background of this component.
-     */
-    protected var background: UIBox? = null
-        private set
-
-    /**
-     * The box used to draw the border of this component.
-     */
-    protected var border: UIBox? = null
-        private set
+    var radius = 0f
 
     //endregion
 
@@ -445,12 +406,6 @@ abstract class UIComponent : Entity(0f, 0f),
      * Whether the entity should be culled when it is outside the parent's bounds.
      */
     var cullingMode = CullingMode.Disabled
-
-    /**
-     * The mode in which the entity is attached to its parent.
-     */
-    var attachmentMode = AttachmentMode.None
-        private set
 
 
     private var invalidationFlags = InvalidationFlag.All
@@ -475,26 +430,7 @@ abstract class UIComponent : Entity(0f, 0f),
         invalidationFlags = invalidationFlags or flag
     }
 
-    private fun initializeBackground() {
-        if (background == null) {
-            background = UIBox().apply {
-                setParent(this@UIComponent, AttachmentMode.Decorator)
-                radius = this@UIComponent.radius
-                color = Color4.Transparent
-            }
-        }
-    }
 
-    private fun initializeBorder() {
-        if (border == null) {
-            border = UIBox().apply {
-                setParent(this@UIComponent, AttachmentMode.Decorator)
-                paintStyle = PaintStyle.Outline
-                radius = this@UIComponent.radius
-                color = Color4.Transparent
-            }
-        }
-    }
 
     //endregion
 
@@ -506,47 +442,15 @@ abstract class UIComponent : Entity(0f, 0f),
     open fun onContentChanged() {}
 
 
-    override fun detachSelf(): Boolean {
-
-        if (parent == null) {
-            return false
-        }
-
-        if (attachmentMode == AttachmentMode.Decorator) {
-            parent = null
-            onDetached()
-            return true
-        }
-
-        return super.detachSelf()
-    }
-
     fun setParent(entity: IEntity?, mode: AttachmentMode?) {
-
         when (val parent = parent) {
             is Scene -> parent.unregisterTouchArea(this)
             is UIComponent -> parent.onChildDetached(this)
         }
-
         super.setParent(entity)
-
-        attachmentMode = if (entity == null) AttachmentMode.None else mode ?: AttachmentMode.Child
-
         when (entity) {
             is Scene -> entity.registerTouchArea(this)
             is UIComponent -> entity.onChildAttached(this)
-        }
-
-        if (attachmentMode == AttachmentMode.Decorator) {
-            // Set color-inheritance to false for decorators by default, but allowing to
-            // change this after attaching if needed.
-            inheritAncestorsColor = false
-
-            if (entity == null) {
-                onDetached()
-            } else {
-                onAttached()
-            }
         }
     }
 
@@ -689,38 +593,6 @@ abstract class UIComponent : Entity(0f, 0f),
         }
     }
 
-    fun onApplyColor(gl: GL10) {
-
-        var red = mRed
-        var green = mGreen
-        var blue = mBlue
-        var alpha = mAlpha
-        var parent = parent
-        var inheritColor = inheritAncestorsColor
-
-        while (parent != null) {
-
-            if (inheritColor) {
-                red *= parent.red
-                green *= parent.green
-                blue *= parent.blue
-            }
-            alpha *= parent.alpha
-
-            if (red == 0f && green == 0f && blue == 0f || alpha == 0f) {
-                break
-            }
-
-            if (parent is UIComponent && !parent.inheritAncestorsColor) {
-                inheritColor = false
-            }
-
-            parent = parent.parent
-        }
-
-        GLHelper.setColor(gl, red, green, blue, alpha)
-    }
-
     override fun onDraw(gl: GL10, camera: Camera) {
 
         val isCulled = isCulled(camera)
@@ -823,21 +695,25 @@ abstract class UIComponent : Entity(0f, 0f),
         gl.glPushMatrix()
         onApplyTransformations(gl, camera)
 
-        background?.setSize(width, height)
-        background?.onHandleInvalidations()
-        background?.onDraw(gl, camera)
+        // Render background quad
+        if (!Precision.almostEquals(backgroundColor.alpha, 0f)) {
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, color = backgroundColor, inheritColors = inheritAncestorsColor)
+        }
 
+        // Render component and children
+        ColorStack.pushColor(gl, color, inheritAncestorsColor)
         doDraw(gl, camera)
         onDrawChildren(gl, camera)
+        ColorStack.popColor(gl)
 
-        border?.setSize(width, height)
-        border?.onHandleInvalidations()
-        border?.onDraw(gl, camera)
+        // Render border quad
+        if (!Precision.almostEquals(borderColor.alpha, 0f) && !Precision.almostEquals(borderWidth, 0f)) {
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, PaintStyle.Outline, borderColor, inheritAncestorsColor, borderWidth)
+        }
 
-        if (BuildSettings.SHOW_ENTITY_BOUNDARIES && DEBUG_FOREGROUND != this && attachmentMode != AttachmentMode.Decorator) {
-            DEBUG_FOREGROUND.setSize(width, height)
-            DEBUG_FOREGROUND.onHandleInvalidations()
-            DEBUG_FOREGROUND.onDraw(gl, camera)
+        // Debug outline
+        if (BuildSettings.SHOW_ENTITY_BOUNDARIES) {
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, PaintStyle.Outline, Color4.White, false)
         }
 
         gl.glPopMatrix()
@@ -848,7 +724,6 @@ abstract class UIComponent : Entity(0f, 0f),
         GLHelper.disableCulling(gl)
         GLHelper.disableTextures(gl)
         GLHelper.disableTexCoordArray(gl)
-        onApplyColor(gl)
     }
 
     override fun doDraw(gl: GL10, camera: Camera) {
@@ -880,12 +755,7 @@ abstract class UIComponent : Entity(0f, 0f),
     }
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
-
-        background?.onManagedUpdate(deltaTimeSec)
-        border?.onManagedUpdate(deltaTimeSec)
-
         updateModifiers()
-
         super.onManagedUpdate(deltaTimeSec)
     }
 
@@ -1835,9 +1705,6 @@ abstract class UIComponent : Entity(0f, 0f),
     //region Cosmetic functions
 
     open fun onStyle(theme: Theme) {
-        background?.onStyle(theme)
-        border?.onStyle(theme)
-
         style(theme)
     }
 
@@ -1890,9 +1757,6 @@ abstract class UIComponent : Entity(0f, 0f),
             loadState = LoadState.NotLoaded
         }
 
-        background?.updateClock(currentClock)
-        foreground?.updateClock(currentClock)
-
         mChildren?.fastForEach {
             @Suppress("UNCHECKED_CAST")
             (it as? IClockReceiver<IFrameBasedClock?>)?.updateClock(currentClock)
@@ -1902,34 +1766,7 @@ abstract class UIComponent : Entity(0f, 0f),
     //endregion
 
     companion object {
-
-        private val DEBUG_FOREGROUND by lazy {
-            UIBox().apply {
-                paintStyle = PaintStyle.Outline
-                color = Color4.White
-                lineWidth = 2f
-            }
-        }
-
         private val VERTICES_WRAPPER = FloatArray(8)
     }
 
-}
-
-/**
- * A function that applies a [Theme] to a [UIComponent].
- */
-typealias ThemeApplier = UIComponent.(theme: Theme) -> Unit
-
-/**
- * Combines two [ThemeApplier]s into one.
- *
- * The original [ThemeApplier] will be applied first if present, followed by [other].
- *
- * @param other The other [ThemeApplier] to combine with.
- * @return A new [ThemeApplier] that applies both the original and the other [ThemeApplier].
- */
-operator fun ThemeApplier?.plus(other: ThemeApplier): ThemeApplier = { theme ->
-    this@plus?.invoke(this, theme)
-    other.invoke(this, theme)
 }

@@ -3,11 +3,11 @@ package com.reco1l.andengine.ui
 import com.edlplan.framework.easing.Easing
 import com.reco1l.andengine.*
 import com.reco1l.andengine.component.*
-import com.reco1l.andengine.modifier.ModifierType
 import com.reco1l.andengine.text.FontAwesomeIcon
 import com.reco1l.andengine.theme.Icon
 import com.reco1l.andengine.theme.Size
 import com.reco1l.framework.*
+import com.rian.andengine.modifier.ModifierType
 import org.anddev.andengine.engine.camera.*
 import javax.microedition.khronos.opengles.*
 

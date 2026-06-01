@@ -89,9 +89,9 @@ class BeatmapInfoLayout : UILinearContainer() {
                 }
 
                 creatorText = text {
-                    font = ResourceManager.getInstance().getFont("smallFont")
+                    fontSize = FontSize.SM
                     text = "Unknown"
-                    applyTheme = { color = it.accentColor * 0.8f }
+                    style = { color = it.accentColor * 0.8f }
                 }
             }
 
@@ -156,7 +156,7 @@ class BeatmapInfoLayout : UILinearContainer() {
                 bpmBadge = badge {
                     leadingIcon = UISprite(ResourceManager.getInstance().getTexture("bpm"))
                     text = "0"
-                    font = ResourceManager.getInstance().getFont("xs")
+                    fontSize = FontSize.XS
                     sizeVariant = SizeVariant.Small
                 }
             }

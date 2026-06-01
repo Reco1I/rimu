@@ -6,6 +6,7 @@ import android.graphics.PointF;
 import com.osudroid.utils.Execution;
 import com.reco1l.andengine.Anchor;
 import com.reco1l.andengine.UIScene;
+import com.reco1l.andengine.component.BlendInfo;
 import com.reco1l.andengine.component.ComponentsKt;
 import com.reco1l.andengine.sprite.UIAnimatedSprite;
 import com.reco1l.andengine.sprite.UISprite;
@@ -69,7 +70,7 @@ public class GameEffect extends GameObject {
         hit.setScale(scale);
         hit.setAlpha(1);
         hit.detachSelf();
-        hit.setBlendFunction(Shape.BLENDFUNCTION_SOURCE_DEFAULT, Shape.BLENDFUNCTION_DESTINATION_DEFAULT);
+        hit.setBlendInfo(new BlendInfo(Shape.BLENDFUNCTION_SOURCE_DEFAULT, Shape.BLENDFUNCTION_DESTINATION_DEFAULT));
         scene.attachChild(hit);
 
         duration = 0;
@@ -91,7 +92,7 @@ public class GameEffect extends GameObject {
     }
 
     public void setBlendFunction(int sourceBlend, int destBlend) {
-        hit.setBlendFunction(sourceBlend, destBlend);
+        hit.setBlendInfo(new BlendInfo(sourceBlend, destBlend));
     }
 
     public String getTexname() {

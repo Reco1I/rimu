@@ -5,7 +5,10 @@ import com.reco1l.andengine.container.Orientation
 import com.reco1l.andengine.container.UILinearContainer
 import com.reco1l.andengine.iconButton
 import com.reco1l.andengine.linearContainer
+import com.reco1l.andengine.text.FontAwesomeIcon
 import com.reco1l.andengine.textButton
+import com.reco1l.andengine.theme.Icon
+import com.reco1l.andengine.theme.Size
 import com.reco1l.andengine.ui.form.FormSlider
 import com.reco1l.framework.math.Vec4
 import java.text.DecimalFormat
@@ -68,7 +71,7 @@ class ReplayPlaybackSeek : UILinearContainer() {
 
     init {
         orientation = Orientation.Vertical
-        width = FillParent
+        width = Size.Full
 
         +seekBar
 
@@ -89,15 +92,13 @@ class ReplayPlaybackSeek : UILinearContainer() {
             addSeekButton(-1f)
 
             iconButton {
-                val resourceManager = ResourceManager.getInstance()
-
                 height = 42f
                 padding = Vec4(12f, 0f)
-                icon = resourceManager.getTexture("music_pause")
+                icon = FontAwesomeIcon(Icon.Pause)
 
                 onActionUp = {
                     isPlaybackPaused = !isPlaybackPaused
-                    icon = resourceManager.getTexture(if (isPlaybackPaused) "music_play" else "music_pause")
+                    icon = FontAwesomeIcon(if (isPlaybackPaused) Icon.Play else Icon.Pause)
                     onPauseToggle?.invoke(isPlaybackPaused)
                 }
             }

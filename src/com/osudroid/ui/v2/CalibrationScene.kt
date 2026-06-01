@@ -11,15 +11,10 @@ import com.reco1l.andengine.UIEngine
 import com.reco1l.andengine.UIScene
 import com.reco1l.andengine.box
 import com.reco1l.andengine.circle
-import com.reco1l.andengine.component.UIComponent.Companion.FillParent
-import com.reco1l.andengine.component.UIComponent.Companion.MatchContent
 import com.reco1l.andengine.component.scaleCenter
 import com.reco1l.andengine.component.setText
-import com.reco1l.andengine.container.FlexDirection
-import com.reco1l.andengine.container.JustifyContent
 import com.reco1l.andengine.container.Orientation
 import com.reco1l.andengine.container.UIContainer
-import com.reco1l.andengine.flexContainer
 import com.reco1l.andengine.linearContainer
 import com.reco1l.andengine.shape.PaintStyle
 import com.reco1l.andengine.shape.UIBox
@@ -35,11 +30,13 @@ import com.reco1l.andengine.ui.UITextButton
 import com.reco1l.framework.Color4
 import com.reco1l.framework.math.Vec4
 import com.reco1l.osu.ui.PromptDialog
-import com.rian.andengine.modifier.ModifierType
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.math.Interpolation
 import com.osudroid.utils.median
 import com.osudroid.utils.standardDeviation
+import com.reco1l.andengine.fillContainer
+import com.reco1l.andengine.theme.FontSize
+import com.reco1l.andengine.theme.Size
 import com.rian.andengine.modifier.ModifierType
 import kotlin.math.abs
 import kotlin.math.exp
@@ -102,9 +99,9 @@ object CalibrationScene : UIScene() {
 
         // Background
         box {
-            width = FillParent
-            height = FillParent
-            applyTheme = { color = it.accentColor * 0.08f }
+            width = Size.Full
+            height = Size.Full
+            style = { color = it.accentColor * 0.08f }
         }
 
         val tapAreaSize = CIRCLE_DIAMETER * APPROACH_SCALE_START
@@ -149,47 +146,47 @@ object CalibrationScene : UIScene() {
             origin = Anchor.Center
 
             circle {
-                width = FillParent
-                height = FillParent
+                width = Size.Full
+                height = Size.Full
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                applyTheme = { color = it.accentColor * 0.35f }
+                style = { color = it.accentColor * 0.35f }
                 hitCircleFill = this
             }
 
             circle {
-                width = FillParent
-                height = FillParent
+                width = Size.Full
+                height = Size.Full
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 paintStyle = PaintStyle.Outline
                 lineWidth = 8f
-                applyTheme = { color = it.accentColor }
+                style = { color = it.accentColor }
             }
 
             circle {
-                width = FillParent
-                height = FillParent
+                width = Size.Full
+                height = Size.Full
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 paintStyle = PaintStyle.Outline
                 lineWidth = 6f
                 scaleCenter = Anchor.Center
                 setScale(APPROACH_SCALE_START)
-                applyTheme = { color = it.accentColor * 0.85f }
+                style = { color = it.accentColor * 0.85f }
                 approachCircle = this
             }
 
             circle {
-                width = FillParent
-                height = FillParent
+                width = Size.Full
+                height = Size.Full
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 paintStyle = PaintStyle.Outline
                 lineWidth = 6f
                 scaleCenter = Anchor.Center
                 alpha = 0f
-                applyTheme = { color = it.accentColor }
+                style = { color = it.accentColor }
                 rippleCircle = this
             }
         }
@@ -197,7 +194,7 @@ object CalibrationScene : UIScene() {
         attachChild(circleContainer)
 
         text {
-            font = ResourceManager.getInstance().getFont("smallFont")
+            fontSize = FontSize.SM
             alignment = Anchor.Center
             anchor = Anchor.Center
             origin = Anchor.BottomCenter
@@ -208,7 +205,7 @@ object CalibrationScene : UIScene() {
         }
 
         text {
-            font = ResourceManager.getInstance().getFont("smallFont")
+            fontSize = FontSize.SM
             alignment = Anchor.Center
             anchor = Anchor.Center
             origin = Anchor.TopCenter
@@ -217,7 +214,7 @@ object CalibrationScene : UIScene() {
         }
 
         text {
-            font = ResourceManager.getInstance().getFont("smallFont")
+            fontSize = FontSize.SM
             alignment = Anchor.Center
             anchor = Anchor.Center
             origin = Anchor.TopCenter
@@ -228,52 +225,49 @@ object CalibrationScene : UIScene() {
 
         text {
             setText(string.opt_offset_calibration_tap_hint)
-            font = ResourceManager.getInstance().getFont("smallFont")
+            fontSize = FontSize.SM
             alignment = Anchor.BottomCenter
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
             translationY = -28f
-            applyTheme = { color = it.accentColor * 0.45f }
+            style = { color = it.accentColor * 0.45f }
         }
 
-        flexContainer {
+        fillContainer {
             width = 300f
-            height = MatchContent
             anchor = Anchor.CenterRight
             origin = Anchor.CenterRight
             translationX = -20f
-            direction = FlexDirection.Column
-            justifyContent = JustifyContent.Center
-            gap = 20f
+            orientation = Orientation.Vertical
             padding = Vec4(24f)
 
-            background = UIBox().apply {
-                cornerRadius = 16f
-                applyTheme = { color = it.accentColor * 0.15f }
+            style = {
+                radius = 16f
+                backgroundColor = it.accentColor * 0.15f
             }
 
             text {
                 setText(string.opt_offset_calibration_calibration)
-                font = ResourceManager.getInstance().getFont("smallFont")
+                fontSize = FontSize.SM
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                applyTheme = { color = it.accentColor }
+                style = { color = it.accentColor }
             }
 
             box {
-                width = FillParent
+                width = Size.Full
                 height = 1f
-                applyTheme = { color = it.accentColor * 0.2f }
+                style = { color = it.accentColor * 0.2f }
             }
 
             text {
                 text = "BPM"
-                font = ResourceManager.getInstance().getFont("smallFont")
+                fontSize = FontSize.SM
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                applyTheme = { color = it.accentColor * 0.6f }
+                style = { color = it.accentColor * 0.6f }
             }
 
             linearContainer {
@@ -284,7 +278,7 @@ object CalibrationScene : UIScene() {
 
                 textButton {
                     leadingIcon = FontAwesomeIcon(Icon.CaretDown).apply {
-                        applyTheme = { color = it.accentColor }
+                        style = { color = it.accentColor }
                     }
                     onActionUp = { changeBpm(-STEP_BPM) }
                     onActionLongPress = { changeBpm(-STEP_BPM_LONG) }
@@ -294,18 +288,18 @@ object CalibrationScene : UIScene() {
                     text = currentBpm.toString()
                     alignment = Anchor.Center
                     minWidth = 110f
-                    background = UIBox().apply {
-                        cornerRadius = 8f
-                        applyTheme = { color = it.accentColor * 0.12f }
+                    style = {
+                        radius = 8f
+                        backgroundColor = it.accentColor * 0.12f
+                        color = it.accentColor
                     }
-                    applyTheme = { color = it.accentColor }
                     onActionUp = { showBpmInputDialog() }
                     bpmValueText = this
                 }
 
                 textButton {
                     leadingIcon = FontAwesomeIcon(Icon.CaretUp).apply {
-                        applyTheme = { color = it.accentColor }
+                        style = { color = it.accentColor }
                     }
                     onActionUp = { changeBpm(STEP_BPM) }
                     onActionLongPress = { changeBpm(STEP_BPM_LONG) }
@@ -313,18 +307,18 @@ object CalibrationScene : UIScene() {
             }
 
             box {
-                width = FillParent
+                width = Size.Full
                 height = 1f
-                applyTheme = { color = it.accentColor * 0.2f }
+                style = { color = it.accentColor * 0.2f }
             }
 
             text {
                 setText(string.opt_offset_calibration_offset)
-                font = ResourceManager.getInstance().getFont("smallFont")
+                fontSize = FontSize.SM
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                applyTheme = { color = it.accentColor * 0.6f }
+                style = { color = it.accentColor * 0.6f }
             }
 
             linearContainer {
@@ -335,7 +329,7 @@ object CalibrationScene : UIScene() {
 
                 textButton {
                     leadingIcon = FontAwesomeIcon(Icon.CaretDown).apply {
-                        applyTheme = { color = it.accentColor }
+                        style = { color = it.accentColor }
                     }
                     onActionUp = { changeOffset(-STEP_MS) }
                     onActionLongPress = { changeOffset(-STEP_MS_LONG) }
@@ -345,18 +339,18 @@ object CalibrationScene : UIScene() {
                     text = formatOffset(pendingOffset)
                     alignment = Anchor.Center
                     minWidth = 110f
-                    background = UIBox().apply {
-                        cornerRadius = 8f
-                        applyTheme = { color = it.accentColor * 0.12f }
+                    style = {
+                        color = it.accentColor
+                        radius = 8f
+                        backgroundColor = it.accentColor * 0.12f
                     }
-                    applyTheme = { color = it.accentColor }
                     onActionUp = { showOffsetInputDialog() }
                     offsetValueText = this
                 }
 
                 textButton {
                     leadingIcon = FontAwesomeIcon(Icon.CaretUp).apply {
-                        applyTheme = { color = it.accentColor }
+                        style = { color = it.accentColor }
                     }
                     onActionUp = { changeOffset(STEP_MS) }
                     onActionLongPress = { changeOffset(STEP_MS_LONG) }
@@ -379,9 +373,9 @@ object CalibrationScene : UIScene() {
                 setText(string.opt_offset_calibration_reset)
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                applyTheme = {}
+                style = {}
                 color = Color4(0xFFFFBFBF)
-                background?.color = Color4(0xFF342121)
+                backgroundColor = Color4(0xFF342121)
                 onActionUp = {
                     playShortClickSound()
                     pendingOffset = 0
@@ -396,38 +390,34 @@ object CalibrationScene : UIScene() {
 
         }
 
-        flexContainer {
+        fillContainer {
             width = 400f
-            height = MatchContent
             anchor = Anchor.BottomLeft
             origin = Anchor.BottomLeft
             translationX = 20f
             translationY = -20f
-            direction = FlexDirection.Column
-            justifyContent = JustifyContent.Center
-            gap = 8f
+            orientation = Orientation.Vertical
             padding = Vec4(14f)
-
-            background = UIBox().apply {
-                cornerRadius = 16f
-                applyTheme = { color = it.accentColor * 0.15f }
+            style = {
+                radius = 16f
+                backgroundColor = it.accentColor * 0.15f
             }
 
             // Header
             text {
                 setText(string.opt_offset_calibration_settings)
-                font = ResourceManager.getInstance().getFont("smallFont")
+                fontSize = FontSize.SM
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                applyTheme = { color = it.accentColor }
+                style = { color = it.accentColor }
             }
 
             // Divider
             box {
-                width = FillParent
+                width = Size.Full
                 height = 1f
-                applyTheme = { color = it.accentColor * 0.2f }
+                style = { color = it.accentColor * 0.2f }
             }
 
             // Setting row: label (left) + ON/OFF toggle (right)
@@ -436,21 +426,19 @@ object CalibrationScene : UIScene() {
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
                 spacing = 8f
-                width = FillParent
+                width = Size.Full
 
                 text {
                     setText(string.opt_highPrecisionInput_title)
-                    font = ResourceManager.getInstance().getFont("smallFont")
+                    fontSize = FontSize.SM
                     alignment = Anchor.CenterLeft
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    applyTheme = { color = it.accentColor * 0.9f }
+                    style = { color = it.accentColor * 0.9f }
                 }
 
-                highPrecisionToggle = object : UICheckbox(Config.isHighPrecisionInput()) {
-                    override fun onValueChanged() {
-                        super.onValueChanged()
-
+                highPrecisionToggle = UICheckbox(Config.isHighPrecisionInput()).apply {
+                    onValueChange =  {
                         Config.setBoolean("highPrecisionInput", value)
                     }
                 }
@@ -460,13 +448,13 @@ object CalibrationScene : UIScene() {
             // Description below the row
             text {
                 setText(string.opt_highPrecisionInput_summary)
-                font = ResourceManager.getInstance().getFont("smallFont")
-                width = FillParent
+                fontSize = FontSize.SM
+                width = Size.Full
                 clipToBounds = true
                 alignment = Anchor.TopLeft
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
-                applyTheme = { color = it.accentColor * 0.5f }
+                style = { color = it.accentColor * 0.5f }
             }
         }
     }

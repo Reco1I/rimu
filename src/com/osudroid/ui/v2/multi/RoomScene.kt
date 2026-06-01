@@ -31,8 +31,6 @@ import com.reco1l.andengine.UIEngine
 import com.reco1l.andengine.UIScene
 import com.reco1l.andengine.badge
 import com.reco1l.andengine.box
-import com.reco1l.andengine.component.plus
-import com.reco1l.andengine.component.UIComponent.Companion.FillParent
 import com.reco1l.andengine.component.forEach
 import com.reco1l.andengine.component.setText
 import com.reco1l.andengine.container
@@ -399,8 +397,7 @@ class RoomScene(
                             leadingIcon = FontAwesomeIcon(Icon.ArrowRightFromBracket)
                     setText(R.string.multiplayer_room_leave)
                     color = Color4(0xFFFFBFBF)
-                    background?.color = Color4(0xFF342121)
-                    applyTheme = {}
+                    backgroundColor = Color4(0xFF342121)
                     onActionUp = { leaveDialog.show() }
                 }
 

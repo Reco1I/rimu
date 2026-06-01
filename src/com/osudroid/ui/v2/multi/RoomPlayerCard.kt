@@ -72,7 +72,7 @@ class RoomPlayerCard : UILinearContainer() {
                 attachChild(teamColorBar, 0)
             }
 
-            teamColorBar.background?.color = when (player.team) {
+            teamColorBar.backgroundColor = when (player.team) {
                 Blue -> Colors.Blue400 * 0.8f
                 Red -> Colors.Red400 * 0.8f
                 null -> Theme.current.accentColor * 0.6f
@@ -133,7 +133,7 @@ class RoomPlayerCard : UILinearContainer() {
             private set
 
         private val defaultBackground = UIBox().apply {
-            cornerRadius = 12f
+            radius = 12f
             color = Theme.current.accentColor * 0.15f
             alpha = 0.5f
         }
@@ -142,12 +142,12 @@ class RoomPlayerCard : UILinearContainer() {
         private val defaultAvatar = ResourceManager.getInstance().getTexture("emptyavatar")
 
         private val hostIcon = FontAwesomeIcon(Icon.Crown).apply {
-            applyTheme = { color = it.accentColor }
+            style = { color = it.accentColor }
             size = Vec2(24f)
         }
 
         private val mutedIcon = FontAwesomeIcon(Icon.MicrophoneSlash).apply {
-            applyTheme = { color = OsuColors.redLight }
+            style = { color = OsuColors.redLight }
             size = Vec2(24f)
         }
 
@@ -173,7 +173,7 @@ class RoomPlayerCard : UILinearContainer() {
 
                 shape = object : UIBox() {
                     init {
-                        cornerRadius = 12f
+                        radius = 12f
                         color = Color4.Transparent
                     }
 
@@ -195,7 +195,7 @@ class RoomPlayerCard : UILinearContainer() {
 
                 shape = object : UIBox() {
                     init {
-                        cornerRadius = 8f
+                        radius = 8f
                         color = Color4.Transparent
                     }
 
@@ -211,8 +211,8 @@ class RoomPlayerCard : UILinearContainer() {
             +avatarSprite
 
             container {
-                width = FillParent
-                height = FillParent
+                width = Size.Full
+                height = Size.Full
 
                 innerContainer = linearContainer {
                     anchor = Anchor.CenterLeft
@@ -220,15 +220,18 @@ class RoomPlayerCard : UILinearContainer() {
                     orientation = Orientation.Vertical
                     inheritAncestorsColor = false
 
-                nameText = compoundText {
-                    style = { color = it.accentColor }
-                }
+                    nameText = compoundText {
+                        style = { color = it.accentColor }
+                    }
 
-                rankText = text {
-                    anchor = Anchor.CenterRight
-                    origin = Anchor.CenterRight
-                    applyTheme = { color = it.accentColor * 0.8f }
-                    font = ResourceManager.getInstance().getFont("CaptionFont")
+                    rankText = text {
+                        anchor = Anchor.CenterRight
+                        origin = Anchor.CenterRight
+                        style = {
+                            color = it.accentColor * 0.8f
+                            fontSize = FontSize.SM
+                        }
+                    }
                 }
             }
         }
@@ -409,10 +412,10 @@ class RoomPlayerCard : UILinearContainer() {
 
             if (loadedTexture != null) {
                 bannerSprite.textureRegion = loadedTexture
-                background = bannerSprite
+                //background = bannerSprite
             } else {
                 bannerSprite.textureRegion = null
-                background = defaultBackground
+                //background = defaultBackground
 
                 bannerJob = async {
                     ensureActive()
@@ -426,14 +429,14 @@ class RoomPlayerCard : UILinearContainer() {
                             if (lastPlayerId == userId) {
                                 bannerSprite.textureRegion = texture
                                 if (texture != null) {
-                                    background = bannerSprite
+                                    //background = bannerSprite
                                 }
                             }
                         }
                     } else {
                         updateThread {
                             if (lastPlayerId == userId) {
-                                background = defaultBackground
+                                //background = defaultBackground
                             }
                         }
                     }

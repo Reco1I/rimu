@@ -7,6 +7,7 @@ import com.reco1l.andengine.Anchor
 import com.reco1l.andengine.UIEngine
 import com.reco1l.andengine.shape.UIBox
 import com.reco1l.andengine.text.UIText
+import com.reco1l.andengine.theme.FontSize
 import com.reco1l.framework.math.Vec4
 import java.util.Formatter
 import java.util.Locale
@@ -68,18 +69,14 @@ class FPSCounter : UIText() {
     private val maximumTextColor = Color4(0xccff99)
 
     init {
-        font = ResourceManager.getInstance().getFont("smallFont")
+        fontSize = FontSize.SM
         padding = Vec4(6f, 4f)
         anchor = Anchor.BottomRight
         origin = Anchor.BottomRight
         alignment = Anchor.Center
-
-        background = UIBox().apply {
-            cornerRadius = 8f
-            applyTheme = {
-                color = it.accentColor * 0.1f
-                alpha = 0.8f
-            }
+        style = {
+            backgroundColor = it.accentColor * 0.1f
+            radius = 8f
         }
     }
 

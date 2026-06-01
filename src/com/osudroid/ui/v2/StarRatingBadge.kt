@@ -54,7 +54,7 @@ class StarRatingBadge : UIBadge() {
     override fun onManagedUpdate(deltaTimeSec: Float) {
         if (counter.isRolling) {
             text = "%.2f".format(counter.currentValue)
-            background?.color = OsuColors.getStarRatingColor(counter.currentValue)
+            backgroundColor = OsuColors.getStarRatingColor(counter.currentValue)
 
             if (counter.currentValue >= 6.5) {
                 color = OsuColors.getStarRatingTextColor(counter.currentValue)
