@@ -1,10 +1,9 @@
 package com.reco1l.andengine
 
-import android.util.Log
 import com.reco1l.andengine.component.BlendInfo
 import com.reco1l.andengine.component.DepthInfo
 import com.reco1l.framework.math.Vec4
-import com.reco1l.toolkt.kotlin.fastForEach
+import org.anddev.andengine.opengl.texture.ITexture
 import org.anddev.andengine.opengl.texture.atlas.TextureAtlas
 import org.anddev.andengine.opengl.texture.source.ITextureAtlasSource
 import org.anddev.andengine.opengl.util.GLHelper
@@ -36,6 +35,7 @@ object UIRenderer {
         private set
 
 
+    private val bufferPool = LinkedList<VertexBuffer>()
     private val stateQueue = LinkedList<RenderState>()
 
 
@@ -51,7 +51,7 @@ object UIRenderer {
      * Sets the current rendering state.
      */
     fun setState(
-        texture: TextureAtlas<out ITextureAtlasSource>? = state.texture,
+        texture: ITexture? = state.texture,
         primitiveType: Int = state.primitiveType,
         blendInfo: BlendInfo = state.blendInfo,
         depthInfo: DepthInfo = state.depthInfo,
@@ -66,8 +66,14 @@ object UIRenderer {
         }
 
         if (queueState == null) {
-            Log.v("UIRenderer", "Creating new RenderState: texture=$texture, primitiveType=$primitiveType, blendInfo=$blendInfo, depthInfo=$depthInfo)")
-            val newState = RenderState(texture, primitiveType, blendInfo, depthInfo, scissor)
+            val newState = RenderState(
+                bufferPool.poll() ?: VertexBuffer(32),
+                texture,
+                primitiveType,
+                blendInfo,
+                depthInfo,
+                scissor
+            )
             stateQueue.add(newState)
             state = newState
         } else {
@@ -81,17 +87,17 @@ object UIRenderer {
      * It will flush all the states in the state queue and clear it for the next frame.
      */
     fun end(gl: GL10) {
-        stateQueue.fastForEach { state ->
-            if (state.flush(gl))
+        while (stateQueue.isNotEmpty()) {
+            val state = stateQueue.removeFirst()
+            if (state.flush(gl)) {
                 drawCallsOnFrame++
+            }
+            bufferPool.add(state.buffer)
         }
     }
 
     fun RenderState.flush(gl: GL10): Boolean {
-        val limit = buffer.position()
-        if (limit == 0) return false
-
-        buffer.limit(limit)
+        if (buffer.stored == 0) return false
 
         GLHelper.disableCulling(gl)
 
@@ -105,8 +111,6 @@ object UIRenderer {
                 scissor.z.toInt(),
                 scissor.w.toInt()
             )
-        } else {
-            GLHelper.disableScissorTest(gl)
         }
 
         GLHelper.setDepthTest(gl, depthInfo.test)
@@ -122,36 +126,32 @@ object UIRenderer {
             GLHelper.disableBlend(gl)
         }
 
-        buffer.position(POSITION_OFFSET)
+        buffer.offsetToPosition()
         GLHelper.enableVertexArray(gl)
-        gl.glVertexPointer(POSITION_SIZE, GL10.GL_FLOAT, VERTEX_STRIDE * Float.SIZE_BYTES, buffer)
+        gl.glVertexPointer(POSITION_SIZE, GL10.GL_FLOAT, VERTEX_STRIDE * Float.SIZE_BYTES, buffer.getInternalBuffer())
 
-        buffer.position(COLOR_OFFSET)
+        buffer.offsetToColor()
         gl.glEnableClientState(GL10.GL_COLOR_ARRAY)
-        gl.glColorPointer(COLOR_SIZE, GL10.GL_FLOAT, VERTEX_STRIDE * Float.SIZE_BYTES, buffer)
+        gl.glColorPointer(COLOR_SIZE, GL10.GL_FLOAT, VERTEX_STRIDE * Float.SIZE_BYTES, buffer.getInternalBuffer())
 
         val texture = texture
         if (texture != null) {
             GLHelper.enableTextures(gl)
             texture.bind(gl)
 
-            buffer.position(TEXTURE_OFFSET)
+            buffer.offsetToTexture()
             GLHelper.enableTexCoordArray(gl)
-            gl.glTexCoordPointer(
-                TEXTURE_SIZE,
-                GL10.GL_FLOAT,
-                VERTEX_STRIDE * Float.SIZE_BYTES,
-                buffer
-            )
+            gl.glTexCoordPointer(TEXTURE_SIZE, GL10.GL_FLOAT, VERTEX_STRIDE * Float.SIZE_BYTES, buffer.getInternalBuffer())
         } else {
             GLHelper.disableTextures(gl)
             GLHelper.disableTexCoordArray(gl)
         }
 
-        gl.glDrawArrays(primitiveType, 0, limit / VERTEX_STRIDE)
+        gl.glDrawArrays(primitiveType, 0, buffer.stored)
 
         // Disable color array after drawing for compatibility with AndEngine's default rendering pipeline.
         gl.glDisableClientState(GL10.GL_COLOR_ARRAY)
+        GLHelper.disableScissorTest(gl)
 
         buffer.clear()
         return true

@@ -37,7 +37,7 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
      * The root font size in pixels, adjusted for display density.
      */
     val rootFontSize
-        get() = if (Config.getBoolean("use_legacy_resolution_policy", false))
+        get() = if (Config.getBoolean("use_legacy_resolution_policy", true))
             CSS_BASE_ROOT_FONT_SIZE * fontScale * (1f + legacyResolutionPolicyScaleRatio)
         else
             CSS_BASE_ROOT_FONT_SIZE * displayDensity * fontScale
@@ -60,7 +60,7 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
     var safeArea = Vec4.Zero
         set(value) {
             if (field != value) {
-                field = if (Config.getBoolean("use_legacy_resolution_policy", false)) {
+                field = if (Config.getBoolean("use_legacy_resolution_policy", true)) {
                     value / (1f + legacyResolutionPolicyScaleRatio)
                 } else {
                     value

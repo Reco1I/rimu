@@ -5,7 +5,7 @@ import org.anddev.andengine.opengl.texture.region.TextureRegion
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 import com.osudroid.ui.skinning.StringSkinData
 
-open class SpriteFont(private val texturePrefix: StringSkinData) : UITextureText(mutableMapOf<Char, TextureRegion>().also {
+open class SpriteFont(private val texturePrefix: StringSkinData) : UITextureText(mutableMapOf<Char, TextureRegion?>().also {
 
     fun addChar(char: Char, textureName: String) {
         it[char] = ResourceManager.getInstance().getTextureWithPrefix(texturePrefix, textureName)

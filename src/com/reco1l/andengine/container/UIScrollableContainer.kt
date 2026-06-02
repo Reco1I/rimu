@@ -3,8 +3,11 @@ package com.reco1l.andengine.container
 import androidx.annotation.*
 import com.osudroid.math.Precision
 import com.reco1l.andengine.*
+import com.reco1l.andengine.buffered.QuadRenderer
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.shape.*
+import com.reco1l.andengine.theme.rem
+import com.reco1l.andengine.theme.srem
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
 import org.anddev.andengine.engine.camera.*
@@ -148,39 +151,6 @@ open class UIScrollableContainer : UIContainer() {
      */
     var showVerticalIndicator = true
 
-    /**
-     * The scroll indicator for the x-axis that shows the current scroll position.
-     */
-    var horizontalIndicator: UIComponent? = UIBox().apply {
-        color = Color4.White
-        height = 6f
-        alpha = 0.5f
-        radius = 3f
-    }
-        set(value) {
-            if (field != value) {
-                field?.detachSelf()
-                field = value
-                field?.setParent(this, AttachmentMode.Decorator)
-            }
-        }
-
-    /**
-     * The scroll indicator for the y-axis that shows the current scroll position.
-     */
-    var verticalIndicator: UIComponent? = UIBox().apply {
-        color = Color4.White
-        width = 6f
-        alpha = 0.5f
-        radius = 3f
-    }
-        set(value) {
-            if (field != value) {
-                field?.detachSelf()
-                field = value
-                field?.setParent(this, AttachmentMode.Decorator)
-            }
-        }
 
     //endregion
 
@@ -229,6 +199,9 @@ open class UIScrollableContainer : UIContainer() {
     private var deltaX = 0f
     private var deltaY = 0f
 
+    private var indicatorYAlpha = 0f
+    private var indicatorXAlpha = 0f
+
     private var dragStartTimeMillis = 0L
 
 
@@ -247,11 +220,11 @@ open class UIScrollableContainer : UIContainer() {
     open fun onScroll(axes: Axes) {
 
         if (axes.isVertical) {
-            verticalIndicator?.alpha = 0.5f
+            indicatorYAlpha = 0.5f
         }
 
         if (axes.isHorizontal) {
-            horizontalIndicator?.alpha = 0.5f
+            indicatorXAlpha = 0.5f
         }
 
         invalidate(InvalidationFlag.InputBindings)
@@ -343,55 +316,49 @@ open class UIScrollableContainer : UIContainer() {
      */
     protected open fun updateIndicators(deltaTimeSec: Float) {
 
-        val verticalIndicator = verticalIndicator
-
-        if (verticalIndicator != null) {
-            verticalIndicator.isVisible = showVerticalIndicator && (scrollAxes == Axes.Both || scrollAxes == Axes.Y)
-
-            if (verticalIndicator.alpha > 0f && velocityY == 0f) {
-                verticalIndicator.alpha = (verticalIndicator.alpha - deltaTimeSec * 0.75f).coerceAtLeast(0f)
-            }
-
-            if (verticalIndicator.isVisible) {
-                verticalIndicator.x = width - verticalIndicator.width
-                verticalIndicator.y = scrollY * (height / scrollableContentHeight)
-
-                verticalIndicator.onUpdate(deltaTimeSec)
+        if (showVerticalIndicator && (scrollAxes == Axes.Both || scrollAxes == Axes.Y)) {
+            if (alpha > 0f && velocityY == 0f) {
+                indicatorYAlpha = (indicatorYAlpha - deltaTimeSec * 0.75f).coerceAtLeast(0f)
             }
         }
 
-        val horizontalIndicator = horizontalIndicator
-
-        if (horizontalIndicator != null) {
-            horizontalIndicator.isVisible = showHorizontalIndicator && (scrollAxes == Axes.Both || scrollAxes == Axes.X)
-
-            if (horizontalIndicator.alpha > 0f && velocityX == 0f) {
-                horizontalIndicator.alpha = (horizontalIndicator.alpha - deltaTimeSec * 0.75f).coerceAtLeast(0f)
-            }
-
-            if (horizontalIndicator.isVisible) {
-                horizontalIndicator.x = scrollX * (width / scrollableContentWidth)
-                horizontalIndicator.y = height - horizontalIndicator.height
-
-                horizontalIndicator.onUpdate(deltaTimeSec)
+        if (showHorizontalIndicator && (scrollAxes == Axes.Both || scrollAxes == Axes.X)) {
+            if (indicatorXAlpha > 0f && velocityX == 0f) {
+                indicatorXAlpha = (indicatorXAlpha - deltaTimeSec * 0.75f).coerceAtLeast(0f)
             }
         }
     }
 
     //endregion
 
-    override fun onContentChanged() {
-        super.onContentChanged()
-
-        verticalIndicator?.height = height * (height / scrollableContentHeight).coerceAtMost(1f)
-        horizontalIndicator?.width = width * (width / scrollableContentWidth).coerceAtMost(1f)
-    }
-
     override fun onManagedDrawChildren(pGL: GL10, pCamera: Camera) {
         super.onManagedDrawChildren(pGL, pCamera)
 
-        horizontalIndicator?.onDraw(pGL, pCamera)
-        verticalIndicator?.onDraw(pGL, pCamera)
+        if (showVerticalIndicator && (scrollAxes == Axes.Both || scrollAxes == Axes.Y)) {
+            val indicatorHeight = height * (height / scrollableContentHeight).coerceAtMost(1f)
+
+            ColorStack.pushColor(Color4.White.copy(alpha = indicatorYAlpha))
+            QuadRenderer.renderQuad(
+                x = width - 0.25f.rem,
+                y = scrollY * (height / scrollableContentHeight),
+                width = 0.25f.rem,
+                height = indicatorHeight
+            )
+            ColorStack.pop()
+        }
+
+        if (showHorizontalIndicator && (scrollAxes == Axes.Both || scrollAxes == Axes.X)) {
+            val indicatorWidth = width * (width / scrollableContentWidth).coerceAtMost(1f)
+
+            ColorStack.pushColor(Color4.White.copy(alpha = indicatorXAlpha))
+            QuadRenderer.renderQuad(
+                x = scrollX * (width / scrollableContentWidth),
+                y = height - 0.25f.rem,
+                width = indicatorWidth,
+                height = 0.25f.rem
+            )
+            ColorStack.pop()
+        }
     }
 
 

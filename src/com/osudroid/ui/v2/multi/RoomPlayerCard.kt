@@ -176,11 +176,6 @@ class RoomPlayerCard : UILinearContainer() {
                         radius = 12f
                         color = Color4.Transparent
                     }
-
-                    override fun beginDraw(gl: GL10) {
-                        gl.glDepthMask(true)
-                        super.beginDraw(gl)
-                    }
                 }
 
                 scaleType = ScaleType.Crop
@@ -197,11 +192,6 @@ class RoomPlayerCard : UILinearContainer() {
                     init {
                         radius = 8f
                         color = Color4.Transparent
-                    }
-
-                    override fun beginDraw(gl: GL10) {
-                        gl.glDepthMask(true)
-                        super.beginDraw(gl)
                     }
                 }
 

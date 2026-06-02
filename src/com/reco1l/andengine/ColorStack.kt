@@ -23,12 +23,13 @@ object ColorStack : Stack<Color4>() {
             alpha *= previous.alpha
         }
 
-        super.push(Color4(red, green, blue, alpha))
+        super.push(Color4(red.coerceIn(0f, 1f), green.coerceIn(0f, 1f), blue.coerceIn(0f, 1f), alpha.coerceIn(0f, 1f)))
     }
 
     override fun push(item: Color4?): Color4? {
         throw UnsupportedOperationException("Use pushColor(GL10, Color4) instead.")
     }
+
 
     private fun readResolve(): Any = ColorStack
 

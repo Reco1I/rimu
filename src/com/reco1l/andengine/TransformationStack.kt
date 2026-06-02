@@ -5,10 +5,10 @@ import java.util.Stack
 
 private val outputArray = FloatArray(2)
 
-operator fun Transformation.invoke(x: Float, y: Float): FloatArray {
+fun Transformation?.transform(x: Float, y: Float): FloatArray {
     outputArray[0] = x
     outputArray[1] = y
-    transform(outputArray)
+    this?.transform(outputArray)
     return outputArray
 }
 

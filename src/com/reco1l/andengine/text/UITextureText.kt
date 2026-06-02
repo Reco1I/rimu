@@ -11,7 +11,7 @@ import kotlin.math.*
 /**
  * A text component that uses textures for each character.
  */
-open class UITextureText(val characters: MutableMap<Char, TextureRegion>) : UIBufferedComponent() {
+open class UITextureText(val characters: MutableMap<Char, TextureRegion?>) : UIBufferedComponent() {
 
     /**
      * The spacing between glyphs.
@@ -142,15 +142,8 @@ open class UITextureText(val characters: MutableMap<Char, TextureRegion>) : UIBu
         super.contentHeight = contentHeight
     }
 
-    override fun beginDraw(gl: GL10) {
-        super.beginDraw(gl)
-
-        GLHelper.enableTextures(gl)
-        GLHelper.enableTexCoordArray(gl)
-    }
-
     override fun doDraw(gl: GL10, camera: Camera) {
-        beginDraw(gl)
+        super.doDraw(gl, camera)
 
         var offsetX = when (textAlign) {
             TextAlign.Left -> 0f

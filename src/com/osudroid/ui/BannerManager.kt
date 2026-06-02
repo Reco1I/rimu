@@ -77,7 +77,7 @@ object BannerManager {
 
     data class Banner(
         val url: String,
-        val image: TextureRegion,
+        val image: TextureRegion?,
     )
 
     class BannerSprite(private val banners: List<Banner>) : UISprite() {

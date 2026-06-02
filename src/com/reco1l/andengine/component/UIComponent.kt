@@ -23,7 +23,6 @@ import org.anddev.andengine.entity.*
 import org.anddev.andengine.entity.scene.*
 import org.anddev.andengine.entity.scene.Scene.*
 import org.anddev.andengine.input.touch.*
-import org.anddev.andengine.opengl.util.*
 import org.anddev.andengine.util.*
 import org.anddev.andengine.util.constants.Constants.*
 import java.util.function.Consumer
@@ -457,7 +456,7 @@ abstract class UIComponent : Entity(0f, 0f),
     open fun onContentChanged() {}
 
 
-    fun setParent(entity: IEntity?, mode: AttachmentMode?) {
+    override fun setParent(entity: IEntity?) {
         when (val parent = parent) {
             is Scene -> parent.unregisterTouchArea(this)
             is UIComponent -> parent.onChildDetached(this)
@@ -467,10 +466,6 @@ abstract class UIComponent : Entity(0f, 0f),
             is Scene -> entity.registerTouchArea(this)
             is UIComponent -> entity.onChildAttached(this)
         }
-    }
-
-    override fun setParent(parent: IEntity?) {
-        setParent(parent, null)
     }
 
     /**
@@ -573,69 +568,11 @@ abstract class UIComponent : Entity(0f, 0f),
 
     //region Drawing
 
-    override fun onApplyTransformations(gl: GL10, camera: Camera) {
-/*        val x = absoluteX
-        val y = absoluteY
-
-        if (x != 0f || y != 0f) {
-            gl.glTranslatef(x, y, 0f)
-        }
-
-        if (mRotation != 0f) {
-            val centerX = width * mRotationCenterX
-            val centerY = height * mRotationCenterY
-
-            if (centerX > 0f || centerY > 0f) {
-                gl.glTranslatef(centerX, centerY, 0f)
-                gl.glRotatef(mRotation, 0f, 0f, 1f)
-                gl.glTranslatef(-centerX, -centerY, 0f)
-            } else {
-                gl.glRotatef(mRotation, 0f, 0f, 1f)
-            }
-        }
-
-        if (mScaleX != 1f || mScaleY != 1f) {
-            val centerX = width * mScaleCenterX
-            val centerY = height * mScaleCenterY
-
-            if (centerX > 0f || centerY > 0f) {
-                gl.glTranslatef(centerX, centerY, 0f)
-                gl.glScalef(mScaleX, mScaleY, 1f)
-                gl.glTranslatef(-centerX, -centerY, 0f)
-            } else {
-                gl.glScalef(mScaleX, mScaleY, 1f)
-            }
-        }*/
-    }
-
     override fun onDraw(gl: GL10, camera: Camera) {
-
-        val isCulled = isCulled(camera)
-
-        if (!isVisible || isCulled) {
-            return
-        }
-
-        if (clipToBounds) {
-            // Entity coordinates in screen's space.
-            val (topLeftX, topLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, 0f))
-            val (topRightX, topRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, 0f))
-            val (bottomRightX, bottomRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, height))
-            val (bottomLeftX, bottomLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, height))
-
-            val minX = minOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
-            val minY = minOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
-            val maxX = maxOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
-            val maxY = maxOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
-
-            ScissorStack.pushScissor(minX, minY, maxX - minX, maxY - minY)
-            onManagedDraw(gl, camera)
-            ScissorStack.pop()
-        } else {
+        if (isVisible && !isCulled(camera)) {
             onManagedDraw(gl, camera)
         }
     }
-
 
     /**
      * Called when invalidations needs to be run.
@@ -696,14 +633,27 @@ abstract class UIComponent : Entity(0f, 0f),
     }
 
     override fun onManagedDraw(gl: GL10, camera: Camera) {
+
         if (!ignoreInvlidations) {
             onHandleInvalidations()
         }
 
         TransformationStack.push(localToSceneTransformation)
-        onApplyTransformations(gl, camera)
-
         ColorStack.pushColor(color, inheritAncestorsColor)
+
+        if (clipToBounds) {
+            val (topLeftX, topLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, 0f))
+            val (topRightX, topRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, 0f))
+            val (bottomRightX, bottomRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, height))
+            val (bottomLeftX, bottomLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, height))
+
+            val minX = minOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
+            val minY = minOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
+            val maxX = maxOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
+            val maxY = maxOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
+
+            ScissorStack.pushScissor(minX, minY, maxX - minX, maxY - minY)
+        }
 
         // Render background quad
         if (backgroundColor.alpha > 0f) {
@@ -714,7 +664,7 @@ abstract class UIComponent : Entity(0f, 0f),
 
         // Render component and children
         UIRenderer.setState(
-            //scissor = if (ScissorStack.empty()) null else ScissorStack.peek(),
+            scissor = if (ScissorStack.empty()) null else ScissorStack.peek(),
             texture = null,
             blendInfo = blendInfo,
             depthInfo = depthInfo
@@ -737,17 +687,16 @@ abstract class UIComponent : Entity(0f, 0f),
             ColorStack.pop()
         }
 
+
+        if (clipToBounds) {
+            ScissorStack.pop()
+        }
+
         ColorStack.pop()
         TransformationStack.pop()
     }
 
-    open fun beginDraw(gl: GL10) {
-        // We haven't done any culling implementation so we disable it globally for all buffered entities.
-    }
-
-    override fun doDraw(gl: GL10, camera: Camera) {
-        beginDraw(gl)
-    }
+    override fun doDraw(gl: GL10, camera: Camera) = Unit
 
     //endregion
 

@@ -290,7 +290,12 @@ open class UIText : UIBufferedComponent() {
         )
     }
 
-    override fun onApplyTransformations(gl: GL10, camera: Camera) {
+    override fun onManagedDraw(gl: GL10, camera: Camera) {
+
+        if (fontSettingsChanged) {
+            fontSettingsChanged = false
+            onFontSettingsChange()
+        }
 
         val scrollTranslationX = if (autoScrollAxes.isHorizontal) scrollX else 0f
         val scrollTranslationY = if (autoScrollAxes.isVertical) scrollY else 0f
@@ -299,15 +304,6 @@ open class UIText : UIBufferedComponent() {
             TransformationStack.peek().postTranslate(-scrollTranslationX, -scrollTranslationY)
         }
 
-        super.onApplyTransformations(gl, camera)
-    }
-
-
-    override fun onManagedDraw(gl: GL10, camera: Camera) {
-        if (fontSettingsChanged) {
-            fontSettingsChanged = false
-            onFontSettingsChange()
-        }
         super.onManagedDraw(gl, camera)
     }
 
@@ -393,7 +389,7 @@ open class CompoundText : UIText() {
         set(value) {
             if (field != value) {
                 field = value
-                value?.setParent(this, AttachmentMode.Child)
+                value?.setParent(this)
                 invalidate(InvalidationFlag.Content)
             }
         }
@@ -405,7 +401,7 @@ open class CompoundText : UIText() {
         set(value) {
             if (field != value) {
                 field = value
-                value?.setParent(this, AttachmentMode.Child)
+                value?.setParent(this)
                 invalidate(InvalidationFlag.Content)
             }
         }

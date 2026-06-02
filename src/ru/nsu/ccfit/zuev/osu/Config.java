@@ -277,7 +277,7 @@ public class Config {
         int width = Math.max(displayMetrics.widthPixels, displayMetrics.heightPixels);
         int height = Math.min(displayMetrics.widthPixels, displayMetrics.heightPixels);
 
-        if (getBoolean("use_legacy_resolution_policy", false)) {
+        if (getBoolean("use_legacy_resolution_policy", true)) {
             // Tries to emulate the original behavior, the game was designed for 1280x720
             // resolution, so we try to approximate the scale factor.
             float ratio = 1280f / width;

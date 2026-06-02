@@ -107,12 +107,6 @@ open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent(
     }
 
 
-    override fun beginDraw(gl: GL10) {
-        super.beginDraw(gl)
-        GLHelper.enableTextures(gl)
-        GLHelper.enableTexCoordArray(gl)
-    }
-
     override fun doDraw(gl: GL10, camera: Camera) {
         super.doDraw(gl, camera)
 
@@ -146,6 +140,10 @@ open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent(
 
         val x = (width - quadWidth) * gravity.x
         val y = (height - quadHeight) * gravity.y
+
+        UIRenderer.setState(
+            texture = textureRegion.texture
+        )
 
         TextureRenderer.renderTexture(x, y, quadWidth, quadHeight, textureRegion = textureRegion)
     }

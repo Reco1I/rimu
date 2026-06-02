@@ -96,6 +96,12 @@ public abstract class TextureAtlas<T extends ITextureAtlasSource> extends Textur
 		this.mUpdateOnHardwareNeeded = true;
 	}
 
+	// BEGIN osu!droid modified: Added method to get the texture atlas sources.
+	public ArrayList<T> getTextureAtlasSources() {
+		return this.mTextureAtlasSources;
+	}
+	// END osu!droid modified
+
 	// ===========================================================
 	// Methods
 	// ===========================================================

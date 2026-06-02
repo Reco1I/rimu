@@ -3,25 +3,25 @@ package com.reco1l.andengine
 import com.reco1l.andengine.component.BlendInfo
 import com.reco1l.andengine.component.DepthInfo
 import com.reco1l.framework.math.Vec4
+import org.anddev.andengine.opengl.texture.ITexture
 import org.anddev.andengine.opengl.texture.atlas.TextureAtlas
 import org.anddev.andengine.opengl.texture.source.ITextureAtlasSource
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import javax.microedition.khronos.opengles.GL10
 
 
-private fun createNativeOrderFloatBuffer(capacity: Int): FloatBuffer {
-    val byteBuffer = ByteBuffer.allocateDirect(capacity * Float.SIZE_BYTES)
-    byteBuffer.order(ByteOrder.nativeOrder())
-    return byteBuffer.asFloatBuffer()
-}
 
 data class RenderState(
+
+    /**
+     * The float buffer holding the vertex data for rendering.
+     */
+    val buffer: VertexBuffer = VertexBuffer(32),
+
     /**
      * The texture atlas to be used for rendering. If null, texturing will be disabled.
      */
-    val texture: TextureAtlas<out ITextureAtlasSource>? = null,
+    val texture: ITexture? = null,
 
     /**
      * The primitive type to be used for rendering. Defaults to GL_TRIANGLES.
@@ -38,7 +38,7 @@ data class RenderState(
      * The depth testing information to be used for rendering. Defaults to DepthInfo.None, which means
      * that depth testing will be disabled.
      */
-    val depthInfo: DepthInfo = DepthInfo.Companion.None,
+    val depthInfo: DepthInfo = DepthInfo.Default,
 
     /**
      * The scissor rectangle to be used for rendering. If null, scissoring will be disabled. The
@@ -47,27 +47,6 @@ data class RenderState(
      */
     val scissor: Vec4? = null,
 ) {
-
-    /**
-     * The float buffer holding the vertex data for rendering.
-     */
-    var buffer = createNativeOrderFloatBuffer(32 * VERTEX_STRIDE)
-        private set
-
-
-    fun ensureBufferCapacity() {
-        val position = buffer.position()
-        val capacity = buffer.capacity()
-
-        if (position + VERTEX_STRIDE >= capacity) {
-            buffer.flip()
-            buffer = createNativeOrderFloatBuffer(capacity * 2).also { newBuffer ->
-                newBuffer.put(buffer)
-                newBuffer.position(position)
-            }
-        }
-    }
-
 
     override fun equals(other: Any?): Boolean {
         return other is RenderState &&
