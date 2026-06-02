@@ -5,6 +5,7 @@ import com.reco1l.framework.Color4
 import com.osudroid.math.Interpolation
 import com.reco1l.andengine.Anchor
 import com.reco1l.andengine.UIEngine
+import com.reco1l.andengine.UIRenderer
 import com.reco1l.andengine.shape.UIBox
 import com.reco1l.andengine.text.UIText
 import com.reco1l.andengine.theme.FontSize
@@ -75,7 +76,7 @@ class FPSCounter : UIText() {
         origin = Anchor.BottomRight
         alignment = Anchor.Center
         style = {
-            backgroundColor = it.accentColor * 0.1f
+            //backgroundColor = it.accentColor * 0.1f
             radius = 8f
         }
     }
@@ -181,7 +182,7 @@ class FPSCounter : UIText() {
         stringBuilder.setLength(0)
 
         formatter.format(
-            "%.${if (isHighPrecision) "1" else "0"}f ms | %d FPS",
+            "%.${if (isHighPrecision) "1" else "0"}f ms | %d FPS | ${UIRenderer.drawCallsOnFrame} DCs",
             displayedMs,
             displayedFps
         )

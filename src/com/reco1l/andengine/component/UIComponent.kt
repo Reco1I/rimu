@@ -407,6 +407,21 @@ abstract class UIComponent : Entity(0f, 0f),
      */
     var cullingMode = CullingMode.Disabled
 
+    /**
+     * The blend information of the entity.
+     */
+    var blendInfo = BlendInfo.Mixture
+
+    /**
+     * The depth information of the entity.
+     */
+    var depthInfo = DepthInfo.None
+
+    /**
+     * The clear information of the entity.
+     */
+    var clearInfo = ClearInfo.None
+
 
     private var invalidationFlags = InvalidationFlag.All
 
@@ -559,7 +574,7 @@ abstract class UIComponent : Entity(0f, 0f),
     //region Drawing
 
     override fun onApplyTransformations(gl: GL10, camera: Camera) {
-        val x = absoluteX
+/*        val x = absoluteX
         val y = absoluteY
 
         if (x != 0f || y != 0f) {
@@ -590,7 +605,7 @@ abstract class UIComponent : Entity(0f, 0f),
             } else {
                 gl.glScalef(mScaleX, mScaleY, 1f)
             }
-        }
+        }*/
     }
 
     override fun onDraw(gl: GL10, camera: Camera) {
@@ -602,9 +617,6 @@ abstract class UIComponent : Entity(0f, 0f),
         }
 
         if (clipToBounds) {
-            val wasScissorTestEnabled = GLHelper.isEnableScissorTest()
-            GLHelper.enableScissorTest(gl)
-
             // Entity coordinates in screen's space.
             val (topLeftX, topLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, 0f))
             val (topRightX, topRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, 0f))
@@ -619,10 +631,6 @@ abstract class UIComponent : Entity(0f, 0f),
             ScissorStack.pushScissor(minX, minY, maxX - minX, maxY - minY)
             onManagedDraw(gl, camera)
             ScissorStack.pop()
-
-            if (!wasScissorTestEnabled) {
-                GLHelper.disableScissorTest(gl)
-            }
         } else {
             onManagedDraw(gl, camera)
         }
@@ -692,41 +700,49 @@ abstract class UIComponent : Entity(0f, 0f),
             onHandleInvalidations()
         }
 
-        gl.glPushMatrix()
+        TransformationStack.push(localToSceneTransformation)
         onApplyTransformations(gl, camera)
 
-        ColorStack.pushColor(gl, color, inheritAncestorsColor)
+        ColorStack.pushColor(color, inheritAncestorsColor)
 
         // Render background quad
         if (backgroundColor.alpha > 0f) {
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, color = backgroundColor)
+            ColorStack.pushColor(backgroundColor, false)
+            QuadRenderer.renderQuad(0f, 0f, width, height, radius)
+            ColorStack.pop()
         }
 
         // Render component and children
+        UIRenderer.setState(
+            //scissor = if (ScissorStack.empty()) null else ScissorStack.peek(),
+            texture = null,
+            blendInfo = blendInfo,
+            depthInfo = depthInfo
+        )
+
         doDraw(gl, camera)
         onDrawChildren(gl, camera)
 
         // Render border quad
         if (borderColor.alpha > 0f && borderWidth > 0f) {
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, PaintStyle.Outline, borderColor, borderWidth)
+            ColorStack.pushColor(borderColor, false)
+            QuadRenderer.renderQuad(0f, 0f, width, height, radius, PaintStyle.Outline, borderWidth)
+            ColorStack.pop()
         }
-
 
         // Debug outline
         if (BuildSettings.SHOW_ENTITY_BOUNDARIES) {
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, PaintStyle.Outline, Color4.White)
+            ColorStack.pushColor(Color4.White, false)
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, PaintStyle.Outline)
+            ColorStack.pop()
         }
 
-        ColorStack.popColor(gl)
-
-        gl.glPopMatrix()
+        ColorStack.pop()
+        TransformationStack.pop()
     }
 
     open fun beginDraw(gl: GL10) {
         // We haven't done any culling implementation so we disable it globally for all buffered entities.
-        GLHelper.disableCulling(gl)
-        GLHelper.disableTextures(gl)
-        GLHelper.disableTexCoordArray(gl)
     }
 
     override fun doDraw(gl: GL10, camera: Camera) {

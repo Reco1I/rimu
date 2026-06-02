@@ -31,6 +31,6 @@ class UILine : UIBufferedComponent() {
 
     override fun doDraw(gl: GL10, camera: Camera) {
         super.doDraw(gl, camera)
-        LineRenderer.renderLine(gl, fromPoint.x, fromPoint.y, toPoint.x, toPoint.y, strokeWidth = lineWidth)
+        LineRenderer.renderLine(fromPoint.x, fromPoint.y, toPoint.x, toPoint.y, strokeWidth = lineWidth)
     }
 }

@@ -5,6 +5,12 @@ import android.util.Log
 import android.view.*
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.reco1l.andengine.buffered.CircleRenderer
+import com.reco1l.andengine.buffered.LineRenderer
+import com.reco1l.andengine.buffered.QuadRenderer
+import com.reco1l.andengine.buffered.TextRenderer
+import com.reco1l.andengine.buffered.TextureRenderer
+import com.reco1l.andengine.buffered.TriangleRenderer
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.ui.*
 import com.rian.andengine.HUD
@@ -21,8 +27,8 @@ import javax.microedition.khronos.opengles.*
 import kotlin.math.*
 import org.anddev.andengine.engine.camera.Camera
 
-class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
-    IClockProvider<ThrottledFrameClock> {
+class UIEngine(val context: Activity, options: EngineOptions) : Engine(options), IClockProvider<ThrottledFrameClock> {
+
     override val clock = ThrottledFrameClock()
 
     private val displayDensity = context.resources.displayMetrics.density
@@ -31,7 +37,7 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
      * The root font size in pixels, adjusted for display density.
      */
     val rootFontSize
-        get() = if (Config.getBoolean("use_legacy_resolution_policy", true))
+        get() = if (Config.getBoolean("use_legacy_resolution_policy", false))
             CSS_BASE_ROOT_FONT_SIZE * fontScale * (1f + legacyResolutionPolicyScaleRatio)
         else
             CSS_BASE_ROOT_FONT_SIZE * displayDensity * fontScale
@@ -54,7 +60,7 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
     var safeArea = Vec4.Zero
         set(value) {
             if (field != value) {
-                field = if (Config.getBoolean("use_legacy_resolution_policy", true)) {
+                field = if (Config.getBoolean("use_legacy_resolution_policy", false)) {
                     value / (1f + legacyResolutionPolicyScaleRatio)
                 } else {
                     value
@@ -107,8 +113,9 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
         Log.i("UI", "Root font size: ${rootFontSize}px")
     }
 
+    override fun onDrawScene(gl: GL10) {
+        UIRenderer.begin(gl)
 
-    override fun onDrawScene(pGL: GL10) {
         val focusedEntity = focusedEntity
 
         if (focusedEntity != null) {
@@ -137,7 +144,9 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
             overlay.setPosition(0f, 0f)
         }
 
-        super.onDrawScene(pGL)
+        super.onDrawScene(gl)
+
+        UIRenderer.end(gl)
     }
 
 

@@ -41,12 +41,6 @@ object ScissorStack : Stack<Vec4>() {
             ?.takeUnless { vec -> vec.x != intersectedX || vec.y != intersectedY || vec.z != intersectedWidth || vec.w != intersectedHeight }
             ?: Vec4(intersectedX, intersectedY, intersectedWidth, intersectedHeight)
 
-        GLES10.glScissor(
-            intersectedX.toInt(),
-            intersectedY.toInt(),
-            intersectedWidth.toInt(),
-            intersectedHeight.toInt()
-        )
         super.push(vec4)
     }
 
@@ -59,17 +53,6 @@ object ScissorStack : Stack<Vec4>() {
         val vec4 = super.pop()
         if (vec4 != null) {
             vec4Pool.release(vec4)
-        }
-
-        if (!empty()) {
-            val current = peek()
-
-            GLES10.glScissor(
-                current.x.toInt(),
-                current.y.toInt(),
-                current.z.toInt(),
-                current.w.toInt()
-            )
         }
 
         return vec4

@@ -24,6 +24,22 @@ data class DepthInfo(
 
 ) {
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is DepthInfo) return false
+        if (test != other.test) return false
+        if (mask != other.mask) return false
+        if (function != other.function) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = test.hashCode()
+        result = 31 * result + mask.hashCode()
+        result = 31 * result + function
+        return result
+    }
+
     companion object {
 
         @JvmField

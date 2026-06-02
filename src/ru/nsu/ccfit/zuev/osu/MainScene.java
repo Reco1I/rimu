@@ -453,7 +453,7 @@ public class MainScene implements IUpdateHandler {
         menuBarX = menu.getFirst().getX();
 
         scene.attachChild(lastBackground, 0);
-        scene.attachChild(logo);
+         //scene.attachChild(logo);
         scene.attachChild(logoOverlay);
         scene.attachChild(music_nowplay);
         scene.attachChild(musicInfoText);

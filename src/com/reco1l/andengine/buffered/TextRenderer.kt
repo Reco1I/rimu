@@ -1,20 +1,14 @@
 package com.reco1l.andengine.buffered
 
-import com.reco1l.andengine.ColorStack
-import com.reco1l.framework.Color4
+import com.reco1l.andengine.UIRenderer
 import com.reco1l.framework.math.Vec2
 import com.reco1l.toolkt.kotlin.fastForEachIndexed
 import org.anddev.andengine.opengl.font.Font
-import org.anddev.andengine.opengl.util.GLHelper
-import javax.microedition.khronos.opengles.GL10
+import org.anddev.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas
 
 object TextRenderer : BufferRenderer() {
 
-    private val glyphTextureCoordinatesBuffer = ResizableFloatBuffer()
-
-
     fun renderLines(
-        gl: GL10,
         lines: List<String>,
         linesWidth: IntArray,
         font: Font,
@@ -23,74 +17,53 @@ object TextRenderer : BufferRenderer() {
         viewportWidth: Float,
         viewportHeight: Float,
         alignment: Vec2,
-        color: Color4? = null
     ) {
         val lineHeight = font.lineHeight + font.lineGap
 
-        if (color != null) ColorStack.pushColor(gl, color, false)
+        UIRenderer.setState(texture = font.texture as BitmapTextureAtlas)
 
-        render(gl) {
+        lines.fastForEachIndexed { lineIndex, line ->
 
-            GLHelper.enableTextures(gl)
-            font.texture.bind(gl)
+            var lineX = viewportX + viewportWidth * alignment.x - linesWidth[lineIndex] * alignment.x
+            val lineY = viewportY + viewportHeight * alignment.y - lines.size * lineHeight * alignment.y + lineIndex * lineHeight
 
-            glyphTextureCoordinatesBuffer.begin()
+            var charIndex = 0
+            while (charIndex < line.length) {
+                val codePoint = line.codePointAt(charIndex)
+                val charCount = Character.charCount(codePoint)
 
-            lines.fastForEachIndexed { lineIndex, line ->
+                val characterString = line.substring(charIndex, charIndex + charCount)
+                val letter = font.getLetter(characterString)
 
-                var lineX = viewportX + viewportWidth * alignment.x - linesWidth[lineIndex] * alignment.x
-                val lineY = viewportY + viewportHeight * alignment.y - lines.size * lineHeight * alignment.y + lineIndex * lineHeight
+                // Vertex positions
+                val letterX = lineX + letter.mWidth
+                val letterY = lineY + font.lineHeight
 
-                var charIndex = 0
-                while (charIndex < line.length) {
-                    val codePoint = line.codePointAt(charIndex)
-                    val charCount = Character.charCount(codePoint)
+                // Texture coordinates
+                val letterTextureX = letter.mTextureX
+                val letterTextureY = letter.mTextureY
+                val letterTextureX2 = letterTextureX + letter.mTextureWidth
+                val letterTextureY2 = letterTextureY + letter.mTextureHeight
 
-                    val characterString = line.substring(charIndex, charIndex + charCount)
-                    val letter = font.getLetter(characterString)
+                addVertex(lineX, lineY, letterTextureX, letterTextureY)
+                addVertex(lineX, letterY, letterTextureX, letterTextureY2)
+                addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
 
-                    // Vertex positions
-                    val letterX = lineX + letter.mWidth
-                    val letterY = lineY + font.lineHeight
+                addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
+                addVertex(letterX, lineY, letterTextureX2, letterTextureY)
+                addVertex(lineX, lineY, letterTextureX, letterTextureY)
 
-                    addVertex(lineX, lineY)
-                    addVertex(lineX, letterY)
-                    addVertex(letterX, letterY)
-                    addVertex(letterX, letterY)
-                    addVertex(letterX, lineY)
-                    addVertex(lineX, lineY)
-
-                    // Texture coordinates
-                    val letterTextureX = letter.mTextureX
-                    val letterTextureY = letter.mTextureY
-                    val letterTextureX2 = letterTextureX + letter.mTextureWidth
-                    val letterTextureY2 = letterTextureY + letter.mTextureHeight
-
-                    glyphTextureCoordinatesBuffer.apply {
-                        addVertex(letterTextureX, letterTextureY)
-                        addVertex(letterTextureX, letterTextureY2)
-                        addVertex(letterTextureX2, letterTextureY2)
-                        addVertex(letterTextureX2, letterTextureY2)
-                        addVertex(letterTextureX2, letterTextureY)
-                        addVertex(letterTextureX, letterTextureY)
-                    }
-
-                    lineX += letter.mAdvance
-                    charIndex += charCount
-                }
+                lineX += letter.mAdvance
+                charIndex += charCount
             }
 
-            glyphTextureCoordinatesBuffer.end()
-
-            GLHelper.enableTexCoordArray(gl)
-            gl.glTexCoordPointer(VERTEX_2D_SIZE, GL10.GL_FLOAT, 0, glyphTextureCoordinatesBuffer.internalBuffer)
+            //GLHelper.enableTexCoordArray(gl)
+            //gl.glTexCoordPointer(VERTEX_STRIDE, GL10.GL_FLOAT, 0, glyphTextureCoordinatesBuffer.internalBuffer)
         }
 
-        if (color != null) ColorStack.popColor(gl)
     }
 
     fun renderCharacter(
-        gl: GL10,
         character: String,
         font: Font,
         viewportX: Float,
@@ -98,7 +71,6 @@ object TextRenderer : BufferRenderer() {
         viewportWidth: Float,
         viewportHeight: Float,
         alignment: Vec2,
-        color: Color4? = null
     ) {
         val lineHeight = font.lineHeight + font.lineGap
         val letter = font.getLetter(character)
@@ -106,47 +78,26 @@ object TextRenderer : BufferRenderer() {
         val lineX = viewportX + viewportWidth * alignment.x - letter.mAdvance * alignment.x
         val lineY = viewportY + viewportHeight * alignment.y - lineHeight * alignment.y
 
-        if (color != null) ColorStack.pushColor(gl, color, false)
+        UIRenderer.setState(texture = font.texture as BitmapTextureAtlas)
 
-        render(gl) {
+        // Vertex positions
+        val letterX = lineX + letter.mWidth
+        val letterY = lineY + font.lineHeight
 
-            GLHelper.enableTextures(gl)
-            font.texture.bind(gl)
+        // Texture coordinates
+        val letterTextureX = letter.mTextureX
+        val letterTextureY = letter.mTextureY
+        val letterTextureX2 = letterTextureX + letter.mTextureWidth
+        val letterTextureY2 = letterTextureY + letter.mTextureHeight
 
-            glyphTextureCoordinatesBuffer.begin()
+        addVertex(lineX, lineY, letterTextureX, letterTextureY)
+        addVertex(lineX, letterY, letterTextureX, letterTextureY2)
+        addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
 
-            // Vertex positions
-            val letterX = lineX + letter.mWidth
-            val letterY = lineY + font.lineHeight
+        addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
+        addVertex(letterX, lineY, letterTextureX2, letterTextureY)
+        addVertex(lineX, lineY, letterTextureX, letterTextureY)
 
-            addVertex(lineX, lineY)
-            addVertex(lineX, letterY)
-            addVertex(letterX, letterY)
-            addVertex(letterX, letterY)
-            addVertex(letterX, lineY)
-            addVertex(lineX, lineY)
-
-            // Texture coordinates
-            val letterTextureX = letter.mTextureX
-            val letterTextureY = letter.mTextureY
-            val letterTextureX2 = letterTextureX + letter.mTextureWidth
-            val letterTextureY2 = letterTextureY + letter.mTextureHeight
-
-            glyphTextureCoordinatesBuffer.apply {
-                addVertex(letterTextureX, letterTextureY)
-                addVertex(letterTextureX, letterTextureY2)
-                addVertex(letterTextureX2, letterTextureY2)
-                addVertex(letterTextureX2, letterTextureY2)
-                addVertex(letterTextureX2, letterTextureY)
-                addVertex(letterTextureX, letterTextureY)
-            }
-
-            glyphTextureCoordinatesBuffer.end()
-
-            GLHelper.enableTexCoordArray(gl)
-            gl.glTexCoordPointer(VERTEX_2D_SIZE, GL10.GL_FLOAT, 0, glyphTextureCoordinatesBuffer.internalBuffer)
-        }
-
-        if (color != null) ColorStack.popColor(gl)
     }
+
 }

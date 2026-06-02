@@ -86,7 +86,6 @@ open class FontAwesomeIcon(
         val font = font ?: return
 
         TextRenderer.renderCharacter(
-            gl = gl,
             character = icon.toChar().toString(),
             font = font,
             viewportX = paddingLeft,

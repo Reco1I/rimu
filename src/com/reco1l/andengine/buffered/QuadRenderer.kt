@@ -25,95 +25,109 @@ object QuadRenderer : BufferRenderer() {
         color: Color4? = null,
         lineWidth: Float = 1f
     ) {
-
-        if (color != null) ColorStack.pushColor(gl, color, false)
-
         when (paintStyle) {
-            Fill ->  {
-                render(gl, GL10.GL_TRIANGLE_STRIP) {
-                    addVertex(x, y)
-                    addVertex(x, y + height)
-                    addVertex(x + width, y)
-                    addVertex(x + width, y + height)
-                }
+            Fill -> {
+                //addVertex(x, y)
+                //addVertex(x, y + height)
+                //addVertex(x + width, y)
+                //addVertex(x + width, y + height)
             }
+
             Outline -> {
-                GLHelper.lineWidth(gl, lineWidth)
-                render(gl, GL10.GL_LINE_LOOP) {
-                    addVertex(x, y)
-                    addVertex(x, y + height)
-                    addVertex(x + width, y + height)
-                    addVertex(x + width, y)
-                }
+                //addVertex(x, y)
+                //addVertex(x, y + height)
+                //addVertex(x + width, y + height)
+                //addVertex(x + width, y)
             }
         }
-
-        if (color != null) ColorStack.popColor(gl)
     }
 
     fun renderQuad(
-        gl: GL10,
         x: Float,
         y: Float,
         width: Float,
         height: Float,
         radius: Float = 0f,
         paintStyle: PaintStyle = Fill,
-        color: Color4? = null,
         lineWidth: Float = 1f
     ) {
-        if (color != null) ColorStack.pushColor(gl, color, false)
+        val r = radius
+            .coerceAtMost(min(width, height) / 2f)
+            .coerceAtLeast(0f)
 
-        if (paintStyle == Outline) GLHelper.lineWidth(gl, lineWidth)
+        val centerX = x + width / 2f
+        val centerY = y + height / 2f
 
-        render(gl, when (paintStyle) {
-            Fill -> GL10.GL_TRIANGLE_FAN
-            Outline -> GL10.GL_LINE_STRIP
-        }) {
+        val segments = if (r <= 0f) 1 else calculateArcResolution(r, r, 90f).coerceAtLeast(1)
 
-            val r = radius
-                .coerceAtMost(min(width, height) / 2f)
-                .coerceAtLeast(0f)
+        addArc(x + r, y + r, -90f, 0f, r, r, segments, centerX, centerY)
 
-            val segments = if (r <= 0f) 1 else calculateArcResolution(r, r, 90f).coerceAtLeast(1)
+        addTriangle(
+            centerX, centerY,
+            x + r, y,
+            x + width - r, y
+        )
 
-            if (paintStyle == Fill) {
-                addVertex(x + width / 2f, y + height / 2f)
-            }
+        addArc(x + width - r, y + r, 0f, 90f, r, r, segments, centerX, centerY)
 
-            addArc(x + r, y + r, -90f, 0f, r, r, segments)
-            addArc(x + width - r, y + r, 0f, 90f, r, r, segments)
-            addArc(x + width - r, y + height - r, 90f, 180f, r, r, segments)
-            addArc(x + r, y + height - r, 180f, 270f, r, r, segments)
+        addTriangle(
+            centerX, centerY,
+            x + width, y + r,
+            x + width, y + height - r
+        )
 
-            addVertex(x, y + r)
-        }
+        addArc(x + width - r, y + height - r, 90f, 180f, r, r, segments, centerX, centerY)
 
-        if (color != null) ColorStack.popColor(gl)
+        addTriangle(
+            centerX, centerY,
+            x + width - r, y + height,
+            x + r, y + height
+        )
+
+        addArc(x + r, y + height - r, -90f, -180f, r, r, segments, centerX, centerY)
+
+        addTriangle(
+            centerX, centerY,
+            x, y + height - r,
+            x, y + r
+        )
     }
 
 
-    private fun ResizableFloatBuffer.addArc(
-        centerX: Float,
-        centerY: Float,
+    private fun addArc(
+        arcCenterX: Float,
+        arcCenterY: Float,
         startAngle: Float,
         endAngle: Float,
         radiusX: Float,
         radiusY: Float,
-        segments: Int
+        segments: Int,
+        fanCenterX: Float = arcCenterX,
+        fanCenterY: Float = arcCenterY
     ) {
         val start = (startAngle - 90f).toRadians()
         val end = (endAngle - 90f).toRadians()
 
         val delta = (end - start) / (segments - 1).coerceAtLeast(1)
 
-        for (j in 0 until segments) {
-            val angle = start + j * delta
+        var previousX = arcCenterX + radiusX * cos(start)
+        var previousY = arcCenterY + radiusY * sin(start)
 
-            addVertex(
-                x = centerX + radiusX * cos(angle),
-                y = centerY + radiusY * sin(angle)
+        for (j in 0 until segments) {
+            if (j == 0) continue
+
+            val angle = start + j * delta
+            val x = arcCenterX + radiusX * cos(angle)
+            val y = arcCenterY + radiusY * sin(angle)
+
+            addTriangle(
+                fanCenterX, fanCenterY,
+                previousX, previousY,
+                x, y
             )
+
+            previousX = x
+            previousY = y
         }
     }
 

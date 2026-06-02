@@ -9,16 +9,39 @@ import com.reco1l.andengine.component.UIComponent
 import org.anddev.andengine.opengl.font.Font
 import org.anddev.andengine.opengl.texture.TextureOptions
 import org.anddev.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas
+import org.anddev.andengine.opengl.texture.atlas.bitmap.source.IBitmapTextureAtlasSource
+import org.anddev.andengine.opengl.texture.atlas.buildable.BuildableTextureAtlas
+import org.anddev.andengine.opengl.texture.atlas.buildable.builder.BlackPawnTextureBuilder
+import org.anddev.andengine.opengl.texture.region.TextureRegion
 import org.anddev.andengine.opengl.util.GLHelper
 import java.lang.ref.WeakReference
 
 // Use the device's maximum supported texture size, capped at 4096 to avoid excessive memory usage.
 private val FONT_TEXTURE_SIZE get() = GLHelper.GlMaxTextureWidth.coerceAtMost(4096).coerceAtLeast(1024)
 
+
+data class TextureAtlasBuilderState(
+    val builder: BuildableTextureAtlas<IBitmapTextureAtlasSource, BitmapTextureAtlas>,
+    val subscribers: MutableList<WeakReference<UIComponent>>
+)
+
 class UIResourceManager(private val context: Context) {
 
     private val fonts = mutableMapOf<String, Font>()
     private val fontSubscribers = mutableMapOf<Font, MutableList<WeakReference<UIComponent>>>()
+
+    private val textureBuilders = mutableMapOf<String, BlackPawnTextureBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>>()
+    private val textureRegions = mutableMapOf<String, TextureRegion>()
+    private val textureRegionSubscribers = mutableMapOf<TextureRegion, MutableList<WeakReference<UIComponent>>>()
+
+    //region Textures
+
+    fun loadTexture() {
+
+    }
+
+
+    //endregion
 
     //region Fonts
 

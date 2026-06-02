@@ -17,29 +17,33 @@ import kotlin.math.sin
 object TextureRenderer : BufferRenderer() {
 
     fun renderTexture(
-        gl: GL10,
         x: Float,
         y: Float,
         width: Float,
         height: Float,
-        color: Color4? = null,
         textureRegion: TextureRegion
     ) {
-        if (color != null) ColorStack.pushColor(gl, color, false)
 
-        render(gl, GL10.GL_TRIANGLE_STRIP) {
+        /*GLHelper.enableTextures(gl)
+        GLHelper.enableTexCoordArray(gl)
+        textureRegion.onApply(gl)
 
-            GLHelper.enableTextures(gl)
-            GLHelper.enableTexCoordArray(gl)
-            textureRegion.onApply(gl)
+        val x1 = textureRegion.textureCoordinateX1
+        val y1 = textureRegion.textureCoordinateY1
+        val x2 = textureRegion.textureCoordinateX2
+        val y2 = textureRegion.textureCoordinateY2
+*/
+        addTriangle(
+            x, y,
+            x, y + height,
+            x + width, y
+        )
 
-            addVertex(x, y)
-            addVertex(x, y + height)
-            addVertex(x + width, y)
-            addVertex(x + width, y + height)
-        }
-
-        if (color != null) ColorStack.popColor(gl)
+        addTriangle(
+            x + width, y,
+            x, y + height,
+            x + width, y + height
+        )
     }
 
 }

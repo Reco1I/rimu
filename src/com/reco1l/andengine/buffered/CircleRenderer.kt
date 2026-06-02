@@ -26,33 +26,26 @@ object CircleRenderer : BufferRenderer() {
         color: Color4? = null,
         lineWidth: Float = 1f
     ) {
-        if (color != null) ColorStack.pushColor(gl, color, false)
+        if (color != null) ColorStack.pushColor(color, false)
 
         if (paintStyle == PaintStyle.Outline) {
             GLHelper.lineWidth(gl, lineWidth)
         }
 
         val segments = calculateArcResolution(width, height, abs(endAngle - startAngle))
-        val primitiveType = when (paintStyle) {
-            PaintStyle.Fill -> GL10.GL_TRIANGLE_FAN
-            PaintStyle.Outline -> GL10.GL_LINE_LOOP
+        val start = (startAngle - 90f).toRadians()
+        val end = (endAngle - 90f).toRadians()
+
+        val delta = (end - start) / max(1, segments - 1)
+
+        for (j in 0 until segments) {
+            val angle = start + j * delta
+            val x = centerX + cos(angle) * width / 2f
+            val y = centerY + sin(angle) * height / 2f
+            //addVertex(x, y)
         }
 
-        render(gl, primitiveType) {
-            val start = (startAngle - 90f).toRadians()
-            val end = (endAngle - 90f).toRadians()
-
-            val delta = (end - start) / max(1, segments - 1)
-
-            for (j in 0 until segments) {
-                val angle = start + j * delta
-                val x = centerX + cos(angle) * width / 2f
-                val y = centerY + sin(angle) * height / 2f
-                addVertex(x, y)
-            }
-        }
-
-        if (color != null) ColorStack.popColor(gl)
+        if (color != null) ColorStack.pop()
     }
 
 }

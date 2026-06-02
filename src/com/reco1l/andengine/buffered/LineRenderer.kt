@@ -8,23 +8,22 @@ import javax.microedition.khronos.opengles.GL10
 object LineRenderer : BufferRenderer() {
 
     fun renderLine(
-        gl: GL10,
         fromX: Float,
         fromY: Float,
         toX: Float,
         toY: Float,
-        color: Color4? = null,
         strokeWidth: Float = 1f
     ) {
-        if (color != null) ColorStack.pushColor(gl, color, false)
+        val fromTopX = fromX + strokeWidth / 2
+        val fromTopY = fromY + strokeWidth / 2
+        val fromBottomX = fromX - strokeWidth / 2
+        val fromBottomY = fromY - strokeWidth / 2
+        val toTopX = toX + strokeWidth / 2
+        val toTopY = toY + strokeWidth / 2
+        val toBottomX = toX - strokeWidth / 2
+        val toBottomY = toY - strokeWidth / 2
 
-        GLHelper.lineWidth(gl, strokeWidth)
-
-        render(gl, GL10.GL_LINES) {
-            addVertex(fromX, fromY)
-            addVertex(toX, toY)
-        }
-
-        if (color != null) ColorStack.popColor(gl)
+        addTriangle(fromTopX, fromTopY, fromBottomX, fromBottomY, toTopX, toTopY)
+        addTriangle(toTopX, toTopY, fromBottomX, fromBottomY, toBottomX, toBottomY)
     }
 }

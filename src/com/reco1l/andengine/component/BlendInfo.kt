@@ -19,6 +19,20 @@ data class BlendInfo(
 
 ) {
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is BlendInfo) return false
+        if (sourceFactor != other.sourceFactor) return false
+        if (destinationFactor != other.destinationFactor) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = sourceFactor
+        result = 31 * result + destinationFactor
+        return result
+    }
+
     companion object {
 
         val None = BlendInfo(

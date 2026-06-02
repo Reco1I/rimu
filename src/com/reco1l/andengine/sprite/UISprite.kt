@@ -147,7 +147,7 @@ open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent(
         val x = (width - quadWidth) * gravity.x
         val y = (height - quadHeight) * gravity.y
 
-        TextureRenderer.renderTexture(gl, x, y, quadWidth, quadHeight, textureRegion = textureRegion)
+        TextureRenderer.renderTexture(x, y, quadWidth, quadHeight, textureRegion = textureRegion)
     }
 
 }

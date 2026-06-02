@@ -279,7 +279,6 @@ open class UIText : UIBufferedComponent() {
         }
 
         TextRenderer.renderLines(
-            gl,
             lines = lines,
             linesWidth = linesWidth,
             font = font,
@@ -297,7 +296,7 @@ open class UIText : UIBufferedComponent() {
         val scrollTranslationY = if (autoScrollAxes.isVertical) scrollY else 0f
 
         if (scrollTranslationX != 0f || scrollTranslationY != 0f) {
-            gl.glTranslatef(-scrollTranslationX, -scrollTranslationY, 0f)
+            TransformationStack.peek().postTranslate(-scrollTranslationX, -scrollTranslationY)
         }
 
         super.onApplyTransformations(gl, camera)

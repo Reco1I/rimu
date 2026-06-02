@@ -31,7 +31,6 @@ open class UITriangle : UIBufferedComponent() {
             centerY = y + height / 2f,
             width = width,
             height = height,
-            color = color,
             paintStyle = paintStyle,
             strokeWidth = lineWidth
         )
