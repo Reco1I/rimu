@@ -20,8 +20,6 @@ object TextRenderer : BufferRenderer() {
     ) {
         val lineHeight = font.lineHeight + font.lineGap
 
-        UIRenderer.setState(texture = font.texture as BitmapTextureAtlas)
-
         lines.fastForEachIndexed { lineIndex, line ->
 
             var lineX = viewportX + viewportWidth * alignment.x - linesWidth[lineIndex] * alignment.x
@@ -56,9 +54,6 @@ object TextRenderer : BufferRenderer() {
                 lineX += letter.mAdvance
                 charIndex += charCount
             }
-
-            //GLHelper.enableTexCoordArray(gl)
-            //gl.glTexCoordPointer(VERTEX_STRIDE, GL10.GL_FLOAT, 0, glyphTextureCoordinatesBuffer.internalBuffer)
         }
 
     }
@@ -78,8 +73,6 @@ object TextRenderer : BufferRenderer() {
         val lineX = viewportX + viewportWidth * alignment.x - letter.mAdvance * alignment.x
         val lineY = viewportY + viewportHeight * alignment.y - lineHeight * alignment.y
 
-        UIRenderer.setState(texture = font.texture as BitmapTextureAtlas)
-
         // Vertex positions
         val letterX = lineX + letter.mWidth
         val letterY = lineY + font.lineHeight
@@ -97,7 +90,5 @@ object TextRenderer : BufferRenderer() {
         addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
         addVertex(letterX, lineY, letterTextureX2, letterTextureY)
         addVertex(lineX, lineY, letterTextureX, letterTextureY)
-
     }
-
 }

@@ -1,8 +1,5 @@
 package com.reco1l.andengine
 
-import android.util.Log
-import com.reco1l.andengine.component.BlendInfo
-import com.reco1l.andengine.component.DepthInfo
 import com.reco1l.framework.math.Vec4
 import org.anddev.andengine.opengl.texture.ITexture
 import org.anddev.andengine.opengl.util.GLHelper
@@ -33,10 +30,6 @@ object UIRenderer {
         private set
 
 
-    private val bufferPool = ArrayDeque<VertexBuffer>()
-    private val stateQueue = ArrayDeque<RenderState>()
-
-
     /**
      * Begins a new rendering session. This function should be called at the start of each frame
      * before any rendering operations are performed.
@@ -49,51 +42,50 @@ object UIRenderer {
      * Sets the current rendering state.
      */
     fun setState(
+        gl: GL10,
         texture: ITexture? = state.texture,
         primitiveType: Int = state.primitiveType,
-        blendInfo: BlendInfo = state.blendInfo,
-        depthInfo: DepthInfo = state.depthInfo,
+        blendFunctionSource: Int = state.blendFunctionSource,
+        blendFunctionDestination: Int = state.blendFunctionDestination,
+        depthTestingEnabled: Boolean = state.depthTestingEnabled,
+        depthMask: Boolean = state.depthMask,
+        depthFunction: Int = state.depthFunction,
         scissor: Vec4? = state.scissor
     ) {
-        val queueState = stateQueue.firstOrNull {
-            it.texture == texture &&
-                    it.primitiveType == primitiveType &&
-                    it.blendInfo == blendInfo &&
-                    it.depthInfo == depthInfo &&
-                    it.scissor == scissor
-        }
+        if (
+            state.texture != texture ||
+            state.primitiveType != primitiveType ||
+            state.blendFunctionSource != blendFunctionSource ||
+            state.blendFunctionDestination != blendFunctionDestination ||
+            state.depthTestingEnabled != depthTestingEnabled ||
+            state.depthMask != depthMask ||
+            state.depthFunction != depthFunction ||
+            state.scissor != scissor
+        ) {
+            if (state.flush(gl)) {
+                drawCallsOnFrame++
+            }
 
-        if (queueState == null) {
-            val newState = RenderState(
-                bufferPool.removeLastOrNull() ?: run {
-                    Log.w("UIRenderer", "Buffer pool exhausted, creating a new VertexBuffer.")
-                    VertexBuffer(32)
-                } ,
-                texture,
-                primitiveType,
-                blendInfo,
-                depthInfo,
-                scissor
+            state = state.copy(
+                texture = texture,
+                primitiveType = primitiveType,
+                blendFunctionSource = blendFunctionSource,
+                blendFunctionDestination = blendFunctionDestination,
+                depthTestingEnabled = depthTestingEnabled,
+                depthMask = depthMask,
+                depthFunction = depthFunction,
+                scissor = scissor
             )
-            stateQueue.add(newState)
-            state = newState
-        } else {
-            state = queueState
+
         }
     }
 
     /**
-     * Ends the current rendering session. This function should be called at the end of each frame
-     * after all rendering operations have been performed.
-     * It will flush all the states in the state queue and clear it for the next frame.
+     * Ends the current rendering session flushing any remaining vertex data to the GPU.
      */
     fun end(gl: GL10) {
-        while (stateQueue.isNotEmpty()) {
-            val state = stateQueue.removeFirst()
-            if (state.flush(gl)) {
-                drawCallsOnFrame++
-            }
-            bufferPool.add(state.buffer)
+        if (state.flush(gl)) {
+            drawCallsOnFrame++
         }
     }
 
@@ -114,18 +106,12 @@ object UIRenderer {
             )
         }
 
-        GLHelper.setDepthTest(gl, depthInfo.test)
-        if (depthInfo.test) {
-            gl.glDepthFunc(depthInfo.function)
-            gl.glDepthMask(depthInfo.mask)
-        }
+        GLHelper.setDepthTest(gl, depthTestingEnabled)
+        gl.glDepthFunc(depthFunction)
+        gl.glDepthMask(depthMask)
 
-        if (blendInfo != BlendInfo.None) {
-            GLHelper.enableBlend(gl)
-            GLHelper.blendFunction(gl, blendInfo.sourceFactor, blendInfo.destinationFactor)
-        } else {
-            GLHelper.disableBlend(gl)
-        }
+        GLHelper.enableBlend(gl)
+        GLHelper.blendFunction(gl, blendFunctionSource, blendFunctionDestination)
 
         buffer.offsetToPosition()
         GLHelper.enableVertexArray(gl)
@@ -150,10 +136,8 @@ object UIRenderer {
 
         gl.glDrawArrays(primitiveType, 0, buffer.stored)
 
-        // Disable color array after drawing for compatibility with AndEngine's default rendering pipeline.
         gl.glDisableClientState(GL10.GL_COLOR_ARRAY)
         GLHelper.disableScissorTest(gl)
-
         buffer.clear()
         return true
     }

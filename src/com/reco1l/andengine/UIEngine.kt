@@ -5,12 +5,6 @@ import android.util.Log
 import android.view.*
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.reco1l.andengine.buffered.CircleRenderer
-import com.reco1l.andengine.buffered.LineRenderer
-import com.reco1l.andengine.buffered.QuadRenderer
-import com.reco1l.andengine.buffered.TextRenderer
-import com.reco1l.andengine.buffered.TextureRenderer
-import com.reco1l.andengine.buffered.TriangleRenderer
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.ui.*
 import com.rian.andengine.HUD

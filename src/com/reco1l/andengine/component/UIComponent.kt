@@ -406,21 +406,6 @@ abstract class UIComponent : Entity(0f, 0f),
      */
     var cullingMode = CullingMode.Disabled
 
-    /**
-     * The blend information of the entity.
-     */
-    var blendInfo = BlendInfo.Mixture
-
-    /**
-     * The depth information of the entity.
-     */
-    var depthInfo = DepthInfo.None
-
-    /**
-     * The clear information of the entity.
-     */
-    var clearInfo = ClearInfo.None
-
 
     private var invalidationFlags = InvalidationFlag.All
 
@@ -663,11 +648,7 @@ abstract class UIComponent : Entity(0f, 0f),
         }
 
         // Render component and children
-        UIRenderer.setState(
-            scissor = ScissorStack.peek(),
-            blendInfo = blendInfo,
-            depthInfo = depthInfo
-        )
+        UIRenderer.setState(gl, scissor = ScissorStack.peek())
 
         doDraw(gl, camera)
         onDrawChildren(gl, camera)

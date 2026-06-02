@@ -9,6 +9,7 @@ import org.anddev.andengine.engine.camera.*
 import org.anddev.andengine.opengl.font.*
 import javax.microedition.khronos.opengles.*
 import com.reco1l.andengine.theme.Size
+import org.anddev.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas
 
 /**
  * A text entity that can be displayed on the screen.
@@ -84,6 +85,8 @@ open class FontAwesomeIcon(
         super.doDraw(gl, camera)
 
         val font = font ?: return
+
+        UIRenderer.setState(gl, texture = font.texture as BitmapTextureAtlas)
 
         TextRenderer.renderCharacter(
             character = icon.toChar().toString(),

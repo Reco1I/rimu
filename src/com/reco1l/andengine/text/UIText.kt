@@ -8,6 +8,7 @@ import com.reco1l.andengine.theme.Fonts
 import com.reco1l.andengine.theme.Size
 import org.anddev.andengine.engine.camera.*
 import org.anddev.andengine.opengl.font.*
+import org.anddev.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas
 import org.anddev.andengine.opengl.util.GLHelper
 import javax.microedition.khronos.opengles.*
 import kotlin.math.*
@@ -277,6 +278,8 @@ open class UIText : UIBufferedComponent() {
         if (font == null || lines == null || linesWidth == null) {
             return
         }
+
+        UIRenderer.setState(gl, texture = font.texture as BitmapTextureAtlas)
 
         TextRenderer.renderLines(
             lines = lines,
