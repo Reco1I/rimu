@@ -301,7 +301,7 @@ open class UIText : UIBufferedComponent() {
         val scrollTranslationY = if (autoScrollAxes.isVertical) scrollY else 0f
 
         if (scrollTranslationX != 0f || scrollTranslationY != 0f) {
-            TransformationStack.peek().postTranslate(-scrollTranslationX, -scrollTranslationY)
+            //TransformationStack.peek()?.postTranslate(-scrollTranslationX, -scrollTranslationY)
         }
 
         super.onManagedDraw(gl, camera)

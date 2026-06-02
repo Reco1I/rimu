@@ -5,9 +5,7 @@ import com.osudroid.math.Precision
 import com.reco1l.andengine.*
 import com.reco1l.andengine.buffered.QuadRenderer
 import com.reco1l.andengine.component.*
-import com.reco1l.andengine.shape.*
 import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
 import org.anddev.andengine.engine.camera.*
@@ -337,7 +335,7 @@ open class UIScrollableContainer : UIContainer() {
         if (showVerticalIndicator && (scrollAxes == Axes.Both || scrollAxes == Axes.Y)) {
             val indicatorHeight = height * (height / scrollableContentHeight).coerceAtMost(1f)
 
-            ColorStack.pushColor(Color4.White.copy(alpha = indicatorYAlpha))
+            ColorStack.push(Color4.White.copy(alpha = indicatorYAlpha))
             QuadRenderer.renderQuad(
                 x = width - 0.25f.rem,
                 y = scrollY * (height / scrollableContentHeight),
@@ -350,7 +348,7 @@ open class UIScrollableContainer : UIContainer() {
         if (showHorizontalIndicator && (scrollAxes == Axes.Both || scrollAxes == Axes.X)) {
             val indicatorWidth = width * (width / scrollableContentWidth).coerceAtMost(1f)
 
-            ColorStack.pushColor(Color4.White.copy(alpha = indicatorXAlpha))
+            ColorStack.push(Color4.White.copy(alpha = indicatorXAlpha))
             QuadRenderer.renderQuad(
                 x = scrollX * (width / scrollableContentWidth),
                 y = height - 0.25f.rem,

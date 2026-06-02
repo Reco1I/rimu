@@ -1,30 +1,28 @@
 package com.reco1l.andengine
 
-import android.opengl.*
-import androidx.core.util.Pools.*
 import com.reco1l.framework.math.*
-import java.util.Stack
 import kotlin.math.*
 
-object ScissorStack : Stack<Vec4>() {
+object ScissorStack {
 
-    private val vec4Pool = SimplePool<Vec4>(32)
+    private val deque = ArrayDeque<Vec4>()
+    private val pool = ArrayDeque<Vec4>(32)
 
 
-    fun pushScissor(x: Float, y: Float, width: Float, height: Float) {
+    fun push(x: Float, y: Float, width: Float, height: Float) {
 
         val intersectedX: Float
         val intersectedY: Float
         val intersectedWidth: Float
         val intersectedHeight: Float
 
-        if (empty()) {
+        if (deque.isEmpty()) {
             intersectedX = x
             intersectedY = y
             intersectedWidth = width
             intersectedHeight = height
         } else {
-            val current = peek()
+            val current = deque.last()
 
             val minX = max(current.x, x)
             val minY = max(current.y, y)
@@ -37,26 +35,24 @@ object ScissorStack : Stack<Vec4>() {
             intersectedHeight = (maxY - minY)
         }
 
-        val vec4 = vec4Pool.acquire()
+        val vec4 = pool.removeLastOrNull()
             ?.takeUnless { vec -> vec.x != intersectedX || vec.y != intersectedY || vec.z != intersectedWidth || vec.w != intersectedHeight }
             ?: Vec4(intersectedX, intersectedY, intersectedWidth, intersectedHeight)
 
-        super.push(vec4)
+        deque.addLast(vec4)
     }
 
-    override fun pop(): Vec4? {
-
-        if (empty()) {
+    fun pop(): Vec4? {
+        if (deque.isEmpty()) {
             return null
         }
 
-        val vec4 = super.pop()
-        if (vec4 != null) {
-            vec4Pool.release(vec4)
-        }
-
-        return vec4
+        val vec = deque.removeLast()
+        pool.addLast(vec)
+        return vec
     }
+
+    fun peek(): Vec4? = deque.lastOrNull()
 
 
     private fun readResolve(): Any = ScissorStack

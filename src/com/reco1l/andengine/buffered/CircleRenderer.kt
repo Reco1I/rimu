@@ -26,7 +26,7 @@ object CircleRenderer : BufferRenderer() {
         color: Color4? = null,
         lineWidth: Float = 1f
     ) {
-        if (color != null) ColorStack.pushColor(color, false)
+        if (color != null) ColorStack.push(color, false)
 
         if (paintStyle == PaintStyle.Outline) {
             GLHelper.lineWidth(gl, lineWidth)

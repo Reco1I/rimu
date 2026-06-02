@@ -1,13 +1,11 @@
 package com.reco1l.andengine
 
+import android.util.Log
 import com.reco1l.andengine.component.BlendInfo
 import com.reco1l.andengine.component.DepthInfo
 import com.reco1l.framework.math.Vec4
 import org.anddev.andengine.opengl.texture.ITexture
-import org.anddev.andengine.opengl.texture.atlas.TextureAtlas
-import org.anddev.andengine.opengl.texture.source.ITextureAtlasSource
 import org.anddev.andengine.opengl.util.GLHelper
-import java.util.LinkedList
 import javax.microedition.khronos.opengles.GL10
 
 const val POSITION_SIZE = 2
@@ -35,8 +33,8 @@ object UIRenderer {
         private set
 
 
-    private val bufferPool = LinkedList<VertexBuffer>()
-    private val stateQueue = LinkedList<RenderState>()
+    private val bufferPool = ArrayDeque<VertexBuffer>()
+    private val stateQueue = ArrayDeque<RenderState>()
 
 
     /**
@@ -67,7 +65,10 @@ object UIRenderer {
 
         if (queueState == null) {
             val newState = RenderState(
-                bufferPool.poll() ?: VertexBuffer(32),
+                bufferPool.removeLastOrNull() ?: run {
+                    Log.w("UIRenderer", "Buffer pool exhausted, creating a new VertexBuffer.")
+                    VertexBuffer(32)
+                } ,
                 texture,
                 primitiveType,
                 blendInfo,

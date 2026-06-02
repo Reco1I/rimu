@@ -1,20 +1,23 @@
 package com.reco1l.andengine
 
 import com.reco1l.framework.Color4
+import com.reco1l.framework.math.Vec4
 import java.util.Stack
-import javax.microedition.khronos.opengles.GL10
 
-object ColorStack : Stack<Color4>() {
+object ColorStack {
 
-    fun pushColor(color: Color4, inheritAncestors: Boolean = true) {
+    private val deque = ArrayDeque<Color4>()
+
+
+    fun push(color: Color4, inheritAncestors: Boolean = true) {
 
         var red = color.red
         var green = color.green
         var blue = color.blue
         var alpha = color.alpha
 
-        if (!empty()) {
-            val previous = peek()
+        if (!deque.isEmpty()) {
+            val previous = deque.last()
             if (inheritAncestors) {
                 red *= previous.red
                 green *= previous.green
@@ -23,11 +26,25 @@ object ColorStack : Stack<Color4>() {
             alpha *= previous.alpha
         }
 
-        super.push(Color4(red.coerceIn(0f, 1f), green.coerceIn(0f, 1f), blue.coerceIn(0f, 1f), alpha.coerceIn(0f, 1f)))
+        val color = Color4(
+            red.coerceIn(0f, 1f),
+            green.coerceIn(0f, 1f),
+            blue.coerceIn(0f, 1f),
+            alpha.coerceIn(0f, 1f)
+        )
+
+        deque.addLast(color)
     }
 
-    override fun push(item: Color4?): Color4? {
-        throw UnsupportedOperationException("Use pushColor(GL10, Color4) instead.")
+    fun pop(): Color4? {
+        if (deque.isEmpty()) {
+            return null
+        }
+        return deque.removeLast()
+    }
+
+    fun peek(): Color4? {
+        return deque.lastOrNull()
     }
 
 

@@ -12,7 +12,23 @@ fun Transformation?.transform(x: Float, y: Float): FloatArray {
     return outputArray
 }
 
-object TransformationStack : Stack<Transformation>() {
+object TransformationStack {
+
+    val deque = ArrayDeque<Transformation>()
+
+
+    fun push(transformation: Transformation) {
+        deque.addLast(transformation)
+    }
+
+    fun pop() {
+        deque.removeLastOrNull()
+    }
+
+    fun peek(): Transformation? {
+        return deque.lastOrNull()
+    }
+
 
     private fun readResolve(): Any = TransformationStack
 

@@ -639,7 +639,7 @@ abstract class UIComponent : Entity(0f, 0f),
         }
 
         TransformationStack.push(localToSceneTransformation)
-        ColorStack.pushColor(color, inheritAncestorsColor)
+        ColorStack.push(color, inheritAncestorsColor)
 
         if (clipToBounds) {
             val (topLeftX, topLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, 0f))
@@ -652,20 +652,19 @@ abstract class UIComponent : Entity(0f, 0f),
             val maxX = maxOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
             val maxY = maxOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
 
-            ScissorStack.pushScissor(minX, minY, maxX - minX, maxY - minY)
+            ScissorStack.push(minX, minY, maxX - minX, maxY - minY)
         }
 
         // Render background quad
         if (backgroundColor.alpha > 0f) {
-            ColorStack.pushColor(backgroundColor, false)
+            ColorStack.push(backgroundColor, false)
             QuadRenderer.renderQuad(0f, 0f, width, height, radius)
             ColorStack.pop()
         }
 
         // Render component and children
         UIRenderer.setState(
-            scissor = if (ScissorStack.empty()) null else ScissorStack.peek(),
-            texture = null,
+            scissor = ScissorStack.peek(),
             blendInfo = blendInfo,
             depthInfo = depthInfo
         )
@@ -675,18 +674,17 @@ abstract class UIComponent : Entity(0f, 0f),
 
         // Render border quad
         if (borderColor.alpha > 0f && borderWidth > 0f) {
-            ColorStack.pushColor(borderColor, false)
+            ColorStack.push(borderColor, false)
             QuadRenderer.renderQuad(0f, 0f, width, height, radius, PaintStyle.Outline, borderWidth)
             ColorStack.pop()
         }
 
         // Debug outline
         if (BuildSettings.SHOW_ENTITY_BOUNDARIES) {
-            ColorStack.pushColor(Color4.White, false)
+            ColorStack.push(Color4.White, false)
             QuadRenderer.renderQuad(gl, 0f, 0f, width, height, PaintStyle.Outline)
             ColorStack.pop()
         }
-
 
         if (clipToBounds) {
             ScissorStack.pop()

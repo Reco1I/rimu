@@ -211,9 +211,6 @@ open class UIScene : Scene(), IShape, IClockProvider<IFrameBasedClock?>, IClockR
         }
 
         if (clipToBounds) {
-            val wasScissorTestEnabled = GLHelper.isEnableScissorTest()
-            GLHelper.enableScissorTest(gl)
-
             // Entity coordinates in screen's space.
             val (topLeftX, topLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, 0f))
             val (topRightX, topRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, 0f))
@@ -225,13 +222,10 @@ open class UIScene : Scene(), IShape, IClockProvider<IFrameBasedClock?>, IClockR
             val maxX = maxOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
             val maxY = maxOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
 
-            ScissorStack.pushScissor(minX, minY, maxX - minX, maxY - minY)
+            ScissorStack.push(minX, minY, maxX - minX, maxY - minY)
             onManagedDraw(gl, camera)
             ScissorStack.pop()
 
-            if (!wasScissorTestEnabled) {
-                GLHelper.disableScissorTest(gl)
-            }
         } else {
             onManagedDraw(gl, camera)
         }
