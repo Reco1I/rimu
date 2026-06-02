@@ -38,7 +38,7 @@ object ComponentTestScene : UIScrollableContainer() {
         anchor = Anchor.Center
         origin = Anchor.Center
         scrollAxes = Axes.Y
-        backgroundColor = Color4.White / 0.3f
+        backgroundColor = Color4.White.copy(alpha = 0.3f)
         style = {
             scrollPadding = Vec2(0f, 8.rem)
         }
