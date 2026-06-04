@@ -2,11 +2,8 @@ package com.reco1l.andengine.shape
 
 import com.reco1l.andengine.buffered.*
 import com.reco1l.andengine.component.*
-import com.reco1l.andengine.shape.UITriangle.*
 import org.anddev.andengine.engine.camera.Camera
-import org.anddev.andengine.opengl.util.*
 import javax.microedition.khronos.opengles.*
-import javax.microedition.khronos.opengles.GL11.*
 
 /**
  * A rectangle shape based on [UIComponent].
@@ -27,12 +24,12 @@ open class UITriangle : UIBufferedComponent() {
         super.doDraw(gl, camera)
         TriangleRenderer.renderTriangle(
             gl = gl,
-            centerX = x + width / 2f,
-            centerY = y + height / 2f,
+            x = 0f,
+            y = 0f,
             width = width,
             height = height,
             paintStyle = paintStyle,
-            strokeWidth = lineWidth
+            lineWidth = lineWidth
         )
     }
 }

@@ -63,20 +63,4 @@ open class UICircle : UIBufferedComponent() {
         )
     }
 
-
-    companion object {
-
-        /**
-         * Calculates the number of segments needed to render a smooth arc.
-         */
-        fun calculateArcResolution(width: Float, height: Float, arcAngle: Float = 360f): Int {
-            val averageRadius = (width + height) / 4f
-
-            // We use 5 degrees as the maximum angle between segments for visual smoothness.
-            val anglePerSegment = min(5f, 360f / averageRadius)
-            val segments = (abs(arcAngle) / anglePerSegment).toInt()
-            return max(3, segments)
-        }
-
-    }
 }

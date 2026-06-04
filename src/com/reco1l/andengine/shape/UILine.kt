@@ -1,15 +1,12 @@
 package com.reco1l.andengine.shape
 
 import com.reco1l.andengine.buffered.*
-import com.reco1l.andengine.shape.UILine.*
 import com.reco1l.framework.math.Vec2
 import org.anddev.andengine.engine.camera.Camera
-import org.anddev.andengine.opengl.util.GLHelper
 import javax.microedition.khronos.opengles.*
-import javax.microedition.khronos.opengles.GL11.*
 
 /**
- * A rectangle shape based on [UIComponent].
+ * A rectangle shape based on [com.reco1l.andengine.component.UIComponent].
  */
 class UILine : UIBufferedComponent() {
 
@@ -31,6 +28,6 @@ class UILine : UIBufferedComponent() {
 
     override fun doDraw(gl: GL10, camera: Camera) {
         super.doDraw(gl, camera)
-        LineRenderer.renderLine(fromPoint.x, fromPoint.y, toPoint.x, toPoint.y, strokeWidth = lineWidth)
+        LineRenderer.renderLine(gl, fromPoint.x, fromPoint.y, toPoint.x, toPoint.y, lineWidth)
     }
 }

@@ -74,6 +74,9 @@ data class Vec4(
         && z == other.z
         && w == other.w
 
+    fun equals(x: Float, y: Float, z: Float, w: Float) = this.x == x && this.y == y && this.z == z && this.w == w
+
+
     override fun hashCode() = javaClass.hashCode()
 
 

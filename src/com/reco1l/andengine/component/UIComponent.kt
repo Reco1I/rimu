@@ -640,30 +640,33 @@ abstract class UIComponent : Entity(0f, 0f),
             ScissorStack.push(minX, minY, maxX - minX, maxY - minY)
         }
 
+        UIRenderer.setState(gl,
+            scissor = ScissorStack.peek(),
+            texture = null
+        )
+
         // Render background quad
         if (backgroundColor.alpha > 0f) {
             ColorStack.push(backgroundColor, false)
-            QuadRenderer.renderQuad(0f, 0f, width, height, radius)
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius)
             ColorStack.pop()
         }
 
         // Render component and children
-        UIRenderer.setState(gl, scissor = ScissorStack.peek())
-
         doDraw(gl, camera)
         onDrawChildren(gl, camera)
 
         // Render border quad
         if (borderColor.alpha > 0f && borderWidth > 0f) {
             ColorStack.push(borderColor, false)
-            QuadRenderer.renderQuad(0f, 0f, width, height, radius, PaintStyle.Outline, borderWidth)
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, PaintStyle.Outline, borderWidth)
             ColorStack.pop()
         }
 
         // Debug outline
         if (BuildSettings.SHOW_ENTITY_BOUNDARIES) {
             ColorStack.push(Color4.White, false)
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, PaintStyle.Outline)
+            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, 0f, PaintStyle.Outline)
             ColorStack.pop()
         }
 

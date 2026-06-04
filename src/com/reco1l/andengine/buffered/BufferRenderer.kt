@@ -14,18 +14,14 @@ import com.reco1l.framework.Color4
 open class BufferRenderer {
 
     fun addVertex(x: Float, y: Float, u: Float = 0f, v: Float = 0f) {
-        val currentState = UIRenderer.state
 
         val position = TransformationStack.peek().transform(x, y)
         val color = ColorStack.peek() ?: Color4.White
 
-        currentState.buffer.addVertex(
+        UIRenderer.buffer.addVertex(
             x = position[0],
             y = position[1],
-            r = color.red,
-            g = color.green,
-            b = color.blue,
-            a = color.alpha,
+            color = color,
             u = u,
             v = v
         )
@@ -43,5 +39,15 @@ open class BufferRenderer {
         addVertex(x1, y1)
         addVertex(x2, y2)
         addVertex(x3, y3)
+    }
+
+    fun addLine(
+        x1: Float,
+        y1: Float,
+        x2: Float,
+        y2: Float
+    ) {
+        addVertex(x1, y1)
+        addVertex(x2, y2)
     }
 }

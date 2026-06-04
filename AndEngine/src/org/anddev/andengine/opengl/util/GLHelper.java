@@ -64,6 +64,7 @@ public class GLHelper {
 	private static boolean sEnableTextures = false;
 	private static boolean sEnableTexCoordArray = false;
 	private static boolean sEnableVertexArray = false;
+	private static boolean sEnableColorArray = false;
 
 	private static float sLineWidth = 1;
 
@@ -180,6 +181,21 @@ public class GLHelper {
 		}
 	}
 
+	// BEGIN osu!droid modified - Added color array client state.
+	public static void enableColorArray(final GL10 pGL) {
+		if(!GLHelper.sEnableColorArray) {
+			GLHelper.sEnableColorArray = true;
+			pGL.glEnableClientState(GL10.GL_COLOR_ARRAY);
+		}
+	}
+	public static void disableColorArray(final GL10 pGL) {
+		if(GLHelper.sEnableColorArray) {
+			GLHelper.sEnableColorArray = false;
+			pGL.glDisableClientState(GL10.GL_COLOR_ARRAY);
+		}
+	}
+	// END osu!droid modified.
+
 	public static void enableTexCoordArray(final GL10 pGL) {
 		if(!GLHelper.sEnableTexCoordArray) {
 			GLHelper.sEnableTexCoordArray = true;
@@ -192,12 +208,6 @@ public class GLHelper {
 			pGL.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		}
 	}
-
-	// BEGIN osu!droid modified - Added scissor test state getter.
-	public static boolean isEnableScissorTest() {
-		return sEnableScissorTest;
-	}
-	// END osu!droid modified.
 
 	public static void enableScissorTest(final GL10 pGL) {
 		if(!GLHelper.sEnableScissorTest) {

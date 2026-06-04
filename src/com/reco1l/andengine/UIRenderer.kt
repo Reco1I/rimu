@@ -1,46 +1,74 @@
 package com.reco1l.andengine
 
+import android.util.Log
 import com.reco1l.framework.math.Vec4
 import org.anddev.andengine.opengl.texture.ITexture
 import org.anddev.andengine.opengl.util.GLHelper
+import org.anddev.andengine.util.MathUtils.nextPowerOfTwo
 import javax.microedition.khronos.opengles.GL10
-
-const val POSITION_SIZE = 2
-const val POSITION_OFFSET = 0
-const val COLOR_SIZE = 4
-const val COLOR_OFFSET = POSITION_SIZE
-const val TEXTURE_SIZE = 2
-const val TEXTURE_OFFSET = POSITION_SIZE + COLOR_SIZE
-const val VERTEX_STRIDE = POSITION_SIZE + COLOR_SIZE + TEXTURE_SIZE
+import javax.microedition.khronos.opengles.GL11
 
 
 object UIRenderer {
 
-    /**
-     * A counter for the number of draw calls made in the current frame. This can be used
-     * for performance monitoring and optimization purposes.
-     */
-    var drawCallsOnFrame = 0
+    val buffer = VertexBuffer(512)
 
-    /**
-     * The current rendering state, which includes the texture atlas, primitive type, blending information,
-     * depth testing information, and scissor rectangle.
-     */
+
     var state = RenderState()
         private set
 
+    var drawCallsOnFrame = 0
+        private set
 
-    /**
-     * Begins a new rendering session. This function should be called at the start of each frame
-     * before any rendering operations are performed.
-     */
+    var verticesOnFrame = 0
+        private set
+
+
+    private var dynamicVbo = intArrayOf(-1)
+    private var dynamicVboCapacity = 0
+
+    private var currentScissor: Vec4? = null
+
+
+    var textureChanges = 0
+    var primitiveChanges = 0
+    var blendChanges = 0
+    var depthChanges = 0
+    var lineWidthChanges = 0
+    var scissorChanges = 0
+
+
     fun begin(gl: GL10) {
         drawCallsOnFrame = 0
+        verticesOnFrame = 0
+
+        textureChanges = 0
+        primitiveChanges = 0
+        blendChanges = 0
+        depthChanges = 0
+        lineWidthChanges = 0
+        scissorChanges = 0
+
+        if (GLHelper.EXTENSIONS_VERTEXBUFFEROBJECTS && dynamicVbo[0] == -1) {
+            Log.i("UIRenderer", "Initializing VBO for UIRenderer...")
+
+            gl as GL11
+            gl.glGenBuffers(1, dynamicVbo, 0)
+
+            dynamicVboCapacity = 1024 * 1024
+
+            if (dynamicVbo[0] == 0 || dynamicVbo[0] == -1) {
+                throw RuntimeException("Failed to create VBO for UIRenderer")
+            }
+
+            GLHelper.bindBuffer(gl, dynamicVbo[0])
+            gl.glBufferData(GL11.GL_ARRAY_BUFFER, dynamicVboCapacity, null, GL11.GL_DYNAMIC_DRAW)
+            GLHelper.bindBuffer(gl, 0)
+        }
+
+        currentScissor = null
     }
 
-    /**
-     * Sets the current rendering state.
-     */
     fun setState(
         gl: GL10,
         texture: ITexture? = state.texture,
@@ -50,39 +78,46 @@ object UIRenderer {
         depthTestingEnabled: Boolean = state.depthTestingEnabled,
         depthMask: Boolean = state.depthMask,
         depthFunction: Int = state.depthFunction,
+        lineWidth: Float = state.lineWidth,
         scissor: Vec4? = state.scissor
     ) {
-        if (
-            state.texture != texture ||
-            state.primitiveType != primitiveType ||
-            state.blendFunctionSource != blendFunctionSource ||
-            state.blendFunctionDestination != blendFunctionDestination ||
-            state.depthTestingEnabled != depthTestingEnabled ||
-            state.depthMask != depthMask ||
-            state.depthFunction != depthFunction ||
-            state.scissor != scissor
-        ) {
-            if (state.flush(gl)) {
-                drawCallsOnFrame++
-            }
+        // If the new state is the same as the current state, no need to flush or change anything.
+        if (state.texture == texture &&
+            state.primitiveType == primitiveType &&
+            state.blendFunctionSource == blendFunctionSource &&
+            state.blendFunctionDestination == blendFunctionDestination &&
+            state.depthTestingEnabled == depthTestingEnabled &&
+            state.depthMask == depthMask &&
+            state.depthFunction == depthFunction &&
+            state.lineWidth == lineWidth &&
+            state.scissor == scissor) return
 
-            state = state.copy(
-                texture = texture,
-                primitiveType = primitiveType,
-                blendFunctionSource = blendFunctionSource,
-                blendFunctionDestination = blendFunctionDestination,
-                depthTestingEnabled = depthTestingEnabled,
-                depthMask = depthMask,
-                depthFunction = depthFunction,
-                scissor = scissor
-            )
+        if (state.flush(gl)) {
+            if (state.texture != texture) textureChanges++
+            if (state.primitiveType != primitiveType) primitiveChanges++
+            if (state.blendFunctionSource != blendFunctionSource || state.blendFunctionDestination != blendFunctionDestination) blendChanges++
+            if (state.depthTestingEnabled != depthTestingEnabled || state.depthMask != depthMask || state.depthFunction != depthFunction) depthChanges++
+            if (state.lineWidth != lineWidth) lineWidthChanges++
+            if (state.scissor != scissor) scissorChanges++
 
+            drawCallsOnFrame++
         }
+
+        state = state.copy(
+            texture = texture,
+            primitiveType = primitiveType,
+            blendFunctionSource = blendFunctionSource,
+            blendFunctionDestination = blendFunctionDestination,
+            depthTestingEnabled = depthTestingEnabled,
+            depthMask = depthMask,
+            depthFunction = depthFunction,
+            lineWidth = lineWidth,
+            scissor = scissor
+        )
+
+        buffer.useTextures = texture != null
     }
 
-    /**
-     * Ends the current rendering session flushing any remaining vertex data to the GPU.
-     */
     fun end(gl: GL10) {
         if (state.flush(gl)) {
             drawCallsOnFrame++
@@ -90,56 +125,94 @@ object UIRenderer {
     }
 
     fun RenderState.flush(gl: GL10): Boolean {
-        if (buffer.stored == 0) return false
+        if (buffer.vertexCount == 0) return false
 
-        GLHelper.disableCulling(gl)
+        verticesOnFrame += buffer.vertexCount
 
-        val scissor = scissor
+        val useVBO = GLHelper.EXTENSIONS_VERTEXBUFFEROBJECTS && dynamicVbo[0] != -1
+        val useTextures = texture != null && buffer.useTextures
+
+        val usedBytes = buffer.vertexCount * buffer.stride
+
+        if (useVBO) {
+            gl as GL11
+            GLHelper.bindBuffer(gl, dynamicVbo[0])
+
+            if (usedBytes > dynamicVboCapacity) {
+                dynamicVboCapacity = nextPowerOfTwo(usedBytes)
+                gl.glBufferData(GL11.GL_ARRAY_BUFFER, dynamicVboCapacity, null, GL11.GL_DYNAMIC_DRAW)
+            }
+        }
+
         if (scissor != null) {
             GLHelper.enableScissorTest(gl)
 
-            gl.glScissor(
-                scissor.x.toInt(),
-                scissor.y.toInt(),
-                scissor.z.toInt(),
-                scissor.w.toInt()
-            )
+            if (scissor != currentScissor) {
+                currentScissor = scissor
+
+                gl.glScissor(
+                    scissor.x.toInt(),
+                    scissor.y.toInt(),
+                    scissor.z.toInt(),
+                    scissor.w.toInt()
+                )
+            }
         }
 
-        GLHelper.setDepthTest(gl, depthTestingEnabled)
-        gl.glDepthFunc(depthFunction)
-        gl.glDepthMask(depthMask)
+        GLHelper.disableCulling(gl)
 
+        // Blend
         GLHelper.enableBlend(gl)
         GLHelper.blendFunction(gl, blendFunctionSource, blendFunctionDestination)
 
-        buffer.offsetToPosition()
+        // Depth testing
+        GLHelper.setDepthTest(gl, depthTestingEnabled)
+        if (depthTestingEnabled) {
+            gl.glDepthFunc(depthFunction)
+            gl.glDepthMask(depthMask)
+        }
+
+        GLHelper.enableColorArray(gl)
         GLHelper.enableVertexArray(gl)
-        gl.glVertexPointer(POSITION_SIZE, GL10.GL_FLOAT, VERTEX_STRIDE * Float.SIZE_BYTES, buffer.getInternalBuffer())
 
-        buffer.offsetToColor()
-        gl.glEnableClientState(GL10.GL_COLOR_ARRAY)
-        gl.glColorPointer(COLOR_SIZE, GL10.GL_FLOAT, VERTEX_STRIDE * Float.SIZE_BYTES, buffer.getInternalBuffer())
-
-        val texture = texture
-        if (texture != null) {
+        if (useTextures) {
             GLHelper.enableTextures(gl)
-            texture.bind(gl)
-
-            buffer.offsetToTexture()
             GLHelper.enableTexCoordArray(gl)
-            gl.glTexCoordPointer(TEXTURE_SIZE, GL10.GL_FLOAT, VERTEX_STRIDE * Float.SIZE_BYTES, buffer.getInternalBuffer())
+
+            texture.bind(gl)
         } else {
             GLHelper.disableTextures(gl)
             GLHelper.disableTexCoordArray(gl)
+            GLHelper.bindTexture(gl, 0)
         }
 
-        gl.glDrawArrays(primitiveType, 0, buffer.stored)
+        if (useVBO) {
+            gl as GL11
+            gl.glBufferSubData(GL11.GL_ARRAY_BUFFER, 0, usedBytes, buffer.fromZero())
 
-        gl.glDisableClientState(GL10.GL_COLOR_ARRAY)
-        GLHelper.disableScissorTest(gl)
+            gl.glVertexPointer(VertexBuffer.POSITION_COMPONENTS, GL10.GL_FLOAT, buffer.stride, VertexBuffer.POSITION_OFFSET_BYTES)
+            gl.glColorPointer(VertexBuffer.COLOR_COMPONENTS, GL10.GL_UNSIGNED_BYTE, buffer.stride, VertexBuffer.COLOR_OFFSET_BYTES)
+
+            if (useTextures) gl.glTexCoordPointer(VertexBuffer.TEXTURE_COMPONENTS, GL10.GL_FLOAT, buffer.stride, VertexBuffer.TEXTURE_OFFSET_BYTES)
+        } else {
+            gl.glVertexPointer(VertexBuffer.POSITION_COMPONENTS, GL10.GL_FLOAT, buffer.stride, buffer.forPosition())
+            gl.glColorPointer(VertexBuffer.COLOR_COMPONENTS, GL10.GL_UNSIGNED_BYTE, buffer.stride, buffer.forColor())
+
+            if (useTextures) gl.glTexCoordPointer(VertexBuffer.TEXTURE_COMPONENTS, GL10.GL_FLOAT, buffer.stride, buffer.forTexture())
+        }
+
+        gl.glDrawArrays(primitiveType, 0, buffer.vertexCount)
+
+        if (useVBO) GLHelper.bindBuffer(gl as GL11, 0)
+
         buffer.clear()
+
+        // We reset driver states because legacy components already setup them on its own pipeline.
+        GLHelper.disableColorArray(gl)
+        GLHelper.disableScissorTest(gl)
+        GLHelper.disableTexCoordArray(gl)
         return true
     }
+
 
 }

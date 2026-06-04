@@ -36,14 +36,13 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
         fontSize = FontSize.SM
         anchor = Anchor.CenterLeft
         origin = Anchor.CenterLeft
-        clipToBounds = true
+        wrapText = true
     }
 
     private val textComponent = UIText().apply {
         fontSize = FontSize.SM
         anchor = Anchor.CenterLeft
         origin = Anchor.CenterLeft
-        clipToBounds = true
         wrapText = true
     }
 

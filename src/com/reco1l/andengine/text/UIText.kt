@@ -117,6 +117,18 @@ open class UIText : UIBufferedComponent() {
             }
         }
 
+    /**
+     * The maximum number of lines to display when [wrapText] is enabled.
+     * If the text exceeds this limit, it will be truncated.
+     */
+    var maxLines = Int.MAX_VALUE
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidate(InvalidationFlag.Content)
+            }
+        }
+
 
     protected open val textViewportWidth: Float
         get() = innerWidth
@@ -146,8 +158,6 @@ open class UIText : UIBufferedComponent() {
         width = Size.Auto
         height = Size.Auto
 
-        clipToBounds = true
-
         style = {
             fontSize = FontSize.SM
         }
@@ -167,7 +177,12 @@ open class UIText : UIBufferedComponent() {
             return
         }
 
-        val originalLines = text.split('\n')
+        var originalLines = text.split('\n')
+
+        if (originalLines.size > maxLines) {
+            originalLines = originalLines.subList(maxLines, originalLines.size).toMutableList()
+            originalLines[originalLines.size - 1] = originalLines.lastOrNull()?.let { it.substring(0, it.length - 3) + "..." } ?: ""
+        }
 
         if (wrapText && width > 0f && rawWidth != Size.Auto) {
             val wrappedLines = mutableListOf<String>()
@@ -279,9 +294,8 @@ open class UIText : UIBufferedComponent() {
             return
         }
 
-        UIRenderer.setState(gl, texture = font.texture as BitmapTextureAtlas)
-
         TextRenderer.renderLines(
+            gl,
             lines = lines,
             linesWidth = linesWidth,
             font = font,
@@ -289,7 +303,7 @@ open class UIText : UIBufferedComponent() {
             viewportY = textViewportY,
             viewportWidth = textViewportWidth,
             viewportHeight = textViewportHeight,
-            alignment = alignment
+            alignment = alignment,
         )
     }
 

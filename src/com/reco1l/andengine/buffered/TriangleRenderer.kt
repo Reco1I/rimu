@@ -1,27 +1,33 @@
 package com.reco1l.andengine.buffered
 
+import com.reco1l.andengine.UIRenderer
 import com.reco1l.andengine.shape.PaintStyle
-import org.anddev.andengine.opengl.util.GLHelper
 import javax.microedition.khronos.opengles.GL10
 
 object TriangleRenderer : BufferRenderer() {
 
     fun renderTriangle(
         gl: GL10,
-        centerX: Float,
-        centerY: Float,
+        x: Float,
+        y: Float,
         width: Float,
         height: Float,
         paintStyle: PaintStyle = PaintStyle.Fill,
-        strokeWidth: Float = 0f
+        lineWidth: Float = 1f
     ) {
-        GLHelper.lineWidth(gl, strokeWidth)
+        val filled = paintStyle == PaintStyle.Fill
 
-        addTriangle(
-            centerX, centerY - height / 2,
-            centerX - width / 2, centerY + height / 2,
-            centerX + width / 2, centerY + height / 2
+        UIRenderer.setState(gl,
+            primitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES,
+            lineWidth = lineWidth
         )
 
+        if (filled) {
+            addTriangle(x, y, x + width, y, x + width / 2f, y + height)
+        } else {
+            addLine(x, y, x + width, y)
+            addLine(x + width, y, x + width / 2f, y + height)
+            addLine(x + width / 2f, y + height, x, y)
+        }
     }
 }

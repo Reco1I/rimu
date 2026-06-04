@@ -4,11 +4,12 @@ import com.reco1l.andengine.UIRenderer
 import com.reco1l.framework.math.Vec2
 import com.reco1l.toolkt.kotlin.fastForEachIndexed
 import org.anddev.andengine.opengl.font.Font
-import org.anddev.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas
+import javax.microedition.khronos.opengles.GL10
 
 object TextRenderer : BufferRenderer() {
 
     fun renderLines(
+        gl: GL10,
         lines: List<String>,
         linesWidth: IntArray,
         font: Font,
@@ -18,6 +19,11 @@ object TextRenderer : BufferRenderer() {
         viewportHeight: Float,
         alignment: Vec2,
     ) {
+        UIRenderer.setState(gl,
+            primitiveType = GL10.GL_TRIANGLES,
+            texture = font.texture
+        )
+
         val lineHeight = font.lineHeight + font.lineGap
 
         lines.fastForEachIndexed { lineIndex, line ->
@@ -59,6 +65,7 @@ object TextRenderer : BufferRenderer() {
     }
 
     fun renderCharacter(
+        gl: GL10,
         character: String,
         font: Font,
         viewportX: Float,
@@ -67,6 +74,11 @@ object TextRenderer : BufferRenderer() {
         viewportHeight: Float,
         alignment: Vec2,
     ) {
+        UIRenderer.setState(gl,
+            primitiveType = GL10.GL_TRIANGLES,
+            texture = font.texture
+        )
+
         val lineHeight = font.lineHeight + font.lineGap
         val letter = font.getLetter(character)
 

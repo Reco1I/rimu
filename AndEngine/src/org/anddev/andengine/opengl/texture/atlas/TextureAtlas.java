@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.TextureOptions;
 import org.anddev.andengine.opengl.texture.source.ITextureAtlasSource;
-import org.anddev.andengine.util.MathUtils;
 
 /**
  * (c) 2010 Nicolas Gramlich
@@ -26,7 +25,9 @@ public abstract class TextureAtlas<T extends ITextureAtlasSource> extends Textur
 	protected final int mWidth;
 	protected final int mHeight;
 
-	protected final ArrayList<T> mTextureAtlasSources = new ArrayList<T>();
+	// BEGIN osu!droid modified: Make it mutable.
+	protected /*final*/ ArrayList<T> mTextureAtlasSources = new ArrayList<T>();
+	// END osu!droid modified
 
 	// ===========================================================
 	// Constructors
@@ -95,12 +96,6 @@ public abstract class TextureAtlas<T extends ITextureAtlasSource> extends Textur
 		this.mTextureAtlasSources.clear();
 		this.mUpdateOnHardwareNeeded = true;
 	}
-
-	// BEGIN osu!droid modified: Added method to get the texture atlas sources.
-	public ArrayList<T> getTextureAtlasSources() {
-		return this.mTextureAtlasSources;
-	}
-	// END osu!droid modified
 
 	// ===========================================================
 	// Methods

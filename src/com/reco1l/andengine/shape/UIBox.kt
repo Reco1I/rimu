@@ -24,7 +24,8 @@ open class UIBox : UIBufferedComponent() {
 
     override fun doDraw(gl: GL10, camera: Camera) {
         super.doDraw(gl, camera)
-        QuadRenderer.renderQuad(0f, 0f, width, height, radius, paintStyle, lineWidth = lineWidth)
+
+        QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, paintStyle, lineWidth = lineWidth)
     }
 
 }

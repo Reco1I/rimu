@@ -182,7 +182,8 @@ class FPSCounter : UIText() {
         stringBuilder.setLength(0)
 
         formatter.format(
-            "%.${if (isHighPrecision) "1" else "0"}f ms | %d FPS | ${UIRenderer.drawCallsOnFrame} DCs",
+            "%.${if (isHighPrecision) "1" else "0"}f ms | %d FPS | ${UIRenderer.drawCallsOnFrame} DCs | ${UIRenderer.verticesOnFrame} verts\n" +
+                    "Texture Changes: ${UIRenderer.textureChanges}\nPrimitive Changes: ${UIRenderer.primitiveChanges}\nBlend Changes: ${UIRenderer.blendChanges}\nDepth Changes: ${UIRenderer.depthChanges}\nLine Width Changes: ${UIRenderer.lineWidthChanges}\nScissor Changes: ${UIRenderer.scissorChanges}",
             displayedMs,
             displayedFps
         )

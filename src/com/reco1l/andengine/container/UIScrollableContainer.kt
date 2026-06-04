@@ -329,14 +329,14 @@ open class UIScrollableContainer : UIContainer() {
 
     //endregion
 
-    override fun onManagedDrawChildren(pGL: GL10, pCamera: Camera) {
-        super.onManagedDrawChildren(pGL, pCamera)
+    override fun onManagedDrawChildren(gl: GL10, pCamera: Camera) {
+        super.onManagedDrawChildren(gl, pCamera)
 
         if (showVerticalIndicator && (scrollAxes == Axes.Both || scrollAxes == Axes.Y)) {
             val indicatorHeight = height * (height / scrollableContentHeight).coerceAtMost(1f)
 
             ColorStack.push(Color4.White.copy(alpha = indicatorYAlpha))
-            QuadRenderer.renderQuad(
+            QuadRenderer.renderQuad(gl,
                 x = width - 0.25f.rem,
                 y = scrollY * (height / scrollableContentHeight),
                 width = 0.25f.rem,
@@ -349,7 +349,7 @@ open class UIScrollableContainer : UIContainer() {
             val indicatorWidth = width * (width / scrollableContentWidth).coerceAtMost(1f)
 
             ColorStack.push(Color4.White.copy(alpha = indicatorXAlpha))
-            QuadRenderer.renderQuad(
+            QuadRenderer.renderQuad(gl,
                 x = scrollX * (width / scrollableContentWidth),
                 y = height - 0.25f.rem,
                 width = indicatorWidth,

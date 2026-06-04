@@ -82,8 +82,6 @@ open class UISelect<T : Any>(initialValues: List<T> = emptyList()) : UIControl<L
 
 
     init {
-        clipToBounds = true
-
         +button.apply {
             text = placeholder
         }

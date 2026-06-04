@@ -86,9 +86,8 @@ open class FontAwesomeIcon(
 
         val font = font ?: return
 
-        UIRenderer.setState(gl, texture = font.texture as BitmapTextureAtlas)
-
         TextRenderer.renderCharacter(
+            gl,
             character = icon.toChar().toString(),
             font = font,
             viewportX = paddingLeft,

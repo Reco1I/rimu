@@ -102,8 +102,6 @@ open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent(
         textureRegion?.isFlippedHorizontal = flippedHorizontal
         contentWidth = textureRegion?.width?.toFloat() ?: 0f
         contentHeight = textureRegion?.height?.toFloat() ?: 0f
-
-        blendInfo = if (textureRegion?.texture?.textureOptions?.mPreMultipyAlpha == true) BlendInfo.PreMultiply else BlendInfo.Mixture
     }
 
 
@@ -141,9 +139,7 @@ open class UISprite(textureRegion: TextureRegion? = null) : UIBufferedComponent(
         val x = (width - quadWidth) * gravity.x
         val y = (height - quadHeight) * gravity.y
 
-        UIRenderer.setState(gl, texture = textureRegion.texture)
-
-        TextureRenderer.renderTexture(x, y, quadWidth, quadHeight, textureRegion = textureRegion)
+        TextureRenderer.renderTexture(gl, x, y, quadWidth, quadHeight, textureRegion = textureRegion)
     }
 
 }

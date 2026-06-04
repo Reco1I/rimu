@@ -34,7 +34,7 @@ class UIResourceManager(private val context: Context) {
     private val fonts = mutableMapOf<String, Font>()
     private val fontSubscribers = mutableMapOf<Font, MutableList<WeakReference<UIComponent>>>()
 
-    private val textureAtlases = mutableListOf<TextureAtlasState>()
+    private val textureAtlases = mutableListOf<DynamicTextureAtlas>()
     private val textureStores = mutableMapOf<TextureStore, MutableMap<String, DynamicTextureRegion>>(
         TextureStore.Default to mutableMapOf(),
         TextureStore.Custom to mutableMapOf()
@@ -43,18 +43,23 @@ class UIResourceManager(private val context: Context) {
 
     //region Textures
 
+    @Synchronized
     fun loadTexture(store: TextureStore, key: String, filePath: String, isAsset: Boolean = false): DynamicTextureRegion? {
 
-        val store = textureStores[store] ?: throw IllegalArgumentException("Texture store '$store' does not exist.")
+        //Log.i("UIResourceManager", "Loading texture: $filePath into store '$store' with key '$key' from ${if (isAsset) "assets" else "external sources"}")
 
-        val alreadyExists = store.containsKey(key)
-        if (alreadyExists) {
-            Log.w("UIResourceManager", "Texture with key '$key' already exists. Replacing...")
-        }
+        val store = getTextureStore(store)
 
         val source: IBitmapTextureAtlasSource
 
         if (isAsset) {
+            try {
+                context.assets.open(filePath).close()
+            } catch (e: Exception) {
+                Log.e("UIResourceManager", "Texture asset not found: $filePath")
+                return null
+            }
+
             source = QualityAssetBitmapSource(context, filePath)
         } else {
             var file = File(filePath.substringAfterLast('.') + "@2x." + filePath.substringAfterLast('.'))
@@ -73,79 +78,90 @@ class UIResourceManager(private val context: Context) {
             source = QualityFileBitmapSource(file, if (isHDTexture) 2 else 1)
         }
 
-        val region = addSourceToAtlasAndGetRegion(source)
-        if (alreadyExists) {
+        if (store.containsKey(key)) {
             val oldRegion = store[key]
+
             if (oldRegion != null) {
-                val atlasState = textureAtlases.firstOrNull { it.atlas == oldRegion.texture }
-                atlasState?.removeSource(oldRegion.source)
+                Log.w("UIResourceManager", "Texture with key '$key' already exists in texture store. Replacing...")
+                findAtlasForTextureRegion(oldRegion)?.removeSource(oldRegion.source)
             }
         }
 
+        val region = addSourceToAtlas(source)
         store[key] = region
         return region
     }
 
     fun unloadTexture(store: TextureStore, key: String) {
-        val store = textureStores[store] ?: throw IllegalArgumentException("Texture store '$store' does not exist.")
+        val store = getTextureStore(store)
         val region = store.remove(key) ?: return
-        val atlasState = textureAtlases.firstOrNull { it.atlas == region.texture } ?: return
-        atlasState.removeSource(region.source)
+
+        findAtlasForTextureRegion(region)?.removeSource(region.source)
     }
 
     fun unloadTexture(store: TextureStore, region: TextureRegion) {
-        val store = textureStores[store] ?: throw IllegalArgumentException("Texture store '$store' does not exist.")
-        val entry = store.entries.firstOrNull { it.value == region }
+        val store = getTextureStore(store)
 
+        val entry = store.entries.firstOrNull { it.value == region }
         if (entry == null) {
             Log.w("UIResourceManager", "Texture region not found in store '$store'. Cannot unload.")
             return
         }
 
-        val region = entry.value
-        val atlasState = textureAtlases.firstOrNull { it.atlas == region.texture } ?: return
-        atlasState.removeSource(region.source)
+        val (key, region) = entry
+
+        store.remove(key)
+        findAtlasForTextureRegion(region)?.removeSource(region.source)
     }
 
     fun unloadAllTextures(store: TextureStore) {
-        val store = textureStores[store] ?: throw IllegalArgumentException("Texture store '$store' does not exist.")
+        val store = getTextureStore(store)
         for (region in store.values) {
-            val atlasState = textureAtlases.firstOrNull { it.atlas == region.texture } ?: continue
-            atlasState.removeSource(region.source)
+            findAtlasForTextureRegion(region)?.removeSource(region.source)
         }
         store.clear()
     }
 
 
     fun containsTexture(store: TextureStore, key: String): Boolean {
-        val store = textureStores[store] ?: throw IllegalArgumentException("Texture store '$store' does not exist.")
-        return store.containsKey(key)
+        return getTextureStore(store).containsKey(key)
     }
 
     fun getTexture(store: TextureStore, key: String): DynamicTextureRegion? {
-        val store = textureStores[store] ?: throw IllegalArgumentException("Texture store '$store' does not exist.")
-        return store[key]
+        return getTextureStore(store)[key]
     }
 
     fun getTextureKeys(store: TextureStore): Set<String> {
-        val store = textureStores[store] ?: throw IllegalArgumentException("Texture store '$store' does not exist.")
-        return store.keys
+        return getTextureStore(store).keys
     }
 
 
-    private fun addSourceToAtlasAndGetRegion(source: IBitmapTextureAtlasSource): DynamicTextureRegion {
-        val atlasState = textureAtlases.firstOrNull { it.spaceAvailable && it.addSource(source) } ?: run {
-            val newAtlas = TextureAtlasState()
+    private fun findAtlasForTextureRegion(region: TextureRegion): DynamicTextureAtlas? {
+        return textureAtlases.firstOrNull { it == region.texture }
+    }
+
+    private fun getTextureStore(store: TextureStore): MutableMap<String, DynamicTextureRegion> {
+        return textureStores[store] ?: throw IllegalArgumentException("Texture store '$store' does not exist.")
+    }
+
+    private fun addSourceToAtlas(source: IBitmapTextureAtlasSource): DynamicTextureRegion {
+        val atlas = textureAtlases.firstOrNull { it.addSource(source) } ?: run {
+
+            Log.w("UIResourceManager", "No existing atlas has space for the new texture. Creating a new atlas...")
+
+            val newAtlas = DynamicTextureAtlas()
+
             if (newAtlas.addSource(source)) {
                 textureAtlases.add(newAtlas)
             } else {
                 Log.e("UIResourceManager", "Failed to add texture source to new atlas")
             }
+
             newAtlas
         }
-        return DynamicTextureRegion(atlasState, source)
-    }
 
+        return DynamicTextureRegion(atlas, source)
+    }
 
     //endregion
 

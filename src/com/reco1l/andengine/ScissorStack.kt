@@ -36,7 +36,7 @@ object ScissorStack {
         }
 
         val vec4 = pool.removeLastOrNull()
-            ?.takeUnless { vec -> vec.x != intersectedX || vec.y != intersectedY || vec.z != intersectedWidth || vec.w != intersectedHeight }
+            ?.takeUnless { vec -> !vec.equals(intersectedX, intersectedY, intersectedWidth, intersectedHeight) }
             ?: Vec4(intersectedX, intersectedY, intersectedWidth, intersectedHeight)
 
         deque.addLast(vec4)

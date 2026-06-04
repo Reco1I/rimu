@@ -6,19 +6,8 @@ import javax.microedition.khronos.opengles.GL10
 
 data class RenderState(
 
-    /**
-     * The float buffer holding the vertex data for rendering.
-     */
-    val buffer: VertexBuffer = VertexBuffer(32),
-
-    /**
-     * The texture atlas to be used for rendering. If null, texturing will be disabled.
-     */
     val texture: ITexture? = null,
 
-    /**
-     * The primitive type to be used for rendering. Defaults to GL_TRIANGLES.
-     */
     val primitiveType: Int = GL10.GL_TRIANGLES,
 
     val blendFunctionSource: Int = GL10.GL_SRC_ALPHA,
@@ -31,11 +20,8 @@ data class RenderState(
 
     val depthFunction: Int = GL10.GL_LEQUAL,
 
-    /**
-     * The scissor rectangle to be used for rendering. If null, scissoring will be disabled. The
-     * rectangle is defined as a Vec4 where x and y represent the lower-left corner of the rectangle,
-     * and z and w represent the width and height, respectively.
-     */
+    val lineWidth: Float = 1f,
+
     val scissor: Vec4? = null,
 ) {
 
@@ -60,7 +46,6 @@ data class RenderState(
         result = 31 * result + depthMask.hashCode()
         result = 31 * result + depthFunction
         result = 31 * result + (scissor?.hashCode() ?: 0)
-        result = 31 * result + buffer.hashCode()
         return result
     }
 }
