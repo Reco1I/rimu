@@ -11,8 +11,6 @@ object ScissorStack {
 
     fun push(x: Float, y: Float, width: Float, height: Float) {
 
-
-
         val intersectedX: Float
         val intersectedY: Float
         val intersectedWidth: Float

@@ -20,10 +20,12 @@ object QuadRenderer : BufferRenderer() {
     ) {
         val filled = paintStyle == Fill
 
-        UIRenderer.setBatchOptions(gl,
+        UIRenderer.setState(gl,
             primitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES,
             lineWidth = lineWidth
         )
+
+        if (pushCacheIfAvailable()) return
 
         val r = radius
             .coerceAtMost(min(width, height) / 2f)
@@ -113,9 +115,8 @@ object QuadRenderer : BufferRenderer() {
         } else {
             addLine(x, y + height - r, x, y + r)
         }
+
+        UIRenderer.quadsRendered++
     }
-
-
-
 
 }

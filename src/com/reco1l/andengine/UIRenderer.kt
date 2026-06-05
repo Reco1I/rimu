@@ -1,25 +1,22 @@
 package com.reco1l.andengine
 
+import android.util.Log
 import com.reco1l.framework.math.Vec4
 import org.anddev.andengine.opengl.texture.ITexture
 import org.anddev.andengine.opengl.util.GLHelper
-import java.util.TreeMap
 import javax.microedition.khronos.opengles.GL10
-import kotlin.math.max
 
 
 object UIRenderer {
 
-    var batch: Batch? = null
+    var activeBatch: Batch? = null
         private set
 
-    private val batchLayers = TreeMap<Int, HashMap<BatchKey, Batch>>()
+
     private val batchPool = ArrayDeque<Batch>()
 
-    private var currentLayer = 0
-    private var maxLayerOnFrame = 0
-    private var currentScissor: Vec4? = null
 
+    //region Metrics
     var drawCallsOnFrame = 0
     var verticesOnFrame = 0
     var textureChanges = 0
@@ -28,143 +25,123 @@ object UIRenderer {
     var depthChanges = 0
     var lineWidthChanges = 0
     var scissorChanges = 0
-    var layerChanges = 0
+
+    var quadsRendered = 0
+    var trianglesRendered = 0
+    var circlesRendered = 0
+    var linesRendered = 0
+    var spriteRendered = 0
+    var textsRendered = 0
+    var charactersRendered = 0
+    //endregion
 
 
     fun begin(gl: GL10) {
         drawCallsOnFrame = 0
         verticesOnFrame = 0
+        textureChanges = 0
+        primitiveChanges = 0
+        blendChanges = 0
+        depthChanges = 0
+        lineWidthChanges = 0
+        scissorChanges = 0
 
-        currentLayer = 0
-        maxLayerOnFrame = 0
-        currentScissor = null
+        quadsRendered = 0
+        trianglesRendered = 0
+        circlesRendered = 0
+        linesRendered = 0
+        spriteRendered = 0
+        textsRendered = 0
+        charactersRendered = 0
     }
 
-
-    fun pushLayer(gl: GL10) {
-        currentLayer++
-        maxLayerOnFrame = max(maxLayerOnFrame, currentLayer)
-
-        batch = findOrCreateBatchForLayer(batch?.getKey() ?: DefaultBatchKey, currentLayer)
-    }
-
-    fun pushMaxLayer(gl: GL10) {
-        currentLayer = maxLayerOnFrame + 1
-        maxLayerOnFrame = max(maxLayerOnFrame, currentLayer)
-
-        batch = findOrCreateBatchForLayer(batch?.getKey() ?: DefaultBatchKey, currentLayer)
-    }
-
-    fun popLayer(gl: GL10) {
-        if (currentLayer > 0) currentLayer--
-
-        batch = findOrCreateBatchForLayer(batch?.getKey() ?: DefaultBatchKey, currentLayer)
-    }
-
-    fun setBatchOptions(
+    fun setState(
         gl: GL10,
-        texture: ITexture? = batch?.texture ?: DefaultBatchKey.texture,
-        primitiveType: Int = batch?.primitiveType ?: DefaultBatchKey.primitiveType,
-        blendFunctionSource: Int = batch?.blendFunctionSource ?: DefaultBatchKey.blendFunctionSource,
-        blendFunctionDestination: Int = batch?.blendFunctionDestination ?: DefaultBatchKey.blendFunctionDestination,
-        depthTestingEnabled: Boolean = batch?.depthTestingEnabled ?: DefaultBatchKey.depthTestingEnabled,
-        depthMask: Boolean = batch?.depthMask ?: DefaultBatchKey.depthMask,
-        depthFunction: Int = batch?.depthFunction ?: DefaultBatchKey.depthFunction,
-        lineWidth: Float = batch?.lineWidth ?: DefaultBatchKey.lineWidth,
-        scissor: Vec4? = batch?.scissor ?: DefaultBatchKey.scissor
+        texture: ITexture? = activeBatch?.texture ?: Batch.DEFAULT_TEXTURE,
+        primitiveType: Int = activeBatch?.primitiveType ?: Batch.DEFAULT_PRIMITIVE_TYPE,
+        blendFunctionSource: Int = activeBatch?.blendFunctionSource ?: Batch.DEFAULT_BLEND_FUNCTION_SOURCE,
+        blendFunctionDestination: Int = activeBatch?.blendFunctionDestination ?: Batch.DEFAULT_BLEND_FUNCTION_DESTINATION,
+        depthTestingEnabled: Boolean = activeBatch?.depthTestingEnabled ?: Batch.DEFAULT_DEPTH_TESTING_ENABLED,
+        depthMask: Boolean = activeBatch?.depthMask ?: Batch.DEFAULT_DEPTH_MASK,
+        depthFunction: Int = activeBatch?.depthFunction ?: Batch.DEFAULT_DEPTH_FUNCTION,
+        lineWidth: Float = activeBatch?.lineWidth ?: Batch.DEFAULT_LINE_WIDTH,
+        scissor: Vec4? = activeBatch?.scissor ?: Batch.DEFAULT_SCISSOR,
     ) {
-        if (batch?.equals(
-                texture,
-                primitiveType,
-                blendFunctionSource,
-                blendFunctionDestination,
-                depthTestingEnabled,
-                depthMask,
-                depthFunction,
-                lineWidth,
-                scissor
+        if (activeBatch?.equals(
+                texture = texture,
+                primitiveType = primitiveType,
+                blendFunctionSource = blendFunctionSource,
+                blendFunctionDestination = blendFunctionDestination,
+                depthTestingEnabled = depthTestingEnabled,
+                depthMask = depthMask,
+                depthFunction = depthFunction,
+                lineWidth = lineWidth,
+                scissor = scissor
             ) == true
-        ) {
-            return
+        ) return
+
+        //region Metrics
+        if ((activeBatch?.buffer?.vertexCount ?: 0) > 0) {
+            if (texture != activeBatch?.texture) textureChanges++
+            if (primitiveType != activeBatch?.primitiveType) primitiveChanges++
+            if (blendFunctionSource != activeBatch?.blendFunctionSource || blendFunctionDestination != activeBatch?.blendFunctionDestination) blendChanges++
+            if (depthTestingEnabled != activeBatch?.depthTestingEnabled || depthMask != activeBatch?.depthMask || depthFunction != activeBatch?.depthFunction) depthChanges++
+            if (lineWidth != activeBatch?.lineWidth) lineWidthChanges++
+            if (scissor != activeBatch?.scissor) scissorChanges++
+        }
+        //endregion
+
+        activeBatch?.also { batch ->
+            batch.flush(gl)
+            batch.setToDefault()
+            batchPool.addLast(batch)
         }
 
-        val key = BatchKey(
-            texture,
-            primitiveType,
-            blendFunctionSource,
-            blendFunctionDestination,
-            depthTestingEnabled,
-            depthMask,
-            depthFunction,
-            lineWidth,
-            scissor
+        val newBatch = batchPool.removeLastOrNull() ?: run {
+            Log.w("UIRenderer", "Batch pool exhausted, creating a new batch...")
+            Batch()
+        }
+        newBatch.set(
+            texture = texture,
+            primitiveType = primitiveType,
+            blendFunctionSource = blendFunctionSource,
+            blendFunctionDestination = blendFunctionDestination,
+            depthTestingEnabled = depthTestingEnabled,
+            depthMask = depthMask,
+            depthFunction = depthFunction,
+            lineWidth = lineWidth,
+            scissor = scissor
         )
 
-        batch = findOrCreateBatchForLayer(key, currentLayer)
-    }
-
-    fun findOrCreateBatchForLayer(key: BatchKey, layer: Int): Batch {
-        return batchLayers
-            .getOrPut(layer) { HashMap() }
-            .getOrPut(key) {
-                (batchPool.removeLastOrNull() ?: Batch()).apply {
-                    set(
-                        texture = key.texture,
-                        primitiveType = key.primitiveType,
-                        blendFunctionSource = key.blendFunctionSource,
-                        blendFunctionDestination = key.blendFunctionDestination,
-                        depthTestingEnabled = key.depthTestingEnabled,
-                        depthMask = key.depthMask,
-                        depthFunction = key.depthFunction,
-                        lineWidth = key.lineWidth,
-                        scissor = key.scissor
-                    )
-                }
-            }
+        activeBatch = newBatch
     }
 
 
     fun end(gl: GL10) {
-        for ((_, layerMap) in batchLayers.descendingMap()) {
-
-            for (batch in layerMap.values) {
-                if (batch.flush(gl)) {
-                    drawCallsOnFrame++
-                }
-
-                batch.setToDefault()
-                batchPool.addLast(batch)
-            }
-
-            layerMap.clear()
+        activeBatch?.also { batch ->
+            batch.flush(gl)
+            batch.setToDefault()
+            batchPool.addLast(batch)
         }
-
-        batchLayers.clear()
+        activeBatch = null
     }
 
 
-    fun Batch.flush(gl: GL10): Boolean {
-        if (buffer.vertexCount == 0) return false
+    fun Batch.flush(gl: GL10) {
+        if (buffer.vertexCount == 0) return
 
         verticesOnFrame += buffer.vertexCount
 
-        val texture = texture
-        val useTextures = texture != null && buffer.useTextures
-
-        val scissor = scissor
-        if (scissor != null) {
+        // Scissor test
+        scissor?.also { scissor ->
             GLHelper.enableScissorTest(gl)
-
-            if (scissor != currentScissor) {
-                currentScissor = scissor
-
-                gl.glScissor(
-                    scissor.x.toInt(),
-                    scissor.y.toInt(),
-                    scissor.z.toInt(),
-                    scissor.w.toInt()
-                )
-            }
+            GLHelper.setScissor(
+                gl,
+                scissor.x.toInt(),
+                scissor.y.toInt(),
+                scissor.z.toInt(),
+                scissor.w.toInt()
+            )
         }
 
         GLHelper.disableCulling(gl)
@@ -174,14 +151,18 @@ object UIRenderer {
         GLHelper.blendFunction(gl, blendFunctionSource, blendFunctionDestination)
 
         // Depth testing
+        GLHelper.setDepthFunction(gl, depthFunction)
+        GLHelper.setDepthMask(gl, depthMask)
         GLHelper.setDepthTest(gl, depthTestingEnabled)
-        if (depthTestingEnabled) {
-            gl.glDepthFunc(depthFunction)
-            gl.glDepthMask(depthMask)
-        }
+
+        // Line width
+        GLHelper.lineWidth(gl, lineWidth)
 
         GLHelper.enableColorArray(gl)
         GLHelper.enableVertexArray(gl)
+
+        val texture = texture
+        val useTextures = texture != null && buffer.useTextures
 
         if (useTextures) {
             GLHelper.enableTextures(gl)
@@ -214,6 +195,7 @@ object UIRenderer {
         )
 
         gl.glDrawArrays(primitiveType, 0, buffer.vertexCount)
+        drawCallsOnFrame++
 
         buffer.clear()
 
@@ -221,8 +203,6 @@ object UIRenderer {
         GLHelper.disableColorArray(gl)
         GLHelper.disableScissorTest(gl)
         GLHelper.disableTexCoordArray(gl)
-        return true
     }
-
 
 }

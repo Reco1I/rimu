@@ -111,7 +111,6 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
         UIRenderer.begin(gl)
 
         val focusedEntity = focusedEntity
-
         if (focusedEntity != null) {
 
             if (focusedEntity is UITextInput) {
@@ -138,11 +137,7 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
             overlay.setPosition(0f, 0f)
         }
 
-        super.mScene.onDraw(gl, camera)
-
-        UIRenderer.pushMaxLayer(gl)
-        camera.onDrawHUD(gl)
-        UIRenderer.popLayer(gl)
+        super.onDrawScene(gl)
 
         UIRenderer.end(gl)
     }
@@ -281,7 +276,7 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
 
 
         @JvmStatic
-        var   legacyResolutionPolicyScaleRatio = 0f
+        var legacyResolutionPolicyScaleRatio = 0f
 
 
         @JvmStatic

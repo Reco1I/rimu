@@ -21,7 +21,7 @@ class VertexBuffer(initialCapacity: Int) {
     /**
      * The current vertex stride in bytes.
      */
-    var stride = POSITION_SIZE_BYTES + COLOR_SIZE_BYTES
+    var stride = NO_TEXTURES_STRIDE
         private set
 
     /**
@@ -30,7 +30,7 @@ class VertexBuffer(initialCapacity: Int) {
     var useTextures
         get() = stride == MAX_VERTEX_STRIDE
         set(value) {
-            stride = if (value) MAX_VERTEX_STRIDE else POSITION_SIZE_BYTES + COLOR_SIZE_BYTES
+            stride = if (value) MAX_VERTEX_STRIDE else NO_TEXTURES_STRIDE
         }
 
     /**
@@ -42,7 +42,7 @@ class VertexBuffer(initialCapacity: Int) {
 
     fun ensureCapacity() {
         if (vertexCount + 1 < vertexCapacity) return
-        byteBuffer = byteBuffer.grow(vertexCapacity * MAX_VERTEX_STRIDE * 2)
+        byteBuffer = byteBuffer.grow(vertexCapacity.coerceAtLeast(2) * MAX_VERTEX_STRIDE * 2)
     }
 
     private  fun ByteBuffer.grow(newCapacity: Int): ByteBuffer {
@@ -101,6 +101,17 @@ class VertexBuffer(initialCapacity: Int) {
     }
 
 
+    fun setTo(other: VertexBuffer) {
+        byteBuffer.clear()
+        other.byteBuffer.position(0)
+        byteBuffer.put(other.byteBuffer)
+        byteBuffer.position(0)
+
+        vertexCount = other.vertexCount
+        stride = other.stride
+    }
+
+
     fun forPosition(): ByteBuffer {
         byteBuffer.position(POSITION_OFFSET_BYTES)
         return byteBuffer
@@ -131,6 +142,7 @@ class VertexBuffer(initialCapacity: Int) {
         const val TEXTURE_SIZE_BYTES = TEXTURE_COMPONENTS * Float.SIZE_BYTES
         const val TEXTURE_OFFSET_BYTES = POSITION_SIZE_BYTES + COLOR_SIZE_BYTES
 
+        const val NO_TEXTURES_STRIDE = POSITION_SIZE_BYTES + COLOR_SIZE_BYTES
         const val MAX_VERTEX_STRIDE = POSITION_SIZE_BYTES + COLOR_SIZE_BYTES + TEXTURE_SIZE_BYTES
     }
 }

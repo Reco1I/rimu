@@ -183,7 +183,11 @@ class FPSCounter : UIText() {
 
         formatter.format(
             "%.${if (isHighPrecision) "1" else "0"}f ms | %d FPS | ${UIRenderer.drawCallsOnFrame} DCs | ${UIRenderer.verticesOnFrame} verts\n" +
-                    "Texture Changes: ${UIRenderer.textureChanges}\nPrimitive Changes: ${UIRenderer.primitiveChanges}\nBlend Changes: ${UIRenderer.blendChanges}\nDepth Changes: ${UIRenderer.depthChanges}\nLine Width Changes: ${UIRenderer.lineWidthChanges}\nScissor Changes: ${UIRenderer.scissorChanges}\nLayer Changes: ${UIRenderer.layerChanges}",
+                    "Texture Changes: ${UIRenderer.textureChanges}\nPrimitive Changes: ${UIRenderer.primitiveChanges}\nBlend Changes: ${UIRenderer.blendChanges}\n" +
+                    "Depth Changes: ${UIRenderer.depthChanges}\nLine Width Changes: ${UIRenderer.lineWidthChanges}\nScissor Changes: ${UIRenderer.scissorChanges}\n" +
+                    "Quads Rendered: ${UIRenderer.quadsRendered}\nTriangles Rendered: ${UIRenderer.trianglesRendered}\nCircles Rendered: ${UIRenderer.circlesRendered}\n" +
+                    "Lines Rendered: ${UIRenderer.linesRendered}\nSprites Rendered: ${UIRenderer.spriteRendered}\nTexts Rendered: ${UIRenderer.textsRendered}\n" +
+                    "Characters Rendered: ${UIRenderer.charactersRendered}",
             displayedMs,
             displayedFps
         )

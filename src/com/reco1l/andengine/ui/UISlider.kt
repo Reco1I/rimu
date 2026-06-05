@@ -88,8 +88,8 @@ open class UISlider(initialValue: Float = 0f) : UIControl<Float>(initialValue) {
         anchor = Anchor.CenterLeft
         origin = Anchor.Center
         inheritAncestorsColor = false
-        depthInfo = DepthInfo.Less
-        clearInfo = ClearInfo.ClearDepthBuffer
+        //depthInfo = DepthInfo.Less
+        //clearInfo = ClearInfo.ClearDepthBuffer
         style = {
             width = 1f.rem
             radius = Radius.LG
@@ -100,7 +100,7 @@ open class UISlider(initialValue: Float = 0f) : UIControl<Float>(initialValue) {
         height = Size.Full
         anchor = Anchor.CenterLeft
         origin = Anchor.CenterLeft
-        depthInfo = DepthInfo.Default
+        //depthInfo = DepthInfo.Default
         style = {
             radius = Radius.LG
         }
@@ -137,8 +137,8 @@ open class UISlider(initialValue: Float = 0f) : UIControl<Float>(initialValue) {
 
         width = Size.Full
 
-        attachChild(thumb)
         attachChild(progressBar)
+        attachChild(thumb)
 
         style(Theme.current)
     }

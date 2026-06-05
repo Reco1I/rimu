@@ -25,7 +25,7 @@ abstract class UIBufferedComponent : UIComponent() {
 
     override fun doDraw(gl: GL10, camera: Camera) {
 
-        UIRenderer.setBatchOptions(gl,
+        UIRenderer.setState(gl,
             blendFunctionSource = blendInfo.sourceFactor,
             blendFunctionDestination = blendInfo.destinationFactor,
             depthTestingEnabled = depthInfo.test,

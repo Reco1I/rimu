@@ -28,6 +28,7 @@ import org.anddev.andengine.util.constants.Constants.*
 import java.util.function.Consumer
 import javax.microedition.khronos.opengles.*
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Entity with extended features.
@@ -411,6 +412,9 @@ abstract class UIComponent : Entity(0f, 0f),
 
     private val inputBindings = arrayOfNulls<UIComponent>(10)
 
+    private val backgroundBufferCache = BufferCache()
+    private val borderBufferCache = BufferCache()
+
     //endregion
 
     //region Invalidation
@@ -571,6 +575,9 @@ abstract class UIComponent : Entity(0f, 0f),
         if (flags and InvalidationFlag.Content != 0) {
             onContentChanged()
             propagateToParentFlags = InvalidationFlag.Content
+
+            backgroundBufferCache.isDirty = true
+            borderBufferCache.isDirty = true
         }
 
         if (flags and InvalidationFlag.Size != 0) {
@@ -632,16 +639,15 @@ abstract class UIComponent : Entity(0f, 0f),
             val (bottomRightX, bottomRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, height))
             val (bottomLeftX, bottomLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, height))
 
-            val minX = minOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
-            val minY = minOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
-            val maxX = maxOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
-            val maxY = maxOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
+            val minX = min(topLeftX, min(bottomLeftX, min(bottomRightX, topRightX)))
+            val minY = min(topLeftY, min(bottomLeftY, min(bottomRightY, topRightY)))
+            val maxX = max(topLeftX, max(bottomLeftX, max(bottomRightX, topRightX)))
+            val maxY = max(topLeftY, max(bottomLeftY, max(bottomRightY, topRightY)))
 
             ScissorStack.push(minX, minY, maxX - minX, maxY - minY)
         }
 
-        UIRenderer.pushLayer(gl)
-        UIRenderer.setBatchOptions(gl,
+        UIRenderer.setState(gl,
             scissor = ScissorStack.peek(),
             texture = null
         )
@@ -649,24 +655,22 @@ abstract class UIComponent : Entity(0f, 0f),
         // Render background quad
         if (backgroundColor.alpha > 0f) {
             ColorStack.push(backgroundColor, false)
+            QuadRenderer.setCache(backgroundBufferCache)
             QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius)
             ColorStack.pop()
         }
 
         // Render component and children
-        UIRenderer.pushLayer(gl)
         doDraw(gl, camera)
 
-        UIRenderer.pushLayer(gl)
         onDrawChildren(gl, camera)
 
         // Render border quad
         if (borderColor.alpha > 0f && borderWidth > 0f) {
-            UIRenderer.pushLayer(gl)
             ColorStack.push(borderColor, false)
+            QuadRenderer.setCache(borderBufferCache)
             QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, PaintStyle.Outline, borderWidth)
             ColorStack.pop()
-            UIRenderer.popLayer(gl)
         }
 
         // Debug outline
@@ -675,10 +679,6 @@ abstract class UIComponent : Entity(0f, 0f),
             QuadRenderer.renderQuad(gl, 0f, 0f, width, height, 0f, PaintStyle.Outline)
             ColorStack.pop()
         }
-
-        UIRenderer.popLayer(gl)
-        UIRenderer.popLayer(gl)
-        UIRenderer.popLayer(gl)
 
         if (clipToBounds) ScissorStack.pop()
         ColorStack.pop()

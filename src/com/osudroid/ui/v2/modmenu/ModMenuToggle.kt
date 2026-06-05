@@ -67,9 +67,9 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
                 text {
                     width = Size.Full
                     text = mod.description
-                    clipToBounds = true
+                    wrapText = true
                     style = {
-                        fontSize = FontSize.XS
+                        fontSize = FontSize.XXS
                         alpha = 0.75f
                     }
                 }

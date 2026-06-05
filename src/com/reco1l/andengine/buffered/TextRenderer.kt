@@ -19,10 +19,12 @@ object TextRenderer : BufferRenderer() {
         viewportHeight: Float,
         alignment: Vec2,
     ) {
-        UIRenderer.setBatchOptions(gl,
+        UIRenderer.setState(gl,
             primitiveType = GL10.GL_TRIANGLES,
             texture = font.texture
         )
+
+        if (pushCacheIfAvailable()) return
 
         val lineHeight = font.lineHeight + font.lineGap
 
@@ -59,9 +61,12 @@ object TextRenderer : BufferRenderer() {
 
                 lineX += letter.mAdvance
                 charIndex += charCount
+
+                UIRenderer.charactersRendered++
             }
         }
 
+        UIRenderer.textsRendered++
     }
 
     fun renderCharacter(
@@ -74,10 +79,12 @@ object TextRenderer : BufferRenderer() {
         viewportHeight: Float,
         alignment: Vec2,
     ) {
-        UIRenderer.setBatchOptions(gl,
+        UIRenderer.setState(gl,
             primitiveType = GL10.GL_TRIANGLES,
             texture = font.texture
         )
+
+        if (pushCacheIfAvailable()) return
 
         val lineHeight = font.lineHeight + font.lineGap
         val letter = font.getLetter(character)
@@ -102,5 +109,7 @@ object TextRenderer : BufferRenderer() {
         addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
         addVertex(letterX, lineY, letterTextureX2, letterTextureY)
         addVertex(lineX, lineY, letterTextureX, letterTextureY)
+
+        UIRenderer.charactersRendered++
     }
 }

@@ -17,10 +17,12 @@ object TriangleRenderer : BufferRenderer() {
     ) {
         val filled = paintStyle == PaintStyle.Fill
 
-        UIRenderer.setBatchOptions(gl,
+        UIRenderer.setState(gl,
             primitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES,
             lineWidth = lineWidth
         )
+
+        if (pushCacheIfAvailable()) return
 
         if (filled) {
             addTriangle(
@@ -33,5 +35,7 @@ object TriangleRenderer : BufferRenderer() {
             addLine(x + width, y + height, x, y + height)
             addLine(x, y + height, x + width / 2f, y)
         }
+
+        UIRenderer.trianglesRendered++
     }
 }

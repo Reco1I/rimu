@@ -16,7 +16,7 @@ object BlackpawnPacker :
 
 
     fun fits(atlas: DynamicTextureAtlas, source: IBitmapTextureAtlasSource): Boolean {
-        return insertToRoot(atlas, (atlas.currentSources + source).sortBySize())
+        return insertToRoot(atlas, (atlas.futureSources + source).sortBySize())
     }
 
     fun placeSources(atlas: DynamicTextureAtlas, sources: List<IBitmapTextureAtlasSource>) {

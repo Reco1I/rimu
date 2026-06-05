@@ -26,10 +26,12 @@ object CircleRenderer : BufferRenderer() {
     ) {
         val filled = paintStyle == Fill
 
-        UIRenderer.setBatchOptions(gl,
+        UIRenderer.setState(gl,
             primitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES,
             lineWidth = lineWidth
         )
+
+        if (pushCacheIfAvailable()) return
 
         val segments = calculateArcResolution(
             width = width,
@@ -45,6 +47,8 @@ object CircleRenderer : BufferRenderer() {
             centerX, centerY,
             filled
         )
+
+        UIRenderer.circlesRendered++
     }
 
     fun addArc(

@@ -107,14 +107,7 @@ open class UIModal(
     protected open fun onShow() {
         // If there's no parent previously set, attach to the current scene.
         if (parent == null) {
-            var currentScene = UIEngine.current.scene
-
-            // Find the top-most scene in the hierarchy.
-            while (currentScene.hasChildScene()) {
-                currentScene = currentScene.childScene
-            }
-
-            currentScene.attachChild(this)
+            UIEngine.current.overlay.attachChild(this)
         }
     }
 
@@ -169,7 +162,6 @@ open class UIModal(
     }
 
     //endregion
-
 }
 
 

@@ -14,6 +14,8 @@ import org.anddev.andengine.entity.IEntity
 import org.anddev.andengine.entity.scene.Scene
 import org.anddev.andengine.entity.shape.IShape
 import org.anddev.andengine.input.touch.TouchEvent
+import kotlin.math.max
+import kotlin.math.min
 
 
 /**
@@ -211,36 +213,25 @@ open class UIScene : Scene(), IShape, IClockProvider<IFrameBasedClock?>, IClockR
         ColorStack.push(Color4(mRed, mGreen, mBlue, mAlpha), false)
 
         if (clipToBounds) {
-            val (topLeftX, topLeftY) = camera.convertSceneToSurfaceCoordinates(
-                convertLocalToSceneCoordinates(0f, 0f)
-            )
-            val (topRightX, topRightY) = camera.convertSceneToSurfaceCoordinates(
-                convertLocalToSceneCoordinates(width, 0f)
-            )
-            val (bottomRightX, bottomRightY) = camera.convertSceneToSurfaceCoordinates(
-                convertLocalToSceneCoordinates(width, height)
-            )
-            val (bottomLeftX, bottomLeftY) = camera.convertSceneToSurfaceCoordinates(
-                convertLocalToSceneCoordinates(0f, height)
-            )
+            val (topLeftX, topLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, 0f))
+            val (topRightX, topRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, 0f))
+            val (bottomRightX, bottomRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, height))
+            val (bottomLeftX, bottomLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, height))
 
-            val minX = minOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
-            val minY = minOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
-            val maxX = maxOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
-            val maxY = maxOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
+            val minX = min(topLeftX, min(bottomLeftX, min(bottomRightX, topRightX)))
+            val minY = min(topLeftY, min(bottomLeftY, min(bottomRightY, topRightY)))
+            val maxX = max(topLeftX, max(bottomLeftX, max(bottomRightX, topRightX)))
+            val maxY = max(topLeftY, max(bottomLeftY, max(bottomRightY, topRightY)))
 
             ScissorStack.push(minX, minY, maxX - minX, maxY - minY)
         }
 
-        UIRenderer.pushLayer(gl)
-        UIRenderer.setBatchOptions(gl,
+        UIRenderer.setState(gl,
             scissor = ScissorStack.peek(),
             texture = null
         )
 
         super.onManagedDraw(gl, camera)
-
-        UIRenderer.popLayer(gl)
 
         if (clipToBounds) ScissorStack.pop()
         ColorStack.pop()

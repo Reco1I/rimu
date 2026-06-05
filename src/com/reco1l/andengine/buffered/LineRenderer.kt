@@ -13,12 +13,14 @@ object LineRenderer : BufferRenderer() {
         toY: Float,
         lineWidth: Float = 1f
     ) {
-        UIRenderer.setBatchOptions(gl,
+        UIRenderer.setState(gl,
             primitiveType = GL10.GL_LINES,
             lineWidth = lineWidth
         )
 
-        addVertex(fromX, fromY)
-        addVertex(toX, toY)
+        if (pushCacheIfAvailable()) return
+
+        addLine(fromX, fromY, toX, toY)
+        UIRenderer.linesRendered++
     }
 }

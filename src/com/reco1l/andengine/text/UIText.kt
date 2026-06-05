@@ -153,6 +153,8 @@ open class UIText : UIBufferedComponent() {
     private var lines: List<String>? = null
     private var linesWidth: IntArray? = null
 
+    private var textBufferCache = BufferCache()
+
 
     init {
         width = Size.Auto
@@ -217,6 +219,7 @@ open class UIText : UIBufferedComponent() {
 
         contentWidth = if (linesWidth!!.isNotEmpty()) linesWidth!!.max().toFloat() else 0f
         contentHeight = (lines!!.size * font.lineHeight + (lines!!.size - 1) * font.lineGap).toFloat()
+        textBufferCache.isDirty = true
     }
 
     override fun onSizeChanged() {
@@ -306,6 +309,7 @@ open class UIText : UIBufferedComponent() {
             return
         }
 
+        TextRenderer.setCache(textBufferCache)
         TextRenderer.renderLines(
             gl,
             lines = lines,

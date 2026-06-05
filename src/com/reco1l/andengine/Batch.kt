@@ -4,31 +4,18 @@ import com.reco1l.framework.math.Vec4
 import org.anddev.andengine.opengl.texture.ITexture
 import javax.microedition.khronos.opengles.GL10
 
-val DefaultBatchKey = BatchKey()
-
-data class BatchKey(
-    val texture: ITexture? = null,
-    val primitiveType: Int= GL10.GL_TRIANGLES,
-    val blendFunctionSource: Int= GL10.GL_SRC_ALPHA,
-    val blendFunctionDestination: Int= GL10.GL_ONE_MINUS_SRC_ALPHA,
-    val depthTestingEnabled: Boolean= false,
-    val depthMask: Boolean= false,
-    val depthFunction: Int= GL10.GL_LEQUAL,
-    val lineWidth: Float= 1f,
-    val scissor: Vec4?= null
-)
-
 data class Batch(
-    var buffer: VertexBuffer = VertexBuffer(64),
-    var texture: ITexture? = DefaultBatchKey.texture,
-    var primitiveType: Int = DefaultBatchKey.primitiveType,
-    var blendFunctionSource: Int = DefaultBatchKey.blendFunctionSource,
-    var blendFunctionDestination: Int = DefaultBatchKey.blendFunctionDestination,
-    var depthTestingEnabled: Boolean = DefaultBatchKey.depthTestingEnabled,
-    var depthMask: Boolean = DefaultBatchKey.depthMask,
-    var depthFunction: Int = DefaultBatchKey.depthFunction,
-    var lineWidth: Float = DefaultBatchKey.lineWidth,
-    var scissor: Vec4? = DefaultBatchKey.scissor,
+    val buffer: VertexBuffer = VertexBuffer(64),
+
+    var texture: ITexture? = DEFAULT_TEXTURE,
+    var primitiveType: Int = DEFAULT_PRIMITIVE_TYPE,
+    var blendFunctionSource: Int = DEFAULT_BLEND_FUNCTION_SOURCE,
+    var blendFunctionDestination: Int = DEFAULT_BLEND_FUNCTION_DESTINATION,
+    var depthTestingEnabled: Boolean = DEFAULT_DEPTH_TESTING_ENABLED,
+    var depthMask: Boolean = DEFAULT_DEPTH_MASK,
+    var depthFunction: Int = DEFAULT_DEPTH_FUNCTION,
+    var lineWidth: Float = DEFAULT_LINE_WIDTH,
+    var scissor: Vec4? = DEFAULT_SCISSOR,
 ) {
 
     init {
@@ -38,15 +25,15 @@ data class Batch(
 
     fun setToDefault() {
         set(
-            texture = DefaultBatchKey.texture,
-            primitiveType = DefaultBatchKey.primitiveType,
-            blendFunctionSource = DefaultBatchKey.blendFunctionSource,
-            blendFunctionDestination = DefaultBatchKey.blendFunctionDestination,
-            depthTestingEnabled = DefaultBatchKey.depthTestingEnabled,
-            depthMask = DefaultBatchKey.depthMask,
-            depthFunction = DefaultBatchKey.depthFunction,
-            lineWidth = DefaultBatchKey.lineWidth,
-            scissor = DefaultBatchKey.scissor
+            texture = DEFAULT_TEXTURE,
+            primitiveType = DEFAULT_PRIMITIVE_TYPE,
+            blendFunctionSource = DEFAULT_BLEND_FUNCTION_SOURCE,
+            blendFunctionDestination = DEFAULT_BLEND_FUNCTION_DESTINATION,
+            depthTestingEnabled = DEFAULT_DEPTH_TESTING_ENABLED,
+            depthMask = DEFAULT_DEPTH_MASK,
+            depthFunction = DEFAULT_DEPTH_FUNCTION,
+            lineWidth = DEFAULT_LINE_WIDTH,
+            scissor = DEFAULT_SCISSOR,
         )
     }
 
@@ -74,22 +61,6 @@ data class Batch(
         buffer.useTextures = texture != null
     }
 
-
-    fun getKey(): BatchKey {
-        return BatchKey(
-            texture,
-            primitiveType,
-            blendFunctionSource,
-            blendFunctionDestination,
-            depthTestingEnabled,
-            depthMask,
-            depthFunction,
-            lineWidth,
-            scissor
-        )
-    }
-
-
     fun equals(
         texture: ITexture?,
         primitiveType: Int,
@@ -112,4 +83,17 @@ data class Batch(
                 this.scissor == scissor
     }
 
+
+    companion object {
+        val DEFAULT_TEXTURE: ITexture? = null
+        val DEFAULT_SCISSOR: Vec4? = null
+
+        const val DEFAULT_PRIMITIVE_TYPE = GL10.GL_TRIANGLES
+        const val DEFAULT_BLEND_FUNCTION_SOURCE = GL10.GL_SRC_ALPHA
+        const val DEFAULT_BLEND_FUNCTION_DESTINATION = GL10.GL_ONE_MINUS_SRC_ALPHA
+        const val DEFAULT_DEPTH_TESTING_ENABLED = false
+        const val DEFAULT_DEPTH_MASK = false
+        const val DEFAULT_DEPTH_FUNCTION = GL10.GL_LEQUAL
+        const val DEFAULT_LINE_WIDTH = 1f
+    }
 }

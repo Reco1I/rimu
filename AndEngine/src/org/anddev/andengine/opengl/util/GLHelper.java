@@ -73,6 +73,18 @@ public class GLHelper {
 	private static float sBlue = -1;
 	private static float sAlpha = -1;
 
+	// BEGIN osu!droid modified - Added scissor box state tracking.
+	private static float sScissorX = -1;
+	private static float sScissorY = -1;
+	private static float sScissorWidth = -1;
+	private static float sScissorHeight = -1;
+	// END osu!droid modified.
+
+	// BEGIN osu!droid modified - Add depth mask and function state tracking.
+	private static boolean sEnableDepthMask = true;
+	private static int sCurrentDepthFunction = -1;
+	// END osu!droid modified.
+
 	public static boolean EXTENSIONS_VERTEXBUFFEROBJECTS = false;
 	public static boolean EXTENSIONS_DRAWTEXTURE = false;
 	public static boolean EXTENSIONS_TEXTURE_NON_POWER_OF_TWO = false;
@@ -221,6 +233,34 @@ public class GLHelper {
 			pGL.glDisable(GL10.GL_SCISSOR_TEST);
 		}
 	}
+
+	// BEGIN osu!droid modified - Added scissor box state tracking.
+	public static void setScissor(final GL10 pGL, final int x, final int y, final int width, final int height) {
+		if(x != GLHelper.sScissorX || y != GLHelper.sScissorY || width != GLHelper.sScissorWidth || height != GLHelper.sScissorHeight) {
+			GLHelper.sScissorX = x;
+			GLHelper.sScissorY = y;
+			GLHelper.sScissorWidth = width;
+			GLHelper.sScissorHeight = height;
+			pGL.glScissor(x, y, width, height);
+		}
+	}
+	// END osu!droid modified.
+
+	// BEGIN osu!droid modified - Added depth mask and function state tracking.
+	public static void setDepthMask(final GL10 pGL, boolean depthMask) {
+		if (sEnableDepthMask != depthMask) {
+			sEnableDepthMask = depthMask;
+			pGL.glDepthMask(depthMask);
+		}
+	}
+
+	public static void setDepthFunction(final GL10 pGL, int depthFunction) {
+		if (sCurrentDepthFunction != depthFunction) {
+			sCurrentDepthFunction = depthFunction;
+			pGL.glDepthFunc(depthFunction);
+		}
+	}
+	// END osu!droid modified.
 
 	public static void enableBlend(final GL10 pGL) {
 		if(!GLHelper.sEnableBlend) {
