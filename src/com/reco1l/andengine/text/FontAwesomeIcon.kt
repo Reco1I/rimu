@@ -82,6 +82,11 @@ open class FontAwesomeIcon(
     }
 
     override fun doDraw(gl: GL10, camera: Camera) {
+        if (fontSettingsChanged) {
+            fontSettingsChanged = false
+            onFontSettingsChange()
+        }
+
         super.doDraw(gl, camera)
 
         val font = font ?: return
@@ -96,14 +101,6 @@ open class FontAwesomeIcon(
             viewportHeight = innerHeight,
             alignment = Anchor.Center
         )
-    }
-
-    override fun onManagedDraw(gl: GL10, camera: Camera) {
-        if (fontSettingsChanged) {
-            fontSettingsChanged = false
-            onFontSettingsChange()
-        }
-        super.onManagedDraw(gl, camera)
     }
 
 

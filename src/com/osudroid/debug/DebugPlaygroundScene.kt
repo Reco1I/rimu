@@ -24,24 +24,54 @@ object DebugPlaygroundScene : UIScene() {
                     text = "Hello, World!"
                 }
 
-                box {
-                    width = 100f
-                    height = 100f
-                    radius = 20f
-                    color = Color4.White
+                linearContainer {
+                    spacing = 2f
+                    box {
+                        width = 100f
+                        height = 100f
+                        radius = 20f
+                        color = Color4.White
+                    }
+                    box {
+                        width = 100f
+                        height = 100f
+                        radius = 20f
+                        color = Color4.White
+                        paintStyle = PaintStyle.Outline
+                        lineWidth = 2f
+                    }
                 }
 
-                triangle {
-                    width = 100f
-                    height = 100f
-                    color = Color4.White
+                linearContainer {
+                    spacing = 2f
+                    triangle {
+                        width = 100f
+                        height = 100f
+                        color = Color4.White
+                    }
+                    triangle {
+                        width = 100f
+                        height = 100f
+                        color = Color4.White
+                        paintStyle = PaintStyle.Outline
+                    }
                 }
 
-                circle {
-                    width = 100f
-                    height = 100f
-                    color = Color4.White
-                    endAngle = 270f
+                linearContainer {
+                    spacing = 2f
+                    circle {
+                        width = 100f
+                        height = 100f
+                        color = Color4.White
+                        endAngle = 270f
+                    }
+                    circle {
+                        width = 100f
+                        height = 100f
+                        color = Color4.White
+                        endAngle = 270f
+                        paintStyle = PaintStyle.Outline
+                    }
                 }
 
             }

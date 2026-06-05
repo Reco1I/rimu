@@ -3,6 +3,7 @@ package com.reco1l.andengine
 import android.util.Log
 import com.reco1l.andengine.component.*
 import com.reco1l.andengine.ui.*
+import com.reco1l.framework.Color4
 import com.reco1l.toolkt.kotlin.fastForEach
 import com.rian.andengine.timing.IClockProvider
 import com.rian.andengine.timing.IClockReceiver
@@ -13,7 +14,6 @@ import org.anddev.andengine.entity.IEntity
 import org.anddev.andengine.entity.scene.Scene
 import org.anddev.andengine.entity.shape.IShape
 import org.anddev.andengine.input.touch.TouchEvent
-import org.anddev.andengine.opengl.util.GLHelper
 
 
 /**
@@ -205,17 +205,24 @@ open class UIScene : Scene(), IShape, IClockProvider<IFrameBasedClock?>, IClockR
 
     //region Drawing
 
-    override fun onDraw(gl: GL10, camera: Camera) {
-        if (!isVisible) {
-            return
-        }
+    override fun onManagedDraw(gl: GL10, camera: Camera) {
+
+        TransformationStack.push(localToSceneTransformation)
+        ColorStack.push(Color4(mRed, mGreen, mBlue, mAlpha), false)
 
         if (clipToBounds) {
-            // Entity coordinates in screen's space.
-            val (topLeftX, topLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, 0f))
-            val (topRightX, topRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, 0f))
-            val (bottomRightX, bottomRightY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(width, height))
-            val (bottomLeftX, bottomLeftY) = camera.convertSceneToSurfaceCoordinates(convertLocalToSceneCoordinates(0f, height))
+            val (topLeftX, topLeftY) = camera.convertSceneToSurfaceCoordinates(
+                convertLocalToSceneCoordinates(0f, 0f)
+            )
+            val (topRightX, topRightY) = camera.convertSceneToSurfaceCoordinates(
+                convertLocalToSceneCoordinates(width, 0f)
+            )
+            val (bottomRightX, bottomRightY) = camera.convertSceneToSurfaceCoordinates(
+                convertLocalToSceneCoordinates(width, height)
+            )
+            val (bottomLeftX, bottomLeftY) = camera.convertSceneToSurfaceCoordinates(
+                convertLocalToSceneCoordinates(0f, height)
+            )
 
             val minX = minOf(topLeftX, bottomLeftX, bottomRightX, topRightX)
             val minY = minOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
@@ -223,12 +230,21 @@ open class UIScene : Scene(), IShape, IClockProvider<IFrameBasedClock?>, IClockR
             val maxY = maxOf(topLeftY, bottomLeftY, bottomRightY, topRightY)
 
             ScissorStack.push(minX, minY, maxX - minX, maxY - minY)
-            onManagedDraw(gl, camera)
-            ScissorStack.pop()
-
-        } else {
-            onManagedDraw(gl, camera)
         }
+
+        UIRenderer.pushLayer(gl)
+        UIRenderer.setBatchOptions(gl,
+            scissor = ScissorStack.peek(),
+            texture = null
+        )
+
+        super.onManagedDraw(gl, camera)
+
+        UIRenderer.popLayer(gl)
+
+        if (clipToBounds) ScissorStack.pop()
+        ColorStack.pop()
+        TransformationStack.pop()
     }
 
     override fun onManagedDrawChildren(gl: GL10, camera: Camera) {

@@ -286,6 +286,18 @@ open class UIText : UIBufferedComponent() {
     override fun doDraw(gl: GL10, camera: Camera) {
         super.doDraw(gl, camera)
 
+        if (fontSettingsChanged) {
+            fontSettingsChanged = false
+            onFontSettingsChange()
+        }
+
+        val scrollTranslationX = if (autoScrollAxes.isHorizontal) scrollX else 0f
+        val scrollTranslationY = if (autoScrollAxes.isVertical) scrollY else 0f
+
+        if (scrollTranslationX != 0f || scrollTranslationY != 0f) {
+            TransformationStack.peek()?.postTranslate(-scrollTranslationX, -scrollTranslationY)
+        }
+
         val font = font
         val lines = lines
         val linesWidth = linesWidth
@@ -305,23 +317,6 @@ open class UIText : UIBufferedComponent() {
             viewportHeight = textViewportHeight,
             alignment = alignment,
         )
-    }
-
-    override fun onManagedDraw(gl: GL10, camera: Camera) {
-
-        if (fontSettingsChanged) {
-            fontSettingsChanged = false
-            onFontSettingsChange()
-        }
-
-        val scrollTranslationX = if (autoScrollAxes.isHorizontal) scrollX else 0f
-        val scrollTranslationY = if (autoScrollAxes.isVertical) scrollY else 0f
-
-        if (scrollTranslationX != 0f || scrollTranslationY != 0f) {
-            //TransformationStack.peek()?.postTranslate(-scrollTranslationX, -scrollTranslationY)
-        }
-
-        super.onManagedDraw(gl, camera)
     }
 
     override fun onManagedUpdate(deltaTimeSec: Float) {

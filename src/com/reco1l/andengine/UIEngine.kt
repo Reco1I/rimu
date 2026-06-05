@@ -138,7 +138,11 @@ class UIEngine(val context: Activity, options: EngineOptions) : Engine(options),
             overlay.setPosition(0f, 0f)
         }
 
-        super.onDrawScene(gl)
+        super.mScene.onDraw(gl, camera)
+
+        UIRenderer.pushMaxLayer(gl)
+        camera.onDrawHUD(gl)
+        UIRenderer.popLayer(gl)
 
         UIRenderer.end(gl)
     }

@@ -17,17 +17,21 @@ object TriangleRenderer : BufferRenderer() {
     ) {
         val filled = paintStyle == PaintStyle.Fill
 
-        UIRenderer.setState(gl,
+        UIRenderer.setBatchOptions(gl,
             primitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES,
             lineWidth = lineWidth
         )
 
         if (filled) {
-            addTriangle(x, y, x + width, y, x + width / 2f, y + height)
+            addTriangle(
+                x + width / 2f, y,
+                x + width, y + height,
+                x, y + height
+            )
         } else {
-            addLine(x, y, x + width, y)
-            addLine(x + width, y, x + width / 2f, y + height)
-            addLine(x + width / 2f, y + height, x, y)
+            addLine(x + width / 2f, y, x + width, y + height)
+            addLine(x + width, y + height, x, y + height)
+            addLine(x, y + height, x + width / 2f, y)
         }
     }
 }

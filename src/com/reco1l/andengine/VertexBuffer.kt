@@ -11,11 +11,6 @@ class VertexBuffer(initialCapacity: Int) {
         .allocateDirect(initialCapacity * MAX_VERTEX_STRIDE)
         .order(ByteOrder.nativeOrder())
 
-    private var indexBuffer = ByteBuffer
-        .allocateDirect(initialCapacity * Short.SIZE_BYTES) // 2 bytes per index (short)
-        .order(ByteOrder.nativeOrder())
-        .asShortBuffer()
-
 
     /**
      * The number of vertices currently stored in the buffer.
@@ -46,21 +41,17 @@ class VertexBuffer(initialCapacity: Int) {
 
 
     fun ensureCapacity() {
-        if (vertexCount + 1 >= vertexCapacity) {
-            byteBuffer = byteBuffer.grow(vertexCapacity * MAX_VERTEX_STRIDE * 2)
-        }
-
-        if (indexBuffer.capacity() < vertexCapacity * Short.SIZE_BYTES) {
-            indexBuffer = indexBuffer.grow(vertexCapacity * Short.SIZE_BYTES * 2)
-        }
+        if (vertexCount + 1 < vertexCapacity) return
+        byteBuffer = byteBuffer.grow(vertexCapacity * MAX_VERTEX_STRIDE * 2)
     }
 
     private  fun ByteBuffer.grow(newCapacity: Int): ByteBuffer {
+        val oldPosition = position()
         position(0)
 
         val buffer = ByteBuffer.allocateDirect(newCapacity).order(ByteOrder.nativeOrder())
         buffer.put(this)
-        buffer.position(position())
+        buffer.position(oldPosition)
         buffer.limit(newCapacity)
 
         return buffer
@@ -109,11 +100,6 @@ class VertexBuffer(initialCapacity: Int) {
         vertexCount++
     }
 
-
-    fun fromZero(): ByteBuffer {
-        byteBuffer.position(0)
-        return byteBuffer
-    }
 
     fun forPosition(): ByteBuffer {
         byteBuffer.position(POSITION_OFFSET_BYTES)

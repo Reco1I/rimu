@@ -640,7 +640,8 @@ abstract class UIComponent : Entity(0f, 0f),
             ScissorStack.push(minX, minY, maxX - minX, maxY - minY)
         }
 
-        UIRenderer.setState(gl,
+        UIRenderer.pushLayer(gl)
+        UIRenderer.setBatchOptions(gl,
             scissor = ScissorStack.peek(),
             texture = null
         )
@@ -653,14 +654,19 @@ abstract class UIComponent : Entity(0f, 0f),
         }
 
         // Render component and children
+        UIRenderer.pushLayer(gl)
         doDraw(gl, camera)
+
+        UIRenderer.pushLayer(gl)
         onDrawChildren(gl, camera)
 
         // Render border quad
         if (borderColor.alpha > 0f && borderWidth > 0f) {
+            UIRenderer.pushLayer(gl)
             ColorStack.push(borderColor, false)
             QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, PaintStyle.Outline, borderWidth)
             ColorStack.pop()
+            UIRenderer.popLayer(gl)
         }
 
         // Debug outline
@@ -670,10 +676,11 @@ abstract class UIComponent : Entity(0f, 0f),
             ColorStack.pop()
         }
 
-        if (clipToBounds) {
-            ScissorStack.pop()
-        }
+        UIRenderer.popLayer(gl)
+        UIRenderer.popLayer(gl)
+        UIRenderer.popLayer(gl)
 
+        if (clipToBounds) ScissorStack.pop()
         ColorStack.pop()
         TransformationStack.pop()
     }

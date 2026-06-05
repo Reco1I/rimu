@@ -20,8 +20,7 @@ object QuadRenderer : BufferRenderer() {
     ) {
         val filled = paintStyle == Fill
 
-        UIRenderer.setState(
-            gl,
+        UIRenderer.setBatchOptions(gl,
             primitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES,
             lineWidth = lineWidth
         )

@@ -26,7 +26,7 @@ object CircleRenderer : BufferRenderer() {
     ) {
         val filled = paintStyle == Fill
 
-        UIRenderer.setState(gl,
+        UIRenderer.setBatchOptions(gl,
             primitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES,
             lineWidth = lineWidth
         )
@@ -69,7 +69,7 @@ object CircleRenderer : BufferRenderer() {
         var previousX = arcCenterX + radiusX * cos(start)
         var previousY = arcCenterY + radiusY * sin(start)
 
-        for (j in 0 until segments) {
+        for (j in 0 .. segments) {
 
             val angle = start + j * delta
             val x = arcCenterX + radiusX * cos(angle)

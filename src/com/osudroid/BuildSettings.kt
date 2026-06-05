@@ -22,7 +22,7 @@ object BuildSettings {
     /**
      * Whether to use the debug playground scene or not.
      */
-    const val DEBUG_PLAYGROUND = true
+    const val DEBUG_PLAYGROUND = false
 }
 
 

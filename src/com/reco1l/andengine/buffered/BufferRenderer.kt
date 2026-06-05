@@ -18,7 +18,7 @@ open class BufferRenderer {
         val position = TransformationStack.peek().transform(x, y)
         val color = ColorStack.peek() ?: Color4.White
 
-        UIRenderer.buffer.addVertex(
+        UIRenderer.batch!!.buffer.addVertex(
             x = position[0],
             y = position[1],
             color = color,

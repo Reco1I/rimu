@@ -106,7 +106,7 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
         super.onManagedUpdate(deltaTimeSec)
     }
 
-    override fun onManagedDraw(gl: GL10, camera: Camera) {
+    override fun doDraw(gl: GL10, camera: Camera) {
 
         if (isExpanded) {
             val (sceneSpaceX, sceneSpaceY) = trigger.convertLocalToSceneCoordinates(0f, trigger.height)
@@ -130,7 +130,7 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
             minWidth = trigger.width
         }
 
-        super.onManagedDraw(gl, camera)
+        super.doDraw(gl, camera)
     }
 
 

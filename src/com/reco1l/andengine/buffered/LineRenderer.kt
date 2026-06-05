@@ -13,7 +13,7 @@ object LineRenderer : BufferRenderer() {
         toY: Float,
         lineWidth: Float = 1f
     ) {
-        UIRenderer.setState(gl,
+        UIRenderer.setBatchOptions(gl,
             primitiveType = GL10.GL_LINES,
             lineWidth = lineWidth
         )

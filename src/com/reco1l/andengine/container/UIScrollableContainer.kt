@@ -291,8 +291,7 @@ open class UIScrollableContainer : UIContainer() {
         updateIndicators(deltaTimeSec)
     }
 
-    override fun onManagedDraw(gl: GL10, camera: Camera) {
-
+    override fun doDraw(gl: GL10, camera: Camera) {
         firstChild?.also { child ->
             if (!Precision.almostEquals(child.x, -scrollX) || !Precision.almostEquals(child.y, -scrollY)) {
                 child.setPosition(-scrollX, -scrollY)
@@ -300,9 +299,8 @@ open class UIScrollableContainer : UIContainer() {
             }
         }
 
-        super.onManagedDraw(gl, camera)
+        super.doDraw(gl, camera)
     }
-
 
     /**
      * Called when the scroll position has changed.

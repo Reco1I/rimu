@@ -3,8 +3,6 @@ package com.reco1l.andengine.buffered
 import com.reco1l.andengine.UIRenderer
 import com.reco1l.andengine.component.*
 import org.anddev.andengine.engine.camera.Camera
-import org.anddev.andengine.entity.shape.Shape.*
-import org.anddev.andengine.opengl.util.*
 import javax.microedition.khronos.opengles.GL10
 
 abstract class UIBufferedComponent : UIComponent() {
@@ -27,7 +25,7 @@ abstract class UIBufferedComponent : UIComponent() {
 
     override fun doDraw(gl: GL10, camera: Camera) {
 
-        UIRenderer.setState(gl,
+        UIRenderer.setBatchOptions(gl,
             blendFunctionSource = blendInfo.sourceFactor,
             blendFunctionDestination = blendInfo.destinationFactor,
             depthTestingEnabled = depthInfo.test,

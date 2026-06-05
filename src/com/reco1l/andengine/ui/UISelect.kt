@@ -99,14 +99,14 @@ open class UISelect<T : Any>(initialValues: List<T> = emptyList()) : UIControl<L
         }
     }
 
-    override fun onManagedDraw(gl: GL10, camera: Camera) {
+    override fun doDraw(gl: GL10, camera: Camera) {
 
         if (listChanged) {
             listChanged = false
             onOptionsChanged()
         }
 
-        super.onManagedDraw(gl, camera)
+        super.doDraw(gl, camera)
     }
 
     open fun onOptionsChanged() {

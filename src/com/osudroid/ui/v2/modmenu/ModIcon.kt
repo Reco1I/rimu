@@ -74,7 +74,7 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
         super.onAttached()
     }
 
-    override fun onManagedDraw(gl: GL10, camera: Camera) {
+    override fun doDraw(gl: GL10, camera: Camera) {
 
         val acronymText = get<UIComponent>(0)
         if (acronymText is UIText) {
@@ -83,7 +83,7 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
 
         radius = height * 0.2f
 
-        super.onManagedDraw(gl, camera)
+        super.doDraw(gl, camera)
     }
 
     override fun onManagedUpdate(deltaTimeSec: Float) {

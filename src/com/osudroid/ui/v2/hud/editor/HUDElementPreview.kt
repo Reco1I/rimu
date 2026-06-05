@@ -48,7 +48,7 @@ class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): 
         )
     }
 
-    override fun onManagedDraw(gl: GL10, camera: Camera) {
+    override fun doDraw(gl: GL10, camera: Camera) {
 
         // Scaling the element inside the box
         element.setScaleCenter(0f, 0f)
@@ -59,8 +59,7 @@ class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): 
             element.setScale(min(1f, (innerHeight - label.height) / element.height))
         }
 
-
-        super.onManagedDraw(gl, camera)
+        super.doDraw(gl, camera)
     }
 
     //region Input handling

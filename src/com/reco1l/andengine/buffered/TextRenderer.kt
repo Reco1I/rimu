@@ -19,7 +19,7 @@ object TextRenderer : BufferRenderer() {
         viewportHeight: Float,
         alignment: Vec2,
     ) {
-        UIRenderer.setState(gl,
+        UIRenderer.setBatchOptions(gl,
             primitiveType = GL10.GL_TRIANGLES,
             texture = font.texture
         )
@@ -74,7 +74,7 @@ object TextRenderer : BufferRenderer() {
         viewportHeight: Float,
         alignment: Vec2,
     ) {
-        UIRenderer.setState(gl,
+        UIRenderer.setBatchOptions(gl,
             primitiveType = GL10.GL_TRIANGLES,
             texture = font.texture
         )

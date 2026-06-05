@@ -14,7 +14,7 @@ object TextureRenderer : BufferRenderer() {
         height: Float,
         textureRegion: TextureRegion
     ) {
-        UIRenderer.setState(gl,
+        UIRenderer.setBatchOptions(gl,
             primitiveType = GL10.GL_TRIANGLES,
             texture = textureRegion.texture
         )
