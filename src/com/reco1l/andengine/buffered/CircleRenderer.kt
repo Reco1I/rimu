@@ -26,12 +26,8 @@ object CircleRenderer : BufferRenderer() {
     ) {
         val filled = paintStyle == Fill
 
-        UIRenderer.setState(gl,
-            primitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES,
-            lineWidth = lineWidth
-        )
-
-        if (pushCacheIfAvailable()) return
+        UIRenderer.activePrimitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES
+        UIRenderer.activeLineWidth = lineWidth
 
         val segments = calculateArcResolution(
             width = width,
@@ -47,56 +43,6 @@ object CircleRenderer : BufferRenderer() {
             centerX, centerY,
             filled
         )
-
-        UIRenderer.circlesRendered++
-    }
-
-    fun addArc(
-        segments: Int,
-        arcCenterX: Float,
-        arcCenterY: Float,
-        startAngle: Float,
-        endAngle: Float,
-        radiusX: Float,
-        radiusY: Float,
-        fanCenterX: Float = arcCenterX,
-        fanCenterY: Float = arcCenterY,
-        filled: Boolean
-    ) {
-        if (segments <= 0) return
-
-        val start = (startAngle - 90f).toRadians()
-        val end = (endAngle - 90f).toRadians()
-
-        val delta = (end - start) / segments
-
-        var previousX = arcCenterX + radiusX * cos(start)
-        var previousY = arcCenterY + radiusY * sin(start)
-
-        for (j in 0 .. segments) {
-
-            val angle = start + j * delta
-            val x = arcCenterX + radiusX * cos(angle)
-            val y = arcCenterY + radiusY * sin(angle)
-
-            if (j > 0) {
-                if (filled) {
-                    addTriangle(
-                        fanCenterX, fanCenterY,
-                        previousX, previousY,
-                        x, y
-                    )
-                } else {
-                    addLine(
-                        previousX, previousY,
-                        x, y
-                    )
-                }
-            }
-
-            previousX = x
-            previousY = y
-        }
     }
 
 

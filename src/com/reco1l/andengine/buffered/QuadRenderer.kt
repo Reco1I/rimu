@@ -9,7 +9,6 @@ import kotlin.math.min
 object QuadRenderer : BufferRenderer() {
 
     fun renderQuad(
-        gl: GL10,
         x: Float,
         y: Float,
         width: Float,
@@ -20,12 +19,8 @@ object QuadRenderer : BufferRenderer() {
     ) {
         val filled = paintStyle == Fill
 
-        UIRenderer.setState(gl,
-            primitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES,
-            lineWidth = lineWidth
-        )
-
-        if (pushCacheIfAvailable()) return
+        UIRenderer.activePrimitiveType = if (filled) GL10.GL_TRIANGLES else GL10.GL_LINES
+        UIRenderer.activeLineWidth = lineWidth
 
         val r = radius
             .coerceAtMost(min(width, height) / 2f)
@@ -40,7 +35,7 @@ object QuadRenderer : BufferRenderer() {
             angle = 90f
         )
 
-        CircleRenderer.addArc(
+        addArc(
             segments,
             x + r, y + r,
             -90f, 0f,
@@ -59,7 +54,7 @@ object QuadRenderer : BufferRenderer() {
             addLine(x + r, y, x + width - r, y)
         }
 
-        CircleRenderer.addArc(
+        addArc(
             segments,
             x + width - r, y + r,
             0f, 90f,
@@ -78,7 +73,7 @@ object QuadRenderer : BufferRenderer() {
             addLine(x + width, y + r, x + width, y + height - r)
         }
 
-        CircleRenderer.addArc(
+        addArc(
             segments,
             x + width - r, y + height - r,
             90f, 180f,
@@ -97,7 +92,7 @@ object QuadRenderer : BufferRenderer() {
             addLine(x + width - r, y + height, x + r, y + height)
         }
 
-        CircleRenderer.addArc(
+        addArc(
             segments,
             x + r, y + height - r,
             180f, 270f,
@@ -115,8 +110,6 @@ object QuadRenderer : BufferRenderer() {
         } else {
             addLine(x, y + height - r, x, y + r)
         }
-
-        UIRenderer.quadsRendered++
     }
 
 }

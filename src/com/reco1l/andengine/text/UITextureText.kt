@@ -163,7 +163,7 @@ open class UITextureText(val characters: MutableMap<Char, TextureRegion?>) : UIB
 
             texture.onApply(gl)
 
-            QuadRenderer.renderQuad(gl, 0f, 0f, textureWidth, textureHeight)
+            QuadRenderer.renderQuad(0f, 0f, textureWidth, textureHeight)
 
             gl.glPopMatrix()
 

@@ -24,14 +24,11 @@ abstract class UIBufferedComponent : UIComponent() {
 
 
     override fun doDraw(gl: GL10, camera: Camera) {
-
-        UIRenderer.setState(gl,
-            blendFunctionSource = blendInfo.sourceFactor,
-            blendFunctionDestination = blendInfo.destinationFactor,
-            depthTestingEnabled = depthInfo.test,
-            depthMask = depthInfo.mask,
-            depthFunction = depthInfo.function
-        )
+        UIRenderer.activeBlendFunctionSource = blendInfo.sourceFactor
+        UIRenderer.activeBlendFunctionDestination = blendInfo.destinationFactor
+        UIRenderer.activeDepthTestingEnabled = depthInfo.test
+        UIRenderer.activeDepthMask = depthInfo.mask
+        UIRenderer.activeDepthFunction = depthInfo.function
 
         super.doDraw(gl, camera)
     }

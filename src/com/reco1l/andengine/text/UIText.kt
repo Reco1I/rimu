@@ -8,8 +8,6 @@ import com.reco1l.andengine.theme.Fonts
 import com.reco1l.andengine.theme.Size
 import org.anddev.andengine.engine.camera.*
 import org.anddev.andengine.opengl.font.*
-import org.anddev.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas
-import org.anddev.andengine.opengl.util.GLHelper
 import javax.microedition.khronos.opengles.*
 import kotlin.math.*
 
@@ -153,7 +151,8 @@ open class UIText : UIBufferedComponent() {
     private var lines: List<String>? = null
     private var linesWidth: IntArray? = null
 
-    private var textBufferCache = BufferCache()
+
+    private var drawCache = DrawCache()
 
 
     init {
@@ -219,14 +218,17 @@ open class UIText : UIBufferedComponent() {
 
         contentWidth = if (linesWidth!!.isNotEmpty()) linesWidth!!.max().toFloat() else 0f
         contentHeight = (lines!!.size * font.lineHeight + (lines!!.size - 1) * font.lineGap).toFloat()
-        textBufferCache.isDirty = true
+    }
+
+    override fun onPositionChanged() {
+        drawCache.isDirty = true
     }
 
     override fun onSizeChanged() {
         if (wrapText) {
             invalidate(InvalidationFlag.Content)
         }
-        super.onSizeChanged()
+        drawCache.isDirty = true
     }
 
     private fun wrapLine(line: String, font: Font, maxWidth: Int, outputLines: MutableList<String>, outputWidths: MutableList<Int>) {
@@ -299,6 +301,7 @@ open class UIText : UIBufferedComponent() {
 
         if (scrollTranslationX != 0f || scrollTranslationY != 0f) {
             TransformationStack.peek()?.postTranslate(-scrollTranslationX, -scrollTranslationY)
+            drawCache.isDirty = true
         }
 
         val font = font
@@ -309,7 +312,8 @@ open class UIText : UIBufferedComponent() {
             return
         }
 
-        TextRenderer.setCache(textBufferCache)
+        UIRenderer.startCache(drawCache)
+
         TextRenderer.renderLines(
             gl,
             lines = lines,
@@ -321,6 +325,8 @@ open class UIText : UIBufferedComponent() {
             viewportHeight = textViewportHeight,
             alignment = alignment,
         )
+
+        UIRenderer.endCache()
     }
 
     override fun onManagedUpdate(deltaTimeSec: Float) {

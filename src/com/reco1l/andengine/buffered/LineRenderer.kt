@@ -13,14 +13,9 @@ object LineRenderer : BufferRenderer() {
         toY: Float,
         lineWidth: Float = 1f
     ) {
-        UIRenderer.setState(gl,
-            primitiveType = GL10.GL_LINES,
-            lineWidth = lineWidth
-        )
-
-        if (pushCacheIfAvailable()) return
+        UIRenderer.activePrimitiveType = GL10.GL_LINES
+        UIRenderer.activeLineWidth = lineWidth
 
         addLine(fromX, fromY, toX, toY)
-        UIRenderer.linesRendered++
     }
 }

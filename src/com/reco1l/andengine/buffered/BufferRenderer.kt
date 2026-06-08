@@ -1,11 +1,13 @@
 package com.reco1l.andengine.buffered
 
 import com.reco1l.andengine.ColorStack
-import com.reco1l.andengine.BufferCache
 import com.reco1l.andengine.TransformationStack
 import com.reco1l.andengine.UIRenderer
 import com.reco1l.andengine.transform
 import com.reco1l.framework.Color4
+import com.reco1l.toolkt.toRadians
+import kotlin.math.cos
+import kotlin.math.sin
 
 
 /**
@@ -14,18 +16,12 @@ import com.reco1l.framework.Color4
  */
 open class BufferRenderer {
 
-    var currentCache: BufferCache? = null
-
-
-    fun setCache(cache: BufferCache) {
-        currentCache = cache
-    }
-
     fun addVertex(x: Float, y: Float, u: Float = 0f, v: Float = 0f) {
+
         val position = TransformationStack.peek().transform(x, y)
         val color = ColorStack.peek() ?: Color4.White
 
-        (currentCache?.buffer ?: UIRenderer.activeBatch!!.buffer).addVertex(
+        UIRenderer.activeBuffer.addVertex(
             x = position[0],
             y = position[1],
             color = color,
@@ -34,15 +30,13 @@ open class BufferRenderer {
         )
     }
 
-    protected fun pushCacheIfAvailable(): Boolean {
-        val cache = currentCache
-        if (cache == null || cache.isDirty) return false
+    fun useCache(block: () -> Unit) {
+        val cache = UIRenderer.activeCache ?: return block()
 
-        UIRenderer.activeBatch!!.buffer.setTo(cache.buffer)
-        currentCache = null
-        return true
+        if (cache.isDirty) {
+            block()
+        }
     }
-
 
     fun addTriangle(
         x1: Float,
@@ -65,5 +59,53 @@ open class BufferRenderer {
     ) {
         addVertex(x1, y1)
         addVertex(x2, y2)
+    }
+
+    fun addArc(
+        segments: Int,
+        arcCenterX: Float,
+        arcCenterY: Float,
+        startAngle: Float,
+        endAngle: Float,
+        radiusX: Float,
+        radiusY: Float,
+        fanCenterX: Float = arcCenterX,
+        fanCenterY: Float = arcCenterY,
+        filled: Boolean
+    ) {
+        if (segments <= 0) return
+
+        val start = (startAngle - 90f).toRadians()
+        val end = (endAngle - 90f).toRadians()
+
+        val delta = (end - start) / segments
+
+        var previousX = arcCenterX + radiusX * cos(start)
+        var previousY = arcCenterY + radiusY * sin(start)
+
+        for (j in 0 .. segments) {
+
+            val angle = start + j * delta
+            val x = arcCenterX + radiusX * cos(angle)
+            val y = arcCenterY + radiusY * sin(angle)
+
+            if (j > 0) {
+                if (filled) {
+                    addTriangle(
+                        fanCenterX, fanCenterY,
+                        previousX, previousY,
+                        x, y
+                    )
+                } else {
+                    addLine(
+                        previousX, previousY,
+                        x, y
+                    )
+                }
+            }
+
+            previousX = x
+            previousY = y
+        }
     }
 }

@@ -9,128 +9,226 @@ import javax.microedition.khronos.opengles.GL10
 
 object UIRenderer {
 
-    var activeBatch: Batch? = null
+    var activeBuffer = VertexBuffer(16)
+        private set
+
+    var activeCache: DrawCache? = null
         private set
 
 
-    private val batchPool = ArrayDeque<Batch>()
+    //region Settings
 
+    var activeTexture: ITexture? = DrawCommand.DEFAULT_TEXTURE
+        set(value) {
+            if (field != value) {
+                flushCommand()
+                field = value
+                //activeBuffer.useTextures = value != null
+            }
+        }
+
+    var activePrimitiveType: Int = DrawCommand.DEFAULT_PRIMITIVE_TYPE
+        set(value) {
+            if (field != value) {
+                flushCommand()
+                field = value
+            }
+        }
+
+    var activeBlendFunctionSource: Int = DrawCommand.DEFAULT_BLEND_FUNCTION_SOURCE
+        set(value) {
+            if (field != value) {
+                flushCommand()
+                field = value
+            }
+        }
+
+    var activeBlendFunctionDestination: Int = DrawCommand.DEFAULT_BLEND_FUNCTION_DESTINATION
+        set(value) {
+            if (field != value) {
+                flushCommand()
+                field = value
+            }
+        }
+
+    var activeDepthTestingEnabled: Boolean = DrawCommand.DEFAULT_DEPTH_TESTING_ENABLED
+        set(value) {
+            if (field != value) {
+                flushCommand()
+                field = value
+            }
+        }
+
+    var activeDepthMask: Boolean = DrawCommand.DEFAULT_DEPTH_MASK
+        set(value) {
+            if (field != value) {
+                flushCommand()
+                field = value
+            }
+        }
+
+    var activeDepthFunction: Int = DrawCommand.DEFAULT_DEPTH_FUNCTION
+        set(value) {
+            if (field != value) {
+                flushCommand()
+                field = value
+            }
+        }
+
+    var activeLineWidth: Float = DrawCommand.DEFAULT_LINE_WIDTH
+        set(value) {
+            if (field != value) {
+                flushCommand()
+                field = value
+            }
+        }
+
+    var activeScissor: Vec4? = DrawCommand.DEFAULT_SCISSOR
+        set(value) {
+            if (field != value) {
+                flushCommand()
+                field = value
+            }
+        }
+    //endregion
 
     //region Metrics
-    var drawCallsOnFrame = 0
-    var verticesOnFrame = 0
-    var textureChanges = 0
-    var primitiveChanges = 0
-    var blendChanges = 0
-    var depthChanges = 0
-    var lineWidthChanges = 0
-    var scissorChanges = 0
+    var drawCallsOnLastFrame: Int = 0
+        private set
+    //endregion
 
-    var quadsRendered = 0
-    var trianglesRendered = 0
-    var circlesRendered = 0
-    var linesRendered = 0
-    var spriteRendered = 0
-    var textsRendered = 0
-    var charactersRendered = 0
+
+    private val bufferPool = ArrayDeque<VertexBuffer>()
+    private val layerStack = ArrayDeque<RenderLayer>().apply { addLast(RenderLayer()) }
+
+    private var activeLayer = layerStack.first()
+
+
+    private fun MutableCollection<RenderLayer>.findOrCreateLayer(zIndex: Int): RenderLayer {
+        return find { it.zIndex == zIndex } ?: RenderLayer(zIndex).also { add(it) }
+    }
+
+
+    //region Cache
+    fun startCache(cache: DrawCache) {
+        flushCommand()
+        activeCache = cache
+
+        if (cache.isDirty) {
+            cache.layers.forEach { layer ->
+                layer.commands.forEach { command ->
+                    // Pooling used buffers.
+                    bufferPool.addLast(command.buffer)
+                }
+            }
+            cache.layers.clear()
+        }
+    }
+
+    fun endCache() {
+        val cache = activeCache
+        activeCache = null
+
+        if (cache != null) {
+            cache.isDirty = false
+            cache.layers.forEach { layer ->
+                layerStack.findOrCreateLayer(layer.zIndex).commands.addAll(layer.commands)
+            }
+        }
+    }
+    //endregion
+
+    //region Layers
+    fun pushLayer() {
+        flushCommand()
+
+        val zIndex = activeLayer.zIndex + 1
+        activeLayer = layerStack.find { it.zIndex == zIndex } ?: RenderLayer(zIndex).also {
+            layerStack.addLast(it)
+        }
+    }
+
+    fun popLayer() {
+        flushCommand()
+
+        val zIndex = activeLayer.zIndex - 1
+        if (zIndex < 0) {
+            Log.w("UIRenderer", "Cannot pop layer: already at the bottom layer.")
+            return
+        }
+        activeLayer = layerStack.findOrCreateLayer(zIndex)
+    }
     //endregion
 
 
     fun begin(gl: GL10) {
-        drawCallsOnFrame = 0
-        verticesOnFrame = 0
-        textureChanges = 0
-        primitiveChanges = 0
-        blendChanges = 0
-        depthChanges = 0
-        lineWidthChanges = 0
-        scissorChanges = 0
-
-        quadsRendered = 0
-        trianglesRendered = 0
-        circlesRendered = 0
-        linesRendered = 0
-        spriteRendered = 0
-        textsRendered = 0
-        charactersRendered = 0
+        drawCallsOnLastFrame = 0
     }
 
-    fun setState(
-        gl: GL10,
-        texture: ITexture? = activeBatch?.texture ?: Batch.DEFAULT_TEXTURE,
-        primitiveType: Int = activeBatch?.primitiveType ?: Batch.DEFAULT_PRIMITIVE_TYPE,
-        blendFunctionSource: Int = activeBatch?.blendFunctionSource ?: Batch.DEFAULT_BLEND_FUNCTION_SOURCE,
-        blendFunctionDestination: Int = activeBatch?.blendFunctionDestination ?: Batch.DEFAULT_BLEND_FUNCTION_DESTINATION,
-        depthTestingEnabled: Boolean = activeBatch?.depthTestingEnabled ?: Batch.DEFAULT_DEPTH_TESTING_ENABLED,
-        depthMask: Boolean = activeBatch?.depthMask ?: Batch.DEFAULT_DEPTH_MASK,
-        depthFunction: Int = activeBatch?.depthFunction ?: Batch.DEFAULT_DEPTH_FUNCTION,
-        lineWidth: Float = activeBatch?.lineWidth ?: Batch.DEFAULT_LINE_WIDTH,
-        scissor: Vec4? = activeBatch?.scissor ?: Batch.DEFAULT_SCISSOR,
-    ) {
-        if (activeBatch?.equals(
-                texture = texture,
-                primitiveType = primitiveType,
-                blendFunctionSource = blendFunctionSource,
-                blendFunctionDestination = blendFunctionDestination,
-                depthTestingEnabled = depthTestingEnabled,
-                depthMask = depthMask,
-                depthFunction = depthFunction,
-                lineWidth = lineWidth,
-                scissor = scissor
-            ) == true
-        ) return
+    fun flushCommand() {
+        // Nothing to draw.
+        if (activeBuffer.vertexCount == 0) return
 
-        //region Metrics
-        if ((activeBatch?.buffer?.vertexCount ?: 0) > 0) {
-            if (texture != activeBatch?.texture) textureChanges++
-            if (primitiveType != activeBatch?.primitiveType) primitiveChanges++
-            if (blendFunctionSource != activeBatch?.blendFunctionSource || blendFunctionDestination != activeBatch?.blendFunctionDestination) blendChanges++
-            if (depthTestingEnabled != activeBatch?.depthTestingEnabled || depthMask != activeBatch?.depthMask || depthFunction != activeBatch?.depthFunction) depthChanges++
-            if (lineWidth != activeBatch?.lineWidth) lineWidthChanges++
-            if (scissor != activeBatch?.scissor) scissorChanges++
-        }
-        //endregion
+        val cache = activeCache
+        val zIndex = activeLayer.zIndex
 
-        activeBatch?.also { batch ->
-            batch.flush(gl)
-            batch.setToDefault()
-            batchPool.addLast(batch)
-        }
+        // When the draw command is identical we can reuse the same buffer without issuing a new draw call.
+        if ((cache?.layers?.find { it.zIndex == zIndex }?.commands ?: activeLayer.commands).lastOrNull { command ->
+            command.texture == activeTexture &&
+            command.primitiveType == activePrimitiveType &&
+            command.blendFunctionSource == activeBlendFunctionSource &&
+            command.blendFunctionDestination == activeBlendFunctionDestination &&
+            command.depthTestingEnabled == activeDepthTestingEnabled &&
+            command.depthMask == activeDepthMask &&
+            command.depthFunction == activeDepthFunction &&
+            command.lineWidth == activeLineWidth &&
+            command.scissor == activeScissor
+        } != null) return
 
-        val newBatch = batchPool.removeLastOrNull() ?: run {
-            Log.w("UIRenderer", "Batch pool exhausted, creating a new batch...")
-            Batch()
-        }
-        newBatch.set(
-            texture = texture,
-            primitiveType = primitiveType,
-            blendFunctionSource = blendFunctionSource,
-            blendFunctionDestination = blendFunctionDestination,
-            depthTestingEnabled = depthTestingEnabled,
-            depthMask = depthMask,
-            depthFunction = depthFunction,
-            lineWidth = lineWidth,
-            scissor = scissor
+        val command = DrawCommand(
+            isCached = cache != null,
+            buffer = activeBuffer,
+            texture = activeTexture,
+            primitiveType = activePrimitiveType,
+            blendFunctionSource = activeBlendFunctionSource,
+            blendFunctionDestination = activeBlendFunctionDestination,
+            depthTestingEnabled = activeDepthTestingEnabled,
+            depthMask = activeDepthMask,
+            depthFunction = activeDepthFunction,
+            lineWidth = activeLineWidth,
+            scissor = activeScissor
         )
 
-        activeBatch = newBatch
-    }
+        if (cache != null) {
+            cache.layers.findOrCreateLayer(zIndex).commands.add(command)
+        } else {
+            activeLayer.commands.add(command)
+        }
 
+        activeBuffer = bufferPool.removeLastOrNull()?.also { it.clear() } ?: run {
+            Log.w("UIRenderer", "Buffer pool exhausted, allocating new buffer.")
+            VertexBuffer(16)
+        }
+    }
 
     fun end(gl: GL10) {
-        activeBatch?.also { batch ->
-            batch.flush(gl)
-            batch.setToDefault()
-            batchPool.addLast(batch)
+        while (layerStack.isNotEmpty()) {
+            val layer = layerStack.removeFirstOrNull() ?: continue
+
+            while (layer.commands.isNotEmpty()) {
+                val command = layer.commands.removeFirstOrNull() ?: continue
+                command.draw(gl)
+
+                if (!command.isCached) {
+                    bufferPool.addLast(command.buffer)
+                }
+            }
         }
-        activeBatch = null
     }
 
 
-    fun Batch.flush(gl: GL10) {
+    fun DrawCommand.draw(gl: GL10) {
         if (buffer.vertexCount == 0) return
-
-        verticesOnFrame += buffer.vertexCount
 
         // Scissor test
         scissor?.also { scissor ->
@@ -162,7 +260,7 @@ object UIRenderer {
         GLHelper.enableVertexArray(gl)
 
         val texture = texture
-        val useTextures = texture != null && buffer.useTextures
+        val useTextures = texture != null
 
         if (useTextures) {
             GLHelper.enableTextures(gl)
@@ -178,26 +276,24 @@ object UIRenderer {
         gl.glVertexPointer(
             VertexBuffer.POSITION_COMPONENTS,
             GL10.GL_FLOAT,
-            buffer.stride,
+            VertexBuffer.VERTEX_STRIDE,
             buffer.forPosition()
         )
         gl.glColorPointer(
             VertexBuffer.COLOR_COMPONENTS,
             GL10.GL_UNSIGNED_BYTE,
-            buffer.stride,
+            VertexBuffer.VERTEX_STRIDE,
             buffer.forColor()
         )
         if (useTextures) gl.glTexCoordPointer(
             VertexBuffer.TEXTURE_COMPONENTS,
             GL10.GL_FLOAT,
-            buffer.stride,
+            VertexBuffer.VERTEX_STRIDE,
             buffer.forTexture()
         )
 
         gl.glDrawArrays(primitiveType, 0, buffer.vertexCount)
-        drawCallsOnFrame++
-
-        buffer.clear()
+        drawCallsOnLastFrame++
 
         // We reset driver states because legacy components already setup them on its own pipeline.
         GLHelper.disableColorArray(gl)

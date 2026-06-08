@@ -334,7 +334,7 @@ open class UIScrollableContainer : UIContainer() {
             val indicatorHeight = height * (height / scrollableContentHeight).coerceAtMost(1f)
 
             ColorStack.push(Color4.White.copy(alpha = indicatorYAlpha))
-            QuadRenderer.renderQuad(gl,
+            QuadRenderer.renderQuad(
                 x = width - 0.25f.rem,
                 y = scrollY * (height / scrollableContentHeight),
                 width = 0.25f.rem,
@@ -347,7 +347,7 @@ open class UIScrollableContainer : UIContainer() {
             val indicatorWidth = width * (width / scrollableContentWidth).coerceAtMost(1f)
 
             ColorStack.push(Color4.White.copy(alpha = indicatorXAlpha))
-            QuadRenderer.renderQuad(gl,
+            QuadRenderer.renderQuad(
                 x = scrollX * (width / scrollableContentWidth),
                 y = height - 0.25f.rem,
                 width = indicatorWidth,

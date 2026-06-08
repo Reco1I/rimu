@@ -358,10 +358,14 @@ abstract class UIComponent : Entity(0f, 0f),
     var color: Color4
         get() = Color4(mRed, mGreen, mBlue, mAlpha)
         set(value) {
+            if (value.red == mRed && value.green == mGreen && value.blue == mBlue && value.alpha == mAlpha) {
+                return
+            }
             mRed = value.red
             mGreen = value.green
             mBlue = value.blue
             mAlpha = value.alpha
+            invalidate(InvalidationFlag.Content)
         }
 
     /**
@@ -399,25 +403,31 @@ abstract class UIComponent : Entity(0f, 0f),
 
     //region Other properties
 
+    /**
+     * Whether this component is currently running any modifiers or animations.
+     */
     val isAnimating
         get() = !mEntityModifiers.isNullOrEmpty() || universalModifierTrackers.any { !it.modifiers.isEmpty() }
+
+    /**
+     * Currently bound components to input pointeres.
+     */
+    val inputBindings = arrayOfNulls<UIComponent>(10)
 
     /**
      * Whether the entity should be culled when it is outside the parent's bounds.
      */
     var cullingMode = CullingMode.Disabled
 
-
-    private var invalidationFlags = InvalidationFlag.All
-
-    private val inputBindings = arrayOfNulls<UIComponent>(10)
-
-    private val backgroundBufferCache = BufferCache()
-    private val borderBufferCache = BufferCache()
-
     //endregion
 
     //region Invalidation
+
+    /**
+     * The flags that are being invalidated next frame.
+     */
+    var invalidationFlags = InvalidationFlag.All
+        private set
 
     /**
      * Whether to ignore invalidations.
@@ -432,8 +442,6 @@ abstract class UIComponent : Entity(0f, 0f),
     fun invalidate(flag: Int) {
         invalidationFlags = invalidationFlags or flag
     }
-
-
 
     //endregion
 
@@ -575,9 +583,6 @@ abstract class UIComponent : Entity(0f, 0f),
         if (flags and InvalidationFlag.Content != 0) {
             onContentChanged()
             propagateToParentFlags = InvalidationFlag.Content
-
-            backgroundBufferCache.isDirty = true
-            borderBufferCache.isDirty = true
         }
 
         if (flags and InvalidationFlag.Size != 0) {
@@ -647,38 +652,39 @@ abstract class UIComponent : Entity(0f, 0f),
             ScissorStack.push(minX, minY, maxX - minX, maxY - minY)
         }
 
-        UIRenderer.setState(gl,
-            scissor = ScissorStack.peek(),
-            texture = null
-        )
+        UIRenderer.activeScissor = ScissorStack.peek()
+        UIRenderer.activeTexture = null
 
         // Render background quad
         if (backgroundColor.alpha > 0f) {
             ColorStack.push(backgroundColor, false)
-            QuadRenderer.setCache(backgroundBufferCache)
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius)
+            QuadRenderer.renderQuad(0f, 0f, width, height, radius)
             ColorStack.pop()
         }
 
         // Render component and children
         doDraw(gl, camera)
 
+        UIRenderer.pushLayer()
         onDrawChildren(gl, camera)
+        UIRenderer.popLayer()
 
+        UIRenderer.pushLayer()
         // Render border quad
         if (borderColor.alpha > 0f && borderWidth > 0f) {
             ColorStack.push(borderColor, false)
-            QuadRenderer.setCache(borderBufferCache)
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, radius, PaintStyle.Outline, borderWidth)
+            QuadRenderer.renderQuad(0f, 0f, width, height, radius, PaintStyle.Outline, borderWidth)
             ColorStack.pop()
         }
 
         // Debug outline
         if (BuildSettings.SHOW_ENTITY_BOUNDARIES) {
             ColorStack.push(Color4.White, false)
-            QuadRenderer.renderQuad(gl, 0f, 0f, width, height, 0f, PaintStyle.Outline)
+            QuadRenderer.renderQuad(0f, 0f, width, height, 0f, PaintStyle.Outline)
             ColorStack.pop()
         }
+        UIRenderer.popLayer()
+
 
         if (clipToBounds) ScissorStack.pop()
         ColorStack.pop()

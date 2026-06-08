@@ -19,54 +19,51 @@ object TextRenderer : BufferRenderer() {
         viewportHeight: Float,
         alignment: Vec2,
     ) {
-        UIRenderer.setState(gl,
-            primitiveType = GL10.GL_TRIANGLES,
-            texture = font.texture
-        )
+        useCache {
+            UIRenderer.activePrimitiveType = GL10.GL_TRIANGLES
+            UIRenderer.activeTexture = font.texture
 
-        if (pushCacheIfAvailable()) return
+            val lineHeight = font.lineHeight + font.lineGap
 
-        val lineHeight = font.lineHeight + font.lineGap
+            lines.fastForEachIndexed { lineIndex, line ->
 
-        lines.fastForEachIndexed { lineIndex, line ->
+                var lineX =
+                    viewportX + viewportWidth * alignment.x - linesWidth[lineIndex] * alignment.x
+                val lineY =
+                    viewportY + viewportHeight * alignment.y - lines.size * lineHeight * alignment.y + lineIndex * lineHeight
 
-            var lineX = viewportX + viewportWidth * alignment.x - linesWidth[lineIndex] * alignment.x
-            val lineY = viewportY + viewportHeight * alignment.y - lines.size * lineHeight * alignment.y + lineIndex * lineHeight
+                var charIndex = 0
+                while (charIndex < line.length) {
+                    val codePoint = line.codePointAt(charIndex)
+                    val charCount = Character.charCount(codePoint)
 
-            var charIndex = 0
-            while (charIndex < line.length) {
-                val codePoint = line.codePointAt(charIndex)
-                val charCount = Character.charCount(codePoint)
+                    val characterString = line.substring(charIndex, charIndex + charCount)
+                    val letter = font.getLetter(characterString)
 
-                val characterString = line.substring(charIndex, charIndex + charCount)
-                val letter = font.getLetter(characterString)
+                    // Vertex positions
+                    val letterX = lineX + letter.mWidth
+                    val letterY = lineY + font.lineHeight
 
-                // Vertex positions
-                val letterX = lineX + letter.mWidth
-                val letterY = lineY + font.lineHeight
+                    // Texture coordinates
+                    val letterTextureX = letter.mTextureX
+                    val letterTextureY = letter.mTextureY
+                    val letterTextureX2 = letterTextureX + letter.mTextureWidth
+                    val letterTextureY2 = letterTextureY + letter.mTextureHeight
 
-                // Texture coordinates
-                val letterTextureX = letter.mTextureX
-                val letterTextureY = letter.mTextureY
-                val letterTextureX2 = letterTextureX + letter.mTextureWidth
-                val letterTextureY2 = letterTextureY + letter.mTextureHeight
+                    addVertex(lineX, lineY, letterTextureX, letterTextureY)
+                    addVertex(lineX, letterY, letterTextureX, letterTextureY2)
+                    addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
 
-                addVertex(lineX, lineY, letterTextureX, letterTextureY)
-                addVertex(lineX, letterY, letterTextureX, letterTextureY2)
-                addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
+                    addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
+                    addVertex(letterX, lineY, letterTextureX2, letterTextureY)
+                    addVertex(lineX, lineY, letterTextureX, letterTextureY)
 
-                addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
-                addVertex(letterX, lineY, letterTextureX2, letterTextureY)
-                addVertex(lineX, lineY, letterTextureX, letterTextureY)
+                    lineX += letter.mAdvance
+                    charIndex += charCount
 
-                lineX += letter.mAdvance
-                charIndex += charCount
-
-                UIRenderer.charactersRendered++
+                }
             }
         }
-
-        UIRenderer.textsRendered++
     }
 
     fun renderCharacter(
@@ -79,12 +76,8 @@ object TextRenderer : BufferRenderer() {
         viewportHeight: Float,
         alignment: Vec2,
     ) {
-        UIRenderer.setState(gl,
-            primitiveType = GL10.GL_TRIANGLES,
-            texture = font.texture
-        )
-
-        if (pushCacheIfAvailable()) return
+        UIRenderer.activePrimitiveType = GL10.GL_TRIANGLES
+        UIRenderer.activeTexture = font.texture
 
         val lineHeight = font.lineHeight + font.lineGap
         val letter = font.getLetter(character)
@@ -109,7 +102,5 @@ object TextRenderer : BufferRenderer() {
         addVertex(letterX, letterY, letterTextureX2, letterTextureY2)
         addVertex(letterX, lineY, letterTextureX2, letterTextureY)
         addVertex(lineX, lineY, letterTextureX, letterTextureY)
-
-        UIRenderer.charactersRendered++
     }
 }

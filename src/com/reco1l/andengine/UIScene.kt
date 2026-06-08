@@ -226,10 +226,8 @@ open class UIScene : Scene(), IShape, IClockProvider<IFrameBasedClock?>, IClockR
             ScissorStack.push(minX, minY, maxX - minX, maxY - minY)
         }
 
-        UIRenderer.setState(gl,
-            scissor = ScissorStack.peek(),
-            texture = null
-        )
+        UIRenderer.activeScissor = ScissorStack.peek()
+        UIRenderer.activeTexture = null
 
         super.onManagedDraw(gl, camera)
 
