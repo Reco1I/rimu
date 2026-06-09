@@ -10,6 +10,7 @@ import com.osudroid.beatmaplisting.*
 import com.osudroid.multiplayer.*
 import com.osudroid.resources.R
 import com.osudroid.ui.v1.*
+import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.multi.*
 import com.osudroid.utils.*
 import com.reco1l.andengine.*
@@ -131,7 +132,7 @@ object MainScene : UIScene() {
 
             menuContainer = scrollableContainer {
                 scrollAxes = Axes.Y
-                verticalIndicator = null
+                showVerticalIndicator = false
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
                 style = {
@@ -151,7 +152,7 @@ object MainScene : UIScene() {
                     +MenuButton(Icon.User, "Solo").apply {
                         onActionUp = {
                             async {
-                                LoadingScreen().show()
+                                LoaderScene().show()
 
                                 GlobalManager.getInstance().mainActivity.checkNewSkins()
                                 GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
@@ -180,7 +181,7 @@ object MainScene : UIScene() {
                             Multiplayer.isMultiplayer = true
 
                             async {
-                                LoadingScreen().show()
+                                LoaderScene().show()
 
                                 GlobalManager.getInstance().mainActivity.checkNewSkins()
                                 GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()

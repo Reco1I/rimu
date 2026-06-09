@@ -2,7 +2,6 @@ package com.osudroid.ui.v2.mainmenu
 
 import com.osudroid.RythimManager
 import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.buffered.BufferSharingMode
 import com.reco1l.andengine.component.UIComponent
 import com.reco1l.andengine.shape.PaintStyle
 import com.reco1l.andengine.shape.UICircle
@@ -46,7 +45,6 @@ class RippleVisualizer : UIComponent() {
             origin = Anchor.Center
             paintStyle = PaintStyle.Outline
             lineWidth = rippleThickness
-            bufferSharingMode = BufferSharingMode.Dynamic
         })
     }
 

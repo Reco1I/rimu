@@ -3,7 +3,6 @@ package com.osudroid.ui.v2.mainmenu
 import com.edlplan.framework.easing.Easing
 import com.osudroid.RythimManager
 import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.buffered.BufferSharingMode
 import com.reco1l.andengine.component.UIComponent
 import com.reco1l.andengine.shape.UIBox
 import com.reco1l.andengine.theme.Colors
@@ -58,7 +57,6 @@ class RadialVisualizer : UIComponent() {
             color = Colors.White
             anchor = Anchor.Center
             origin = Anchor.BottomCenter
-            bufferSharingMode = BufferSharingMode.Dynamic
         })
     }
 

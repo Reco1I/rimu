@@ -1,12 +1,11 @@
 package com.osudroid
 
+import com.osudroid.beatmaps.parser.BeatmapParser
+import com.osudroid.beatmaps.timings.EffectControlPoint
+import com.osudroid.beatmaps.timings.EffectControlPointManager
+import com.osudroid.beatmaps.timings.TimingControlPoint
+import com.osudroid.beatmaps.timings.TimingControlPointManager
 import com.osudroid.data.BeatmapInfo
-import com.rian.osu.beatmap.parser.BeatmapParser
-import com.rian.osu.beatmap.timings.ControlPoint
-import com.rian.osu.beatmap.timings.EffectControlPoint
-import com.rian.osu.beatmap.timings.EffectControlPointManager
-import com.rian.osu.beatmap.timings.TimingControlPoint
-import com.rian.osu.beatmap.timings.TimingControlPointManager
 import org.anddev.andengine.engine.handler.IUpdateHandler
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -94,26 +93,18 @@ object MusicManager : IUpdateHandler {
         }
 
         try {
-            BeatmapParser(beatmap.path).use { parser ->
+            val parser = BeatmapParser(beatmap.path)
+            val data = parser.parse(false)
 
-                val data = parser.parse(false)
+            timingControlPointManager = data.controlPoints.timing
+            effectControlPointManager = data.controlPoints.effect
 
-                if (data == null) {
-                    clear()
-                    isLoading = false
-                    return
-                }
+            currentTimingControlPoint = timingControlPointManager?.controlPointAt(0.0) ?: TimingControlPointManager.DEFAULT_TIMING_CONTROL_POINT
+            currentEffectControlPoint = effectControlPointManager?.controlPointAt(0.0) ?: EffectControlPointManager.DEFAULT_EFFECT_CONTROL_POINT
 
-                timingControlPointManager = data.controlPoints.timing
-                effectControlPointManager = data.controlPoints.effect
+            songService.preLoad(beatmap.audioPath)
 
-                currentTimingControlPoint = timingControlPointManager?.controlPointAt(0.0) ?: TimingControlPointManager.DEFAULT_TIMING_CONTROL_POINT
-                currentEffectControlPoint = effectControlPointManager?.controlPointAt(0.0) ?: EffectControlPointManager.DEFAULT_EFFECT_CONTROL_POINT
-
-                songService.preLoad(beatmap.audioPath)
-
-                isLoading = false
-            }
+            isLoading = false
         } catch (e: Exception) {
             e.printStackTrace()
         }

@@ -1,7 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
 import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.buffered.BufferSharingMode
 import com.reco1l.andengine.component.UIComponent
 import com.reco1l.andengine.component.scaleCenter
 import com.reco1l.andengine.shape.UITriangle
@@ -71,7 +70,6 @@ class TrianglesDispenser : UIComponent() {
         attachChild(triangle.apply {
             color = Colors.White
             scaleCenter = Anchor.Center
-            bufferSharingMode = BufferSharingMode.Dynamic
         })
     }
 

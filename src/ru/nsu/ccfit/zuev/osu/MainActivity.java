@@ -51,6 +51,7 @@ import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.debug.DebugPlaygroundScene;
 import com.osudroid.ui.FPSCounter;
 import com.osudroid.ui.v2.GameLoaderScene;
+import com.osudroid.ui.v2.LoaderScene;
 import com.osudroid.ui.v2.mainmenu.MainScene;
 import com.osudroid.utils.Execution;
 import com.reco1l.andengine.UIEngine;
