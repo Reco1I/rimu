@@ -130,10 +130,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         spacing = 4f.srem
                     }
 
-                    +CircularProgressBar().apply {
-                    width = 32f
-                    height = 32f
-                }
+                    +Loader()
 
                     if (!Multiplayer.isMultiplayer) {
                         textButton {

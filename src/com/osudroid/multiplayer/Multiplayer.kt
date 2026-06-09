@@ -5,6 +5,7 @@ import android.util.Log
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.Room
 import com.osudroid.multiplayer.api.data.RoomPlayer
+import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
 import com.osudroid.ui.v2.multi.*
 import com.reco1l.andengine.*
@@ -124,7 +125,7 @@ object Multiplayer {
         async {
 
             try {
-                LoadingScreen().show()
+                LoaderScene().show()
 
                 GlobalManager.getInstance().mainActivity.checkNewSkins()
                 GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()

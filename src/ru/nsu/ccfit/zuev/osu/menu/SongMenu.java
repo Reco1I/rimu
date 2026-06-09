@@ -13,6 +13,7 @@ import com.edlplan.ui.fragment.BeatmapPropertiesFragment;
 import com.edlplan.ui.fragment.ScoreMenuFragment;
 import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.ui.v1.BeatmapAttributeDisplay;
+import com.osudroid.ui.v2.LoaderScene;
 import com.osudroid.utils.Execution;
 import com.reco1l.andengine.UIScene;
 import com.reco1l.andengine.container.UIContainer;
@@ -1193,7 +1194,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
         var difficulty = selectedBeatmap.getBeatmapDifficulty();
 
         if (showOnline) {
-            engine.setScene(new LoadingScreen().getScene());
+            new LoaderScene().show();
             ToastLogger.showText(com.osudroid.resources.R.string.online_loadrecord, false);
 
             cancelCalculationJobs();
