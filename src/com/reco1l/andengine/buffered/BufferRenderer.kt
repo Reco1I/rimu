@@ -30,14 +30,6 @@ open class BufferRenderer {
         )
     }
 
-    fun useCache(block: () -> Unit) {
-        val cache = UIRenderer.activeCache ?: return block()
-
-        if (cache.isDirty) {
-            block()
-        }
-    }
-
     fun addTriangle(
         x1: Float,
         y1: Float,

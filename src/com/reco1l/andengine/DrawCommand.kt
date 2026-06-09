@@ -5,7 +5,7 @@ import org.anddev.andengine.opengl.texture.ITexture
 import javax.microedition.khronos.opengles.GL10
 
 data class DrawCommand(
-    val isCached: Boolean,
+    val cache: DrawCache? = null,
     val buffer: VertexBuffer,
     val texture: ITexture? = DEFAULT_TEXTURE,
     val primitiveType: Int = DEFAULT_PRIMITIVE_TYPE,
@@ -19,6 +19,7 @@ data class DrawCommand(
 ) {
 
     fun equals(
+        cache: DrawCache?,
         texture: ITexture?,
         primitiveType: Int,
         blendFunctionSource: Int,
@@ -29,7 +30,8 @@ data class DrawCommand(
         lineWidth: Float,
         scissor: Vec4?
     ): Boolean {
-        return this.texture == texture &&
+        return this.cache == cache &&
+                this.texture == texture &&
                 this.primitiveType == primitiveType &&
                 this.blendFunctionSource == blendFunctionSource &&
                 this.blendFunctionDestination == blendFunctionDestination &&
@@ -58,5 +60,5 @@ data class DrawCommand(
 
 data class DrawCache(
     var isDirty: Boolean = true,
-    val layers: MutableList<RenderLayer> = mutableListOf(),
+    val commands: MutableList<DrawCommand> = mutableListOf(),
 )

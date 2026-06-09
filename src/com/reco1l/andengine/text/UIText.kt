@@ -312,21 +312,19 @@ open class UIText : UIBufferedComponent() {
             return
         }
 
-        UIRenderer.startCache(drawCache)
-
-        TextRenderer.renderLines(
-            gl,
-            lines = lines,
-            linesWidth = linesWidth,
-            font = font,
-            viewportX = textViewportX,
-            viewportY = textViewportY,
-            viewportWidth = textViewportWidth,
-            viewportHeight = textViewportHeight,
-            alignment = alignment,
-        )
-
-        UIRenderer.endCache()
+        UIRenderer.cached(drawCache) {
+            TextRenderer.renderLines(
+                gl,
+                lines = lines,
+                linesWidth = linesWidth,
+                font = font,
+                viewportX = textViewportX,
+                viewportY = textViewportY,
+                viewportWidth = textViewportWidth,
+                viewportHeight = textViewportHeight,
+                alignment = alignment,
+            )
+        }
     }
 
     override fun onManagedUpdate(deltaTimeSec: Float) {

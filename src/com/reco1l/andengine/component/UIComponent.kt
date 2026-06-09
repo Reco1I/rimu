@@ -664,12 +664,8 @@ abstract class UIComponent : Entity(0f, 0f),
 
         // Render component and children
         doDraw(gl, camera)
-
-        UIRenderer.pushLayer()
         onDrawChildren(gl, camera)
-        UIRenderer.popLayer()
 
-        UIRenderer.pushLayer()
         // Render border quad
         if (borderColor.alpha > 0f && borderWidth > 0f) {
             ColorStack.push(borderColor, false)
@@ -683,8 +679,6 @@ abstract class UIComponent : Entity(0f, 0f),
             QuadRenderer.renderQuad(0f, 0f, width, height, 0f, PaintStyle.Outline)
             ColorStack.pop()
         }
-        UIRenderer.popLayer()
-
 
         if (clipToBounds) ScissorStack.pop()
         ColorStack.pop()
