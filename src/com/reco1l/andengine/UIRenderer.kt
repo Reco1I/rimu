@@ -1,5 +1,6 @@
 package com.reco1l.andengine
 
+import android.util.Log
 import com.reco1l.framework.math.Vec4
 import org.anddev.andengine.opengl.texture.ITexture
 import org.anddev.andengine.opengl.util.GLHelper
@@ -99,30 +100,38 @@ object UIRenderer {
     private val bufferPool = ArrayDeque<VertexBuffer>()
     private val commandBatch = ArrayDeque<DrawCommand>()
 
+
+    fun acquireBuffer(): VertexBuffer {
+        return  bufferPool.removeLastOrNull() ?: run {
+            Log.w("UIRenderer", "Buffer pool exhausted, creating a new buffer.")
+            VertexBuffer(16)
+        }
+    }
+
     fun cached(cache: DrawCache, block: () -> Unit) {
         flush()
 
         if (cache.isDirty) {
             cache.isDirty = false
-            cache.commands.forEach { command ->
-                command.buffer.clear()
-                bufferPool.addLast(command.buffer)
-            }
+            bufferPool.addAll(cache.commands.map { it.buffer })
             cache.commands.clear()
 
             activeCache = cache
             block()
+            flush()
             activeCache = null
+        } else {
+            commandBatch.addAll(cache.commands)
+            Log.i("UIRenderer", "Using cached draw commands: ${cache.commands.size} commands.")
         }
 
-        commandBatch.addAll(cache.commands)
-        activeBuffer = bufferPool.removeLastOrNull() ?: VertexBuffer(16)
+        activeBuffer = acquireBuffer()
     }
 
     fun begin(gl: GL10) {
         drawCallsOnLastFrame = 0
 
-        activeBuffer = bufferPool.removeLastOrNull() ?: VertexBuffer(16)
+        activeBuffer = acquireBuffer()
         activeTexture = DrawCommand.DEFAULT_TEXTURE
         activePrimitiveType = DrawCommand.DEFAULT_PRIMITIVE_TYPE
         activeBlendFunctionSource = DrawCommand.DEFAULT_BLEND_FUNCTION_SOURCE
@@ -138,13 +147,11 @@ object UIRenderer {
         if (activeBuffer.vertexCount == 0) return
 
         val cache = activeCache
-        val batch = cache?.commands ?: commandBatch
-
-        val lastCommand = batch.lastOrNull()
+        val lastCommand = commandBatch.lastOrNull()
 
         // Try to batch with the last command if it has the same settings and cache, otherwise
         // create a new command.
-        if (lastCommand == null || !lastCommand.equals(
+        val isIdenticalToLast = lastCommand != null && lastCommand.equals(
             cache,
             activeTexture,
             activePrimitiveType,
@@ -155,7 +162,9 @@ object UIRenderer {
             activeDepthFunction,
             activeLineWidth,
             activeScissor
-        )) {
+        )
+
+        if (lastCommand == null || !isIdenticalToLast || lastCommand.buffer != activeBuffer) {
             val command = DrawCommand(
                 cache = cache,
                 buffer = activeBuffer,
@@ -170,8 +179,10 @@ object UIRenderer {
                 scissor = activeScissor
             )
 
-            batch.add(command)
-            activeBuffer = bufferPool.removeLastOrNull() ?: VertexBuffer(16)
+            commandBatch.add(command)
+            cache?.commands?.add(command)
+
+            activeBuffer = acquireBuffer()
         }
     }
 

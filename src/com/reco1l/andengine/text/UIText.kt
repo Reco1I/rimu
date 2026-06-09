@@ -218,9 +218,11 @@ open class UIText : UIBufferedComponent() {
 
         contentWidth = if (linesWidth!!.isNotEmpty()) linesWidth!!.max().toFloat() else 0f
         contentHeight = (lines!!.size * font.lineHeight + (lines!!.size - 1) * font.lineGap).toFloat()
+        drawCache.isDirty = true
     }
 
-    override fun onPositionChanged() {
+    override fun onInvalidateTransformations() {
+        super.onInvalidateTransformations()
         drawCache.isDirty = true
     }
 
@@ -228,7 +230,6 @@ open class UIText : UIBufferedComponent() {
         if (wrapText) {
             invalidate(InvalidationFlag.Content)
         }
-        drawCache.isDirty = true
     }
 
     private fun wrapLine(line: String, font: Font, maxWidth: Int, outputLines: MutableList<String>, outputWidths: MutableList<Int>) {
