@@ -399,6 +399,8 @@ abstract class UIComponent : Entity(0f, 0f),
      */
     var radius = 0f
 
+    private var cosmeticsDrawCache: DrawCache? = null
+
     //endregion
 
     //region Other properties
@@ -655,23 +657,29 @@ abstract class UIComponent : Entity(0f, 0f),
         UIRenderer.activeScissor = ScissorStack.peek()
         UIRenderer.activeTexture = null
 
-        // Render background quad
-        if (backgroundColor.alpha > 0f) {
-            ColorStack.push(backgroundColor, false)
-            QuadRenderer.renderQuad(0f, 0f, width, height, radius)
-            ColorStack.pop()
+        if (backgroundColor.alpha > 0f || (borderColor.alpha > 0f && borderWidth > 0f)) {
+            UIRenderer.cached(cosmeticsDrawCache ?: DrawCache().also { cosmeticsDrawCache = it }) {
+                // Render background quad
+                if (backgroundColor.alpha > 0f) {
+                    ColorStack.push(backgroundColor, false)
+                    QuadRenderer.renderQuad(0f, 0f, width, height, radius)
+                    ColorStack.pop()
+                }
+
+                // Render border quad
+                if (borderColor.alpha > 0f && borderWidth > 0f) {
+                    ColorStack.push(borderColor, false)
+                    QuadRenderer.renderQuad(0f, 0f, width, height, radius, PaintStyle.Outline, borderWidth)
+                    ColorStack.pop()
+                }
+            }
+        } else {
+            cosmeticsDrawCache = null
         }
 
         // Render component and children
         doDraw(gl, camera)
         onDrawChildren(gl, camera)
-
-        // Render border quad
-        if (borderColor.alpha > 0f && borderWidth > 0f) {
-            ColorStack.push(borderColor, false)
-            QuadRenderer.renderQuad(0f, 0f, width, height, radius, PaintStyle.Outline, borderWidth)
-            ColorStack.pop()
-        }
 
         // Debug outline
         if (BuildSettings.SHOW_ENTITY_BOUNDARIES) {
@@ -790,6 +798,8 @@ abstract class UIComponent : Entity(0f, 0f),
         // This recreates and calculates the transformation matrices.
         localToParentTransformation
         parentToLocalTransformation
+
+        cosmeticsDrawCache?.isDirty = true
     }
 
 

@@ -102,7 +102,7 @@ object UIRenderer {
 
 
     fun acquireBuffer(): VertexBuffer {
-        return  bufferPool.removeLastOrNull() ?: run {
+        return bufferPool.removeLastOrNull() ?: run {
             Log.w("UIRenderer", "Buffer pool exhausted, creating a new buffer.")
             VertexBuffer(16)
         }
@@ -120,12 +120,11 @@ object UIRenderer {
             block()
             flush()
             activeCache = null
+            activeBuffer = acquireBuffer()
         } else {
             commandBatch.addAll(cache.commands)
             Log.i("UIRenderer", "Using cached draw commands: ${cache.commands.size} commands.")
         }
-
-        activeBuffer = acquireBuffer()
     }
 
     fun begin(gl: GL10) {
