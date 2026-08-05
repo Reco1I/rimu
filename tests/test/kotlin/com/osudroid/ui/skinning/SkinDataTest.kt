@@ -1,6 +1,6 @@
 package com.osudroid.ui.skinning
 
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.data.Color4
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
@@ -353,9 +353,9 @@ class ColorSkinDataTest {
         skinData.setFromJson(json)
 
         assertNotNull(skinData.currentValue)
-        assertEquals(255, skinData.currentValue!!.redInt)
-        assertEquals(0, skinData.currentValue!!.greenInt)
-        assertEquals(0, skinData.currentValue!!.blueInt)
+        assertEquals(255, skinData.currentValue!!.red8)
+        assertEquals(0, skinData.currentValue!!.green8)
+        assertEquals(0, skinData.currentValue!!.blue8)
         assertFalse(skinData.isDefault)
     }
 
@@ -369,9 +369,9 @@ class ColorSkinDataTest {
         skinData.setFromJson(json)
 
         assertNotNull(skinData.currentValue)
-        assertEquals(0, skinData.currentValue!!.redInt)
-        assertEquals(255, skinData.currentValue!!.greenInt)
-        assertEquals(0, skinData.currentValue!!.blueInt)
+        assertEquals(0, skinData.currentValue!!.red8)
+        assertEquals(255, skinData.currentValue!!.green8)
+        assertEquals(0, skinData.currentValue!!.blue8)
         assertFalse(skinData.isDefault)
     }
 
@@ -466,9 +466,9 @@ class ColorSkinDataTest {
             skinData.setFromJson(json)
 
             assertNotNull("Color should not be null for hex: $hex", skinData.currentValue)
-            assertEquals("Red mismatch for hex: $hex", expectedRed, skinData.currentValue!!.redInt)
-            assertEquals("Green mismatch for hex: $hex", expectedGreen, skinData.currentValue!!.greenInt)
-            assertEquals("Blue mismatch for hex: $hex", expectedBlue, skinData.currentValue!!.blueInt)
+            assertEquals("Red mismatch for hex: $hex", expectedRed, skinData.currentValue!!.red8)
+            assertEquals("Green mismatch for hex: $hex", expectedGreen, skinData.currentValue!!.green8)
+            assertEquals("Blue mismatch for hex: $hex", expectedBlue, skinData.currentValue!!.blue8)
         }
     }
 
@@ -482,9 +482,9 @@ class ColorSkinDataTest {
         skinData.setFromJson(json)
 
         assertNotNull(skinData.currentValue)
-        assertEquals(255, skinData.currentValue!!.redInt)
-        assertEquals(0, skinData.currentValue!!.greenInt)
-        assertEquals(255, skinData.currentValue!!.blueInt)
+        assertEquals(255, skinData.currentValue!!.red8)
+        assertEquals(0, skinData.currentValue!!.green8)
+        assertEquals(255, skinData.currentValue!!.blue8)
         assertFalse(skinData.isDefault)
     }
 
@@ -498,9 +498,9 @@ class ColorSkinDataTest {
         skinData.setFromJson(json)
 
         assertNotNull(skinData.currentValue)
-        assertEquals(255, skinData.currentValue!!.redInt)
-        assertEquals(170, skinData.currentValue!!.greenInt)
-        assertEquals(187, skinData.currentValue!!.blueInt)
+        assertEquals(255, skinData.currentValue!!.red8)
+        assertEquals(170, skinData.currentValue!!.green8)
+        assertEquals(187, skinData.currentValue!!.blue8)
         assertFalse(skinData.isDefault)
     }
 }
