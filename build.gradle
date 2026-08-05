@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        kotlin_version = '2.1.10'
+        kotlin_version = '2.4.10'
         room_version = '2.6.1'
     }
     repositories {
@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.2'
+        classpath 'com.android.tools.build:gradle:9.2.1'
         classpath 'com.google.gms:google-services:4.4.2'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -19,7 +19,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.google.devtools.ksp' version '2.0.10-1.0.24'
+    id "org.jetbrains.kotlin.kapt" version "2.4.10"
 }
 
 allprojects {
@@ -174,6 +174,10 @@ android {
         }
     }
 
+    kotlinOptions {
+        freeCompilerArgs = ['-XXLanguage:+ExplicitBackingFields']
+    }
+
     android.applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
             def fileName = "osudroid-${defaultConfig.versionName}-${variant.buildType.name}.apk"
@@ -220,7 +224,7 @@ dependencies {
     // Room
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
-    ksp "androidx.room:room-compiler:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     testImplementation "androidx.room:room-testing:$room_version"
 }
