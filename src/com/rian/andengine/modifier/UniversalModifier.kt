@@ -5,8 +5,7 @@ import com.edlplan.framework.easing.Easing
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import com.rian.andengine.timing.IClock
-import com.reco1l.andengine.component.UIComponent
-import com.reco1l.framework.interpolate
+import com.reco1l.verktex.ui.UIComponent
 import kotlin.math.max
 import org.anddev.andengine.entity.modifier.IEntityModifier
 

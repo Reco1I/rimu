@@ -11,27 +11,33 @@ import com.osudroid.ui.OsuColors
 import com.osudroid.ui.v2.*
 import com.osudroid.utils.async
 import com.osudroid.utils.updateThread
-import com.reco1l.andengine.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.sprite.UISprite
-import com.reco1l.andengine.sprite.ScaleType
-import com.reco1l.andengine.sprite.UIShapedSprite
-import com.reco1l.andengine.text.CompoundText
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.text.UIText
-import com.reco1l.andengine.theme.Colors
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.pct
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.ui.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.shape.*
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.sprite.ScaleType
+import com.reco1l.verktex.ui.text.CompoundText
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.theme.Colors
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.pct
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.control.UIDropdown
+import com.reco1l.verktex.ui.dialog.UIConfirmDialog
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
-import javax.microedition.khronos.opengles.GL10
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec2
+import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.shape.UIBox
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.osu.Config
@@ -46,7 +52,7 @@ class RoomPlayerCard : UILinearContainer() {
     private val playerButton: RoomPlayerButton
 
     init {
-        width = Size.Full
+        width = Dimension.FillAvailable
         orientation = Orientation.Horizontal
         style = {
             spacing = 4f.srem
@@ -55,7 +61,7 @@ class RoomPlayerCard : UILinearContainer() {
         teamColorBar = UIButton().apply {
             style = {
                 width = 0.025f.pct
-                height = Size.Full
+                height = Dimension.FillAvailable
                 radius = 2f.rem
             }
         }
@@ -141,26 +147,26 @@ class RoomPlayerCard : UILinearContainer() {
         private var lastPlayerId = -1L
         private val defaultAvatar = ResourceManager.getInstance().getTexture("emptyavatar")
 
-        private val hostIcon = FontAwesomeIcon(Icon.Crown).apply {
+        private val hostIcon = UIIcon(FAIcon.Crown).apply {
             style = { color = it.accentColor }
-            size = Vec2(24f)
+            measuredSize = Vec2(24f)
         }
 
-        private val mutedIcon = FontAwesomeIcon(Icon.MicrophoneSlash).apply {
+        private val mutedIcon = UIIcon(FAIcon.MicrophoneSlash).apply {
             style = { color = OsuColors.redLight }
-            size = Vec2(24f)
+            measuredSize = Vec2(24f)
         }
 
         private val missingBeatmapIcon = UISprite().apply {
             textureRegion = ResourceManager.getInstance().getTexture("missing")
-            size = Vec2(24f)
+            measuredSize = Vec2(24f)
         }
 
         init {
-            width = Size.Full
+            width = Density.Full
             clipToBounds = false
 
-            style = {
+            style = Style {
                 color = it.accentColor
                 alpha = if (isEnabled) 1f else 0.5f
                 borderWidth = 2f
@@ -186,7 +192,7 @@ class RoomPlayerCard : UILinearContainer() {
                 inheritAncestorsColor = false
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                size = Vec2(50f)
+                measuredSize = Vec2(50f)
 
                 shape = object : UIBox() {
                     init {
@@ -201,8 +207,8 @@ class RoomPlayerCard : UILinearContainer() {
             +avatarSprite
 
             container {
-                width = Size.Full
-                height = Size.Full
+                width = Density.Full
+                height = Density.Full
 
                 innerContainer = linearContainer {
                     anchor = Anchor.CenterLeft
@@ -259,7 +265,7 @@ class RoomPlayerCard : UILinearContainer() {
 
                     modDisplay = UIText().apply {
                         minHeight = 24f // Force to take space even if no mods are enabled
-                        style += {
+                        style + {
                             fontSize = FontSize.XS
                             color = it.accentColor * 0.8f
                         }

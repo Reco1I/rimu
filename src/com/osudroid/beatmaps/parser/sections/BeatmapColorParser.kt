@@ -2,7 +2,7 @@ package com.osudroid.beatmaps.parser.sections
 
 import com.osudroid.beatmaps.Beatmap
 import com.osudroid.beatmaps.ComboColor
-import com.reco1l.framework.*
+import com.reco1l.verktex.data.rgb
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
 
@@ -20,7 +20,7 @@ object BeatmapColorParser : BeatmapKeyValueSectionParser() {
             throw UnsupportedOperationException("Color specified in incorrect format (should be R,G,B or R,G,B,A)")
         }
 
-        val color = Color4(
+        val color = rgb(
             parseInt(s[0]),
             parseInt(s[1]),
             parseInt(s[2])

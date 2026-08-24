@@ -1,13 +1,12 @@
 package com.osudroid.game.replay
 
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.container.Orientation
-import com.reco1l.andengine.container.UILinearContainer
-import com.reco1l.andengine.linearContainer
-import com.reco1l.andengine.textButton
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.ui.form.FormSlider
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.linearContainer
+import com.reco1l.verktex.ui.textButton
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.data.Vec4
 import java.text.DecimalFormat
 
 class ReplayPlaybackRate : UILinearContainer() {
@@ -21,7 +20,7 @@ class ReplayPlaybackRate : UILinearContainer() {
 
     init {
         orientation = Orientation.Vertical
-        width = Size.Full
+        width = Dimension.FillAvailable
 
         val slider = FormSlider(rate).apply {
             label = "Playback speed"

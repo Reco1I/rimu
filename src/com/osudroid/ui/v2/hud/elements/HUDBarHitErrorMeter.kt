@@ -1,12 +1,13 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.reco1l.andengine.*
-import com.reco1l.andengine.shape.UIBox
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.*
+import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.data.Color4
 import com.osudroid.utils.*
-import com.reco1l.andengine.component.*
+import com.reco1l.verktex.component.*
 import com.reco1l.toolkt.kotlin.*
 import com.osudroid.beatmaps.constants.HitObjectType
+import com.reco1l.verktex.data.Anchor
 import org.anddev.andengine.engine.camera.*
 import javax.microedition.khronos.opengles.*
 import kotlin.math.abs

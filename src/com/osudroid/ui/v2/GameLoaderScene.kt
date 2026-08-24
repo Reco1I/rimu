@@ -3,22 +3,33 @@ package com.osudroid.ui.v2
 import com.edlplan.framework.easing.*
 import com.osudroid.data.*
 import com.osudroid.multiplayer.*
+import com.osudroid.resources.R
 import com.osudroid.utils.ModHashMap
-import com.reco1l.andengine.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.theme.vw
-import com.reco1l.andengine.ui.*
-import com.reco1l.andengine.ui.form.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.shape.*
+import com.reco1l.verktex.ui.sprite.*
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.vw
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.form.*
+import com.reco1l.verktex.ui.sprite.ScaleType
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.ui.shape.UIBox
 import com.rian.andengine.modifier.ModifierType
 import kotlin.math.*
 import org.anddev.andengine.input.touch.*
@@ -26,7 +37,7 @@ import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 
-class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : UIScene() {
+class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : Scene() {
 
     private var lastTimeTouched = System.currentTimeMillis()
     private var isStarting = false
@@ -41,32 +52,32 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     private var minimumTimeout = if (isRestart) 500L else 2000L
 
     init {
-        ResourceManager.getInstance().loadHighQualityAsset("back-arrow", "back-arrow.png")
+        Textures.getInstance().loadHighQualityAsset("back-arrow", "back-arrow.png")
 
         sprite {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             scaleType = ScaleType.Crop
-            textureRegion = ResourceManager.getInstance().getTexture(if (Config.isSafeBeatmapBg()) "menu-background" else "::background")
+            textureRegion = Textures.getInstance().getTexture(if (Config.isSafeBeatmapBg()) "menu-background" else "::background")
         }
 
         dimBox = box {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             color = Color4.Black
             alpha = 0.7f
         }
 
         mainContainer = fillContainer {
             orientation = Orientation.Horizontal
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             alpha = 0f
             scaleX = 0.9f
             scaleY = 0.9f
-            scaleCenter = Anchor.Center
+            scaleOrigin = Anchor.Center
             style = {
-                padding = UIEngine.current.safeArea.copy(
+                padding = Engine.current.safeArea.copy(
                     y = 4f.srem,
                     w = 4f.srem + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)
                 )
@@ -74,18 +85,18 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             }
 
             container {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
 
                 if (beatmapInfo.epilepsyWarning) {
                     compoundText {
-                        leadingIcon = FontAwesomeIcon(Icon.TriangleExclamation)
-                        text = StringTable.get(com.osudroid.resources.R.string.epilepsy_warning)
+                        leadingIcon = UIIcon(FAIcon.TriangleExclamation)
+                        text = StringTable.get(R.string.epilepsy_warning)
                     }
                 }
 
                 linearContainer {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
                     orientation = Orientation.Vertical
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
@@ -94,7 +105,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     }
 
                     text {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
                         fontSize = FontSize.XL
                         wrapText = true
                         text = beatmapInfo.titleText
@@ -102,7 +113,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     }
 
                     text {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
                         fontSize = FontSize.XL
                         wrapText = true
                         text = beatmapInfo.version
@@ -110,7 +121,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     }
 
                     text {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
                         fontSize = FontSize.LG
                         wrapText = true
                         text = "by ${beatmapInfo.artistText}"
@@ -130,17 +141,17 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         spacing = 4f.srem
                     }
 
-                    +Loader()
+                    +UILoadingIndicator()
 
                     if (!Multiplayer.isMultiplayer) {
                         textButton {
                             text = "Back"
-                            leadingIcon = FontAwesomeIcon(Icon.ArrowLeft)
+                            leadingIcon = UIIcon(FAIcon.ArrowLeft)
                             onActionUp = {
-                                ResourceManager.getInstance().getSound("click-short-confirm")?.play()
+                                Textures.getInstance().getSound("click-short-confirm")?.play()
                                 cancel()
                             }
-                            onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
+                            onActionCancel = { Textures.getInstance().getSound("click-short")?.play() }
                         }
                     }
                 }
@@ -206,7 +217,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                             alpha = 0f
                             scaleX = 0.9f
                             scaleY = 0.9f
-                            scaleCenter = Anchor.Center
+                            scaleOrigin = Anchor.Center
 
                             scaleTo(1f, 0.2f, Easing.OutCubic)
                             fadeIn(0.1f, Easing.OutExpo)
@@ -228,8 +239,8 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     private inner class QuickSettingsLayout : UIScrollableContainer() {
 
         init {
-            height = Size.Full
-            scrollAxes = Axes.Y
+            height = Dimension.FillAvailable
+            scrollAxes = Axis.Y
             alpha = 0.5f
 
             style = {
@@ -237,19 +248,19 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             }
 
             linearContainer {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 orientation = Orientation.Vertical
                 style = {
                     spacing = 4f.srem
                 }
 
                 collapsibleCard {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
                     title = "Beatmap"
 
                     content.apply {
                         val offsetSlider = FormSlider().apply {
-                            label = StringTable.get(com.osudroid.resources.R.string.opt_category_offset)
+                            label = StringTable.get(R.string.opt_category_offset)
                             control.min = -250f
                             control.max = 250f
                             value = beatmapOptions.offset.toFloat()
@@ -273,7 +284,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
                             fun StepButton(step: Int) = textButton {
                                 text = abs(step).toString()
-                                leadingIcon = FontAwesomeIcon(if (step >= 0) Icon.Plus else Icon.Minus)
+                                leadingIcon = UIIcon(if (step >= 0) FAIcon.Plus else FAIcon.Minus)
                                 onActionUp = {
                                     offsetSlider.value += step
                                 }
@@ -296,13 +307,13 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 }
 
                 collapsibleCard {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
                     title = "Settings"
 
                     content.apply {
 
                         +IntPreferenceSlider("bgbrightness", 25).apply {
-                            label = StringTable.get(com.osudroid.resources.R.string.opt_bgbrightness_title)
+                            label = StringTable.get(R.string.opt_bgbrightness_title)
                             control.min = 0f
                             control.max = 100f
                             control.onStopDragging = {
@@ -326,21 +337,21 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         }
 
                         +PreferenceCheckbox("enableStoryboard").apply {
-                            label = StringTable.get(com.osudroid.resources.R.string.opt_enableStoryboard_title)
+                            label = StringTable.get(R.string.opt_enableStoryboard_title)
                             onValueChanged = {
                                 gameScene.loadStoryboard(beatmapInfo)
                             }
                         }
 
                         +PreferenceCheckbox("enableVideo").apply {
-                            label = StringTable.get(com.osudroid.resources.R.string.opt_video_title)
+                            label = StringTable.get(R.string.opt_video_title)
                             onValueChanged = {
                                 gameScene.loadVideo(beatmapInfo)
                             }
                         }
 
                         +PreferenceCheckbox("showscoreboard").apply {
-                            label = StringTable.get(com.osudroid.resources.R.string.opt_show_scoreboard_title)
+                            label = StringTable.get(R.string.opt_show_scoreboard_title)
                         }
                     }
 

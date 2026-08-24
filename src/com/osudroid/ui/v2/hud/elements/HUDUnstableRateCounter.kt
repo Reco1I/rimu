@@ -1,10 +1,9 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.reco1l.andengine.text.UIText
+import com.reco1l.verktex.ui.text.UIText
 import com.osudroid.ui.v2.hud.HUDElement
-import com.reco1l.andengine.theme.FontSize
+import com.reco1l.verktex.theme.FontSize
 import java.text.DecimalFormat
-import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 
 class HUDUnstableRateCounter : HUDElement() {

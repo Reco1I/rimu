@@ -4,13 +4,13 @@ import android.graphics.PointF;
 
 
 import com.osudroid.utils.Execution;
-import com.reco1l.andengine.Anchor;
-import com.reco1l.andengine.UIScene;
-import com.reco1l.andengine.component.BlendInfo;
-import com.reco1l.andengine.component.ComponentsKt;
-import com.reco1l.andengine.sprite.UIAnimatedSprite;
-import com.reco1l.andengine.sprite.UISprite;
-import com.reco1l.framework.Color4;
+import com.reco1l.verktex.data.Anchor;
+import com.reco1l.verktex.Scene;
+import com.reco1l.verktex.component.BlendInfo;
+import com.reco1l.verktex.component.ComponentsKt;
+import com.reco1l.verktex.ui.UIAnimatedSprite;
+import com.reco1l.verktex.ui.UISprite;
+import com.reco1l.verktex.data.Color4;
 import com.rian.andengine.modifier.UniversalModifierSequence;
 
 import org.anddev.andengine.entity.shape.Shape;
@@ -60,7 +60,7 @@ public class GameEffect extends GameObject {
     }
 
     @SafeVarargs
-    public final void init(final UIScene scene, final PointF pos, final float scale,
+    public final void init(final Scene scene, final PointF pos, final float scale,
                            final Consumer<UniversalModifierSequence>... sequenceConsumers) {
         if (hit instanceof UIAnimatedSprite animatedHit) {
             animatedHit.reset();

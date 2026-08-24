@@ -1,1 +1,9 @@
-include ':AndEngine', ':LibBASS'
+pluginManagement  {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+include ':LibBASS'
+include ':verktex'

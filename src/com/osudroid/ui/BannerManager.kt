@@ -3,11 +3,12 @@ package com.osudroid.ui
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import com.reco1l.andengine.sprite.UISprite
+import com.reco1l.verktex.ui.UISprite
 import com.reco1l.framework.net.JsonArrayRequest
 import com.reco1l.framework.net.WebRequest
 import com.reco1l.toolkt.data.writeToFile
 import com.rian.andengine.modifier.ModifierType
+import com.rian.andengine.timing.IFrameBasedClock
 import org.anddev.andengine.input.touch.TouchEvent
 import org.anddev.andengine.opengl.texture.region.TextureRegion
 import ru.nsu.ccfit.zuev.osu.Config
@@ -99,7 +100,7 @@ object BannerManager {
         }
 
 
-        override fun onManagedUpdate(deltaTimeSec: Float) {
+        override fun onUpdate(clock: IFrameBasedClock) {
             if (banners.size > 1) {
 
                 if (elapsedTimeSinceLastChange > BANNER_DURATION) {
@@ -115,12 +116,12 @@ object BannerManager {
                         fadeIn(0.5f)
                     }
                 }
-                elapsedTimeSinceLastChange += deltaTimeSec
+                elapsedTimeSinceLastChange += clock.elapsedFrameTime
             }
-            super.onManagedUpdate(deltaTimeSec)
+            super.onUpdate(clock)
         }
 
-        override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
+        override fun onTouchEvent(event: TouchEvent, localX: Float, localY: Float): Boolean {
 
             elapsedTimeSinceLastChange = 0f
 

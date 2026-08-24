@@ -42,7 +42,7 @@ public class CursorTrail extends ParticleSystem {
 
     private void updateRotation() {
         if (OsuSkin.get().isRotateCursorTrail()) {
-            setRotation(cursor.getRotation());
+            setRotation(cursor.getRotationZ());
         }
     }
 }

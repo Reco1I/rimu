@@ -8,7 +8,7 @@ import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.beatmaps.DifficultyCalculationManager;
 import com.osudroid.data.BeatmapSetInfo;
 import com.osudroid.data.DatabaseManager;
-import com.reco1l.andengine.texture.VideoTexture;
+import com.reco1l.verktex.texture.VideoTexture;
 import com.osudroid.beatmaps.parser.BeatmapParser;
 import kotlin.io.FilesKt;
 import org.jetbrains.annotations.Nullable;

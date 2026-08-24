@@ -2,7 +2,7 @@ package ru.nsu.ccfit.zuev.skins;
 
 import androidx.annotation.NonNull;
 
-import com.reco1l.andengine.sprite.UISprite;
+import com.reco1l.verktex.ui.UISprite;
 import org.json.JSONObject;
 
 import ru.nsu.ccfit.zuev.osu.Config;

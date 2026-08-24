@@ -1,7 +1,7 @@
 package com.reco1l.osu.ui.entity
 
-import com.reco1l.andengine.component.UIComponent
-import com.reco1l.andengine.theme.Size
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.data.Dimension
 import org.anddev.andengine.entity.shape.Shape
 import org.anddev.andengine.input.touch.TouchEvent
 import org.anddev.andengine.input.touch.detector.ScrollDetector
@@ -34,8 +34,8 @@ abstract class ScrollableList : UIComponent(), IScrollDetectorListener
     protected var itemHeight = 0f
 
     init {
-        width = Size.Full
-        height = Size.Full
+        width = Dimension.FillAvailable
+        height = Dimension.FillAvailable
     }
 
     fun handleScrolling(event: TouchEvent)

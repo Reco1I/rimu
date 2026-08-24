@@ -1,16 +1,17 @@
 package com.osudroid.ui.v2.hud.editor
 
-import com.reco1l.andengine.*
-import com.reco1l.andengine.container.UIContainer
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.text.UIText
-import com.reco1l.framework.Color4
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.*
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.shape.*
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec4
 import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.hud.HUDElementSkinData
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Size
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.data.Dimension
 import org.anddev.andengine.engine.camera.Camera
 import org.anddev.andengine.input.touch.TouchEvent
 import javax.microedition.khronos.opengles.GL10
@@ -29,7 +30,7 @@ class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): 
     }
 
     init {
-        width = Size.Full
+        width = Dimension.FillAvailable
         height = 120f
         padding = Vec4(12f)
         scaleCenterX = 0.5f

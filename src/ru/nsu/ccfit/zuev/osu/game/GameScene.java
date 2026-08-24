@@ -36,23 +36,23 @@ import com.osudroid.ui.v2.game.SliderTickSprite;
 import com.osudroid.ui.v2.hud.elements.HUDLeaderboard;
 import com.osudroid.ui.v2.modmenu.ModIcon;
 import com.osudroid.utils.Execution;
-import com.reco1l.andengine.Cameras;
-import com.reco1l.andengine.UIEngine;
-import com.reco1l.andengine.component.ComponentsKt;
-import com.reco1l.andengine.shape.PaintStyle;
-import com.reco1l.andengine.shape.UIBox;
-import com.reco1l.andengine.sprite.UIAnimatedSprite;
-import com.reco1l.andengine.sprite.UISprite;
-import com.reco1l.andengine.Anchor;
-import com.reco1l.andengine.sprite.UIVideoSprite;
-import com.reco1l.andengine.UIScene;
+import com.reco1l.verktex.Cameras;
+import com.reco1l.verktex.Engine;
+import com.reco1l.verktex.component.ComponentsKt;
+import com.reco1l.verktex.ui.PaintStyle;
+import com.reco1l.verktex.ui.shape.UIBox;
+import com.reco1l.verktex.ui.UIAnimatedSprite;
+import com.reco1l.verktex.ui.UISprite;
+import com.reco1l.verktex.data.Anchor;
+import com.reco1l.verktex.ui.UIVideoSprite;
+import com.reco1l.verktex.Scene;
 import com.osudroid.resources.R;
 import com.osudroid.ui.v2.game.FollowPointConnection;
 import com.osudroid.ui.v2.hud.GameplayHUD;
 import com.osudroid.ui.v2.hud.elements.HUDPPCounter;
 import com.osudroid.multiplayer.Multiplayer;
 
-import com.reco1l.framework.Color4;
+import com.reco1l.verktex.data.Color4;
 import com.osudroid.GameMode;
 import com.osudroid.beatmaps.Beatmap;
 import com.osudroid.beatmaps.ComboColor;
@@ -92,7 +92,6 @@ import org.anddev.andengine.entity.IEntity;
 import org.anddev.andengine.entity.modifier.LoopEntityModifier;
 import org.anddev.andengine.entity.modifier.MoveXModifier;
 import org.anddev.andengine.entity.primitive.Rectangle;
-import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.scene.Scene.IOnSceneTouchListener;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
 import org.anddev.andengine.entity.scene.background.EntityBackground;
@@ -140,11 +139,11 @@ import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager;
 public class GameScene implements GameObjectListener, IOnSceneTouchListener {
     public static final int CursorCount = 10;
     private final int maximumActiveCursorCount = 3;
-    private final UIEngine engine;
+    private final Engine engine;
     private Cursor[] cursors = new Cursor[CursorCount];
     public String audioFilePath = null;
-    private UIScene scene;
-    private UIScene bgScene, mgScene, fgScene;
+    private Scene scene;
+    private Scene bgScene, mgScene, fgScene;
     private Scene oldScene;
     private UIBox sceneBorder;
     private Shape beatmapBackground;
@@ -326,13 +325,13 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
     private ScoreBoardItem lastScoreSent = null;
 
 
-    public GameScene(final UIEngine engine) {
+    public GameScene(final Engine engine) {
         this.engine = engine;
         beatmapClock = new FramedBeatmapClock(true, true);
         scene = createMainScene();
-        bgScene = new UIScene();
-        fgScene = new UIScene();
-        mgScene = new UIScene();
+        bgScene = new Scene();
+        fgScene = new Scene();
+        mgScene = new Scene();
         scene.attachChild(bgScene);
         scene.attachChild(mgScene);
         scene.attachChild(fgScene);
@@ -529,7 +528,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                     setLineWidth(5f);
                     setColor(1f, 1f, 1f);
                     setAlpha(Interpolation.linear(0.2f, 0.8f, brightness));
-                    setSize(Config.getRES_WIDTH(), Config.getRES_HEIGHT());
+                    setMeasuredSize(Config.getRES_WIDTH(), Config.getRES_HEIGHT());
                 }
             };
 
@@ -953,10 +952,10 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         resetPlayfieldSizeScale();
 
         scene = createMainScene();
-        bgScene = new UIScene();
-        mgScene = new UIScene();
+        bgScene = new Scene();
+        mgScene = new Scene();
         mgScene.setClipToBounds(true);
-        fgScene = new UIScene();
+        fgScene = new Scene();
         scene.attachChild(bgScene);
         scene.attachChild(mgScene);
         scene.attachChild(fgScene);
@@ -1183,7 +1182,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             var icon = new ModIcon(mod);
             icon.setPosition(position.x, position.y);
             icon.setOrigin(Anchor.Center);
-            icon.setSize(68, 66);
+            icon.setMeasuredSize(68, 66);
             icon.setScale(1.2f);
 
             fgScene.attachChild(icon);
@@ -1234,7 +1233,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                             Interpolation.linear(0f, area.getY(), ratio)
                         );
 
-                        setSize(
+                        setMeasuredSize(
                             Interpolation.linear(0f, area.getWidth(), ratio),
                             Interpolation.linear(0f, area.getHeight(), ratio)
                         );
@@ -2774,7 +2773,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         hud.setIgnoreUpdate(true);
 
         final PauseMenu menu = new PauseMenu(engine, this, false);
-        UIEngine.getCurrent().getOverlay().setChildScene(menu.getScene(), false, false, true);
+        Engine.getCurrent().getOverlay().setChildScene(menu.getScene(), false, false, true);
     }
 
     public void gameover() {
@@ -2818,9 +2817,9 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         float initialFrequency = songService.getFrequency();
 
         // Locally saving the scenes references to avoid unexpected behavior when the scene is changed.
-        UIScene scene = this.scene;
-        UIScene mgScene = this.mgScene;
-        UIScene bgScene = this.bgScene;
+        Scene scene = this.scene;
+        Scene mgScene = this.mgScene;
+        Scene bgScene = this.bgScene;
 
         // Wind down animation for failing based on osu!stable behavior.
         engine.registerUpdateHandler(new IUpdateHandler() {
@@ -2902,7 +2901,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                     engine.unregisterUpdateHandler(this);
 
                     PauseMenu menu = new PauseMenu(engine, GameScene.this, true);
-                    UIEngine.getCurrent().getOverlay().setChildScene(menu.getScene(), false, false, true);
+                    Engine.getCurrent().getOverlay().setChildScene(menu.getScene(), false, false, true);
                 }
             }
 
@@ -2920,7 +2919,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         scene.setIgnoreUpdate(false);
         hud.setIgnoreUpdate(false);
 
-        UIEngine.getCurrent().getOverlay().getChildScene().back();
+        Engine.getCurrent().getOverlay().getChildScene().back();
         paused = false;
 
         if (stat.getHp() <= 0 && !stat.getMod().contains(ModNoFail.class)) {
@@ -3098,7 +3097,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             return;
 
         final GameEffect burst1 = GameObjectPool.getInstance().getEffect("reversearrow");
-        burst1.hit.setRotation(ang);
+        burst1.hit.setRotationZ(ang);
         applyBurstEffect(burst1, pos);
     }
 
@@ -3382,8 +3381,8 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
         ).total;
     }
 
-    private UIScene createMainScene() {
-        return new UIScene() {
+    private Scene createMainScene() {
+        return new Scene() {
             // Reused buffer to avoid allocations.
             private final float[] fastPathSurfaceCoords = new float[2];
 

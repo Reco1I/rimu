@@ -1,9 +1,10 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.reco1l.andengine.ui.*
-import com.reco1l.andengine.ui.form.*
+import com.reco1l.verktex.ui.form.*
 import com.osudroid.mods.Mod
 import com.osudroid.mods.settings.*
+import com.reco1l.verktex.ui.control.UIControl
+import com.reco1l.verktex.ui.control.UISelect
 
 class ModSettingEnum(mod: Mod, setting: EnumModSetting<Enum<*>>) :
     ModSettingComponent<Enum<*>, List<Enum<*>>>(mod, setting),

@@ -1,6 +1,6 @@
 package com.rian.andengine.modifier
 
-import com.reco1l.andengine.component.UIComponent
+import com.reco1l.verktex.ui.UIComponent
 
 /**
  * A callback interface for when a [UniversalModifier] has finished and is about to be removed from a

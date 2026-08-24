@@ -1,8 +1,8 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
 import com.osudroid.ui.v2.hud.GameplayHUD;
-import com.reco1l.andengine.sprite.UISprite;
-import com.reco1l.andengine.Anchor;
+import com.reco1l.verktex.ui.UISprite;
+import com.reco1l.verktex.data.Anchor;
 import com.osudroid.multiplayer.Multiplayer;
 import org.anddev.andengine.entity.modifier.*;
 import org.anddev.andengine.entity.primitive.Rectangle;

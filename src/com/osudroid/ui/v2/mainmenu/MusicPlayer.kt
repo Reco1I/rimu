@@ -1,29 +1,25 @@
 package com.osudroid.ui.v2.mainmenu
 
 import com.osudroid.MusicManager
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.component.scaleCenter
-import com.reco1l.andengine.container
-import com.reco1l.andengine.container.Orientation
-import com.reco1l.andengine.iconButton
-import com.reco1l.andengine.linearContainer
-import com.reco1l.andengine.text
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.text.UIText
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.theme.Radius
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.ColorVariant
-import com.reco1l.andengine.ui.SizeVariant
-import com.reco1l.andengine.ui.UIButton
-import com.reco1l.andengine.ui.UIIconButton
-import com.reco1l.andengine.ui.UIModal
-import com.reco1l.andengine.ui.UISlider
-import com.reco1l.andengine.ui.plus
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.container
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.iconButton
+import com.reco1l.verktex.ui.linearContainer
+import com.reco1l.verktex.ui.text
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.theme.Radius
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.ColorVariant
+import com.reco1l.verktex.ui.SizeVariant
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UIModal
+import com.reco1l.verktex.ui.control.UISlider
+import com.reco1l.verktex.data.Vec4
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import java.text.SimpleDateFormat
 
@@ -49,32 +45,32 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
         card.apply {
             anchor = Anchor.TopLeft
             origin = Anchor.TopRight
-            scaleCenter = Anchor.Center
-            style += {
+            scaleOrigin = Anchor.Center
+            style + {
                 width = 20f.rem
                 padding = Vec4(4f.srem)
             }
 
             linearContainer {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 orientation = Orientation.Vertical
                 style = {
                     spacing = 2f.srem
                 }
 
                 linearContainer {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
                     orientation = Orientation.Vertical
 
                     titleText = text {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
                         style = {
                             color = it.accentColor
                         }
                     }
 
                     artistText = text {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
                         style = {
                             fontSize = FontSize.XS
                             color = it.accentColor * 0.9f
@@ -83,7 +79,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                 }
 
                 container {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
 
                     currentTime = text {
                         anchor = Anchor.CenterLeft
@@ -105,7 +101,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                 }
 
                 +UISlider().apply {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
                     step = 0.01f
                     onStartDragging = { draggingProgressSlider = true }
                     onStopDragging = {
@@ -124,11 +120,11 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     }
 
                     iconButton {
-                        icon = FontAwesomeIcon(Icon.BackwardFast)
+                        icon = UIIcon(FAIcon.BackwardFast)
                         colorVariant = ColorVariant.Tertiary
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
-                        scaleCenter = Anchor.Center
+                        scaleOrigin = Anchor.Center
 
                         onActionUp = {
                             MusicManager.currentBeatmap = LibraryManager.selectPreviousBeatmapSet().beatmaps.random()
@@ -138,10 +134,10 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     }
 
                     playPauseButton = iconButton {
-                        icon = FontAwesomeIcon(Icon.Play)
+                        icon = UIIcon(FAIcon.Play)
                         sizeVariant = SizeVariant.Large
                         colorVariant = ColorVariant.Primary
-                        style += {
+                        style + {
                             radius = Radius.Full
                         }
 
@@ -155,11 +151,11 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     }
 
                     iconButton {
-                        icon = FontAwesomeIcon(Icon.ForwardFast)
+                        icon = UIIcon(FAIcon.ForwardFast)
                         colorVariant = ColorVariant.Tertiary
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
-                        scaleCenter = Anchor.Center
+                        scaleOrigin = Anchor.Center
 
                         onActionUp = {
                             MusicManager.currentBeatmap = LibraryManager.selectNextBeatmapSet().beatmaps.random()
@@ -189,7 +185,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
         currentTime.text = format.format(MusicManager.position)
         totalTime.text = format.format(MusicManager.length)
 
-        (playPauseButton.icon as FontAwesomeIcon).icon = if (MusicManager.isPlaying) Icon.Pause else Icon.Play
+        (playPauseButton.icon as UIIcon).iconCode = if (MusicManager.isPlaying) FAIcon.Pause else FAIcon.Play
 
         progressSlider.max = MusicManager.length / 1000f
         if (!draggingProgressSlider) {

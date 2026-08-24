@@ -1,11 +1,11 @@
 package com.osudroid.ui.v2.mainmenu
 
 import com.osudroid.RythimManager
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.component.UIComponent
-import com.reco1l.andengine.shape.PaintStyle
-import com.reco1l.andengine.shape.UICircle
-import com.reco1l.andengine.theme.Colors
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.PaintStyle
+import com.reco1l.verktex.ui.shape.UICircle
+import com.reco1l.verktex.theme.Colors
 import com.reco1l.toolkt.kotlin.fastForEach
 import org.anddev.andengine.engine.camera.Camera
 import java.lang.ref.WeakReference

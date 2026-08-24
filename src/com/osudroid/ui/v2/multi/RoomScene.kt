@@ -25,46 +25,44 @@ import com.osudroid.ui.v2.modmenu.ModMenu
 import com.osudroid.utils.async
 import com.osudroid.utils.mainThread
 import com.osudroid.utils.updateThread
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.Axes
-import com.reco1l.andengine.UIEngine
-import com.reco1l.andengine.UIScene
-import com.reco1l.andengine.badge
-import com.reco1l.andengine.box
-import com.reco1l.andengine.component.forEach
-import com.reco1l.andengine.component.setText
-import com.reco1l.andengine.container
-import com.reco1l.andengine.container.Orientation
-import com.reco1l.andengine.container.UIFillContainer
-import com.reco1l.andengine.container.UILinearContainer
-import com.reco1l.andengine.fillContainer
-import com.reco1l.andengine.labeledBadge
-import com.reco1l.andengine.linearContainer
-import com.reco1l.andengine.scrollableContainer
-import com.reco1l.andengine.sprite
-import com.reco1l.andengine.sprite.ScaleType
-import com.reco1l.andengine.sprite.UISprite
-import com.reco1l.andengine.text
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.text.UIText
-import com.reco1l.andengine.textButton
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.theme.Radius
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.ColorVariant
-import com.reco1l.andengine.ui.SizeVariant
-import com.reco1l.andengine.ui.Theme
-import com.reco1l.andengine.ui.UIBadge
-import com.reco1l.andengine.ui.UILabeledBadge
-import com.reco1l.andengine.ui.UIMessageDialog
-import com.reco1l.andengine.ui.UITextButton
-import com.reco1l.framework.Color4
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.ui.badge
+import com.reco1l.verktex.ui.box
+import com.reco1l.verktex.ui.setText
+import com.reco1l.verktex.ui.container
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UIFillContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.fillContainer
+import com.reco1l.verktex.ui.labeledBadge
+import com.reco1l.verktex.ui.linearContainer
+import com.reco1l.verktex.ui.scrollableContainer
+import com.reco1l.verktex.ui.sprite
+import com.reco1l.verktex.ui.sprite.ScaleType
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.text
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.textButton
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.theme.Radius
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.ColorVariant
+import com.reco1l.verktex.ui.SizeVariant
+import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.UIBadge
+import com.reco1l.verktex.ui.UILabeledBadge
+import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.toolkt.kotlin.runSafe
 import com.osudroid.mods.ModScoreV2
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.ui.UIScene
 import org.json.JSONArray
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -73,7 +71,6 @@ import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osuplus.R
-import com.reco1l.andengine.ui.plus
 
 class RoomScene(
     /**
@@ -154,35 +151,38 @@ class RoomScene(
 
 
     init {
-        ResourceManager.getInstance().loadHighQualityAsset("mods", "mods.png")
-        ResourceManager.getInstance().loadHighQualityAsset("logout", "logout.png")
-        ResourceManager.getInstance().loadHighQualityAsset("swap", "swap.png")
-        ResourceManager.getInstance().loadHighQualityAsset("clock", "clock.png")
-        ResourceManager.getInstance().loadHighQualityAsset("bpm", "bpm.png")
-        ResourceManager.getInstance().loadHighQualityAsset("chat", "chat.png")
-        ResourceManager.getInstance().loadHighQualityAsset("download", "download.png")
-        ResourceManager.getInstance().loadHighQualityAsset("send", "send.png")
-        ResourceManager.getInstance().loadHighQualityAsset("settings-icon", "settings-icon.png")
-        ResourceManager.getInstance().loadHighQualityAsset("missing", "missing.png")
+        Textures.apply {
+            load("mods", "mods.png")
+            load("mods", "mods.png")
+            load("logout", "logout.png")
+            load("swap", "swap.png")
+            load("clock", "clock.png")
+            load("bpm", "bpm.png")
+            load("chat", "chat.png")
+            load("download", "download.png")
+            load("send", "send.png")
+            load("settings-icon", "settings-icon.png")
+            load("missing", "missing.png")
+        }
 
         RoomAPI.playerEventListener = this
         RoomAPI.roomEventListener = this
         chat = RoomChat()
 
         backgroundSprite = sprite {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             scaleType = ScaleType.Crop
-            textureRegion = ResourceManager.getInstance().getTexture("menu-background")
+            textureRegion = Textures["menu-background"]
 
             if (!Config.isSafeBeatmapBg()) {
-                textureRegion = ResourceManager.getInstance().getTexture("::background") ?: textureRegion
+                textureRegion = Textures["::background"] ?: textureRegion
             }
         }
 
         box {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             style = {
                 color = Theme.current.accentColor * 0.1f
                 alpha = 0.9f
@@ -190,23 +190,25 @@ class RoomScene(
         }
 
         container {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             padding = Vec4(80f, 0f)
             style = {
-                padding = UIEngine.current.safeArea.copy(
+                padding = Vec4(
+                    x = 0f,
                     y = 2f.srem,
-                    w = 2f.srem + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)
+                    w = 2f.srem + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f),
+                    z = 0f
                 )
             }
 
             fillContainer {
                 orientation = Orientation.Vertical
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
 
                 container {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
                     style = {
                         padding = Vec4(0f, 2.5f.srem)
                     }
@@ -256,7 +258,7 @@ class RoomScene(
 
                             +ModsIndicator().apply {
                                 modsIndicator = this
-                                style += {
+                                style + {
                                     iconSize = FontSize.MD
                                 }
                             }
@@ -264,7 +266,7 @@ class RoomScene(
                     }
 
                     textButton {
-                        leadingIcon = FontAwesomeIcon(Icon.Gear)
+                        leadingIcon = UIIcon(FAIcon.Gear)
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
                         onActionUp = {
@@ -275,8 +277,8 @@ class RoomScene(
                 }
 
                 fillContainer {
-                    width = Size.Full
-                    height = Size.Full
+                    width = Dimension.FillAvailable
+                    height = Dimension.FillAvailable
                     style = {
                         padding = Vec4(0f, 2f.srem)
                         spacing = 6f.srem
@@ -285,8 +287,8 @@ class RoomScene(
                     fun UIFillContainer.Section(title: Int, block: UILinearContainer.() -> Unit) {
                         linearContainer {
                             orientation = Orientation.Vertical
-                            width = Size.Full
-                            height = Size.Full
+                            width = Dimension.FillAvailable
+                            height = Dimension.FillAvailable
                             style = {
                                 spacing = 2f.srem
                             }
@@ -303,14 +305,14 @@ class RoomScene(
                     Section(R.string.multiplayer_room_players) {
 
                         scrollableContainer {
-                            width = Size.Full
-                            height = Size.Full
-                            scrollAxes = Axes.Y
+                            width = Dimension.FillAvailable
+                            height = Dimension.FillAvailable
+                            scrollAxes = Axis.Y
                             clipToBounds = true
 
                             linearContainer {
                                 orientation = Orientation.Vertical
-                                width = Size.Full
+                                width = Dimension.FillAvailable
                                 padding = Vec4.One
                                 style = {
                                     spacing = 1f.srem
@@ -334,7 +336,7 @@ class RoomScene(
                         }
 
                         beatmapInfoAlert = text {
-                            width = Size.Full
+                            width = Dimension.FillAvailable
                             alignment = Anchor.Center
                             style = {
                                 radius = Radius.MD
@@ -344,13 +346,13 @@ class RoomScene(
                         }
 
                         linearContainer {
-                            width = Size.Full
+                            width = Dimension.FillAvailable
                             style = {
                                 spacing = 2f.srem
                             }
 
                             changeBeatmapButton = textButton {
-                                leadingIcon = FontAwesomeIcon(Icon.ArrowRightArrowLeft)
+                                leadingIcon = UIIcon(FAIcon.ArrowRightArrowLeft)
                                 alignment = Anchor.CenterLeft
                                 setText(R.string.multiplayer_room_change_beatmap)
                                 onActionUp = {
@@ -371,7 +373,7 @@ class RoomScene(
                             }
 
                             downloadBeatmapButton = textButton {
-                                leadingIcon = FontAwesomeIcon(Icon.Download)
+                                leadingIcon = UIIcon(FAIcon.Download)
                                 alignment = Anchor.CenterLeft
                                 isVisible = false
                             }
@@ -381,7 +383,7 @@ class RoomScene(
                 }
 
                 container {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
                     style = {
                         padding = Vec4(0f, 2f.srem)
                     }
@@ -394,7 +396,7 @@ class RoomScene(
                         }
 
                         textButton {
-                            leadingIcon = FontAwesomeIcon(Icon.ArrowRightFromBracket)
+                            leadingIcon = UIIcon(FAIcon.ArrowRightFromBracket)
                     setText(R.string.multiplayer_room_leave)
                     color = Color4(0xFFFFBFBF)
                     backgroundColor = Color4(0xFF342121)
@@ -402,7 +404,7 @@ class RoomScene(
                 }
 
                         modsButton = textButton {
-                            leadingIcon = FontAwesomeIcon(Icon.Sliders)
+                            leadingIcon = UIIcon(FAIcon.Sliders)
                             setText(R.string.multiplayer_room_mods)
                             onActionUp = { ModMenu.show() }
                         }
@@ -418,7 +420,7 @@ class RoomScene(
                         }
 
                         textButton {
-                            width = Size.Full
+                            width = Dimension.FillAvailable
                             colorVariant = ColorVariant.Primary
                             setText(R.string.multiplayer_room_start_game)
                             onActionUp = callback@{
@@ -457,7 +459,7 @@ class RoomScene(
                         }
 
                         textButton {
-                            width = Size.Full
+                            width = Dimension.FillAvailable
                             setText(R.string.multiplayer_room_not_ready)
                             onActionUp = callback@{
 
@@ -516,12 +518,12 @@ class RoomScene(
     // Update events
 
     private fun updateBackground(path: String?) {
-        val textureRegion = ResourceManager.getInstance().loadBackground(path)
+        val textureRegion = if (path != null) Textures.load("::background", path) else null
 
         if (textureRegion != null) {
             backgroundSprite.textureRegion = textureRegion
         } else {
-            backgroundSprite.textureRegion = ResourceManager.getInstance().getTexture("menu-background")
+            backgroundSprite.textureRegion = Textures["menu-background"]
         }
     }
 
@@ -560,7 +562,7 @@ class RoomScene(
         playersContainer.apply {
 
             if (shouldReload) {
-                detachChildren()
+                clearChildren()
 
                 room.activePlayers.forEach {
                     +RoomPlayerCard().apply {
@@ -570,7 +572,7 @@ class RoomScene(
                 currentPlayers = room.playersMap.keys.toLongArray()
             } else {
                 room.activePlayers.forEachIndexed { index, player ->
-                    val card = getChild(index) as RoomPlayerCard
+                    val card = this[index] as RoomPlayerCard
                     card.updateState(room, player)
                 }
             }
@@ -655,13 +657,13 @@ class RoomScene(
 
                 if (roomBeatmap.parentSetID == null) {
                     isEnabled = false
-                    leadingIcon = UISprite(ResourceManager.getInstance().getTexture("download_off"))
+                    leadingIcon = UISprite(Textures["download_off"])
                     setText(R.string.multiplayer_room_not_available_beatmap)
                     return@apply
                 }
 
                 isEnabled = true
-                leadingIcon = UISprite(ResourceManager.getInstance().getTexture("download"))
+                leadingIcon = UISprite(Textures["download"])
                 setText(R.string.multiplayer_room_download_beatmap)
                 onActionUp = {
                     val url = BeatmapListing.mirror.download.request(
@@ -758,7 +760,7 @@ class RoomScene(
 
     override fun back() {
         teardownSession()
-        UIEngine.current.scene = LobbyScene()
+        Engine.current.scene = LobbyScene()
     }
 
     override fun show() {

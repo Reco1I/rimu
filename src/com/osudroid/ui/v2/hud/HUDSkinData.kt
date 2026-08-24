@@ -9,8 +9,8 @@ import com.osudroid.ui.v2.hud.elements.HUDHealthBar
 import com.osudroid.ui.v2.hud.elements.HUDPieSongProgress
 import com.osudroid.ui.v2.hud.elements.HUDScoreCounter
 import com.osudroid.ui.v2.hud.elements.HUDUnstableRateCounter
-import com.reco1l.andengine.Anchor
-import com.reco1l.framework.math.Vec2
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Vec2
 import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
 import com.reco1l.toolkt.data.putObject
 import org.json.JSONArray

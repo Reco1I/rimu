@@ -9,8 +9,8 @@ import com.osudroid.multiplayer.Multiplayer;
 import com.osudroid.ui.v2.modmenu.ModIcon;
 import com.osudroid.ui.v2.multi.LobbyScene;
 import com.osudroid.utils.Execution;
-import com.reco1l.andengine.UIEngine;
-import com.reco1l.andengine.container.UIContainer;
+import com.reco1l.verktex.Engine;
+import com.reco1l.verktex.ui.container.UIContainer;
 import com.reco1l.osu.ui.entity.StatisticSelector;
 
 import com.osudroid.GameMode;
@@ -27,7 +27,7 @@ import com.osudroid.mods.ModFlashlight;
 import com.osudroid.mods.ModNightCore;
 import com.osudroid.mods.ModOldNightCore;
 import com.osudroid.ui.SendingPanel;
-import org.anddev.andengine.engine.Engine;
+
 import org.anddev.andengine.entity.modifier.FadeInModifier;
 import org.anddev.andengine.entity.modifier.ParallelEntityModifier;
 import org.anddev.andengine.entity.modifier.ScaleModifier;
@@ -117,7 +117,7 @@ public class ScoringScene {
                 : 0f;
 
         UIContainer scaledContainer = new UIContainer() {{
-            setSize(Config.getRES_WIDTH(), Config.getRES_HEIGHT());
+            setMeasuredSize(Config.getRES_WIDTH(), Config.getRES_HEIGHT());
             setPosition(0f, 100f);
             setScale((Config.getRES_HEIGHT() - paddingButtom) / Config.getRES_HEIGHT());
         }};
@@ -347,7 +347,7 @@ public class ScoringScene {
 
             var modIcon = new ModIcon(mod);
             modIcon.setPosition(modX, modY);
-            modIcon.setSize(68, 66);
+            modIcon.setMeasuredSize(68, 66);
             modX -= 30;
             scene.attachChild(modIcon);
         }
@@ -632,7 +632,7 @@ public class ScoringScene {
         {
             // Preventing NPEs when player gets disconnected while playing
             if (!Multiplayer.isConnected()) {
-                UIEngine.getCurrent().setScene(new LobbyScene());
+                Engine.getCurrent().setScene(new LobbyScene());
             } else {
                 Multiplayer.roomScene.show();
             }

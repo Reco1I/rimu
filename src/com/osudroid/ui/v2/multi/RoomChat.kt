@@ -6,21 +6,29 @@ import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*
 import com.osudroid.utils.*
-import com.reco1l.andengine.*
-import com.reco1l.andengine.buffered.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.sprite.UISprite
-import com.reco1l.andengine.text.*
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.pct
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.old.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.shape.*
+import com.reco1l.verktex.ui.text.*
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.pct
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.ui.container.UIFillContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.control.UITextInput
+import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.ui.Theme
 import com.rian.andengine.modifier.ModifierType
 import org.anddev.andengine.input.touch.*
 import ru.nsu.ccfit.zuev.osu.*
@@ -69,17 +77,17 @@ class RoomChat : UILinearContainer() {
     private var messagesChanged = false
 
     private val overlay
-        get() = UIEngine.current.overlay
+        get() = Engine.current.overlay
 
     init {
 
         // Force the main container to fill the entire screen so that the chat can be closed by
         // tapping outside of it (see onAreaTouched).
-        width = Size.Full
-        height = Size.Full
+        width = Dimension.FillAvailable
+        height = Dimension.FillAvailable
 
         linearContainer {
-            width = Size.Full
+            width = Dimension.FillAvailable
             orientation = Orientation.Vertical
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
@@ -91,20 +99,20 @@ class RoomChat : UILinearContainer() {
 
             +button
             body = fillContainer {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 orientation = Orientation.Vertical
                 style = {
                     height = BODY_HEIGHT.rem
                 }
 
                 scrollableContainer {
-                    width = Size.Full
-                    height = Size.Full
-                    scrollAxes = Axes.Y
+                    width = Dimension.FillAvailable
+                    height = Dimension.FillAvailable
+                    scrollAxes = Axis.Y
                     clipToBounds = true
 
                     messageContainer = linearContainer {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
                         orientation = Orientation.Vertical
 
                         repeat(MAX_MESSAGES) {
@@ -114,15 +122,15 @@ class RoomChat : UILinearContainer() {
                 }
 
                 fillContainer {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
                     style = {
                         spacing = 2f.srem
-                        padding = UIEngine.current.safeArea.copy(y = 2f.srem, w = 3f.srem)
+                        padding = Engine.current.safeArea.copy(y = 2f.srem, w = 3f.srem)
                     }
 
                     +UITextInput("").apply {
-                        width = Size.Full
-                        height = Size.Full
+                        width = Dimension.FillAvailable
+                        height = Dimension.FillAvailable
                         placeholder = "Type a message..."
                         onConfirm = { sendMessage() }
 
@@ -131,7 +139,7 @@ class RoomChat : UILinearContainer() {
                     }
 
                     textButton {
-                        trailingIcon = FontAwesomeIcon(Icon.PaperPlane)
+                        trailingIcon = UIIcon(FAIcon.PaperPlane)
                         colorVariant = ColorVariant.Primary
                         setText(R.string.multiplayer_room_chat_send)
                         onActionUp = { sendMessage() }
@@ -169,7 +177,7 @@ class RoomChat : UILinearContainer() {
     private fun appendMessage(message: Message) {
 
         if (GlobalManager.getInstance().engine.scene != GlobalManager.getInstance().gameScene.scene) {
-            ResourceManager.getInstance().getSound("heartbeat")?.play(0.75f)
+            Textures.getInstance().getSound("heartbeat")?.play(0.75f)
         }
 
         messages.add(message)
@@ -288,23 +296,23 @@ class RoomChat : UILinearContainer() {
 
 
         init {
-            width = Size.Full
+            width = Dimension.FillAvailable
             orientation = Orientation.Horizontal
             style = {
                 height = 2.85f.rem
                 spacing = 2f.srem
                 backgroundColor = (it.accentColor * 0.15f).copy(alpha = 0.5f)
-                padding = UIEngine.current.safeArea.copy(y = 0f, w = 0f)
+                padding = Engine.current.safeArea.copy(y = 0f, w = 0f)
             }
 
-            +FontAwesomeIcon(Icon.Message).apply {
+            +UIIcon(FAIcon.Message).apply {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
                 style = { color = it.accentColor }
             }
 
             linearContainer {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
                 orientation = Orientation.Horizontal
@@ -317,7 +325,7 @@ class RoomChat : UILinearContainer() {
                 }
 
                 messageText = text {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
                     style = { color = it.accentColor }
@@ -391,12 +399,12 @@ class RoomChat : UILinearContainer() {
 
 
         init {
-            width = Size.Full
+            width = Dimension.FillAvailable
             orientation = Orientation.Horizontal
             cullingMode = CullingMode.ParentBounds
             style = {
                 backgroundColor = (it.accentColor * 0.09f).copy(alpha = 0f)
-                padding = UIEngine.current.safeArea.copy(y = 0f, w = 0f)
+                padding = Engine.current.safeArea.copy(y = 0f, w = 0f)
                 spacing = 2f.srem
             }
         }
@@ -417,7 +425,7 @@ class RoomChat : UILinearContainer() {
 
                 if (message is SystemMessage) {
                     text {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
                         text = message.content
@@ -455,7 +463,7 @@ class RoomChat : UILinearContainer() {
                     }
 
                     text {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
                         style = { color = it.accentColor }
                         text = message.content
                     }

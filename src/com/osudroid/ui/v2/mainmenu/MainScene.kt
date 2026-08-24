@@ -13,18 +13,31 @@ import com.osudroid.ui.v1.*
 import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.multi.*
 import com.osudroid.utils.*
-import com.reco1l.andengine.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.text.*
-import com.reco1l.andengine.theme.*
-import com.reco1l.andengine.theme.Colors
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.ui.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.shape.*
+import com.reco1l.verktex.ui.sprite.*
+import com.reco1l.verktex.ui.text.*
+import com.reco1l.verktex.theme.*
+import com.reco1l.verktex.theme.Colors
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.dialog.UIDialog
+import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.reco1l.verktex.ui.sprite.ScaleType
+import com.reco1l.verktex.ui.UISprite
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
+import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.math.FloatInterpolation
+import com.reco1l.verktex.texture.Textures
 import org.anddev.andengine.engine.camera.*
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.Config
@@ -56,18 +69,18 @@ object MainScene : UIScene() {
     init {
 
         container {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
 
             background = sprite {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 scaleType = ScaleType.Crop
-                textureRegion = ResourceManager.getInstance().getTexture("menu-background")
+                textureRegion = Textures["menu-background"]
             }
 
             +UIGradientBox().apply {
-                height = Size.Full
+                height = Dimension.FillAvailable
                 gradientAngle = 0f
                 colorStart = Colors.White
                 colorEnd = Colors.Transparent
@@ -80,7 +93,7 @@ object MainScene : UIScene() {
             }
 
             +UIGradientBox().apply {
-                height = Size.Full
+                height = Dimension.FillAvailable
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
                 gradientAngle = 180f
@@ -95,8 +108,8 @@ object MainScene : UIScene() {
             }
 
             +UIGradientBox().apply {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 gradientAngle = 270f
                 alpha = 0f
                 style = {
@@ -115,8 +128,8 @@ object MainScene : UIScene() {
             +OsuLogo().apply {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                scaleCenter = Anchor.Center
-                rotationCenter = Anchor.Center
+                scaleOrigin = Anchor.Center
+                rotationOrigin = Anchor.Center
                 style = {
                     width = 16f.rem
                     height = 16f.rem
@@ -131,7 +144,7 @@ object MainScene : UIScene() {
             }
 
             menuContainer = scrollableContainer {
-                scrollAxes = Axes.Y
+                scrollAxes = Axis.Y
                 showVerticalIndicator = false
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
@@ -149,7 +162,7 @@ object MainScene : UIScene() {
                         padding = Vec4(0f, 8f.rem)
                     }
 
-                    +MenuButton(Icon.User, "Solo").apply {
+                    +MenuButton(FAIcon.User, "Solo").apply {
                         onActionUp = {
                             async {
                                 LoaderScene().show()
@@ -158,7 +171,7 @@ object MainScene : UIScene() {
                                 GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
 
                                 if (LibraryManager.getLibrary().isEmpty()) {
-                                    UIEngine.current.scene = this@MainScene
+                                    Engine.current.scene = this@MainScene
                                     BeatmapListing().show()
                                 } else {
                                     GlobalManager.getInstance().songService.isGaming = true
@@ -170,7 +183,7 @@ object MainScene : UIScene() {
                         }
                     }
 
-                    +MenuButton(Icon.UserGroup, "Multi").apply {
+                    +MenuButton(FAIcon.UserGroup, "Multi").apply {
                         onActionUp = action@{
                             if (!OnlineManager.getInstance().isStayOnline && !BuildSettings.MOCK_MULTIPLAYER) {
                                 ToastLogger.showText(StringTable.format(R.string.multiplayer_not_online), true)
@@ -192,19 +205,19 @@ object MainScene : UIScene() {
                         }
                     }
 
-                    +MenuButton(Icon.TableList, "Browse").apply {
+                    +MenuButton(FAIcon.TableList, "Browse").apply {
                         onActionUp = {
                             mainThread { BeatmapListing().show() }
                         }
                     }
 
-                    +MenuButton(Icon.Gear, "Settings").apply {
+                    +MenuButton(FAIcon.Gear, "Settings").apply {
                         onActionUp = {
                             mainThread { SettingsFragment().show() }
                         }
                     }
 
-                    +MenuButton(Icon.ArrowRightFromBracket, "Exit").apply {
+                    +MenuButton(FAIcon.ArrowRightFromBracket, "Exit").apply {
                         onActionUp = {
                             UIMessageDialog().apply {
                                 title = "Exit game"
@@ -234,23 +247,23 @@ object MainScene : UIScene() {
         }
 
         container {
-            width = Size.Full
+            width = Dimension.FillAvailable
             style = {
-                padding = UIEngine.current.safeArea.copy(y = 2f.srem, w = 2f.srem)
+                padding = Engine.current.safeArea.copy(y = 2f.srem, w = 2f.srem)
             }
 
             +PlayerButton().apply {
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
-                scaleCenter = Anchor.Center
+                scaleOrigin = Anchor.Center
                 playerButton = this
             }
 
             musicButton = textButton {
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
-                scaleCenter = Anchor.Center
-                leadingIcon = FontAwesomeIcon(Icon.Music)
+                scaleOrigin = Anchor.Center
+                leadingIcon = UIIcon(FAIcon.Music)
 
                 val musicPlayer = MusicPlayer(this)
                 onActionUp = {
@@ -264,7 +277,7 @@ object MainScene : UIScene() {
             anchor = Anchor.BottomLeft
             origin = Anchor.BottomLeft
             style = {
-                paddingLeft = UIEngine.current.safeArea.x
+                paddingLeft = Engine.current.safeArea.x
                 paddingBottom = 4f.srem
             }
 
@@ -302,12 +315,12 @@ object MainScene : UIScene() {
         }
 
         MusicManager.addOnBeatmapChangeListener(this) { beatmap ->
-            val textureRegion = if (beatmap != null) ResourceManager.getInstance().loadBackground(beatmap.backgroundPath) else null
+            val textureRegion = if (beatmap != null) Textures.getInstance().loadBackground(beatmap.backgroundPath) else null
 
             if (textureRegion != null && !Config.isSafeBeatmapBg()) {
                 background.textureRegion = textureRegion
             } else {
-                background.textureRegion = ResourceManager.getInstance().getTexture("menu-background")
+                background.textureRegion = Textures.getInstance().getTexture("menu-background")
             }
         }
     }
@@ -317,7 +330,7 @@ object MainScene : UIScene() {
         isMenuExpanded = false
 
         MusicManager.stop()
-        ResourceManager.getInstance().getSound("seeya")?.play()
+        Textures.getInstance().getSound("seeya")?.play()
 
         background.fadeOut(0.4f)
 
@@ -329,8 +342,8 @@ object MainScene : UIScene() {
         rightFlash.detachSelf()
 
         box {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             color = Colors.Black
             alpha = 0f
 
@@ -356,27 +369,27 @@ object MainScene : UIScene() {
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
 
-        logo.setScale(Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), logo.scaleX, if (isMenuExpanded) 1f else 1.3f, 0f, 0.1f))
+        logo.setScale(FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), logo.scaleX, if (isMenuExpanded) 1f else 1.3f, 0f, 0.1f))
 
         // Music button
         val mightShowMusicButton = isMenuExpanded || System.currentTimeMillis() - lastMusicChange < 3000
 
         musicButton.text = "${MusicManager.currentBeatmap?.titleText} - ${MusicManager.currentBeatmap?.artistText}"
-        musicButton.translationX = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButton.translationX, if (mightShowMusicButton) 0f else 8f.srem, 0f, 0.05f)
-        musicButton.alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButton.alpha, if (mightShowMusicButton) 1f else 0f, 0f, 0.05f)
+        musicButton.translationX = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButton.translationX, if (mightShowMusicButton) 0f else 8f.srem, 0f, 0.05f)
+        musicButton.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButton.alpha, if (mightShowMusicButton) 1f else 0f, 0f, 0.05f)
 
         // Beat animations
         val beatLengthSeconds = RythimManager.beatLength.toFloat() / 1000f * (if (RythimManager.isKiai) 1f else RythimManager.beatSignature.toFloat())
-        leftFlash.alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, beatLengthSeconds), leftFlash.alpha, 0f, 0f, beatLengthSeconds)
-        rightFlash.alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, beatLengthSeconds), rightFlash.alpha, 0f, 0f, beatLengthSeconds)
+        leftFlash.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, beatLengthSeconds), leftFlash.alpha, 0f, 0f, beatLengthSeconds)
+        rightFlash.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, beatLengthSeconds), rightFlash.alpha, 0f, 0f, beatLengthSeconds)
 
         // Menu expansion animations
-        menuContainer.width = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), menuContainer.width, if (isMenuExpanded) menuContainer.intrinsicWidth else 0f, 0f, 0.2f, Easing.OutQuint)
-        menuContainer.alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), menuContainer.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.2f, Easing.OutQuint)
-        menuGradientBox.alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.4f), menuGradientBox.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.4f, Easing.OutQuint)
+        menuContainer.width = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), menuContainer.width, if (isMenuExpanded) menuContainer.intrinsicWidth else 0f, 0f, 0.2f, Easing.OutQuint)
+        menuContainer.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), menuContainer.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.2f, Easing.OutQuint)
+        menuGradientBox.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.4f), menuGradientBox.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.4f, Easing.OutQuint)
 
-        playerButton.translationX = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), playerButton.translationX, if (isMenuExpanded) 0f else (-8f).srem, 0f, 0.05f)
-        playerButton.alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), playerButton.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.05f)
+        playerButton.translationX = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), playerButton.translationX, if (isMenuExpanded) 0f else (-8f).srem, 0f, 0.05f)
+        playerButton.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), playerButton.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.05f)
 
         super.onManagedUpdate(deltaTimeSec)
     }
@@ -384,7 +397,7 @@ object MainScene : UIScene() {
 
 class MenuButton(icon: Int, title: String) : UIButton() {
 
-    private lateinit var iconComponent: FontAwesomeIcon
+    private lateinit var iconComponent: UIIcon
 
     init {
         style += {
@@ -395,23 +408,23 @@ class MenuButton(icon: Int, title: String) : UIButton() {
         }
 
         fillContainer {
-            width = Size.Full
+            width = Density.Full
             orientation = Orientation.Horizontal
             style = {
                 spacing = 4f.srem
             }
 
-            +FontAwesomeIcon(icon).apply {
+            +UIIcon(icon).apply {
                 iconSize = FontSize.XL
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                scaleCenter = Anchor.Center
+                scaleOrigin = Anchor.Center
 
                 iconComponent = this
             }
 
             text {
-                width = Size.Full
+                width = Density.Full
                 text = title
                 style = {
                     fontSize = FontSize.MD
@@ -425,10 +438,10 @@ class MenuButton(icon: Int, title: String) : UIButton() {
 
         if (RythimManager.beatElapsed / 1000f < beatLengthSeconds * 0.75f) {
             val threeQuarts = beatLengthSeconds * 0.75f
-            iconComponent.setScale(Interpolation.floatAt(deltaTimeSec.coerceIn(0f, threeQuarts), iconComponent.scaleX, 1f, 0f, threeQuarts))
+            iconComponent.setScale(FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, threeQuarts), iconComponent.scaleX, 1f, 0f, threeQuarts))
         } else {
             val oneQuart = beatLengthSeconds * 0.25f
-            iconComponent.setScale(Interpolation.floatAt(deltaTimeSec.coerceIn(0f, oneQuart), iconComponent.scaleX, 0.9f, 0f, oneQuart))
+            iconComponent.setScale(FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, oneQuart), iconComponent.scaleX, 0.9f, 0f, oneQuart))
         }
 
         super.onManagedUpdate(deltaTimeSec)
@@ -465,9 +478,9 @@ class CarrouselLinearContainer(private val logo: OsuLogo) : UILinearContainer() 
 
 
 class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableContainer().apply {
-    width = Size.Full
+    width = Dimension.FillAvailable
     clipToBounds = true
-    scrollAxes = Axes.Y
+    scrollAxes = Axis.Y
     style = {
         maxHeight = 0.7f.vh
     }
@@ -478,7 +491,7 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
         innerContent.apply {
 
             linearContainer {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 orientation = Orientation.Vertical
                 style = {
                     spacing = 4f.srem
@@ -522,9 +535,9 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                 textButton {
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
-                    scaleCenter = Anchor.Center
+                    scaleOrigin = Anchor.Center
                     colorVariant = ColorVariant.Tertiary
-                    trailingIcon = FontAwesomeIcon(Icon.ArrowUpRightFromSquare)
+                    trailingIcon = UIIcon(FAIcon.ArrowUpRightFromSquare)
                     text = "Visit official osu! website"
                     onActionUp = {
                         goToLink("https://osu.ppy.sh")
@@ -534,9 +547,9 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                 textButton {
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
-                    scaleCenter = Anchor.Center
+                    scaleOrigin = Anchor.Center
                     colorVariant = ColorVariant.Tertiary
-                    trailingIcon = FontAwesomeIcon(Icon.ArrowUpRightFromSquare)
+                    trailingIcon = UIIcon(FAIcon.ArrowUpRightFromSquare)
                     text = "Visit official osu!droid website"
                     onActionUp = {
                         goToLink("https://osudroid.moe")
@@ -546,9 +559,9 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                 textButton {
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
-                    scaleCenter = Anchor.Center
+                    scaleOrigin = Anchor.Center
                     colorVariant = ColorVariant.Tertiary
-                    trailingIcon = FontAwesomeIcon(Icon.ArrowUpRightFromSquare)
+                    trailingIcon = UIIcon(FAIcon.ArrowUpRightFromSquare)
                     text = "Join the official Discord server"
                     onActionUp = {
                         goToLink("https://discord.gg/nyD92cE")

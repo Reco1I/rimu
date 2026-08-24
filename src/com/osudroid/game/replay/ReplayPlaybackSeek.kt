@@ -1,19 +1,17 @@
 package com.osudroid.game.replay
 
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.container.Orientation
-import com.reco1l.andengine.container.UILinearContainer
-import com.reco1l.andengine.iconButton
-import com.reco1l.andengine.linearContainer
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.textButton
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.ui.form.FormSlider
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.iconButton
+import com.reco1l.verktex.ui.linearContainer
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.textButton
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.data.Vec4
 import java.text.DecimalFormat
 import kotlin.math.abs
-import ru.nsu.ccfit.zuev.osu.ResourceManager
 
 class ReplayPlaybackSeek : UILinearContainer() {
     /**
@@ -71,7 +69,7 @@ class ReplayPlaybackSeek : UILinearContainer() {
 
     init {
         orientation = Orientation.Vertical
-        width = Size.Full
+        width = Dimension.FillAvailable
 
         +seekBar
 
@@ -94,11 +92,11 @@ class ReplayPlaybackSeek : UILinearContainer() {
             iconButton {
                 height = 42f
                 padding = Vec4(12f, 0f)
-                icon = FontAwesomeIcon(Icon.Pause)
+                icon = UIIcon(FAIcon.Pause)
 
                 onActionUp = {
                     isPlaybackPaused = !isPlaybackPaused
-                    icon = FontAwesomeIcon(if (isPlaybackPaused) Icon.Play else Icon.Pause)
+                    icon = UIIcon(if (isPlaybackPaused) FAIcon.Play else FAIcon.Pause)
                     onPauseToggle?.invoke(isPlaybackPaused)
                 }
             }

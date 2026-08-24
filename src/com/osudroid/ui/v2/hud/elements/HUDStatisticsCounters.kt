@@ -1,12 +1,14 @@
 package com.osudroid.ui.v2.hud.elements
 
 import com.osudroid.ui.v2.SpriteFont
-import com.reco1l.andengine.*
-import com.reco1l.andengine.text.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.ui.text.*
 import com.reco1l.framework.*
 import com.osudroid.ui.v2.hud.HUDElement
-import com.reco1l.andengine.theme.FontSize
-import ru.nsu.ccfit.zuev.osu.ResourceManager
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.ui.text.UIText
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.*

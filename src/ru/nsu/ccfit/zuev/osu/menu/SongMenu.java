@@ -15,15 +15,15 @@ import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.ui.v1.BeatmapAttributeDisplay;
 import com.osudroid.ui.v2.LoaderScene;
 import com.osudroid.utils.Execution;
-import com.reco1l.andengine.UIScene;
-import com.reco1l.andengine.container.UIContainer;
+import com.reco1l.verktex.Scene;
+import com.reco1l.verktex.ui.container.UIContainer;
 import com.reco1l.framework.EasingKt;
 import com.osudroid.multiplayer.api.RoomAPI;
 import com.osudroid.data.BeatmapInfo;
 import com.osudroid.data.BeatmapSetInfo;
 import com.osudroid.data.DatabaseManager;
-import com.reco1l.andengine.sprite.UIAnimatedSprite;
-import com.reco1l.andengine.sprite.UISprite;
+import com.reco1l.verktex.ui.UIAnimatedSprite;
+import com.reco1l.verktex.ui.UISprite;
 import com.osudroid.multiplayer.Multiplayer;
 
 import com.osudroid.ui.v2.modmenu.ModMenu;
@@ -42,7 +42,6 @@ import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.engine.handler.IUpdateHandler;
 import org.anddev.andengine.entity.Entity;
 import org.anddev.andengine.entity.primitive.Rectangle;
-import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
 import org.anddev.andengine.entity.scene.background.SpriteBackground;
 import org.anddev.andengine.entity.sprite.Sprite;
@@ -89,7 +88,7 @@ import ru.nsu.ccfit.zuev.skins.SkinLayout;
 
 public class SongMenu implements IUpdateHandler, MenuItemListener,
         IScrollBarListener {
-    public UIScene scene;
+    public Scene scene;
     public UIContainer frontLayer = new UIContainer();
     SortOrder sortOrder = SortOrder.Title;
     private Engine engine;
@@ -194,7 +193,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
     }
 
     public synchronized void load() {
-        scene = new UIScene();
+        scene = new Scene();
         // This is needed for UIScene to behave on par with regular Scene, otherwise we would have weird scenarios such
         // as entities in the back layer having touch priority despite being rendered behind the front layer.
         scene.setOnAreaTouchTraversalBackToFront();
@@ -356,8 +355,8 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
                     scaleWhenHold = layoutBackButton.property.optBoolean("scaleWhenHold", true);
                 }
 
-                setScaleCenter(0f, 1f); // Bottom left corner
-                setSize(getWidth(), getHeight());
+                setScaleOrigin(0f, 1f); // Bottom left corner
+                setMeasuredSize(getWidth(), getHeight());
             }
 
             @Override
@@ -409,7 +408,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
 
                 {
                     setTextureRegion(ResourceManager.getInstance().getTextureIfLoaded("selection-mods"));
-                    setSize(getWidth(), getHeight());
+                    setMeasuredSize(getWidth(), getHeight());
                 }
 
                 @Override
@@ -462,7 +461,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
 
             {
                 setTextureRegion(ResourceManager.getInstance().getTextureIfLoaded("selection-options"));
-                setSize(getWidth(), getHeight());
+                setMeasuredSize(getWidth(), getHeight());
             }
 
             @Override
@@ -517,7 +516,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
 
             {
                 setTextureRegion(ResourceManager.getInstance().getTextureIfLoaded("selection-random"));
-                setSize(getWidth(), getHeight());
+                setMeasuredSize(getWidth(), getHeight());
             }
 
             @Override
@@ -730,7 +729,7 @@ public class SongMenu implements IUpdateHandler, MenuItemListener,
         updateScoringSwitcherStatus(true);
     }
 
-    public UIScene getScene() {
+    public Scene getScene() {
         return scene;
     }
     public SearchBarFragment getSearchBar() { return searchBar; }

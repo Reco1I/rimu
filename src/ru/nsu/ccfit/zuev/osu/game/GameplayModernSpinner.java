@@ -2,9 +2,9 @@ package ru.nsu.ccfit.zuev.osu.game;
 
 import android.graphics.PointF;
 
-import com.reco1l.andengine.UIScene;
-import com.reco1l.andengine.sprite.UISprite;
-import com.reco1l.andengine.Anchor;
+import com.reco1l.verktex.Scene;
+import com.reco1l.verktex.ui.UISprite;
+import com.reco1l.verktex.data.Anchor;
 import com.osudroid.beatmaps.hitobjects.Spinner;
 
 import org.anddev.andengine.util.MathUtils;
@@ -65,7 +65,7 @@ public class GameplayModernSpinner extends GameplaySpinner {
     }
 
     @Override
-    public void init(final GameObjectListener listener, final UIScene scene,
+    public void init(final GameObjectListener listener, final Scene scene,
                      final Spinner beatmapSpinner, final float rps, final StatisticV2 stat) {
         this.scene = scene;
         this.beatmapSpinner = beatmapSpinner;
@@ -194,8 +194,8 @@ public class GameplayModernSpinner extends GameplaySpinner {
 
         if (mouse != null) {
             float degree = MathUtils.radToDeg(Utils.direction(currMouse));
-            top.setRotation(degree);
-            bottom.setRotation(degree / 2);
+            top.setRotationZ(degree);
+            bottom.setRotationZ(degree / 2);
 
             var len1 = Utils.length(currMouse);
             var len2 = Utils.length(oldMouse);
@@ -207,7 +207,7 @@ public class GameplayModernSpinner extends GameplaySpinner {
             if (autoPlay) {
                 dFill = 5 * 4 * dt;
                 degree = (rotations + dFill / 4f) * 360;
-                top.setRotation(degree);
+                top.setRotationZ(degree);
                 //auto时，FL光圈绕中心旋转
                 if (GameHelper.isAutopilot() || GameHelper.isAutoplay()) {
                     float pX = position.x + 50 * (float) Math.sin(degree);

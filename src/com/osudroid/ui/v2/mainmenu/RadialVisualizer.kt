@@ -2,14 +2,13 @@ package com.osudroid.ui.v2.mainmenu
 
 import com.edlplan.framework.easing.Easing
 import com.osudroid.RythimManager
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.component.UIComponent
-import com.reco1l.andengine.shape.UIBox
-import com.reco1l.andengine.theme.Colors
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.Theme
-import com.reco1l.framework.Interpolation
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.theme.Colors
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.math.FloatInterpolation
 import com.reco1l.toolkt.MathF
 import com.reco1l.toolkt.kotlin.fastForEachIndexed
 import org.anddev.andengine.engine.camera.Camera
@@ -140,7 +139,7 @@ class RadialVisualizer : UIComponent() {
             barBox.width = barThickness
             barBox.height = baseBarHeight
             barBox.scaleY = 1f + 2f * barInfo.currentHeight.coerceIn(0f, 1f)
-            barBox.rotation = Math.toDegrees(angle.toDouble()).toFloat()
+            barBox.rotationZ = Math.toDegrees(angle.toDouble()).toFloat()
 
             barBox.onDraw(gl, camera)
         }
@@ -157,7 +156,7 @@ class RadialVisualizer : UIComponent() {
         var currentHeight: Float = 0f
     ) {
         fun update(deltaTimeSec: Float) {
-            currentHeight = Interpolation.floatAt(
+            currentHeight = FloatInterpolation.floatAt(
                 deltaTimeSec.coerceIn(0f, 0.3f),
                 currentHeight,
                 targetHeight,

@@ -4,9 +4,9 @@ import androidx.annotation.NonNull;
 
 import com.edlplan.framework.utils.interfaces.Consumer;
 import com.osudroid.ui.v2.hud.HUDSkinData;
-import com.reco1l.andengine.ui.Theme;
-import com.reco1l.framework.Color4;
-import com.reco1l.framework.HexComposition;
+import com.reco1l.verktex.ui.Theme;
+import com.reco1l.verktex.data.Color4;
+import com.reco1l.verktex.data.HexComposition;
 
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;

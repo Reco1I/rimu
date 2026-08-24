@@ -1,7 +1,7 @@
 package com.osudroid.ui.v2
 
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.ui.*
+import com.osudroid.ui.ISkinnable
+import com.reco1l.verktex.ui.UISprite
 import ru.nsu.ccfit.zuev.osu.*
 
 class OsuSkinnableSprite(val textureLookup: String) : UISprite(), ISkinnable {

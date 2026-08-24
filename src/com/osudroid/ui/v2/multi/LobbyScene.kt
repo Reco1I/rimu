@@ -2,23 +2,30 @@ package com.osudroid.ui.v2.multi
 
 import android.util.Log
 import com.osudroid.multiplayer.*
-import com.reco1l.andengine.sprite.*
+import com.reco1l.verktex.ui.sprite.*
 import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.utils.updateThread
 import com.osudroid.resources.R.string
 import com.osudroid.ui.v2.mainmenu.*
-import com.reco1l.andengine.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.control.UITextInput
+import com.reco1l.verktex.ui.sprite.ScaleType
 import com.reco1l.framework.math.*
+import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
 import com.rian.andengine.modifier.ModifierType
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.Config
@@ -28,8 +35,9 @@ import ru.nsu.ccfit.zuev.osu.ToastLogger
 import kotlin.coroutines.cancellation.CancellationException
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
+import ru.nsu.ccfit.zuev.osuplus.R
 
-class LobbyScene : UIScene() {
+class LobbyScene : Scene() {
 
     private var isFetching = false
     private var shouldFetch = true
@@ -53,8 +61,8 @@ class LobbyScene : UIScene() {
 
     init {
         sprite {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             scaleType = ScaleType.Crop
             textureRegion = ResourceManager.getInstance().getTexture("menu-background")
 
@@ -65,16 +73,16 @@ class LobbyScene : UIScene() {
 
         fillContainer {
             orientation = Orientation.Vertical
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             style = {
-                padding = UIEngine.current.safeArea.copy(y = 2f.srem, w = 2f.srem)
+                padding = Engine.current.safeArea.copy(y = 2f.srem, w = 2f.srem)
                 backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.9f)
                 spacing = 4f.srem
             }
 
             container {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 style = {
                     padding = Vec4(0f, 4f.srem)
                 }
@@ -86,13 +94,13 @@ class LobbyScene : UIScene() {
                     }
 
                     textButton {
-                        leadingIcon = FontAwesomeIcon(Icon.ArrowLeft)
+                        leadingIcon = UIIcon(FAIcon.ArrowLeft)
                         setText(string.multiplayer_lobby_back)
                         onActionUp = { back() }
                     }
 
                     textButton {
-                        leadingIcon = FontAwesomeIcon(Icon.Plus)
+                        leadingIcon = UIIcon(FAIcon.Plus)
                         setText(string.multiplayer_lobby_create_room)
                         onActionUp = {
                             RoomCreateDialog(this@LobbyScene).show()
@@ -100,7 +108,7 @@ class LobbyScene : UIScene() {
                     }
 
                     refreshButton = textButton {
-                        leadingIcon = FontAwesomeIcon(Icon.Rotate)
+                        leadingIcon = UIIcon(FAIcon.Rotate)
                         setText(string.multiplayer_lobby_refresh)
                         onActionUp = { shouldFetch = true }
                     }
@@ -109,12 +117,12 @@ class LobbyScene : UIScene() {
                 container {
                     anchor = Anchor.TopRight
                     origin = Anchor.TopRight
-                    height = Size.Full
+                    height = Dimension.FillAvailable
 
                     +UITextInput("").apply {
                         key = "search"
-                        height = Size.Full
-                        placeholder = StringTable.get(ru.nsu.ccfit.zuev.osuplus.R.string.multiplayer_lobby_search_rooms)
+                        height = Dimension.FillAvailable
+                        placeholder = StringTable.get(R.string.multiplayer_lobby_search_rooms)
                         onValueChange = { value ->
                             searchQuery = value
                         }
@@ -127,7 +135,7 @@ class LobbyScene : UIScene() {
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
                         style = { padding = Vec4(2f.srem, 0f) }
-                        +FontAwesomeIcon(Icon.MagnifyingGlass).apply {
+                        +UIIcon(FAIcon.MagnifyingGlass).apply {
                             style = {
                                 color = it.accentColor
                             }
@@ -137,8 +145,8 @@ class LobbyScene : UIScene() {
             }
 
             container {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
 
                 messageContainer = linearContainer {
                     orientation = Orientation.Vertical
@@ -150,15 +158,15 @@ class LobbyScene : UIScene() {
                 }
 
                 scrollableContainer {
-                    scrollAxes = Axes.Y
-                    width = Size.Full
-                    height = Size.Full
+                    scrollAxes = Axis.Y
+                    width = Dimension.FillAvailable
+                    height = Dimension.FillAvailable
                     clipToBounds = true
 
                     roomContainer = linearContainer {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
                         orientation = Orientation.Vertical
-                        scaleCenter = Anchor.Center
+                        scaleOrigin = Anchor.Center
 
                         style = {
                             spacing = 1.5f.srem
@@ -250,7 +258,7 @@ class LobbyScene : UIScene() {
                 messageContainer.apply {
                     detachChildren()
 
-                    +Loader().apply {
+                    +UILoadingIndicator().apply {
                         anchor = Anchor.Center
                         origin = Anchor.Center
 

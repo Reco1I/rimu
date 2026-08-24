@@ -1,16 +1,20 @@
 package com.osudroid.ui.v2.hud
 
 import com.osudroid.ui.v2.hud.elements.*
-import com.reco1l.andengine.*
-import com.reco1l.andengine.container.UIContainer
-import com.reco1l.andengine.shape.*
-import com.reco1l.framework.Color4
-import com.reco1l.framework.math.Vec2
+import com.reco1l.verktex.*
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.shape.*
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec2
 import com.osudroid.ui.v2.hud.editor.HUDElementOverlay
-import com.reco1l.andengine.component.*
+import com.reco1l.verktex.component.*
 import com.reco1l.toolkt.kotlin.capitalize
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.shape.UILine
+import com.reco1l.verktex.data.px
 import org.anddev.andengine.input.touch.TouchEvent
 import kotlin.math.abs
 import kotlin.reflect.KClass
@@ -100,10 +104,10 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
             return
         }
 
+        position = data.position
         anchor = data.anchor
         origin = data.origin
         setScale(data.scale)
-        setPosition(data.position.x, data.position.y)
 
         // When the element is restored it's usually selected so we need to update the connection line.
         if (isSelected) {
@@ -119,8 +123,8 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
         type = this::class,
         anchor = anchor,
         origin = origin,
-        scale = (mScaleX + mScaleY) / 2f,
-        position = Vec2(x, y)
+        scale = scale,
+        position = position
     )
 
     /**
@@ -144,10 +148,10 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
             backgroundColor = Color4(0x29F27272).copy(alpha = 0.15f)
             editorOverlay = HUDElementOverlay(this)
 
-            parent!!.attachChild(editorOverlay!!)
+            parent!! += editorOverlay!!
         } else {
-            connectionLine?.detachSelf()
-            editorOverlay?.detachSelf()
+            connectionLine?.removeSelf()
+            editorOverlay?.removeSelf()
 
             backgroundColor = Color4.Transparent
             connectionLine = null
@@ -253,9 +257,9 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
         return false
     }
 
-    override fun onInvalidateTransformations() {
-        super.onInvalidateTransformations()
-        editorOverlay?.onInvalidateTransformations()
+    override fun calculateTransformations() {
+        super.calculateTransformations()
+        editorOverlay?.calculateTransformations()
     }
 
     //endregion
@@ -264,9 +268,9 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
 
     private fun applyClosestAnchorOrigin() {
 
-        val drawSize = size * scale
-        val drawPosition = anchorPosition + position - drawSize * origin
-        val parentDrawSize = (parent as UIComponent).size
+        val drawSize = measuredSize * scale
+        val drawPosition = anchoredPosition + position - drawSize * origin
+        val parentDrawSize = (parent as UIComponent).measuredSize
 
         val relativeTopLeft = drawPosition / parentDrawSize
         val relativeTopRight = (drawPosition + Vec2(drawSize.x, 0f)) / parentDrawSize
@@ -283,14 +287,14 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
         }
 
         if (anchor != closest) {
-            val previousAnchorOffset = anchorPosition
+            val previousAnchorOffset = anchoredPosition
             anchor = closest
-            position -= anchorPosition - previousAnchorOffset
+            position -= anchoredPosition - previousAnchorOffset
         }
 
         if (origin != closest) {
-            val previousOriginOffset = -(size * scale * origin)
-            val originOffset = -(size * scale * closest)
+            val previousOriginOffset = -(measuredSize * scale * origin)
+            val originOffset = -(measuredSize * scale * closest)
             origin = closest
             position -= originOffset - previousOriginOffset
         }
@@ -301,15 +305,16 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
         if (connectionLine == null) {
             connectionLine = UILine().apply {
                 color = Color4(0xFFF27272)
-                lineWidth = 10f
+                lineWidth = 10f.px
                 alpha = 0f
             }
-            parent!!.attachChild(connectionLine!!)
+            parent!! += connectionLine!!
         }
 
-        connectionLine!!.fromPoint = anchorPosition
-        connectionLine!!.toPoint = (editorOverlay?.outlinePosition ?: Vec2.Zero) + size * scale * origin
+        connectionLine!!.fromPoint = anchoredPosition
+        connectionLine!!.toPoint = (editorOverlay?.outlinePosition ?: Vec2.Zero) + measuredSize * scale * origin
     }
+
 
     override fun setScaleX(pScaleX: Float) {
         super.setScaleX(pScaleX)
@@ -342,7 +347,8 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
      * Moves the element by the specified delta.
      */
     fun move(deltaX: Float, deltaY: Float) {
-        setPosition(x + deltaX, y + deltaY)
+        x += deltaX.px
+        y += deltaY.px
         applyClosestAnchorOrigin()
         updateConnectionLine()
     }

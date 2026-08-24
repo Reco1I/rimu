@@ -2,8 +2,8 @@ package ru.nsu.ccfit.zuev.osu.game;
 
 import android.graphics.PointF;
 
-import com.reco1l.andengine.sprite.UISprite;
-import com.reco1l.andengine.Anchor;
+import com.reco1l.verktex.ui.UISprite;
+import com.reco1l.verktex.data.Anchor;
 
 import org.anddev.andengine.entity.modifier.DelayModifier;
 import org.anddev.andengine.entity.modifier.FadeInModifier;
@@ -50,7 +50,7 @@ public class Countdown extends GameObject {
                 new ParallelEntityModifier(new FadeOutModifier(COUNTDOWN_LENGTH
                         * speed / 9), new ScaleModifier(COUNTDOWN_LENGTH
                         * speed / 9, 1, 1.5f))));
-        ready.setRotation(-90);
+        ready.setRotationZ(-90);
         ready.setVisible(false);
         ready.setIgnoreUpdate(true);
 
@@ -97,7 +97,7 @@ public class Countdown extends GameObject {
                         * speed / 18, -180, 0)), new DelayModifier(
                 COUNTDOWN_LENGTH * speed / 18), new FadeOutModifier(
                 COUNTDOWN_LENGTH * speed / 18)));
-        go.setRotation(-180);
+        go.setRotationZ(-180);
         go.setVisible(false);
         go.setIgnoreUpdate(true);
 

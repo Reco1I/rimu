@@ -1,7 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.menu;
 
-import com.reco1l.andengine.component.ComponentsKt;
-import com.reco1l.framework.Color4;
+import com.reco1l.verktex.component.ComponentsKt;
+import com.reco1l.verktex.data.Color4;
 
 import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.entity.text.ChangeableText;

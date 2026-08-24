@@ -20,6 +20,7 @@ buildscript {
 
 plugins {
     id "org.jetbrains.kotlin.kapt" version "2.4.10"
+    id 'com.android.built-in-kotlin' version '9.2.1' apply false
 }
 
 allprojects {
@@ -187,8 +188,6 @@ android {
 }
 
 dependencies {
-    implementation project(':AndEngine')
-    implementation project(':LibBASS')
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.preference:preference:1.2.1'
     implementation 'com.google.android.material:material:1.11.0'

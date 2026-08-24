@@ -6,17 +6,17 @@ import com.osudroid.ui.v2.modmenu.ModMenu.addMod
 import com.osudroid.ui.v2.modmenu.ModMenu.removeMod
 import com.osudroid.utils.ModUtils
 import com.osudroid.utils.searchContiguously
-import com.reco1l.andengine.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.ui.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.*
 import com.reco1l.toolkt.kotlin.*
 import com.osudroid.utils.*
+import com.reco1l.verktex.ui.dialog.UIMessageDialog
 import ru.nsu.ccfit.zuev.osu.*
 
 class ModMenuPresetsSection : ModMenuSection("Presets") {
@@ -33,9 +33,9 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
         }
 
         addButton = UITextButton().apply {
-            width = Size.Full
+            width = Dimension.FillAvailable
             text = "Add preset"
-            leadingIcon = FontAwesomeIcon(Icon.Plus)
+            leadingIcon = UIIcon(FAIcon.Plus)
             onActionUp = {
                 ModPresetsForm(this@ModMenuPresetsSection).show()
             }
@@ -98,8 +98,8 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
         init {
             orientation = Orientation.Vertical
             spacing = 8f
-            width = Size.Full
-            cullingMode = CullingMode.CameraBounds
+            width = Density.Full
+            cullingMode = CullingMode.ScreenBounds
 
             onActionUp = {
                 if (isSelected) {

@@ -2,7 +2,7 @@ package com.osudroid.beatmaps.parser.sections
 
 import com.osudroid.beatmaps.Beatmap
 import com.osudroid.beatmaps.timings.BreakPeriod
-import com.reco1l.framework.*
+import com.reco1l.verktex.data.rgb
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
@@ -39,7 +39,7 @@ object BeatmapEventsParser : BeatmapSectionParser() {
             }
     
             if (it.size >= 5 && line.startsWith("3")) {
-                beatmap.events.backgroundColor = Color4(
+                beatmap.events.backgroundColor = rgb(
                     parseInt(it[2]),
                     parseInt(it[3]),
                     parseInt(it[4])

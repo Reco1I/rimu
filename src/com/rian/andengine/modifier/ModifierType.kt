@@ -1,6 +1,7 @@
 package com.rian.andengine.modifier
 
-import com.reco1l.andengine.component.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.ui.UIComponent
 
 /**
  * The type of the [UniversalModifier].
@@ -11,7 +12,7 @@ enum class ModifierType(
     /**
      * The target member of this [ModifierType].
      *
-     * This is used to group [ModifierType]s that operate on the same property (or properties) of a [UIComponent]. It is
+     * This is used to group [ModifierType]s that operate on the same property (or properties) of a [com.reco1l.verktex.ui.UIComponent]. It is
      * assumed that [UniversalModifier]s with different [targetMember]s are independent of each other in that they
      * affect different properties, and therefore they can be applied independently in any order without affecting the
      * end result.
@@ -21,77 +22,77 @@ enum class ModifierType(
     None(null),
 
     /**
-     * Modifies the [UIComponent]'s X scale value.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s X scale value.
      */
     ScaleX("scale"),
 
     /**
-     * Modifies the [UIComponent]'s Y scale value.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s Y scale value.
      */
     ScaleY("scale"),
 
     /**
-     * Modifies the [UIComponent]'s X and Y scale values.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s X and Y scale values.
      */
     ScaleXY("scale"),
 
     /**
-     * Modifies the [UIComponent]'s alpha value.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s alpha value.
      */
     Alpha("alpha"),
 
     /**
-     * Modifies the [UIComponent]'s color value.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s color value.
      */
     Color("color"),
 
     /**
-     * Modifies the [UIComponent]'s X position.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s X position.
      */
     MoveX("move"),
 
     /**
-     * Modifies the [UIComponent]'s Y position.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s Y position.
      */
     MoveY("move"),
 
     /**
-     * Modifies the [UIComponent]'s X and Y position.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s X and Y position.
      */
     MoveXY("move"),
 
     /**
-     * Modifies the [UIComponent]'s X translation.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s X translation.
      */
     TranslateX("translate"),
 
     /**
-     * Modifies the [UIComponent]'s Y translation.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s Y translation.
      */
     TranslateY("translate"),
 
     /**
-     * Modifies the [UIComponent]'s X and Y translation.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s X and Y translation.
      */
     TranslateXY("translate"),
 
     /**
-     * Modifies the [UIComponent]'s rotation.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s rotation.
      */
     Rotation("rotation"),
 
     /**
-     * Modifies the [UIComponent]'s width.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s width.
      */
     Width("size"),
 
     /**
-     * Modifies the [UIComponent]'s height.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s height.
      */
     Height("size"),
 
     /**
-     * Modifies the [UIComponent]'s width and height.
+     * Modifies the [com.reco1l.verktex.ui.UIComponent]'s width and height.
      */
     Size("size");
 
@@ -206,7 +207,7 @@ enum class ModifierType(
         Rotation -> {
             val array = reusableArray.ensureSize(1)
 
-            array[0] = entity.rotation
+            array[0] = entity.rotationZ
             array
         }
 
@@ -245,7 +246,7 @@ enum class ModifierType(
             Height -> entity.height = valueAt(0)
             Size -> entity.setSize(valueAt(0), valueAt(1))
 
-            Rotation -> entity.rotation = valueAt(0)
+            Rotation -> entity.rotationZ = valueAt(0)
 
             None -> Unit
         }

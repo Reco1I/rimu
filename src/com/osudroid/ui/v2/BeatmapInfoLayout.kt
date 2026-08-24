@@ -8,17 +8,21 @@ import com.osudroid.multiplayer.api.data.*
 import com.osudroid.ui.v2.modmenu.*
 import com.osudroid.utils.async
 import com.osudroid.utils.updateThread
-import com.reco1l.andengine.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.text.*
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.ui.*
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.*
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.toolkt.*
 import com.osudroid.utils.ModUtils.applyModsToBeatmapDifficulty
 import com.osudroid.utils.ModUtils.calculateRateWithMods
+import com.reco1l.verktex.data.icon
+import com.reco1l.verktex.data.spannable
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.text.UIText
 import kotlinx.coroutines.Job
 import ru.nsu.ccfit.zuev.osu.*
 import java.text.*
@@ -54,15 +58,15 @@ class BeatmapInfoLayout : UILinearContainer() {
 
 
     init {
-        width = Size.Full
+        width = Dimension.FillAvailable
         orientation = Orientation.Vertical
         spacing = 6f
 
         fillContainer {
-            width = Size.Full
+            width = Dimension.FillAvailable
 
             linearContainer {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 orientation = Orientation.Vertical
                 padding = Vec4(0f, 0f, 12f, 0f)
 
@@ -74,7 +78,7 @@ class BeatmapInfoLayout : UILinearContainer() {
                 }
 
                 titleText = text {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
                     fontSize = FontSize.SM
                     text = "No selected beatmap"
                     style = { color = it.accentColor }
@@ -123,8 +127,11 @@ class BeatmapInfoLayout : UILinearContainer() {
                     sizeVariant = SizeVariant.Small
                 }
                 lengthBadge = badge {
-                    leadingIcon = UISprite(ResourceManager.getInstance().getTexture("clock"))
-                    text = "00:00"
+                    text = spannable {
+                        icon(FAIcon.Clock)
+                        span { "-:--" }
+                    }
+                    leadingIcon = UISprite(Textures.getInstance().getTexture("clock"))
                     sizeVariant = SizeVariant.Small
                 }
             }
@@ -154,7 +161,7 @@ class BeatmapInfoLayout : UILinearContainer() {
                     sizeVariant = SizeVariant.Small
                 }
                 bpmBadge = badge {
-                    leadingIcon = UISprite(ResourceManager.getInstance().getTexture("bpm"))
+                    leadingIcon = UISprite(Textures.getInstance().getTexture("bpm"))
                     text = "0"
                     fontSize = FontSize.XS
                     sizeVariant = SizeVariant.Small
@@ -280,8 +287,8 @@ class BeatmapInfoLayout : UILinearContainer() {
 
     companion object {
         init {
-            ResourceManager.getInstance().loadHighQualityAsset("clock", "clock.png")
-            ResourceManager.getInstance().loadHighQualityAsset("bpm", "bpm.png")
+            Textures.getInstance().loadHighQualityAsset("clock", "clock.png")
+            Textures.getInstance().loadHighQualityAsset("bpm", "bpm.png")
         }
     }
 }

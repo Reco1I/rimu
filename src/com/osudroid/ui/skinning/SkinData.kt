@@ -1,7 +1,7 @@
 package com.osudroid.ui.skinning
 
-import com.reco1l.framework.Color4
-import com.reco1l.framework.HexComposition
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.HexComposition
 import org.json.JSONObject
 
 sealed class SkinData<T>(val tag: String, val defaultValue: T) {

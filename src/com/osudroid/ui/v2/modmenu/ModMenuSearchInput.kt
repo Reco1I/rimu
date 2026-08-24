@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.reco1l.andengine.ui.*
+import com.reco1l.verktex.ui.control.UITextInput
 
 /**
  * A search input field for filtering mods and mod presets in the mod menu.

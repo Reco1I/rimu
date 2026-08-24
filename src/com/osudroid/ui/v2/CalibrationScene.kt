@@ -6,37 +6,34 @@ import com.edlplan.framework.easing.Easing
 import com.osudroid.ui.v1.SettingsFragment
 import com.osudroid.utils.mainThread
 import com.osudroid.utils.updateThread
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.UIEngine
-import com.reco1l.andengine.UIScene
-import com.reco1l.andengine.box
-import com.reco1l.andengine.circle
-import com.reco1l.andengine.component.scaleCenter
-import com.reco1l.andengine.component.setText
-import com.reco1l.andengine.container.Orientation
-import com.reco1l.andengine.container.UIContainer
-import com.reco1l.andengine.linearContainer
-import com.reco1l.andengine.shape.PaintStyle
-import com.reco1l.andengine.shape.UIBox
-import com.reco1l.andengine.shape.UICircle
-import com.reco1l.andengine.sprite.UISprite
-import com.reco1l.andengine.text
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.text.UIText
-import com.reco1l.andengine.textButton
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.ui.UICheckbox
-import com.reco1l.andengine.ui.UITextButton
-import com.reco1l.framework.Color4
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.Engine
+import com.reco1l.verktex.ui.box
+import com.reco1l.verktex.ui.circle
+import com.reco1l.verktex.ui.setText
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.linearContainer
+import com.reco1l.verktex.ui.PaintStyle
+import com.reco1l.verktex.ui.shape.UICircle
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.text
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.textButton
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.control.UICheckbox
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.osu.ui.PromptDialog
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.math.Interpolation
 import com.osudroid.utils.median
 import com.osudroid.utils.standardDeviation
-import com.reco1l.andengine.fillContainer
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Size
+import com.reco1l.verktex.ui.fillContainer
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.data.Dimension
 import com.rian.andengine.modifier.ModifierType
 import kotlin.math.abs
 import kotlin.math.exp
@@ -49,7 +46,7 @@ import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osuplus.R.string
 
-object CalibrationScene : UIScene() {
+object CalibrationScene : Scene() {
     internal var OFFSET_MIN = -500
     internal var OFFSET_MAX = 500
 
@@ -99,8 +96,8 @@ object CalibrationScene : UIScene() {
 
         // Background
         box {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             style = { color = it.accentColor * 0.08f }
         }
 
@@ -146,8 +143,8 @@ object CalibrationScene : UIScene() {
             origin = Anchor.Center
 
             circle {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 style = { color = it.accentColor * 0.35f }
@@ -155,8 +152,8 @@ object CalibrationScene : UIScene() {
             }
 
             circle {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 paintStyle = PaintStyle.Outline
@@ -165,26 +162,26 @@ object CalibrationScene : UIScene() {
             }
 
             circle {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 paintStyle = PaintStyle.Outline
                 lineWidth = 6f
-                scaleCenter = Anchor.Center
+                scaleOrigin = Anchor.Center
                 setScale(APPROACH_SCALE_START)
                 style = { color = it.accentColor * 0.85f }
                 approachCircle = this
             }
 
             circle {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 paintStyle = PaintStyle.Outline
                 lineWidth = 6f
-                scaleCenter = Anchor.Center
+                scaleOrigin = Anchor.Center
                 alpha = 0f
                 style = { color = it.accentColor }
                 rippleCircle = this
@@ -199,7 +196,7 @@ object CalibrationScene : UIScene() {
             anchor = Anchor.Center
             origin = Anchor.BottomCenter
             translationY = -(CIRCLE_DIAMETER / 2 + 20f)
-            scaleCenter = Anchor.Center
+            scaleOrigin = Anchor.Center
             alpha = 0f
             judgementText = this
         }
@@ -219,7 +216,7 @@ object CalibrationScene : UIScene() {
             anchor = Anchor.Center
             origin = Anchor.TopCenter
             translationY = CIRCLE_DIAMETER / 2 + 56f
-            scaleCenter = Anchor.Center
+            scaleOrigin = Anchor.Center
             streakText = this
         }
 
@@ -256,7 +253,7 @@ object CalibrationScene : UIScene() {
             }
 
             box {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 height = 1f
                 style = { color = it.accentColor * 0.2f }
             }
@@ -277,7 +274,7 @@ object CalibrationScene : UIScene() {
                 spacing = 12f
 
                 textButton {
-                    leadingIcon = FontAwesomeIcon(Icon.CaretDown).apply {
+                    leadingIcon = UIIcon(FAIcon.CaretDown).apply {
                         style = { color = it.accentColor }
                     }
                     onActionUp = { changeBpm(-STEP_BPM) }
@@ -298,7 +295,7 @@ object CalibrationScene : UIScene() {
                 }
 
                 textButton {
-                    leadingIcon = FontAwesomeIcon(Icon.CaretUp).apply {
+                    leadingIcon = UIIcon(FAIcon.CaretUp).apply {
                         style = { color = it.accentColor }
                     }
                     onActionUp = { changeBpm(STEP_BPM) }
@@ -307,7 +304,7 @@ object CalibrationScene : UIScene() {
             }
 
             box {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 height = 1f
                 style = { color = it.accentColor * 0.2f }
             }
@@ -328,7 +325,7 @@ object CalibrationScene : UIScene() {
                 spacing = 12f
 
                 textButton {
-                    leadingIcon = FontAwesomeIcon(Icon.CaretDown).apply {
+                    leadingIcon = UIIcon(FAIcon.CaretDown).apply {
                         style = { color = it.accentColor }
                     }
                     onActionUp = { changeOffset(-STEP_MS) }
@@ -349,7 +346,7 @@ object CalibrationScene : UIScene() {
                 }
 
                 textButton {
-                    leadingIcon = FontAwesomeIcon(Icon.CaretUp).apply {
+                    leadingIcon = UIIcon(FAIcon.CaretUp).apply {
                         style = { color = it.accentColor }
                     }
                     onActionUp = { changeOffset(STEP_MS) }
@@ -415,7 +412,7 @@ object CalibrationScene : UIScene() {
 
             // Divider
             box {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 height = 1f
                 style = { color = it.accentColor * 0.2f }
             }
@@ -426,7 +423,7 @@ object CalibrationScene : UIScene() {
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
                 spacing = 8f
-                width = Size.Full
+                width = Dimension.FillAvailable
 
                 text {
                     setText(string.opt_highPrecisionInput_title)
@@ -449,7 +446,7 @@ object CalibrationScene : UIScene() {
             text {
                 setText(string.opt_highPrecisionInput_summary)
                 fontSize = FontSize.SM
-                width = Size.Full
+                width = Dimension.FillAvailable
                 clipToBounds = true
                 alignment = Anchor.TopLeft
                 anchor = Anchor.TopLeft
@@ -476,7 +473,7 @@ object CalibrationScene : UIScene() {
             songService.pause()
         }
 
-        UIEngine.current.scene.setChildScene(this, false, false, true)
+        Engine.current.scene.setChildScene(this, false, false, true)
     }
 
     override fun back() {

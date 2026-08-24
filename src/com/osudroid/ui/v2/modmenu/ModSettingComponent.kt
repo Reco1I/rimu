@@ -1,9 +1,9 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.reco1l.andengine.container.UIContainer
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.ui.UIControl
-import com.reco1l.andengine.ui.form.FormControl
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.control.UIControl
+import com.reco1l.verktex.ui.form.FormControl
 import com.osudroid.mods.Mod
 import com.osudroid.mods.settings.ModSetting
 
@@ -48,7 +48,7 @@ sealed class ModSettingComponent<TSettingValue, TControlValue : Any>(
      * The [FormControl] that is used to display this [ModSettingComponent].
      */
     protected val control = createControl().apply {
-        width = Size.Full
+        width = Dimension.FillAvailable
 
         label = setting.name
 
@@ -65,7 +65,7 @@ sealed class ModSettingComponent<TSettingValue, TControlValue : Any>(
     final override var isEnabled by control::isEnabled
 
     init {
-        width = Size.Full
+        width = Dimension.FillAvailable
         +control
     }
 

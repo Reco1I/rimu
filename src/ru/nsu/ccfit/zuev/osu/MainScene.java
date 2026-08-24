@@ -13,18 +13,18 @@ import com.acivev.VibratorManager;
 import com.edlplan.framework.easing.Easing;
 import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.utils.Execution;
-import com.reco1l.andengine.Anchor;
-import com.reco1l.andengine.UIScene;
-import com.reco1l.andengine.shape.UIBox;
-import com.reco1l.andengine.sprite.UISprite;
+import com.reco1l.verktex.data.Anchor;
+import com.reco1l.verktex.Scene;
+import com.reco1l.verktex.ui.shape.UIBox;
+import com.reco1l.verktex.ui.UISprite;
 import com.osudroid.ui.BannerManager;
 import com.osudroid.ui.BannerManager.BannerSprite;
 import com.osudroid.data.BeatmapInfo;
 import com.osudroid.ui.MainMenu;
 
 import com.osudroid.beatmaplisting.BeatmapListing;
-import com.reco1l.andengine.ui.UIConfirmDialog;
-import com.reco1l.framework.Color4;
+import com.reco1l.verktex.ui.dialog.UIConfirmDialog;
+import com.reco1l.verktex.data.Color4;
 import com.reco1l.osu.ui.HorizontalMessageDialog;
 import com.osudroid.beatmaps.timings.EffectControlPoint;
 import com.osudroid.beatmaps.timings.TimingControlPoint;
@@ -88,7 +88,7 @@ public class MainScene implements IUpdateHandler {
     private Context context;
     private Sprite logo, logoOverlay, background, lastBackground;
     private Sprite music_nowplay;
-    private UIScene scene;
+    private Scene scene;
     private ChangeableText musicInfoText;
     private final Rectangle[] spectrum = new Rectangle[120];
     private final float[] peakLevel = new float[120];
@@ -126,7 +126,7 @@ public class MainScene implements IUpdateHandler {
         this.context = context;
         Debug.i("Load: mainMenuLoaded()");
         VibratorManager.INSTANCE.init(context);
-        scene = new UIScene();
+        scene = new Scene();
 
         final TextureRegion tex = ResourceManager.getInstance().getTexture("menu-background");
 
@@ -191,7 +191,7 @@ public class MainScene implements IUpdateHandler {
                 Text versionText = new Text(10f, 2f, ResourceManager.getInstance().getFont("smallFont"), "osu!droid " + BuildConfig.VERSION_NAME);
                 attachChild(versionText);
 
-                setSize(versionText.getWidth() + 20f, versionText.getHeight() + 4f);
+                setMeasuredSize(versionText.getWidth() + 20f, versionText.getHeight() + 4f);
                 setPosition(10f, Config.getRES_HEIGHT() - getHeight() - 10f);
                 setColor(0f, 0f, 0f, 0.5f); // Black
                 setRadius(12f);
@@ -518,7 +518,7 @@ public class MainScene implements IUpdateHandler {
         }
     }
 
-    private void createOnlinePanel(UIScene scene) {
+    private void createOnlinePanel(Scene scene) {
         Config.loadOnlineConfig(context);
         OnlineManager.getInstance().init();
 
@@ -985,7 +985,7 @@ public class MainScene implements IUpdateHandler {
         }, 3000, TimeUnit.MILLISECONDS);
     }
 
-    public UIScene getScene() {
+    public Scene getScene() {
         return scene;
     }
 

@@ -1,9 +1,8 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.reco1l.andengine.text.UIText
+import com.reco1l.verktex.ui.text.UIText
 import com.osudroid.ui.v2.hud.HUDElement
-import com.reco1l.andengine.theme.FontSize
-import ru.nsu.ccfit.zuev.osu.ResourceManager
+import com.reco1l.verktex.theme.FontSize
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import kotlin.math.roundToInt
 

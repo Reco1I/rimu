@@ -1,6 +1,6 @@
 package com.rian.andengine.modifier
 
-import com.reco1l.andengine.component.UIComponent
+import com.reco1l.verktex.ui.UIComponent
 
 /**
  * Tracks the lifetime of [UniversalModifier]s for one specified target member of a [UIComponent].

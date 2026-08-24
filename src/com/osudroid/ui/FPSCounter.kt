@@ -1,21 +1,19 @@
 package com.osudroid.ui
 
 import com.edlplan.framework.easing.Easing
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.data.Color4
 import com.osudroid.math.Interpolation
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.UIEngine
-import com.reco1l.andengine.UIRenderer
-import com.reco1l.andengine.shape.UIBox
-import com.reco1l.andengine.text.UIText
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.Engine
+import com.reco1l.verktex.graphics.GraphicsRenderer
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.data.Vec4
 import java.util.Formatter
 import java.util.Locale
 import kotlin.math.min
 import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
 
 /**
@@ -23,7 +21,7 @@ import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
  */
 class FPSCounter : UIText() {
     private val updateClock
-        get() = UIEngine.current.clock
+        get() = Engine.current.clock
 
     //region Counting logic
 
@@ -182,7 +180,7 @@ class FPSCounter : UIText() {
         stringBuilder.setLength(0)
 
         formatter.format(
-            "%.${if (isHighPrecision) "1" else "0"}f ms | %d FPS | ${UIRenderer.drawCallsOnLastFrame} DCs",
+            "%.${if (isHighPrecision) "1" else "0"}f ms | %d FPS | ${GraphicsRenderer.drawCallsOnLastFrame} DCs",
             displayedMs,
             displayedFps
         )

@@ -5,9 +5,11 @@ import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTick
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.sprite.*
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.ui.sprite.*
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.container.UIContainer
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.game.GameHelper

@@ -8,7 +8,7 @@ import com.osudroid.multiplayer.api.data.RoomPlayer
 import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
 import com.osudroid.ui.v2.multi.*
-import com.reco1l.andengine.*
+import com.reco1l.verktex.*
 import com.osudroid.utils.updateThread
 import com.reco1l.toolkt.kotlin.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.ToastLogger
-import ru.nsu.ccfit.zuev.osu.menu.*
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
@@ -144,7 +143,7 @@ object Multiplayer {
                 ToastLogger.showText("Failed to connect to the room: ${e.javaClass} - ${e.message}", true)
                 Log.e("LobbyScene", "Failed to connect to room.", e)
 
-                UIEngine.current.scene = LobbyScene()
+                Engine.current.scene = LobbyScene()
             }
 
         }

@@ -1,19 +1,23 @@
 package com.osudroid.ui.v2.modmenu
 
 import com.osudroid.ui.v2.*
-import com.osudroid.utils.ModUtils
-import com.reco1l.andengine.*
-import com.reco1l.andengine.buffered.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.text.*
-import com.reco1l.andengine.texture.*
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.ui.*
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.*
+import com.reco1l.verktex.old.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.ui.sprite.*
+import com.reco1l.verktex.ui.text.*
+import com.reco1l.verktex.texture.*
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.data.Color4
 import com.osudroid.mods.*
+import com.osudroid.ui.ISkinnable
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.fill
+import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.text.UIText
 import org.anddev.andengine.engine.camera.*
 import org.anddev.andengine.opengl.texture.region.*
 import ru.nsu.ccfit.zuev.osu.*
@@ -34,7 +38,7 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
 
 
     private fun fetchTextureRegion(): TextureRegion? {
-        return ResourceManager.getInstance().getTexture(mod.iconTextureName)
+        return Textures.getInstance().getTexture(mod.iconTextureName)
             ?.takeUnless { it is BlankTextureRegion }
     }
 
@@ -47,8 +51,8 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
             backgroundColor = Color4.Transparent
 
             attachChild(OsuSkinnableSprite(mod.iconTextureName).apply {
-                width = Size.Full
-                height = Size.Full
+                width = fill()
+                height = fill()
             })
         } else {
             backgroundColor = Theme.current.accentColor * 0.1f

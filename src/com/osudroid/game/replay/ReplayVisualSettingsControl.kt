@@ -1,8 +1,8 @@
 package com.osudroid.game.replay
 
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.ui.UICard
-import com.reco1l.andengine.ui.form.FormSlider
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.UICard
+import com.reco1l.verktex.ui.form.FormSlider
 import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
@@ -39,9 +39,11 @@ class ReplayVisualSettingsControl : UICard() {
     var onBackgroundBrightnessChanged: ((Float) -> Unit)? = null
 
     init {
-        width = Size.Full
+        width = Dimension.FillAvailable
         title = "Visual Settings"
 
-        content += brightnessSlider
+        content {
+            +brightnessSlider
+        }
     }
 }

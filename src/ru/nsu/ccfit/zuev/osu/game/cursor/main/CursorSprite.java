@@ -1,7 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game.cursor.main;
 
-import com.reco1l.andengine.Anchor;
-import com.reco1l.andengine.sprite.UISprite;
+import com.reco1l.verktex.data.Anchor;
+import com.reco1l.verktex.ui.UISprite;
 import com.rian.andengine.modifier.ModifierType;
 import com.rian.andengine.modifier.OnModifierFinished;
 import com.rian.andengine.modifier.UniversalModifierSequence;
@@ -17,7 +17,7 @@ public class CursorSprite extends UISprite implements ISliderListener {
     private final float clickAnimationTime = 0.25f;
 
     private final OnModifierFinished rotationModifierFinished = e -> {
-        setRotation(0);
+        setRotationZ(0);
         startRotationModifierLoop();
     };
 

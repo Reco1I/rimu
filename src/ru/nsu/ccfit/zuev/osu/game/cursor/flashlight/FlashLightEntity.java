@@ -2,8 +2,8 @@ package ru.nsu.ccfit.zuev.osu.game.cursor.flashlight;
 
 import com.edlplan.framework.easing.Easing;
 import com.edlplan.framework.math.FMath;
-import com.reco1l.andengine.component.UIComponent;
-import com.reco1l.framework.Interpolation;
+import com.reco1l.verktex.ui.UIComponent;
+import com.reco1l.verktex.math.FloatInterpolation;
 import com.osudroid.mods.ModFlashlight;
 
 import ru.nsu.ccfit.zuev.osu.Config;
@@ -64,7 +64,7 @@ public class FlashLightEntity extends UIComponent {
     }
 
     private float getInterpolatedPosition(float deltaTime, float current, float next) {
-        return Interpolation.floatAt(Math.min(deltaTime, followDelay), current, next, 0, followDelay, Easing.Out);
+        return FloatInterpolation.floatAt(Math.min(deltaTime, followDelay), current, next, 0, followDelay, Easing.Out);
     }
 }
 

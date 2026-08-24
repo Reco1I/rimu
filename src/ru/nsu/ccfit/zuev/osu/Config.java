@@ -20,9 +20,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.osudroid.multiplayer.Multiplayer;
-import com.reco1l.andengine.UIEngine;
-import com.reco1l.framework.Color4;
-import com.reco1l.framework.HexComposition;
+import com.reco1l.verktex.Engine;
+import com.reco1l.verktex.data.Color4;
+import com.reco1l.verktex.data.HexComposition;
 
 import net.margaritov.preference.colorpicker.ColorPickerPreference;
 
@@ -285,7 +285,7 @@ public class Config {
             RES_WIDTH = (int) (width * ratio);
             RES_HEIGHT = (int) (height * ratio);
 
-            UIEngine.setLegacyResolutionPolicyScaleRatio(ratio);
+            Engine.setLegacyResolutionPolicyScaleRatio(ratio);
         } else {
             RES_WIDTH = width;
             RES_HEIGHT = height;

@@ -1,17 +1,19 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.reco1l.andengine.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.text.*
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Radius
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.*
-import com.reco1l.framework.math.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.theme.Radius
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.ui.container.UIFillContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.toolkt.kotlin.*
+import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
 
 @Suppress("LeakingThis")
 open class ModMenuSection(name: String, private val toggles: List<UIButton> = listOf()) : UIFillContainer() {
@@ -21,8 +23,8 @@ open class ModMenuSection(name: String, private val toggles: List<UIButton> = li
 
     init {
         orientation = Orientation.Vertical
-        height = Size.Full
-        cullingMode = CullingMode.CameraBounds
+        height = Dimension.FillAvailable
+        cullingMode = CullingMode.ScreenBounds
         style = {
             width = 14f.rem
             backgroundColor = it.accentColor * 0.1f
@@ -30,7 +32,7 @@ open class ModMenuSection(name: String, private val toggles: List<UIButton> = li
         }
 
         +UIText().apply {
-            width = Size.Full
+            width = Dimension.FillAvailable
             text = name.uppercase()
             alignment = Anchor.Center
             style = {
@@ -42,13 +44,13 @@ open class ModMenuSection(name: String, private val toggles: List<UIButton> = li
         }
 
         +UIScrollableContainer().apply {
-            scrollAxes = Axes.Y
-            width = Size.Full
-            height = Size.Full
+            scrollAxes = Axis.Y
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             clipToBounds = true
 
             +UILinearContainer().apply {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 orientation = Orientation.Vertical
                 style = {
                     padding = Vec4(2f.srem, 0f, 2f.srem, 2f.srem)

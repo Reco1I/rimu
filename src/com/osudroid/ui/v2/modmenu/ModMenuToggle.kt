@@ -2,20 +2,17 @@ package com.osudroid.ui.v2.modmenu
 
 import com.osudroid.multiplayer.*
 import com.osudroid.utils.searchContiguously
-import com.reco1l.andengine.*
-import com.reco1l.andengine.buffered.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.shape.UIBox
-import com.reco1l.andengine.text.*
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.*
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.data.Vec4
 import com.rian.andengine.modifier.ModifierType
 import com.osudroid.mods.*
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.ui.container.Orientation
 import ru.nsu.ccfit.zuev.osu.*
 
 
@@ -33,14 +30,14 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
         }
 
     init {
-        width = Size.Full
-        style += {
+        width = Density.Full
+        style + {
             padding = Vec4(3f.srem, 2f.srem)
         }
 
         fillContainer {
-            width = Size.Full
-            cullingMode = CullingMode.CameraBounds
+            width = Density.Full
+            cullingMode = CullingMode.ScreenBounds
             style = {
                 spacing = 3f.srem
             }
@@ -55,7 +52,7 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
             }
 
             linearContainer {
-                width = Size.Full
+                width = Density.Full
                 orientation = Orientation.Vertical
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
@@ -65,7 +62,7 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
                 }
 
                 text {
-                    width = Size.Full
+                    width = Density.Full
                     text = mod.description
                     wrapText = true
                     style = {
@@ -78,10 +75,10 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
             onActionUp = {
                 if (isSelected) {
                     ModMenu.removeMod(mod)
-                    ResourceManager.getInstance().getSound("check-off")?.play()
+                    Textures.getInstance().getSound("check-off")?.play()
                 } else {
                     ModMenu.addMod(mod)
-                    ResourceManager.getInstance().getSound("check-on")?.play()
+                    Textures.getInstance().getSound("check-on")?.play()
                 }
             }
 

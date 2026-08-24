@@ -1,11 +1,10 @@
 package com.osudroid.ui.v2.mainmenu
 
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.component.UIComponent
-import com.reco1l.andengine.component.scaleCenter
-import com.reco1l.andengine.shape.UITriangle
-import com.reco1l.andengine.theme.Colors
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.shape.UITriangle
+import com.reco1l.verktex.theme.Colors
+import com.reco1l.verktex.data.Color4
 import com.reco1l.toolkt.kotlin.fastForEach
 import org.anddev.andengine.engine.camera.Camera
 import javax.microedition.khronos.opengles.GL10
@@ -69,7 +68,7 @@ class TrianglesDispenser : UIComponent() {
     init {
         attachChild(triangle.apply {
             color = Colors.White
-            scaleCenter = Anchor.Center
+            scaleOrigin = Anchor.Center
         })
     }
 
@@ -107,7 +106,7 @@ class TrianglesDispenser : UIComponent() {
             triangle.y = info.y
             triangle.x = info.x
             triangle.color = info.color
-            triangle.rotation = info.rotation
+            triangle.rotationZ = info.rotation
             triangle.onDraw(gl, camera)
         }
     }

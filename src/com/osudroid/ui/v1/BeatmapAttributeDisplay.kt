@@ -1,18 +1,17 @@
 package com.osudroid.ui.v1
 
 import com.osudroid.ui.OsuColors
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.Axes
-import com.reco1l.andengine.UIScene
-import com.reco1l.andengine.container.Orientation
-import com.reco1l.andengine.container.UILinearContainer
-import com.reco1l.andengine.container.UIScrollableContainer
-import com.reco1l.andengine.text.UIText
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.pct
-import com.reco1l.andengine.ui.UIModal
-import com.reco1l.framework.Color4
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.ui.pct
+import com.reco1l.verktex.ui.UIModal
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.toolkt.kotlin.fastForEach
 import com.reco1l.toolkt.roundBy
 import com.osudroid.GameMode
@@ -25,23 +24,21 @@ import com.osudroid.mods.Mod
 import com.osudroid.mods.ModPrecise
 import com.osudroid.utils.CircleSizeCalculator
 import com.osudroid.utils.ModUtils
+import com.reco1l.verktex.Engine
 import kotlin.math.roundToInt
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 
 /**
- * A [UIScene] containing a [UIModal] that shows the attributes of a beatmap, adjusted for the given mods.
+ * A [Scene] containing a [UIModal] that shows the attributes of a beatmap, adjusted for the given mods.
  *
  * @param difficulty The base [BeatmapDifficulty] of the beatmap.
  * @param mods The [Mod]s to adjust the [BeatmapDifficulty] with.
  */
-open class BeatmapAttributeDisplay(difficulty: BeatmapDifficulty, mods: Iterable<Mod>) : UIScene() {
+open class BeatmapAttributeDisplay(difficulty: BeatmapDifficulty, mods: Iterable<Mod>) : Scene() {
     private val modal = BeatmapAttributeModal()
-    private val modalCard: UILinearContainer = modal.card[0]!!
+    private val modalCard: UILinearContainer = modal.card[0] as UILinearContainer
 
     init {
-        isBackgroundEnabled = false
-
-        attachChild(modal)
+        +modal
 
         val nonRateAdjustedDifficulty = difficulty.clone()
         val rateAdjustedDifficulty = difficulty.clone()
@@ -119,8 +116,7 @@ open class BeatmapAttributeDisplay(difficulty: BeatmapDifficulty, mods: Iterable
     }
 
     override fun show() {
-        GlobalManager.getInstance().engine.scene.setChildScene(this, false, false, true)
-
+        Engine.current.sceneCoordinator.pushScene(this)
         modal.show()
     }
 
@@ -185,7 +181,7 @@ open class BeatmapAttributeDisplay(difficulty: BeatmapDifficulty, mods: Iterable
 
     private inner class BeatmapAttributeModal : UIModal(
         UIScrollableContainer().apply {
-            scrollAxes = Axes.Y
+            scrollAxes = Axis.Y
             width = 0.8f.pct
             height = 0.75f.pct
             anchor = Anchor.Center
@@ -201,7 +197,7 @@ open class BeatmapAttributeDisplay(difficulty: BeatmapDifficulty, mods: Iterable
     ) {
         override fun onHidden() {
             super.onHidden()
-            back()
+            Engine.current.sceneCoordinator.popScene()
         }
     }
 

@@ -3,7 +3,7 @@ package com.osudroid.ui
 import com.osudroid.BuildSettings
 import com.osudroid.resources.R
 import com.osudroid.ui.v1.SettingsFragment
-import com.reco1l.andengine.sprite.UISprite
+import com.reco1l.verktex.ui.UISprite
 import com.osudroid.utils.async
 import com.osudroid.beatmaplisting.BeatmapListing
 import com.osudroid.utils.mainThread

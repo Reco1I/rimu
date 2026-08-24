@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.data.Color4
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.beatmaps.constants.HitObjectType

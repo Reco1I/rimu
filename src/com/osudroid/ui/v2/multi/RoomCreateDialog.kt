@@ -4,24 +4,26 @@ import com.osudroid.resources.R.string
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*
 import com.osudroid.ui.v2.LoaderScene
-import com.reco1l.andengine.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.theme.vh
-import com.reco1l.andengine.ui.*
-import com.reco1l.andengine.ui.form.*
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.*
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.vh
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.dialog.UIDialog
+import com.reco1l.verktex.ui.form.*
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.toolkt.kotlin.*
+import com.reco1l.verktex.data.Axis
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.helper.*
-import ru.nsu.ccfit.zuev.osu.menu.*
 import ru.nsu.ccfit.zuev.osu.online.*
 
-class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>(UIScrollableContainer().apply {
-    scrollAxes = Axes.Y
-    width = Size.Full
+class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>(
+    UIScrollableContainer().apply {
+    scrollAxes = Axis.Y
+    width = Dimension.FillAvailable
     clipToBounds = true
     style = {
         height = 0.55f.vh
@@ -31,7 +33,7 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
     init {
 
         val form = FormContainer().apply {
-            width = Size.Full
+            width = Dimension.FillAvailable
             orientation = Orientation.Vertical
             style = {
                 padding = Vec4(0f, 4f.srem)
@@ -82,7 +84,7 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
                         )
 
                     } catch (e: Exception) {
-                        UIEngine.current.scene = lobbyScene
+                        Engine.current.scene = lobbyScene
                         ToastLogger.showText("Failed to create a room: ${e.message}", true)
                         e.printStackTrace()
                     }
@@ -92,19 +94,19 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
 
             +FormInput(StringTable.format(string.multiplayer_lobby_create_room_name_default, OnlineManager.getInstance().username)).apply {
                 key = "name"
-                width = Size.Full
+                width = Dimension.FillAvailable
                 label = StringTable.get(string.multiplayer_lobby_room_name)
             }
 
             +FormInput().apply {
                 key = "password"
-                width = Size.Full
+                width = Dimension.FillAvailable
                 label = StringTable.get(string.multiplayer_lobby_room_password)
             }
 
             +FormSlider(8f).apply {
                 key = "capacity"
-                width = Size.Full
+                width = Dimension.FillAvailable
                 label = StringTable.get(string.multiplayer_lobby_room_capacity)
                 control.max = 16f
                 control.min = 2f

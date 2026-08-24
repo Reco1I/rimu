@@ -3,8 +3,8 @@ package com.rian.andengine.modifier
 import com.edlplan.framework.easing.Easing
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
-import com.reco1l.andengine.component.UIComponent
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.data.Color4
 
 /**
  * A sequence of [UniversalModifier]s all operating upon the same [UIComponent]. Can be used to group and chain

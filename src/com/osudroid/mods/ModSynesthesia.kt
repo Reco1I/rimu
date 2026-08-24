@@ -1,6 +1,6 @@
 package com.osudroid.mods
 
-import com.reco1l.framework.*
+import com.reco1l.verktex.data.Color4
 
 /**
  * Represents the Synesthesia mod.

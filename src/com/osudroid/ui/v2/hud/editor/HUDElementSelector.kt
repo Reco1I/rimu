@@ -1,22 +1,23 @@
 package com.osudroid.ui.v2.hud.editor
 
-import com.reco1l.andengine.*
-import com.reco1l.andengine.container.UIContainer
-import com.reco1l.andengine.container.UILinearContainer
-import com.reco1l.andengine.container.Orientation
-import com.reco1l.andengine.container.UIScrollableContainer
-import com.reco1l.andengine.shape.UIBox
-import com.reco1l.andengine.text.UIText
-import com.reco1l.framework.Color4
-import com.reco1l.framework.math.Vec4
+import com.reco1l.verktex.*
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec4
 import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.hud.HUDElements
 import com.osudroid.ui.v2.hud.IGameplayEvents
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Size
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.data.Dimension
 import com.reco1l.toolkt.kotlin.fastForEach
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
 import org.anddev.andengine.input.touch.TouchEvent
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
@@ -36,13 +37,13 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
 
     private val elementList = UIScrollableContainer().apply {
 
-        scrollAxes = Axes.Y
-        height = Size.Full
+        scrollAxes = Axis.Y
+        height = Dimension.FillAvailable
         width = SELECTOR_WIDTH
         backgroundColor = Color4(0xFF1E1E2E)
 
         attachChild(UILinearContainer().apply {
-            width = Size.Full
+            width = Dimension.FillAvailable
             padding = Vec4(16f)
             spacing = 12f
             orientation = Orientation.Vertical
@@ -56,7 +57,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
 
 
     init {
-        height = Size.Full
+        height = Dimension.FillAvailable
 
         x = -SELECTOR_WIDTH
 
@@ -74,7 +75,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
                 origin = Anchor.CenterLeft
 
                 attachChild(UIText().apply {
-                    rotation = -90f
+                    rotationZ = -90f
                     anchor = Anchor.Center
                     origin = Anchor.Center
                     fontSize = FontSize.SM

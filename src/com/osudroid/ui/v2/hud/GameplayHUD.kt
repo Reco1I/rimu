@@ -4,13 +4,13 @@ import com.osudroid.resources.R.string
 import com.osudroid.ui.v2.hud.elements.HUDAccuracyCounter
 import com.osudroid.ui.v2.hud.elements.HUDPieSongProgress
 import com.osudroid.ui.v2.hud.elements.HUDScoreCounter
-import com.reco1l.andengine.container.UIContainer
+import com.reco1l.verktex.ui.container.UIContainer
 import com.osudroid.ui.v2.hud.editor.HUDElementSelector
 import com.reco1l.osu.ui.MessageDialog
 import com.osudroid.utils.updateThread
-import com.reco1l.andengine.UIEngine
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.theme.Size
+import com.reco1l.verktex.Engine
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.data.Dimension
 import com.reco1l.toolkt.kotlin.*
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
@@ -43,11 +43,11 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
                 // Move to front
                 if (value != null) {
-                    setChildIndex(value, mChildren.size - 1)
+                    value.moveToFront()
 
                     // Preserve overlay on top of the element.
                     if (value.editorOverlay != null) {
-                        setChildIndex(value.editorOverlay, mChildren.size - 1)
+                        value.editorOverlay?.moveToFront()
                     }
 
                     elementSelector?.collapse()
@@ -66,13 +66,13 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
 
     init {
-        width = Size.Full
-        height = Size.Full
+        width = Dimension.FillAvailable
+        height = Dimension.FillAvailable
     }
 
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
-        if (UIEngine.current.scene != GlobalManager.getInstance().gameScene?.scene) {
+        if (Engine.current.scene != GlobalManager.getInstance().gameScene?.scene) {
             detachSelf()
             return
         }
@@ -99,7 +99,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
             return
         }
 
-        attachChild(element)
+        +element
         element.restoreData = data
         element.setSkinData(data)
         element.setEditMode(inEditMode)
@@ -253,7 +253,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
     override fun onAttached() {
         if (isInEditMode) {
-            UIEngine.current.overlay.attachChild(elementSelector)
+            Engine.current.overlay.attachChild(elementSelector)
         }
         super.onAttached()
     }

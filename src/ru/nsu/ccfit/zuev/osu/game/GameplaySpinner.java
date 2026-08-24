@@ -2,10 +2,10 @@ package ru.nsu.ccfit.zuev.osu.game;
 
 import android.graphics.PointF;
 
-import com.reco1l.andengine.UIScene;
-import com.reco1l.andengine.sprite.ScaleType;
-import com.reco1l.andengine.sprite.UISprite;
-import com.reco1l.andengine.Anchor;
+import com.reco1l.verktex.Scene;
+import com.reco1l.verktex.ui.sprite.ScaleType;
+import com.reco1l.verktex.ui.UISprite;
+import com.reco1l.verktex.data.Anchor;
 import com.osudroid.beatmaps.hitobjects.BankHitSampleInfo;
 import com.osudroid.beatmaps.hitobjects.Spinner;
 import com.osudroid.game.GameplayHitSampleInfo;
@@ -40,7 +40,7 @@ public class GameplaySpinner extends GameObject {
     protected Spinner beatmapSpinner;
     protected PointF oldMouse;
     protected GameObjectListener listener;
-    protected UIScene scene;
+    protected Scene scene;
     protected int fullRotations = 0;
     protected float rotations = 0;
     protected float needRotations;
@@ -108,7 +108,7 @@ public class GameplaySpinner extends GameObject {
         endsCombo = true;
     }
 
-    public void init(final GameObjectListener listener, final UIScene scene,
+    public void init(final GameObjectListener listener, final Scene scene,
                      final Spinner beatmapSpinner, final float rps, final StatisticV2 stat) {
         fullRotations = 0;
         rotations = 0;
@@ -315,7 +315,7 @@ public class GameplaySpinner extends GameObject {
         }
 
         if (mouse != null) {
-            circle.setRotation(MathUtils.radToDeg(Utils.direction(currMouse)));
+            circle.setRotationZ(MathUtils.radToDeg(Utils.direction(currMouse)));
 
             var len1 = Utils.length(currMouse);
             var len2 = Utils.length(oldMouse);
@@ -326,7 +326,7 @@ public class GameplaySpinner extends GameObject {
 
             if (autoPlay) {
                 dfill = 5 * 4 * dt;
-                circle.setRotation((rotations + dfill / 4f) * 360);
+                circle.setRotationZ((rotations + dfill / 4f) * 360);
                 //auto时，FL光圈绕中心旋转
                 if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
                     float angle = (rotations + dfill / 4f) * 360;

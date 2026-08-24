@@ -2,24 +2,21 @@ package com.osudroid.ui.v2.mainmenu
 
 import android.opengl.GLES10
 import com.osudroid.RythimManager
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.circle
-import com.reco1l.andengine.component.ClearInfo
-import com.reco1l.andengine.component.DepthInfo
-import com.reco1l.andengine.component.rotationCenter
-import com.reco1l.andengine.component.scaleCenter
-import com.reco1l.andengine.container
-import com.reco1l.andengine.container.UIContainer
-import com.reco1l.andengine.shape.PaintStyle
-import com.reco1l.andengine.shape.UICircle
-import com.reco1l.andengine.shape.UIGradientBox
-import com.reco1l.andengine.sprite
-import com.reco1l.andengine.theme.Colors
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.ui.UIClickableContainer
-import com.reco1l.framework.Interpolation
-import com.reco1l.framework.rgb
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.circle
+import com.reco1l.verktex.component.ClearInfo
+import com.reco1l.verktex.component.DepthInfo
+import com.reco1l.verktex.ui.container
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.PaintStyle
+import com.reco1l.verktex.ui.shape.UICircle
+import com.reco1l.verktex.ui.UIGradientBox
+import com.reco1l.verktex.ui.sprite
+import com.reco1l.verktex.theme.Colors
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.container.UIClickableContainer
+import com.reco1l.verktex.math.FloatInterpolation
+import com.reco1l.verktex.data.rgb
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 
 class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
@@ -41,8 +38,8 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
     init {
         if (withExternalEffects) {
             +RippleVisualizer().apply {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 alpha = 0.3f
@@ -52,15 +49,15 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
         }
 
         bounceContainer = container {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             anchor = Anchor.Center
             origin = Anchor.Center
 
             if (withExternalEffects) {
                 +RadialVisualizer().apply {
-                    width = Size.Full
-                    height = Size.Full
+                    width = Dimension.FillAvailable
+                    height = Dimension.FillAvailable
                     anchor = Anchor.Center
                     origin = Anchor.Center
                     alpha = 0.4f
@@ -70,8 +67,8 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
             }
 
             circle {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 color = OSU_COLOR
@@ -80,8 +77,8 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
             }
 
             +TrianglesDispenser().apply {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 triangle.apply {
                     depthInfo = DepthInfo(test = true, mask = true, function = GLES10.GL_EQUAL)
                     paintStyle = PaintStyle.Outline
@@ -99,8 +96,8 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
             }
 
             +UIGradientBox().apply {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 colorStart = Colors.Transparent
                 colorEnd = Colors.Black
                 gradientAngle = 90f
@@ -112,8 +109,8 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
 
             sprite {
                 textureRegion = ResourceManager.getInstance().getTexture("logo")
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
 
@@ -121,8 +118,8 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
             }
 
             inputFeedbackCircle = circle {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 color = Colors.White
                 alpha = 0f
             }
@@ -141,18 +138,18 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
 
             if (RythimManager.beatElapsed / 1000f < beatLengthSeconds * 0.75f) {
                 val threeQuarts = beatLengthSeconds * 0.75f
-                bounceContainer.setScale(Interpolation.floatAt(deltaTimeSec.coerceIn(0f, threeQuarts), bounceContainer.scaleX, 1f, 0f, threeQuarts))
+                bounceContainer.setScale(FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, threeQuarts), bounceContainer.scaleX, 1f, 0f, threeQuarts))
             } else {
                 val oneQuart = beatLengthSeconds * 0.25f
-                bounceContainer.setScale(Interpolation.floatAt(deltaTimeSec.coerceIn(0f, oneQuart), bounceContainer.scaleX, 0.9f, 0f, oneQuart))
+                bounceContainer.setScale(FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, oneQuart), bounceContainer.scaleX, 0.9f, 0f, oneQuart))
             }
         } else {
-            bounceContainer.setScale(Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), bounceContainer.scaleX, 1f, 0f, 0.1f))
-            radialVisualizer?.alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), radialVisualizer?.alpha ?: 0f, 0f, 0f, 0.1f)
-            rippleDispenser?.alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), rippleDispenser?.alpha ?: 0f, 0f, 0f, 0.1f)
+            bounceContainer.setScale(FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), bounceContainer.scaleX, 1f, 0f, 0.1f))
+            radialVisualizer?.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), radialVisualizer?.alpha ?: 0f, 0f, 0f, 0.1f)
+            rippleDispenser?.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), rippleDispenser?.alpha ?: 0f, 0f, 0f, 0.1f)
         }
 
-        inputFeedbackCircle.alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), inputFeedbackCircle.alpha, 0f, 0f, 0.1f)
+        inputFeedbackCircle.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), inputFeedbackCircle.alpha, 0f, 0f, 0.1f)
 
         super.onManagedUpdate(deltaTimeSec)
     }

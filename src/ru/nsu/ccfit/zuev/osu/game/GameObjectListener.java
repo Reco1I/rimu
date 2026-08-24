@@ -3,7 +3,7 @@ package ru.nsu.ccfit.zuev.osu.game;
 import android.graphics.PointF;
 
 import com.osudroid.game.Cursor;
-import com.reco1l.framework.Color4;
+import com.reco1l.verktex.data.Color4;
 import com.osudroid.beatmaps.constants.HitObjectType;
 import com.osudroid.game.GameplayHitSampleInfo;
 

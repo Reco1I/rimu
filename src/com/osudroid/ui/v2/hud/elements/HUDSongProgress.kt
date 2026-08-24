@@ -1,12 +1,13 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.reco1l.andengine.*
-import com.reco1l.andengine.shape.UIBox
-import com.reco1l.andengine.shape.UICircle
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.*
+import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.ui.shape.UICircle
+import com.reco1l.verktex.data.Color4
 import com.osudroid.ui.v2.hud.HUDElement
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.theme.Size
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Dimension
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 
@@ -27,7 +28,7 @@ class HUDLinearSongProgress : HUDSongProgress() {
     private val backgroundRect = UIBox().apply {
         anchor = Anchor.BottomLeft
         origin = Anchor.BottomLeft
-        width = Size.Full
+        width = Dimension.FillAvailable
         height = BAR_HEIGHT
         color = Color4.Black
         alpha = 0.3f
@@ -74,8 +75,8 @@ class HUDPieSongProgress : HUDSongProgress() {
 
 
     init {
-        width = Size.Auto
-        height = Size.Auto
+        width = Dimension.WrapContent
+        height = Dimension.WrapContent
 
         // Reference: https://github.com/ppy/osu/blob/6455c0583b5e607baeca7f584410bc63515aa619/osu.Game/Skinning/LegacySongProgress.cs
 

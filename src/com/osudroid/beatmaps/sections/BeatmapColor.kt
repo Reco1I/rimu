@@ -1,7 +1,7 @@
 package com.osudroid.beatmaps.sections
 
 import com.osudroid.beatmaps.ComboColor
-import com.reco1l.framework.*
+import com.reco1l.verktex.data.Color4
 
 /**
  * Contains information about combo and skin colors of a beatmap.

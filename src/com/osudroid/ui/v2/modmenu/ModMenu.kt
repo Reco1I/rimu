@@ -5,11 +5,11 @@ import com.osudroid.GameMode
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.DatabaseManager
-import com.reco1l.andengine.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.ui.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.shape.*
+import com.reco1l.verktex.ui.sprite.*
+import com.reco1l.verktex.ui.*
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
 import com.osudroid.multiplayer.api.RoomAPI.setPlayerMods
@@ -20,12 +20,11 @@ import com.osudroid.ui.v2.ModsIndicator
 import com.osudroid.ui.v2.StarRatingBadge
 import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.updateThread
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.UITextButton
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.theme.srem
+import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.toolkt.kotlin.*
 import com.reco1l.toolkt.kotlin.async
 import com.rian.framework.RollingFloatCounter
@@ -33,6 +32,17 @@ import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateDroidDifficu
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateStandardDifficulty
 import com.osudroid.mods.*
 import com.osudroid.utils.ModUtils
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UIFillContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UIScrollableContainer
 import java.io.IOException
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.*
@@ -43,7 +53,7 @@ import java.util.concurrent.CancellationException
 import kotlin.math.*
 import kotlin.reflect.KClass
 
-object ModMenu : UIScene() {
+object ModMenu : Scene() {
 
 
     /**
@@ -86,18 +96,18 @@ object ModMenu : UIScene() {
         isBackgroundEnabled = false
 
         attachChild(UIFillContainer().apply {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
             orientation = Orientation.Vertical
             style = {
                 backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.9f)
             }
 
             +UIContainer().apply {
-                width = Size.Full
-                height = Size.Auto
+                width = Dimension.FillAvailable
+                height = Dimension.WrapContent
                 style = {
-                    padding = UIEngine.current.safeArea.copy(y = 2f.srem, w = 2f.srem)
+                    padding = Engine.current.safeArea.copy(y = 2f.srem, w = 2f.srem)
                 }
 
                 +UILinearContainer().apply {
@@ -110,50 +120,50 @@ object ModMenu : UIScene() {
 
                     +UITextButton().apply {
                         text = "Back"
-                        leadingIcon = FontAwesomeIcon(Icon.ArrowLeft)
+                        leadingIcon = UIIcon(FAIcon.ArrowLeft)
                         onActionUp = {
-                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
+                            Textures.getInstance().getSound("click-short-confirm")?.play()
                             back()
                         }
-                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { Textures.getInstance().getSound("click-short")?.play() }
                     }
 
                     customizeButton = UITextButton().apply {
                         text = "Customize"
                         isEnabled = false
-                        leadingIcon = FontAwesomeIcon(Icon.Wrench)
+                        leadingIcon = UIIcon(FAIcon.Wrench)
                         onActionUp = {
-                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
+                            Textures.getInstance().getSound("click-short-confirm")?.play()
                             if (customizationMenu.isVisible) {
                                 customizationMenu.hide()
                             } else {
                                 customizationMenu.show()
                             }
                         }
-                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { Textures.getInstance().getSound("click-short")?.play() }
                     }
 
                     +customizeButton
 
                     +UITextButton().apply {
                         text = "Clear"
-                        style += {
+                        style + {
                             color = Color4(0xFFFFBFBF)
                             backgroundColor = Color4(0xFF342121)
                         }
-                        leadingIcon = FontAwesomeIcon(Icon.DeleteLeft)
+                        leadingIcon = UIIcon(FAIcon.DeleteLeft)
                         onActionUp = {
-                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
+                            Textures.getInstance().getSound("click-short-confirm")?.play()
                             clear()
                         }
-                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { Textures.getInstance().getSound("click-short")?.play() }
                     }
 
                     +UIScrollableContainer().apply {
-                        height = Size.Auto
+                        height = Dimension.WrapContent
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
-                        scrollAxes = Axes.X
+                        scrollAxes = Axis.X
                         clipToBounds = true
                         style = {
                             width = 12f.rem
@@ -188,7 +198,7 @@ object ModMenu : UIScene() {
                             padding = Vec4(2f.srem, 0f)
                         }
 
-                        +FontAwesomeIcon(Icon.MagnifyingGlass).apply {
+                        +UIIcon(FAIcon.MagnifyingGlass).apply {
                             style = {
                                 color = it.accentColor
                             }
@@ -198,17 +208,17 @@ object ModMenu : UIScene() {
             }
 
             +UIScrollableContainer().apply {
-                width = Size.Full
-                height = Size.Full
-                scrollAxes = Axes.X
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                scrollAxes = Axis.X
 
                 +UILinearContainer().apply {
                     orientation = Orientation.Horizontal
-                    width = Size.Auto
-                    height = Size.Full
+                    width = Dimension.WrapContent
+                    height = Dimension.FillAvailable
                     style = {
                         spacing = 2f.srem
-                        padding = UIEngine.current.safeArea
+                        padding = Engine.current.safeArea
                     }
 
                     modPresetsSection = ModMenuPresetsSection()
@@ -235,10 +245,10 @@ object ModMenu : UIScene() {
             }
 
             +UIContainer().apply {
-                width = Size.Full
-                height = Size.Auto
+                width = Dimension.FillAvailable
+                height = Dimension.WrapContent
                 style = {
-                    padding = UIEngine.current.safeArea.copy(
+                    padding = Engine.current.safeArea.copy(
                         y = 2f.srem,
                         w = 2f.srem + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)
                     )
@@ -663,11 +673,14 @@ object ModMenu : UIScene() {
             counter.targetValue = finalValue
 
             valueComponent.clearEntityModifiers()
-            valueComponent.colorTo(Color4(when {
-                initialValue < finalValue -> 0xFFF78383
-                initialValue > finalValue -> 0xFF40CF5D
-                else -> 0xFFFFFFFF
-            }), counter.rollingDuration, counter.rollingEasing)
+            valueComponent.colorTo(
+                Color4(
+                    when {
+                        initialValue < finalValue -> 0xFFF78383
+                        initialValue > finalValue -> 0xFF40CF5D
+                        else -> 0xFFFFFFFF
+                    }
+                ), counter.rollingDuration, counter.rollingEasing)
         }
 
         override fun onManagedUpdate(deltaTimeSec: Float) {

@@ -8,8 +8,8 @@ import com.osudroid.ui.skinning.ColorSkinData;
 import com.osudroid.ui.skinning.FloatSkinData;
 import com.osudroid.ui.skinning.StringSkinData;
 import com.osudroid.ui.v2.hud.HUDSkinData;
-import com.reco1l.framework.Color4;
-import com.reco1l.framework.HexComposition;
+import com.reco1l.verktex.data.Color4;
+import com.reco1l.verktex.data.HexComposition;
 
 import okio.BufferedSource;
 import okio.Okio;

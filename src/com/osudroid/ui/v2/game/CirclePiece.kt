@@ -1,10 +1,15 @@
 package com.osudroid.ui.v2.game
 
-import com.reco1l.andengine.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.sprite.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.ui.sprite.*
 import com.osudroid.ui.v2.SpriteFont
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.framework.*
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.texture.Textures
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.skins.*
 
@@ -25,7 +30,7 @@ open class CirclePiece(
 
         it.origin = Anchor.Center
         it.anchor = Anchor.Center
-        it.textureRegion = ResourceManager.getInstance().getTexture(circleTexture)
+        it.textureRegion = Textures.getInstance().getTexture(circleTexture)
 
         attachChild(it)
     }
@@ -34,7 +39,7 @@ open class CirclePiece(
 
         it.origin = Anchor.Center
         it.anchor = Anchor.Center
-        it.textureRegion = ResourceManager.getInstance().getTexture(overlayTexture)
+        it.textureRegion = Textures.getInstance().getTexture(overlayTexture)
 
         attachChild(it)
     }
@@ -49,11 +54,11 @@ open class CirclePiece(
     }
 
     fun setCircleTextureRegion(circleTexture: String) {
-        circle.textureRegion = ResourceManager.getInstance().getTexture(circleTexture)
+        circle.textureRegion = Textures.getInstance().getTexture(circleTexture)
     }
 
     fun setOverlayTextureRegion(overlayTexture: String) {
-        overlay.textureRegion = ResourceManager.getInstance().getTexture(overlayTexture)
+        overlay.textureRegion = Textures.getInstance().getTexture(overlayTexture)
     }
 }
 

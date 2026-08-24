@@ -1,10 +1,11 @@
 package com.osudroid.ui.v2
 
 import com.osudroid.ui.v2.modmenu.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.theme.FontSize
+import com.reco1l.verktex.theme.FontSize
 import com.osudroid.mods.*
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UILinearContainer
 
 class ModsIndicator : UILinearContainer() {
 

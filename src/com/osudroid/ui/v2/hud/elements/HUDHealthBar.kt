@@ -1,13 +1,19 @@
 package com.osudroid.ui.v2.hud.elements
 
 import com.edlplan.framework.easing.*
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.texture.*
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.shape.*
+import com.reco1l.verktex.ui.sprite.*
+import com.reco1l.verktex.texture.*
 import com.reco1l.framework.*
 import com.osudroid.ui.v2.hud.HUDElement
-import com.reco1l.andengine.component.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.math.ColorInterpolation
+import com.reco1l.verktex.math.FloatInterpolation
+import com.reco1l.verktex.ui.UIAnimatedSprite
+import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.ui.UISprite
 import org.anddev.andengine.opengl.texture.region.*
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.game.GameScene
@@ -95,7 +101,7 @@ class HUDHealthBar : HUDElement() {
     override fun onGameplayUpdate(game: GameScene, secondsElapsed: Float) {
         val hp = game.stat.hp
 
-        fillClear.width = Interpolation.floatAt(secondsElapsed.coerceIn(0f, 0.2f), fillClear.width, (1f - hp) * fill.width, 0f, 0.2f, Easing.OutQuint)
+        fillClear.width = FloatInterpolation.floatAt(secondsElapsed.coerceIn(0f, 0.2f), fillClear.width, (1f - hp) * fill.width, 0f, 0.2f, Easing.OutQuint)
 
         marker.x = fill.x + fill.width - fillClear.width
         marker.y = fill.y + (if (isNewStyle) fill.height / 2 else 0f)
@@ -159,8 +165,8 @@ class HUDHealthBar : HUDElement() {
 
     private fun getFillColor(hp: Float) = when {
 
-        hp < 0.2f -> Colors.interpolateNonLinear(0.2f - hp, Color4.Black, Color4.Red, 0f, 0.2f)
-        hp < EPIC_CUTOFF -> Colors.interpolateNonLinear(0.5f - hp, Color4.White, Color4.Black, 0f, 0.5f)
+        hp < 0.2f -> ColorInterpolation.colorAt(0.2f - hp, Color4.Black, Color4.Red500, 0f, 0.2f)
+        hp < EPIC_CUTOFF -> ColorInterpolation.colorAt(0.5f - hp, Color4.White, Color4.Black, 0f, 0.5f)
 
         else -> Color4.White
     }

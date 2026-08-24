@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.hud.elements
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.hud.HUDElementSkinData
 import com.osudroid.ui.v2.SpriteFont
-import com.reco1l.andengine.text.TextAlign
+import com.reco1l.verktex.ui.text.TextAlign
 import com.rian.framework.RollingFloatCounter
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.skins.OsuSkin

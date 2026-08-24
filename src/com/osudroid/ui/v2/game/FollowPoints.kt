@@ -5,10 +5,15 @@ import com.osudroid.beatmaps.hitobjects.HitObject
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import com.osudroid.utils.updateThread
-import com.reco1l.andengine.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.sprite.*
+import com.reco1l.verktex.*
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.ui.sprite.*
+import com.reco1l.verktex.ui.InvalidationFlag
+import com.reco1l.verktex.ui.UIAnimatedSprite
+import com.reco1l.verktex.ui.UISprite
 import com.reco1l.toolkt.kotlin.*
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.texture.Textures
 import com.rian.andengine.modifier.OnModifierFinished
 import org.anddev.andengine.opengl.texture.region.*
 import ru.nsu.ccfit.zuev.osu.*
@@ -31,7 +36,7 @@ object FollowPointConnection {
             return sprite as UISprite
         }
 
-        return if (ResourceManager.getInstance().isTextureLoaded("followpoint-0")) {
+        return if (Textures.getInstance().isTextureLoaded("followpoint-0")) {
             PoolableAnimatedFollowPoint("followpoint", true, OsuSkin.get().animationFramerate).also { sprite ->
                 sprite.frames.fastForEach { it?.applyFollowPointMaxSize() }
 
@@ -39,7 +44,7 @@ object FollowPointConnection {
                 sprite.isLoop = false
             }
         } else {
-            PoolableFollowPoint(ResourceManager.getInstance().getTexture("followpoint")).also {
+            PoolableFollowPoint(Textures.getInstance().getTexture("followpoint")).also {
                 it.textureRegion?.applyFollowPointMaxSize()
                 it.invalidate(InvalidationFlag.Content)
             }
@@ -79,7 +84,7 @@ object FollowPointConnection {
     }
 
     @JvmStatic
-    fun clearAll(scene: UIScene) {
+    fun clearAll(scene: Scene) {
         for (i in scene.childCount - 1 downTo 0) {
             val child = scene.getChild(i)
 
@@ -95,18 +100,18 @@ object FollowPointConnection {
     @JvmStatic
     fun renew(size: Int) {
         pool.clear()
-        val isAnimated = ResourceManager.getInstance().isTextureLoaded("followpoint-0")
+        val isAnimated = Textures.getInstance().isTextureLoaded("followpoint-0")
 
         repeat(size) {
             pool.release(
                 if (isAnimated) PoolableAnimatedFollowPoint("followpoint", true, OsuSkin.get().animationFramerate)
-                else PoolableFollowPoint(ResourceManager.getInstance().getTexture("followpoint"))
+                else PoolableFollowPoint(Textures.getInstance().getTexture("followpoint"))
             )
         }
     }
 
     @JvmStatic
-    fun addConnection(scene: UIScene, start: HitObject, end: HitObject) {
+    fun addConnection(scene: Scene, start: HitObject, end: HitObject) {
 
         // Reference: https://github.com/ppy/osu/blob/7bc8908ca9c026fed1d831eb6e58df7624a8d614/osu.Game.Rulesets.Osu/Objects/Drawables/Connections/FollowPointConnection.cs
 
@@ -156,7 +161,7 @@ object FollowPointConnection {
             fp.setPosition(pointStartX, pointStartY)
             fp.setScale(1.5f * scale)
             fp.origin = Anchor.Center
-            fp.rotation = rotation
+            fp.rotationZ = rotation
             fp.alpha = 0f
 
             scene.attachChild(fp, 0)

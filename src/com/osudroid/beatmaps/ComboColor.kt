@@ -1,6 +1,6 @@
 package com.osudroid.beatmaps
 
-import com.reco1l.framework.*
+import com.reco1l.verktex.data.Color4
 
 /**
  * A wrapper of [Color4] specifically for combo colors.

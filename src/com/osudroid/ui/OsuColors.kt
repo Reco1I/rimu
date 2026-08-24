@@ -1,9 +1,8 @@
 package com.osudroid.ui
 
 import android.graphics.Color
-import com.reco1l.framework.Color4
-import com.reco1l.framework.Colors
-import com.reco1l.framework.toColor4
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.math.ColorInterpolation
 import com.reco1l.toolkt.roundBy
 import kotlin.math.ceil
 
@@ -65,7 +64,7 @@ object OsuColors {
         val sr = ceil(point).toFloat().roundBy(2)
 
         if (sr < 6.5) {
-            return Color.BLACK.toColor4()
+            return Color4.Black
         }
 
         return starRatingTextColorSpectrum.get(sr)
@@ -109,7 +108,7 @@ private class LinearColorScale(
                 continue
             }
 
-            return Colors.interpolate(point, startColor, endColor, startDomain, endDomain)
+            return ColorInterpolation.colorAt(point, startColor.toLinear(), endColor.toLinear(), startDomain, endDomain)
         }
 
         return gradient.last().second

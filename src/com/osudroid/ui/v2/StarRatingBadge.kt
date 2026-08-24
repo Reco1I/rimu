@@ -2,18 +2,12 @@ package com.osudroid.ui.v2
 
 import com.edlplan.framework.easing.Easing
 import com.osudroid.ui.OsuColors
-import com.reco1l.andengine.component.UIComponent
-import com.reco1l.andengine.sprite.UISprite
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.ui.ColorVariant
-import com.reco1l.andengine.ui.Theme
-import com.reco1l.andengine.ui.UIBadge
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIBadge
+import com.reco1l.verktex.data.Color4
 import com.rian.framework.RollingDoubleCounter
 import kotlin.math.abs
-import com.reco1l.framework.Interpolation
-import ru.nsu.ccfit.zuev.osu.ResourceManager
 
 /**
  * A [UIBadge] for displaying star ratings. Automatically adjusts its styling according to the rating.
@@ -46,7 +40,7 @@ class StarRatingBadge : UIBadge() {
             applySizeStyle()
         }
         text = "0.00"
-        leadingIcon = FontAwesomeIcon(Icon.Star)
+        leadingIcon = UIIcon(FAIcon.Star)
         registerUpdateHandler(counter)
     }
 

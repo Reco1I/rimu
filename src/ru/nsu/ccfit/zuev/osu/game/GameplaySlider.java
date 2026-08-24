@@ -8,16 +8,16 @@ import com.edlplan.framework.math.line.LinePath;
 import com.edlplan.osu.support.slider.SliderBody;
 import com.osudroid.game.CursorEvent;
 import com.osudroid.utils.Execution;
-import com.reco1l.andengine.UIScene;
-import com.reco1l.andengine.component.UIComponent;
-import com.reco1l.andengine.sprite.UIAnimatedSprite;
-import com.reco1l.andengine.sprite.UISprite;
-import com.reco1l.andengine.Anchor;
+import com.reco1l.verktex.Scene;
+import com.reco1l.verktex.ui.UIComponent;
+import com.reco1l.verktex.ui.UIAnimatedSprite;
+import com.reco1l.verktex.ui.UISprite;
+import com.reco1l.verktex.data.Anchor;
 import com.osudroid.ui.v2.game.SliderTickSprite;
 import com.osudroid.ui.v2.game.CirclePiece;
 import com.osudroid.ui.v2.game.NumberedCirclePiece;
 import com.osudroid.ui.v2.game.SliderTickContainer;
-import com.reco1l.framework.Color4;
+import com.reco1l.verktex.data.Color4;
 import com.rian.andengine.modifier.UniversalModifier;
 import com.osudroid.beatmaps.HitWindow;
 import com.osudroid.beatmaps.constants.HitObjectType;
@@ -58,7 +58,7 @@ public class GameplaySlider extends GameObject {
     private final UISprite startArrow, endArrow;
     private Slider beatmapSlider;
     private BeatmapControlPoints controlPoints;
-    private UIScene scene;
+    private Scene scene;
     private StatisticV2 stat;
     private GameObjectListener listener;
     private SliderPath path;
@@ -183,7 +183,7 @@ public class GameplaySlider extends GameObject {
         sliderWhistleSample = new GameplaySequenceHitSampleInfo();
     }
 
-    public void init(final GameObjectListener listener, final UIScene scene, final StatisticV2 stat,
+    public void init(final GameObjectListener listener, final Scene scene, final StatisticV2 stat,
                      final Slider beatmapSlider, final BeatmapControlPoints controlPoints, final Color4 comboColor,
                      final Color4 borderColor, final SliderPath sliderPath, final SliderBody.RenderPathCache buildCache) {
         this.listener = listener;
@@ -297,7 +297,7 @@ public class GameplaySlider extends GameObject {
             startArrow.setPosition(this.position.x, this.position.y);
 
             PointF nextPoint = getAbsolutePathPosition(1);
-            startArrow.setRotation(MathUtils.radToDeg(Utils.direction(position.x, position.y, nextPoint.x, nextPoint.y)));
+            startArrow.setRotationZ(MathUtils.radToDeg(Utils.direction(position.x, position.y, nextPoint.x, nextPoint.y)));
 
             scene.attachChild(startArrow, 0);
         }
@@ -313,7 +313,7 @@ public class GameplaySlider extends GameObject {
             endArrow.setScale(scale);
 
             PointF previousPoint = getAbsolutePathPosition(path.anchorCount - 2);
-            endArrow.setRotation(MathUtils.radToDeg(Utils.direction(pathEndPosition.x, pathEndPosition.y, previousPoint.x, previousPoint.y)));
+            endArrow.setRotationZ(MathUtils.radToDeg(Utils.direction(pathEndPosition.x, pathEndPosition.y, previousPoint.x, previousPoint.y)));
 
             if (Config.isSnakingInSliders()) {
                 endArrow.setPosition(this.position.x, this.position.y);
@@ -456,7 +456,7 @@ public class GameplaySlider extends GameObject {
             }
 
             if (updateEndArrowRotation) {
-                endArrow.setRotation(MathUtils.radToDeg(Utils.direction(pathEndPosition.x, pathEndPosition.y, previousPoint.x, previousPoint.y)));
+                endArrow.setRotationZ(MathUtils.radToDeg(Utils.direction(pathEndPosition.x, pathEndPosition.y, previousPoint.x, previousPoint.y)));
             }
 
             tmpPoint.set(pathEndPosition);
@@ -471,7 +471,7 @@ public class GameplaySlider extends GameObject {
             }
 
             if (updateEndArrowRotation) {
-                endArrow.setRotation(MathUtils.radToDeg(Utils.direction(position.x, position.y, nextPoint.x, nextPoint.y)));
+                endArrow.setRotationZ(MathUtils.radToDeg(Utils.direction(position.x, position.y, nextPoint.x, nextPoint.y)));
             }
 
             tmpPoint.set(position);
@@ -509,7 +509,7 @@ public class GameplaySlider extends GameObject {
             }
 
             if (updateEndArrowRotation) {
-                endArrow.setRotation(MathUtils.radToDeg(Utils.direction(nextPoint.x, nextPoint.y, position.x, position.y)));
+                endArrow.setRotationZ(MathUtils.radToDeg(Utils.direction(nextPoint.x, nextPoint.y, position.x, position.y)));
             }
 
             tmpPoint.set(position);
@@ -536,7 +536,7 @@ public class GameplaySlider extends GameObject {
         }
 
         if (updateEndArrowRotation) {
-            endArrow.setRotation(MathUtils.radToDeg(Utils.direction(nextPointX, nextPointY, currentPointX, currentPointY)));
+            endArrow.setRotationZ(MathUtils.radToDeg(Utils.direction(nextPointX, nextPointY, currentPointX, currentPointY)));
         }
 
         return tmpPoint;
@@ -700,7 +700,7 @@ public class GameplaySlider extends GameObject {
 
             ((GameScene) listener).onSliderReverse(
                     spanEndJudgementPosition,
-                    reverse ? endArrow.getRotation() : startArrow.getRotation(),
+                    reverse ? endArrow.getRotationZ() : startArrow.getRotationZ(),
                     bodyColor);
 
             if (elapsedSpanTime >= spanDuration) {
@@ -947,7 +947,7 @@ public class GameplaySlider extends GameObject {
 
                     if (path.anchorCount >= 2) {
                         PointF lastPoint = getAbsolutePathPosition(path.anchorCount - 2);
-                        endArrow.setRotation(MathUtils.radToDeg(Utils.direction(pathEndPosition.x, pathEndPosition.y, lastPoint.x, lastPoint.y)));
+                        endArrow.setRotationZ(MathUtils.radToDeg(Utils.direction(pathEndPosition.x, pathEndPosition.y, lastPoint.x, lastPoint.y)));
                     }
 
                     tailCirclePiece.setPosition(pathEndPosition.x, pathEndPosition.y);
@@ -1026,7 +1026,7 @@ public class GameplaySlider extends GameObject {
         // Setting position of ball and follow circle
         followCircle.setPosition(ballPos.x, ballPos.y);
         ball.setPosition(ballPos.x, ballPos.y);
-        ball.setRotation(ballAngle);
+        ball.setRotationZ(ballAngle);
 
         if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
             listener.updateAutoBasedPos(ballPos.x, ballPos.y);

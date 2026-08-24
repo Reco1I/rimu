@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.skins;
 
-import com.reco1l.framework.Color4;
+import com.reco1l.verktex.data.Color4;
 
 import java.io.File;
 

@@ -1,15 +1,19 @@
 package com.osudroid.ui.v2.hud.elements
 
 import com.edlplan.framework.easing.Easing
-import com.reco1l.andengine.*
-import com.reco1l.andengine.shape.UICircle
-import com.reco1l.andengine.sprite.UISprite
-import com.reco1l.framework.Color4
-import com.reco1l.framework.Interpolation
+import com.reco1l.verktex.*
+import com.reco1l.verktex.ui.shape.UICircle
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.math.FloatInterpolation
 import com.osudroid.ui.v2.hud.HUDElement
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.pct
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.pct
+import com.reco1l.verktex.ui.InvalidationFlag
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.data.px
 import org.anddev.andengine.input.touch.TouchEvent
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -36,8 +40,8 @@ class HUDBackButton : HUDElement() {
         color = Color4.White
         depthInfo = DepthInfo.Default
 
-        width = Size.Full
-        height = Size.Full
+        width = Dimension.FillAvailable
+        height = Dimension.FillAvailable
     }
 
     private val frontCircle = UICircle().apply {
@@ -60,7 +64,7 @@ class HUDBackButton : HUDElement() {
             val progress = if (requiredPressTimeMs > 0) field / requiredPressTimeMs else 0f
             val scale = 1f + progress / 2f
 
-            alpha = Interpolation.floatAt(holdDurationMs, 0.25f, 0.5f, 0f, requiredPressTimeMs, Easing.OutCubic)
+            alpha = FloatInterpolation.floatAt(holdDurationMs, 0.25f, 0.5f, 0f, requiredPressTimeMs, Easing.OutCubic)
             backCircle.setPortion(progress)
             backCircle.setScale(scale)
             frontCircle.setScale(scale)
@@ -72,15 +76,9 @@ class HUDBackButton : HUDElement() {
 
 
     init {
-        setSize(SIZE, SIZE)
+        width = SIZE.px
+        height = SIZE.px
         alpha = 0.25f
-
-        // The HUD layer may be attached to the beatmap's clock, which can be paused at any time. When that happens,
-        // this back button will never be pressable. For this reason, we use the engine's update clock.
-        // We will not inherit the beatmap clock's rate, but this is fine since the press duration is based on real
-        // time, not game time.
-        clock = UIEngine.current.clock
-        processCustomClock = false
 
         attachChild(frontCircle)
         attachChild(backCircle)

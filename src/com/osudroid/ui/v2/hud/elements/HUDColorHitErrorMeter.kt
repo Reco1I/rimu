@@ -1,8 +1,8 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.shape.UIBox
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.data.Color4
 import com.reco1l.toolkt.kotlin.fastForEach
 import com.osudroid.beatmaps.constants.HitObjectType
 import javax.microedition.khronos.opengles.GL10

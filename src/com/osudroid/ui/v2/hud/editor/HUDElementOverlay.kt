@@ -1,21 +1,25 @@
 package com.osudroid.ui.v2.hud.editor
 
-import com.reco1l.andengine.*
-import com.reco1l.andengine.container.UIConstraintContainer
-import com.reco1l.andengine.container.UIContainer
-import com.reco1l.andengine.container.UILinearContainer
-import com.reco1l.andengine.container.Orientation
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.sprite.UISprite
-import com.reco1l.andengine.text.*
-import com.reco1l.framework.Color4
+import com.reco1l.verktex.*
+import com.reco1l.verktex.ui.container.UIConstraintContainer
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.shape.*
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.text.*
+import com.reco1l.verktex.data.Color4
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.utils.updateThread
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.theme.FontSize
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.pct
+import com.reco1l.verktex.component.*
+import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.pct
+import com.reco1l.verktex.ui.PaintStyle
+import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.toolkt.kotlin.*
+import com.reco1l.verktex.data.Anchor
 import org.anddev.andengine.input.touch.TouchEvent
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 
@@ -67,7 +71,7 @@ class HUDElementOverlay(private val element: HUDElement) : UIConstraintContainer
 
     init {
         alpha = 0f
-        setSize(Size.Full, Size.Full)
+        setSize(Dimension.FillAvailable, Dimension.FillAvailable)
 
         attachChild(outline)
         attachChild(toolbar)
@@ -202,17 +206,17 @@ class HUDElementOverlay(private val element: HUDElement) : UIConstraintContainer
 
         init {
             setSize(BUTTON_SIZE, BUTTON_SIZE)
-            scaleCenter = Anchor.Center
+            scaleOrigin = Anchor.Center
 
             attachChild(UIBox().apply {
                 radius = 12f
                 color = back
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
             })
 
             attachChild(UISprite().apply {
-                textureRegion = ResourceManager.getInstance().getTexture(texture)
+                this.textureRegion = ResourceManager.getInstance().getTexture(texture)
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 width = 0.8f.pct
