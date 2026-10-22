@@ -1,7 +1,6 @@
 package com.reco1l.verktex.android
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.text.InputType
 import android.text.TextWatcher
 import android.view.KeyEvent
@@ -36,7 +35,7 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
 
     // Using a hidden EditText is the only way to properly handle soft keyboard
     // input in Android allowing UTF-16 characters, selection and clipboard operations.
-    private val editTextView = AppCompatEditText(this).apply {
+    private val editTextView by lazy { AppCompatEditText(this).apply {
         layoutParams = ViewGroup.LayoutParams(1, 1)
         alpha = 0f
 
@@ -44,13 +43,13 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
         imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or EditorInfo.IME_FLAG_NO_EXTRACT_UI
 
         isClickable = false
-    }
+    } }
 
     private var currentTextWatcher: TextWatcher? = null
 
 
-    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
         val windowView = Verktex.initializeAndroid(this)
         setContentView(windowView)
