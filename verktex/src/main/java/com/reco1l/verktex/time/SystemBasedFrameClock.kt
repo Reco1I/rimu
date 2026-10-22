@@ -1,6 +1,6 @@
 package com.reco1l.verktex.time
 
-class SystemBasedTickingClock : FrameClock(), ITickableClock, IControllableClock {
+class SystemBasedFrameClock : FrameClock(), IFrameProcessableClock, IControllableClock {
 
     //region Clock implementation
 
@@ -10,10 +10,10 @@ class SystemBasedTickingClock : FrameClock(), ITickableClock, IControllableClock
     override var isRunning = true
         private set
 
-    override var elapsedTickTime = 0f
+    override var elapsedFrameTime = 0f
         private set
 
-    override var lastTickTime = 0f
+    override var lastFrameTime = 0f
         private set
 
     //endregion
@@ -21,16 +21,16 @@ class SystemBasedTickingClock : FrameClock(), ITickableClock, IControllableClock
     private var lastRealFrameTime = SystemClock.time
 
 
-    override fun tick() {
+    override fun processFrame() {
         if (!isRunning) return
 
         val realTime = SystemClock.time
 
-        elapsedTickTime = realTime - lastRealFrameTime
+        elapsedFrameTime = realTime - lastRealFrameTime
         lastRealFrameTime = realTime
 
-        lastTickTime = time
-        time += elapsedTickTime
+        lastFrameTime = time
+        time += elapsedFrameTime
     }
 
 

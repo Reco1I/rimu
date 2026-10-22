@@ -4,7 +4,7 @@ import com.reco1l.verktex.audio.AudioDriver
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.time.SystemBasedTickingClock
+import com.reco1l.verktex.time.SystemBasedFrameClock
 import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.ui.*
 import com.reco1l.verktex.ui.container.UIContainer
@@ -117,7 +117,7 @@ object Verktex {
      */
     @JvmStatic
     val clock: FrameClock
-        field = SystemBasedTickingClock()
+        field = SystemBasedFrameClock()
 
     /**
      * The currently active scene in the engine. This is the topmost scene in the scene stack.
@@ -173,7 +173,7 @@ object Verktex {
     @RunOnUpdateWorker
     private fun update() {
         updateWorker.check()
-        clock.tick()
+        clock.processFrame()
         scene.update(clock)
     }
 
