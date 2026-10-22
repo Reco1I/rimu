@@ -174,7 +174,8 @@ abstract class Font {
     ) {
 
         val lineHeight
-            get() = ascent - descent + leading
+            // Ascent is negative (above the baseline) while descent is positive.
+            get() = descent - ascent + leading
 
         val lineGap
             get() = leading

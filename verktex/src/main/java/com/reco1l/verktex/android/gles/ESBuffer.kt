@@ -34,19 +34,25 @@ class ESBuffer : GraphicsBuffer() {
 
 
     override fun putByte(byte: Byte) {
-        requireCapacity(data.position() + 1)
+        requireCapacity(1)
         data.put(byte)
     }
 
     override fun putFloat(float: Float) {
-        requireCapacity(data.position() + 4)
+        requireCapacity(4)
         data.putFloat(float)
     }
 
+    /**
+     * Uploads the written vertex data to the GPU. The buffer is left bound.
+     */
     override fun uploadDataToGPU() {
+        // glBufferData reads from the buffer's current position, so upload a view starting at 0.
+        val written = data.duplicate().order(ByteOrder.nativeOrder())
+        written.flip()
+
         GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, id)
-        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER, capacity, data, GLES32.GL_DYNAMIC_DRAW)
-        GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, 0)
+        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER, written.limit(), written, GLES32.GL_DYNAMIC_DRAW)
     }
 
     override fun onBind() {

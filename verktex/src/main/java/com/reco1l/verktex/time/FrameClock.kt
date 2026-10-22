@@ -3,7 +3,7 @@ package com.reco1l.verktex.time
 /**
  * Represents a clock that proccess its time with ticks (frames in other words).
  */
-abstract class TickingClock : Clock() {
+abstract class FrameClock : Clock() {
 
     /**
      * The elapsed time in seconds since the last tick.

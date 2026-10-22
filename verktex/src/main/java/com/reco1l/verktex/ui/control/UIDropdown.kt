@@ -23,7 +23,7 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.wrap
-import com.reco1l.verktex.time.TickingClock
+import com.reco1l.verktex.time.FrameClock
 import kotlin.math.*
 
 class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
@@ -107,7 +107,7 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
         wrapper += this
     }
 
-    override fun onUpdate(clock: TickingClock) {
+    override fun onUpdate(clock: FrameClock) {
 
         if (isExpanded) {
             // Determine the menu width by finding the button with the largest width and setting

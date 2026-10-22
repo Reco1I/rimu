@@ -9,7 +9,7 @@ import com.reco1l.verktex.data.horizontalPadding
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.interpolateFloat
-import com.reco1l.verktex.time.TickingClock
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.clickableContainer
 import com.reco1l.verktex.ui.container.linearContainer
@@ -137,7 +137,7 @@ open class UICard : UILinearContainer() {
     }
 
 
-    override fun onUpdate(clock: TickingClock) {
+    override fun onUpdate(clock: FrameClock) {
 
         content.height = wrap(percentage = clock.interpolateFloat(
             duration = 0.2f,

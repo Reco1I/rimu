@@ -28,14 +28,21 @@ abstract class GraphicsTexture : GraphicsResource() {
 
     private val freeRegions = mutableListOf<Vec4>()
 
-    private val regionsAllocated = mutableListOf<Region>()
-    private val regionsToAllocate = mutableListOf<Region>()
-    private val regionsToDeallocate = mutableListOf<Region>()
+    private val regions = mutableListOf<Region>()
+    private val pendingUploads = mutableListOf<Region>()
 
-    private var isDirty = true
+    private var freeRegionsInitialized = false
+    private var needsRepack = false
 
 
     //region Source allocation
+
+    private fun ensureFreeRegions() {
+        if (!freeRegionsInitialized) {
+            freeRegionsInitialized = true
+            freeRegions.add(Vec4(0f, 0f, width, height))
+        }
+    }
 
     /**
      * Checks if the given [source] can fit within the texture using the current packing algorithm.
@@ -43,64 +50,87 @@ abstract class GraphicsTexture : GraphicsResource() {
      * @see TexturePackingAlgorithm
      */
     fun fitsSource(source: Source): Boolean {
+        ensureFreeRegions()
         return packingAlgorithm.fits(source.width, source.height, freeRegions)
     }
 
     /**
-     * Attempts to add a new [source] to the texture. If the source fits within the texture, a new
-     * [Region] is created and added to the list of regions to allocate.
+     * Attempts to add a new [source] to the texture. If the source fits within the texture, space is
+     * reserved for it right away and its data is uploaded the next time the texture is bound.
      *
      * @see TexturePackingAlgorithm
      * @return The newly created [Region] if the source fits, or null if it does not fit.
      */
     fun addSource(source: Source): Region? {
 
-        val existingRegion = regionsAllocated.find { it.source == source }
+        val existingRegion = regions.find { it.source == source }
         if (existingRegion != null) {
             return existingRegion
         }
 
-        if (fitsSource(source)) {
-            val region = Region(this, source)
-            regionsToAllocate += region
-            isDirty = true
-            return region
-        }
+        ensureFreeRegions()
 
-        return null
+        val node = packingAlgorithm.allocate(source.width, source.height, freeRegions) ?: return null
+        val region = Region(this, source, node.x, node.y, source.width, source.height)
+
+        regions += region
+        pendingUploads += region
+        return region
     }
 
     //endregion
 
 
     /**
-     * Removes the specified [region] from the texture. If the region is currently allocated, it
-     * will be marked for deallocation and removed from the list of regions to allocate.
+     * Removes the specified [region] from the texture.
      *
-     * The texture atlas will be repacked on the next load to free up space for other regions.
+     * The texture atlas will be repacked on the next bind to free up space for other regions.
      */
     fun removeRegion(region: Region) {
-        if (regionsToAllocate.remove(region)) {
-            return
-        }
-
-        regionsToDeallocate += region
-        isDirty = true
-    }
-
-
-    override fun onLoad() {
-        if (isDirty) {
-            isDirty = false
-
-            regionsAllocated.removeAll(regionsToDeallocate)
-            regionsAllocated += regionsToAllocate
-
-            packingAlgorithm.pack(regionsAllocated, freeRegions, width, height)
-
-            regionsAllocated.forEach { region -> region.source.uploadToHardware(region.x, region.y) }
+        if (regions.remove(region)) {
+            pendingUploads.remove(region)
+            needsRepack = true
         }
     }
+
+
+    final override fun onLoad() {
+        onCreateTexture()
+
+        // The texture storage was (re)created, so every region must be uploaded again.
+        pendingUploads.clear()
+        pendingUploads += regions
+    }
+
+    final override fun onBind() {
+        onBindTexture()
+
+        if (needsRepack) {
+            needsRepack = false
+            packingAlgorithm.pack(regions, freeRegions, width, height)
+
+            pendingUploads.clear()
+            pendingUploads += regions
+        }
+
+        if (pendingUploads.isNotEmpty()) {
+            for (region in pendingUploads) {
+                region.source.uploadToHardware(region.x, region.y)
+            }
+            pendingUploads.clear()
+        }
+    }
+
+    /**
+     * Called when the texture should be created on the GPU with storage for [width] x [height] pixels.
+     * The texture must be left bound after this call.
+     */
+    protected abstract fun onCreateTexture()
+
+    /**
+     * Called when the texture should be bound so that sources can be uploaded to it or it can be drawn.
+     */
+    protected abstract fun onBindTexture()
 
 
     /**

@@ -10,7 +10,7 @@ import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.time.TickingClock
+import com.reco1l.verktex.time.FrameClock
 
 class UICheckbox(initialValue: Boolean = false) : UIControl<Boolean>(initialValue) {
 
@@ -45,7 +45,7 @@ class UICheckbox(initialValue: Boolean = false) : UIControl<Boolean>(initialValu
     }
 
 
-    override fun onUpdate(clock: TickingClock) {
+    override fun onUpdate(clock: FrameClock) {
 
         val targetScaleAndAlpha = if (value) 1f else 0f
         val targetBackgroundCOlor = if (value) Verktex.theme.palette.controlActiveBackground else Verktex.theme.palette.controlInactiveBackground

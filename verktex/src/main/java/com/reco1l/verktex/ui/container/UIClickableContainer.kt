@@ -57,7 +57,11 @@ open class UIClickableContainer : UIContainer() {
                 }
 
                 PointerEvent.Action.Up -> {
-                    if (bounds.contains(event.x, event.y) && isPressed) {
+                    if (!isPressed) {
+                        return false
+                    }
+
+                    if (containsScenePoint(event.x, event.y)) {
                         onActionUp?.invoke()
                     } else {
                         onActionCancel?.invoke()

@@ -1,6 +1,6 @@
 package com.reco1l.verktex.time
 
-class SystemBasedTickingClock : TickingClock(), ITickableClock, IControllableClock {
+class SystemBasedTickingClock : FrameClock(), ITickableClock, IControllableClock {
 
     //region Clock implementation
 

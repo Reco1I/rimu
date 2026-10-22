@@ -19,64 +19,64 @@ open class Theme(
      * The radius units of the theme.
      */
     val radius: FixedSizeBreakpoints = FixedSizeBreakpoints(
-        xs = 0.425f.dip,
-        sm = 0.45f.dip,
-        md = 0.475f.dip,
-        lg = 0.5f.dip,
-        xl = 0.525f.dip,
+        xs = 6.8f.dip,
+        sm = 7.2f.dip,
+        md = 7.6f.dip,
+        lg = 8f.dip,
+        xl = 8.4f.dip,
     ),
 
     /**
      * The gap units of the theme.
      */
     val gap: FixedSizeBreakpoints = FixedSizeBreakpoints(
-        xs = 0.5f.dip,
-        sm = 0.75f.dip,
-        md = 0.25f.dip,
-        lg = 1.5f.dip,
-        xl = 2f.dip,
+        xs = 8f.dip,
+        sm = 12f.dip,
+        md = 4f.dip,
+        lg = 24f.dip,
+        xl = 32f.dip,
     ),
 
     val typography: Typography = Typography(
         h1 = FontSettings(
-            size = 1.5f.dip,
+            size = 24f.dip,
             family = "torus",
             weight = Font.Weight.Bold
         ),
         h2 = FontSettings(
-            size = 1.25f.dip,
+            size = 20f.dip,
             family = "torus",
             weight = Font.Weight.SemiBold
         ),
         h3 = FontSettings(
-            size = 1.125f.dip,
+            size = 18f.dip,
             family = "torus",
             weight = Font.Weight.SemiBold
         ),
         body = FontSettings(
-            size = 1f.dip,
+            size = 16f.dip,
             family = "nunito",
             weight = Font.Weight.Normal
         ),
         smallBody = FontSettings(
-            size = 0.875f.dip,
+            size = 14f.dip,
             family = "nunito",
             weight = Font.Weight.Normal
         ),
         caption = FontSettings(
-            size = 0.875f.dip,
+            size = 14f.dip,
             family = "nunito",
             weight = Font.Weight.Normal
         ),
         smallCaption = FontSettings(
-            size = 0.75f.dip,
+            size = 12f.dip,
             family = "nunito",
             weight = Font.Weight.Normal
         ),
     ),
 
     val controlStyle: ControlStyle = ControlStyle(
-        minimumHeight = 2.5f.dip,
+        minimumHeight = 40f.dip,
     ),
 
 ) {

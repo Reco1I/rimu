@@ -6,7 +6,7 @@ import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.toPadding
 import com.reco1l.verktex.graphics.GraphicsRenderer
-import com.reco1l.verktex.time.TickingClock
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.container.UIContainer
 
 open class UIScene : UIContainer() {
@@ -82,6 +82,6 @@ open class UIScene : UIContainer() {
      */
     companion object EmptyScene : UIScene() {
         override fun onDraw(renderer: GraphicsRenderer) {}
-        override fun onUpdate(clock: TickingClock) {}
+        override fun onUpdate(clock: FrameClock) {}
     }
 }

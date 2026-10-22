@@ -20,7 +20,7 @@ import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.FloatInterpolation
-import com.reco1l.verktex.time.TickingClock
+import com.reco1l.verktex.time.FrameClock
 import kotlin.math.*
 import kotlin.text.substring
 
@@ -150,7 +150,7 @@ open class UITextInput(initialValue: String) : UIControl<String>(initialValue), 
         }
     }
 
-    override fun onUpdate(clock: TickingClock) {
+    override fun onUpdate(clock: FrameClock) {
 
         selectionBox.width = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), selectionBox.width, targetSelectionBoxWidth, 0f, 0.3f, Easing.OutExpo)
         caret.x = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.3f), caret.x, textComponent.x + targetCursorPosition, 0f, 0.3f, Easing.OutExpo)
