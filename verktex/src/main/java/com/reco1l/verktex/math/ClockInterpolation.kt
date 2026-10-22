@@ -7,7 +7,7 @@ import com.reco1l.verktex.time.FrameClock
 //region Float
 
 fun FrameClock.interpolateFloat(duration: Float, start: Float, end: Float, easing: Easing = Easing.None): Float {
-    return FloatInterpolation.floatAt(elapsedTickTime.coerceIn(0f, duration), start, end, 0f, duration, easing)
+    return FloatInterpolation.floatAt(elapsedFrameTime.coerceIn(0f, duration), start, end, 0f, duration, easing)
 }
 
 //endregion
@@ -15,7 +15,7 @@ fun FrameClock.interpolateFloat(duration: Float, start: Float, end: Float, easin
 //region Color
 
 fun FrameClock.interpolateColor(duration: Float, start: Color4, end: Color4, easing: Easing = Easing.None): Color4 {
-    return ColorInterpolation.colorAt(elapsedTickTime.coerceIn(0f, duration), start, end, 0f, duration, easing)
+    return ColorInterpolation.colorAt(elapsedFrameTime.coerceIn(0f, duration), start, end, 0f, duration, easing)
 }
 
 //endregion

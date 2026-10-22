@@ -3,36 +3,35 @@ package com.reco1l.verktex.time
 /**
  * Represents a clock that its elapsed time is derived from another clock.
  *
- * This derived clock is tickable, and it requires [tick] to be called manually in order to update
- * its state.
+ * This derived clock requires [processFrame] to be called manually in order to update its state.
  */
-class DerivedTickableClock<SourceClock : FrameClock>(override val source: SourceClock) :
+class DerivedFrameClock<SourceClock : FrameClock>(override val source: SourceClock) :
     FrameClock(),
     IControllableClock,
-    ITickableClock,
+    IFrameProcessableClock,
     ISourceBasedClock<SourceClock>
 {
 
-    override val elapsedTickTime: Float
-        get() = source.elapsedTickTime
+    override val elapsedFrameTime: Float
+        get() = source.elapsedFrameTime
 
 
     override var isRunning: Boolean = true
         get() = source.isRunning && field
         private set
 
-    override var lastTickTime = 0f
+    override var lastFrameTime = 0f
         private set
 
     override var time = 0f
         private set
 
 
-    override fun tick() {
+    override fun processFrame() {
         if (!isRunning) return
 
-        lastTickTime = time
-        time += elapsedTickTime
+        lastFrameTime = time
+        time += elapsedFrameTime
     }
 
 
@@ -55,6 +54,6 @@ class DerivedTickableClock<SourceClock : FrameClock>(override val source: Source
 
 
 /**
- * Returns a new [DerivedTickableClock] that is derived from this clock.
+ * Returns a new [DerivedFrameClock] that is derived from this clock.
  */
-fun <C : FrameClock> C.derive() = DerivedTickableClock(this)
+fun <C : FrameClock> C.derive() = DerivedFrameClock(this)

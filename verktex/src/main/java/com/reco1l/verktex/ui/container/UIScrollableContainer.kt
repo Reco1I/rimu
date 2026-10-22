@@ -323,12 +323,12 @@ open class UIScrollableContainer : UIContainer() {
 
         if (!isUserScrolling) {
             if (isScrolling) {
-                decelerateProgressively(clock.elapsedTickTime)
+                decelerateProgressively(clock.elapsedFrameTime)
             }
             handleOverflow()
         }
 
-        updateIndicators(clock.elapsedTickTime)
+        updateIndicators(clock.elapsedFrameTime)
     }
 
     override fun onDraw(renderer: GraphicsRenderer) {

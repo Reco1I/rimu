@@ -433,10 +433,10 @@ open class UIText : UICanvas() {
             val inTimeout = timeoutProgress < 1f && (scrollProgress.almostEquals(0f) || scrollProgress.almostEquals(1f))
 
             if (inTimeout) {
-                timeoutProgress += clock.elapsedTickTime / autoScrollTimeout
+                timeoutProgress += clock.elapsedFrameTime / autoScrollTimeout
             } else {
                 timeoutProgress = 0f
-                scrollProgress = (scrollProgress + autoScrollSpeed * clock.elapsedTickTime) % 1f
+                scrollProgress = (scrollProgress + autoScrollSpeed * clock.elapsedFrameTime) % 1f
             }
         }
 
