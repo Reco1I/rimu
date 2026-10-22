@@ -154,54 +154,26 @@ abstract class TexturePackingAlgorithm {
 
                     iterator.remove()
 
+                    // Free regions are stored as (left, top, right, bottom).
+
                     // Top
-                    if (used.y > free.y) {
-                        newRegions.add(Vec4(
-                            free.x,
-                            free.y,
-                            free.width,
-                            used.y - free.y
-                        )
-                        )
+                    if (used.top > free.top) {
+                        newRegions.add(Vec4(free.left, free.top, free.right, used.top))
                     }
 
                     // Bottom
-                    val freeBottom = free.y + free.height
-                    val usedBottom = used.y + used.height
-
-                    if (usedBottom < freeBottom) {
-                        newRegions.add(Vec4(
-                            free.x,
-                            usedBottom,
-                            free.width,
-                            freeBottom - usedBottom
-                        )
-                        )
+                    if (used.bottom < free.bottom) {
+                        newRegions.add(Vec4(free.left, used.bottom, free.right, free.bottom))
                     }
 
                     // Left
-                    if (used.x > free.x) {
-                        newRegions.add(Vec4(
-                            free.x,
-                            free.y,
-                            used.x - free.x,
-                            free.height
-                        )
-                        )
+                    if (used.left > free.left) {
+                        newRegions.add(Vec4(free.left, free.top, used.left, free.bottom))
                     }
 
                     // Right
-                    val freeRight = free.x + free.width
-                    val usedRight = used.x + used.width
-
-                    if (usedRight < freeRight) {
-                        newRegions.add(Vec4(
-                            usedRight,
-                            free.y,
-                            freeRight - usedRight,
-                            free.height
-                        )
-                        )
+                    if (used.right < free.right) {
+                        newRegions.add(Vec4(used.right, free.top, free.right, free.bottom))
                     }
                 }
 

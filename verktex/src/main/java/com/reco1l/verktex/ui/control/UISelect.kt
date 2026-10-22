@@ -12,7 +12,7 @@ import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.interpolateFloat
-import com.reco1l.verktex.time.TickingClock
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.textButton
 
@@ -92,7 +92,7 @@ open class UISelect<T : Any>(initialValues: List<T> = emptyList()) : UIControl<L
 
     }
 
-    override fun onUpdate(clock: TickingClock) {
+    override fun onUpdate(clock: FrameClock) {
 
         val targetChevronRotation = if (dropdown.isExpanded) 180f else 0f
         chevronIcon.rotationZ = clock.interpolateFloat(0.4f, chevronIcon.rotationZ, targetChevronRotation, Easing.OutBounce)
@@ -214,4 +214,3 @@ open class UISelect<T : Any>(initialValues: List<T> = emptyList()) : UIControl<L
         Multiple
     }
 }
-

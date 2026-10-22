@@ -16,7 +16,7 @@ import com.reco1l.verktex.ui.UICanvas
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.fonts.Fonts
-import com.reco1l.verktex.time.TickingClock
+import com.reco1l.verktex.time.FrameClock
 
 
 inline fun UIContainer.text(builder: UIText.() -> Unit): UIText {
@@ -426,7 +426,7 @@ open class UIText : UICanvas() {
 
     }
 
-    override fun onUpdate(clock: TickingClock) {
+    override fun onUpdate(clock: FrameClock) {
 
         if (autoScrollAxes != Axis.None) {
             // Do timeout only when scroll progress is 0 or 1f.
@@ -475,5 +475,4 @@ open class UIText : UICanvas() {
 fun faRegularIcon(code: Int) = UIText.IconLookup(code, BuiltIn.Fonts.FontAwesomeIconRegular)
 fun faSolidIcon(code: Int) = UIText.IconLookup(code, BuiltIn.Fonts.FontAwesomeIconSolid)
 fun faBrandsIcon(code: Int) = UIText.IconLookup(code, BuiltIn.Fonts.FontAwesomeIconBrands)
-
 

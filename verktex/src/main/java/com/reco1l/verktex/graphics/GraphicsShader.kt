@@ -47,6 +47,11 @@ abstract class GraphicsShader : GraphicsResource() {
         val entries: MutableMap<String, Any> = mutableMapOf()
     ) {
 
+        operator fun set(name: String, value: Int): UniformSet {
+            entries[name] = value
+            return this
+        }
+
         operator fun set(name: String, value: Float): UniformSet {
             entries[name] = value
             return this

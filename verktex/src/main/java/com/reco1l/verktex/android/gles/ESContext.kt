@@ -6,14 +6,20 @@ import android.opengl.EGLContext
 import android.opengl.EGLDisplay
 import android.opengl.EGLExt
 import android.opengl.EGLSurface
+import com.reco1l.verktex.Logger
 import com.reco1l.verktex.graphics.GraphicsContext
 
 class ESContext(private val window: ESWindow) : GraphicsContext {
 
     private val display: EGLDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
 
-    private val surface: EGLSurface
+    private val config: EGLConfig
     private val context: EGLContext
+
+    // The window surface only exists while the Android surface is valid, so it is created lazily on
+    // the draw thread instead of when the context is constructed.
+    private var surface: EGLSurface = EGL14.EGL_NO_SURFACE
+    private var surfaceGeneration = -1
 
     override val version: String
         get() = EGL14.eglQueryString(display, EGL14.EGL_VERSION)
@@ -53,28 +59,63 @@ class ESContext(private val window: ESWindow) : GraphicsContext {
             throw IllegalStateException("No EGLConfig found for the specified attributes! Device may not support OpenGL ES 3.0.")
         }
 
+        config = configs[0]!!
+
         EGL14.eglBindAPI(EGL14.EGL_OPENGL_ES_API)
 
         context = EGL14.eglCreateContext(
             display,
-            configs[0],
+            config,
             EGL14.EGL_NO_CONTEXT,
             intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 3, EGL14.EGL_NONE),
             0
         )
 
-        surface = EGL14.eglCreateWindowSurface(
-            display,
-            configs[0],
-            window.holder.surface,
-            intArrayOf(EGL14.EGL_NONE),
-            0
-        )
+        if (context == EGL14.EGL_NO_CONTEXT) {
+            throw IllegalStateException("Failed to create EGL context!")
+        }
+    }
 
-        if (surface == EGL14.EGL_NO_SURFACE) {
-            throw IllegalStateException("Failed to create EGL surface!")
+
+    /**
+     * Makes the context current on the calling thread, (re)creating the window surface if needed.
+     *
+     * @return `false` if there is no valid surface to render to, in which case the frame should be skipped.
+     */
+    fun prepare(): Boolean {
+        if (!window.hasSurface) {
+            releaseSurface()
+            return false
         }
 
+        if (surface == EGL14.EGL_NO_SURFACE || surfaceGeneration != window.surfaceGeneration) {
+            releaseSurface()
+
+            surfaceGeneration = window.surfaceGeneration
+            surface = EGL14.eglCreateWindowSurface(
+                display,
+                config,
+                window.holder.surface,
+                intArrayOf(EGL14.EGL_NONE),
+                0
+            )
+
+            if (surface == EGL14.EGL_NO_SURFACE) {
+                Logger.w("ESContext", "Failed to create EGL surface, error: ${EGL14.eglGetError()}")
+                return false
+            }
+        }
+
+        makeCurrent()
+        return true
+    }
+
+    private fun releaseSurface() {
+        if (surface == EGL14.EGL_NO_SURFACE) return
+
+        EGL14.eglMakeCurrent(display, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)
+        EGL14.eglDestroySurface(display, surface)
+        surface = EGL14.EGL_NO_SURFACE
     }
 
 
@@ -92,6 +133,7 @@ class ESContext(private val window: ESWindow) : GraphicsContext {
     }
 
     override fun destroy() {
+        releaseSurface()
         EGL14.eglDestroyContext(display, context)
     }
 }

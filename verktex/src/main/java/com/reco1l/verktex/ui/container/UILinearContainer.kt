@@ -58,7 +58,7 @@ open class UILinearContainer : UIContainer() {
                 continue
             }
 
-            val childMeasuredSize = child.measure(contentConstraints)
+            val childMeasuredSize = child.measure(contentConstraints.loosen())
 
             when (orientation) {
                 Orientation.Horizontal -> {
@@ -74,8 +74,12 @@ open class UILinearContainer : UIContainer() {
 
         val childCount = children.size
 
-        totalWidth += if (childCount > 1) spacing.toPixels() * (childCount - 1) else 0f
-        totalHeight += if (childCount > 1) spacing.toPixels() * (childCount - 1) else 0f
+        val totalSpacing = if (childCount > 1) spacing.toPixels() * (childCount - 1) else 0f
+
+        when (orientation) {
+            Orientation.Horizontal -> totalWidth += totalSpacing
+            Orientation.Vertical -> totalHeight += totalSpacing
+        }
 
         if (childWithFillSize.isNotEmpty()) {
             val freeWidth = (contentConstraints.availableWidth - totalWidth).coerceAtLeast(0f) / childWithFillSize.size
@@ -88,7 +92,7 @@ open class UILinearContainer : UIContainer() {
                     Orientation.Horizontal -> {
                         val assignedPiece = freeWidth * factor
 
-                        contentConstraints.copy(
+                        contentConstraints.loosen().copy(
                             minWidth = assignedPiece,
                             maxWidth = assignedPiece,
                         )
@@ -97,7 +101,7 @@ open class UILinearContainer : UIContainer() {
                     Orientation.Vertical -> {
                         val assignedPiece = freeHeight * factor
 
-                        contentConstraints.copy(
+                        contentConstraints.loosen().copy(
                             minHeight = assignedPiece,
                             maxHeight = assignedPiece,
                         )
@@ -126,23 +130,23 @@ open class UILinearContainer : UIContainer() {
 
     override fun onLayout(bounds: Vec4) {
 
-        var currentX = 0f
-        var currentY = 0f
+        var currentX = paddingLeft.toPixels()
+        var currentY = paddingTop.toPixels()
 
         forEach { child ->
 
             val childBounds = Vec4(
                 x = currentX,
                 y = currentY,
-                z = child.measuredSize.x,
-                w = child.measuredSize.y
+                z = currentX + child.measuredSize.x,
+                w = currentY + child.measuredSize.y
             )
 
             child.layout(childBounds)
 
             when (orientation) {
-                Orientation.Horizontal -> currentX += childBounds.z + spacing.toPixels()
-                Orientation.Vertical -> currentY += childBounds.w + spacing.toPixels()
+                Orientation.Horizontal -> currentX += child.measuredSize.x + spacing.toPixels()
+                Orientation.Vertical -> currentY += child.measuredSize.y + spacing.toPixels()
             }
         }
     }

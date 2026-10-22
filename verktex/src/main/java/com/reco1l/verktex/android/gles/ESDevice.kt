@@ -11,7 +11,10 @@ class ESDevice : GraphicsDevice {
 
 
     init {
+        // No context is current yet when the device is created, in which case the query returns 0.
+        // Fall back to 2048, the minimum guaranteed by OpenGL ES 3.0.
         val maxTextureSize = GLES32Helper.glGetIntegerv(GLES32.GL_MAX_TEXTURE_SIZE).toFloat()
+            .takeIf { it > 0f } ?: 2048f
 
         capabilities = GraphicsDevice.Capabilities(
             maxTextureSize = maxTextureSize

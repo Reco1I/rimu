@@ -8,7 +8,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Vec4
-import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.graphics.GraphicsWindow
 import kotlin.math.max
 import android.content.Context as AndroidContext
@@ -23,8 +22,23 @@ class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), Su
         offsets = Vec2.Zero
     )
 
+    @Volatile
     private var surfaceDestroyed = false
+    @Volatile
     private var surfaceCreated = false
+
+    /**
+     * Whether the underlying Android surface is currently valid and can be rendered to.
+     */
+    val hasSurface
+        get() = surfaceCreated && !surfaceDestroyed
+
+    /**
+     * Incremented every time a new Android surface is created, so the EGL surface can be recreated.
+     */
+    @Volatile
+    var surfaceGeneration = 0
+        private set
 
 
     init {
@@ -87,9 +101,9 @@ class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), Su
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
+        surfaceGeneration++
         surfaceDestroyed = false
         surfaceCreated = true
-        Verktex.graphics.markContextLoss()
     }
 
     override fun surfaceChanged(
@@ -100,15 +114,6 @@ class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), Su
     ) {
         width = surfaceWidth
         height = surfaceHeight
-
-        insets = insets.copy(
-            safeArea = Vec4(
-                x = 0f,
-                y = 0f,
-                z = width.toFloat(),
-                w = height.toFloat()
-            )
-        )
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {

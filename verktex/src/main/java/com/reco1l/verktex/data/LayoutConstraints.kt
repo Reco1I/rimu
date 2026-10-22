@@ -12,18 +12,16 @@ data class LayoutConstraints(
 ) {
 
     /**
-     * Calculates the width of the layout constraints by subtracting the minimum width from the maximum width.
-     * This value represents the range of allowed widths for the component.
+     * The maximum width available for the component.
      */
     val availableWidth
-        get() = maxWidth - minWidth
+        get() = maxWidth
 
     /**
-     * Calculates the height of the layout constraints by subtracting the minimum height from the maximum height.
-     * This value represents the range of allowed heights for the component.
+     * The maximum height available for the component.
      */
     val availableHeight
-        get() = maxHeight - minHeight
+        get() = maxHeight
 
 
     /**
@@ -65,8 +63,12 @@ data class LayoutConstraints(
         val resolvedWidth = resolveDimension(width, minWidth, maxWidth, availableWidth)
         val resolvedHeight = resolveDimension(height, minHeight, maxHeight, availableHeight)
 
-        val overrideLimitsHorizontally = width is Dimension.ConstraintDriven
-        val overrideLimitsVertically = height is Dimension.ConstraintDriven
+        // Filling an unbounded axis (e.g. inside a scrollable container) behaves like wrapping the content.
+        fun overridesLimits(dimension: Dimension, availableSize: Float) =
+            dimension is Dimension.Fixed || (dimension is Dimension.AvailableSizeFraction && availableSize.isFinite())
+
+        val overrideLimitsHorizontally = overridesLimits(width, availableWidth)
+        val overrideLimitsVertically = overridesLimits(height, availableHeight)
 
         return LayoutConstraints(
             minWidth = if (overrideLimitsHorizontally) resolvedWidth else minWidth,
@@ -77,6 +79,12 @@ data class LayoutConstraints(
     }
 
     /**
+     * Returns constraints with the same maximum size but no minimum size, so that children are not
+     * forced to fill the size of their parent.
+     */
+    fun loosen() = copy(minWidth = 0f, minHeight = 0f)
+
+    /**
      * Returns a new [LayoutConstraints] instance with the specified padding applied.
      */
     fun shrink(padding: Padding): LayoutConstraints {
@@ -84,10 +92,10 @@ data class LayoutConstraints(
         val vertical = padding.top.toPixels() + padding.bottom.toPixels()
 
         return LayoutConstraints(
-            minWidth = minWidth - horizontal,
-            maxWidth = maxWidth - horizontal,
-            minHeight = minHeight - vertical,
-            maxHeight = maxHeight - vertical
+            minWidth = (minWidth - horizontal).coerceAtLeast(0f),
+            maxWidth = (maxWidth - horizontal).coerceAtLeast(0f),
+            minHeight = (minHeight - vertical).coerceAtLeast(0f),
+            maxHeight = (maxHeight - vertical).coerceAtLeast(0f)
         )
     }
 }

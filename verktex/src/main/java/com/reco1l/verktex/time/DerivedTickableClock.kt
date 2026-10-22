@@ -6,8 +6,8 @@ package com.reco1l.verktex.time
  * This derived clock is tickable, and it requires [tick] to be called manually in order to update
  * its state.
  */
-class DerivedTickableClock<SourceClock : TickingClock>(override val source: SourceClock) :
-    TickingClock(),
+class DerivedTickableClock<SourceClock : FrameClock>(override val source: SourceClock) :
+    FrameClock(),
     IControllableClock,
     ITickableClock,
     ISourceBasedClock<SourceClock>
@@ -57,4 +57,4 @@ class DerivedTickableClock<SourceClock : TickingClock>(override val source: Sour
 /**
  * Returns a new [DerivedTickableClock] that is derived from this clock.
  */
-fun <C : TickingClock> C.derive() = DerivedTickableClock(this)
+fun <C : FrameClock> C.derive() = DerivedTickableClock(this)

@@ -7,13 +7,14 @@ import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.LayoutConstraints
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.input.ScrollEvent
 import com.reco1l.verktex.math.almostEquals
 import com.reco1l.verktex.math.almostZero
-import com.reco1l.verktex.time.TickingClock
+import com.reco1l.verktex.time.FrameClock
 import kotlin.math.*
 
 
@@ -184,13 +185,54 @@ open class UIScrollableContainer : UIContainer() {
      * The width of the content that can be scrolled.
      */
     val scrollableContentWidth
-        get() = max(0f, measuredSize.x) + scrollPadding.x
+        get() = max(0f, contentSize.x) + scrollPadding.x
 
     /**
      * The height of the content that can be scrolled.
      */
     val scrollableContentHeight
-        get() = max(0f, measuredSize.y) + scrollPadding.y
+        get() = max(0f, contentSize.y) + scrollPadding.y
+
+    /**
+     * The size of the children, measured without limits on the scrollable axes.
+     */
+    var contentSize = Vec2.Zero
+        private set
+
+
+    override fun onMeasure(parentConstraints: LayoutConstraints, contentConstraints: LayoutConstraints): Vec2 {
+
+        // Children may grow beyond this container along the scrollable axes.
+        val childConstraints = contentConstraints.loosen().copy(
+            maxWidth = if (scrollAxes.isHorizontal) Float.POSITIVE_INFINITY else contentConstraints.maxWidth,
+            maxHeight = if (scrollAxes.isVertical) Float.POSITIVE_INFINITY else contentConstraints.maxHeight
+        )
+
+        var contentWidth = 0f
+        var contentHeight = 0f
+
+        forEach { child ->
+            val childSize = child.measure(childConstraints)
+            contentWidth = max(contentWidth, childSize.x)
+            contentHeight = max(contentHeight, childSize.y)
+        }
+
+        contentSize = Vec2(contentWidth, contentHeight)
+
+        return parentConstraints.constrain(contentSize.expand(padding.toVec4()))
+    }
+
+    override fun onLayout(bounds: Vec4) {
+        // Children are offset by the current scroll position.
+        val contentBounds = Vec4(
+            x = paddingLeft.toPixels() - scrollX,
+            y = paddingTop.toPixels() - scrollY,
+            z = bounds.width - paddingRight.toPixels() - scrollX,
+            w = bounds.height - paddingBottom.toPixels() - scrollY
+        )
+
+        forEach { child -> child.layout(contentBounds) }
+    }
 
     //endregion
 
@@ -198,6 +240,10 @@ open class UIScrollableContainer : UIContainer() {
     private var indicatorXAlpha = 0f
 
     private var dragStartTimeSec = 0f
+
+    private var lastPointerX = 0f
+    private var lastPointerY = 0f
+    private var pointerTravel = 0f
 
 
     /**
@@ -272,7 +318,7 @@ open class UIScrollableContainer : UIContainer() {
         }
     }
 
-    override fun onUpdate(clock: TickingClock) {
+    override fun onUpdate(clock: FrameClock) {
         super.onUpdate(clock)
 
         if (!isUserScrolling) {
@@ -283,12 +329,6 @@ open class UIScrollableContainer : UIContainer() {
         }
 
         updateIndicators(clock.elapsedTickTime)
-    }
-
-    override fun onDrawChild(renderer: GraphicsRenderer, child: UIComponent) {
-        child.x = scrollX.px
-        child.y = scrollY.px
-        super.onDrawChild(renderer, child)
     }
 
     override fun onDraw(renderer: GraphicsRenderer) {
@@ -389,9 +429,34 @@ open class UIScrollableContainer : UIContainer() {
         val wasUserScrolling = isUserScrolling
 
         if (event is PointerEvent) {
-            when {
-                event.action == PointerEvent.Action.Down -> dragStartTimeSec = Verktex.clock.time
-                event.action == PointerEvent.Action.Up -> isUserScrolling = false
+            when (event.action) {
+                PointerEvent.Action.Down -> {
+                    dragStartTimeSec = Verktex.clock.time
+                    lastPointerX = event.x
+                    lastPointerY = event.y
+                    pointerTravel = 0f
+                    stopScroll()
+                }
+
+                PointerEvent.Action.Move -> {
+                    val deltaX = event.x - lastPointerX
+                    val deltaY = event.y - lastPointerY
+                    lastPointerX = event.x
+                    lastPointerY = event.y
+                    pointerTravel += hypot(deltaX, deltaY)
+
+                    if (isUserScrolling || pointerTravel > minimumTravel.y) {
+                        if (!isUserScrolling) {
+                            // Cancel the press of any child now that this is a drag.
+                            super.onInputEvent(event.copy(action = PointerEvent.Action.Unknown))
+                        }
+                        handleUserScroll(deltaX, deltaY)
+                        isUserScrolling = true
+                        dragStartTimeSec = Verktex.clock.time
+                    }
+                }
+
+                PointerEvent.Action.Up, PointerEvent.Action.Unknown -> isUserScrolling = false
             }
         } else {
             event as ScrollEvent

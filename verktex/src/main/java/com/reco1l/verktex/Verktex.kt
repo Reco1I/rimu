@@ -3,7 +3,7 @@ package com.reco1l.verktex
 import com.reco1l.verktex.audio.AudioDriver
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.input.InputEvent
-import com.reco1l.verktex.time.TickingClock
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.time.SystemBasedTickingClock
 import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.ui.*
@@ -116,7 +116,7 @@ object Verktex {
      * The clock used across the engine.
      */
     @JvmStatic
-    val clock: TickingClock
+    val clock: FrameClock
         field = SystemBasedTickingClock()
 
     /**
@@ -160,6 +160,10 @@ object Verktex {
 
     @RunOnDrawWorker
     private fun draw() {
+        if (!graphics.prepareFrame()) {
+            return
+        }
+
         graphics.begin()
         scene.draw(graphics)
         overlayContainer.draw(graphics)
@@ -168,7 +172,7 @@ object Verktex {
 
     @RunOnUpdateWorker
     private fun update() {
-        drawWorker.check()
+        updateWorker.check()
         clock.tick()
         scene.update(clock)
     }

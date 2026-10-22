@@ -3,7 +3,7 @@ package com.reco1l.verktex.time
 /**
  * Represents a clock that is offset.
  */
-class TransformedTickingClock<SourceClock : TickingClock>(override val source: SourceClock) : TickingClock(), ISourceBasedClock<SourceClock> {
+class TransformedTickingClock<SourceClock : FrameClock>(override val source: SourceClock) : FrameClock(), ISourceBasedClock<SourceClock> {
 
     /**
      * The offset in seconds.
@@ -37,7 +37,7 @@ class TransformedTickingClock<SourceClock : TickingClock>(override val source: S
 /**
  * Returns a new [TransformedTickingClock] that is derived from this clock.
  */
-fun <C : TickingClock> C.transform(offset: Float = 0f, rate: Float = 1f) = TransformedTickingClock(this).also { transformedClock ->
+fun <C : FrameClock> C.transform(offset: Float = 0f, rate: Float = 1f) = TransformedTickingClock(this).also { transformedClock ->
     transformedClock.offset = offset
     transformedClock.rate = rate
 }

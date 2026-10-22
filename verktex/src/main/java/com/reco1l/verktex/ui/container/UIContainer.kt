@@ -1,6 +1,7 @@
 package com.reco1l.verktex.ui.container
 
 import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.worker.RunOnDrawWorker
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.graphics.GraphicsRenderer
@@ -76,8 +77,10 @@ open class UIContainer : UIComponent(), MutableIterable<UIComponent> {
         var measuredWidth = 0f
         var measuredHeight = 0f
 
+        val childConstraints = contentConstraints.loosen()
+
         forEach { child ->
-            val childMeasuredSize = child.measure(contentConstraints)
+            val childMeasuredSize = child.measure(childConstraints)
 
             measuredWidth = max(measuredWidth, child.x.resolve(contentConstraints.availableWidth) + childMeasuredSize.x)
             measuredHeight = max(measuredHeight, child.y.resolve(contentConstraints.availableHeight) + childMeasuredSize.y)
@@ -88,12 +91,39 @@ open class UIContainer : UIComponent(), MutableIterable<UIComponent> {
         return parentConstraints.constrain(measuredSize)
     }
 
+    override fun onLayout(bounds: Vec4) {
+        // Children are laid out in local space, inside the content area (bounds minus padding).
+        val contentBounds = Vec4(
+            x = paddingLeft.toPixels(),
+            y = paddingTop.toPixels(),
+            z = bounds.width - paddingRight.toPixels(),
+            w = bounds.height - paddingBottom.toPixels()
+        )
+
+        forEach { child -> child.layout(contentBounds) }
+    }
+
     //endregion
 
     //region Input
 
     override fun onInputEvent(event: InputEvent): Boolean {
-        return propagateConsumable { child -> child.onInputEvent(event) }
+        // Topmost children (drawn last) get the event first.
+        for (child in children.asReversed()) {
+
+            // Down and move events only go to the children under the pointer, while up and cancel
+            // events go to every child so pressed components can release themselves.
+            if (event is PointerEvent
+                && (event.action == PointerEvent.Action.Down || event.action == PointerEvent.Action.Move)
+                && !child.containsScenePoint(event.x, event.y)) {
+                continue
+            }
+
+            if (child.onInputEvent(event)) {
+                return true
+            }
+        }
+        return false
     }
 
     //endregion
@@ -102,7 +132,7 @@ open class UIContainer : UIComponent(), MutableIterable<UIComponent> {
 
     override fun calculateTransformations() {
         super.calculateTransformations()
-        propagate { it.calculateTransformations() }
+        children.forEach { it.calculateTransformations() }
     }
 
 
@@ -259,7 +289,7 @@ open class UIContainer : UIComponent(), MutableIterable<UIComponent> {
             if (child is UIContainer) {
                 if (child.propagateConsumable(action)) return true
             } else {
-                if (action(this)) return true
+                if (action(child)) return true
             }
         }
         return false
