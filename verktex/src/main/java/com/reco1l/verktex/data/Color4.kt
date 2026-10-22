@@ -16,10 +16,10 @@ data class Color4(
      * Constructs a Color4 instance from a hexadecimal color value of the form 0xAARRGGBB.
      */
     constructor(hex: Long): this(
-        (hex ushr 24 and 0xFF) / 255f,
         (hex ushr 16 and 0xFF) / 255f,
         (hex ushr 8 and 0xFF) / 255f,
-        (hex and 0xFF) / 255f
+        (hex and 0xFF) / 255f,
+        (hex ushr 24 and 0xFF) / 255f
     )
 
     /**
