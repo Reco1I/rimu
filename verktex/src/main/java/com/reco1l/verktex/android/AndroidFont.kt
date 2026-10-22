@@ -21,6 +21,7 @@ class AndroidFont(
         paint.typeface = typeface
         paint.textSize = descriptor.size.toPixels()
         paint.isAntiAlias = true
+        paint.color = android.graphics.Color.WHITE
 
         // Oblique style is not directly supported by Android's Typeface, so we apply a skew to
         // simulate it.
