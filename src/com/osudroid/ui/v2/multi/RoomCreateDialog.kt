@@ -14,8 +14,8 @@ import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.dialog.UIDialog
 import com.reco1l.verktex.ui.form.*
 import com.reco1l.verktex.data.Vec4
-import com.reco1l.toolkt.kotlin.*
 import com.reco1l.verktex.data.Axis
+import com.osudroid.utils.async
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.helper.*
 import ru.nsu.ccfit.zuev.osu.online.*

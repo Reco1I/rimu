@@ -18,8 +18,8 @@ import com.reco1l.verktex.ui.dialog.UIDialog
 import com.reco1l.verktex.ui.form.*
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
-import com.reco1l.toolkt.kotlin.*
 import com.reco1l.verktex.data.Vec4
+import com.osudroid.utils.async
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.helper.*
 import ru.nsu.ccfit.zuev.osu.menu.*
@@ -74,7 +74,9 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
             }
 
             text {
-                text = room.playerNames.takeUnless { it.isEmpty() } ?: StringTable.get(string.multiplayer_room_no_players)
+                text = room.playerNames.takeUnless { it.isEmpty() }
+                    ?: if (room.playerCount > 0) "${room.playerCount} player${if (room.playerCount != 1) "s" else ""}"
+                       else StringTable.get(string.multiplayer_room_no_players)
                 style = {
                     fontSize = FontSize.XS
                     color = it.accentColor.copy(alpha = 0.95f)
@@ -91,7 +93,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                     setText(
                         when (room.teamMode) {
                             TeamMode.HeadToHead -> string.multiplayer_room_head_to_head
-                            TeamMode.TeamVersus -> string.multiplayer_room_team_versus
+                            TeamMode.TeamVS -> string.multiplayer_room_team_versus
                         }
                     )
                 }
@@ -102,8 +104,8 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                         when (room.winCondition) {
                             WinCondition.ScoreV1 -> string.multiplayer_room_score_v1
                             WinCondition.ScoreV2 -> string.multiplayer_room_score_v2
-                            WinCondition.HighestAccuracy -> string.multiplayer_room_highest_accuracy
-                            WinCondition.MaximumCombo -> string.multiplayer_room_maximum_combo
+                            WinCondition.Accuracy -> string.multiplayer_room_highest_accuracy
+                            WinCondition.MaxCombo -> string.multiplayer_room_maximum_combo
                         }
                     )
                 }

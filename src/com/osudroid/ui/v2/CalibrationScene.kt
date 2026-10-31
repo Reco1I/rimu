@@ -26,6 +26,7 @@ import com.reco1l.verktex.ui.control.UICheckbox
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec4
+import com.osudroid.resources.R.string
 import com.reco1l.osu.ui.PromptDialog
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.math.Interpolation
@@ -44,7 +45,6 @@ import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
-import ru.nsu.ccfit.zuev.osuplus.R.string
 
 object CalibrationScene : Scene() {
     internal var OFFSET_MIN = -500

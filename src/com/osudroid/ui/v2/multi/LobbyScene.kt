@@ -35,7 +35,6 @@ import ru.nsu.ccfit.zuev.osu.ToastLogger
 import kotlin.coroutines.cancellation.CancellationException
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
-import ru.nsu.ccfit.zuev.osuplus.R
 
 class LobbyScene : Scene() {
 
@@ -122,7 +121,7 @@ class LobbyScene : Scene() {
                     +UITextInput("").apply {
                         key = "search"
                         height = Dimension.FillAvailable
-                        placeholder = StringTable.get(R.string.multiplayer_lobby_search_rooms)
+                        placeholder = StringTable.get(string.multiplayer_lobby_search_rooms)
                         onValueChange = { value ->
                             searchQuery = value
                         }

@@ -14,7 +14,6 @@ import com.reco1l.verktex.theme.srem
 import com.reco1l.verktex.ui.*
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
-import com.reco1l.toolkt.kotlin.*
 import com.osudroid.mods.*
 import com.osudroid.mods.settings.*
 import com.reco1l.verktex.data.Color4
@@ -87,14 +86,14 @@ class ModCustomizationMenu(trigger: UIButton) : UIModal(
     //region Component lifecycle
 
     fun updateComponents() {
-        modSettingComponents.fastForEach { it.update() }
+        modSettingComponents.forEach { it.update() }
     }
 
     fun updateComponentEnabledStates() {
         val room = Multiplayer.room
         val isHost = Multiplayer.isRoomHost
 
-        modSettingComponents.fastForEach {
+        modSettingComponents.forEach {
             it.isEnabled = if (room != null) {
                 it.mod.isValidForMultiplayer && (isHost || (room.gameplaySettings.isFreeMod && it.mod.isValidForMultiplayerAsFreeMod))
             } else {
@@ -189,7 +188,7 @@ class ModCustomizationMenu(trigger: UIButton) : UIModal(
                 style = {
                     padding = Vec4(2f.srem, 0f)
                 }
-                mod.settings.fastForEach { +ModSettingComponent(mod, it) }
+                mod.settings.forEachTolerant { +ModSettingComponent(mod, it) }
             }
         }
     }

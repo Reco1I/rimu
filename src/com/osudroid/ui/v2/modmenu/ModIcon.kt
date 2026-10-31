@@ -18,6 +18,7 @@ import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.text.UIText
+import com.osudroid.utils.allModsInstances
 import org.anddev.andengine.engine.camera.*
 import org.anddev.andengine.opengl.texture.region.*
 import ru.nsu.ccfit.zuev.osu.*
@@ -30,6 +31,8 @@ import javax.microedition.khronos.opengles.*
 class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
 
     private var shouldUpdateTexture = true
+
+    constructor(acronym: String): this(allModsInstances.find { it.acronym.equals(acronym, ignoreCase = true) }!!)
 
 
     init {

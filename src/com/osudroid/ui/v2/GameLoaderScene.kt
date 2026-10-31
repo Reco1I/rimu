@@ -4,6 +4,8 @@ import com.edlplan.framework.easing.*
 import com.osudroid.data.*
 import com.osudroid.multiplayer.*
 import com.osudroid.resources.R
+import com.osudroid.multiplayer.api.RoomAPI
+import com.osudroid.multiplayer.api.data.PlayerStatus
 import com.osudroid.utils.ModHashMap
 import com.reco1l.verktex.*
 import com.reco1l.verktex.component.*
@@ -41,6 +43,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
     private var lastTimeTouched = System.currentTimeMillis()
     private var isStarting = false
+    private var multiplayerLoadElapsed = 0f
 
     private val dimBox: UIBox
     private val mainContainer: UIContainer
@@ -143,16 +146,14 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
                     +UILoadingIndicator()
 
-                    if (!Multiplayer.isMultiplayer) {
-                        textButton {
-                            text = "Back"
-                            leadingIcon = UIIcon(FAIcon.ArrowLeft)
-                            onActionUp = {
-                                Textures.getInstance().getSound("click-short-confirm")?.play()
-                                cancel()
-                            }
-                            onActionCancel = { Textures.getInstance().getSound("click-short")?.play() }
+                    textButton {
+                        text = "Back"
+                        leadingIcon = UIIcon(FAIcon.ArrowLeft)
+                        onActionUp = {
+                            Textures.getInstance().getSound("click-short-confirm")?.play()
+                            cancel()
                         }
+                        onActionCancel = { Textures.getInstance().getSound("click-short")?.play() }
                     }
                 }
             }
@@ -162,14 +163,17 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     }
 
     /**
-     * Cancels loading and goes back to the song menu.
+     * Cancels loading and goes back to the song menu, or to the multiplayer room if in multiplayer.
      */
     fun cancel() {
+        gameScene.cancelLoading()
+
         if (Multiplayer.isMultiplayer) {
+            // Inform that the player has canceled loading.
+            RoomAPI.setPlayerStatus(PlayerStatus.NotReady)
+            Multiplayer.roomScene?.show()
             return
         }
-
-        gameScene.cancelLoading()
 
         val global = GlobalManager.getInstance()
         val songMenu = global.songMenu
@@ -197,6 +201,20 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     override fun onManagedUpdate(deltaTimeSec: Float) {
 
         if (!isStarting) {
+
+            if (Multiplayer.isMultiplayer && !gameScene.isReadyToStart) {
+                multiplayerLoadElapsed += deltaTimeSec
+
+                if (multiplayerLoadElapsed >= MULTIPLAYER_LOAD_TIMEOUT_SEC) {
+                    ToastLogger.showText(
+                        "You have been moved back as you took too long to load the beatmap.",
+                        true
+                    )
+
+                    cancel()
+                    return
+                }
+            }
 
             if (gameScene.isReadyToStart) {
 
@@ -396,5 +414,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     companion object {
         private var beatmapCardCollapsed = false
         private var settingsCardCollapsed = false
+
+        private const val MULTIPLAYER_LOAD_TIMEOUT_SEC = 60f
     }
 }

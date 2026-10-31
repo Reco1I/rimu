@@ -13,9 +13,6 @@ import com.reco1l.verktex.theme.FontSize
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.*
 import com.reco1l.verktex.data.Vec4
-import com.reco1l.toolkt.*
-import com.osudroid.utils.ModUtils.applyModsToBeatmapDifficulty
-import com.osudroid.utils.ModUtils.calculateRateWithMods
 import com.reco1l.verktex.data.icon
 import com.reco1l.verktex.data.spannable
 import com.reco1l.verktex.texture.Textures
@@ -23,6 +20,9 @@ import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.framework.math.roundBy
+import com.osudroid.utils.applyMods
+import com.osudroid.utils.calculateRate
 import kotlinx.coroutines.Job
 import ru.nsu.ccfit.zuev.osu.*
 import java.text.*
@@ -259,11 +259,10 @@ class BeatmapInfoLayout : UILinearContainer() {
         spinnersBadge.value = beatmapInfo.spinnerCount.toString()
 
         val mods = ModMenu.enabledMods
-        val totalSpeedMultiplier = calculateRateWithMods(mods.values, Double.POSITIVE_INFINITY)
+        val totalSpeedMultiplier = mods.values.calculateRate(Double.POSITIVE_INFINITY)
 
         val difficulty = beatmapInfo.getBeatmapDifficulty()
-
-        applyModsToBeatmapDifficulty(difficulty, GameMode.Droid, mods.values, true)
+        difficulty.applyMods(GameMode.Droid, mods.values, true)
 
         val minBpm = (beatmapInfo.bpmMin * totalSpeedMultiplier).roundToInt()
         val maxBpm = (beatmapInfo.bpmMax * totalSpeedMultiplier).roundToInt()

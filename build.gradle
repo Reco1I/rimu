@@ -1,7 +1,7 @@
 buildscript {
     ext {
         kotlin_version = '2.4.10'
-        room_version = '2.6.1'
+        room_version = '2.7.2'
     }
     repositories {
         google()
@@ -156,6 +156,7 @@ android {
         targetCompatibility JavaVersion.VERSION_17
         kotlinOptions {
             jvmTarget = '17'
+            freeCompilerArgs += ['-Xjvm-default=all']
         }
     }
 
@@ -206,11 +207,10 @@ dependencies {
     implementation 'com.github.EdrowsLuo.EdlGameFramework:EdlOsbSupport:d91c53fcff'
 
     // Localizations
-    implementation 'com.github.osudroid:language-pack:2025.1007.0'
+    implementation 'com.github.osudroid:language-pack:2026.0606.2'
 
     // Tools
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0"
-    implementation 'com.github.Reco1I:Toolkt:1.0.24'
     implementation 'commons-io:commons-io:2.18.0'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.14.1'
@@ -221,6 +221,10 @@ dependencies {
     implementation ('io.socket:socket.io-client:2.1.1') {
         exclude group: 'org.json', module: 'json'
     }
+
+    // Video playback
+    implementation "androidx.media3:media3-exoplayer:1.4.1"
+    implementation files('libs/media3-decoder-ffmpeg.aar')
 
     // Room
     implementation "androidx.room:room-runtime:$room_version"

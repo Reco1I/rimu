@@ -5,7 +5,7 @@ import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.shape.UITriangle
 import com.reco1l.verktex.theme.Colors
 import com.reco1l.verktex.data.Color4
-import com.reco1l.toolkt.kotlin.fastForEach
+import com.reco1l.framework.forEachTolerant
 import org.anddev.andengine.engine.camera.Camera
 import javax.microedition.khronos.opengles.GL10
 import kotlin.random.Random
@@ -91,7 +91,7 @@ class TrianglesDispenser : UIComponent() {
         }
 
         // Update existing triangles
-        activeTriangles.fastForEach { info ->
+        activeTriangles.forEachTolerant { info ->
             info.update(deltaTimeSec)
         }
 
@@ -101,7 +101,7 @@ class TrianglesDispenser : UIComponent() {
     }
 
     override fun onDrawChildren(gl: GL10, camera: Camera) {
-        activeTriangles.fastForEach { info ->
+        activeTriangles.forEachTolerant { info ->
             triangle.setScale(info.scale)
             triangle.y = info.y
             triangle.x = info.x

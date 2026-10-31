@@ -21,6 +21,7 @@ import com.reco1l.verktex.ui.container.UIFillContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.control.UITextInput
 import com.reco1l.verktex.ui.text.UIText
+import com.osudroid.resources.R
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
 import com.reco1l.verktex.data.Color4
@@ -33,7 +34,6 @@ import com.rian.andengine.modifier.ModifierType
 import org.anddev.andengine.input.touch.*
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
-import ru.nsu.ccfit.zuev.osuplus.R
 import java.util.LinkedList
 
 /**
@@ -131,6 +131,7 @@ class RoomChat : UILinearContainer() {
                     +UITextInput("").apply {
                         width = Dimension.FillAvailable
                         height = Dimension.FillAvailable
+                        maxCharacters = 200
                         placeholder = "Type a message..."
                         onConfirm = { sendMessage() }
 
@@ -152,7 +153,7 @@ class RoomChat : UILinearContainer() {
 
     private fun sendMessage() {
 
-        val text = input.value.trim()
+        val text = input.value.trim().take(200)
         if (text.isEmpty()) {
             return
         }
@@ -229,7 +230,7 @@ class RoomChat : UILinearContainer() {
     }
 
 
-    fun onRoomChatMessage(player: RoomPlayer, message: String) = mainThread {
+    fun onRoomChatMessage(player: RoomPlayer, message: String) = updateThread {
         appendMessage(
             PlayerMessage(
                 player = player,
@@ -238,7 +239,7 @@ class RoomChat : UILinearContainer() {
         )
     }
 
-    fun onSystemChatMessage(message: String, color: String) = mainThread {
+    fun onSystemChatMessage(message: String, color: String) = updateThread {
         Multiplayer.log("System message: $message")
 
         appendMessage(

@@ -3,7 +3,7 @@ package com.osudroid.ui
 import android.graphics.Color
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.math.ColorInterpolation
-import com.reco1l.toolkt.roundBy
+import com.reco1l.framework.math.roundBy
 import kotlin.math.ceil
 
 /**

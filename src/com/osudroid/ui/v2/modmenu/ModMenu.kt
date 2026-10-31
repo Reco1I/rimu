@@ -19,19 +19,18 @@ import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.ui.v2.ModsIndicator
 import com.osudroid.ui.v2.StarRatingBadge
 import com.osudroid.utils.ModHashMap
+import com.osudroid.utils.async
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.theme.srem
 import com.reco1l.verktex.ui.UITextButton
-import com.reco1l.toolkt.kotlin.*
-import com.reco1l.toolkt.kotlin.async
+import com.osudroid.utils.async
 import com.rian.framework.RollingFloatCounter
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateDroidDifficulty
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateStandardDifficulty
 import com.osudroid.mods.*
-import com.osudroid.utils.ModUtils
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.data.Anchor
@@ -43,6 +42,10 @@ import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UIFillContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.osudroid.scoring.ScoreMultiplierCalculator
+import com.osudroid.utils.allModsInstances
+import com.osudroid.utils.applyMods
+import com.osudroid.utils.calculateRate
 import java.io.IOException
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.*
@@ -52,6 +55,7 @@ import java.util.LinkedList
 import java.util.concurrent.CancellationException
 import kotlin.math.*
 import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
 
 object ModMenu : Scene() {
 
@@ -181,7 +185,7 @@ object ModMenu : Scene() {
                     searchInput = ModMenuSearchInput().apply {
                         width = 18f.rem
                         onSearchTermUpdate = { searchTerm ->
-                            modSections.fastForEach { it.onSearchTermUpdate(searchTerm) }
+                            modSections.forEach { it.onSearchTermUpdate(searchTerm) }
 
                             if (modPresetsSection.isVisible) {
                                 modPresetsSection.onSearchTermUpdate(searchTerm)
@@ -224,7 +228,7 @@ object ModMenu : Scene() {
                     modPresetsSection = ModMenuPresetsSection()
                     +modPresetsSection
 
-                    val mods = ModUtils.allModsInstances
+                    val mods = allModsInstances
 
                     ModType.entries.forEach { type ->
                         val sectionName = StringTable.get(type.stringId)
@@ -369,18 +373,17 @@ object ModMenu : Scene() {
                 DatabaseManager.beatmapInfoTable.update(newInfo)
             }
 
-            enabledMods.values.filterIsInstance<IModRequiresOriginalBeatmap>().fastForEach { mod ->
-                ensureActive()
-                mod.applyFromBeatmap(beatmap)
-            }
+            // This is needed to give the mod a reference to the beatmap's default difficulty values.
+            enabledMods.ofType<ModDifficultyAdjust>()?.setDefaultDifficulty(beatmap.difficulty)
+
             customizationMenu.updateComponents()
 
             // Copy the mods to avoid concurrent modification
             val mods = enabledMods.deepCopy().values
             val difficulty = beatmap.difficulty.clone()
-            val rate = ModUtils.calculateRateWithMods(mods, Double.POSITIVE_INFINITY)
+            val rate = mods.calculateRate(Double.POSITIVE_INFINITY)
 
-            ModUtils.applyModsToBeatmapDifficulty(difficulty, gameMode, mods, true, this@scope)
+            difficulty.applyMods(gameMode, mods, true, this@scope)
 
             ensureActive()
 
@@ -391,7 +394,7 @@ object ModMenu : Scene() {
                 hpBadge.updateValue(selectedBeatmap.hpDrainRate, difficulty.hp)
                 bpmBadge.updateValue(selectedBeatmap.mostCommonBPM, selectedBeatmap.mostCommonBPM * rate)
 
-                scoreMultiplierBadge.updateValue(1f, ModUtils.calculateScoreMultiplier(enabledMods))
+                scoreMultiplierBadge.updateValue(1f, ScoreMultiplierCalculator(beatmap.difficulty).calculateFor(enabledMods.values).toFloat())
             }
 
             ensureActive()
@@ -443,16 +446,22 @@ object ModMenu : Scene() {
     fun back(updatePlayerMods: Boolean) {
 
         if (Multiplayer.isConnected) {
-            Multiplayer.roomScene?.chat?.show()
-            Multiplayer.roomScene?.isWaitingForModsChange?.set(true)
+            val gameScene = GlobalManager.getInstance().gameScene
+            val isInGameplay = gameScene != null &&
+                GlobalManager.getInstance().engine.scene == gameScene.scene
 
-            // The room mods are the same as the host mods
-            if (Multiplayer.isRoomHost) {
-                setRoomMods(enabledMods.serializeMods())
-            } else if (updatePlayerMods) {
-                setPlayerMods(enabledMods.serializeMods())
-            } else {
-                Multiplayer.roomScene?.isWaitingForModsChange?.set(false)
+            if (!isInGameplay) {
+                Multiplayer.roomScene?.chat?.show()
+                Multiplayer.roomScene?.isWaitingForModsChange?.set(true)
+
+                // The room mods are the same as the host mods
+                if (Multiplayer.isRoomHost) {
+                    setRoomMods(enabledMods.serializeMods())
+                } else if (updatePlayerMods) {
+                    setPlayerMods(enabledMods.serializeMods())
+                } else {
+                    Multiplayer.roomScene?.isWaitingForModsChange?.set(false)
+                }
             }
         }
 
@@ -511,13 +520,13 @@ object ModMenu : Scene() {
     }
 
     fun updateModButtonVisibility() {
-        modToggles.fastForEach {
+        modToggles.forEach {
             it.updateVisibility(searchInput.value)
             it.applyCompatibilityState()
         }
 
         // Update section visibility after toggles have been updated since it may not need to be visible anymore.
-        modSections.fastForEach { it.updateVisibility() }
+        modSections.forEach { it.updateVisibility() }
     }
 
     fun updateCustomizationMenuEnabledStates() {
@@ -530,19 +539,19 @@ object ModMenu : Scene() {
         val room = Multiplayer.room
         val isHost = Multiplayer.isRoomHost
 
-        enabledMods.toList().fastForEach {
+        enabledMods.toList().forEach {
             val mod = it.second
 
             if (room != null) {
                 // For non-host in multiplayer, we want to keep mods that are not allowed to be selected by the player
                 // since only the host can change those mods.
                 if (!isHost && room.gameplaySettings.isFreeMod && !mod.isValidForMultiplayerAsFreeMod) {
-                    return@fastForEach
+                    return@forEach
                 }
 
                 // Special handling for the ScoreV2 mod, which is used by the ScoreV2 win condition.
                 if (mod is ModScoreV2) {
-                    return@fastForEach
+                    return@forEach
                 }
             }
 
@@ -582,12 +591,13 @@ object ModMenu : Scene() {
             backgroundColor = if (isRanked) Color4(0xFF83DF6B) else Theme.current.accentColor * 0.15f
         }
 
-        modToggles.fastForEach {
+        modToggles.forEach {
             it.hasIncompatibility =
-                if (!it.isSelected) enabledMods.any { m -> !it.mod.isCompatibleWith(m) } else false
+                !it.isSelected && enabledMods.any { m -> !it.mod.isCompatibleWith(m) || !m.isCompatibleWith(it.mod) }
         }
 
-        scoreMultiplierBadge.updateValue(1f, ModUtils.calculateScoreMultiplier(enabledMods))
+        val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap
+        scoreMultiplierBadge.updateValue(1f, ScoreMultiplierCalculator(selectedBeatmap?.getBeatmapDifficulty()).calculateFor(enabledMods).toFloat())
 
         customizeButton.isEnabled = !customizationMenu.isEmpty()
 
@@ -609,7 +619,7 @@ object ModMenu : Scene() {
         }
         enabledMods.put(mod)
 
-        modToggles.fastForEach { button ->
+        modToggles.forEach { button ->
 
             val wasSelected = button.isSelected
             button.isSelected = button.mod::class in enabledMods

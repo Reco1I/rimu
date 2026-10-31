@@ -30,6 +30,7 @@ import com.reco1l.verktex.ui.*
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.control.UIDropdown
 import com.reco1l.verktex.ui.dialog.UIConfirmDialog
+import com.osudroid.resources.R
 import com.reco1l.framework.*
 import com.reco1l.framework.math.*
 import com.reco1l.verktex.data.Color4
@@ -45,7 +46,6 @@ import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
-import ru.nsu.ccfit.zuev.osuplus.R
 
 class RoomPlayerCard : UILinearContainer() {
     private val teamColorBar: UIButton
@@ -379,7 +379,7 @@ class RoomPlayerCard : UILinearContainer() {
                     if (OnlineManager.getInstance().loadAvatarToTextureManager(avatarUrl)) {
                         ensureActive()
 
-                        val texture = resourceManager.getTextureIfLoaded(avatarKey)
+                        val texture = resourceManager.getAvatarTextureIfLoaded(avatarUrl)
 
                         updateThread {
                             if (lastPlayerId == userId) {

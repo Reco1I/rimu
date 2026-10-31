@@ -472,7 +472,6 @@ public class MainScene implements IUpdateHandler {
         scene.registerTouchArea(music_pause);
         scene.registerTouchArea(music_stop);
         scene.registerTouchArea(music_next);
-        scene.setTouchAreaBindingEnabled(true);
 
         if (BuildConfig.DEBUG) {
             ResourceManager.getInstance().loadHighQualityAsset("dev-build-overlay", "dev-build-overlay.png");
@@ -1019,6 +1018,7 @@ public class MainScene implements IUpdateHandler {
         GlobalManager.getInstance().getMainScene().setBeatmap(beatmap);
         StatisticV2 stat = replay.getStat();
         stat.migrateLegacyMods(beatmap.getBeatmapDifficulty());
+        stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty());
 
         GlobalManager.getInstance().getSongMenu().select();
         ResourceManager.getInstance().loadBackground(beatmap.getBackgroundPath());

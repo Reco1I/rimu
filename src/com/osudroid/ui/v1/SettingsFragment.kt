@@ -3,7 +3,6 @@ package com.osudroid.ui.v1
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -51,15 +50,15 @@ import com.osudroid.ui.v2.CalibrationScene
 import com.reco1l.osu.ui.InputPreference
 import com.reco1l.osu.ui.Option
 import com.reco1l.osu.ui.SelectPreference
-import com.reco1l.toolkt.android.bottomMargin
-import com.reco1l.toolkt.android.cornerRadius
-import com.reco1l.toolkt.android.dp
-import com.reco1l.toolkt.android.drawableLeft
-import com.reco1l.toolkt.android.layoutWidth
-import com.reco1l.toolkt.android.topMargin
+import com.reco1l.framework.android.cornerRadius
+import com.reco1l.framework.android.dp
+import com.reco1l.framework.android.drawableLeft
+import com.reco1l.framework.android.layoutWidth
+import com.reco1l.framework.android.topMargin
 import com.osudroid.mods.ModAutoplay
 import com.osudroid.replay.ReplayImporter
 import com.osudroid.utils.ModHashMap
+import com.reco1l.framework.android.bottomMargin
 import java.io.File
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -305,7 +304,7 @@ class SettingsFragment : SettingsFragment() {
 
                 GlobalManager.getInstance().songService.volume = prefs.getInt("bgmvolume", 100) / 100f
 
-                loadSkin(context, prefs.getString("skinPath", "")!!).invokeOnCompletion {
+                loadSkin(prefs.getString("skinPath", "")!!).invokeOnCompletion {
                     mainThread {
                         ToastLogger.showText(string.config_backup_restore_info_success, true)
                         dismiss()
@@ -382,13 +381,16 @@ class SettingsFragment : SettingsFragment() {
         findPreference<SelectPreference>("skinPath")!!.apply {
 
             val skinMain = File(Config.getSkinTopPath())
-            val skins = Config.getSkins().map { Option(it.key, it.value) }.toMutableList()
+            val skinMap = Config.getSkins()
+            val skins = skinMap.mapTo(ArrayList(skinMap.size + 1)) { Option(it.key, it.value) }
+
+            skins.sortBy { it.text.toString() }
             skins.add(0, Option(skinMain.name + " (Default)", skinMain.path))
 
             options = skins
 
             setOnPreferenceChangeListener { _, newValue ->
-                loadSkin(context, newValue.toString())
+                loadSkin(newValue.toString())
                 true
             }
         }
@@ -518,9 +520,12 @@ class SettingsFragment : SettingsFragment() {
 
     private fun handleAdvancedSectionPreferences() {
         findPreference<CheckBoxPreference>("forceMaxRefreshRate")!!.apply {
-            // Obtaining supported refresh rates is only available on Android 12 and above.
-            // See https://developer.android.com/reference/android/view/Display.Mode#getAlternativeRefreshRates().
-            isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+
+            setOnPreferenceChangeListener { _, newValue ->
+                (requireActivity() as MainActivity).applyRefreshRateSetting(newValue as Boolean)
+                true
+            }
         }
 
         findPreference<InputPreference>("skinTopPath")!!.setOnPreferenceChangeListener { it, newValue ->
@@ -588,11 +593,11 @@ class SettingsFragment : SettingsFragment() {
 
     private fun handlePlayerSectionPreferences() {
         findPreference<SelectPreference>("player_team")!!.apply {
-            isEnabled = Multiplayer.room!!.teamMode == TeamMode.TeamVersus
+            isEnabled = Multiplayer.room!!.teamMode == TeamMode.TeamVS
             value = Multiplayer.player!!.team?.ordinal?.toString()
 
             setOnPreferenceChangeListener { _, newValue ->
-                RoomAPI.setPlayerTeam(RoomTeam[(newValue as String).toInt()] ?: return@setOnPreferenceChangeListener false)
+                RoomAPI.setPlayerTeam(RoomTeam.entries.getOrNull((newValue as String).toInt()) ?: return@setOnPreferenceChangeListener false)
                 true
             }
         }
@@ -666,7 +671,7 @@ class SettingsFragment : SettingsFragment() {
             value = Multiplayer.room!!.teamMode.ordinal.toString()
 
             setOnPreferenceChangeListener { _, newValue ->
-                RoomAPI.setRoomTeamMode(TeamMode[(newValue as String).toInt()] ?: return@setOnPreferenceChangeListener false)
+                RoomAPI.setRoomTeamMode(TeamMode.entries.getOrNull((newValue as String).toInt()) ?: return@setOnPreferenceChangeListener false)
                 true
             }
         }
@@ -675,7 +680,7 @@ class SettingsFragment : SettingsFragment() {
             value = Multiplayer.room!!.winCondition.ordinal.toString()
 
             setOnPreferenceChangeListener { _, newValue ->
-                RoomAPI.setRoomWinCondition(WinCondition.from((newValue as String).toInt()) ?: return@setOnPreferenceChangeListener false)
+                RoomAPI.setRoomWinCondition(WinCondition.entries.getOrNull((newValue as String).toInt()) ?: return@setOnPreferenceChangeListener false)
                 true
             }
         }
@@ -691,7 +696,7 @@ class SettingsFragment : SettingsFragment() {
     }
 
 
-    private fun loadSkin(context: Context, path: String): Job {
+    private fun loadSkin(path: String): Job {
         val loading = LoadingFragment()
 
         loading.isDismissOnBackPress = false

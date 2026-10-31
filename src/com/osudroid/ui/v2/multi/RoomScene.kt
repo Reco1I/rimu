@@ -24,8 +24,10 @@ import com.osudroid.ui.v2.ModsIndicator
 import com.osudroid.ui.v2.modmenu.ModMenu
 import com.osudroid.utils.async
 import com.osudroid.utils.mainThread
+import com.osudroid.utils.runSafe
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.ui.badge
 import com.reco1l.verktex.ui.box
@@ -59,18 +61,20 @@ import com.reco1l.verktex.ui.dialog.UIMessageDialog
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec4
-import com.reco1l.toolkt.kotlin.runSafe
+import com.osudroid.utils.runSafe
+import com.osudroid.resources.R
+import com.reco1l.osu.ui.MessageDialog
 import com.osudroid.mods.ModScoreV2
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.UIScene
 import org.json.JSONArray
+import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
-import ru.nsu.ccfit.zuev.osuplus.R
 
 class RoomScene(
     /**
@@ -148,6 +152,7 @@ class RoomScene(
 
 
     private var currentPlayers = LongArray(0)
+    private var allowAutomaticPlaybackRestart = true
 
 
     init {
@@ -435,7 +440,7 @@ class RoomScene(
                                 }
 
                                 if (!BuildSettings.MOCK_MULTIPLAYER) {
-                                    if (room.teamMode == TeamMode.TeamVersus) {
+                                    if (room.teamMode == TeamMode.TeamVS) {
                                         val teams = room.teamMap
 
                                         if (teams.values.any { it.isEmpty() }) {
@@ -487,7 +492,7 @@ class RoomScene(
                                     return@callback
                                 }
 
-                                if (room.teamMode == TeamMode.TeamVersus && player.team == null) {
+                                if (room.teamMode == TeamMode.TeamVS && player.team == null) {
                                     ToastLogger.showText(R.string.multiplayer_room_cannot_ready_no_team, true)
                                     isWaitingForStatusChange.set(false)
                                     return@callback
@@ -537,15 +542,15 @@ class RoomScene(
             when (room.winCondition) {
                 WinCondition.ScoreV1 -> R.string.multiplayer_room_score_v1
                 WinCondition.ScoreV2 -> R.string.multiplayer_room_score_v2
-                WinCondition.HighestAccuracy -> R.string.multiplayer_room_highest_accuracy
-                WinCondition.MaximumCombo -> R.string.multiplayer_room_maximum_combo
+                WinCondition.Accuracy -> R.string.multiplayer_room_highest_accuracy
+                WinCondition.MaxCombo -> R.string.multiplayer_room_maximum_combo
             }
         )
 
         teamModeBadge.setText(
             when (room.teamMode) {
                 TeamMode.HeadToHead -> R.string.multiplayer_room_head_to_head
-                TeamMode.TeamVersus -> R.string.multiplayer_room_team_versus
+                TeamMode.TeamVS -> R.string.multiplayer_room_team_versus
             }
         )
 
@@ -556,22 +561,29 @@ class RoomScene(
     }
 
     fun updatePlayerList() = updateThread {
-        val shouldReload = currentPlayers.size != room.playersMap.size
-                || !currentPlayers.all { room.playersMap.containsKey(it) }
+        // Room state is mutated on the socket EventThread (and room itself is replaced on reconnection), so take a
+        // single snapshot and derive everything from it. Reading room state multiple times here can observe different
+        // player lists, desynchronizing the card count from the player count.
+        val room = room
+        val players = room.activePlayers
+
+        val shouldReload = playersContainer.childCount != players.size
+                || currentPlayers.size != players.size
+                || players.indices.any { currentPlayers[it] != players[it].id }
 
         playersContainer.apply {
 
             if (shouldReload) {
                 clearChildren()
 
-                room.activePlayers.forEach {
+                players.forEach {
                     +RoomPlayerCard().apply {
                         updateState(room, it)
                     }
                 }
-                currentPlayers = room.playersMap.keys.toLongArray()
+                currentPlayers = LongArray(players.size) { players[it].id }
             } else {
-                room.activePlayers.forEachIndexed { index, player ->
+                players.forEachIndexed { index, player ->
                     val card = this[index] as RoomPlayerCard
                     card.updateState(room, player)
                 }
@@ -783,13 +795,31 @@ class RoomScene(
         // will call invalidateStatus() with the correct beatmap context.
 
         chat.show()
+        allowAutomaticPlaybackRestart = true
+    }
+
+    override fun onUpdate(clock: FrameClock) {
+        if (Config.isPlayMusicPreview() && allowAutomaticPlaybackRestart) {
+            val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap
+
+            if (selectedBeatmap != null) {
+                val songService = GlobalManager.getInstance().songService
+
+                if (songService.status == Status.STOPPED) {
+                    songService.preLoad(selectedBeatmap.audioPath)
+                    songService.play()
+                }
+            }
+        }
+
+        super.onUpdate(clock)
     }
 
 
     // Communication
 
     override fun onServerError(error: String) {
-        mainThread { ToastLogger.showText(error, true) }
+        ToastLogger.showText(error, true)
     }
 
     override fun onRoomChatMessage(uid: Long?, message: String) {
@@ -1090,6 +1120,7 @@ class RoomScene(
 
         updateThread {
             val global = GlobalManager.getInstance()
+
             if (player.status != PlayerStatus.MissingBeatmap && global.engine.scene != global.gameScene.scene) {
 
                 if (global.selectedBeatmap == null) {
@@ -1097,6 +1128,7 @@ class RoomScene(
                     return@updateThread
                 }
 
+                allowAutomaticPlaybackRestart = false
                 global.songMenu.stopMusic()
                 global.gameScene.startGame(global.selectedBeatmap, null, ModMenu.enabledMods)
 

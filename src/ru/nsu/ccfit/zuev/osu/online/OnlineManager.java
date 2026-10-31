@@ -35,7 +35,7 @@ public class OnlineManager {
     public static final String updateEndpoint = endpoint + "update.php?lang=";
     public static final String defaultAvatarURL = getAvatarURL(0);
     public static final String profileBannerEndpoint = "https://" + hostname + "/user/banner/";
-    private static final String onlineVersion = "60";
+    private static final String onlineVersion = "65";
 
     public static final OkHttpClient client = new OkHttpClient();
 
@@ -136,13 +136,14 @@ public class OnlineManager {
         this.username = username;
         this.password = password;
 
+        if (username == null || username.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            failMessage = "Username or password is empty";
+            return false;
+        }
+
         PostBuilder post = new URLEncodedPostBuilder();
         post.addParam("username", username);
-        post.addParam(
-                "password",
-                MD5Calculator.getStringMD5(
-                        escapeHTMLSpecialCharacters(addSlashes(String.valueOf(password).trim())) + "taikotaiko"
-                ));
+        post.addParam("password", MD5Calculator.getStringMD5(password.trim() + "taikotaiko"));
         post.addParam("version", onlineVersion);
 
         ArrayList<String> response = sendRequest(post, endpoint + "login.php");
@@ -206,6 +207,11 @@ public class OnlineManager {
         post.addParam("hash", beatmap.getMD5());
         post.addParam("data", scoreData);
         post.addParam("version", onlineVersion);
+
+        post.addParam("cs", String.valueOf(beatmap.getCircleSize()));
+        post.addParam("ar", String.valueOf(beatmap.getApproachRate()));
+        post.addParam("od", String.valueOf(beatmap.getOverallDifficulty()));
+        post.addParam("hp", String.valueOf(beatmap.getHpDrainRate()));
 
         MediaType replayMime = MediaType.parse("application/octet-stream");
         RequestBody replayFileBody = RequestBody.create(replayFile, replayMime);
@@ -473,19 +479,4 @@ public class OnlineManager {
         }
     }
 
-    private String escapeHTMLSpecialCharacters(String str) {
-        return str
-                .replace("&", "&amp;")
-                .replace("\"", "&quot;")
-                .replace("'", "&apos;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;");
-    }
-
-    private String addSlashes(String str) {
-        return str
-                .replace("'", "\\'")
-                .replace("\"", "\\\"")
-                .replace("\\", "\\\\");
-    }
 }

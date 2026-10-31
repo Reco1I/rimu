@@ -5,7 +5,6 @@ import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.data.Color4
 import com.osudroid.utils.*
 import com.reco1l.verktex.component.*
-import com.reco1l.toolkt.kotlin.*
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.reco1l.verktex.data.Anchor
 import org.anddev.andengine.engine.camera.*
@@ -96,11 +95,22 @@ class HUDBarHitErrorMeter : HUDHitErrorMeter() {
         activeIndicators.add(indicator)
     }
 
+    override fun onSeek() {
+        // Note that this only clears current active indicators. While reconstructing indicators that should still be
+        // active is possible, it is not worth the complexity.
+        activeIndicators.forEach {
+            if (!it.isRecycled) {
+                expiredIndicators.release(it)
+            }
+        }
+        activeIndicators.clear()
+    }
+
     //region Indicator update & draw
 
     override fun onDrawChildren(gl: GL10, camera: Camera) {
         super.onDrawChildren(gl, camera)
-        activeIndicators.fastForEach {
+        activeIndicators.forEach {
             indicatorBox.x = it.x
             indicatorBox.color = it.color
             indicatorBox.alpha = it.alpha
@@ -109,7 +119,7 @@ class HUDBarHitErrorMeter : HUDHitErrorMeter() {
     }
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
-        activeIndicators.fastForEach(Indicator::update)
+        activeIndicators.forEach(Indicator::update)
         super.onManagedUpdate(deltaTimeSec)
     }
 

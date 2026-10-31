@@ -33,6 +33,12 @@ open class UIContainer : UIComponent(), MutableIterable<UIComponent> {
     protected val children: MutableList<UIComponent> = mutableListOf()
 
     /**
+     * The number of children in this container.
+     */
+    val childCount
+        get() = children.size
+
+    /**
      * Whether this container lays out its children only when something changed: a measure pass
      * (size, position or children), an invalidated layout below it or other bounds given by its
      * parent. Otherwise it lays out every frame.

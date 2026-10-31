@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.reco1l.framework.forEachTolerant
 import com.reco1l.verktex.*
 import com.reco1l.verktex.theme.FontSize
 import com.reco1l.verktex.theme.Radius
@@ -10,10 +11,10 @@ import com.reco1l.verktex.ui.container.UIFillContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.toolkt.kotlin.*
 import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
+import ru.nsu.ccfit.zuev.osu.*
 
 @Suppress("LeakingThis")
 open class ModMenuSection(name: String, private val toggles: List<UIButton> = listOf()) : UIFillContainer() {
@@ -57,7 +58,7 @@ open class ModMenuSection(name: String, private val toggles: List<UIButton> = li
                     spacing = 2f.srem
                 }
 
-                toggles.fastForEach { +it }
+                toggles.forEachTolerant { +it }
                 toggleContainer = this
             }
         }
@@ -73,7 +74,7 @@ open class ModMenuSection(name: String, private val toggles: List<UIButton> = li
         // Not using updateVisibility() here to avoid iterating over the toggles twice.
         var anyVisible = false
 
-        toggles.fastForEach {
+        toggles.forEach {
             if (it is ModMenuToggle) {
                 it.updateVisibility(searchTerm)
             }

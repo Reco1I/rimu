@@ -9,8 +9,7 @@ import com.reco1l.verktex.theme.Colors
 import com.reco1l.verktex.theme.srem
 import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.math.FloatInterpolation
-import com.reco1l.toolkt.MathF
-import com.reco1l.toolkt.kotlin.fastForEachIndexed
+import com.reco1l.framework.forEachIndexedTolerant
 import org.anddev.andengine.engine.camera.Camera
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import javax.microedition.khronos.opengles.GL10
@@ -64,7 +63,7 @@ class RadialVisualizer : UIComponent() {
         visualizerRadius = min(width, height) / 2f
         
         // Circumference = 2 * PI * radius
-        val circumference = 2f * MathF.PI * visualizerRadius
+        val circumference = 2f * Math.PI.toFloat() * visualizerRadius
         val barCount = (circumference / (barThickness + gap)).toInt()
         
         bars = MutableList(barCount) { i ->
@@ -110,7 +109,7 @@ class RadialVisualizer : UIComponent() {
             shiftOffset %= fftSize.toFloat()
         }
 
-        bars.fastForEachIndexed { index, barInfo ->
+        bars.forEachIndexedTolerant { index, barInfo ->
             val exactIndex = (shiftOffset + index) % fftSize
             val fftIndex1 = exactIndex.toInt()
             val fftIndex2 = (fftIndex1 + 1) % fftSize
@@ -132,7 +131,7 @@ class RadialVisualizer : UIComponent() {
 
         val baseBarHeight = visualizerRadius
 
-        bars.fastForEachIndexed { index, barInfo ->
+        bars.forEachIndexedTolerant { index, barInfo ->
 
             val angle = (index.toFloat() / bars.size) * 2f * PI.toFloat()
 

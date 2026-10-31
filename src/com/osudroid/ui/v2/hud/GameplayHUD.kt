@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.hud
 
+import android.graphics.PointF
 import com.osudroid.resources.R.string
 import com.osudroid.ui.v2.hud.elements.HUDAccuracyCounter
 import com.osudroid.ui.v2.hud.elements.HUDPieSongProgress
@@ -11,7 +12,7 @@ import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Engine
 import com.reco1l.verktex.component.*
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.toolkt.kotlin.*
+import com.reco1l.framework.forEachTolerant
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import org.anddev.andengine.entity.IEntity
@@ -73,7 +74,8 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
         if (Engine.current.scene != GlobalManager.getInstance().gameScene?.scene) {
-            detachSelf()
+            // Detach on the next tick to ensure that parent's entity list stays stable throughout this tick.
+            updateThread { detachSelf() }
             return
         }
 
@@ -248,7 +250,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
 
         // Cannot use forEachElement {} because we're modifying the list.
-        mChildren?.filterIsInstance<HUDElement>()?.fastForEach { it.setEditMode(value) }
+        mChildren?.filterIsInstance<HUDElement>()?.forEach { it.setEditMode(value) }
     }
 
     override fun onAttached() {
@@ -268,11 +270,19 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
      * Note: If you need to remove elements you have to copy the list temporarily
      * using another method such as `filterIsInstance<HUDElement>()`.
      */
-    fun forEachElement(action: (HUDElement) -> Unit) {
-        mChildren?.fastForEach {
-            (it as? HUDElement)?.let(action)
-        }
+    inline fun forEachElement(action: (HUDElement) -> Unit) {
+        // `action` may reorder `mChildren` (e.g. selecting an  element moves it to front), which
+        // would cause a `ConcurrentModificationException` if we used a regular `forEach`.
+        // Inlined so that the per-frame callers below don't allocate a capturing lambda.
+        elementChildren?.forEachTolerant { if (it is HUDElement) action(it) }
     }
+
+    /**
+     * Exposes [mChildren] to [forEachElement], since a public inline function cannot access protected members.
+     */
+    @PublishedApi
+    internal val elementChildren: List<IEntity>?
+        get() = mChildren
 
     override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
         forEachElement { it.onGameplayUpdate(gameScene, secondsElapsed) }
@@ -302,6 +312,16 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
     override fun onAccuracyRegister(type: HitObjectType, accuracy: Float) {
         forEachElement { it.onAccuracyRegister(type, accuracy) }
         elementSelector?.onAccuracyRegister(type, accuracy)
+    }
+
+    override fun onAimJudgement(objectPosition: PointF, cursorPosition: PointF, objectRadius: Float) {
+        forEachElement { it.onAimJudgement(objectPosition, cursorPosition, objectRadius) }
+        elementSelector?.onAimJudgement(objectPosition, cursorPosition, objectRadius)
+    }
+
+    override fun onSeek() {
+        forEachElement { it.onSeek() }
+        elementSelector?.onSeek()
     }
 
     //endregion
