@@ -4,6 +4,7 @@ import com.osudroid.beatmaps.Beatmap
 import com.osudroid.math.Interpolation
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
+import com.osudroid.utils.isInstanceOfAny
 
 /**
  * Represents a [Mod] that gradually adjusts the track's playback rate over time.
@@ -20,19 +21,12 @@ abstract class ModTimeRamp : Mod(), IModApplicableToBeatmap, IModApplicableToTra
     abstract var finalRate: Float
 
     final override val isValidForMultiplayerAsFreeMod = false
-    override val incompatibleMods = super.incompatibleMods + ModTimeRamp::class
+
+    override fun isCompatibleWith(other: Mod) =
+        !other.isInstanceOfAny(ModTimeRamp::class) && super.isCompatibleWith(other)
 
     private var initialRateTime = 0.0
     private var finalRateTime = 0.0
-
-    // Graph: https://www.desmos.com/calculator/1zp4vwl3o7
-    override val scoreMultiplier: Float
-        get() =
-            Interpolation.linear(
-                calculateScoreMultiplierAt(initialRate),
-                calculateScoreMultiplierAt(finalRate),
-                FINAL_RATE_PROGRESS.toFloat()
-            )
 
     override fun applyToBeatmap(beatmap: Beatmap, scope: CoroutineScope?) {
         initialRateTime = beatmap.hitObjects.objects.firstOrNull()?.startTime ?: 0.0
@@ -52,8 +46,6 @@ abstract class ModTimeRamp : Mod(), IModApplicableToBeatmap, IModApplicableToTra
 
     override val extraInformation
         get() = "%.2fx - %.2fx".format(initialRate, finalRate)
-
-    private fun calculateScoreMultiplierAt(rate: Float) = ModRateAdjustHelper(rate).scoreMultiplier
 
     companion object {
         /**

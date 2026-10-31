@@ -18,7 +18,6 @@ import com.reco1l.verktex.ui.pct
 import com.reco1l.verktex.ui.PaintStyle
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.toolkt.kotlin.*
 import com.reco1l.verktex.data.Anchor
 import org.anddev.andengine.input.touch.TouchEvent
 import ru.nsu.ccfit.zuev.osu.ResourceManager
@@ -130,7 +129,7 @@ class HUDElementOverlay(private val element: HUDElement) : UIConstraintContainer
         }
 
         // Show only the tips that are not at the origin.
-        mChildren?.fastForEach {
+        mChildren?.forEach {
             if (it is Tip) {
                 it.isVisible = it.anchor.x != element.origin.x && it.anchor.y != element.origin.y
             }

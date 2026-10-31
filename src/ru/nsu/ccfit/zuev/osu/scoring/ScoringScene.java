@@ -287,7 +287,7 @@ public class ScoringScene {
         Sprite replayBtn = null;
         var mods = stat.getMod();
 
-        if (!Multiplayer.isMultiplayer)
+        if (!Multiplayer.isMultiplayer && replayPath != null)
         {
             replayBtn = new Sprite(Utils.toRes(580), Utils.toRes(400),
                                                 ResourceManager.getInstance().getTexture("ranking-replay")) {
@@ -322,7 +322,6 @@ public class ScoringScene {
             scaledContainer.attachChild(perfect);
         }
 
-        scene.setTouchAreaBindingEnabled(true);
         if (beatmap != null && retryBtn != null) {
             scene.registerTouchArea(retryBtn);
         } else if (replayPath != null && replayBtn != null) {
@@ -465,7 +464,7 @@ public class ScoringScene {
                             case droid -> {
                                 var playableBeatmap = beatmapData.createDroidPlayableBeatmap(copiedMods.values());
 
-                                difficultyAttributes = BeatmapDifficultyCalculator.calculateDroidDifficultyForReplay(playableBeatmap);
+                                difficultyAttributes = BeatmapDifficultyCalculator.calculateDroidDifficultyForReplay(beatmapData, playableBeatmap);
 
                                 performanceAttributes = BeatmapDifficultyCalculator.calculateDroidPerformanceWithReplayStat(
                                     playableBeatmap, (DroidDifficultyAttributes) difficultyAttributes, replay, stat
@@ -475,7 +474,7 @@ public class ScoringScene {
                             case standard -> {
                                 var playableBeatmap = beatmapData.createStandardPlayableBeatmap(copiedMods.values());
 
-                                difficultyAttributes = BeatmapDifficultyCalculator.calculateStandardDifficulty(playableBeatmap);
+                                difficultyAttributes = BeatmapDifficultyCalculator.calculateStandardDifficulty(beatmapData, playableBeatmap);
 
                                 performanceAttributes = BeatmapDifficultyCalculator.calculateStandardPerformanceWithReplayStat(
                                     playableBeatmap, (StandardDifficultyAttributes) difficultyAttributes,
@@ -608,9 +607,6 @@ public class ScoringScene {
                 Execution.updateThread(() -> {
                     oldSelector.detachSelf();
                     oldSelector.detachChildren();
-
-                    if (scene != null)
-                        scene.unregisterTouchArea(oldSelector);
                 });
             }
 
@@ -618,7 +614,6 @@ public class ScoringScene {
 
             if (scene != null) {
                 scene.attachChild(selector);
-                scene.registerTouchArea(selector);
             }
         }
     }

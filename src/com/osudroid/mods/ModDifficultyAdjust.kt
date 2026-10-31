@@ -1,16 +1,12 @@
 package com.osudroid.mods
 
-import com.reco1l.toolkt.*
+import com.reco1l.framework.math.roundBy
 import com.osudroid.GameMode
-import com.osudroid.beatmaps.Beatmap
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.sections.BeatmapDifficulty
 import com.osudroid.mods.settings.*
-import com.osudroid.utils.ModUtils
-import kotlin.math.exp
-import kotlin.math.pow
-import kotlin.reflect.KProperty0
+import com.osudroid.utils.calculateRate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
 
@@ -22,7 +18,7 @@ class ModDifficultyAdjust @JvmOverloads constructor(
     ar: Float? = null,
     od: Float? = null,
     hp: Float? = null
-) : Mod(), IModApplicableToDifficultyWithMods, IModApplicableToHitObjectWithMods, IModRequiresOriginalBeatmap {
+) : Mod(), IModApplicableToDifficultyWithMods, IModApplicableToHitObjectWithMods {
 
     /**
      * The circle size to enforce.
@@ -81,12 +77,6 @@ class ModDifficultyAdjust @JvmOverloads constructor(
     )
 
     init {
-        // We set the default values here so that resetting the settings would reset them to null.
-        updateDefaultValue(::cs, cs)
-        updateDefaultValue(::ar, ar)
-        updateDefaultValue(::od, od)
-        updateDefaultValue(::hp, hp)
-
         this.cs = cs
         this.ar = ar
         this.od = od
@@ -103,39 +93,18 @@ class ModDifficultyAdjust @JvmOverloads constructor(
     override val usesDefaultSettings
         get() = settings.all { it.value == it.initialValue }
 
-    override val scoreMultiplier: Float
-        get() {
-            // Graph: https://www.desmos.com/calculator/yrggkhrkzz
-            var multiplier = 1f
-            val cs = getModSettingDelegate<DifficultyAdjustModSetting>(::cs)
-            val od = getModSettingDelegate<DifficultyAdjustModSetting>(::od)
-
-            if (cs.value != null) {
-                val original = cs.originalValue ?: cs.defaultValue
-
-                if (original != null) {
-                    val diff = cs.value!! - original
-
-                    multiplier *=
-                        if (diff >= 0) 1 + 0.0075f * diff.pow(1.5f)
-                        else 2 / (1 + exp(-0.5f * diff))
-                }
-            }
-
-            if (od.value != null) {
-                val original = od.originalValue ?: od.defaultValue
-
-                if (original != null) {
-                    val diff = od.value!! - original
-
-                    multiplier *=
-                        if (diff >= 0) 1 + 0.005f * diff.pow(1.3f)
-                        else 2 / (1 + exp(-0.25f * diff))
-                }
-            }
-
-            return multiplier
-        }
+    /**
+     * Sets this [ModDifficultyAdjust]'s default difficulty values. This does not change the current values of the
+     * settings, but rather the default values that are used when the settings are reset.
+     *
+     * @param difficulty The [BeatmapDifficulty] to use as the default values.
+     */
+    fun setDefaultDifficulty(difficulty: BeatmapDifficulty) {
+        getModSettingDelegate<DifficultyAdjustModSetting>(::cs).defaultValue = difficulty.gameplayCS
+        getModSettingDelegate<DifficultyAdjustModSetting>(::ar).defaultValue = difficulty.ar
+        getModSettingDelegate<DifficultyAdjustModSetting>(::od).defaultValue = difficulty.od
+        getModSettingDelegate<DifficultyAdjustModSetting>(::hp).defaultValue = difficulty.hp
+    }
 
     override fun isCompatibleWith(other: Mod): Boolean {
         if (!super.isCompatibleWith(other)) {
@@ -165,7 +134,7 @@ class ModDifficultyAdjust @JvmOverloads constructor(
             // to game time. This makes the player perceive the AR as is under all speed multipliers.
             if (ar != null && mods.any { m -> m is ModReplayV6 }) {
                 val preempt = BeatmapDifficulty.difficultyRange(ar!!.toDouble(), HitObject.PREEMPT_MAX, HitObject.PREEMPT_MID, HitObject.PREEMPT_MIN)
-                val trackRate = ModUtils.calculateRateWithMods(mods)
+                val trackRate = mods.calculateRate()
 
                 it.ar = BeatmapDifficulty.inverseDifficultyRange(preempt * trackRate, HitObject.PREEMPT_MAX, HitObject.PREEMPT_MID, HitObject.PREEMPT_MIN).toFloat()
             }
@@ -189,29 +158,9 @@ class ModDifficultyAdjust @JvmOverloads constructor(
         }
     }
 
-    override fun applyFromBeatmap(beatmap: Beatmap) {
-        val difficulty = beatmap.difficulty
-
-        updateBeatmapValue(::cs, difficulty.gameplayCS)
-        updateBeatmapValue(::ar, difficulty.ar)
-        updateBeatmapValue(::od, difficulty.od)
-        updateBeatmapValue(::hp, difficulty.hp)
-    }
-
-    private fun updateDefaultValue(property: KProperty0<Float?>, value: Float?) {
-        getModSettingDelegate<DifficultyAdjustModSetting>(property).defaultValue = value
-    }
-
-    private fun updateBeatmapValue(property: KProperty0<Float?>, value: Float?) {
-        val delegate = getModSettingDelegate<DifficultyAdjustModSetting>(property)
-
-        delegate.defaultValue = value
-        delegate.originalValue = value
-    }
-
     private fun applyOldFadeAdjustment(hitObject: HitObject, mods: Iterable<Mod>) {
-        val initialTrackRate = ModUtils.calculateRateWithMods(mods)
-        val currentTrackRate = ModUtils.calculateRateWithMods(mods, hitObject.startTime)
+        val initialTrackRate = mods.calculateRate()
+        val currentTrackRate = mods.calculateRate(hitObject.startTime)
 
         // Cancel the rate that was initially applied to timePreempt (via applyToDifficulty above and
         // HitObject.applyDefaults) and apply the current one.

@@ -17,6 +17,11 @@ public class BassAudioFunc {
     private int channel = 0;
     private float speed = 1f;
     private float pitchRate = 1f;
+    /**
+     * The last volume applied to {@link #channel} via {@link #setVolume(float)}, or NaN if none has been applied
+     * to the current channel yet.
+     */
+    private float volume = Float.NaN;
     private boolean adjustPitch;
     private final BASS.BASS_CHANNELINFO channelInfo = new BASS.BASS_CHANNELINFO();
 
@@ -32,11 +37,11 @@ public class BassAudioFunc {
     public BassAudioFunc() {
     }
 
-    public boolean pause() {
+    public synchronized boolean pause() {
         return BASS.BASS_ChannelPause(channel);
     }
 
-    public boolean resume() {
+    public synchronized boolean resume() {
         setEndSync();
 
         if (BASS.BASS_ChannelPlay(channel, false))
@@ -47,11 +52,17 @@ public class BassAudioFunc {
         return false;
     }
 
-    public boolean preLoad(String filePath, float speed, boolean adjustPitch) {
+    public synchronized boolean preLoad(String filePath, float speed, boolean adjustPitch, boolean isLoop) {
+        setLoop(isLoop);
+        return preLoad(filePath, speed, adjustPitch);
+    }
+
+    public synchronized boolean preLoad(String filePath, float speed, boolean adjustPitch) {
         doClear();
 
         channel = BASS.BASS_StreamCreateFile(filePath, 0, 0, playFlag | BASS.BASS_STREAM_DECODE);
         channel = BASS_FX.BASS_FX_TempoCreate(channel, BASS.BASS_STREAM_AUTOFREE);
+        volume = Float.NaN;
 
         if (channel == 0) {
             this.speed = 1;
@@ -72,7 +83,7 @@ public class BassAudioFunc {
         return true;
     }
 
-    public boolean play() {
+    public synchronized boolean play() {
         if (channel != 0 && BASS.BASS_ChannelIsActive(channel) == BASS.BASS_ACTIVE_PAUSED) {
             return resume();
         } else if (channel != 0) {
@@ -86,7 +97,7 @@ public class BassAudioFunc {
         return false;
     }
 
-    public boolean stop() {
+    public synchronized boolean stop() {
         if (channel != 0) {
             BASS.BASS_ChannelStop(channel);
             return BASS.BASS_StreamFree(channel);
@@ -94,7 +105,7 @@ public class BassAudioFunc {
         return false;
     }
 
-    public boolean jump(int ms) {
+    public synchronized boolean jump(int ms) {
         if (channel != 0 && ms > 0) {
             long skipPosition = BASS.BASS_ChannelSeconds2Bytes(channel, ms / 1000.0);
 
@@ -105,7 +116,7 @@ public class BassAudioFunc {
         return false;
     }
 
-    public Status getStatus() {
+    public synchronized Status getStatus() {
         if (channel == 0) return Status.STOPPED;
 
         return switch (BASS.BASS_ChannelIsActive(channel)) {
@@ -116,7 +127,7 @@ public class BassAudioFunc {
         };
     }
 
-    public double getPosition() {
+    public synchronized double getPosition() {
         if (channel != 0) {
             long pos = BASS.BASS_ChannelGetPosition(channel, BASS.BASS_POS_BYTE);
             if (pos != -1) {
@@ -126,7 +137,7 @@ public class BassAudioFunc {
         return 0;
     }
 
-    public int getLength() {
+    public synchronized int getLength() {
         if (channel != 0) {
             long length = BASS.BASS_ChannelGetLength(channel, BASS.BASS_POS_BYTE);
             if (length != -1) {
@@ -136,7 +147,7 @@ public class BassAudioFunc {
         return 0;
     }
 
-    public float[] getSpectrum() {
+    public synchronized float[] getSpectrum() {
         if (BASS.BASS_ChannelIsActive(channel) != BASS.BASS_ACTIVE_PLAYING) {
             return null;
         }
@@ -195,7 +206,7 @@ public class BassAudioFunc {
         BASS.BASS_StreamFree(channel);
     }
 
-    public void setLoop(boolean isLoop) {
+    public synchronized void setLoop(boolean isLoop) {
         if (isLoop) {
             playFlag |= BASS.BASS_SAMPLE_LOOP;
         } else {
@@ -207,22 +218,22 @@ public class BassAudioFunc {
         return speed;
     }
 
-    public void setSpeed(float speed) {
+    public synchronized void setSpeed(float speed) {
         this.speed = speed;
         onAudioEffectChange();
     }
 
-    public void setAdjustPitch(boolean adjustPitch) {
+    public synchronized void setAdjustPitch(boolean adjustPitch) {
         this.adjustPitch = adjustPitch;
         onAudioEffectChange();
     }
 
-    public void setPitchRate(float pitchRate) {
+    public synchronized void setPitchRate(float pitchRate) {
         this.pitchRate = pitchRate;
         onAudioEffectChange();
     }
 
-    public void setFrequencyForcefully(float frequency) {
+    public synchronized void setFrequencyForcefully(float frequency) {
         if (channel == 0) {
             return;
         }
@@ -235,7 +246,7 @@ public class BassAudioFunc {
         return frequency;
     }
 
-    public float getVolume() {
+    public synchronized float getVolume() {
         BASS.FloatValue volume = new BASS.FloatValue();
         if (channel != 0) {
             BASS.BASS_ChannelGetAttribute(channel, BASS.BASS_ATTRIB_VOL, volume);
@@ -243,18 +254,20 @@ public class BassAudioFunc {
         return volume.value;
     }
 
-    public void setVolume(float volume) {
-        if (channel != 0) {
+    public synchronized void setVolume(float volume) {
+        // Some callers set the volume every frame, so skip the native call when it is unchanged.
+        if (channel != 0 && volume != this.volume) {
+            this.volume = volume;
             BASS.BASS_ChannelSetAttribute(channel, BASS.BASS_ATTRIB_VOL, volume);
         }
     }
 
-    public void setGaming(boolean isGaming) {
+    public synchronized void setGaming(boolean isGaming) {
         System.out.println("Audio Service Running In Game: " + isGaming);
         this.isGaming = isGaming;
     }
 
-    public void freeALL() {
+    public synchronized void freeALL() {
         BASS.BASS_Free();
     }
 

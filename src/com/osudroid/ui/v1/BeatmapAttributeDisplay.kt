@@ -12,8 +12,8 @@ import com.reco1l.verktex.ui.pct
 import com.reco1l.verktex.ui.UIModal
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec4
-import com.reco1l.toolkt.kotlin.fastForEach
-import com.reco1l.toolkt.roundBy
+import com.reco1l.framework.forEachTolerant
+import com.reco1l.framework.math.roundBy
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.beatmaps.HitWindow
@@ -23,8 +23,9 @@ import com.osudroid.beatmaps.sections.BeatmapDifficulty
 import com.osudroid.mods.Mod
 import com.osudroid.mods.ModPrecise
 import com.osudroid.utils.CircleSizeCalculator
-import com.osudroid.utils.ModUtils
 import com.reco1l.verktex.Engine
+import com.osudroid.utils.applyMods
+import com.osudroid.utils.calculateRate
 import kotlin.math.roundToInt
 
 /**
@@ -43,8 +44,8 @@ open class BeatmapAttributeDisplay(difficulty: BeatmapDifficulty, mods: Iterable
         val nonRateAdjustedDifficulty = difficulty.clone()
         val rateAdjustedDifficulty = difficulty.clone()
 
-        ModUtils.applyModsToBeatmapDifficulty(nonRateAdjustedDifficulty, GameMode.Droid, mods, false)
-        ModUtils.applyModsToBeatmapDifficulty(rateAdjustedDifficulty, GameMode.Droid, mods, true)
+        nonRateAdjustedDifficulty.applyMods(GameMode.Droid, mods, false)
+        rateAdjustedDifficulty.applyMods(GameMode.Droid, mods, true)
 
         // CS
 
@@ -84,7 +85,7 @@ open class BeatmapAttributeDisplay(difficulty: BeatmapDifficulty, mods: Iterable
         // For OD, we want to display rate-affected hit window values in a different way, because they are not
         // accurately represented by the OD value itself.
         val isPrecise = mods.any { it is ModPrecise }
-        val rate = ModUtils.calculateRateWithMods(mods, Double.POSITIVE_INFINITY)
+        val rate = mods.calculateRate(Double.POSITIVE_INFINITY)
 
         val hitWindow =
             if (isPrecise) PreciseDroidHitWindow(nonRateAdjustedDifficulty.od)
@@ -146,7 +147,7 @@ open class BeatmapAttributeDisplay(difficulty: BeatmapDifficulty, mods: Iterable
             +UILinearContainer().apply {
                 orientation = Orientation.Vertical
 
-                metrics.fastForEach { metric ->
+                metrics.forEach { metric ->
                     +UIText().apply {
                         fontSize = FontSize.SM
                         text = "${metric.name}: ${metric.value}"
@@ -167,7 +168,7 @@ open class BeatmapAttributeDisplay(difficulty: BeatmapDifficulty, mods: Iterable
                         }
                     }
 
-                    additionalInfo.fastForEach { info ->
+                    additionalInfo.forEach { info ->
                         +UIText().apply {
                             fontSize = FontSize.SM
                             text = info

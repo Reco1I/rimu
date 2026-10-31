@@ -7,6 +7,7 @@ import com.osudroid.beatmaps.hitobjects.Spinner
 import com.osudroid.mods.settings.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
+import com.osudroid.utils.isInstanceOfAny
 
 /**
  * Represents the Hidden mod.
@@ -20,12 +21,12 @@ class ModHidden : ModWithVisibilityAdjustment() {
     override val isRanked
         get() = usesDefaultSettings
 
-    override val scoreMultiplier: Float
-        get() = if (usesDefaultSettings) 1.06f else 1f
-
-    override val incompatibleMods = super.incompatibleMods + arrayOf(
-        ModApproachDifferent::class, ModTraceable::class, ModFreezeFrame::class
-    )
+    override fun isCompatibleWith(other: Mod) =
+        !other.isInstanceOfAny(
+            ModApproachDifferent::class,
+            ModTraceable::class,
+            ModFreezeFrame::class
+        ) && super.isCompatibleWith(other)
 
     /**
      * Whether to only fade approach circles.
@@ -47,7 +48,10 @@ class ModHidden : ModWithVisibilityAdjustment() {
         fun applyFadeInAdjustment(hitObject: HitObject) {
             scope?.ensureActive()
 
-            hitObject.timeFadeIn = hitObject.timePreempt * FADE_IN_DURATION_MULTIPLIER
+            // Sliders keep their default fade-in time to match osu!stable.
+            if (hitObject !is Slider) {
+                hitObject.timeFadeIn = hitObject.timePreempt * FADE_IN_DURATION_MULTIPLIER
+            }
 
             if (hitObject is Slider) {
                 hitObject.nestedHitObjects.forEach { applyFadeInAdjustment(it) }

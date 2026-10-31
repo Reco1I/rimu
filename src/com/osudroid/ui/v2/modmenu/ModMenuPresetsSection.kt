@@ -4,7 +4,7 @@ import com.osudroid.data.*
 import com.osudroid.ui.v2.*
 import com.osudroid.ui.v2.modmenu.ModMenu.addMod
 import com.osudroid.ui.v2.modmenu.ModMenu.removeMod
-import com.osudroid.utils.ModUtils
+import com.osudroid.utils.deserializeMods
 import com.osudroid.utils.searchContiguously
 import com.reco1l.verktex.*
 import com.reco1l.verktex.component.*
@@ -14,7 +14,6 @@ import com.reco1l.verktex.theme.FontSize
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.*
-import com.reco1l.toolkt.kotlin.*
 import com.osudroid.utils.*
 import com.reco1l.verktex.ui.dialog.UIMessageDialog
 import ru.nsu.ccfit.zuev.osu.*
@@ -67,7 +66,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
         for (preset in modPresets) {
 
-            preset.mods = ModUtils.deserializeMods(preset.serializedMods)
+            preset.mods = deserializeMods(preset.serializedMods)
             toggleContainer += ModPresetToggle(preset)
         }
     }
@@ -105,7 +104,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
                 if (isSelected) {
                     ModMenu.clear()
                 } else {
-                    ModMenu.modToggles.fastForEach { toggle ->
+                    ModMenu.modToggles.forEach { toggle ->
                         val presetMod = preset.mods[toggle.mod::class]
 
                         if (presetMod != null) {

@@ -6,7 +6,6 @@ import android.util.Log
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.framework.net.JsonArrayRequest
 import com.reco1l.framework.net.WebRequest
-import com.reco1l.toolkt.data.writeToFile
 import com.rian.andengine.modifier.ModifierType
 import com.rian.andengine.timing.IFrameBasedClock
 import org.anddev.andengine.input.touch.TouchEvent
@@ -51,7 +50,11 @@ object BannerManager {
                             bannerFile.createNewFile()
 
                             imageRequest.execute()
-                            imageRequest.responseBody.byteStream().writeToFile(bannerFile)
+                            imageRequest.responseBody.byteStream().use { input ->
+                                bannerFile.outputStream().use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
 
                             ResourceManager.getInstance().loadHighQualityFile("banner@${i}", bannerFile)
                         }

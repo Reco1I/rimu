@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.hud.elements
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.data.Color4
-import com.reco1l.toolkt.kotlin.fastForEach
+import com.reco1l.framework.forEachTolerant
 import com.osudroid.beatmaps.constants.HitObjectType
 import javax.microedition.khronos.opengles.GL10
 import org.anddev.andengine.engine.camera.Camera
@@ -31,7 +31,7 @@ class HUDColorHitErrorMeter : HUDHitErrorMeter() {
     }
 
     override fun addResult(type: HitObjectType, accuracy: Float, color: Color4) {
-        indicators.fastForEach { it.alpha = (it.alpha - ALPHA_RAMP).coerceAtLeast(0f) }
+        indicators.forEach { it.alpha = (it.alpha - ALPHA_RAMP).coerceAtLeast(0f) }
 
         val indicator = indicators[currentIndicatorIndex]
 
@@ -41,10 +41,16 @@ class HUDColorHitErrorMeter : HUDHitErrorMeter() {
         currentIndicatorIndex = (currentIndicatorIndex + 1) % indicators.size
     }
 
+    override fun onSeek() {
+        // Note that this only clears current active indicators. While reconstructing indicators that should still be
+        // active is possible, it is not worth the complexity.
+        indicators.forEach { it.alpha = 0f }
+    }
+
     override fun onDrawChildren(gl: GL10, camera: Camera) {
         super.onDrawChildren(gl, camera)
 
-        indicators.fastForEach {
+        indicators.forEach {
             indicatorBox.x = INDICATOR_SPACING + it.index * (INDICATOR_SIZE + INDICATOR_SPACING)
             indicatorBox.color = it.color
             indicatorBox.alpha = it.alpha

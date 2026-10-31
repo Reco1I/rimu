@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.hud
 
+import android.graphics.PointF
 import com.osudroid.ui.v2.hud.elements.*
 import com.reco1l.verktex.*
 import com.reco1l.verktex.ui.container.UIContainer
@@ -8,7 +9,6 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec2
 import com.osudroid.ui.v2.hud.editor.HUDElementOverlay
 import com.reco1l.verktex.component.*
-import com.reco1l.toolkt.kotlin.capitalize
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.reco1l.verktex.data.Anchor
@@ -39,6 +39,7 @@ enum class HUDElements(val type: KClass<out HUDElement>) {
     avg_offset_counter(HUDAverageOffsetCounter::class),
     hit_error_meter(HUDBarHitErrorMeter::class),
     color_hit_error_meter(HUDColorHitErrorMeter::class),
+    aim_error_meter(HUDAimErrorMeter::class),
     linear_song_progress(HUDLinearSongProgress::class),
     great_counter(HUDGreatCounter::class),
     ok_counter(HUDOkCounter::class),
@@ -194,6 +195,10 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
     override fun onBreakStateChange(isBreak: Boolean) {}
 
     override fun onAccuracyRegister(type: HitObjectType, accuracy: Float) {}
+
+    override fun onAimJudgement(objectPosition: PointF, cursorPosition: PointF, objectRadius: Float) {}
+
+    override fun onSeek() {}
 
     //endregion
 

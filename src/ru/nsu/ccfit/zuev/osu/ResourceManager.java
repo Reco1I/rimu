@@ -19,6 +19,7 @@ import com.reco1l.verktex.Engine;
 import org.anddev.andengine.opengl.font.Font;
 import org.anddev.andengine.opengl.font.FontFactory;
 import org.anddev.andengine.opengl.font.StrokeFont;
+import org.anddev.andengine.opengl.texture.ITexture;
 import org.anddev.andengine.opengl.texture.TextureOptions;
 import org.anddev.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
@@ -27,10 +28,12 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +51,9 @@ import ru.nsu.ccfit.zuev.skins.SkinJsonReader;
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager;
 
 public class ResourceManager {
+    private static final int FONT_TEXTURE_SIZE = 1024;
+    private static final int STROKE_FONT_TEXTURE_WIDTH = 1024;
+    private static final int STROKE_FONT_TEXTURE_HEIGHT = 512;
 
     /**
      * The textures that shouldn't fallback to the default skin if they're not present in the skin folder.
@@ -93,12 +99,15 @@ public class ResourceManager {
 
     private final static ResourceManager mgr = new ResourceManager();
 
-    private final Map<String, Font> fonts = new HashMap<>();
-    private final Map<String, Integer> frameCount = new HashMap<>();
-    private final Map<String, BassSoundProvider> sounds = new HashMap<>();
+    // These caches are written from background loading threads (e.g. beatmap skin loading during
+    // gameplay start, see BeatmapSkinManager) while being read concurrently from the update/GL thread
+    // during rendering. Plain HashMaps corrupt under that access pattern, so these must stay synchronized.
+    private final Map<String, Font> fonts = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, Integer> frameCount = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, BassSoundProvider> sounds = Collections.synchronizedMap(new HashMap<>());
 
-    private final Map<String, Integer> customFrameCount = new HashMap<>();
-    private final Map<String, BassSoundProvider> customSounds = new HashMap<>();
+    private final Map<String, Integer> customFrameCount = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, BassSoundProvider> customSounds = Collections.synchronizedMap(new HashMap<>());
 
     private Engine engine;
     private Context context;
@@ -171,6 +180,15 @@ public class ResourceManager {
             if (jsonFile.exists()) {
                 try {
                     skinjson = new JSONObject(OsuSkin.readFull(jsonFile));
+
+                    // Backfill any skin.ini derived keys missing
+                    var iniFile = new File(folder, "skin.ini");
+
+                    if (iniFile.exists()) {
+                        try (var ini = new IniReader(iniFile)) {
+                            SkinConverter.mergeMissing(skinjson, SkinConverter.convertToJson(ini));
+                        }
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -409,20 +427,31 @@ public class ResourceManager {
         return frameIndex;
     }
 
+    /**
+     * Creates a new atlas page for a {@link Font} and registers it to the engine's
+     * {@link org.anddev.andengine.opengl.texture.TextureManager} so it gets uploaded like any other texture.
+     * Invoked by the {@link Font} whenever its current page runs out of room for new glyphs.
+     */
+    private Supplier<ITexture> createFontPageFactory(final int width, final int height) {
+        return () -> {
+            var page = new BitmapTextureAtlas(width, height, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+            engine.getTextureManager().loadTexture(page);
+            return page;
+        };
+    }
+
     public Font loadFont(final String resname, final String file, int size,
                          final int color) {
         size /= Config.getTextureQuality();
-        final BitmapTextureAtlas texture = new BitmapTextureAtlas(512, 512,
-                TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+        final Supplier<ITexture> pageFactory = createFontPageFactory(FONT_TEXTURE_SIZE, FONT_TEXTURE_SIZE);
         Font font;
         if (file == null) {
-            font = new Font(texture, Typeface.create(Typeface.DEFAULT,
+            font = new Font(pageFactory, Typeface.create(Typeface.DEFAULT,
                     Typeface.NORMAL), size, true, color);
         } else {
-            font = FontFactory.createFromAsset(texture, context, "fonts/"
+            font = FontFactory.createFromAsset(pageFactory, context, "fonts/"
                     + file, size, true, color);
         }
-        engine.getTextureManager().loadTexture(texture);
         engine.getFontManager().loadFont(font);
         fonts.put(resname, font);
         return font;
@@ -431,19 +460,17 @@ public class ResourceManager {
     public StrokeFont loadStrokeFont(final String resname, final String file,
                                      int size, final int color1, final int color2) {
         size /= Config.getTextureQuality();
-        final BitmapTextureAtlas texture = new BitmapTextureAtlas(512, 256,
-                TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+        final Supplier<ITexture> pageFactory = createFontPageFactory(STROKE_FONT_TEXTURE_WIDTH, STROKE_FONT_TEXTURE_HEIGHT);
         StrokeFont font;
         if (file == null) {
-            font = new StrokeFont(texture, Typeface.create(Typeface.DEFAULT,
+            font = new StrokeFont(pageFactory, Typeface.create(Typeface.DEFAULT,
                     Typeface.NORMAL), size, true, color1,
                     Config.getTextureQuality() == 1 ? 2 : 0.75f, color2);
         } else {
-            font = FontFactory.createStrokeFromAsset(texture, context, "fonts/"
+            font = FontFactory.createStrokeFromAsset(pageFactory, context, "fonts/"
                             + file, size, true, color1, (float) 2 / Config.getTextureQuality(),
                     color2);
         }
-        engine.getTextureManager().loadTexture(texture);
         engine.getFontManager().loadFont(font);
         fonts.put(resname, font);
         return font;
@@ -736,9 +763,12 @@ public class ResourceManager {
     }
 
     public void clearCustomResources() {
-        for (final BassSoundProvider s : customSounds.values()) {
-            s.free();
+        synchronized (customSounds) {
+            for (final BassSoundProvider s : customSounds.values()) {
+                s.free();
+            }
         }
+
         resourceManager.unloadAllTextures(TextureStore.Custom);
         customSounds.clear();
         customFrameCount.clear();

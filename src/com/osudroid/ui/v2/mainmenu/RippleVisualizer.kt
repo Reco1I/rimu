@@ -6,7 +6,7 @@ import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.PaintStyle
 import com.reco1l.verktex.ui.shape.UICircle
 import com.reco1l.verktex.theme.Colors
-import com.reco1l.toolkt.kotlin.fastForEach
+import com.reco1l.framework.forEachTolerant
 import org.anddev.andengine.engine.camera.Camera
 import java.lang.ref.WeakReference
 import javax.microedition.khronos.opengles.GL10
@@ -74,7 +74,7 @@ class RippleVisualizer : UIComponent() {
     }
 
     override fun onManagedUpdate(deltaTimeSec: Float) {
-        activeRipples.fastForEach { info ->
+        activeRipples.forEachTolerant { info ->
             info.update(deltaTimeSec)
         }
         activeRipples.removeAll { it.alpha <= 0f }
@@ -83,7 +83,7 @@ class RippleVisualizer : UIComponent() {
     }
 
     override fun onDrawChildren(gl: GL10, camera: Camera) {
-        activeRipples.fastForEach { info ->
+        activeRipples.forEachTolerant { info ->
             ripple.setScale(1f + info.scale)
             ripple.alpha = info.alpha
             ripple.onDraw(gl, camera)
