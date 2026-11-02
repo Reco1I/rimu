@@ -1,23 +1,19 @@
 package com.osudroid.ui.v2.modmenu
 
 import com.reco1l.framework.forEachTolerant
-import com.reco1l.verktex.*
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.theme.Radius
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.ui.container.UIFillContainer
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.verktex.data.Vec4
-import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.data.Axis
-import ru.nsu.ccfit.zuev.osu.*
 
 @Suppress("LeakingThis")
-open class ModMenuSection(name: String, private val toggles: List<UIButton> = listOf()) : UIFillContainer() {
+open class ModMenuSection(name: String, private val toggles: List<UIButton> = listOf()) : UILinearContainer() {
 
     protected val toggleContainer: UILinearContainer
 
@@ -25,21 +21,20 @@ open class ModMenuSection(name: String, private val toggles: List<UIButton> = li
     init {
         orientation = Orientation.Vertical
         height = Dimension.FillAvailable
-        cullingMode = CullingMode.ScreenBounds
-        style = {
-            width = 14f.rem
-            backgroundColor = it.accentColor * 0.1f
-            radius = Radius.LG
+        style = Style { theme ->
+            width = 224f.dip
+            backgroundColor = theme.palette.accent * 0.1f
+            radius = theme.radius.lg
         }
 
         +UIText().apply {
             width = Dimension.FillAvailable
             text = name.uppercase()
             alignment = Anchor.Center
-            style = {
-                fontSize = FontSize.XS
-                padding = Vec4(3f.srem)
-                color = it.accentColor
+            style = Style { theme ->
+                fontSize = theme.typography.smallCaption.size
+                padding = Padding(12f.dip)
+                color = theme.palette.accent
                 alpha = 0.75f
             }
         }
@@ -48,15 +43,13 @@ open class ModMenuSection(name: String, private val toggles: List<UIButton> = li
             scrollAxes = Axis.Y
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            clipToBounds = true
+            clipping = ClipMode.Bounds
 
             +UILinearContainer().apply {
                 width = Dimension.FillAvailable
                 orientation = Orientation.Vertical
-                style = {
-                    padding = Vec4(2f.srem, 0f, 2f.srem, 2f.srem)
-                    spacing = 2f.srem
-                }
+                padding = Padding(8f.dip, 0f.dip, 8f.dip, 8f.dip)
+                spacing = 8f.dip
 
                 toggles.forEachTolerant { +it }
                 toggleContainer = this

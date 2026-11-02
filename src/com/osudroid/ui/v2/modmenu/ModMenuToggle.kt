@@ -1,18 +1,19 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.osudroid.mods.*
 import com.osudroid.multiplayer.*
 import com.osudroid.utils.searchContiguously
-import com.reco1l.verktex.*
-import com.reco1l.verktex.component.*
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.data.Vec4
-import com.rian.andengine.modifier.ModifierType
-import com.osudroid.mods.*
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.texture.Textures
-import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.fill
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.fadeTo
+import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.*
 
 
@@ -30,30 +31,26 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
         }
 
     init {
-        width = Density.Full
-        style + {
-            padding = Vec4(3f.srem, 2f.srem)
+        width = fill()
+        style += Style {
+            height = Dimension.WrapContent
+            padding = Padding(12f.dip, 8f.dip)
         }
 
-        fillContainer {
-            width = Density.Full
-            cullingMode = CullingMode.ScreenBounds
-            style = {
-                spacing = 3f.srem
-            }
+        linearContainer {
+            width = fill()
+            spacing = 12f.dip
 
             +ModIcon(mod).apply {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                style = {
-                    width = 1.35f.rem
-                    height = 1.35f.rem
-                }
+                width = 21.6f.dip
+                height = 21.6f.dip
             }
 
             linearContainer {
-                width = Density.Full
-                orientation = Orientation.Vertical
+                width = fill()
+                orientation = UILinearContainer.Orientation.Vertical
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
 
@@ -62,26 +59,23 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
                 }
 
                 text {
-                    width = Density.Full
+                    width = fill()
                     text = mod.description
                     wrapText = true
-                    style = {
-                        fontSize = FontSize.XXS
-                        alpha = 0.75f
-                    }
+                    fontSize = 10f.dip
+                    alpha = 0.75f
                 }
             }
+        }
 
-            onActionUp = {
-                if (isSelected) {
-                    ModMenu.removeMod(mod)
-                    Textures.getInstance().getSound("check-off")?.play()
-                } else {
-                    ModMenu.addMod(mod)
-                    Textures.getInstance().getSound("check-on")?.play()
-                }
+        onActionUp = {
+            if (isSelected) {
+                ModMenu.removeMod(mod)
+                ResourceManager.getInstance().getSound("check-off")?.play()
+            } else {
+                ModMenu.addMod(mod)
+                ResourceManager.getInstance().getSound("check-on")?.play()
             }
-
         }
 
         updateVisibility()
@@ -107,7 +101,7 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
 
     fun applyCompatibilityState() {
         // Intentionally not using isEnabled here, otherwise the button will not be clickable.
-        clearModifiers(ModifierType.Alpha)
+        clearTransforms()
         fadeTo(if (hasIncompatibility) 0.5f else 1f, 0.2f)
     }
 

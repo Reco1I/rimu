@@ -1,28 +1,17 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.osudroid.ui.v2.*
-import com.reco1l.verktex.*
-import com.reco1l.verktex.old.*
-import com.reco1l.verktex.component.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.ui.sprite.*
-import com.reco1l.verktex.ui.text.*
-import com.reco1l.verktex.texture.*
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.data.Color4
 import com.osudroid.mods.*
 import com.osudroid.ui.ISkinnable
+import com.osudroid.ui.v2.*
+import com.osudroid.utils.allModsInstances
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.fill
-import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.text.UIText
-import com.osudroid.utils.allModsInstances
-import org.anddev.andengine.engine.camera.*
-import org.anddev.andengine.opengl.texture.region.*
-import ru.nsu.ccfit.zuev.osu.*
-import javax.microedition.khronos.opengles.*
 
 
 /**
@@ -35,38 +24,30 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
     constructor(acronym: String): this(allModsInstances.find { it.acronym.equals(acronym, ignoreCase = true) }!!)
 
 
-    init {
-        inheritAncestorsColor = false
-    }
-
-
-    private fun fetchTextureRegion(): TextureRegion? {
-        return Textures.getInstance().getTexture(mod.iconTextureName)
-            ?.takeUnless { it is BlankTextureRegion }
-    }
-
     private fun setupContent() {
-        detachChildren()
+        clearChildren()
 
-        val texture = fetchTextureRegion()
+        val texture = SkinTextures[mod.iconTextureName]
 
         if (texture != null) {
             backgroundColor = Color4.Transparent
 
-            attachChild(OsuSkinnableSprite(mod.iconTextureName).apply {
+            +OsuSkinnableSprite(mod.iconTextureName).apply {
                 width = fill()
                 height = fill()
-            })
+            }
         } else {
-            backgroundColor = Theme.current.accentColor * 0.1f
+            backgroundColor = Verktex.theme.palette.accent * 0.1f
 
-            attachChild(UIText().apply {
+            +UIText().apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 text = mod.acronym
-                fontSize = FontSize.SM
-                style = { color = it.accentColor }
-            })
+                style = Style { theme ->
+                    fontSize = theme.typography.smallBody.size
+                    color = theme.palette.accent
+                }
+            }
         }
 
         shouldUpdateTexture = false
@@ -81,24 +62,19 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
         super.onAttached()
     }
 
-    override fun doDraw(gl: GL10, camera: Camera) {
-
-        val acronymText = get<UIComponent>(0)
-        if (acronymText is UIText) {
-            acronymText.setScale(height * 0.6f / acronymText.contentHeight)
-        }
-
-        radius = height * 0.2f
-
-        super.doDraw(gl, camera)
-    }
-
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
         if (shouldUpdateTexture) {
             setupContent()
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        val acronymText = if (childCount > 0) this[0] else null
+        if (acronymText is UIText && acronymText.measuredSize.y > 0f) {
+            acronymText.scale = bounds.height * 0.6f / acronymText.measuredSize.y
+        }
+
+        radius = (bounds.height * 0.2f).px
+
+        super.onUpdate(clock)
     }
 
     override fun onSkinChanged() {
