@@ -51,6 +51,7 @@ import java.io.IOException
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.*
 
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.*
 import java.util.LinkedList
 import java.util.concurrent.CancellationException
