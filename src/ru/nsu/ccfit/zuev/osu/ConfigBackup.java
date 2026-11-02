@@ -92,10 +92,22 @@ public class ConfigBackup {
                             intValue = Math.max(bounds[0], Math.min(bounds[1], intValue));
                         }
 
-                        editor.putInt(key, intValue);
+                        // Backups made before these preferences moved to floats hold them as integers.
+                        if (Config.FLOAT_PREFERENCES.contains(key)) {
+                            editor.putFloat(key, intValue);
+                        } else {
+                            editor.putInt(key, intValue);
+                        }
                         break;
                     case "Double":
-                        editor.putFloat(key, ((Double) value).floatValue());
+                        float floatValue = ((Double) value).floatValue();
+                        int[] floatBounds = Config.PREFERENCE_BOUNDS.get(key);
+
+                        if (floatBounds != null) {
+                            floatValue = Math.max(floatBounds[0], Math.min(floatBounds[1], floatValue));
+                        }
+
+                        editor.putFloat(key, floatValue);
                         break;
                     case "Long":
                         editor.putLong(key, (Long) value);

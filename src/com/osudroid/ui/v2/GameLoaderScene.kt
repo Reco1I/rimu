@@ -5,7 +5,7 @@ import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.PlayerStatus
 import com.osudroid.resources.R
-import com.osudroid.ui.v2.settings.IntPreferenceSlider
+import com.osudroid.ui.v2.settings.FloatPreferenceSlider
 import com.osudroid.ui.v2.settings.PreferenceCheckbox
 import com.osudroid.utils.ModHashMap
 import com.reco1l.framework.*
@@ -242,7 +242,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
                     // This is used instead of getBackgroundBrightness to directly obtain the
                     // updated value from the brightness slider.
-                    val backgroundBrightness = Config.getInt("bgbrightness", 25)
+                    val backgroundBrightness = Config.getNumber("bgbrightness", 25f)
 
                     mainContainer.fadeOut(0.1f, Easing.OutExpo)
 
@@ -346,16 +346,18 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
                     content.apply {
 
-                        +IntPreferenceSlider("bgbrightness", 25).apply {
+                        +FloatPreferenceSlider("bgbrightness", 25f).apply {
                             label = StringTable.get(R.string.opt_bgbrightness_title)
                             control.min = 0f
                             control.max = 100f
+                            control.step = 0.1f
+                            control.precision = 1
                             control.onStopDragging = {
                                 if (!isStarting) {
                                     dimBox.fadeTo(0.7f, 0.1f)
                                 }
                             }
-                            valueFormatter = { "${it.roundToInt()}%" }
+                            valueFormatter = { "%.1f%%".format(it) }
                             onValueChanged = {
                                 Config.setBackgroundBrightness(it / 100f)
 

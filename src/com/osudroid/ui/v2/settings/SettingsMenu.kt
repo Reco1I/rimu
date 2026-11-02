@@ -5,9 +5,12 @@ import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
@@ -15,6 +18,8 @@ import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.transformSequence
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.container.container
@@ -22,6 +27,7 @@ import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.control.UISelect
 import com.reco1l.verktex.ui.form.FormControl
+import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
@@ -146,6 +152,13 @@ data class OptionInfo(
     val step: Float? = 0.01f,
 
     /**
+     * Whether the slider stores its value as a float instead of an integer.
+     *
+     * This property is only used in [OptionType.Slider] preferences.
+     */
+    val isFloat: Boolean = false,
+
+    /**
      * The value formatter that will be used to format the value.
      *
      * This property is only used in [OptionType.Slider] preferences.
@@ -165,6 +178,8 @@ class SettingsMenu : UIScene() {
 
     private lateinit var sectionScroll: UIScrollableContainer
     private lateinit var sectionContainer: UILinearContainer
+
+    private val playfieldAreaDisplay = PlayfieldAreaDisplay()
 
 
     init {
@@ -231,6 +246,9 @@ class SettingsMenu : UIScene() {
             }
         }
 
+        +playfieldAreaDisplay
+        onPlayfieldChanged = { playfieldAreaDisplay.update() }
+
         generateSection(generalSection)
     }
 
@@ -242,10 +260,10 @@ class SettingsMenu : UIScene() {
         val global = GlobalManager.getInstance()
 
         Config.loadConfig(global.mainActivity)
+        onPlayfieldChanged = null
 
+        // The player button and the beat tracking of the main menu keep themselves up to date.
         if (!Multiplayer.isMultiplayer) {
-            global.mainScene.reloadOnlinePanel()
-            global.mainScene.loadTimingPoints(false)
             global.songService.isGaming = false
         }
 
@@ -294,6 +312,7 @@ class SettingsMenu : UIScene() {
                             }
 
                             option.onAttach(button)
+                            addSummary(option)
                         } else {
                             val control = createControl(option)
                             control.key = option.key
@@ -304,6 +323,7 @@ class SettingsMenu : UIScene() {
 
                             +control
                             option.onAttach(control)
+                            addSummary(option)
                         }
                     }
                 }
@@ -315,6 +335,25 @@ class SettingsMenu : UIScene() {
                         style = Style { theme -> backgroundColor = theme.palette.divider }
                     }
                 }
+            }
+        }
+    }
+
+    private fun UILinearContainer.addSummary(option: OptionInfo) {
+        val summary = when (option.summary) {
+            null -> return
+            is Int -> GlobalManager.getInstance().mainActivity.getString(option.summary)
+            else -> option.summary.toString()
+        }
+
+        text {
+            width = fill()
+            wrapText = true
+            text = summary
+            alpha = 0.6f
+            style = Style { theme ->
+                fontSettings = theme.typography.smallCaption
+                padding = Padding(left = theme.gap.sm, right = theme.gap.sm, bottom = theme.gap.sm)
             }
         }
     }
@@ -337,7 +376,10 @@ class SettingsMenu : UIScene() {
             }
         }
 
-        OptionType.Slider -> IntPreferenceSlider(option.key, (option.defaultValue as? Number)?.toInt() ?: 0).apply {
+        OptionType.Slider -> (
+            if (option.isFloat) FloatPreferenceSlider(option.key, (option.defaultValue as? Number)?.toFloat() ?: 0f)
+            else IntPreferenceSlider(option.key, (option.defaultValue as? Number)?.toInt() ?: 0)
+        ).apply {
             val step = option.step ?: 1f
 
             control.min = option.min ?: 0f
@@ -358,6 +400,48 @@ class SettingsMenu : UIScene() {
     override fun onUpdate(clock: FrameClock) {
         sectionContainer.alpha = clock.interpolateFloat(0.2f, sectionContainer.alpha, 1f)
         super.onUpdate(clock)
+    }
+
+
+    /**
+     * Shows the area the playfield will take while its size or position are being changed.
+     */
+    private class PlayfieldAreaDisplay : UIBox() {
+
+        private var previousPlayfieldSize = Config.getPlayfieldSize()
+
+        init {
+            backgroundColor = Color4.White
+            alpha = 0f
+        }
+
+        fun update() {
+            val parentBounds = parent?.bounds ?: return
+            val playfieldSize = Config.getPlayfieldSize()
+
+            // Nothing to show if the playfield size is 100%, since it will fill the entire screen anyway,
+            // making position settings irrelevant.
+            if (previousPlayfieldSize == 1f && playfieldSize == 1f) {
+                return
+            }
+
+            previousPlayfieldSize = playfieldSize
+
+            val areaWidth = playfieldSize * parentBounds.width
+            val areaHeight = playfieldSize * parentBounds.height
+
+            width = areaWidth.px
+            height = areaHeight.px
+            x = ((parentBounds.width - areaWidth) * Config.getPlayfieldHorizontalPosition()).px
+            y = ((parentBounds.height - areaHeight) * Config.getPlayfieldVerticalPosition()).px
+
+            clearTransforms()
+            transformSequence {
+                fadeTo(0.3f, 0.4f, Easing.OutQuint)
+                then()
+                fadeOut(0.5f)
+            }
+        }
     }
 
 

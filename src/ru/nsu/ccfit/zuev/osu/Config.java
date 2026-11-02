@@ -128,6 +128,11 @@ public class Config {
     );
 
     /**
+     * The numeric preferences stored as floats. Everything else stays an integer.
+     */
+    public static final Set<String> FLOAT_PREFERENCES = Set.of("bgmvolume", "soundvolume", "bgbrightness");
+
+    /**
      * The shared preferences of the application.
      */
     private static SharedPreferences sharedPreferences;
@@ -166,16 +171,16 @@ public class Config {
 
         try {
             offset = prefs.getInt("offset", 0);
-            backgroundBrightness = prefs.getInt("bgbrightness", 25) / 100f;
-            soundVolume = prefs.getInt("soundvolume", 100) / 100f;
-            bgmVolume = prefs.getInt("bgmvolume", 100) / 100f;
+            backgroundBrightness = getNumber("bgbrightness", 25f) / 100f;
+            soundVolume = getNumber("soundvolume", 100f) / 100f;
+            bgmVolume = getNumber("bgmvolume", 100f) / 100f;
             cursorSize = prefs.getInt("cursorSize", 50) / 100f;
         }catch(RuntimeException e) { // use valid integer since this makes the game crash on android m
             prefs.edit()
                 .putInt("offset", 0)
-                .putInt("bgbrightness", 25)
-                .putInt("soundvolume", 100)
-                .putInt("bgmvolume", 100)
+                .putFloat("bgbrightness", 25f)
+                .putFloat("soundvolume", 100f)
+                .putFloat("bgmvolume", 100f)
                 .putInt("cursorSize", 50)
                 .commit();
             Config.loadConfig(context);
@@ -865,6 +870,14 @@ public class Config {
 
     public static void setString(String key, String value) {
         sharedPreferences.edit().putString(key, value).commit();
+    }
+
+    /**
+     * Gets a numeric preference no matter whether it was stored as an integer or as a float, so the
+     * preferences in {@link #FLOAT_PREFERENCES} keep the value they had before moving to floats.
+     */
+    public static float getNumber(String key, float defaultValue) {
+        return sharedPreferences.getAll().get(key) instanceof Number number ? number.floatValue() : defaultValue;
     }
 
     public static float getFloat(String key, float defaultValue) {
