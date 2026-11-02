@@ -24,7 +24,6 @@ import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.PaintStyle
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.clearTransforms
@@ -35,6 +34,7 @@ import com.reco1l.verktex.ui.control.UICheckbox
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.scaleTo
+import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.shape.UICircle
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.shape.circle
@@ -83,9 +83,9 @@ object CalibrationScene : UIScene() {
      */
     internal var settingsFragment: SettingsFragment? = null
 
-    private lateinit var approachCircle: UICircle
+    private lateinit var approachCircle: UIBox
     private lateinit var hitCircleFill: UICircle
-    private lateinit var rippleCircle: UICircle
+    private lateinit var rippleCircle: UIBox
     private var circleContainer: UIContainer
     private lateinit var bpmValueText: UITextButton
     private lateinit var offsetValueText: UITextButton
@@ -144,39 +144,39 @@ object CalibrationScene : UIScene() {
                 hitCircleFill = this
             }
 
-            circle {
+            box {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                paintStyle = PaintStyle.Outline
-                lineWidth = 8f.px
-                style = Style { theme -> color = theme.palette.accent }
+                radius = (CIRCLE_DIAMETER / 2f).px
+                borderWidth = 8f.px
+                style = Style { theme -> borderColor = theme.palette.accent }
             }
 
-            circle {
+            box {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                paintStyle = PaintStyle.Outline
-                lineWidth = 6f.px
+                radius = (CIRCLE_DIAMETER / 2f).px
+                borderWidth = 6f.px
                 scaleOrigin = Anchor.Center
                 scale = APPROACH_SCALE_START
-                style = Style { theme -> color = theme.palette.accent * 0.85f }
+                style = Style { theme -> borderColor = theme.palette.accent * 0.85f }
                 approachCircle = this
             }
 
-            circle {
+            box {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                paintStyle = PaintStyle.Outline
-                lineWidth = 6f.px
+                radius = (CIRCLE_DIAMETER / 2f).px
+                borderWidth = 6f.px
                 scaleOrigin = Anchor.Center
                 alpha = 0f
-                style = Style { theme -> color = theme.palette.accent }
+                style = Style { theme -> borderColor = theme.palette.accent }
                 rippleCircle = this
             }
         }
@@ -583,7 +583,7 @@ object CalibrationScene : UIScene() {
     private fun triggerRipple(judgement: Judgement) {
         rippleCircle.apply {
             clearTransforms()
-            color = judgement.color
+            borderColor = judgement.color
             scale = 1f
             alpha = 0.75f
 

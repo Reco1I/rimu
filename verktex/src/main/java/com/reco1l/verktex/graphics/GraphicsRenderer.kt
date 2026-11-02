@@ -435,7 +435,7 @@ abstract class GraphicsRenderer {
             uniformSet = GraphicsShader.UniformSet().apply {
                 set("uRadius", radius)
                 set("uBorderWidth", borderWidth)
-                set("uBorderColor", borderColor)
+                set("uBorderColor", transformColor(borderColor))
                 set("uSize", Vec2(width, height))
             },
         )

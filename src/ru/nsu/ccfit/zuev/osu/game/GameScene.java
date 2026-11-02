@@ -42,7 +42,7 @@ import com.osudroid.utils.Execution;
 import com.reco1l.verktex.Cameras;
 import com.reco1l.verktex.Engine;
 import com.reco1l.verktex.component.ComponentsKt;
-import com.reco1l.verktex.ui.PaintStyle;
+import com.reco1l.verktex.data.Dimension;
 import com.reco1l.verktex.ui.shape.UIBox;
 import com.reco1l.verktex.ui.UIAnimatedSprite;
 import com.reco1l.verktex.ui.UISprite;
@@ -559,9 +559,8 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
                 {
                     setAnchor(Anchor.Center);
                     setOrigin(Anchor.Center);
-                    setPaintStyle(PaintStyle.Outline);
-                    setLineWidth(5f);
-                    setColor(1f, 1f, 1f);
+                    setBorderWidth(new Dimension.Fixed.Pixels(5f));
+                    setBorderColor(new Color4(1f, 1f, 1f, 1f));
                     setAlpha(Interpolation.linear(0.2f, 0.8f, brightness));
                     setMeasuredSize(Config.getRES_WIDTH(), Config.getRES_HEIGHT());
                 }

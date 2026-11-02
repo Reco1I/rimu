@@ -1,8 +1,6 @@
 package com.reco1l.verktex.ui.shape
 
-import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.GraphicsRenderer
-import com.reco1l.verktex.ui.PaintStyle
 import com.reco1l.verktex.ui.UICanvas
 import com.reco1l.verktex.ui.container.UIContainer
 
@@ -28,17 +26,6 @@ open class UICircle : UICanvas() {
 
 
     /**
-     * Whether to draw the circle filled or only its outline.
-     */
-    var paintStyle = PaintStyle.Fill
-
-    /**
-     * The width of the outline, only used with [PaintStyle.Outline].
-     */
-    var lineWidth = 1f.px
-
-
-    /**
      * Sets the portion of the circle to be drawn starting from the start angle.
      *
      * Positive values will draw the circle clockwise and negative values will draw it counter-clockwise.
@@ -49,27 +36,15 @@ open class UICircle : UICanvas() {
 
 
     override fun onDraw(renderer: GraphicsRenderer) {
-        when (paintStyle) {
-            PaintStyle.Fill -> renderer.drawArc(
-                x = 0f,
-                y = 0f,
-                width = bounds.width,
-                height = bounds.height,
-                startAngle = startAngle,
-                endAngle = endAngle,
-                color = contentColor
-            )
-            PaintStyle.Outline -> renderer.drawArcStroke(
-                x = 0f,
-                y = 0f,
-                width = bounds.width,
-                height = bounds.height,
-                thickness = lineWidth.toPixels(),
-                startAngle = startAngle,
-                endAngle = endAngle,
-                color = contentColor
-            )
-        }
+        renderer.drawArc(
+            x = 0f,
+            y = 0f,
+            width = bounds.width,
+            height = bounds.height,
+            startAngle = startAngle,
+            endAngle = endAngle,
+            color = contentColor
+        )
     }
 
 }
