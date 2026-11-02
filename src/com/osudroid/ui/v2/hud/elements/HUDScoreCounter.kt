@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.reco1l.verktex.time.FrameClock
+
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.SpriteFont
 import com.rian.framework.RollingLongCounter
@@ -32,18 +34,18 @@ class HUDScoreCounter : HUDElement() {
 
         sprite.fixedCharWidths = digitRange.associateWith { maxDigitWidth }
         sprite.text = format.format(0)
-
-        registerUpdateHandler(counter)
-        attachChild(sprite)
+        +sprite
     }
 
     override fun onGameplayUpdate(game: GameScene, secondsElapsed: Float) {
         counter.targetValue = game.stat.totalScoreWithMultiplier
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        counter.onUpdate(clock.elapsedFrameTime)
+
         value = counter.currentValue
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 }

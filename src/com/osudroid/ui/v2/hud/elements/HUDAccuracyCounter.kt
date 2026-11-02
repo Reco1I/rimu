@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.reco1l.verktex.time.FrameClock
+
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.hud.HUDElementSkinData
 import com.osudroid.ui.v2.SpriteFont
@@ -43,8 +45,7 @@ class HUDAccuracyCounter : HUDElement() {
     private val counter = RollingFloatCounter(1f).apply { rollingDuration = 1f }
 
     init {
-        registerUpdateHandler(counter)
-        attachChild(sprite)
+        +sprite
     }
 
     override fun setSkinData(data: HUDElementSkinData?) {
@@ -61,9 +62,11 @@ class HUDAccuracyCounter : HUDElement() {
         counter.targetValue = gameScene.stat.accuracy
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        counter.onUpdate(clock.elapsedFrameTime)
+
         value = counter.currentValue
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 }

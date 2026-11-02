@@ -1,8 +1,9 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.reco1l.verktex.data.dip
+
 import com.reco1l.verktex.ui.text.UIText
 import com.osudroid.ui.v2.hud.HUDElement
-import com.reco1l.verktex.theme.FontSize
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import kotlin.math.roundToInt
 
@@ -11,7 +12,7 @@ class HUDAverageOffsetCounter : HUDElement() {
     override val name = "Average offset counter"
 
     private val text = UIText().apply {
-        fontSize = FontSize.SM
+        fontSize = 14f.dip
         text = "Avg offset: 0ms"
     }
 
@@ -24,7 +25,7 @@ class HUDAverageOffsetCounter : HUDElement() {
         }
 
     init {
-        attachChild(text)
+        +text
     }
 
     override fun onGameplayUpdate(game: GameScene, secondsElapsed: Float) {

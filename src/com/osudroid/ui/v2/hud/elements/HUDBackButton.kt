@@ -1,23 +1,24 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.edlplan.framework.easing.Easing
-import com.reco1l.verktex.*
+import com.osudroid.ui.v2.SkinTextures
+import com.reco1l.verktex.data.pct
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.time.FrameClock
+
 import com.reco1l.verktex.ui.shape.UICircle
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.math.FloatInterpolation
 import com.osudroid.ui.v2.hud.HUDElement
-import com.reco1l.verktex.component.*
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.pct
-import com.reco1l.verktex.ui.InvalidationFlag
-import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.graphics.CompareFunction
+import com.reco1l.verktex.graphics.DepthState
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.data.px
-import org.anddev.andengine.input.touch.TouchEvent
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ResourceManager
 
 class HUDBackButton : HUDElement() {
 
@@ -26,7 +27,7 @@ class HUDBackButton : HUDElement() {
     private val requiredPressTimeMs = Config.getBackButtonPressTime().toFloat()
 
     private val arrow = UISprite().apply {
-        textureRegion = ResourceManager.getInstance().getTexture("back-arrow")
+        textureRegion = SkinTextures["back-arrow"]
         anchor = Anchor.Center
         origin = Anchor.Center
         width = 0.6f.pct
@@ -38,7 +39,7 @@ class HUDBackButton : HUDElement() {
         anchor = Anchor.Center
         origin = Anchor.Center
         color = Color4.White
-        depthInfo = DepthInfo.Default
+        depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
 
         width = Dimension.FillAvailable
         height = Dimension.FillAvailable
@@ -48,8 +49,8 @@ class HUDBackButton : HUDElement() {
         anchor = Anchor.Center
         origin = Anchor.Center
         color = Color4(0xFF002626)
-        clearInfo = ClearInfo.ClearDepthBuffer
-        depthInfo = DepthInfo.Less
+        clearDepthBeforeDraw = true
+        depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
 
         width = 0.95f.pct
         height = 0.95f.pct
@@ -66,9 +67,9 @@ class HUDBackButton : HUDElement() {
 
             alpha = FloatInterpolation.floatAt(holdDurationMs, 0.25f, 0.5f, 0f, requiredPressTimeMs, Easing.OutCubic)
             backCircle.setPortion(progress)
-            backCircle.setScale(scale)
-            frontCircle.setScale(scale)
-            arrow.setScale(scale)
+            backCircle.scale = scale
+            frontCircle.scale = scale
+            arrow.scale = scale
         }
 
 
@@ -80,16 +81,15 @@ class HUDBackButton : HUDElement() {
         height = SIZE.px
         alpha = 0.25f
 
-        attachChild(frontCircle)
-        attachChild(backCircle)
-        attachChild(arrow)
+        +frontCircle
+        +backCircle
+        +arrow
     }
 
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
-
+    override fun onUpdate(clock: FrameClock) {
         if (!isInEditMode) {
-            val realMsElapsed = deltaTimeSec * 1000
+            val realMsElapsed = clock.elapsedFrameTime * 1000
 
             if (isPressed) {
                 holdDurationMs += realMsElapsed
@@ -97,41 +97,44 @@ class HUDBackButton : HUDElement() {
                 if (holdDurationMs >= requiredPressTimeMs) {
                     isPressed = false
                     GlobalManager.getInstance().gameScene.pause()
-                    (parent as UIComponent).invalidate(InvalidationFlag.InputBindings)
                 }
             } else {
                 holdDurationMs -= realMsElapsed * 2
             }
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
-    override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
+    override fun onInputEvent(event: InputEvent): Boolean {
 
-        if (isInEditMode) {
-            return super.onAreaTouched(event, localX, localY)
+        if (isInEditMode || event !is PointerEvent) {
+            return super.onInputEvent(event)
         }
 
-        if (event.isActionDown) {
-            isPressed = true
-            return true
-        }
-
-        if (event.isActionMove) {
-            if (isPressed) {
-                if (localX <= 0f || localY <= 0f || localX >= width || localY >= height) {
-                    isPressed = false
+        when (event.action) {
+            PointerEvent.Action.Down -> {
+                if (containsScenePoint(event.x, event.y)) {
+                    isPressed = true
+                    return true
                 }
-                return true
             }
-        }
 
-        if (event.isActionUp) {
-            if (isPressed) {
-                isPressed = false
-                return true
+            PointerEvent.Action.Move -> {
+                if (isPressed) {
+                    isPressed = containsScenePoint(event.x, event.y)
+                    return true
+                }
             }
+
+            PointerEvent.Action.Up -> {
+                if (isPressed) {
+                    isPressed = false
+                    return true
+                }
+            }
+
+            else -> isPressed = false
         }
 
         return false

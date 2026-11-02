@@ -1,20 +1,22 @@
 package com.osudroid.ui.v2.hud.editor
 
-import com.reco1l.verktex.*
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.shape.*
-import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec4
 import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.hud.HUDElementSkinData
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
-import org.anddev.andengine.engine.camera.Camera
-import org.anddev.andengine.input.touch.TouchEvent
-import javax.microedition.khronos.opengles.GL10
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.scaleTo
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.transformSequence
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -22,7 +24,7 @@ class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): 
 
 
     private val label = UIText().apply {
-        fontSize = FontSize.SM
+        fontSize = 14f.dip
         anchor = Anchor.BottomLeft
         origin = Anchor.BottomLeft
         text = element.name
@@ -31,15 +33,15 @@ class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): 
 
     init {
         width = Dimension.FillAvailable
-        height = 120f
-        padding = Vec4(12f)
-        scaleCenterX = 0.5f
-        scaleCenterY = 0.5f
+        height = 120f.px
+        padding = Padding(12f.px)
+        scaleOrigin = Anchor.Center
         backgroundColor = Color4(0xFF363653)
-        radius = 12f
+        radius = 12f.px
 
-        attachChild(element)
-        attachChild(label)
+        +element
+        +label
+
         element.setSkinData(
             HUDElementSkinData(
                 type = element::class,
@@ -49,36 +51,48 @@ class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): 
         )
     }
 
-    override fun doDraw(gl: GL10, camera: Camera) {
+    override fun onUpdate(clock: FrameClock) {
 
         // Scaling the element inside the box
-        element.setScaleCenter(0f, 0f)
+        val elementSize = element.measuredSize
 
-        if (element.width > element.height) {
-            element.setScale(min(1f, innerWidth / element.width))
-        } else {
-            element.setScale(min(1f, (innerHeight - label.height) / element.height))
+        if (elementSize.x > 0f && elementSize.y > 0f) {
+            val inner = padding.toVec4()
+
+            element.scale = if (elementSize.x > elementSize.y) {
+                min(1f, (bounds.width - inner.x - inner.z) / elementSize.x)
+            } else {
+                min(1f, (bounds.height - inner.y - inner.w - label.measuredSize.y) / elementSize.y)
+            }
         }
 
-        super.doDraw(gl, camera)
+        super.onUpdate(clock)
     }
 
     //region Input handling
     private var initialX = 0f
     private var initialY = 0f
+    private var isPressed = false
 
-    override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
+    // The element inside is only a preview, so it never receives input.
+    override fun onInputEvent(event: InputEvent): Boolean {
 
-        if (event.isActionDown) {
-            initialX = localX
-            initialY = localY
+        if (event !is PointerEvent) {
+            return false
         }
 
-        if (event.isActionUp) {
+        if (event.action == PointerEvent.Action.Down) {
+            isPressed = containsScenePoint(event.x, event.y)
+            initialX = event.x
+            initialY = event.y
+        }
 
-            if (abs(localX - initialX) < 1f && abs(localY - initialY) < 1f) {
-                clearEntityModifiers()
-                beginModifierSequence {
+        if (event.action == PointerEvent.Action.Up && isPressed) {
+            isPressed = false
+
+            if (abs(event.x - initialX) < 1f && abs(event.y - initialY) < 1f) {
+                clearTransforms()
+                transformSequence {
                     scaleTo(0.9f, 0.1f)
                     then()
                     scaleTo(1f, 0.1f)

@@ -1,21 +1,23 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.edlplan.framework.easing.*
-import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.shape.*
-import com.reco1l.verktex.ui.sprite.*
-import com.reco1l.verktex.texture.*
-import com.reco1l.framework.*
+import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.hud.HUDElement
-import com.reco1l.verktex.component.*
+import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.graphics.BlendMode
+import com.reco1l.verktex.graphics.CompareFunction
+import com.reco1l.verktex.graphics.DepthState
+import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.math.ColorInterpolation
+import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.FloatInterpolation
 import com.reco1l.verktex.ui.UIAnimatedSprite
-import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.UISprite
-import org.anddev.andengine.opengl.texture.region.*
-import ru.nsu.ccfit.zuev.osu.*
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.ui.scaleTo
+import com.reco1l.verktex.ui.shape.UIBox
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.*
 import ru.nsu.ccfit.zuev.skins.*
@@ -28,52 +30,68 @@ class HUDHealthBar : HUDElement() {
     private val marker: UISprite
     private val explode: UISprite
 
-    private val markerNormalTexture: TextureRegion?
-    private val markerDangerTexture: TextureRegion?
-    private val markerSuperDangerTexture: TextureRegion?
+    private val markerNormalTexture: GraphicsTexture.Region?
+    private val markerDangerTexture: GraphicsTexture.Region?
+    private val markerSuperDangerTexture: GraphicsTexture.Region?
 
     private val isNewStyle: Boolean
 
 
+    private val fillX: Float
+    private val fillY: Float
+    private val fillWidth: Float
+    private val fillHeight: Float
+
     private var lastHP = 0f
+    private var clearedWidth = 0f
 
 
     init {
 
-        val backgroundTexture = ResourceManager.getInstance().getTexture("scorebar-bg")
-        val markerTexture = ResourceManager.getInstance().getTextureIfLoaded("scorebar-marker")
+        val backgroundTexture = SkinTextures["scorebar-bg"]
+        val markerTexture = SkinTextures["scorebar-marker"]
 
         // the marker lookup to decide which display style must be performed on the source of the bg, which is the most common element.
-        isNewStyle = backgroundTexture !is BlankTextureRegion && markerTexture != null
+        isNewStyle = backgroundTexture != null && markerTexture != null
 
         // background implementation is the same for both versions.
-        attachChild(UISprite().apply { textureRegion = backgroundTexture })
+        +UISprite().apply { textureRegion = backgroundTexture }
 
         fillClear = UIBox()
         fillClear.origin = Anchor.TopRight
-        fillClear.clearInfo = ClearInfo.ClearDepthBuffer
-        fillClear.depthInfo = DepthInfo.Less
+        fillClear.clearDepthBeforeDraw = true
+        fillClear.depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
         fillClear.alpha = 0f
-        attachChild(fillClear)
+        +fillClear
 
-        fill = UIAnimatedSprite("scorebar-colour", true, OsuSkin.get().animationFramerate)
-        fill.depthInfo = DepthInfo.Default
-        fill.width = fill.width // Preserve the first frame width.
-        attachChild(fill)
+        val fillFrames = SkinTextures.frames("scorebar-colour").ifEmpty { listOfNotNull(SkinTextures["scorebar-colour"]) }
+
+        fill = UIAnimatedSprite(fillFrames, OsuSkin.get().animationFramerate)
+        fill.depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
+        +fill
+
+        // Preserve the first frame size.
+        fillWidth = fillFrames.firstOrNull()?.width ?: 0f
+        fillHeight = fillFrames.firstOrNull()?.height ?: 0f
+        fill.width = fillWidth.px
+        fill.height = fillHeight.px
 
         marker = UISprite()
         marker.origin = Anchor.Center
-        marker.blendInfo = BlendInfo.Additive
-        attachChild(marker)
+        marker.scaleOrigin = Anchor.Center
+        marker.blendMode = BlendMode.Additive
+        +marker
 
         explode = UISprite()
         explode.origin = Anchor.Center
-        explode.blendInfo = BlendInfo.Additive
+        explode.scaleOrigin = Anchor.Center
+        explode.blendMode = BlendMode.Additive
         explode.alpha = 0f
-        attachChild(explode)
+        +explode
 
         if (isNewStyle) {
-            fill.setPosition(7.5f * 1.6f, 7.8f * 1.6f)
+            fillX = 7.5f * 1.6f
+            fillY = 7.8f * 1.6f
 
             marker.textureRegion = markerTexture
             explode.textureRegion = markerTexture
@@ -82,31 +100,38 @@ class HUDHealthBar : HUDElement() {
             markerDangerTexture = null
             markerSuperDangerTexture = null
         } else {
-            fill.setPosition(3f * 1.6f, 10f * 1.6f)
+            fillX = 3f * 1.6f
+            fillY = 10f * 1.6f
 
-            markerNormalTexture = ResourceManager.getInstance().getTextureIfLoaded("scorebar-ki")
-            markerDangerTexture = ResourceManager.getInstance().getTextureIfLoaded("scorebar-kidanger")
-            markerSuperDangerTexture = ResourceManager.getInstance().getTextureIfLoaded("scorebar-kidanger2")
+            markerNormalTexture = SkinTextures["scorebar-ki"]
+            markerDangerTexture = SkinTextures["scorebar-kidanger"]
+            markerSuperDangerTexture = SkinTextures["scorebar-kidanger2"]
 
             marker.textureRegion = markerNormalTexture
             explode.textureRegion = markerNormalTexture
         }
 
-        fillClear.width = 0f
-        fillClear.height = fill.height
-        fillClear.setPosition(fill.x + fill.width, fill.y)
+        fill.x = fillX.px
+        fill.y = fillY.px
+
+        fillClear.width = 0f.px
+        fillClear.height = fillHeight.px
+        fillClear.x = (fillX + fillWidth).px
+        fillClear.y = fillY.px
     }
 
 
     override fun onGameplayUpdate(game: GameScene, secondsElapsed: Float) {
         val hp = game.stat.hp
 
-        fillClear.width = FloatInterpolation.floatAt(secondsElapsed.coerceIn(0f, 0.2f), fillClear.width, (1f - hp) * fill.width, 0f, 0.2f, Easing.OutQuint)
+        clearedWidth = FloatInterpolation.floatAt(secondsElapsed.coerceIn(0f, 0.2f), clearedWidth, (1f - hp) * fillWidth, 0f, 0.2f, Easing.OutQuint)
+        fillClear.width = clearedWidth.px
 
-        marker.x = fill.x + fill.width - fillClear.width
-        marker.y = fill.y + (if (isNewStyle) fill.height / 2 else 0f)
+        marker.x = (fillX + fillWidth - clearedWidth).px
+        marker.y = (fillY + (if (isNewStyle) fillHeight / 2 else 0f)).px
 
-        explode.setPosition(marker)
+        explode.x = marker.x
+        explode.y = marker.y
 
         if (hp > lastHP) {
             bulge()
@@ -120,7 +145,7 @@ class HUDHealthBar : HUDElement() {
 
             fill.color = color
             marker.color = color
-            marker.blendInfo = if (hp < EPIC_CUTOFF) BlendInfo.Inherit else BlendInfo.Additive
+            marker.blendMode = if (hp < EPIC_CUTOFF) BlendMode.Alpha else BlendMode.Additive
 
         } else {
 
@@ -138,7 +163,7 @@ class HUDHealthBar : HUDElement() {
     }
 
     override fun onBreakStateChange(isBreak: Boolean) {
-        isChildrenVisible = !isBreak
+        isVisible = !isBreak
     }
 
 
@@ -148,24 +173,24 @@ class HUDHealthBar : HUDElement() {
 
         bulge()
 
-        explode.clearEntityModifiers()
-        explode.blendInfo = if (isEpic) BlendInfo.Additive else BlendInfo.Inherit
+        explode.clearTransforms()
+        explode.blendMode = if (isEpic) BlendMode.Additive else BlendMode.Alpha
         explode.alpha = 1f
-        explode.setScale(1f)
+        explode.scale = 1f
 
         explode.scaleTo(if (isEpic) 2f else 1.6f, 0.12f)
         explode.fadeOut(0.12f)
     }
 
     private fun bulge() {
-        marker.clearEntityModifiers()
-        marker.setScale(1.4f)
-        marker.scaleTo(1f, 0.2f, Easing.Out)
+        marker.clearTransforms()
+        marker.scale = 1.4f
+        marker.scaleTo(1f, 0.2f, Easing.OutQuad)
     }
 
     private fun getFillColor(hp: Float) = when {
 
-        hp < 0.2f -> ColorInterpolation.colorAt(0.2f - hp, Color4.Black, Color4.Red500, 0f, 0.2f)
+        hp < 0.2f -> ColorInterpolation.colorAt(0.2f - hp, Color4.Black, Color4(0xFFEF4444), 0f, 0.2f)
         hp < EPIC_CUTOFF -> ColorInterpolation.colorAt(0.5f - hp, Color4.White, Color4.Black, 0f, 0.5f)
 
         else -> Color4.White

@@ -1,14 +1,16 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.reco1l.verktex.*
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.graphics.CompareFunction
+import com.reco1l.verktex.graphics.DepthState
+import com.reco1l.verktex.graphics.GraphicsRenderer
+import com.reco1l.verktex.time.FrameClock
+
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.data.Color4
 import com.osudroid.utils.*
-import com.reco1l.verktex.component.*
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.reco1l.verktex.data.Anchor
-import org.anddev.andengine.engine.camera.*
-import javax.microedition.khronos.opengles.*
 import kotlin.math.abs
 
 class HUDBarHitErrorMeter : HUDHitErrorMeter() {
@@ -16,59 +18,51 @@ class HUDBarHitErrorMeter : HUDHitErrorMeter() {
     private val expiredIndicators = SynchronizedPool<Indicator>(20)
     private val activeIndicators = mutableListOf<Indicator>()
 
-    // Using a shared box for drawing indicators to reduce memory usage.
-    private val indicatorBox = UIBox().apply {
-        anchor = Anchor.Center
-        origin = Anchor.Center
-        setSize(INDICATOR_WIDTH, INDICATOR_HEIGHT - 2f)
-
-        // Used to get anchor working properly.
-        parent = this@HUDBarHitErrorMeter
-    }
-
-
     init {
-        setSize(WIDTH, INDICATOR_HEIGHT)
-
+        width = (WIDTH).px
+        height = (INDICATOR_HEIGHT).px
         val mehWindow = UIBox().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
-            color = mehColor
-            radius = BAR_HEIGHT / 2
-            setSize(WIDTH, BAR_HEIGHT)
-
-            depthInfo = DepthInfo.Default
+            backgroundColor = mehColor
+            radius = (BAR_HEIGHT / 2).px
+            width = (WIDTH).px
+            height = (BAR_HEIGHT).px
+            depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
         }
 
         val okWindow = UIBox().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
-            color = okColor
-            setSize(WIDTH * (hitWindow.okWindow / hitWindow.mehWindow).toFloat(), BAR_HEIGHT)
-
-            depthInfo = DepthInfo.Default
+            backgroundColor = okColor
+            width = (WIDTH * (hitWindow.okWindow / hitWindow.mehWindow).toFloat()).px
+            height = (BAR_HEIGHT).px
+            depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
         }
 
         val greatWindow = UIBox().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
-            setSize(WIDTH * (hitWindow.greatWindow / hitWindow.mehWindow).toFloat(), BAR_HEIGHT)
-            color = greatColor
+            width = (WIDTH * (hitWindow.greatWindow / hitWindow.mehWindow).toFloat()).px
+            height = (BAR_HEIGHT).px
+            backgroundColor = greatColor
 
-            clearInfo = ClearInfo.ClearDepthBuffer
-            depthInfo = DepthInfo.Less
+            clearDepthBeforeDraw = true
+            depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
         }
 
-        attachChild(mehWindow)
-        attachChild(okWindow, 0)
-        attachChild(greatWindow, 0)
+        +mehWindow
+        add(0, okWindow)
+        add(0, greatWindow)
 
         // Indicator
-        attachChild(UIBox().apply {
+        +UIBox().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
-            setSize(INDICATOR_WIDTH / 2, INDICATOR_HEIGHT)
-        })
+            width = (INDICATOR_WIDTH / 2).px
+            height = (INDICATOR_HEIGHT).px
+            backgroundColor = Color4.White
+        }
 
         mehWindow.alpha = 0.6f
         okWindow.alpha = 0.6f
@@ -108,19 +102,23 @@ class HUDBarHitErrorMeter : HUDHitErrorMeter() {
 
     //region Indicator update & draw
 
-    override fun onDrawChildren(gl: GL10, camera: Camera) {
-        super.onDrawChildren(gl, camera)
+    override fun onDraw(renderer: GraphicsRenderer) {
+        super.onDraw(renderer)
+
+        val centerX = bounds.width / 2f
+        val centerY = bounds.height / 2f
+        val halfHeight = (INDICATOR_HEIGHT - 2f) / 2f
+
         activeIndicators.forEach {
-            indicatorBox.x = it.x
-            indicatorBox.color = it.color
-            indicatorBox.alpha = it.alpha
-            indicatorBox.onDraw(gl, camera)
+            val x = centerX + it.x
+
+            renderer.drawLine(x, centerY - halfHeight, x, centerY + halfHeight, INDICATOR_WIDTH, it.color.copy(alpha = it.alpha))
         }
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
         activeIndicators.forEach(Indicator::update)
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
     //endregion

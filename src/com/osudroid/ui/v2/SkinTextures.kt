@@ -59,6 +59,17 @@ object SkinTextures {
     }
 
     /**
+     * Gets the frames of an animated skin texture, an empty list if it isn't animated.
+     */
+    fun frames(name: String): List<GraphicsTexture.Region> {
+        val frames = mutableListOf<GraphicsTexture.Region>()
+
+        while (true) {
+            frames += get("$name-${frames.size}") ?: return frames
+        }
+    }
+
+    /**
      * Unloads all skin textures and notifies the [ISkinnable] components of the current scene. To be
      * called after the skin has changed.
      */
@@ -90,9 +101,13 @@ object SkinTextures {
         val customPath = Config.getSkinPath() + customName + ".png"
         val defaultPath = "gfx/$defaultName.png"
 
+        // Assets that aren't skinnable, such as UI icons, are at the root.
+        val assetPath = "$defaultName.png"
+
         val region = when {
             Platform.provider.exists(customPath, true) -> Textures.load(key, customPath, isInternal = false)
             Platform.provider.exists(defaultPath, false) -> Textures.load(key, defaultPath, isInternal = true)
+            Platform.provider.exists(assetPath, false) -> Textures.load(key, assetPath, isInternal = true)
             else -> null
         }
 

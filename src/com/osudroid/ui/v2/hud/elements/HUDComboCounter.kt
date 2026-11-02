@@ -1,7 +1,13 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.edlplan.framework.easing.*
-import com.rian.andengine.modifier.OnModifierFinished
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.ui.scaleTo
+import com.reco1l.verktex.ui.transformSequence
+
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.SpriteFont
 import ru.nsu.ccfit.zuev.osu.*
@@ -18,7 +24,7 @@ class HUDComboCounter : HUDElement() {
         it.text = "0x"
         it.spacing = -OsuSkin.get().comboOverlap
 
-        attachChild(it)
+        +it
 
     } else null
 
@@ -27,10 +33,10 @@ class HUDComboCounter : HUDElement() {
         it.text = "0x"
         it.spacing = -OsuSkin.get().comboOverlap
 
-        attachChild(it, 0)
+        add(0, it)
     }
 
-    private val updateDisplayedCount = OnModifierFinished {
+    private val updateDisplayedCount: (UIComponent) -> Unit = {
         displayedCountTextSprite.text = "${current}x"
     }
 
@@ -51,8 +57,8 @@ class HUDComboCounter : HUDElement() {
             return
         }
 
-        popOutCount.clearEntityModifiers()
-        displayedCountTextSprite.clearEntityModifiers()
+        popOutCount.clearTransforms()
+        displayedCountTextSprite.clearTransforms()
 
         // Force update the text to the current combo if the previous
         // modifier haven't finished yet.
@@ -61,17 +67,17 @@ class HUDComboCounter : HUDElement() {
 
         popOutCount.text = "${current}x"
         popOutCount.alpha = 0.6f
-        popOutCount.setScale(1.56f)
+        popOutCount.scale = 1.56f
 
         popOutCount.scaleTo(1f, BIG_POP_OUT_DURATION)
         popOutCount.fadeOut(BIG_POP_OUT_DURATION).after(updateDisplayedCount)
 
-        displayedCountTextSprite.setScale(1f)
+        displayedCountTextSprite.scale = 1f
 
-        displayedCountTextSprite.beginModifierSequence {
-            scaleTo(1.1f, SMALL_POP_OUT_DURATION / 2f, Easing.In)
+        displayedCountTextSprite.transformSequence {
+            scaleTo(1.1f, SMALL_POP_OUT_DURATION / 2f, Easing.InQuad)
             then()
-            scaleTo(1f, SMALL_POP_OUT_DURATION / 2f, Easing.Out)
+            scaleTo(1f, SMALL_POP_OUT_DURATION / 2f, Easing.OutQuad)
         }
     }
 
@@ -80,14 +86,11 @@ class HUDComboCounter : HUDElement() {
         setCombo(game.stat.combo)
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        popOutCount?.scaleOrigin = anchor
+        displayedCountTextSprite.scaleOrigin = anchor
 
-        popOutCount?.scaleCenterX = anchor.x
-        popOutCount?.scaleCenterY = anchor.y
-        displayedCountTextSprite.scaleCenterX = anchor.x
-        displayedCountTextSprite.scaleCenterY = anchor.y
-
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
 

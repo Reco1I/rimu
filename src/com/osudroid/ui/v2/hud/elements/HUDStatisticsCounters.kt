@@ -1,13 +1,16 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.reco1l.verktex.data.px
+
+import com.reco1l.verktex.data.dip
+
+import com.reco1l.verktex.time.FrameClock
+
 import com.osudroid.ui.v2.SpriteFont
-import com.reco1l.verktex.*
-import com.reco1l.verktex.ui.text.*
 import com.reco1l.framework.*
 import com.osudroid.ui.v2.hud.HUDElement
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.theme.FontSize
 import com.reco1l.verktex.ui.text.UIText
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
@@ -17,7 +20,7 @@ import ru.nsu.ccfit.zuev.skins.*
 sealed class HUDStatisticCounter(label: String) : HUDElement() {
 
     protected val labelText = UIText().apply {
-        fontSize = FontSize.SM
+        fontSize = 14f.dip
         text = label
     }
 
@@ -37,12 +40,13 @@ sealed class HUDStatisticCounter(label: String) : HUDElement() {
         }
 
     init {
-        attachChild(labelText)
-        attachChild(valueText)
+        +labelText
+        +valueText
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
-        valueText.y = labelText.height
+    override fun onUpdate(clock: FrameClock) {
+
+        valueText.y = labelText.measuredSize.y.px
 
         val innerAnchor = when (anchor.x) {
             0f -> Anchor.TopLeft
@@ -55,7 +59,7 @@ sealed class HUDStatisticCounter(label: String) : HUDElement() {
         valueText.anchor = innerAnchor
         valueText.origin = innerAnchor
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 }
 
@@ -90,6 +94,6 @@ class HUDMehCounter : HUDHitStatisticCounter("Meh", Color4(0xFFc8b46e)) {
     override fun getValue(statistics: StatisticV2) = statistics.hit50
 }
 
-class HUDMissCounter : HUDHitStatisticCounter("Miss", Color4.Red) {
+class HUDMissCounter : HUDHitStatisticCounter("Miss", Color4(0xFFFF0000)) {
     override fun getValue(statistics: StatisticV2) = statistics.misses
 }

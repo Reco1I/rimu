@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.reco1l.verktex.time.FrameClock
+
 import com.rian.framework.RollingIntCounter
 import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
@@ -12,7 +14,6 @@ class HUDBPMCounter : HUDStatisticCounter("BPM") {
     private val counter = RollingIntCounter(0).apply { rollingDuration = 0.375f }
 
     init {
-        registerUpdateHandler(counter)
     }
 
     override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
@@ -29,9 +30,11 @@ class HUDBPMCounter : HUDStatisticCounter("BPM") {
         counter.targetValue = bpm.roundToInt()
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        counter.onUpdate(clock.elapsedFrameTime)
+
         displayedValue = counter.currentValue
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 }
