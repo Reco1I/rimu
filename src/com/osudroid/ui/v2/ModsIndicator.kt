@@ -1,10 +1,9 @@
 package com.osudroid.ui.v2
 
-import com.osudroid.ui.v2.modmenu.*
-import com.reco1l.verktex.theme.FontSize
 import com.osudroid.mods.*
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.container.Orientation
+import com.osudroid.ui.v2.modmenu.*
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.container.UILinearContainer
 
 class ModsIndicator : UILinearContainer() {
@@ -32,7 +31,7 @@ class ModsIndicator : UILinearContainer() {
             if (field != value) {
                 field = value
 
-                detachChildren()
+                clearChildren()
 
                 value?.forEach { mod ->
                     if (!showNonPlayableMods && !mod.isUserPlayable) {
@@ -50,12 +49,12 @@ class ModsIndicator : UILinearContainer() {
     /**
      * The size of the mod icons in this indicator.
      */
-    var iconSize = FontSize.MD
+    var iconSize: Dimension.Fixed = Dimension.Zero
         set(value) {
             if (field != value) {
                 field = value
 
-                forEach { icon -> icon as UIComponent
+                forEach { icon ->
                     icon.width = value
                     icon.height = value
                 }
@@ -65,9 +64,9 @@ class ModsIndicator : UILinearContainer() {
 
     init {
         orientation = Orientation.Horizontal
-        style = {
-            iconSize = FontSize.MD
-            spacing = -5f
+        style = Style { theme ->
+            iconSize = theme.typography.body.size
+            spacing = (-5f).px
         }
     }
 

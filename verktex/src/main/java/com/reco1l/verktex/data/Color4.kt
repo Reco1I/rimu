@@ -96,6 +96,16 @@ data class Color4(
     }
 
     /**
+     * Multiplies the RGB channels by the given scalar, keeping the alpha.
+     */
+    operator fun times(scalar: Float) = Color4(
+        red = red * scalar,
+        green = green * scalar,
+        blue = blue * scalar,
+        alpha = alpha
+    )
+
+    /**
      * Darkens the color by the given factor.
      */
     fun darken(factor: Float): Color4 {

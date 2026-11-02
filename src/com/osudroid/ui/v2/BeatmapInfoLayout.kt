@@ -8,18 +8,20 @@ import com.osudroid.multiplayer.api.data.*
 import com.osudroid.ui.v2.modmenu.*
 import com.osudroid.utils.async
 import com.osudroid.utils.updateThread
-import com.reco1l.verktex.*
-import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.data.Vec4
-import com.reco1l.verktex.data.icon
-import com.reco1l.verktex.data.spannable
-import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIBadge
+import com.reco1l.verktex.ui.UILabeledBadge
+import com.reco1l.verktex.ui.badge
 import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.labeledBadge
 import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.text.text
 import com.reco1l.framework.math.roundBy
 import com.osudroid.utils.applyMods
 import com.osudroid.utils.calculateRate
@@ -60,42 +62,50 @@ class BeatmapInfoLayout : UILinearContainer() {
     init {
         width = Dimension.FillAvailable
         orientation = Orientation.Vertical
-        spacing = 6f
+        spacing = 6f.px
 
-        fillContainer {
+        linearContainer {
             width = Dimension.FillAvailable
 
             linearContainer {
                 width = Dimension.FillAvailable
                 orientation = Orientation.Vertical
-                padding = Vec4(0f, 0f, 12f, 0f)
+                padding = Padding(right = 12f.px)
 
                 artistText = text {
-                    fontSize = FontSize.SM
                     text = "Unknown"
-                    style = { color = it.accentColor * 0.9f }
-                    clipToBounds = true
+                    style = Style { theme ->
+                        fontSize = theme.typography.smallBody.size
+                        color = theme.palette.accent * 0.9f
+                    }
+                    clipping = ClipMode.Bounds
                 }
 
                 titleText = text {
                     width = Dimension.FillAvailable
-                    fontSize = FontSize.SM
                     text = "No selected beatmap"
-                    style = { color = it.accentColor }
-                    clipToBounds = true
+                    style = Style { theme ->
+                        fontSize = theme.typography.smallBody.size
+                        color = theme.palette.accent
+                    }
+                    clipping = ClipMode.Bounds
                 }
 
                 versionText = text {
-                    fontSize = FontSize.SM
                     text = "Unknown"
-                    style = { color = it.accentColor * 0.8f }
-                    clipToBounds = true
+                    style = Style { theme ->
+                        fontSize = theme.typography.smallBody.size
+                        color = theme.palette.accent * 0.8f
+                    }
+                    clipping = ClipMode.Bounds
                 }
 
                 creatorText = text {
-                    fontSize = FontSize.SM
                     text = "Unknown"
-                    style = { color = it.accentColor * 0.8f }
+                    style = Style { theme ->
+                        fontSize = theme.typography.smallBody.size
+                        color = theme.palette.accent * 0.8f
+                    }
                 }
             }
 
@@ -105,66 +115,62 @@ class BeatmapInfoLayout : UILinearContainer() {
 
         linearContainer {
             orientation = Orientation.Vertical
-            spacing = 4f
+            spacing = 4f.px
 
             linearContainer {
                 orientation = Orientation.Horizontal
-                spacing = 4f
+                spacing = 4f.px
 
                 circlesBadge = labeledBadge {
                     label = "Circles"
                     value = "0"
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                 }
                 slidersBadge = labeledBadge {
                     label = "Sliders"
                     value = "0"
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                 }
                 spinnersBadge = labeledBadge {
                     label = "Spinners"
                     value = "0"
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                 }
                 lengthBadge = badge {
-                    text = spannable {
-                        icon(FAIcon.Clock)
-                        span { "-:--" }
-                    }
-                    leadingIcon = UISprite(Textures.getInstance().getTexture("clock"))
-                    sizeVariant = SizeVariant.Small
+                    text = "-:--"
+                    leadingIcon = faSolidIcon(FAIcon.Clock)
+                    density = UIBadge.Density.Small
                 }
             }
 
             linearContainer {
                 orientation = Orientation.Horizontal
-                spacing = 4f
+                spacing = 4f.px
 
                 arText = labeledBadge {
                     label = "AR"
                     value = "0.00"
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                 }
                 odText = labeledBadge {
                     label = "OD"
                     value = "0.00"
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                 }
                 csText = labeledBadge {
                     label = "CS"
                     value = "0.00"
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                 }
                 hpText = labeledBadge {
                     label = "HP"
                     value = "0.00"
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                 }
                 bpmBadge = badge {
-                    leadingIcon = UISprite(Textures.getInstance().getTexture("bpm"))
+                    leadingIcon = faSolidIcon(FAIcon.Music)
                     text = "0"
-                    fontSize = FontSize.XS
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                 }
             }
         }
@@ -283,12 +289,4 @@ class BeatmapInfoLayout : UILinearContainer() {
         starRatingBadge.rating = beatmapInfo.getStarRating().toDouble()
     }
 
-
-    companion object {
-        init {
-            Textures.getInstance().loadHighQualityAsset("clock", "clock.png")
-            Textures.getInstance().loadHighQualityAsset("bpm", "bpm.png")
-        }
-    }
 }
-

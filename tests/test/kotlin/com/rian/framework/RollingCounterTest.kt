@@ -1,6 +1,6 @@
 package com.rian.framework
 
-import com.edlplan.framework.easing.Easing
+import com.reco1l.verktex.math.Easing
 import org.junit.Assert
 import org.junit.Test
 
