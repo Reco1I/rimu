@@ -52,6 +52,7 @@ import com.osudroid.UpdateManager;
 import com.osudroid.ui.v2.multi.LobbyScene;
 
 import com.osudroid.ui.v2.modmenu.ModMenu;
+import com.osudroid.ui.v2.settings.SettingsMenu;
 import com.reco1l.osu.ui.MessageDialog;
 import com.osudroid.difficulty.BeatmapDifficultyCalculator;
 import com.reco1l.verktex.Verktex;
@@ -846,6 +847,11 @@ public class MainActivity extends AndroidGameHost {
                 && currentScene == songMenu.getScene() && !songMenu.getScene().hasChildScene()) {
             songMenu.stopScroll(0);
             songMenu.showPropertiesMenu(null);
+            return true;
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_BACK && Verktex.getScene() instanceof SettingsMenu settingsMenu) {
+            settingsMenu.back();
             return true;
         }
 

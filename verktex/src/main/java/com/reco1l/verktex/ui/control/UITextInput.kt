@@ -67,6 +67,17 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
     var confirmOnEnter = true
 
     /**
+     * Whether the text is a password, displayed masked and hidden from the IME's suggestions.
+     */
+    var isPassword = false
+        set(value) {
+            if (field != value) {
+                field = value
+                updateVisuals()
+            }
+        }
+
+    /**
      * A callback that is invoked when the input is confirmed.
      */
     var onConfirm: (() -> Unit)? = null
@@ -94,6 +105,9 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
 
         override val maxCharacters
             get() = this@UITextInput.maxCharacters
+
+        override val isPassword
+            get() = this@UITextInput.isPassword
 
         override fun isCharacterAllowed(char: String) = this@UITextInput.isCharacterAllowed(char)
 
@@ -243,7 +257,7 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
     //endregion
 
     private fun updateVisuals() {
-        textComponent.text = value
+        textComponent.text = if (isPassword) "•".repeat(value.codePointCount(0, value.length)) else value
         placeholderText.isVisible = value.isEmpty()
     }
 

@@ -16,6 +16,12 @@ interface ITextInput {
     val maxCharacters: Int
 
     /**
+     * Whether the text is a password, so the IME must not learn or suggest it.
+     */
+    val isPassword: Boolean
+        get() = false
+
+    /**
      * Checks if a character is allowed to be appended to this input.
      */
     fun isCharacterAllowed(char: String): Boolean
