@@ -704,8 +704,17 @@ abstract class UIComponent {
      * updating the component's state.
      */
     fun update(clock: FrameClock) {
+        transforms?.update(this, clock.elapsedFrameTime)
         onUpdate(clock)
     }
+
+    /**
+     * The transforms running on this component, created when the first one is added.
+     */
+    internal var transforms: TransformTracker? = null
+        private set
+
+    internal fun transformTracker() = transforms ?: TransformTracker().also { transforms = it }
 
     /**
      * Called when the component needs to be updated. This is where the actual update logic of the
