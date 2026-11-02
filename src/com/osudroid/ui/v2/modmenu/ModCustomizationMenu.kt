@@ -1,62 +1,64 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.osudroid.multiplayer.Multiplayer
-import com.reco1l.verktex.*
-import com.reco1l.verktex.component.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.shape.*
-import com.reco1l.verktex.ui.text.*
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.theme.Radius
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.pct
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.*
-import com.reco1l.framework.*
-import com.reco1l.framework.math.*
 import com.osudroid.mods.*
 import com.osudroid.mods.settings.*
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec2
-import com.reco1l.verktex.data.Vec4
+import com.osudroid.multiplayer.Multiplayer
+import com.reco1l.framework.*
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.Vec2
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.pct
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UIModal
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.text.UIText
 import kotlin.reflect.KClass
 
-class ModCustomizationMenu(trigger: UIButton) : UIModal(
+class ModCustomizationMenu(private val trigger: UIButton) : UIModal(
 
     card = UIScrollableContainer().apply {
         scrollAxes = Axis.Y
         width = 0.475f.pct
         height = 0.675f.pct
         scaleOrigin = Anchor.TopCenter
-        clipToBounds = true
-        style = {
-            val (_, triggerBottom) = trigger.convertLocalToSceneCoordinates(0f, trigger.height)
-
-            x = Engine.current.safeArea.x
-            y = triggerBottom + 3f.srem
-
-            scrollPadding = Vec2(0f, 4f.rem)
-            backgroundColor = it.accentColor * 0.15f
-            radius = Radius.LG
+        clipping = ClipMode.Bounds
+        scrollPadding = Vec2(0f, 64f.dip.toPixels())
+        style = Style { theme ->
+            backgroundColor = theme.palette.accent * 0.15f
+            radius = theme.radius.lg
         }
 
         +UILinearContainer().apply {
             width = Dimension.FillAvailable
-            orientation = Orientation.Vertical
+            orientation = UILinearContainer.Orientation.Vertical
         }
     }
 
 ) {
 
     private val modSettings = mutableMapOf<KClass<out Mod>, ModSettingsSection>()
-    private val modSettingsContainer: UILinearContainer = card[0]!!
+    private val modSettingsContainer = card[0] as UILinearContainer
     private val modSettingComponents = mutableListOf<IModSettingComponent<*>>()
+
+
+    override fun onShow() {
+        // Placed below the button that opens this menu, which only has a known position when shown.
+        val triggerBottom = trigger.toSceneSpace(0f, trigger.bounds.height).y
+
+        card.x = Verktex.graphics.window.insets.safeArea.x.px
+        card.y = (triggerBottom + 12f.dip.toPixels()).px
+
+        super.onShow()
+    }
 
 
     //region Mods
@@ -68,14 +70,14 @@ class ModCustomizationMenu(trigger: UIButton) : UIModal(
 
         val section = ModSettingsSection(mod)
 
-        modSettings[mod::class]?.detachSelf()
+        modSettings[mod::class]?.removeSelf()
         modSettings[mod::class] = section
 
         modSettingsContainer += section
     }
 
     fun onModRemoved(mod: Mod) {
-        modSettings[mod::class]?.detachSelf()
+        modSettings[mod::class]?.removeSelf()
         modSettings.remove(mod::class)
     }
 
@@ -149,34 +151,32 @@ class ModCustomizationMenu(trigger: UIButton) : UIModal(
         init {
             orientation = Orientation.Vertical
             width = Dimension.FillAvailable
-            style = {
-                padding = Vec4(0f, 0f, 0f, 4f.srem)
-            }
+            padding = Padding(bottom = 16f.dip)
 
             +UILinearContainer().apply {
                 orientation = Orientation.Horizontal
                 width = Dimension.FillAvailable
-                style = {
-                    padding = Vec4(3f.srem)
-                    spacing = 2f.srem
-                    backgroundColor = Color4.Black.copy(alpha = 0.05f)
-                    radius = Radius.LG
+                padding = Padding(12f.dip)
+                spacing = 8f.dip
+                backgroundColor = Color4.Black.copy(alpha = 0.05f)
+                style = Style { theme ->
+                    radius = theme.radius.lg
                 }
 
                 +ModIcon(mod).apply {
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    width = FontSize.SM
-                    height = FontSize.SM
+                    width = 14f.dip
+                    height = 14f.dip
                 }
 
                 +UIText().apply {
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    fontSize = FontSize.SM
                     text = mod.name.uppercase()
-                    style = {
-                        color = it.accentColor
+                    style = Style { theme ->
+                        fontSize = theme.typography.smallBody.size
+                        color = theme.palette.accent
                         alpha = 0.9f
                     }
                 }
@@ -185,9 +185,7 @@ class ModCustomizationMenu(trigger: UIButton) : UIModal(
             linearContainer {
                 orientation = Orientation.Vertical
                 width = Dimension.FillAvailable
-                style = {
-                    padding = Vec4(2f.srem, 0f)
-                }
+                padding = Padding(8f.dip, 0f.dip)
                 mod.settings.forEachTolerant { +ModSettingComponent(mod, it) }
             }
         }

@@ -1,63 +1,64 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.edlplan.framework.easing.Easing
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.DatabaseManager
-import com.reco1l.verktex.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.shape.*
-import com.reco1l.verktex.ui.sprite.*
-import com.reco1l.verktex.ui.*
-import com.reco1l.framework.*
-import com.reco1l.framework.math.*
-import com.osudroid.multiplayer.api.RoomAPI.setPlayerMods
-import com.osudroid.multiplayer.api.RoomAPI.setRoomMods
-import com.osudroid.multiplayer.api.data.RoomMods
-import com.osudroid.multiplayer.Multiplayer
-import com.osudroid.ui.v2.ModsIndicator
-import com.osudroid.ui.v2.StarRatingBadge
-import com.osudroid.utils.ModHashMap
-import com.osudroid.utils.async
-import com.osudroid.utils.updateThread
-import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.UITextButton
-import com.osudroid.utils.async
-import com.rian.framework.RollingFloatCounter
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateDroidDifficulty
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateStandardDifficulty
 import com.osudroid.mods.*
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec4
-import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.texture.Textures
-import com.reco1l.verktex.ui.Theme
-import com.reco1l.verktex.ui.container.Orientation
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UIFillContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.osudroid.multiplayer.Multiplayer
+import com.osudroid.multiplayer.api.RoomAPI.setPlayerMods
+import com.osudroid.multiplayer.api.RoomAPI.setRoomMods
+import com.osudroid.multiplayer.api.data.RoomMods
 import com.osudroid.scoring.ScoreMultiplierCalculator
+import com.osudroid.ui.v2.ModsIndicator
+import com.osudroid.ui.v2.StarRatingBadge
+import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.allModsInstances
 import com.osudroid.utils.applyMods
+import com.osudroid.utils.async
 import com.osudroid.utils.calculateRate
+import com.osudroid.utils.updateThread
+import com.reco1l.framework.*
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.toPadding
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIBadge
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.UILabeledBadge
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.badge
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.colorTo
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.rian.framework.RollingFloatCounter
 import java.io.IOException
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.*
+
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.*
-import ru.nsu.ccfit.zuev.osu.helper.*
 import java.util.LinkedList
 import java.util.concurrent.CancellationException
 import kotlin.math.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 
-object ModMenu : Scene() {
+object ModMenu : UIContainer() {
 
 
     /**
@@ -97,81 +98,79 @@ object ModMenu : Scene() {
 
 
     init {
-        isBackgroundEnabled = false
+        width = Dimension.FillAvailable
+        height = Dimension.FillAvailable
 
-        attachChild(UIFillContainer().apply {
+        +UILinearContainer().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            orientation = Orientation.Vertical
-            style = {
-                backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.9f)
+            orientation = UILinearContainer.Orientation.Vertical
+            style = Style { theme ->
+                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.9f)
             }
 
             +UIContainer().apply {
                 width = Dimension.FillAvailable
                 height = Dimension.WrapContent
-                style = {
-                    padding = Engine.current.safeArea.copy(y = 2f.srem, w = 2f.srem)
+                style = Style {
+                    padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 8f.dip, bottom = 8f.dip)
                 }
 
                 +UILinearContainer().apply {
-                    orientation = Orientation.Horizontal
+                    orientation = UILinearContainer.Orientation.Horizontal
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    style = {
-                        spacing = 2f.srem
-                    }
+                    spacing = 8f.dip
 
                     +UITextButton().apply {
                         text = "Back"
-                        leadingIcon = UIIcon(FAIcon.ArrowLeft)
+                        leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
                         onActionUp = {
-                            Textures.getInstance().getSound("click-short-confirm")?.play()
+                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
                             back()
                         }
-                        onActionCancel = { Textures.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
                     }
 
                     customizeButton = UITextButton().apply {
                         text = "Customize"
                         isEnabled = false
-                        leadingIcon = UIIcon(FAIcon.Wrench)
+                        leadingIcon = faSolidIcon(FAIcon.Wrench)
                         onActionUp = {
-                            Textures.getInstance().getSound("click-short-confirm")?.play()
-                            if (customizationMenu.isVisible) {
+                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
+                            if (customizationMenu.isShown) {
                                 customizationMenu.hide()
                             } else {
                                 customizationMenu.show()
                             }
                         }
-                        onActionCancel = { Textures.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
                     }
 
                     +customizeButton
 
                     +UITextButton().apply {
                         text = "Clear"
-                        style + {
+                        tintChildren = true
+                        style += Style {
                             color = Color4(0xFFFFBFBF)
                             backgroundColor = Color4(0xFF342121)
                         }
-                        leadingIcon = UIIcon(FAIcon.DeleteLeft)
+                        leadingIcon = faSolidIcon(FAIcon.DeleteLeft)
                         onActionUp = {
-                            Textures.getInstance().getSound("click-short-confirm")?.play()
+                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
                             clear()
                         }
-                        onActionCancel = { Textures.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
                     }
 
                     +UIScrollableContainer().apply {
+                        width = 192f.dip
                         height = Dimension.WrapContent
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
                         scrollAxes = Axis.X
-                        clipToBounds = true
-                        style = {
-                            width = 12f.rem
-                        }
+                        clipping = ClipMode.Bounds
 
                         selectedModsIndicator = ModsIndicator()
                         +selectedModsIndicator
@@ -183,7 +182,7 @@ object ModMenu : Scene() {
                     origin = Anchor.CenterRight
 
                     searchInput = ModMenuSearchInput().apply {
-                        width = 18f.rem
+                        width = 288f.dip
                         onSearchTermUpdate = { searchTerm ->
                             modSections.forEach { it.onSearchTermUpdate(searchTerm) }
 
@@ -198,13 +197,11 @@ object ModMenu : Scene() {
                     container {
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
-                        style = {
-                            padding = Vec4(2f.srem, 0f)
-                        }
+                        padding = Padding(8f.dip, 0f.dip)
 
                         +UIIcon(FAIcon.MagnifyingGlass).apply {
-                            style = {
-                                color = it.accentColor
+                            style = Style { theme ->
+                                color = theme.palette.accent
                             }
                         }
                     }
@@ -217,12 +214,12 @@ object ModMenu : Scene() {
                 scrollAxes = Axis.X
 
                 +UILinearContainer().apply {
-                    orientation = Orientation.Horizontal
+                    orientation = UILinearContainer.Orientation.Horizontal
                     width = Dimension.WrapContent
                     height = Dimension.FillAvailable
-                    style = {
-                        spacing = 2f.srem
-                        padding = Engine.current.safeArea
+                    spacing = 8f.dip
+                    style = Style {
+                        padding = Verktex.graphics.window.insets.safeArea.toPadding()
                     }
 
                     modPresetsSection = ModMenuPresetsSection()
@@ -251,20 +248,18 @@ object ModMenu : Scene() {
             +UIContainer().apply {
                 width = Dimension.FillAvailable
                 height = Dimension.WrapContent
-                style = {
-                    padding = Engine.current.safeArea.copy(
-                        y = 2f.srem,
-                        w = 2f.srem + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)
+                style = Style {
+                    padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(
+                        top = 8f.dip,
+                        bottom = (8f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
                     )
                 }
 
                 +UILinearContainer().apply {
-                    orientation = Orientation.Horizontal
+                    orientation = UILinearContainer.Orientation.Horizontal
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    style = {
-                        spacing = 2f.srem
-                    }
+                    spacing = 8f.dip
 
                     arBadge = StatisticsBadge().apply {
                         label = "AR"
@@ -299,21 +294,19 @@ object ModMenu : Scene() {
                 }
 
                 +UILinearContainer().apply {
-                    orientation = Orientation.Horizontal
+                    orientation = UILinearContainer.Orientation.Horizontal
                     anchor = Anchor.CenterRight
                     origin = Anchor.CenterRight
-                    style = {
-                        spacing = 2f.srem
-                    }
+                    spacing = 8f.dip
 
                     starRatingBadge = StarRatingBadge()
                     +starRatingBadge
 
                     rankedBadge = badge {
                         text = "Ranked"
+                        style = Style {}
                         backgroundColor = Color4(0xFF342121)
                         color = Color4(0xFF161622)
-                        style = {}
                     }
 
                     scoreMultiplierBadge = StatisticsBadge { "%.2fx".format(it) }.apply {
@@ -324,11 +317,11 @@ object ModMenu : Scene() {
                     +scoreMultiplierBadge
                 }
             }
-        })
+        }
 
         // Customizations menu
         customizationMenu = ModCustomizationMenu(customizeButton)
-        attachChild(customizationMenu)
+        +customizationMenu
 
         modPresetsSection.loadPresets()
     }
@@ -416,13 +409,17 @@ object ModMenu : Scene() {
 
     //region Visibility
 
-    override fun show() {
-        GlobalManager.getInstance().engine.scene.setChildScene(
-            this,
-            false,
-            true,
-            true
-        )
+    /**
+     * Whether this menu is currently shown.
+     */
+    val isShown
+        get() = parent != null
+
+    fun show() {
+        // An overlay because the scene it was opened from stays visible behind it.
+        if (!isShown) {
+            Verktex.addOverlay(this)
+        }
 
         // Do not show mod presets in multiplayer.
         modPresetsSection.isVisible = !Multiplayer.isMultiplayer
@@ -439,16 +436,13 @@ object ModMenu : Scene() {
         parseBeatmap()
     }
 
-    override fun back() {
-        back(true)
-    }
-
-    fun back(updatePlayerMods: Boolean) {
+    @JvmOverloads
+    fun back(updatePlayerMods: Boolean = true) {
 
         if (Multiplayer.isConnected) {
             val gameScene = GlobalManager.getInstance().gameScene
             val isInGameplay = gameScene != null &&
-                GlobalManager.getInstance().engine.scene == gameScene.scene
+                Verktex.scene == gameScene.scene
 
             if (!isInGameplay) {
                 Multiplayer.roomScene?.chat?.show()
@@ -465,7 +459,7 @@ object ModMenu : Scene() {
             }
         }
 
-        super.back()
+        Verktex.removeOverlay(this)
     }
 
     //endregion
@@ -569,13 +563,13 @@ object ModMenu : Scene() {
         }
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
 
         if (modChangeQueue.isNotEmpty()) {
             onModsChanged()
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
     private fun onModsChanged() = synchronized(modChangeQueue) {
@@ -585,10 +579,10 @@ object ModMenu : Scene() {
         rankedBadge.apply {
             text = if (isRanked) "Ranked" else "Unranked"
 
-            clearEntityModifiers()
-            colorTo(if (isRanked) Color4(0xFF161622) else Theme.current.accentColor, 0.1f)
+            clearTransforms()
+            colorTo(if (isRanked) Color4(0xFF161622) else Verktex.theme.palette.accent, 0.1f)
 
-            backgroundColor = if (isRanked) Color4(0xFF83DF6B) else Theme.current.accentColor * 0.15f
+            backgroundColor = if (isRanked) Color4(0xFF83DF6B) else Verktex.theme.palette.accent * 0.15f
         }
 
         modToggles.forEach {
@@ -671,10 +665,6 @@ object ModMenu : Scene() {
             rollingDuration = 0.3f
         }
 
-        init {
-            registerUpdateHandler(counter)
-        }
-
         fun updateValue(initialValue: Float, finalValue: Float) {
             if (counter.targetValue == finalValue) {
                 return
@@ -682,7 +672,7 @@ object ModMenu : Scene() {
 
             counter.targetValue = finalValue
 
-            valueComponent.clearEntityModifiers()
+            valueComponent.clearTransforms()
             valueComponent.colorTo(
                 Color4(
                     when {
@@ -693,12 +683,14 @@ object ModMenu : Scene() {
                 ), counter.rollingDuration, counter.rollingEasing)
         }
 
-        override fun onManagedUpdate(deltaTimeSec: Float) {
+        override fun onUpdate(clock: FrameClock) {
+            counter.onUpdate(clock.elapsedFrameTime)
+
             if (counter.isRolling) {
                 valueComponent.text = formatter(counter.currentValue)
             }
 
-            super.onManagedUpdate(deltaTimeSec)
+            super.onUpdate(clock)
         }
     }
 

@@ -4,19 +4,19 @@ import com.osudroid.data.*
 import com.osudroid.ui.v2.*
 import com.osudroid.ui.v2.modmenu.ModMenu.addMod
 import com.osudroid.ui.v2.modmenu.ModMenu.removeMod
-import com.osudroid.utils.deserializeMods
-import com.osudroid.utils.searchContiguously
-import com.reco1l.verktex.*
-import com.reco1l.verktex.component.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.*
 import com.osudroid.utils.*
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.fill
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.dialog.UIMessageDialog
-import ru.nsu.ccfit.zuev.osu.*
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.text.text
 
 class ModMenuPresetsSection : ModMenuSection("Presets") {
 
@@ -27,14 +27,14 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
 
     init {
-        style = {
-            width = 12f.rem
+        style = Style {
+            width = 192f.dip
         }
 
         addButton = UITextButton().apply {
             width = Dimension.FillAvailable
             text = "Add preset"
-            leadingIcon = UIIcon(FAIcon.Plus)
+            leadingIcon = faSolidIcon(FAIcon.Plus)
             onActionUp = {
                 ModPresetsForm(this@ModMenuPresetsSection).show()
             }
@@ -60,7 +60,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
     }
 
     fun loadPresets() {
-        toggleContainer.detachChildren { it is ModPresetToggle }
+        toggleContainer.filter { it is ModPresetToggle }.forEach { it.removeSelf() }
 
         modPresets = DatabaseManager.modPresetTable.getAll()
 
@@ -77,7 +77,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
         addButton.isEnabled = enabledMods.isNotEmpty()
 
-        toggleContainer.callOnChildren { toggle ->
+        toggleContainer.forEach { toggle ->
             if (toggle is ModPresetToggle) {
                 toggle.isSelected = toggle.preset.mods == enabledMods
             }
@@ -85,7 +85,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
     }
 
     override fun onSearchTermUpdate(searchTerm: String) {
-        toggleContainer.callOnChildren { toggle ->
+        toggleContainer.forEach { toggle ->
             if (toggle is ModPresetToggle) {
                 toggle.isVisible = toggle.preset.name.searchContiguously(searchTerm)
             }
@@ -95,10 +95,10 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
     inner class ModPresetToggle(val preset: ModPreset) : UIButton() {
 
         init {
-            orientation = Orientation.Vertical
-            spacing = 8f
-            width = Density.Full
-            cullingMode = CullingMode.ScreenBounds
+            width = fill()
+            style += Style {
+                height = Dimension.WrapContent
+            }
 
             onActionUp = {
                 if (isSelected) {
@@ -124,7 +124,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
                     addButton(UITextButton().apply {
                         text = "Delete"
-                        isSelected = true
+                        variant = UIButton.Variant.Solid
                         onActionUp = {
                             hide()
                             DatabaseManager.modPresetTable.delete(preset)
@@ -142,14 +142,22 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
                 }
             }
 
-            text {
-                text = preset.name
-                fontSize = FontSize.SM
-            }
+            linearContainer {
+                orientation = UILinearContainer.Orientation.Vertical
+                spacing = 8f.px
 
-            +ModsIndicator().apply {
-                iconSize = 21f
-                mods = preset.mods.values
+                text {
+                    text = preset.name
+                    fontSize = 14f.dip
+                }
+
+                +ModsIndicator().apply {
+                    style = Style {
+                        iconSize = 21f.px
+                        spacing = (-5f).px
+                    }
+                    mods = preset.mods.values
+                }
             }
         }
 

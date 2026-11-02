@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.control.UITextInput
 
 /**
@@ -22,13 +23,13 @@ class ModMenuSearchInput : UITextInput("") {
         super.onValueChanged()
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
         if (lastValueChange != Long.MAX_VALUE && System.currentTimeMillis() - lastValueChange >= DEBOUNCE_MS) {
             onSearchTermUpdate(value)
             lastValueChange = Long.MAX_VALUE
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
     companion object {
