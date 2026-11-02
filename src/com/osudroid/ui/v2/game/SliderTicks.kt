@@ -1,13 +1,19 @@
 package com.osudroid.ui.v2.game
 
-import com.edlplan.framework.easing.Easing
+import com.osudroid.ui.v2.SkinTextures
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.ui.scaleTo
+import com.reco1l.verktex.ui.transformSequence
+
 import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTick
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.ui.sprite.*
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.container.UIContainer
 import kotlin.math.min
@@ -20,11 +26,12 @@ class SliderTickContainer : UIContainer() {
     fun init(beatmapSlider: Slider) {
         slider = beatmapSlider
 
-        detachChildren()
+        clearChildren()
 
         val position = beatmapSlider.screenSpaceGameplayStackedPosition
 
-        setPosition(position.x, position.y)
+        x = position.x.px
+        y = position.y.px
 
         for (i in 1 until beatmapSlider.nestedHitObjects.size) {
 
@@ -35,8 +42,9 @@ class SliderTickContainer : UIContainer() {
 
             // We're subtracting the position of the slider because the tick container is
             // already at the position of the slider since it's a child of the slider's body.
-            sprite.setPosition(tickPosition.x - position.x, tickPosition.y - position.y)
-            attachChild(sprite)
+            sprite.x = (tickPosition.x - position.x).px
+            sprite.y = (tickPosition.y - position.y).px
+            +sprite
 
             sprite.init(tick)
         }
@@ -59,9 +67,9 @@ class SliderTickContainer : UIContainer() {
             val tick = slider!!.nestedHitObjects[i] as? SliderTick ?: break
 
             // For reverse sliders, the ticks are in the opposite order.
-            val sprite = getChild(
+            val sprite = this[
                 if (newSpanIndex % 2 != 0) childCount - (i - spanStartIndex) - 1 else i - spanStartIndex
-            ) as? SliderTickSprite ?: break
+            ] as? SliderTickSprite ?: break
 
             sprite.init(tick)
         }
@@ -69,7 +77,7 @@ class SliderTickContainer : UIContainer() {
 
     override fun onDetached() {
         super.onDetached()
-        detachChildren()
+        clearChildren()
     }
 
 }
@@ -80,7 +88,7 @@ class SliderTickSprite : UISprite(), IPoolable {
     private var tick: SliderTick? = null
 
     init {
-        textureRegion = ResourceManager.getInstance().getTexture("sliderscorepoint")
+        textureRegion = SkinTextures["sliderscorepoint"]
         origin = Anchor.Center
     }
 
@@ -96,12 +104,12 @@ class SliderTickSprite : UISprite(), IPoolable {
         val timePreempt = (tick.timePreempt / 1000).toFloat()
         val fadeInStartTime = startTime - timePreempt
 
-        clearEntityModifiers()
+        clearTransforms()
 
         alpha = 0f
-        setScale(0.5f)
+        scale = 0.5f
 
-        beginAbsoluteSequence(fadeInStartTime) {
+        transformSequence(fadeInStartTime - gameplayTime()) {
             scaleTo(1f, ANIM_DURATION * 4, Easing.OutElasticHalf)
             fadeIn(ANIM_DURATION)
         }
@@ -110,7 +118,7 @@ class SliderTickSprite : UISprite(), IPoolable {
             val fadeOutDuration = min(timePreempt - ANIM_DURATION, 1f)
             val fadeOutStartTime = startTime - fadeOutDuration
 
-            beginAbsoluteSequence(fadeOutStartTime) {
+            transformSequence(fadeOutStartTime - gameplayTime()) {
                 fadeOut(fadeOutDuration)
             }
         }
@@ -124,22 +132,24 @@ class SliderTickSprite : UISprite(), IPoolable {
     fun onHit(isSuccessful: Boolean) {
         val tick = tick ?: return
 
-        clearEntityModifiers()
+        clearTransforms()
 
-        beginAbsoluteSequence(tick.startTime.toFloat() / 1000) {
+        transformSequence(tick.startTime.toFloat() / 1000 - gameplayTime()) {
             fadeOut(ANIM_DURATION, Easing.OutQuint)
 
             if (isSuccessful) {
-                scaleTo(1.5f, ANIM_DURATION, Easing.Out)
+                scaleTo(1.5f, ANIM_DURATION, Easing.OutQuad)
             }
         }
 
         this.tick = null
     }
 
+    private fun gameplayTime() = GlobalManager.getInstance().gameScene.elapsedTime
+
     override fun onDetached() {
         super.onDetached()
-        clearEntityModifiers()
+        clearTransforms()
         pool.release(this)
     }
 
@@ -164,7 +174,7 @@ class SliderTickSprite : UISprite(), IPoolable {
         @JvmStatic
         fun obtain(): SliderTickSprite {
             val sprite = pool.acquire() ?: return SliderTickSprite()
-            sprite.textureRegion = ResourceManager.getInstance().getTexture("sliderscorepoint")
+            sprite.textureRegion = SkinTextures["sliderscorepoint"]
             return sprite
         }
     }
