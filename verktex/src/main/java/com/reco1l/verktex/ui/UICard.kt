@@ -113,7 +113,7 @@ open class UICard : UILinearContainer() {
         }
     }
 
-    private val content = linearContainer {
+    val content = linearContainer {
         width = fill()
         height = wrap()
         // Hides the overflowing children while collapsing.

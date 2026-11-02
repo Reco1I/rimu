@@ -2,51 +2,56 @@ package com.osudroid.ui.v2
 
 import android.text.InputType
 import androidx.annotation.IdRes
-import com.edlplan.framework.easing.Easing
-import com.osudroid.ui.v1.SettingsFragment
-import com.osudroid.utils.mainThread
-import com.osudroid.utils.updateThread
-import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.Engine
-import com.reco1l.verktex.ui.box
-import com.reco1l.verktex.ui.circle
-import com.reco1l.verktex.ui.setText
-import com.reco1l.verktex.ui.container.Orientation
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.linearContainer
-import com.reco1l.verktex.ui.PaintStyle
-import com.reco1l.verktex.ui.shape.UICircle
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.text
-import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.verktex.ui.textButton
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.control.UICheckbox
-import com.reco1l.verktex.ui.UITextButton
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec4
-import com.osudroid.resources.R.string
-import com.reco1l.osu.ui.PromptDialog
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.math.Interpolation
+import com.osudroid.resources.R.string
+import com.osudroid.ui.v1.SettingsFragment
+import com.osudroid.utils.mainThread
 import com.osudroid.utils.median
 import com.osudroid.utils.standardDeviation
-import com.reco1l.verktex.ui.fillContainer
-import com.reco1l.verktex.theme.FontSize
+import com.osudroid.utils.updateThread
+import com.reco1l.osu.ui.PromptDialog
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
-import com.rian.andengine.modifier.ModifierType
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.PaintStyle
+import com.reco1l.verktex.ui.UIScene
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.control.UICheckbox
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.ui.fadeTo
+import com.reco1l.verktex.ui.scaleTo
+import com.reco1l.verktex.ui.shape.UICircle
+import com.reco1l.verktex.ui.shape.box
+import com.reco1l.verktex.ui.shape.circle
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.textButton
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.roundToInt
-import org.anddev.andengine.input.touch.TouchEvent
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 
-object CalibrationScene : Scene() {
+object CalibrationScene : UIScene() {
     internal var OFFSET_MIN = -500
     internal var OFFSET_MAX = 500
 
@@ -90,30 +95,20 @@ object CalibrationScene : Scene() {
     private lateinit var highPrecisionToggle: UICheckbox
 
     init {
-        ResourceManager.getInstance().loadHighQualityAsset("back-arrow", "back-arrow.png")
-
-        isBackgroundEnabled = false
-
         // Background
         box {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            style = { color = it.accentColor * 0.08f }
+            style = Style { theme -> backgroundColor = theme.palette.accent * 0.08f }
         }
-
-        val tapAreaSize = CIRCLE_DIAMETER * APPROACH_SCALE_START
 
         textButton {
             anchor = Anchor.TopLeft
             origin = Anchor.TopLeft
-            translationX = 60f
-            translationY = 12f
+            translationX = (60f).px
+            translationY = (12f).px
             text = "Back"
-            leadingIcon = UISprite().apply {
-                textureRegion = ResourceManager.getInstance().getTexture("back-arrow")
-                width = 28f
-                height = 28f
-            }
+            leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
             onActionUp = {
                 playShortClickConfirmSound()
                 back()
@@ -122,23 +117,21 @@ object CalibrationScene : Scene() {
         }
 
         circleContainer = object : UIContainer() {
-            override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-                if (event.isActionDown) {
-                    val cx = tapAreaSize / 2f
-                    val cy = tapAreaSize / 2f
-                    val dx = localX - cx
-                    val dy = localY - cy
-
-                    if (dx * dx + dy * dy <= cx * cx) {
-                        onPlayfieldTap()
-                    }
+            override fun onInputEvent(event: InputEvent): Boolean {
+                if (event !is PointerEvent || event.action != PointerEvent.Action.Down) {
+                    return false
                 }
 
+                if (!containsScenePoint(event.x, event.y)) {
+                    return false
+                }
+
+                onPlayfieldTap()
                 return true
             }
         }.apply {
-            width = CIRCLE_DIAMETER
-            height = CIRCLE_DIAMETER
+            width = CIRCLE_DIAMETER.px
+            height = CIRCLE_DIAMETER.px
             anchor = Anchor.Center
             origin = Anchor.Center
 
@@ -147,7 +140,7 @@ object CalibrationScene : Scene() {
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                style = { color = it.accentColor * 0.35f }
+                style = Style { theme -> color = theme.palette.accent * 0.35f }
                 hitCircleFill = this
             }
 
@@ -157,8 +150,8 @@ object CalibrationScene : Scene() {
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 paintStyle = PaintStyle.Outline
-                lineWidth = 8f
-                style = { color = it.accentColor }
+                lineWidth = 8f.px
+                style = Style { theme -> color = theme.palette.accent }
             }
 
             circle {
@@ -167,10 +160,10 @@ object CalibrationScene : Scene() {
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 paintStyle = PaintStyle.Outline
-                lineWidth = 6f
+                lineWidth = 6f.px
                 scaleOrigin = Anchor.Center
-                setScale(APPROACH_SCALE_START)
-                style = { color = it.accentColor * 0.85f }
+                scale = APPROACH_SCALE_START
+                style = Style { theme -> color = theme.palette.accent * 0.85f }
                 approachCircle = this
             }
 
@@ -180,103 +173,101 @@ object CalibrationScene : Scene() {
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 paintStyle = PaintStyle.Outline
-                lineWidth = 6f
+                lineWidth = 6f.px
                 scaleOrigin = Anchor.Center
                 alpha = 0f
-                style = { color = it.accentColor }
+                style = Style { theme -> color = theme.palette.accent }
                 rippleCircle = this
             }
         }
 
-        attachChild(circleContainer)
+        +circleContainer
 
         text {
-            fontSize = FontSize.SM
+            fontSize = 14f.dip
             alignment = Anchor.Center
             anchor = Anchor.Center
             origin = Anchor.BottomCenter
-            translationY = -(CIRCLE_DIAMETER / 2 + 20f)
+            translationY = (-(CIRCLE_DIAMETER / 2 + 20f)).px
             scaleOrigin = Anchor.Center
             alpha = 0f
             judgementText = this
         }
 
         text {
-            fontSize = FontSize.SM
+            fontSize = 14f.dip
             alignment = Anchor.Center
             anchor = Anchor.Center
             origin = Anchor.TopCenter
-            translationY = CIRCLE_DIAMETER / 2 + 24f
+            translationY = (CIRCLE_DIAMETER / 2 + 24f).px
             tapFeedbackText = this
         }
 
         text {
-            fontSize = FontSize.SM
+            fontSize = 14f.dip
             alignment = Anchor.Center
             anchor = Anchor.Center
             origin = Anchor.TopCenter
-            translationY = CIRCLE_DIAMETER / 2 + 56f
+            translationY = (CIRCLE_DIAMETER / 2 + 56f).px
             scaleOrigin = Anchor.Center
             streakText = this
         }
 
         text {
             setText(string.opt_offset_calibration_tap_hint)
-            fontSize = FontSize.SM
+            fontSize = 14f.dip
             alignment = Anchor.BottomCenter
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
-            translationY = -28f
-            style = { color = it.accentColor * 0.45f }
+            translationY = (-28f).px
+            style = Style { theme -> color = theme.palette.accent * 0.45f }
         }
 
-        fillContainer {
-            width = 300f
+        linearContainer {
+            width = 300f.px
             anchor = Anchor.CenterRight
             origin = Anchor.CenterRight
-            translationX = -20f
-            orientation = Orientation.Vertical
-            padding = Vec4(24f)
+            translationX = (-20f).px
+            orientation = UILinearContainer.Orientation.Vertical
+            padding = Padding(24f.px)
+            radius = 16f.px
 
-            style = {
-                radius = 16f
-                backgroundColor = it.accentColor * 0.15f
+            style = Style { theme ->
+                backgroundColor = theme.palette.accent * 0.15f
             }
 
             text {
                 setText(string.opt_offset_calibration_calibration)
-                fontSize = FontSize.SM
+                fontSize = 14f.dip
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = { color = it.accentColor }
+                style = Style { theme -> color = theme.palette.accent }
             }
 
             box {
                 width = Dimension.FillAvailable
-                height = 1f
-                style = { color = it.accentColor * 0.2f }
+                height = 1f.px
+                style = Style { theme -> backgroundColor = theme.palette.accent * 0.2f }
             }
 
             text {
                 text = "BPM"
-                fontSize = FontSize.SM
+                fontSize = 14f.dip
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = { color = it.accentColor * 0.6f }
+                style = Style { theme -> color = theme.palette.accent * 0.6f }
             }
 
             linearContainer {
-                orientation = Orientation.Horizontal
+                orientation = UILinearContainer.Orientation.Horizontal
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                spacing = 12f
+                spacing = 12f.px
 
                 textButton {
-                    leadingIcon = UIIcon(FAIcon.CaretDown).apply {
-                        style = { color = it.accentColor }
-                    }
+                    leadingIcon = faSolidIcon(FAIcon.CaretDown)
                     onActionUp = { changeBpm(-STEP_BPM) }
                     onActionLongPress = { changeBpm(-STEP_BPM_LONG) }
                 }
@@ -284,20 +275,19 @@ object CalibrationScene : Scene() {
                 textButton {
                     text = currentBpm.toString()
                     alignment = Anchor.Center
-                    minWidth = 110f
-                    style = {
-                        radius = 8f
-                        backgroundColor = it.accentColor * 0.12f
-                        color = it.accentColor
+                    width = 110f.px
+                    tintChildren = true
+                    style += Style { theme ->
+                        radius = 8f.px
+                        backgroundColor = theme.palette.accent * 0.12f
+                        color = theme.palette.accent
                     }
                     onActionUp = { showBpmInputDialog() }
                     bpmValueText = this
                 }
 
                 textButton {
-                    leadingIcon = UIIcon(FAIcon.CaretUp).apply {
-                        style = { color = it.accentColor }
-                    }
+                    leadingIcon = faSolidIcon(FAIcon.CaretUp)
                     onActionUp = { changeBpm(STEP_BPM) }
                     onActionLongPress = { changeBpm(STEP_BPM_LONG) }
                 }
@@ -305,29 +295,27 @@ object CalibrationScene : Scene() {
 
             box {
                 width = Dimension.FillAvailable
-                height = 1f
-                style = { color = it.accentColor * 0.2f }
+                height = 1f.px
+                style = Style { theme -> backgroundColor = theme.palette.accent * 0.2f }
             }
 
             text {
                 setText(string.opt_offset_calibration_offset)
-                fontSize = FontSize.SM
+                fontSize = 14f.dip
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = { color = it.accentColor * 0.6f }
+                style = Style { theme -> color = theme.palette.accent * 0.6f }
             }
 
             linearContainer {
-                orientation = Orientation.Horizontal
+                orientation = UILinearContainer.Orientation.Horizontal
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                spacing = 12f
+                spacing = 12f.px
 
                 textButton {
-                    leadingIcon = UIIcon(FAIcon.CaretDown).apply {
-                        style = { color = it.accentColor }
-                    }
+                    leadingIcon = faSolidIcon(FAIcon.CaretDown)
                     onActionUp = { changeOffset(-STEP_MS) }
                     onActionLongPress = { changeOffset(-STEP_MS_LONG) }
                 }
@@ -335,20 +323,19 @@ object CalibrationScene : Scene() {
                 textButton {
                     text = formatOffset(pendingOffset)
                     alignment = Anchor.Center
-                    minWidth = 110f
-                    style = {
-                        color = it.accentColor
-                        radius = 8f
-                        backgroundColor = it.accentColor * 0.12f
+                    width = 110f.px
+                    tintChildren = true
+                    style += Style { theme ->
+                        radius = 8f.px
+                        backgroundColor = theme.palette.accent * 0.12f
+                        color = theme.palette.accent
                     }
                     onActionUp = { showOffsetInputDialog() }
                     offsetValueText = this
                 }
 
                 textButton {
-                    leadingIcon = UIIcon(FAIcon.CaretUp).apply {
-                        style = { color = it.accentColor }
-                    }
+                    leadingIcon = faSolidIcon(FAIcon.CaretUp)
                     onActionUp = { changeOffset(STEP_MS) }
                     onActionLongPress = { changeOffset(STEP_MS_LONG) }
                 }
@@ -370,9 +357,11 @@ object CalibrationScene : Scene() {
                 setText(string.opt_offset_calibration_reset)
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = {}
-                color = Color4(0xFFFFBFBF)
-                backgroundColor = Color4(0xFF342121)
+                tintChildren = true
+                style += Style {
+                    color = Color4(0xFFFFBFBF)
+                    backgroundColor = Color4(0xFF342121)
+                }
                 onActionUp = {
                     playShortClickSound()
                     pendingOffset = 0
@@ -387,51 +376,51 @@ object CalibrationScene : Scene() {
 
         }
 
-        fillContainer {
-            width = 400f
+        linearContainer {
+            width = 400f.px
             anchor = Anchor.BottomLeft
             origin = Anchor.BottomLeft
-            translationX = 20f
-            translationY = -20f
-            orientation = Orientation.Vertical
-            padding = Vec4(14f)
-            style = {
-                radius = 16f
-                backgroundColor = it.accentColor * 0.15f
+            translationX = (20f).px
+            translationY = (-20f).px
+            orientation = UILinearContainer.Orientation.Vertical
+            padding = Padding(14f.px)
+            radius = 16f.px
+            style = Style { theme ->
+                backgroundColor = theme.palette.accent * 0.15f
             }
 
             // Header
             text {
                 setText(string.opt_offset_calibration_settings)
-                fontSize = FontSize.SM
+                fontSize = 14f.dip
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = { color = it.accentColor }
+                style = Style { theme -> color = theme.palette.accent }
             }
 
             // Divider
             box {
                 width = Dimension.FillAvailable
-                height = 1f
-                style = { color = it.accentColor * 0.2f }
+                height = 1f.px
+                style = Style { theme -> backgroundColor = theme.palette.accent * 0.2f }
             }
 
             // Setting row: label (left) + ON/OFF toggle (right)
             linearContainer {
-                orientation = Orientation.Horizontal
+                orientation = UILinearContainer.Orientation.Horizontal
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
-                spacing = 8f
+                spacing = 8f.px
                 width = Dimension.FillAvailable
 
                 text {
                     setText(string.opt_highPrecisionInput_title)
-                    fontSize = FontSize.SM
+                    fontSize = 14f.dip
                     alignment = Anchor.CenterLeft
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    style = { color = it.accentColor * 0.9f }
+                    style = Style { theme -> color = theme.palette.accent * 0.9f }
                 }
 
                 highPrecisionToggle = UICheckbox(Config.isHighPrecisionInput()).apply {
@@ -445,18 +434,18 @@ object CalibrationScene : Scene() {
             // Description below the row
             text {
                 setText(string.opt_highPrecisionInput_summary)
-                fontSize = FontSize.SM
+                fontSize = 14f.dip
                 width = Dimension.FillAvailable
-                clipToBounds = true
+                clipping = ClipMode.Bounds
                 alignment = Anchor.TopLeft
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
-                style = { color = it.accentColor * 0.5f }
+                style = Style { theme -> color = theme.palette.accent * 0.5f }
             }
         }
     }
 
-    override fun show() {
+    fun show() {
         pendingOffset = Config.getOffset().toInt()
         beatTimer = 0f
         metronomeTime = 0.0
@@ -473,10 +462,10 @@ object CalibrationScene : Scene() {
             songService.pause()
         }
 
-        Engine.current.scene.setChildScene(this, false, false, true)
+        Verktex.withTreeLock { Verktex.pushScene(this) }
     }
 
-    override fun back() {
+    fun back() {
         if (wasMusicPlaying) {
             GlobalManager.getInstance().songService.play()
         }
@@ -486,17 +475,19 @@ object CalibrationScene : Scene() {
             settingsFragment = null
         }
 
-        super.back()
+        Verktex.withTreeLock { Verktex.popScene() }
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
-        super.onManagedUpdate(deltaTimeSec)
+    override fun onUpdate(clock: FrameClock) {
+        super.onUpdate(clock)
+
+        val deltaTimeSec = clock.elapsedFrameTime
 
         metronomeTime += deltaTimeSec.toDouble()
         beatTimer += deltaTimeSec
 
         val progress = (beatTimer / beatInterval).coerceIn(0f, 1f)
-        approachCircle.setScale(Interpolation.linear(APPROACH_SCALE_START, 1f, progress))
+        approachCircle.scale = Interpolation.linear(APPROACH_SCALE_START, 1f, progress)
 
         while (beatTimer >= beatInterval) {
             beatTimer -= beatInterval
@@ -512,9 +503,9 @@ object CalibrationScene : Scene() {
         ResourceManager.getInstance().getSound("drum-hitclap")?.play()
 
         hitCircleFill.apply {
-            clearModifiers(ModifierType.Alpha)
+            clearTransforms()
             alpha = 0.7f
-            fadeTo(0.35f, beatInterval * 0.5f, Easing.Out)
+            fadeTo(0.35f, beatInterval * 0.5f, Easing.OutQuad)
         }
     }
 
@@ -575,15 +566,15 @@ object CalibrationScene : Scene() {
     /** Pop-in judgement badge above the hit circle: scale 0.7 → 1.1 → fade out. */
     private fun showJudgement(judgement: Judgement) {
         judgementText.apply {
-            clearModifiers(false, ModifierType.Alpha, ModifierType.ScaleXY)
+            clearTransforms()
             setText(judgement.label)
             color = judgement.color
-            setScale(0.7f)
+            scale = 0.7f
             alpha = 1f
 
-            scaleTo(1.1f, 0.1f, Easing.Out).after {
+            scaleTo(1.1f, 0.1f, Easing.OutQuad).after {
                 scaleTo(1f, 0.05f)
-                fadeOut(0.45f, Easing.In)
+                fadeOut(0.45f, Easing.InQuad)
             }
         }
     }
@@ -591,9 +582,9 @@ object CalibrationScene : Scene() {
     /** Expanding outline ring that bursts outward and fades – colored by judgement. */
     private fun triggerRipple(judgement: Judgement) {
         rippleCircle.apply {
-            clearModifiers(false, ModifierType.Alpha, ModifierType.ScaleXY)
+            clearTransforms()
             color = judgement.color
-            setScale(1f)
+            scale = 1f
             alpha = 0.75f
 
             scaleTo(1.5f, 0.2f)
@@ -604,11 +595,11 @@ object CalibrationScene : Scene() {
     /** Brief scale-up of the whole circle group – the classic osu! hit punch. */
     private fun punchCircle() {
         circleContainer.apply {
-            clearModifiers(ModifierType.ScaleXY)
-            setScale(1f)
+            clearTransforms()
+            scale = 1f
 
-            scaleTo(1.12f, 0.08f, Easing.Out).after {
-                scaleTo(1f, 0.12f, Easing.In)
+            scaleTo(1.12f, 0.08f, Easing.OutQuad).after {
+                scaleTo(1f, 0.12f, Easing.InQuad)
             }
         }
     }
@@ -623,9 +614,9 @@ object CalibrationScene : Scene() {
 
                     // tiny pulse on milestone
                     if (judgement != null && successfulTapStreak % 10 == 0) {
-                        clearModifiers(ModifierType.ScaleXY)
-                        scaleTo(1.3f, 0.1f, Easing.Out).after {
-                            scaleTo(1f, 0.1f, Easing.In)
+                        clearTransforms()
+                        scaleTo(1.3f, 0.1f, Easing.OutQuad).after {
+                            scaleTo(1f, 0.1f, Easing.InQuad)
                         }
                     }
                 }
