@@ -394,7 +394,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
     public void loadStoryboard(BeatmapInfo beatmapInfo) {
         // This is used instead of getBackgroundBrightness to directly obtain the
         // updated value from the brightness slider.
-        float brightness = Config.getInt("bgbrightness", 25) / 100f;
+        float brightness = Config.getNumber("bgbrightness", 25f) / 100f;
         boolean isStoryboardEnabled = brightness > 0.02f && Config.getBoolean("enableStoryboard", false);
 
         if (!isStoryboardEnabled) {
@@ -473,7 +473,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
 
         // This is used instead of getBackgroundBrightness to directly obtain the
         // updated value from the brightness slider.
-        float brightness = Config.getInt("bgbrightness", 25) / 100f;
+        float brightness = Config.getNumber("bgbrightness", 25f) / 100f;
         var videoFilename = playableBeatmap.getEvents().videoFilename;
         videoEnabled = brightness > 0.02f && Config.getBoolean("enableVideo", false) && videoFilename != null;
 
@@ -544,7 +544,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
 
         // This is used instead of getBackgroundBrightness to directly obtain the
         // updated value from the brightness slider.
-        float brightness = Config.getInt("bgbrightness", 25) / 100f;
+        float brightness = Config.getNumber("bgbrightness", 25f) / 100f;
 
         boolean isStoryboardEnabled = brightness > 0.02f && Config.getBoolean("enableStoryboard", false);
         float playfieldSize = Config.getPlayfieldSize();
@@ -873,11 +873,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
             comboColors.add(comboColor.getColor());
         }
 
-        if (comboColors.isEmpty() || Config.isUseCustomComboColors()) {
-            comboColors.clear();
-            comboColors.addAll(Arrays.asList(Config.getComboColors()));
-        }
-        if (OsuSkin.get().isForceOverrideComboColor()) {
+        if (comboColors.isEmpty() || OsuSkin.get().isForceOverrideComboColor()) {
             comboColors.clear();
             comboColors.addAll(OsuSkin.get().getComboColor());
         }

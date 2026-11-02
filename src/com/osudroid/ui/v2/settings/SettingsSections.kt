@@ -15,10 +15,12 @@ import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.resources.R
 import com.osudroid.ui.v2.CalibrationScene
+import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.utils.async
 import com.osudroid.utils.mainThread
 import com.osudroid.mods.ModAutoplay
 import com.osudroid.utils.ModHashMap
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.ui.control.UISelect
 import kotlinx.coroutines.Job
 import ru.nsu.ccfit.zuev.osu.Config
@@ -32,6 +34,12 @@ import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import java.io.File
+
+
+/**
+ * Called when the size or position of the playfield change.
+ */
+internal var onPlayfieldChanged: (() -> Unit)? = null
 
 
 val generalSection = listOf(
@@ -320,8 +328,9 @@ val gameplaySection = listOf(
                 defaultValue = 25,
                 min = 0f,
                 max = 100f,
-                step = 1f,
-                valueFormatter = { "${it.toInt()}%" }
+                step = 0.1f,
+                isFloat = true,
+                valueFormatter = { "%.1f%%".format(it) }
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -359,7 +368,10 @@ val gameplaySection = listOf(
                 max = 100f,
                 step = 1f,
                 valueFormatter = { "${it.toInt()}%" },
-                onChange = { value -> Config.setPlayfieldSize(value as Float / 100f) }
+                onChange = { value ->
+                    Config.setPlayfieldSize(value as Float / 100f)
+                    onPlayfieldChanged?.invoke()
+                }
             ),
             OptionInfo(
                 type = OptionType.Slider,
@@ -371,7 +383,10 @@ val gameplaySection = listOf(
                 max = 100f,
                 step = 1f,
                 valueFormatter = { "${it.toInt()}%" },
-                onChange = { value -> Config.setPlayfieldHorizontalPosition(value as Float / 100f) }
+                onChange = { value ->
+                    Config.setPlayfieldHorizontalPosition(value as Float / 100f)
+                    onPlayfieldChanged?.invoke()
+                }
             ),
             OptionInfo(
                 type = OptionType.Slider,
@@ -383,7 +398,10 @@ val gameplaySection = listOf(
                 max = 100f,
                 step = 1f,
                 valueFormatter = { "${it.toInt()}%" },
-                onChange = { value -> Config.setPlayfieldVerticalPosition(value as Float / 100f) }
+                onChange = { value ->
+                    Config.setPlayfieldVerticalPosition(value as Float / 100f)
+                    onPlayfieldChanged?.invoke()
+                }
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -551,8 +569,9 @@ val audioSection = listOf(
                 defaultValue = 100,
                 min = 0f,
                 max = 100f,
-                step = 1f,
-                valueFormatter = { "${it.toInt()}%" },
+                step = 0.1f,
+                isFloat = true,
+                valueFormatter = { "%.1f%%".format(it) },
                 onChange = { value ->
                     GlobalManager.getInstance().songService.volume = value as Float / 100f
                 }
@@ -565,8 +584,9 @@ val audioSection = listOf(
                 defaultValue = 100,
                 min = 0f,
                 max = 100f,
-                step = 1f,
-                valueFormatter = { "${it.toInt()}%" },
+                step = 0.1f,
+                isFloat = true,
+                valueFormatter = { "%.1f%%".format(it) },
                 onChange = { value ->
                     val floatValue = value as Float / 100f
                     // Set the configuration now as the sound below depends on this value.
@@ -705,7 +725,8 @@ val librarySection = listOf(
                 type = OptionType.Button,
                 key = "importReplay",
                 title = R.string.opt_import_replay_title,
-                summary = R.string.opt_import_replay_summary
+                summary = R.string.opt_import_replay_summary,
+                onClick = { pickAndImportReplays() }
             )
         )
     ),
@@ -934,7 +955,7 @@ fun loadSkin(context: Context, path: String): Job {
         BeatmapSkinManager.getInstance().clearSkin()
         Config.setSkinPath(path)
         ResourceManager.getInstance().loadSkin(path)
-        GlobalManager.getInstance().engine.onResume()
+        Verktex.withTreeLock { SkinTextures.onSkinChanged() }
 
         mainThread {
             loading.dismiss()

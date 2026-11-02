@@ -55,8 +55,24 @@ class PreferenceSelect(private val preferenceKey: String, fallback: String = "")
 }
 
 /**
- * A slider storing its value as an integer, the type every numeric preference is read as across
- * the game (see [Config.PREFERENCE_BOUNDS]).
+ * A slider storing its value as a float, for the preferences in [Config.FLOAT_PREFERENCES].
+ */
+class FloatPreferenceSlider(private val preferenceKey: String, fallback: Float = 0f) :
+    FormSlider(Config.getNumber(preferenceKey, fallback)) {
+
+    init {
+        defaultValue = fallback
+    }
+
+    override fun onControlValueChanged() {
+        Config.setFloat(preferenceKey, value)
+        super.onControlValueChanged()
+    }
+}
+
+/**
+ * A slider storing its value as an integer, for the numeric preferences that are whole numbers
+ * (see [Config.PREFERENCE_BOUNDS]).
  */
 class IntPreferenceSlider(private val preferenceKey: String, fallback: Int = 0) :
     FormSlider(Config.getInt(preferenceKey, fallback).toFloat()) {
