@@ -13,7 +13,6 @@ import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.PaintStyle
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.UIContainer
@@ -34,9 +33,8 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
 
 
     private val outline = UIBox().apply {
-        paintStyle = PaintStyle.Outline
-        color = Color4(0xFFF27272)
-        lineWidth = 8f.px
+        borderColor = Color4(0xFFF27272)
+        borderWidth = 8f.px
     }
 
     private val toolbar = UILinearContainer().apply {

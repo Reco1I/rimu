@@ -11,7 +11,6 @@ import com.reco1l.verktex.graphics.CompareFunction
 import com.reco1l.verktex.graphics.DepthState
 import com.reco1l.verktex.math.FloatInterpolation
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.PaintStyle
 import com.reco1l.verktex.ui.UIGradientBox
 import com.reco1l.verktex.ui.container.UIClickableContainer
 import com.reco1l.verktex.ui.container.UIContainer
@@ -81,7 +80,7 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Equal)
-                paintStyle = PaintStyle.Outline
+                isOutlined = true
                 lineWidth = 4f.dip
 
                 colorPalette = arrayOf(

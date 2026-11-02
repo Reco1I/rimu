@@ -17,7 +17,6 @@ import com.osudroid.utils.*
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.PaintStyle
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.data.Color4
 import kotlin.math.atan2
@@ -86,19 +85,18 @@ class HUDAimErrorMeter : HUDElement() {
             origin = Anchor.Center
             width = (SIZE * INNER_PORTION).px
             height = (SIZE * INNER_PORTION).px
-            paintStyle = PaintStyle.Fill
             color = Color4(128, 128, 128)
             alpha = 0.3f
         }
 
-        circle {
+        box {
             anchor = Anchor.Center
             origin = Anchor.Center
             width = (SIZE * INNER_PORTION).px
             height = (SIZE * INNER_PORTION).px
-            paintStyle = PaintStyle.Outline
-            lineWidth = LINE_THICKNESS.px
-            color = Color4.White
+            radius = (SIZE * INNER_PORTION / 2f).px
+            borderWidth = LINE_THICKNESS.px
+            borderColor = Color4.White
         }
 
         // Cross background

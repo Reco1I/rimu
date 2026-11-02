@@ -6,7 +6,6 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.PaintStyle
 import com.reco1l.verktex.ui.UICanvas
 import kotlin.random.Random
 
@@ -47,12 +46,12 @@ class TrianglesDispenser : UICanvas() {
     var spawnRate = 2f
 
     /**
-     * Whether to draw the triangles filled or only their outline.
+     * Whether to draw only the outline of the triangles instead of filling them.
      */
-    var paintStyle = PaintStyle.Fill
+    var isOutlined = false
 
     /**
-     * The width of the outline, only used with [PaintStyle.Outline].
+     * The width of the outline, only used when [isOutlined].
      */
     var lineWidth: Dimension.Fixed = 1f.px
 
@@ -103,16 +102,15 @@ class TrianglesDispenser : UICanvas() {
             // A rotated triangle has its tip pointing up instead of down.
             val height = if (info.isFlipped) -size else size
 
-            when (paintStyle) {
-                PaintStyle.Fill -> renderer.drawTriangle(x, y, size, height, color = info.color)
-                PaintStyle.Outline -> {
-                    val tipX = x + size / 2f
-                    val tipY = y + height
+            if (isOutlined) {
+                val tipX = x + size / 2f
+                val tipY = y + height
 
-                    renderer.drawLine(x, y, x + size, y, thickness, info.color)
-                    renderer.drawLine(x + size, y, tipX, tipY, thickness, info.color)
-                    renderer.drawLine(tipX, tipY, x, y, thickness, info.color)
-                }
+                renderer.drawLine(x, y, x + size, y, thickness, info.color)
+                renderer.drawLine(x + size, y, tipX, tipY, thickness, info.color)
+                renderer.drawLine(tipX, tipY, x, y, thickness, info.color)
+            } else {
+                renderer.drawTriangle(x, y, size, height, color = info.color)
             }
         }
     }
