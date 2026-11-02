@@ -113,6 +113,9 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
             (window.decorView as ViewGroup).addView(editTextView)
         }
 
+        editTextView.inputType = InputType.TYPE_CLASS_TEXT or
+            if (textInput.isPassword) InputType.TYPE_TEXT_VARIATION_PASSWORD else InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+
         editTextView.setText(textInput.value, BufferType.EDITABLE)
         editTextView.setSelection(editTextView.length())
 
