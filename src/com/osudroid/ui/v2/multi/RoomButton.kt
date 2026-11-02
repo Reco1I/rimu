@@ -5,65 +5,63 @@ import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*
 import com.osudroid.ui.v2.*
-import com.reco1l.verktex.*
-import com.reco1l.verktex.component.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.theme.FontSize
+import com.osudroid.utils.async
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.fill
+import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.UIBadge
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.badge
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.dialog.UIDialog
 import com.reco1l.verktex.ui.form.*
-import com.reco1l.framework.*
-import com.reco1l.framework.math.*
-import com.reco1l.verktex.data.Vec4
-import com.osudroid.utils.async
+import com.reco1l.verktex.ui.labeledBadge
+import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.helper.*
-import ru.nsu.ccfit.zuev.osu.menu.*
 import ru.nsu.ccfit.zuev.osu.online.*
 
 class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
 
     init {
-        width = Density.Full
-        style = {
-            backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.8f)
-            padding = Vec4(3f.srem)
+        width = fill()
+        style += Style { theme ->
+            height = Dimension.WrapContent
+            backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.8f)
+            padding = Padding(12f.dip)
         }
 
         linearContainer {
-            orientation = Orientation.Vertical
-            width = Density.Full
-            inheritAncestorsColor = false
-            style = {
-                spacing = 1f.srem
-            }
+            orientation = UILinearContainer.Orientation.Vertical
+            width = fill()
+            spacing = 4f.dip
 
-            fillContainer {
-                width = Density.Full
-                style = {
-                    spacing = 2f.srem
-                }
+            linearContainer {
+                width = fill()
+                spacing = 8f.dip
 
-                +UIIcon(FAIcon.Lock).apply {
-                    iconCode = if (room.isLocked) FAIcon.Lock else FAIcon.LockOpen
-                    style = { color = it.accentColor }
+                +UIIcon(if (room.isLocked) FAIcon.Lock else FAIcon.LockOpen).apply {
+                    style = Style { theme -> color = theme.palette.accent }
                 }
 
                 text {
-                    width = Density.Full
+                    width = fill()
                     text = room.name
-                    style = { color = it.accentColor }
+                    style = Style { theme -> color = theme.palette.accent }
                 }
 
                 text {
-                    setScale(0.85f)
-                    style = {
-                        fontSize = FontSize.SM
-                        color = it.accentColor
+                    scale = 0.85f
+                    style = Style { theme ->
+                        fontSize = theme.typography.smallBody.size
+                        color = theme.palette.accent
                     }
                     setText(when (room.status) {
                         RoomStatus.ChangingBeatmap -> string.multiplayer_room_status_changing_beatmap
@@ -77,19 +75,17 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 text = room.playerNames.takeUnless { it.isEmpty() }
                     ?: if (room.playerCount > 0) "${room.playerCount} player${if (room.playerCount != 1) "s" else ""}"
                        else StringTable.get(string.multiplayer_room_no_players)
-                style = {
-                    fontSize = FontSize.XS
-                    color = it.accentColor.copy(alpha = 0.95f)
+                style = Style { theme ->
+                    fontSize = theme.typography.smallCaption.size
+                    color = theme.palette.accent.copy(alpha = 0.95f)
                 }
             }
 
             linearContainer {
-                style = {
-                    spacing = 2f.srem
-                }
+                spacing = 8f.dip
 
                 badge {
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                     setText(
                         when (room.teamMode) {
                             TeamMode.HeadToHead -> string.multiplayer_room_head_to_head
@@ -99,7 +95,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 }
 
                 badge {
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                     setText(
                         when (room.winCondition) {
                             WinCondition.ScoreV1 -> string.multiplayer_room_score_v1
@@ -111,18 +107,15 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 }
 
                 labeledBadge {
-                    sizeVariant = SizeVariant.Small
+                    density = UIBadge.Density.Small
                     label = StringTable.get(string.multiplayer_room_players)
                     value = "${room.playerCount}/${room.maxPlayers}"
                 }
 
                 if (room.gameplaySettings.isFreeMod) {
                     badge {
-                        sizeVariant = SizeVariant.Small
-                        style = {
-                            color = it.accentColor * 0.1f
-                            backgroundColor = it.accentColor
-                        }
+                        density = UIBadge.Density.Small
+                        variant = UIBadge.Variant.Solid
                         setText(string.multiplayer_room_free_mods)
                     }
                 }
@@ -131,7 +124,10 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
             if (room.mods.isNotEmpty()) {
                 +ModsIndicator().apply {
                     mods = room.mods.values
-                    iconSize = 24f
+                    style = Style {
+                        iconSize = 24f.px
+                        spacing = (-5f).px
+                    }
                 }
             }
         }
@@ -142,12 +138,12 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 val form: FormContainer
 
                 object : UIDialog<FormContainer>(FormContainer().apply {
-                    width = Density.Full
+                    width = fill()
                     form = this
 
                     +FormInput().apply {
                         key = "password"
-                        width = Density.Full
+                        width = fill()
                         label = StringTable.get(string.multiplayer_lobby_room_password)
                     }
 
@@ -160,7 +156,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
 
                         addButton(UITextButton().apply {
                             setText(string.multiplayer_lobby_join_room_accept)
-                            isSelected = true
+                            variant = UIButton.Variant.Solid
                             onActionUp = { form.submit() }
                         })
 
@@ -195,7 +191,8 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 ToastLogger.showText("Failed to connect to the room: ${e.javaClass} - ${e.message}", true)
                 Multiplayer.log(e)
 
-                Engine.current.scene = lobbyScene
+                // Removes the loader scene, leaving the lobby.
+                Verktex.withTreeLock { Verktex.popScene() }
             }
         }
 

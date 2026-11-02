@@ -17,56 +17,52 @@ import com.osudroid.multiplayer.api.data.RoomPlayer
 import com.osudroid.multiplayer.api.data.RoomTeam
 import com.osudroid.multiplayer.api.data.TeamMode
 import com.osudroid.multiplayer.api.data.WinCondition
-import com.osudroid.ui.v1.SettingsFragment
+import com.osudroid.mods.ModScoreV2
+import com.osudroid.resources.R
 import com.osudroid.ui.v2.BeatmapInfoLayout
 import com.osudroid.ui.v2.GameLoaderScene
+import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.ModsIndicator
+import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.modmenu.ModMenu
+import com.osudroid.ui.v2.setText
+import com.osudroid.ui.v2.settings.SettingsMenu
 import com.osudroid.utils.async
 import com.osudroid.utils.mainThread
 import com.osudroid.utils.runSafe
 import com.osudroid.utils.updateThread
-import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.ui.badge
-import com.reco1l.verktex.ui.box
-import com.reco1l.verktex.ui.setText
-import com.reco1l.verktex.ui.container
-import com.reco1l.verktex.ui.container.Orientation
-import com.reco1l.verktex.ui.container.UIFillContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.fillContainer
-import com.reco1l.verktex.ui.labeledBadge
-import com.reco1l.verktex.ui.linearContainer
-import com.reco1l.verktex.ui.scrollableContainer
-import com.reco1l.verktex.ui.sprite
-import com.reco1l.verktex.ui.sprite.ScaleType
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.text
-import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.verktex.ui.textButton
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.theme.Radius
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.ColorVariant
-import com.reco1l.verktex.ui.SizeVariant
-import com.reco1l.verktex.ui.Theme
-import com.reco1l.verktex.ui.UIBadge
-import com.reco1l.verktex.ui.UILabeledBadge
-import com.reco1l.verktex.ui.dialog.UIMessageDialog
-import com.reco1l.verktex.ui.UITextButton
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec4
-import com.osudroid.utils.runSafe
-import com.osudroid.resources.R
 import com.reco1l.osu.ui.MessageDialog
-import com.osudroid.mods.ModScoreV2
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
 import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIBadge
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UILabeledBadge
 import com.reco1l.verktex.ui.UIScene
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.badge
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.container.scrollableContainer
+import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.reco1l.verktex.ui.labeledBadge
+import com.reco1l.verktex.ui.shape.box
+import com.reco1l.verktex.ui.sprite
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.textButton
 import org.json.JSONArray
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
@@ -127,7 +123,7 @@ class RoomScene(
         addButton {
             text = "No"
             onActionUp = {
-                back()
+                hide()
             }
         }
 
@@ -156,20 +152,6 @@ class RoomScene(
 
 
     init {
-        Textures.apply {
-            load("mods", "mods.png")
-            load("mods", "mods.png")
-            load("logout", "logout.png")
-            load("swap", "swap.png")
-            load("clock", "clock.png")
-            load("bpm", "bpm.png")
-            load("chat", "chat.png")
-            load("download", "download.png")
-            load("send", "send.png")
-            load("settings-icon", "settings-icon.png")
-            load("missing", "missing.png")
-        }
-
         RoomAPI.playerEventListener = this
         RoomAPI.roomEventListener = this
         chat = RoomChat()
@@ -177,8 +159,8 @@ class RoomScene(
         backgroundSprite = sprite {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            scaleType = ScaleType.Crop
-            textureRegion = Textures["menu-background"]
+            scaleType = UISprite.ScaleType.Crop
+            textureRegion = SkinTextures["menu-background"]
 
             if (!Config.isSafeBeatmapBg()) {
                 textureRegion = Textures["::background"] ?: textureRegion
@@ -188,119 +170,102 @@ class RoomScene(
         box {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            style = {
-                color = Theme.current.accentColor * 0.1f
-                alpha = 0.9f
+            alpha = 0.9f
+            style = Style { theme ->
+                backgroundColor = theme.palette.accent * 0.1f
             }
         }
 
         container {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            padding = Vec4(80f, 0f)
-            style = {
-                padding = Vec4(
-                    x = 0f,
-                    y = 2f.srem,
-                    w = 2f.srem + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f),
-                    z = 0f
+            style = Style {
+                padding = Padding(
+                    left = 80f.px,
+                    top = 8f.dip,
+                    right = 80f.px,
+                    bottom = (8f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
                 )
             }
 
-            fillContainer {
-                orientation = Orientation.Vertical
+            linearContainer {
+                orientation = UILinearContainer.Orientation.Vertical
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
 
                 container {
                     width = Dimension.FillAvailable
-                    style = {
-                        padding = Vec4(0f, 2.5f.srem)
-                    }
+                    padding = Padding(0f.dip, 10f.dip)
 
                     linearContainer {
-                        orientation = Orientation.Vertical
-                        style = {
-                            spacing = 2f.srem
-                        }
+                        orientation = UILinearContainer.Orientation.Vertical
+                        spacing = 8f.dip
 
                         nameText = text {
                             text = room.name
-                            style = {
-                                color = it.accentColor
-                                fontSize = FontSize.LG
+                            style = Style { theme ->
+                                color = theme.palette.accent
+                                fontSize = theme.typography.h3.size
                             }
                         }
 
                         linearContainer {
-                            style = {
-                                spacing = 2f.srem
-                            }
+                            spacing = 8f.dip
 
                             teamModeBadge = badge {
-                                sizeVariant = SizeVariant.Small
+                                density = UIBadge.Density.Small
                             }
 
                             winConditionBadge = badge {
-                                sizeVariant = SizeVariant.Small
+                                density = UIBadge.Density.Small
                             }
 
                             playersBadge = labeledBadge {
-                                sizeVariant = SizeVariant.Small
+                                density = UIBadge.Density.Small
                                 label = StringTable.get(R.string.multiplayer_room_players)
                                 value = "0/${room.maxPlayers}"
                             }
 
                             freeModsBadge = badge {
-                                sizeVariant = SizeVariant.Small
-                                style = {
-                                    color = it.accentColor * 0.1f
-                                    backgroundColor = it.accentColor
-                                }
+                                density = UIBadge.Density.Small
+                                variant = UIBadge.Variant.Solid
                                 setText(R.string.multiplayer_room_free_mods)
                                 isVisible = false
                             }
 
                             +ModsIndicator().apply {
                                 modsIndicator = this
-                                style + {
-                                    iconSize = FontSize.MD
-                                }
                             }
                         }
                     }
 
                     textButton {
-                        leadingIcon = UIIcon(FAIcon.Gear)
+                        leadingIcon = faSolidIcon(FAIcon.Gear)
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
                         onActionUp = {
-                            SettingsFragment().show()
+                            Verktex.pushScene(SettingsMenu())
                         }
                         setText(R.string.multiplayer_room_settings)
                     }
                 }
 
-                fillContainer {
+                linearContainer {
                     width = Dimension.FillAvailable
                     height = Dimension.FillAvailable
-                    style = {
-                        padding = Vec4(0f, 2f.srem)
-                        spacing = 6f.srem
-                    }
+                    padding = Padding(0f.dip, 8f.dip)
+                    spacing = 24f.dip
 
-                    fun UIFillContainer.Section(title: Int, block: UILinearContainer.() -> Unit) {
+                    fun UILinearContainer.Section(title: Int, block: UILinearContainer.() -> Unit) {
                         linearContainer {
-                            orientation = Orientation.Vertical
+                            orientation = UILinearContainer.Orientation.Vertical
                             width = Dimension.FillAvailable
                             height = Dimension.FillAvailable
-                            style = {
-                                spacing = 2f.srem
-                            }
+                            spacing = 8f.dip
 
                             text {
                                 text = StringTable.get(title).uppercase()
-                                style = { color = it.accentColor * 0.7f }
+                                style = Style { theme -> color = theme.palette.accent * 0.7f }
                             }
 
                             block()
@@ -313,15 +278,13 @@ class RoomScene(
                             width = Dimension.FillAvailable
                             height = Dimension.FillAvailable
                             scrollAxes = Axis.Y
-                            clipToBounds = true
+                            clipping = ClipMode.Bounds
 
                             linearContainer {
-                                orientation = Orientation.Vertical
+                                orientation = UILinearContainer.Orientation.Vertical
                                 width = Dimension.FillAvailable
-                                padding = Vec4.One
-                                style = {
-                                    spacing = 1f.srem
-                                }
+                                padding = Padding(1f.px)
+                                spacing = 4f.dip
                                 playersContainer = this
                             }
                         }
@@ -330,10 +293,10 @@ class RoomScene(
                     Section(R.string.multiplayer_room_beatmap) {
 
                         +BeatmapInfoLayout().apply {
-                            style = {
-                                radius = Radius.MD
-                                padding = Vec4(3f.srem)
-                                backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.5f)
+                            padding = Padding(12f.dip)
+                            style = Style { theme ->
+                                radius = theme.radius.md
+                                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.5f)
                             }
                             isVisible = false
 
@@ -343,21 +306,19 @@ class RoomScene(
                         beatmapInfoAlert = text {
                             width = Dimension.FillAvailable
                             alignment = Anchor.Center
-                            style = {
-                                radius = Radius.MD
-                                padding = Vec4(3f.srem)
-                                backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.5f)
+                            padding = Padding(12f.dip)
+                            style = Style { theme ->
+                                radius = theme.radius.md
+                                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.5f)
                             }
                         }
 
                         linearContainer {
                             width = Dimension.FillAvailable
-                            style = {
-                                spacing = 2f.srem
-                            }
+                            spacing = 8f.dip
 
                             changeBeatmapButton = textButton {
-                                leadingIcon = UIIcon(FAIcon.ArrowRightArrowLeft)
+                                leadingIcon = faSolidIcon(FAIcon.ArrowRightArrowLeft)
                                 alignment = Anchor.CenterLeft
                                 setText(R.string.multiplayer_room_change_beatmap)
                                 onActionUp = {
@@ -378,7 +339,7 @@ class RoomScene(
                             }
 
                             downloadBeatmapButton = textButton {
-                                leadingIcon = UIIcon(FAIcon.Download)
+                                leadingIcon = faSolidIcon(FAIcon.Download)
                                 alignment = Anchor.CenterLeft
                                 isVisible = false
                             }
@@ -389,44 +350,41 @@ class RoomScene(
 
                 container {
                     width = Dimension.FillAvailable
-                    style = {
-                        padding = Vec4(0f, 2f.srem)
-                    }
+                    padding = Padding(0f.dip, 8f.dip)
 
                     linearContainer {
                         origin = Anchor.BottomLeft
                         anchor = Anchor.BottomLeft
-                        style = {
-                            spacing = 2f.srem
-                        }
+                        spacing = 8f.dip
 
                         textButton {
-                            leadingIcon = UIIcon(FAIcon.ArrowRightFromBracket)
-                    setText(R.string.multiplayer_room_leave)
-                    color = Color4(0xFFFFBFBF)
-                    backgroundColor = Color4(0xFF342121)
-                    onActionUp = { leaveDialog.show() }
-                }
+                            leadingIcon = faSolidIcon(FAIcon.ArrowRightFromBracket)
+                            setText(R.string.multiplayer_room_leave)
+                            tintChildren = true
+                            style += Style {
+                                color = Color4(0xFFFFBFBF)
+                                backgroundColor = Color4(0xFF342121)
+                            }
+                            onActionUp = { leaveDialog.show() }
+                        }
 
                         modsButton = textButton {
-                            leadingIcon = UIIcon(FAIcon.Sliders)
+                            leadingIcon = faSolidIcon(FAIcon.Sliders)
                             setText(R.string.multiplayer_room_mods)
                             onActionUp = { ModMenu.show() }
                         }
                     }
 
                     linearContainer {
-                        orientation = Orientation.Vertical
+                        orientation = UILinearContainer.Orientation.Vertical
                         origin = Anchor.CenterRight
                         anchor = Anchor.CenterRight
-                        style = {
-                            width = 10f.rem
-                            spacing = 2f.srem
-                        }
+                        width = 160f.dip
+                        spacing = 8f.dip
 
                         textButton {
                             width = Dimension.FillAvailable
-                            colorVariant = ColorVariant.Primary
+                            variant = UIButton.Variant.Solid
                             setText(R.string.multiplayer_room_start_game)
                             onActionUp = callback@{
 
@@ -528,7 +486,7 @@ class RoomScene(
         if (textureRegion != null) {
             backgroundSprite.textureRegion = textureRegion
         } else {
-            backgroundSprite.textureRegion = Textures["menu-background"]
+            backgroundSprite.textureRegion = SkinTextures["menu-background"]
         }
     }
 
@@ -669,13 +627,13 @@ class RoomScene(
 
                 if (roomBeatmap.parentSetID == null) {
                     isEnabled = false
-                    leadingIcon = UISprite(Textures["download_off"])
+                    leadingIcon = faSolidIcon(FAIcon.Download)
                     setText(R.string.multiplayer_room_not_available_beatmap)
                     return@apply
                 }
 
                 isEnabled = true
-                leadingIcon = UISprite(Textures["download"])
+                leadingIcon = faSolidIcon(FAIcon.Download)
                 setText(R.string.multiplayer_room_download_beatmap)
                 onActionUp = {
                     val url = BeatmapListing.mirror.download.request(
@@ -770,18 +728,36 @@ class RoomScene(
         chat.hide()
     }
 
-    override fun back() {
+    fun back() {
         teardownSession()
-        Engine.current.scene = LobbyScene()
+
+        Verktex.withTreeLock {
+            // Leaves everything opened on top of the lobby, which is created again when it's not there.
+            while (Verktex.scene !is LobbyScene && Verktex.popScene() != null) {
+                continue
+            }
+
+            if (Verktex.scene !is LobbyScene) {
+                Verktex.pushScene(LobbyScene())
+            }
+        }
     }
 
-    override fun show() {
+    fun show() {
         if (!Multiplayer.isConnected) {
             back()
             return
         }
 
-        GlobalManager.getInstance().engine.scene = this
+        Verktex.withTreeLock {
+            if (Verktex.scene is LoaderScene) {
+                Verktex.popScene()
+            }
+
+            if (Verktex.scene !== this) {
+                Verktex.pushScene(this)
+            }
+        }
 
         if (!isWaitingForBeatmapChange.get()) {
             // onRoomBeatmapChange sets engine.scene = this just above, so it will always
@@ -955,7 +931,7 @@ class RoomScene(
 
         GlobalManager.getInstance().selectedBeatmap = LibraryManager.findBeatmapByMD5(beatmap?.md5)
 
-        if (GlobalManager.getInstance().engine.scene != this) {
+        if (Verktex.scene != this) {
             updateThread { updateBeatmapInfo() }
             isWaitingForBeatmapChange.set(false)
             return
@@ -1121,7 +1097,7 @@ class RoomScene(
         updateThread {
             val global = GlobalManager.getInstance()
 
-            if (player.status != PlayerStatus.MissingBeatmap && global.engine.scene != global.gameScene.scene) {
+            if (player.status != PlayerStatus.MissingBeatmap && Verktex.scene != global.gameScene.scene) {
 
                 if (global.selectedBeatmap == null) {
                     Multiplayer.log("WARNING: Attempt to start match with null track.")
@@ -1140,7 +1116,7 @@ class RoomScene(
 
     override fun onRoomMatchStart() {
         updateThread {
-            if (GlobalManager.getInstance().engine.scene is GameLoaderScene) {
+            if (Verktex.scene is GameLoaderScene) {
                 GlobalManager.getInstance().gameScene.isReadyToStart = true
             }
         }
@@ -1151,7 +1127,7 @@ class RoomScene(
     override fun onRoomMatchSkip() {
 
         updateThread {
-            if (GlobalManager.getInstance().engine.scene != GlobalManager.getInstance().gameScene.scene) {
+            if (Verktex.scene != GlobalManager.getInstance().gameScene.scene) {
                 return@updateThread
             }
 
@@ -1204,7 +1180,7 @@ class RoomScene(
             Multiplayer.log("Kicked from room.")
 
             updateThread {
-                if (GlobalManager.getInstance().engine.scene == GlobalManager.getInstance().gameScene.scene) {
+                if (Verktex.scene == GlobalManager.getInstance().gameScene.scene) {
                     // Kicked while a game is in progress. We cannot navigate away from the
                     // game scene immediately — doing so would abruptly interrupt gameplay.
                     // Instead:

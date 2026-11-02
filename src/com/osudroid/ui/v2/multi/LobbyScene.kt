@@ -2,41 +2,51 @@ package com.osudroid.ui.v2.multi
 
 import android.util.Log
 import com.osudroid.multiplayer.*
-import com.reco1l.verktex.ui.sprite.*
-import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import com.osudroid.multiplayer.api.LobbyAPI
-import com.osudroid.utils.updateThread
 import com.osudroid.resources.R.string
-import com.osudroid.ui.v2.mainmenu.*
-import com.reco1l.verktex.*
-import com.reco1l.verktex.component.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.ui.container.Orientation
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.control.UITextInput
-import com.reco1l.verktex.ui.sprite.ScaleType
-import com.reco1l.framework.math.*
-import com.reco1l.verktex.data.Vec4
+import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.setText
+import com.osudroid.utils.updateThread
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
-import com.rian.andengine.modifier.ModifierType
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.toPadding
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.UILoadingIndicator
+import com.reco1l.verktex.ui.UIScene
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.container.scrollableContainer
+import com.reco1l.verktex.ui.control.UITextInput
+import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.ui.scaleTo
+import com.reco1l.verktex.ui.sprite
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.textButton
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ResourceManager
+import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import kotlin.coroutines.cancellation.CancellationException
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
-class LobbyScene : Scene() {
+class LobbyScene : UIScene() {
 
     private var isFetching = false
     private var shouldFetch = true
@@ -62,44 +72,40 @@ class LobbyScene : Scene() {
         sprite {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            scaleType = ScaleType.Crop
-            textureRegion = ResourceManager.getInstance().getTexture("menu-background")
+            scaleType = UISprite.ScaleType.Crop
+            textureRegion = SkinTextures["menu-background"]
 
             if (!Config.isSafeBeatmapBg()) {
-                textureRegion = ResourceManager.getInstance().getTexture("::background") ?: textureRegion
+                textureRegion = Textures["::background"] ?: textureRegion
             }
         }
 
-        fillContainer {
-            orientation = Orientation.Vertical
+        linearContainer {
+            orientation = UILinearContainer.Orientation.Vertical
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            style = {
-                padding = Engine.current.safeArea.copy(y = 2f.srem, w = 2f.srem)
-                backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.9f)
-                spacing = 4f.srem
+            spacing = 16f.dip
+            style = Style { theme ->
+                padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 8f.dip, bottom = 8f.dip)
+                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.9f)
             }
 
             container {
                 width = Dimension.FillAvailable
-                style = {
-                    padding = Vec4(0f, 4f.srem)
-                }
+                padding = Padding(0f.dip, 16f.dip)
 
                 linearContainer {
-                    orientation = Orientation.Horizontal
-                    style = {
-                        spacing = 2f.srem
-                    }
+                    orientation = UILinearContainer.Orientation.Horizontal
+                    spacing = 8f.dip
 
                     textButton {
-                        leadingIcon = UIIcon(FAIcon.ArrowLeft)
+                        leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
                         setText(string.multiplayer_lobby_back)
                         onActionUp = { back() }
                     }
 
                     textButton {
-                        leadingIcon = UIIcon(FAIcon.Plus)
+                        leadingIcon = faSolidIcon(FAIcon.Plus)
                         setText(string.multiplayer_lobby_create_room)
                         onActionUp = {
                             RoomCreateDialog(this@LobbyScene).show()
@@ -107,7 +113,7 @@ class LobbyScene : Scene() {
                     }
 
                     refreshButton = textButton {
-                        leadingIcon = UIIcon(FAIcon.Rotate)
+                        leadingIcon = faSolidIcon(FAIcon.Rotate)
                         setText(string.multiplayer_lobby_refresh)
                         onActionUp = { shouldFetch = true }
                     }
@@ -120,23 +126,22 @@ class LobbyScene : Scene() {
 
                     +UITextInput("").apply {
                         key = "search"
+                        width = 208f.dip
                         height = Dimension.FillAvailable
                         placeholder = StringTable.get(string.multiplayer_lobby_search_rooms)
                         onValueChange = { value ->
                             searchQuery = value
-                        }
-                        style = {
-                            width = 13f.rem
                         }
                     }
 
                     container {
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
-                        style = { padding = Vec4(2f.srem, 0f) }
+                        padding = Padding(8f.dip, 0f.dip)
+
                         +UIIcon(FAIcon.MagnifyingGlass).apply {
-                            style = {
-                                color = it.accentColor
+                            style = Style { theme ->
+                                color = theme.palette.accent
                             }
                         }
                     }
@@ -148,28 +153,23 @@ class LobbyScene : Scene() {
                 height = Dimension.FillAvailable
 
                 messageContainer = linearContainer {
-                    orientation = Orientation.Vertical
+                    orientation = UILinearContainer.Orientation.Vertical
                     anchor = Anchor.Center
                     origin = Anchor.Center
-                    style = {
-                        spacing = 2f.srem
-                    }
+                    spacing = 8f.dip
                 }
 
                 scrollableContainer {
                     scrollAxes = Axis.Y
                     width = Dimension.FillAvailable
                     height = Dimension.FillAvailable
-                    clipToBounds = true
+                    clipping = ClipMode.Bounds
 
                     roomContainer = linearContainer {
                         width = Dimension.FillAvailable
-                        orientation = Orientation.Vertical
+                        orientation = UILinearContainer.Orientation.Vertical
                         scaleOrigin = Anchor.Center
-
-                        style = {
-                            spacing = 1.5f.srem
-                        }
+                        spacing = 6f.dip
                     }
                 }
             }
@@ -178,7 +178,7 @@ class LobbyScene : Scene() {
 
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
 
         val currentTimeMillis = System.currentTimeMillis()
 
@@ -190,7 +190,7 @@ class LobbyScene : Scene() {
             fetchRooms()
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
 
@@ -204,13 +204,13 @@ class LobbyScene : Scene() {
         val opposite = if (target == roomContainer) messageContainer else roomContainer
 
         opposite.apply {
-            clearModifiers(false, ModifierType.ScaleXY, ModifierType.Alpha)
+            clearTransforms()
             scaleTo(0.95f, 0.3f)
             fadeOut(0.3f)
         }
 
         target.apply {
-            clearModifiers(false, ModifierType.ScaleXY, ModifierType.Alpha)
+            clearTransforms()
 
             scaleX = 0.95f
             scaleY = 0.95f
@@ -239,12 +239,12 @@ class LobbyScene : Scene() {
 
             updateThread {
                 messageContainer.apply {
-                    detachChildren()
+                    clearChildren()
 
                     text {
-                        style = {
-                            fontSize = FontSize.SM
-                            color = it.accentColor
+                        style = Style { theme ->
+                            fontSize = theme.typography.smallBody.size
+                            color = theme.palette.accent
                         }
                         setText(string.multiplayer_lobby_fetch_error)
                     }
@@ -255,7 +255,7 @@ class LobbyScene : Scene() {
         }) {
             updateThread {
                 messageContainer.apply {
-                    detachChildren()
+                    clearChildren()
 
                     +UILoadingIndicator().apply {
                         anchor = Anchor.Center
@@ -265,7 +265,7 @@ class LobbyScene : Scene() {
                 }
 
                 switchContainers(messageContainer)
-                roomContainer.detachChildren()
+                roomContainer.clearChildren()
             }
 
             val list = LobbyAPI.getRooms(
@@ -278,17 +278,17 @@ class LobbyScene : Scene() {
             updateThread {
 
                 list.forEach {
-                    roomContainer.attachChild(RoomButton(this@LobbyScene, it))
+                    roomContainer += RoomButton(this@LobbyScene, it)
                 }
 
                 if (list.isEmpty()) {
                     messageContainer.apply {
-                        detachChildren()
+                        clearChildren()
 
                         text {
-                            style = {
-                                fontSize = FontSize.SM
-                                color = it.accentColor
+                            style = Style { theme ->
+                                fontSize = theme.typography.smallBody.size
+                                color = theme.palette.accent
                             }
                             setText(if (searchQuery.isNullOrEmpty()) string.multiplayer_lobby_no_rooms else string.multiplayer_lobby_no_results)
                         }
@@ -303,10 +303,10 @@ class LobbyScene : Scene() {
     }
 
 
-    override fun back() {
+    fun back() {
         Multiplayer.isMultiplayer = false
         GlobalManager.getInstance().songService.isGaming = false
-        MainScene.show()
+        Verktex.withTreeLock { Verktex.popScene() }
     }
 
 

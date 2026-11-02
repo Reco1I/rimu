@@ -1,37 +1,41 @@
 package com.osudroid.ui.v2.multi
 
 import android.icu.text.SimpleDateFormat
-import com.edlplan.framework.easing.Easing
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*
-import com.osudroid.utils.*
-import com.reco1l.verktex.*
-import com.reco1l.verktex.old.*
-import com.reco1l.verktex.component.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.shape.*
-import com.reco1l.verktex.ui.text.*
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.pct
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.ui.container.UIFillContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.control.UITextInput
-import com.reco1l.verktex.ui.text.UIText
 import com.osudroid.resources.R
-import com.reco1l.framework.*
-import com.reco1l.framework.math.*
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec4
+import com.osudroid.ui.v2.setText
+import com.osudroid.utils.*
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.texture.Textures
-import com.reco1l.verktex.ui.Theme
-import com.rian.andengine.modifier.ModifierType
-import org.anddev.andengine.input.touch.*
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.pct
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.toPadding
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.container.UIClickableContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.container.scrollableContainer
+import com.reco1l.verktex.ui.control.UITextInput
+import com.reco1l.verktex.ui.moveTo
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.textButton
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import java.util.LinkedList
@@ -52,7 +56,7 @@ class RoomChat : UILinearContainer() {
      * Height of the chat button.
      */
     val buttonHeight
-        get() = button.height
+        get() = button.bounds.height
 
     /**
      * Whether the chat is currently expanded.
@@ -70,62 +74,58 @@ class RoomChat : UILinearContainer() {
 
     private val button = ChatButton()
 
-    private lateinit var body: UIFillContainer
+    private lateinit var content: UILinearContainer
     private lateinit var input: UITextInput
     private lateinit var messageContainer: UILinearContainer
 
     private var messagesChanged = false
 
-    private val overlay
-        get() = Engine.current.overlay
 
     init {
 
         // Force the main container to fill the entire screen so that the chat can be closed by
-        // tapping outside of it (see onAreaTouched).
+        // tapping outside of it (see onInputEvent).
         width = Dimension.FillAvailable
         height = Dimension.FillAvailable
 
-        linearContainer {
+        content = linearContainer {
             width = Dimension.FillAvailable
             orientation = Orientation.Vertical
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
-            style = {
-                backgroundColor = (it.accentColor * 0.1f
-                        ).copy(alpha = 0.9f)
-                y = if (isExpanded) 0f else BODY_HEIGHT.rem
+            translationY = BODY_HEIGHT.dip
+            style = Style { theme ->
+                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.9f)
             }
 
             +button
-            body = fillContainer {
+
+            linearContainer {
                 width = Dimension.FillAvailable
+                height = BODY_HEIGHT.dip
                 orientation = Orientation.Vertical
-                style = {
-                    height = BODY_HEIGHT.rem
-                }
 
                 scrollableContainer {
                     width = Dimension.FillAvailable
                     height = Dimension.FillAvailable
                     scrollAxes = Axis.Y
-                    clipToBounds = true
+                    clipping = ClipMode.Bounds
 
                     messageContainer = linearContainer {
                         width = Dimension.FillAvailable
                         orientation = Orientation.Vertical
 
                         repeat(MAX_MESSAGES) {
-                            attachChild(MessageComponent())
+                            +MessageComponent()
                         }
                     }
                 }
 
-                fillContainer {
+                linearContainer {
                     width = Dimension.FillAvailable
-                    style = {
-                        spacing = 2f.srem
-                        padding = Engine.current.safeArea.copy(y = 2f.srem, w = 3f.srem)
+                    spacing = 8f.dip
+                    style = Style {
+                        padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 8f.dip, bottom = 12f.dip)
                     }
 
                     +UITextInput("").apply {
@@ -135,13 +135,12 @@ class RoomChat : UILinearContainer() {
                         placeholder = "Type a message..."
                         onConfirm = { sendMessage() }
 
-
                         input = this
                     }
 
                     textButton {
-                        trailingIcon = UIIcon(FAIcon.PaperPlane)
-                        colorVariant = ColorVariant.Primary
+                        trailingIcon = faSolidIcon(FAIcon.PaperPlane)
+                        variant = UIButton.Variant.Solid
                         setText(R.string.multiplayer_room_chat_send)
                         onActionUp = { sendMessage() }
                     }
@@ -177,8 +176,8 @@ class RoomChat : UILinearContainer() {
 
     private fun appendMessage(message: Message) {
 
-        if (GlobalManager.getInstance().engine.scene != GlobalManager.getInstance().gameScene.scene) {
-            Textures.getInstance().getSound("heartbeat")?.play(0.75f)
+        if (Verktex.scene != GlobalManager.getInstance().gameScene.scene) {
+            ResourceManager.getInstance().getSound("heartbeat")?.play(0.75f)
         }
 
         messages.add(message)
@@ -192,22 +191,21 @@ class RoomChat : UILinearContainer() {
 
 
     fun show() {
-        if (!hasParent()) {
-            overlay.attachChild(this)
+        if (parent == null) {
+            Verktex.addOverlay(this)
         }
     }
 
     fun hide() {
-        detachSelf()
+        removeSelf()
     }
 
     fun expand() {
         if (!isExpanded) {
             isExpanded = true
-            body.apply {
-                clearModifiers(ModifierType.Height)
-                heightTo(BODY_HEIGHT, 0.4f, Easing.OutExpo)
-            }
+
+            content.clearTransforms()
+            content.moveTo(0f, 0f, 0.4f, Easing.OutExpo)
         }
     }
 
@@ -217,14 +215,12 @@ class RoomChat : UILinearContainer() {
             isExpanded = false
             input.blur()
 
-            body.apply {
-                clearModifiers(ModifierType.Height)
+            content.clearTransforms()
 
-                if (immediate) {
-                    height = 0f
-                } else {
-                    heightTo(0f, 0.4f, Easing.OutExpo)
-                }
+            if (immediate) {
+                content.translationY = BODY_HEIGHT.dip
+            } else {
+                content.moveTo(0f, BODY_HEIGHT.dip.toPixels(), 0.4f, Easing.OutExpo)
             }
         }
     }
@@ -254,22 +250,22 @@ class RoomChat : UILinearContainer() {
         collapse(true)
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
 
         if (messagesChanged) {
             messagesChanged = false
 
             for (i in MAX_MESSAGES - 1 downTo 0) {
-                val messageComponent = messageContainer.getChild(i) as MessageComponent
+                val messageComponent = messageContainer[i] as MessageComponent
                 messageComponent.message = if (i < messages.size) messages[i] else null
             }
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
-    override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-        if (super.onAreaTouched(event, localX, localY)) {
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
             return true
         }
 
@@ -289,47 +285,59 @@ class RoomChat : UILinearContainer() {
     }
 
 
-    inner class ChatButton : UIFillContainer() {
+    inner class ChatButton : UIClickableContainer() {
 
         private lateinit var tagText: UIText
         private lateinit var messageText: UIText
-        private var isPressed = false
 
 
         init {
             width = Dimension.FillAvailable
-            orientation = Orientation.Horizontal
-            style = {
-                height = 2.85f.rem
-                spacing = 2f.srem
-                backgroundColor = (it.accentColor * 0.15f).copy(alpha = 0.5f)
-                padding = Engine.current.safeArea.copy(y = 0f, w = 0f)
+            height = 45.6f.dip
+            style = Style { theme ->
+                backgroundColor = (theme.palette.accent * 0.15f).copy(alpha = 0.5f)
+                padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 0f.dip, bottom = 0f.dip)
             }
 
-            +UIIcon(FAIcon.Message).apply {
-                anchor = Anchor.CenterLeft
-                origin = Anchor.CenterLeft
-                style = { color = it.accentColor }
+            onActionUp = {
+                if (!isExpanded) {
+                    expand()
+                } else {
+                    collapse()
+                }
             }
 
             linearContainer {
                 width = Dimension.FillAvailable
-                anchor = Anchor.CenterLeft
-                origin = Anchor.CenterLeft
-                orientation = Orientation.Horizontal
+                height = Dimension.FillAvailable
+                orientation = UILinearContainer.Orientation.Horizontal
+                spacing = 8f.dip
 
-                tagText = text {
-                    text = StringTable.get(R.string.multiplayer_room_chat)
+                +UIIcon(FAIcon.Message).apply {
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    color = Theme.current.accentColor
+                    style = Style { theme -> color = theme.palette.accent }
                 }
 
-                messageText = text {
+                linearContainer {
                     width = Dimension.FillAvailable
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    style = { color = it.accentColor }
+                    orientation = UILinearContainer.Orientation.Horizontal
+
+                    tagText = text {
+                        text = StringTable.get(R.string.multiplayer_room_chat)
+                        anchor = Anchor.CenterLeft
+                        origin = Anchor.CenterLeft
+                        color = Verktex.theme.palette.accent
+                    }
+
+                    messageText = text {
+                        width = Dimension.FillAvailable
+                        anchor = Anchor.CenterLeft
+                        origin = Anchor.CenterLeft
+                        style = Style { theme -> color = theme.palette.accent }
+                    }
                 }
             }
         }
@@ -341,7 +349,7 @@ class RoomChat : UILinearContainer() {
             if (isExpanded || lastMessage == null) {
                 tagText.apply {
                     text = StringTable.get(R.string.multiplayer_room_chat)
-                    color = Theme.current.accentColor
+                    color = Verktex.theme.palette.accent
                 }
                 messageText.text = ""
             } else {
@@ -352,34 +360,10 @@ class RoomChat : UILinearContainer() {
                         )
                     }: "
                     color =
-                        if (lastMessage is PlayerMessage) getPlayerTagColor(lastMessage.player) else Theme.current.accentColor
+                        if (lastMessage is PlayerMessage) getPlayerTagColor(lastMessage.player) else Verktex.theme.palette.accent
                 }
                 messageText.text = lastMessage.content.substringBefore('\n')
             }
-        }
-
-
-        override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-            when {
-                event.isActionDown -> isPressed = true
-
-                event.isActionUp -> {
-                    if (localX <= width && localY <= height && isPressed) {
-                        if (!isExpanded) {
-                            expand()
-                        } else {
-                            collapse()
-                        }
-                    }
-
-                    isPressed = false
-                }
-
-                event.isActionOutside || event.isActionCancel || !event.isActionMove -> isPressed =
-                    false
-            }
-
-            return true
         }
 
     }
@@ -402,21 +386,20 @@ class RoomChat : UILinearContainer() {
         init {
             width = Dimension.FillAvailable
             orientation = Orientation.Horizontal
-            cullingMode = CullingMode.ParentBounds
-            style = {
-                backgroundColor = (it.accentColor * 0.09f).copy(alpha = 0f)
-                padding = Engine.current.safeArea.copy(y = 0f, w = 0f)
-                spacing = 2f.srem
+            spacing = 8f.dip
+            style = Style { theme ->
+                backgroundColor = (theme.palette.accent * 0.09f).copy(alpha = 0f)
+                padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 0f.dip, bottom = 0f.dip)
             }
         }
 
 
-        override fun onManagedUpdate(deltaTimeSec: Float) {
+        override fun onUpdate(clock: FrameClock) {
 
             if (messageChanged) {
                 messageChanged = false
 
-                detachChildren()
+                clearChildren()
 
                 val message = message ?: return
                 val messageIndex = messages.indexOf(message)
@@ -430,7 +413,7 @@ class RoomChat : UILinearContainer() {
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
                         text = message.content
-                        padding = Vec4(12f)
+                        padding = Padding(12f.px)
                         color = message.color
                         alignment = Anchor.Center
                     }
@@ -444,12 +427,11 @@ class RoomChat : UILinearContainer() {
                         width = 0.25f.pct
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
-                        orientation = Orientation.Horizontal
 
                         text {
                             anchor = Anchor.CenterLeft
                             origin = Anchor.CenterLeft
-                            style = { color = it.accentColor * 0.5f }
+                            style = Style { theme -> color = theme.palette.accent * 0.5f }
                             text = timestampFormat.format(message.time)
                         }
 
@@ -465,7 +447,7 @@ class RoomChat : UILinearContainer() {
 
                     text {
                         width = Dimension.FillAvailable
-                        style = { color = it.accentColor }
+                        style = Style { theme -> color = theme.palette.accent }
                         text = message.content
                     }
                 } else {
@@ -474,7 +456,7 @@ class RoomChat : UILinearContainer() {
                 }
             }
 
-            super.onManagedUpdate(deltaTimeSec)
+            super.onUpdate(clock)
         }
 
     }
@@ -482,7 +464,7 @@ class RoomChat : UILinearContainer() {
 
     companion object {
         private const val MAX_MESSAGES = 50
-        private const val BODY_HEIGHT = 18f
+        private const val BODY_HEIGHT = 288f
     }
 }
 

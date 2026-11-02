@@ -4,17 +4,20 @@ import com.osudroid.resources.R.string
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*
 import com.osudroid.ui.v2.LoaderScene
-import com.reco1l.verktex.*
+import com.osudroid.ui.v2.setText
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.vh
-import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.dialog.UIDialog
 import com.reco1l.verktex.ui.form.*
-import com.reco1l.verktex.data.Vec4
-import com.reco1l.verktex.data.Axis
 import com.osudroid.utils.async
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.helper.*
@@ -24,20 +27,18 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
     UIScrollableContainer().apply {
     scrollAxes = Axis.Y
     width = Dimension.FillAvailable
-    clipToBounds = true
-    style = {
-        height = 0.55f.vh
-        padding = Vec4(2f.srem, 0f)
+    clipping = ClipMode.Bounds
+    padding = Padding(8f.dip, 0f.dip)
+    style = Style {
+        height = (Verktex.graphics.window.windowHeight * 0.55f).px
     }
 }) {
     init {
 
         val form = FormContainer().apply {
             width = Dimension.FillAvailable
-            orientation = Orientation.Vertical
-            style = {
-                padding = Vec4(0f, 4f.srem)
-            }
+            orientation = UILinearContainer.Orientation.Vertical
+            padding = Padding(0f.dip, 16f.dip)
 
             onSubmit = { data ->
                 async {
@@ -84,7 +85,8 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
                         )
 
                     } catch (e: Exception) {
-                        Engine.current.scene = lobbyScene
+                        // Removes the loader scene, leaving the lobby.
+                        Verktex.withTreeLock { Verktex.popScene() }
                         ToastLogger.showText("Failed to create a room: ${e.message}", true)
                         e.printStackTrace()
                     }
@@ -116,13 +118,13 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
 
         }
 
-        innerContent.attachChild(form)
+        innerContent += form
 
         title = StringTable.get(string.multiplayer_lobby_create_room)
 
         addButton(UITextButton().apply {
             setText(string.multiplayer_lobby_create_room_accept)
-            colorVariant = ColorVariant.Primary
+            variant = UIButton.Variant.Solid
             onActionUp = {
                 form.submit()
             }
