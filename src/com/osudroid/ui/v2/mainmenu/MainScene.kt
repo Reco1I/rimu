@@ -4,50 +4,60 @@ import android.content.*
 import android.net.*
 import android.util.*
 import androidx.core.content.*
-import com.edlplan.framework.easing.*
 import com.osudroid.*
 import com.osudroid.beatmaplisting.*
 import com.osudroid.multiplayer.*
 import com.osudroid.resources.R
-import com.osudroid.ui.v1.*
 import com.osudroid.ui.v2.LoaderScene
+import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.multi.*
 import com.osudroid.ui.v2.settings.SettingsMenu
 import com.osudroid.utils.*
-import com.reco1l.verktex.*
-import com.reco1l.verktex.component.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.shape.*
-import com.reco1l.verktex.ui.sprite.*
-import com.reco1l.verktex.ui.text.*
-import com.reco1l.verktex.theme.*
-import com.reco1l.verktex.theme.Colors
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.toPadding
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.math.FloatInterpolation
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UIGradientBox
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.UIScene
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.container.clickableContainer
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.dialog.UIDialog
 import com.reco1l.verktex.ui.dialog.UIMessageDialog
-import com.reco1l.verktex.ui.sprite.ScaleType
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.framework.*
-import com.reco1l.framework.math.*
-import com.reco1l.verktex.data.Vec4
-import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.math.FloatInterpolation
-import com.reco1l.verktex.texture.Textures
-import org.anddev.andengine.engine.camera.*
+import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.ui.rotateTo
+import com.reco1l.verktex.ui.scaleTo
+import com.reco1l.verktex.ui.shape.box
+import com.reco1l.verktex.ui.sprite
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.textButton
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.helper.*
-import ru.nsu.ccfit.zuev.osu.menu.*
 import ru.nsu.ccfit.zuev.osu.online.*
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig
 import java.io.*
-import javax.microedition.khronos.opengles.*
 import kotlin.math.*
 
 
@@ -57,7 +67,7 @@ object MainScene : UIScene() {
     private lateinit var musicButton: UITextButton
     private lateinit var leftFlash: UIGradientBox
     private lateinit var rightFlash: UIGradientBox
-    private lateinit var background: UISprite
+    private lateinit var backgroundSprite: UISprite
     private lateinit var logo: OsuLogo
     private lateinit var menuContainer: UIContainer
     private lateinit var menuGradientBox: UIGradientBox
@@ -66,6 +76,10 @@ object MainScene : UIScene() {
 
     private var lastMusicChange = System.currentTimeMillis()
 
+    private var menuWidth = 0f
+    private var musicButtonTranslation = 0f
+    private var playerButtonTranslation = 0f
+
 
     init {
 
@@ -73,21 +87,19 @@ object MainScene : UIScene() {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
-            background = sprite {
+            backgroundSprite = sprite {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
-                scaleType = ScaleType.Crop
-                textureRegion = Textures["menu-background"]
+                scaleType = UISprite.ScaleType.Crop
+                textureRegion = SkinTextures["menu-background"]
             }
 
             +UIGradientBox().apply {
                 height = Dimension.FillAvailable
                 gradientAngle = 0f
-                colorStart = Colors.White
-                colorEnd = Colors.Transparent
-                style = {
-                    width = 12f.rem
-                }
+                colorStart = Color4.White
+                colorEnd = Color4.Transparent
+                width = 192f.dip
 
                 alpha = 0f
                 leftFlash = this
@@ -98,11 +110,9 @@ object MainScene : UIScene() {
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
                 gradientAngle = 180f
-                colorStart = Colors.White
-                colorEnd = Colors.Transparent
-                style = {
-                    width = 12f.rem
-                }
+                colorStart = Color4.White
+                colorEnd = Color4.Transparent
+                width = 192f.dip
 
                 alpha = 0f
                 rightFlash = this
@@ -113,16 +123,16 @@ object MainScene : UIScene() {
                 height = Dimension.FillAvailable
                 gradientAngle = 270f
                 alpha = 0f
-                style = {
-                    colorStart = it.accentColor * 0.1f
-                    colorEnd = (it.accentColor * 0.1f).copy(alpha = 0.5f)
+                style = Style { theme ->
+                    colorStart = theme.palette.accent * 0.1f
+                    colorEnd = (theme.palette.accent * 0.1f).copy(alpha = 0.5f)
                 }
                 menuGradientBox = this
             }
         }
 
         linearContainer {
-            orientation = Orientation.Horizontal
+            orientation = UILinearContainer.Orientation.Horizontal
             anchor = Anchor.Center
             origin = Anchor.Center
 
@@ -131,10 +141,8 @@ object MainScene : UIScene() {
                 origin = Anchor.CenterLeft
                 scaleOrigin = Anchor.Center
                 rotationOrigin = Anchor.Center
-                style = {
-                    width = 16f.rem
-                    height = 16f.rem
-                }
+                width = 256f.dip
+                height = 256f.dip
 
                 onActionUp = {
                     playClickEffect()
@@ -149,19 +157,17 @@ object MainScene : UIScene() {
                 showVerticalIndicator = false
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                style = {
-                    padding = Vec4(8f.srem, 0f, 0f, 0f)
-                    maxHeight = 1f.vh
+                padding = Padding(left = 32f.dip)
+                style = Style {
+                    height = Verktex.graphics.window.windowHeight.toFloat().px
                 }
-                width = 0f
+                width = 0f.px
                 alpha = 0f
 
                 +CarrouselLinearContainer(logo).apply {
-                    orientation = Orientation.Vertical
-                    style = {
-                        spacing = 1.15f.srem
-                        padding = Vec4(0f, 8f.rem)
-                    }
+                    orientation = UILinearContainer.Orientation.Vertical
+                    spacing = 4.6f.dip
+                    padding = Padding(0f.dip, 128f.dip)
 
                     +MenuButton(FAIcon.User, "Solo").apply {
                         onActionUp = {
@@ -172,7 +178,7 @@ object MainScene : UIScene() {
                                 GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
 
                                 if (LibraryManager.getLibrary().isEmpty()) {
-                                    Engine.current.scene = this@MainScene
+                                    Verktex.withTreeLock { Verktex.popScene() }
                                     BeatmapListing().show()
                                 } else {
                                     GlobalManager.getInstance().songService.isGaming = true
@@ -201,7 +207,10 @@ object MainScene : UIScene() {
                                 GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
 
                                 GlobalManager.getInstance().songMenu.reload()
-                                GlobalManager.getInstance().engine.scene = LobbyScene()
+                                Verktex.withTreeLock {
+                                    Verktex.popScene()
+                                    Verktex.pushScene(LobbyScene())
+                                }
                             }
                         }
                     }
@@ -249,8 +258,8 @@ object MainScene : UIScene() {
 
         container {
             width = Dimension.FillAvailable
-            style = {
-                padding = Engine.current.safeArea.copy(y = 2f.srem, w = 2f.srem)
+            style = Style {
+                padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 8f.dip, bottom = 8f.dip)
             }
 
             +PlayerButton().apply {
@@ -264,7 +273,7 @@ object MainScene : UIScene() {
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
                 scaleOrigin = Anchor.Center
-                leadingIcon = UIIcon(FAIcon.Music)
+                leadingIcon = faSolidIcon(FAIcon.Music)
 
                 val musicPlayer = MusicPlayer(this)
                 onActionUp = {
@@ -277,18 +286,18 @@ object MainScene : UIScene() {
         clickableContainer {
             anchor = Anchor.BottomLeft
             origin = Anchor.BottomLeft
-            style = {
-                paddingLeft = Engine.current.safeArea.x
-                paddingBottom = 4f.srem
+            style = Style {
+                paddingLeft = Verktex.graphics.window.insets.safeArea.x.px
+                paddingBottom = 16f.dip
             }
 
             text {
                 text = "osu!droid ${BuildConfig.VERSION_NAME}"
-                style = {
-                    backgroundColor = Colors.Black.copy(alpha = 0.5f)
-                    padding = Vec4(2f.srem, 1f.srem)
-                    radius = Radius.MD
-                    fontSize = FontSize.SM
+                style = Style { theme ->
+                    backgroundColor = Color4.Black.copy(alpha = 0.5f)
+                    padding = Padding(8f.dip, 4f.dip)
+                    radius = theme.radius.md
+                    fontSize = theme.typography.smallBody.size
                 }
             }
 
@@ -316,12 +325,13 @@ object MainScene : UIScene() {
         }
 
         MusicManager.addOnBeatmapChangeListener(this) { beatmap ->
-            val textureRegion = if (beatmap != null) Textures.getInstance().loadBackground(beatmap.backgroundPath) else null
+            val backgroundPath = beatmap?.backgroundPath
+            val textureRegion = if (backgroundPath != null) Textures.load("::background", backgroundPath) else null
 
             if (textureRegion != null && !Config.isSafeBeatmapBg()) {
-                background.textureRegion = textureRegion
+                backgroundSprite.textureRegion = textureRegion
             } else {
-                background.textureRegion = Textures.getInstance().getTexture("menu-background")
+                backgroundSprite.textureRegion = SkinTextures["menu-background"]
             }
 
             musicButton.text = "${MusicManager.currentBeatmap?.titleText} - ${MusicManager.currentBeatmap?.artistText}"
@@ -333,21 +343,21 @@ object MainScene : UIScene() {
         isMenuExpanded = false
 
         MusicManager.stop()
-        Textures.getInstance().getSound("seeya")?.play()
+        ResourceManager.getInstance().getSound("seeya")?.play()
 
-        background.fadeOut(0.4f)
+        backgroundSprite.fadeOut(0.4f)
 
         logo.playEffects = false
         logo.scaleTo(0.5f, 3f)
         logo.rotateTo(-15f, 3f)
 
-        leftFlash.detachSelf()
-        rightFlash.detachSelf()
+        leftFlash.removeSelf()
+        rightFlash.removeSelf()
 
         box {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            color = Colors.Black
+            backgroundColor = Color4.Black
             alpha = 0f
 
             fadeIn(3f).after {
@@ -373,14 +383,16 @@ object MainScene : UIScene() {
     }
 
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        val deltaTimeSec = clock.elapsedFrameTime
 
-        logo.setScale(FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), logo.scaleX, if (isMenuExpanded) 1f else 1.3f, 0f, 0.1f))
+        logo.scale = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), logo.scaleX, if (isMenuExpanded) 1f else 1.3f, 0f, 0.1f)
 
         // Music button
         val mightShowMusicButton = isMenuExpanded || System.currentTimeMillis() - lastMusicChange < 3000
 
-        musicButton.translationX = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButton.translationX, if (mightShowMusicButton) 0f else 8f.srem, 0f, 0.05f)
+        musicButtonTranslation = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButtonTranslation, if (mightShowMusicButton) 0f else 32f.dip.toPixels(), 0f, 0.05f)
+        musicButton.translationX = musicButtonTranslation.px
         musicButton.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButton.alpha, if (mightShowMusicButton) 1f else 0f, 0f, 0.05f)
 
         // Beat animations
@@ -389,47 +401,48 @@ object MainScene : UIScene() {
         rightFlash.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, beatLengthSeconds), rightFlash.alpha, 0f, 0f, beatLengthSeconds)
 
         // Menu expansion animations
-        menuContainer.width = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), menuContainer.width, if (isMenuExpanded) menuContainer.intrinsicWidth else 0f, 0f, 0.2f, Easing.OutQuint)
+        val menuContentWidth = (if (menuContainer.childCount > 0) menuContainer[0].measuredSize.x else 0f) + menuContainer.paddingLeft.toPixels()
+
+        menuWidth = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), menuWidth, if (isMenuExpanded) menuContentWidth else 0f, 0f, 0.2f, Easing.OutQuint)
+        menuContainer.width = menuWidth.px
         menuContainer.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), menuContainer.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.2f, Easing.OutQuint)
         menuGradientBox.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.4f), menuGradientBox.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.4f, Easing.OutQuint)
 
-        playerButton.translationX = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), playerButton.translationX, if (isMenuExpanded) 0f else (-8f).srem, 0f, 0.05f)
+        playerButtonTranslation = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), playerButtonTranslation, if (isMenuExpanded) 0f else (-32f).dip.toPixels(), 0f, 0.05f)
+        playerButton.translationX = playerButtonTranslation.px
         playerButton.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), playerButton.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.05f)
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 }
 
 class MenuButton(icon: Int, title: String) : UIButton() {
 
     init {
-        style += {
-            width = 16f.rem
-            radius = 0.65f.rem
+        style += Style {
+            width = 256f.dip
+            height = Dimension.WrapContent
+            radius = 10.4f.dip
             backgroundColor = backgroundColor.copy(alpha = 0.6f)
-            padding = Vec4(6f.srem)
+            padding = Padding(24f.dip)
         }
 
-        fillContainer {
-            width = Density.Full
-            orientation = Orientation.Horizontal
-            style = {
-                spacing = 4f.srem
-            }
+        linearContainer {
+            width = Dimension.FillAvailable
+            orientation = UILinearContainer.Orientation.Horizontal
+            spacing = 16f.dip
 
             +UIIcon(icon).apply {
-                iconSize = FontSize.XL
+                iconSize = 20f.dip
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
                 scaleOrigin = Anchor.Center
             }
 
             text {
-                width = Density.Full
+                width = Dimension.FillAvailable
                 text = title
-                style = {
-                    fontSize = FontSize.MD
-                }
+                fontSize = 16f.dip
             }
         }
     }
@@ -439,26 +452,21 @@ class MenuButton(icon: Int, title: String) : UIButton() {
 
 class CarrouselLinearContainer(private val logo: OsuLogo) : UILinearContainer() {
 
-    var shear = 2f.rem
+    var shear: Dimension.Fixed = 32f.dip
 
-    override fun onDrawChildren(gl: GL10, camera: Camera) {
-
-        val (_, logoTopY) = logo.convertLocalToSceneCoordinates(0f, 0f)
-        val (_, logoBottomY) = logo.convertLocalToSceneCoordinates(0f, logo.height)
-        val logoCenterY = (logoTopY + logoBottomY) / 2f
+    override fun onUpdate(clock: FrameClock) {
+        val logoCenterY = logo.toSceneSpace(0f, logo.bounds.height / 2f).y
+        val shear = shear.toPixels()
 
         forEach { component ->
-            component as UIComponent
-            val (_, componentMiddleY) = component.convertLocalToSceneCoordinates(0f, component.height / 2f)
+            val componentMiddleY = component.toSceneSpace(0f, component.bounds.height / 2f).y
 
-            val percentageDistance = (componentMiddleY - logoCenterY) / (logo.height / 2f)
-            val shearX = -shear * abs(percentageDistance)
+            val percentageDistance = (componentMiddleY - logoCenterY) / (logo.bounds.height / 2f)
 
-            component.translationX = shearX
-            component.onDraw(gl, camera)
+            component.translationX = (-shear * abs(percentageDistance)).px
         }
 
-        super.onDrawChildren(gl, camera)
+        super.onUpdate(clock)
     }
 
 }
@@ -466,10 +474,10 @@ class CarrouselLinearContainer(private val logo: OsuLogo) : UILinearContainer() 
 
 class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableContainer().apply {
     width = Dimension.FillAvailable
-    clipToBounds = true
+    clipping = ClipMode.Bounds
     scrollAxes = Axis.Y
-    style = {
-        maxHeight = 0.7f.vh
+    style = Style {
+        height = (Verktex.graphics.window.windowHeight * 0.7f).px
     }
 }) {
     init {
@@ -479,20 +487,17 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
 
             linearContainer {
                 width = Dimension.FillAvailable
-                orientation = Orientation.Vertical
-                style = {
-                    spacing = 4f.srem
-                    paddingTop = 4f.srem
-                    paddingBottom = 4f.srem
-                }
+                orientation = UILinearContainer.Orientation.Vertical
+                spacing = 16f.dip
+                paddingTop = 16f.dip
+                paddingBottom = 16f.dip
 
                 text {
                     text = "osu!droid"
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
-                    style = {
-                        fontSize = FontSize.XL
-                        fontFamily = Fonts.TorusBold
+                    style = Style { theme ->
+                        fontSettings = theme.typography.h2
                     }
                 }
 
@@ -500,7 +505,7 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
                     text = "Version: ${BuildConfig.VERSION_NAME}"
-                    style = { fontSize = FontSize.MD }
+                    fontSize = 16f.dip
                 }
 
                 text {
@@ -523,8 +528,8 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
                     scaleOrigin = Anchor.Center
-                    colorVariant = ColorVariant.Tertiary
-                    trailingIcon = UIIcon(FAIcon.ArrowUpRightFromSquare)
+                    variant = UIButton.Variant.Ghost
+                    trailingIcon = faSolidIcon(FAIcon.ArrowUpRightFromSquare)
                     text = "Visit official osu! website"
                     onActionUp = {
                         goToLink("https://osu.ppy.sh")
@@ -535,8 +540,8 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
                     scaleOrigin = Anchor.Center
-                    colorVariant = ColorVariant.Tertiary
-                    trailingIcon = UIIcon(FAIcon.ArrowUpRightFromSquare)
+                    variant = UIButton.Variant.Ghost
+                    trailingIcon = faSolidIcon(FAIcon.ArrowUpRightFromSquare)
                     text = "Visit official osu!droid website"
                     onActionUp = {
                         goToLink("https://osudroid.moe")
@@ -547,8 +552,8 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
                     scaleOrigin = Anchor.Center
-                    colorVariant = ColorVariant.Tertiary
-                    trailingIcon = UIIcon(FAIcon.ArrowUpRightFromSquare)
+                    variant = UIButton.Variant.Ghost
+                    trailingIcon = faSolidIcon(FAIcon.ArrowUpRightFromSquare)
                     text = "Join the official Discord server"
                     onActionUp = {
                         goToLink("https://discord.gg/nyD92cE")

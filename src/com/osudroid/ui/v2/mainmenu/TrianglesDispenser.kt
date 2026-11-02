@@ -1,16 +1,16 @@
 package com.osudroid.ui.v2.mainmenu
 
-import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.shape.UITriangle
-import com.reco1l.verktex.theme.Colors
-import com.reco1l.verktex.data.Color4
 import com.reco1l.framework.forEachTolerant
-import org.anddev.andengine.engine.camera.Camera
-import javax.microedition.khronos.opengles.GL10
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.graphics.GraphicsRenderer
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.PaintStyle
+import com.reco1l.verktex.ui.UICanvas
 import kotlin.random.Random
 
-class TrianglesDispenser : UIComponent() {
+class TrianglesDispenser : UICanvas() {
 
     /**
      * The minimum scale factor for triangles.
@@ -36,9 +36,9 @@ class TrianglesDispenser : UIComponent() {
      * The color palette of the triangles.
      */
     var colorPalette = arrayOf(
-        Colors.White * 0.1f,
-        Colors.White * 0.125f,
-        Colors.White * 0.15f,
+        Color4.White * 0.1f,
+        Color4.White * 0.125f,
+        Color4.White * 0.15f,
     )
 
     /**
@@ -46,18 +46,22 @@ class TrianglesDispenser : UIComponent() {
      */
     var spawnRate = 2f
 
+    /**
+     * Whether to draw the triangles filled or only their outline.
+     */
+    var paintStyle = PaintStyle.Fill
 
     /**
-     * The triangle shape used for dispensing.
+     * The width of the outline, only used with [PaintStyle.Outline].
      */
-    val triangle = UITriangle()
+    var lineWidth: Dimension.Fixed = 1f.px
 
 
     /**
      * The base size of the triangle shape relative to the dispenser height.
      */
     private val triangleBaseSize: Float
-        get() = height * 0.6f
+        get() = bounds.height * 0.6f
 
 
     private var activeTriangles = mutableListOf<TriangleInfo>()
@@ -65,21 +69,9 @@ class TrianglesDispenser : UIComponent() {
     private var spawnTimer = 0f
 
 
-    init {
-        attachChild(triangle.apply {
-            color = Colors.White
-            scaleOrigin = Anchor.Center
-        })
-    }
+    override fun onUpdate(clock: FrameClock) {
+        val deltaTimeSec = clock.elapsedFrameTime
 
-    override fun onSizeChanged() {
-        super.onSizeChanged()
-        triangle.width = triangleBaseSize
-        triangle.height = triangleBaseSize
-    }
-
-
-    override fun onManagedUpdate(deltaTimeSec: Float) {
         // Update spawn timer
         spawnTimer += deltaTimeSec
         val spawnInterval = 1f / spawnRate
@@ -97,22 +89,32 @@ class TrianglesDispenser : UIComponent() {
 
         activeTriangles.removeAll { it.y < -(triangleBaseSize * it.scale) }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
-    override fun onDrawChildren(gl: GL10, camera: Camera) {
+    override fun onDraw(renderer: GraphicsRenderer) {
+        val thickness = lineWidth.toPixels()
+
         activeTriangles.forEachTolerant { info ->
-            triangle.setScale(info.scale)
-            triangle.y = info.y
-            triangle.x = info.x
-            triangle.color = info.color
-            triangle.rotationZ = info.rotation
-            triangle.onDraw(gl, camera)
-        }
-    }
+            val size = triangleBaseSize * info.scale
+            val x = info.x
+            val y = info.y
 
-    override fun onManagedDraw(gl: GL10, camera: Camera) {
-        super.onManagedDraw(gl, camera)
+            // A rotated triangle has its tip pointing up instead of down.
+            val height = if (info.isFlipped) -size else size
+
+            when (paintStyle) {
+                PaintStyle.Fill -> renderer.drawTriangle(x, y, size, height, color = info.color)
+                PaintStyle.Outline -> {
+                    val tipX = x + size / 2f
+                    val tipY = y + height
+
+                    renderer.drawLine(x, y, x + size, y, thickness, info.color)
+                    renderer.drawLine(x + size, y, tipX, tipY, thickness, info.color)
+                    renderer.drawLine(tipX, tipY, x, y, thickness, info.color)
+                }
+            }
+        }
     }
 
 
@@ -126,12 +128,10 @@ class TrianglesDispenser : UIComponent() {
         }
 
         val color = colorPalette.random()
-        val x = Random.nextFloat() * width
-        val y = height + triangleBaseSize * scale
+        val x = Random.nextFloat() * bounds.width
+        val y = bounds.height + triangleBaseSize * scale
 
-        val rotation = if (Random.nextBoolean()) 0f else 180f
-
-        activeTriangles.add(TriangleInfo(x, y, scale, velocity, color, rotation))
+        activeTriangles.add(TriangleInfo(x, y, scale, velocity, color, Random.nextBoolean()))
     }
 
 
@@ -141,7 +141,7 @@ class TrianglesDispenser : UIComponent() {
         var scale: Float,
         var velocity: Float,
         var color: Color4,
-        var rotation: Float,
+        var isFlipped: Boolean,
     ) {
         fun update(deltaTimeSec: Float) {
             y -= velocity * deltaTimeSec
