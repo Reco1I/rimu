@@ -1,11 +1,14 @@
 package com.osudroid.ui.v2
 
-import com.edlplan.framework.easing.Easing
 import com.osudroid.ui.OsuColors
-import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIBadge
-import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.ui.text.faSolidIcon
 import com.rian.framework.RollingDoubleCounter
 import kotlin.math.abs
 
@@ -36,16 +39,20 @@ class StarRatingBadge : UIBadge() {
 
     init {
         // Badge color is determined by rating and should not be styled.
-        style = {
-            applySizeStyle()
+        style = Style { theme ->
+            fontSize = theme.typography.smallBody.size
+            padding = Padding(8f.dip, 5f.dip)
+            iconSpacing = 8f.dip
+            radius = theme.radius.lg
         }
         text = "0.00"
-        leadingIcon = UIIcon(FAIcon.Star)
-        registerUpdateHandler(counter)
+        leadingIcon = faSolidIcon(FAIcon.Star)
     }
 
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        counter.onUpdate(clock.elapsedFrameTime)
+
         if (counter.isRolling) {
             text = "%.2f".format(counter.currentValue)
             backgroundColor = OsuColors.getStarRatingColor(counter.currentValue)
@@ -59,7 +66,7 @@ class StarRatingBadge : UIBadge() {
             }
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
 }
