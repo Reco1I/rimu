@@ -599,6 +599,11 @@ abstract class UIComponent {
      * occupy space and be updated, as well it will still intercept input events.
      */
     var isVisible = true
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidateMeasure()
+        }
 
     /**
      * Whether the bounds of this component, transformed to scene space, overlap the given scene

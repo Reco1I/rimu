@@ -43,7 +43,15 @@ open class UILinearContainer : UIContainer() {
 
         val childWithFillSize = mutableMapOf<UIComponent, Float>()
 
+        var visibleChildCount = 0
+
         for (child in this) {
+
+            // Hidden children don't take any space.
+            if (!child.isVisible) {
+                continue
+            }
+            visibleChildCount++
 
             val widthSpec = child.width
             val heightSpec = child.height
@@ -72,9 +80,7 @@ open class UILinearContainer : UIContainer() {
             }
         }
 
-        val childCount = children.size
-
-        val totalSpacing = if (childCount > 1) spacing.toPixels() * (childCount - 1) else 0f
+        val totalSpacing = if (visibleChildCount > 1) spacing.toPixels() * (visibleChildCount - 1) else 0f
 
         when (orientation) {
             Orientation.Horizontal -> totalWidth += totalSpacing
@@ -150,6 +156,10 @@ open class UILinearContainer : UIContainer() {
         var currentY = paddingTop.toPixels()
 
         forEach { child ->
+
+            if (!child.isVisible) {
+                return@forEach
+            }
 
             val childBounds = Vec4(
                 x = currentX,
