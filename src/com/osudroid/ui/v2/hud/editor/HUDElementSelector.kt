@@ -1,17 +1,20 @@
 package com.osudroid.ui.v2.hud.editor
 
-import com.reco1l.verktex.*
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.ui.container.UIClickableContainer
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.moveToX
+
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.Orientation
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec4
 import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.hud.HUDElements
 import com.osudroid.ui.v2.hud.IGameplayEvents
-import com.reco1l.verktex.theme.FontSize
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.framework.forEachTolerant
 import android.graphics.PointF
@@ -19,7 +22,6 @@ import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
-import org.anddev.andengine.input.touch.TouchEvent
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import kotlin.reflect.full.primaryConstructor
@@ -31,7 +33,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
      * Whether the element selector is expanded.
      */
     val isExpanded
-        get() = x >= 0f
+        get() = translationX.resolve(0f) >= 0f
 
 
     private val elements = HUDElements.entries.map { it.type.primaryConstructor!!.call() }
@@ -40,19 +42,19 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
 
         scrollAxes = Axis.Y
         height = Dimension.FillAvailable
-        width = SELECTOR_WIDTH
+        width = SELECTOR_WIDTH.px
         backgroundColor = Color4(0xFF1E1E2E)
 
-        attachChild(UILinearContainer().apply {
+        +UILinearContainer().apply {
             width = Dimension.FillAvailable
-            padding = Vec4(16f)
-            spacing = 12f
-            orientation = Orientation.Vertical
+            padding = Padding(16f.px)
+            spacing = 12f.px
+            orientation = UILinearContainer.Orientation.Vertical
 
             elements.forEach { element ->
-                attachChild(HUDElementPreview(element, hud))
+                +HUDElementPreview(element, hud)
             }
-        })
+        }
 
     }
 
@@ -60,52 +62,40 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
     init {
         height = Dimension.FillAvailable
 
-        x = -SELECTOR_WIDTH
+        translationX = (-SELECTOR_WIDTH).px
 
         // The button to show/hide the element selector
-        attachChild(object : UIContainer() {
+        +UIClickableContainer().apply {
+            backgroundColor = Color4(0xFF181825)
+            radius = BUTTON_RADIUS.px
 
-            init {
-                backgroundColor = Color4(0xFF181825)
-                radius = BUTTON_RADIUS
+            width = BUTTON_WIDTH.px
+            height = 150f.px
+            x = (SELECTOR_WIDTH - BUTTON_RADIUS).px
 
-                setSize(BUTTON_WIDTH, 150f)
-                x = SELECTOR_WIDTH - BUTTON_RADIUS
+            anchor = Anchor.CenterLeft
+            origin = Anchor.CenterLeft
 
-                anchor = Anchor.CenterLeft
-                origin = Anchor.CenterLeft
+            +UIText().apply {
+                rotationZ = -90f
+                anchor = Anchor.Center
+                origin = Anchor.Center
+                fontSize = 14f.dip
+                text = "Elements"
 
-                attachChild(UIText().apply {
-                    rotationZ = -90f
-                    anchor = Anchor.Center
-                    origin = Anchor.Center
-                    fontSize = FontSize.SM
-                    text = "Elements"
-
-                    x = BUTTON_RADIUS / 2
-                })
+                x = (BUTTON_RADIUS / 2).px
             }
 
-            override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-
-                if (event.isActionDown) {
-                    return true
+            onActionUp = {
+                if (isExpanded) {
+                    collapse()
+                } else {
+                    expand()
                 }
-
-                if (event.isActionUp) {
-                    if (isExpanded) {
-                        collapse()
-                    } else {
-                        expand()
-                    }
-                    return false
-                }
-                return false
             }
+        }
 
-        })
-
-        attachChild(elementList)
+        +elementList
     }
 
 
@@ -116,7 +106,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
 
         hud.selected = null
 
-        clearEntityModifiers()
+        clearTransforms()
         elementList.isVisible = true
         moveToX(0f, 0.2f)
     }
@@ -125,7 +115,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
         if (!isExpanded) {
             return
         }
-        clearEntityModifiers()
+        clearTransforms()
         moveToX(-SELECTOR_WIDTH, 0.2f).after { elementList.isVisible = false }
     }
 

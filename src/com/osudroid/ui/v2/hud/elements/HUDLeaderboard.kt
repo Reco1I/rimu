@@ -1,12 +1,17 @@
 package com.osudroid.ui.v2.hud.elements
 
-import android.opengl.GLES20
 import com.osudroid.multiplayer.Multiplayer
+import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.hud.HUDElement
-import org.anddev.andengine.entity.sprite.Sprite
-import org.anddev.andengine.entity.text.ChangeableText
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.text.UIText
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
@@ -30,13 +35,12 @@ class HUDLeaderboard : HUDElement() {
 
 
     init {
-        minWidth = SPRITE_WIDTH
-        minHeight = SPRITE_HEIGHT
+        width = SPRITE_WIDTH.px
     }
 
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
-        super.onManagedUpdate(deltaTimeSec)
+    override fun onUpdate(clock: FrameClock) {
+        super.onUpdate(clock)
 
         if (!Multiplayer.isMultiplayer) {
             val items = GlobalManager.getInstance().songMenu.board
@@ -96,14 +100,14 @@ class HUDLeaderboard : HUDElement() {
             }
         }
 
-        val lastPlayerPosition = getChildIndex(player)
+        val lastPlayerPosition = children.indexOf(player)
         var playerPosition = lastPlayerPosition
 
         if (!Multiplayer.isMultiplayer) {
 
             var i = lastPlayerPosition - 1
             while (i >= 0) {
-                val sprite = getChild(i) as BoardItem
+                val sprite = this[i] as BoardItem
 
                 if (player.data.playScore >= sprite.data.playScore) {
                     player.data.rank = sprite.data.rank
@@ -124,7 +128,8 @@ class HUDLeaderboard : HUDElement() {
         if (playerPosition != lastPlayerPosition || isInvalidated) {
 
             if (playerPosition != lastPlayerPosition) {
-                setChildIndex(player, playerPosition)
+                children.remove(player)
+                children.add(playerPosition, player)
             }
 
             val maxY = SPRITE_HEIGHT * (SCORE_COUNT - 1)
@@ -133,9 +138,9 @@ class HUDLeaderboard : HUDElement() {
 
                 var i = 0
                 while (i < spriteCount) {
-                    val sprite = getChild(i)
+                    val sprite = this[i]
 
-                    sprite.setPosition(0f, if (i >= SCORE_COUNT) maxY else SPRITE_HEIGHT * i)
+                    sprite.y = (if (i >= SCORE_COUNT) maxY else SPRITE_HEIGHT * i).px
                     sprite.isVisible = i < SCORE_COUNT
                     ++i
                 }
@@ -148,14 +153,14 @@ class HUDLeaderboard : HUDElement() {
                 var i = 0
                 while (i < spriteCount) {
 
-                    val sprite = getChild(i)
+                    val sprite = this[i]
                     val isInBounds = i in minBound + 1..<playerPosition
 
                     // Showing only sprites that are between the bound index exclusive up to player position inclusive, the
                     // first sprite will always be shown so that's why the bound index is exclusive.
                     sprite.isVisible = i == 0 || i == playerPosition || isInBounds
 
-                    sprite.setPosition(0f, when {
+                    sprite.y = (when {
 
                         // First always on top
                         i == 0 -> 0f
@@ -169,7 +174,7 @@ class HUDLeaderboard : HUDElement() {
 
                         // Placing sprites respectively from maxY accounting for first sprite
                         else -> maxY - SPRITE_HEIGHT * (playerPosition - i)
-                    })
+                    }).px
                     i++
                 }
             }
@@ -179,7 +184,7 @@ class HUDLeaderboard : HUDElement() {
 
     private fun invalidate(items: List<ScoreBoardItem>?) {
 
-        detachChildren()
+        clearChildren()
 
         var list: List<ScoreBoardItem> = items ?: emptyList()
 
@@ -249,17 +254,32 @@ class HUDLeaderboard : HUDElement() {
             }
 
             sprite.updateColors()
-            attachChild(sprite, 0)
+            add(0, sprite)
             --i
         }
     }
 
 
-    private inner class BoardItem(val data: ScoreBoardItem) : Sprite(0f, 0f, ResourceManager.getInstance().getTexture("menu-button-background")) {
+    private inner class BoardItem(val data: ScoreBoardItem) : UIContainer() {
 
-        val info: ChangeableText
+        val background = UISprite().apply {
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
+            textureRegion = SkinTextures["menu-button-background"]
+        }
 
-        val rank: ChangeableText
+        val info = UIText().apply {
+            x = 10f.px
+            y = 15f.px
+            fontSize = (28f * 0.65f).px
+        }
+
+        val rank = UIText().apply {
+            origin = Anchor.TopRight
+            x = 100f.px
+            y = 30f.px
+            fontSize = (35f * 1.7f).px
+        }
 
         // Storing target values, this is used when animating color changes.
         var r = 0.5f
@@ -269,42 +289,27 @@ class HUDLeaderboard : HUDElement() {
 
         init {
             isVisible = false
-            height = SPRITE_HEIGHT
-            width = SPRITE_WIDTH
+            height = SPRITE_HEIGHT.px
+            width = SPRITE_WIDTH.px
 
-            info = ChangeableText(10f, 15f, ResourceManager.getInstance().getFont("font"), "", 100)
-            info.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
-            info.setScaleCenter(0f, 0f)
-            info.setScale(0.65f)
-
-            rank = ChangeableText(
-                10f,
-                15f,
-                ResourceManager.getInstance().getFont("CaptionFont"),
-                "",
-                5
-            )
-            rank.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
-            rank.setPosition(100 - rank.width, 30f)
-            rank.setScaleCenter(0f, 0f)
-            rank.setScale(1.7f)
-
-            attachChild(rank)
-            attachChild(info)
+            +background
+            +rank
+            +info
 
             updateInfo()
             updateRank()
         }
 
+        fun setColor(red: Float, green: Float, blue: Float, alpha: Float) {
+            background.color = Color4(red, green, blue, alpha)
+        }
+
         fun updateInfo() {
             info.text = data.get()
-            info.setScaleCenter(0f, 0f)
-            info.setScale(0.65f)
         }
 
         fun updateRank() {
             rank.text = if (data.rank == -1) "#?" else "#${data.rank}"
-            rank.setPosition(100 - rank.width, 30f)
         }
 
         fun updateColors() {
@@ -316,8 +321,8 @@ class HUDLeaderboard : HUDElement() {
             if (data.isAlive || !Multiplayer.isMultiplayer) {
                 val isOwnScore = !Multiplayer.isMultiplayer && isGlobalLeaderboard && data.userName == stats.playerName
 
-                info.setColor(0.9f, 0.9f, 0.9f)
-                rank.setColor(0.6f, 0.6f, 0.6f, 0.9f)
+                info.color = Color4(0.9f, 0.9f, 0.9f)
+                rank.color = Color4(0.6f, 0.6f, 0.6f, 0.9f)
 
                 if (playerSprite == this) b = 1f else {
                     if (isOwnScore)
@@ -328,8 +333,8 @@ class HUDLeaderboard : HUDElement() {
                 return
             }
 
-            rank.setColor(1f, 0.6f, 0.6f, 0.9f)
-            info.setColor(1f, 0.8f, 0.8f)
+            rank.color = Color4(1f, 0.6f, 0.6f, 0.9f)
+            info.color = Color4(1f, 0.8f, 0.8f)
             a = 0.25f
 
             if (playerSprite == this) {

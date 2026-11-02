@@ -1,5 +1,12 @@
 package com.osudroid.ui.v2.hud
 
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.data.Vec2
+
 import android.graphics.PointF
 import com.osudroid.resources.R.string
 import com.osudroid.ui.v2.hud.elements.HUDAccuracyCounter
@@ -9,14 +16,10 @@ import com.reco1l.verktex.ui.container.UIContainer
 import com.osudroid.ui.v2.hud.editor.HUDElementSelector
 import com.reco1l.osu.ui.MessageDialog
 import com.osudroid.utils.updateThread
-import com.reco1l.verktex.Engine
-import com.reco1l.verktex.component.*
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.framework.forEachTolerant
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
-import org.anddev.andengine.entity.IEntity
-import org.anddev.andengine.input.touch.TouchEvent
 import org.json.JSONObject
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -44,12 +47,10 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
                 // Move to front
                 if (value != null) {
-                    value.moveToFront()
+                    moveToFront(value)
 
                     // Preserve overlay on top of the element.
-                    if (value.editorOverlay != null) {
-                        value.editorOverlay?.moveToFront()
-                    }
+                    value.editorOverlay?.let(::moveToFront)
 
                     elementSelector?.collapse()
                 }
@@ -65,6 +66,8 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
     private var isInEditMode = false
 
+    private var pendingDefaultLayout = false
+
 
     init {
         width = Dimension.FillAvailable
@@ -72,22 +75,32 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
     }
 
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
-        if (Engine.current.scene != GlobalManager.getInstance().gameScene?.scene) {
+    override fun onUpdate(clock: FrameClock) {
+        if (Verktex.scene != GlobalManager.getInstance().gameScene?.scene) {
             // Detach on the next tick to ensure that parent's entity list stays stable throughout this tick.
-            updateThread { detachSelf() }
+            updateThread { removeSelf() }
             return
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
+
+        if (pendingDefaultLayout) {
+            applyDefaultLayout()
+        }
     }
 
+
+    private fun moveToFront(component: UIComponent) {
+        if (children.remove(component)) {
+            children.add(component)
+        }
+    }
 
     /**
      * Checks if the HUD has an element of the specified type.
      */
     fun hasElement(type: KClass<out HUDElement>): Boolean {
-        return mChildren?.any { type.isInstance(it) } ?: false
+        return children.any { type.isInstance(it) }
     }
 
     /**
@@ -180,9 +193,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
      */
     fun getSkinData(): HUDSkinData {
         return HUDSkinData(
-            elements = mChildren?.filterIsInstance<HUDElement>()
-                ?.map { it.getSkinData() }
-                ?: emptyList()
+            elements = children.filterIsInstance<HUDElement>().map { it.getSkinData() }
         )
     }
 
@@ -191,19 +202,18 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
      */
     fun setSkinData(layoutData: HUDSkinData) {
         selected = null
-        mChildren?.filterIsInstance<HUDElement>()?.forEach(IEntity::detachSelf)
+        children.filterIsInstance<HUDElement>().forEach { it.removeSelf() }
 
         // First pass: We attach everything so that elements can reference between them when
         // applying default layout.
         layoutData.elements.forEach { data -> addElement(data) }
 
-        if (layoutData == HUDSkinData.Default) {
-            applyDefaultLayout()
-        }
+        // The elements need to be measured first as the layout depends on their size.
+        pendingDefaultLayout = layoutData == HUDSkinData.Default
     }
 
     private inline fun <reified T : HUDElement>getFirstOf() : T? {
-        return mChildren?.firstOrNull { it is T } as? T
+        return children.firstOrNull { it is T } as? T
     }
 
     private fun applyDefaultLayout() {
@@ -214,23 +224,29 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
         val accuracyCounter = getFirstOf<HUDAccuracyCounter>()
         val pieSongProgress = getFirstOf<HUDPieSongProgress>()
 
-        accuracyCounter?.y += (scoreCounter?.y ?: 0f) + (scoreCounter?.height ?: 0f)
+        if (scoreCounter != null && scoreCounter.measuredSize.y <= 0f) {
+            return
+        }
 
-        pieSongProgress?.y = (accuracyCounter?.y ?: 0f) + (accuracyCounter?.transformedHeight ?: 0f) / 2f
-        pieSongProgress?.x = (accuracyCounter?.x ?: 0f) - (accuracyCounter?.transformedWidth ?: 0f) - 18f
+        pendingDefaultLayout = false
 
-        accuracyCounter?.restoreData = accuracyCounter.getSkinData()
-        pieSongProgress?.restoreData = pieSongProgress.getSkinData()
+        if (accuracyCounter != null) {
+            accuracyCounter.position += Vec2(0f, (scoreCounter?.position?.y ?: 0f) + (scoreCounter?.measuredSize?.y ?: 0f))
+            accuracyCounter.restoreData = accuracyCounter.getSkinData()
+        }
+
+        if (pieSongProgress != null) {
+            val accuracyPosition = accuracyCounter?.position ?: Vec2.Zero
+            val accuracySize = accuracyCounter?.transformedSize ?: Vec2.Zero
+
+            pieSongProgress.position = Vec2(accuracyPosition.x - accuracySize.x - 18f, accuracyPosition.y + accuracySize.y / 2f)
+            pieSongProgress.restoreData = pieSongProgress.getSkinData()
+        }
     }
 
     //endregion
 
     //region Elements events
-
-    private fun loadEditModeAssets() {
-        ResourceManager.getInstance().loadHighQualityAsset("delete", "delete.png")
-        ResourceManager.getInstance().loadHighQualityAsset("restore", "restore.png")
-    }
 
     /**
      * Sets the editor mode of the HUD.
@@ -240,22 +256,20 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
         GlobalManager.getInstance().gameScene.isHUDEditorMode = value
 
         if (value) {
-            loadEditModeAssets()
-
             elementSelector = HUDElementSelector(this)
         } else {
-            elementSelector?.detachSelf()
+            elementSelector?.removeSelf()
             elementSelector = null
         }
 
 
         // Cannot use forEachElement {} because we're modifying the list.
-        mChildren?.filterIsInstance<HUDElement>()?.forEach { it.setEditMode(value) }
+        children.filterIsInstance<HUDElement>().forEach { it.setEditMode(value) }
     }
 
     override fun onAttached() {
         if (isInEditMode) {
-            Engine.current.overlay.attachChild(elementSelector)
+            Verktex.addOverlay(elementSelector!!)
         }
         super.onAttached()
     }
@@ -271,18 +285,18 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
      * using another method such as `filterIsInstance<HUDElement>()`.
      */
     inline fun forEachElement(action: (HUDElement) -> Unit) {
-        // `action` may reorder `mChildren` (e.g. selecting an  element moves it to front), which
+        // `action` may reorder `children` (e.g. selecting an  element moves it to front), which
         // would cause a `ConcurrentModificationException` if we used a regular `forEach`.
         // Inlined so that the per-frame callers below don't allocate a capturing lambda.
-        elementChildren?.forEachTolerant { if (it is HUDElement) action(it) }
+        elementChildren.forEachTolerant { if (it is HUDElement) action(it) }
     }
 
     /**
-     * Exposes [mChildren] to [forEachElement], since a public inline function cannot access protected members.
+     * Exposes [children] to [forEachElement], since a public inline function cannot access protected members.
      */
     @PublishedApi
-    internal val elementChildren: List<IEntity>?
-        get() = mChildren
+    internal val elementChildren: List<UIComponent>
+        get() = children
 
     override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
         forEachElement { it.onGameplayUpdate(gameScene, secondsElapsed) }
@@ -326,15 +340,19 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
     //endregion
 
-    override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
+    override fun onInputEvent(event: InputEvent): Boolean {
+
+        if (event !is PointerEvent) {
+            return super.onInputEvent(event)
+        }
 
         // Ignoring touches on the element selector area when expanded.
-        if (elementSelector?.isExpanded == true && localX <= elementSelector!!.width) {
+        if (elementSelector?.isExpanded == true && event.x <= HUDElementSelector.SELECTOR_WIDTH) {
             return false
         }
 
-        if (!super.onAreaTouched(event, localX, localY)) {
-            if (event.isActionDown) {
+        if (!super.onInputEvent(event)) {
+            if (event.action == PointerEvent.Action.Down) {
                 selected = null
             }
             return false

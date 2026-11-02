@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.reco1l.verktex.time.FrameClock
+
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.SpriteFont
 import com.rian.framework.RollingDoubleCounter
@@ -26,8 +28,7 @@ class HUDPPCounter : HUDElement() {
     private val counter = RollingDoubleCounter(0.0).apply { rollingDuration = 1f }
 
     init {
-        registerUpdateHandler(counter)
-        attachChild(sprite)
+        +sprite
         updateText()
     }
 
@@ -38,10 +39,12 @@ class HUDPPCounter : HUDElement() {
         counter.targetValue = game.stat.pp.takeIf { !it.isNaN() } ?: 0.0
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        counter.onUpdate(clock.elapsedFrameTime)
+
         value = counter.currentValue.roundToInt()
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
     private fun updateText() {

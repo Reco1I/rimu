@@ -252,15 +252,16 @@ private fun UIComponent.addTransform(kind: Transform.Kind, duration: Float, easi
 }
 
 /**
- * Creates a group of transforms starting now, see [TransformSequence].
+ * Creates a group of transforms starting after [delay] seconds, see [TransformSequence]. A negative delay
+ * makes them start in the past, as if they were already running.
  */
-inline fun UIComponent.transformSequence(block: TransformSequence.() -> Unit): TransformSequence {
-    return newTransformSequence().apply(block)
+inline fun UIComponent.transformSequence(delay: Float = 0f, block: TransformSequence.() -> Unit): TransformSequence {
+    return newTransformSequence(delay).apply(block)
 }
 
 @PublishedApi
-internal fun UIComponent.newTransformSequence(): TransformSequence {
-    return TransformSequence(this, transformTracker().time)
+internal fun UIComponent.newTransformSequence(delay: Float): TransformSequence {
+    return TransformSequence(this, transformTracker().time + delay)
 }
 
 /**
