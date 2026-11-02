@@ -1,15 +1,13 @@
 package com.osudroid.ui.v2.game
 
-import com.reco1l.verktex.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.ui.sprite.*
+import com.osudroid.ui.v2.SkinTextures
+
 import com.osudroid.ui.v2.SpriteFont
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.framework.*
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.texture.Textures
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.skins.*
 
@@ -30,23 +28,23 @@ open class CirclePiece(
 
         it.origin = Anchor.Center
         it.anchor = Anchor.Center
-        it.textureRegion = Textures.getInstance().getTexture(circleTexture)
+        it.textureRegion = SkinTextures[circleTexture]
 
-        attachChild(it)
+        +it
     }
 
     private val overlay = UISprite().also {
 
         it.origin = Anchor.Center
         it.anchor = Anchor.Center
-        it.textureRegion = Textures.getInstance().getTexture(overlayTexture)
+        it.textureRegion = SkinTextures[overlayTexture]
 
-        attachChild(it)
+        +it
     }
 
 
     fun setCircleColor(red: Float, green: Float, blue: Float) {
-        circle.setColor(red, green, blue)
+        circle.color = Color4(red, green, blue)
     }
 
     fun setCircleColor(color: Color4) {
@@ -54,11 +52,11 @@ open class CirclePiece(
     }
 
     fun setCircleTextureRegion(circleTexture: String) {
-        circle.textureRegion = Textures.getInstance().getTexture(circleTexture)
+        circle.textureRegion = SkinTextures[circleTexture]
     }
 
     fun setOverlayTextureRegion(overlayTexture: String) {
-        overlay.textureRegion = Textures.getInstance().getTexture(overlayTexture)
+        overlay.textureRegion = SkinTextures[overlayTexture]
     }
 }
 
@@ -71,7 +69,7 @@ class NumberedCirclePiece(circleTexture: String, overlayTexture: String) : Circl
         it.anchor = Anchor.Center
         it.spacing = -OsuSkin.get().hitCircleOverlap
 
-        attachChild(it)
+        +it
     }
 
 
@@ -80,7 +78,8 @@ class NumberedCirclePiece(circleTexture: String, overlayTexture: String) : Circl
     }
 
     fun setNumberScale(value: Float) {
-        number.setTextureScale(value)
+        number.textureScaleX = value
+        number.textureScaleY = value
     }
 
     fun showNumber() {
