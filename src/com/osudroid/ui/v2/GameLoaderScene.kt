@@ -1,45 +1,55 @@
 package com.osudroid.ui.v2
 
-import com.edlplan.framework.easing.*
 import com.osudroid.data.*
 import com.osudroid.multiplayer.*
-import com.osudroid.resources.R
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.PlayerStatus
+import com.osudroid.resources.R
+import com.osudroid.ui.v2.settings.IntPreferenceSlider
+import com.osudroid.ui.v2.settings.PreferenceCheckbox
 import com.osudroid.utils.ModHashMap
-import com.reco1l.verktex.*
-import com.reco1l.verktex.component.*
-import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.shape.*
-import com.reco1l.verktex.ui.sprite.*
-import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.vw
-import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.ui.container.Orientation
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UIScrollableContainer
-import com.reco1l.verktex.ui.form.*
-import com.reco1l.verktex.ui.sprite.ScaleType
 import com.reco1l.framework.*
-import com.reco1l.framework.math.*
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.toPadding
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.UILoadingIndicator
+import com.reco1l.verktex.ui.UIScene
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.card
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.ui.fadeTo
+import com.reco1l.verktex.ui.form.*
+import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.UIBox
-import com.rian.andengine.modifier.ModifierType
+import com.reco1l.verktex.ui.shape.box
+import com.reco1l.verktex.ui.sprite
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.textButton
 import kotlin.math.*
-import org.anddev.andengine.input.touch.*
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 
-class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : Scene() {
+class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : UIScene() {
 
     private var lastTimeTouched = System.currentTimeMillis()
     private var isStarting = false
@@ -55,36 +65,34 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     private var minimumTimeout = if (isRestart) 500L else 2000L
 
     init {
-        Textures.getInstance().loadHighQualityAsset("back-arrow", "back-arrow.png")
-
         sprite {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            scaleType = ScaleType.Crop
-            textureRegion = Textures.getInstance().getTexture(if (Config.isSafeBeatmapBg()) "menu-background" else "::background")
+            scaleType = UISprite.ScaleType.Crop
+            textureRegion = if (Config.isSafeBeatmapBg()) SkinTextures["menu-background"] else Textures["::background"]
         }
 
         dimBox = box {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            color = Color4.Black
+            backgroundColor = Color4.Black
             alpha = 0.7f
         }
 
-        mainContainer = fillContainer {
-            orientation = Orientation.Horizontal
+        mainContainer = linearContainer {
+            orientation = UILinearContainer.Orientation.Horizontal
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             alpha = 0f
             scaleX = 0.9f
             scaleY = 0.9f
             scaleOrigin = Anchor.Center
-            style = {
-                padding = Engine.current.safeArea.copy(
-                    y = 4f.srem,
-                    w = 4f.srem + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)
+            spacing = 16f.dip
+            style = Style {
+                padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(
+                    top = 16f.dip,
+                    bottom = (16f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
                 )
-                spacing = 4f.srem
             }
 
             container {
@@ -92,43 +100,58 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 height = Dimension.FillAvailable
 
                 if (beatmapInfo.epilepsyWarning) {
-                    compoundText {
-                        leadingIcon = UIIcon(FAIcon.TriangleExclamation)
-                        text = StringTable.get(R.string.epilepsy_warning)
+                    linearContainer {
+                        orientation = UILinearContainer.Orientation.Horizontal
+                        spacing = 8f.dip
+
+                        +UIIcon(FAIcon.TriangleExclamation).apply {
+                            anchor = Anchor.CenterLeft
+                            origin = Anchor.CenterLeft
+                        }
+
+                        text {
+                            anchor = Anchor.CenterLeft
+                            origin = Anchor.CenterLeft
+                            text = StringTable.get(R.string.epilepsy_warning)
+                        }
                     }
                 }
 
                 linearContainer {
                     width = Dimension.FillAvailable
-                    orientation = Orientation.Vertical
+                    orientation = UILinearContainer.Orientation.Vertical
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    style = {
-                        spacing = 2f.srem
-                    }
+                    spacing = 8f.dip
 
                     text {
                         width = Dimension.FillAvailable
-                        fontSize = FontSize.XL
                         wrapText = true
                         text = beatmapInfo.titleText
-                        style = { color = it.accentColor }
+                        style = Style { theme ->
+                            fontSize = theme.typography.h2.size
+                            color = theme.palette.accent
+                        }
                     }
 
                     text {
                         width = Dimension.FillAvailable
-                        fontSize = FontSize.XL
                         wrapText = true
                         text = beatmapInfo.version
-                        style = { color = it.accentColor }
+                        style = Style { theme ->
+                            fontSize = theme.typography.h2.size
+                            color = theme.palette.accent
+                        }
                     }
 
                     text {
                         width = Dimension.FillAvailable
-                        fontSize = FontSize.LG
                         wrapText = true
                         text = "by ${beatmapInfo.artistText}"
-                        style = { color = it.accentColor * 0.9f }
+                        style = Style { theme ->
+                            fontSize = theme.typography.h3.size
+                            color = theme.palette.accent * 0.9f
+                        }
                     }
 
                     if (mods.isNotEmpty()) {
@@ -137,23 +160,21 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 }
 
                 linearContainer {
-                    orientation = Orientation.Vertical
+                    orientation = UILinearContainer.Orientation.Vertical
                     anchor = Anchor.BottomLeft
                     origin = Anchor.BottomLeft
-                    style = {
-                        spacing = 4f.srem
-                    }
+                    spacing = 16f.dip
 
                     +UILoadingIndicator()
 
                     textButton {
                         text = "Back"
-                        leadingIcon = UIIcon(FAIcon.ArrowLeft)
+                        leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
                         onActionUp = {
-                            Textures.getInstance().getSound("click-short-confirm")?.play()
+                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
                             cancel()
                         }
-                        onActionCancel = { Textures.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
                     }
                 }
             }
@@ -171,6 +192,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
         if (Multiplayer.isMultiplayer) {
             // Inform that the player has canceled loading.
             RoomAPI.setPlayerStatus(PlayerStatus.NotReady)
+            Verktex.withTreeLock { Verktex.popScene() }
             Multiplayer.roomScene?.show()
             return
         }
@@ -179,7 +201,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
         val songMenu = global.songMenu
         val selectedBeatmap = songMenu.selectedBeatmap
 
-        global.engine.scene = songMenu.scene
+        Verktex.withTreeLock { Verktex.popScene() }
 
         if (selectedBeatmap != null) {
             songMenu.playMusic(selectedBeatmap.audioPath, selectedBeatmap.previewTime)
@@ -190,20 +212,16 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     override fun onAttached() {
         super.onAttached()
 
-        mainContainer.paddingBottom = if (Multiplayer.isConnected) Multiplayer.roomScene!!.chat.buttonHeight + 12f else 0f
-    }
-
-    override fun onLoadComplete() {
         mainContainer.fadeIn(0.2f, Easing.OutCubic)
         mainContainer.scaleTo(1f, 0.2f, Easing.OutCubic)
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
 
         if (!isStarting) {
 
             if (Multiplayer.isMultiplayer && !gameScene.isReadyToStart) {
-                multiplayerLoadElapsed += deltaTimeSec
+                multiplayerLoadElapsed += clock.elapsedFrameTime
 
                 if (multiplayerLoadElapsed >= MULTIPLAYER_LOAD_TIMEOUT_SEC) {
                     ToastLogger.showText(
@@ -228,7 +246,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
                     mainContainer.fadeOut(0.1f, Easing.OutExpo)
 
-                    dimBox.clearModifiers(ModifierType.Alpha)
+                    dimBox.clearTransforms()
                     dimBox.fadeTo(1f - backgroundBrightness / 100f, 0.2f).after {
 
                         gameScene.hud.apply {
@@ -250,7 +268,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             }
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
 
@@ -261,20 +279,19 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             scrollAxes = Axis.Y
             alpha = 0.5f
 
-            style = {
-                width = 0.3f.vw
+            style = Style {
+                width = (Verktex.graphics.window.windowWidth * 0.3f).px
             }
 
             linearContainer {
                 width = Dimension.FillAvailable
-                orientation = Orientation.Vertical
-                style = {
-                    spacing = 4f.srem
-                }
+                orientation = UILinearContainer.Orientation.Vertical
+                spacing = 16f.dip
 
-                collapsibleCard {
+                card {
                     width = Dimension.FillAvailable
                     title = "Beatmap"
+                    isCollapsible = true
 
                     content.apply {
                         val offsetSlider = FormSlider().apply {
@@ -295,14 +312,12 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         linearContainer {
                             anchor = Anchor.TopCenter
                             origin = Anchor.TopCenter
-                            style = {
-                                spacing = 3f.srem
-                                padding = Vec4(2f.srem)
-                            }
+                            spacing = 12f.dip
+                            padding = com.reco1l.verktex.data.Padding(8f.dip)
 
                             fun StepButton(step: Int) = textButton {
                                 text = abs(step).toString()
-                                leadingIcon = UIIcon(if (step >= 0) FAIcon.Plus else FAIcon.Minus)
+                                leadingIcon = faSolidIcon(if (step >= 0) FAIcon.Plus else FAIcon.Minus)
                                 onActionUp = {
                                     offsetSlider.value += step
                                 }
@@ -320,13 +335,14 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     }
 
                     if (beatmapCardCollapsed) {
-                        collapse(true)
+                        collapse()
                     }
                 }
 
-                collapsibleCard {
+                card {
                     width = Dimension.FillAvailable
                     title = "Settings"
+                    isCollapsible = true
 
                     content.apply {
 
@@ -378,13 +394,13 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     }
 
                     if (settingsCardCollapsed) {
-                        collapse(true)
+                        collapse()
                     }
                 }
             }
         }
 
-        override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
+        override fun onInputEvent(event: InputEvent): Boolean {
             alpha = 1f
             lastTimeTouched = System.currentTimeMillis()
 
@@ -395,18 +411,18 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 minimumTimeout = 1500L
             }
 
-            return super.onAreaTouched(event, localX, localY)
+            return super.onInputEvent(event)
         }
 
-        override fun onManagedUpdate(deltaTimeSec: Float) {
+        override fun onUpdate(clock: FrameClock) {
 
             val elapsed = System.currentTimeMillis() - lastTimeTouched
 
             if (alpha > 0.5f && elapsed > fadeTimeout) {
-                alpha -= deltaTimeSec * 1.5f
+                alpha -= clock.elapsedFrameTime * 1.5f
             }
 
-            super.onManagedUpdate(deltaTimeSec)
+            super.onUpdate(clock)
         }
 
     }
