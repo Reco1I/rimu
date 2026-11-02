@@ -9,6 +9,29 @@ import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.container.UIContainer
 import ru.nsu.ccfit.zuev.osu.Config
+import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
+import java.io.File
+
+/**
+ * Looks up textures downloaded to the cache folder, such as avatars, through Verktex [Textures].
+ */
+object CachedTextures {
+
+    /**
+     * The [Textures] key of a downloaded file.
+     */
+    fun keyOf(url: String) = "cache:" + MD5Calculator.getStringMD5(url)
+
+    /**
+     * Gets the texture of an already downloaded file, loading it if needed.
+     */
+    operator fun get(url: String): GraphicsTexture.Region? {
+        val key = keyOf(url)
+        val file = File(Config.getCachePath(), MD5Calculator.getStringMD5(url))
+
+        return Textures[key] ?: Textures.load(key, file.absolutePath, isInternal = false)
+    }
+}
 
 /**
  * Looks up skin assets through Verktex [Textures], preferring the custom skin folder and falling back to

@@ -1,11 +1,10 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.osudroid.ui.v2.CachedTextures
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.graphics.GraphicsTexture
-import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.container.UIClickableContainer
@@ -14,11 +13,8 @@ import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.sprite
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
-import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
-import java.io.File
 
 class PlayerButton : UIClickableContainer() {
 
@@ -77,13 +73,6 @@ class PlayerButton : UIClickableContainer() {
         }
     }
 
-    private fun loadAvatar(url: String): GraphicsTexture.Region? {
-        val filename = MD5Calculator.getStringMD5(url)
-        val key = "avatar:$filename"
-
-        return Textures[key] ?: Textures.load(key, File(Config.getCachePath(), filename).absolutePath, isInternal = false)
-    }
-
     override fun onUpdate(clock: FrameClock) {
         nameText.text = onlineManager.username
         informationText.text = OnlineManager.getInstance().failMessage
@@ -95,7 +84,7 @@ class PlayerButton : UIClickableContainer() {
             avatarSprite.textureRegion = if (!avatarLoaded || avatarUri.isEmpty()) {
                 SkinTextures["emptyavatar"]
             } else {
-                loadAvatar(avatarUri) ?: SkinTextures["emptyavatar"]
+                CachedTextures[avatarUri] ?: SkinTextures["emptyavatar"]
             }
         }
 
