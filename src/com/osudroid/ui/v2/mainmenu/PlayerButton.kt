@@ -1,21 +1,24 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.container.Orientation
-import com.reco1l.verktex.ui.linearContainer
-import com.reco1l.verktex.ui.sprite
-import com.reco1l.verktex.ui.sprite.ScaleType
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.text
-import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.theme.Radius
-import com.reco1l.verktex.theme.srem
 import com.reco1l.verktex.ui.container.UIClickableContainer
-import com.reco1l.verktex.data.Vec4
-import ru.nsu.ccfit.zuev.osu.ResourceManager
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.sprite
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.text
+import ru.nsu.ccfit.zuev.osu.Config
+import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
+import java.io.File
 
 class PlayerButton : UIClickableContainer() {
 
@@ -32,50 +35,56 @@ class PlayerButton : UIClickableContainer() {
 
     init {
         linearContainer {
-            orientation = Orientation.Horizontal
-            style = {
-                radius = Radius.XL
-                padding = Vec4(2.25f.srem)
-                spacing = 2f.srem
-                backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.2f)
-                minWidth = 13f.rem
+            orientation = UILinearContainer.Orientation.Horizontal
+            padding = Padding(9f.dip)
+            spacing = 8f.dip
+            style = Style { theme ->
+                radius = theme.radius.xl
+                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.2f)
             }
 
             avatarSprite = sprite {
-                style = {
-                    width = 3f.rem
-                    height = 3f.rem
-                    backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.3f)
-                    radius = Radius.XL
+                width = 48f.dip
+                height = 48f.dip
+                style = Style { theme ->
+                    backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.3f)
+                    radius = theme.radius.xl
                 }
-                scaleType = ScaleType.Crop
-                textureRegion = ResourceManager.getInstance().getTexture("emptyavatar")
+                scaleType = UISprite.ScaleType.Crop
+                textureRegion = SkinTextures["emptyavatar"]
             }
 
             linearContainer {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                orientation = Orientation.Vertical
+                orientation = UILinearContainer.Orientation.Vertical
 
                 nameText = text {
                     text = "Player"
-                    style = {
-                        color = it.accentColor
+                    style = Style { theme ->
+                        color = theme.palette.accent
                     }
                 }
 
                 informationText = text {
                     text = "Loading..."
-                    style = {
-                        fontSize = FontSize.XS
-                        color = it.accentColor * 0.8f
+                    style = Style { theme ->
+                        fontSize = theme.typography.smallCaption.size
+                        color = theme.palette.accent * 0.8f
                     }
                 }
             }
         }
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    private fun loadAvatar(url: String): GraphicsTexture.Region? {
+        val filename = MD5Calculator.getStringMD5(url)
+        val key = "avatar:$filename"
+
+        return Textures[key] ?: Textures.load(key, File(Config.getCachePath(), filename).absolutePath, isInternal = false)
+    }
+
+    override fun onUpdate(clock: FrameClock) {
         nameText.text = onlineManager.username
         informationText.text = OnlineManager.getInstance().failMessage
 
@@ -84,11 +93,12 @@ class PlayerButton : UIClickableContainer() {
             avatarLoaded = onlineScoring.isAvatarLoaded
 
             avatarSprite.textureRegion = if (!avatarLoaded || avatarUri.isEmpty()) {
-                ResourceManager.getInstance().getTexture("emptyavatar")
+                SkinTextures["emptyavatar"]
             } else {
-                ResourceManager.getInstance().getAvatarTextureIfLoaded(avatarUri)
+                loadAvatar(avatarUri) ?: SkinTextures["emptyavatar"]
             }
         }
-        super.onManagedUpdate(deltaTimeSec)
+
+        super.onUpdate(clock)
     }
 }

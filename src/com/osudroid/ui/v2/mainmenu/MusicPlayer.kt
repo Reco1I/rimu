@@ -2,24 +2,22 @@ package com.osudroid.ui.v2.mainmenu
 
 import com.osudroid.MusicManager
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.container
-import com.reco1l.verktex.ui.container.Orientation
-import com.reco1l.verktex.ui.iconButton
-import com.reco1l.verktex.ui.linearContainer
-import com.reco1l.verktex.ui.text
-import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.theme.Radius
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.theme.srem
-import com.reco1l.verktex.ui.ColorVariant
-import com.reco1l.verktex.ui.SizeVariant
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UIIconButton
 import com.reco1l.verktex.ui.UIModal
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.control.UISlider
-import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.ui.iconButton
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import java.text.SimpleDateFormat
 
@@ -40,40 +38,36 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
     init {
         // Removes the background dim
-        style = {}
+        style = Style {}
 
         card.apply {
             anchor = Anchor.TopLeft
             origin = Anchor.TopRight
             scaleOrigin = Anchor.Center
-            style + {
-                width = 20f.rem
-                padding = Vec4(4f.srem)
-            }
+            width = 320f.dip
+            padding = Padding(16f.dip)
 
             linearContainer {
                 width = Dimension.FillAvailable
-                orientation = Orientation.Vertical
-                style = {
-                    spacing = 2f.srem
-                }
+                orientation = UILinearContainer.Orientation.Vertical
+                spacing = 8f.dip
 
                 linearContainer {
                     width = Dimension.FillAvailable
-                    orientation = Orientation.Vertical
+                    orientation = UILinearContainer.Orientation.Vertical
 
                     titleText = text {
                         width = Dimension.FillAvailable
-                        style = {
-                            color = it.accentColor
+                        style = Style { theme ->
+                            color = theme.palette.accent
                         }
                     }
 
                     artistText = text {
                         width = Dimension.FillAvailable
-                        style = {
-                            fontSize = FontSize.XS
-                            color = it.accentColor * 0.9f
+                        style = Style { theme ->
+                            fontSize = theme.typography.smallCaption.size
+                            color = theme.palette.accent * 0.9f
                         }
                     }
                 }
@@ -84,18 +78,18 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     currentTime = text {
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
-                        style = {
-                            fontSize = FontSize.XS
-                            color = it.accentColor * 0.8f
+                        style = Style { theme ->
+                            fontSize = theme.typography.smallCaption.size
+                            color = theme.palette.accent * 0.8f
                         }
                     }
 
                     totalTime = text {
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
-                        style = {
-                            fontSize = FontSize.XS
-                            color = it.accentColor * 0.8f
+                        style = Style { theme ->
+                            fontSize = theme.typography.smallCaption.size
+                            color = theme.palette.accent * 0.8f
                         }
                     }
                 }
@@ -112,16 +106,14 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                 }
 
                 linearContainer {
-                    orientation = Orientation.Horizontal
+                    orientation = UILinearContainer.Orientation.Horizontal
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
-                    style = {
-                        spacing = 4f.srem
-                    }
+                    spacing = 16f.dip
 
                     iconButton {
-                        icon = UIIcon(FAIcon.BackwardFast)
-                        colorVariant = ColorVariant.Tertiary
+                        icon = FAIcon.BackwardFast
+                        variant = UIButton.Variant.Ghost
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
                         scaleOrigin = Anchor.Center
@@ -134,11 +126,11 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     }
 
                     playPauseButton = iconButton {
-                        icon = UIIcon(FAIcon.Play)
-                        sizeVariant = SizeVariant.Large
-                        colorVariant = ColorVariant.Primary
-                        style + {
-                            radius = Radius.Full
+                        icon = FAIcon.Play
+                        density = UIButton.Density.Large
+                        variant = UIButton.Variant.Solid
+                        style += Style {
+                            radius = FULL_RADIUS
                         }
 
                         onActionUp = {
@@ -151,8 +143,8 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     }
 
                     iconButton {
-                        icon = UIIcon(FAIcon.ForwardFast)
-                        colorVariant = ColorVariant.Tertiary
+                        icon = FAIcon.ForwardFast
+                        variant = UIButton.Variant.Ghost
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
                         scaleOrigin = Anchor.Center
@@ -169,15 +161,17 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
         }
     }
 
-    override fun onAttached() {
-        super.onAttached()
+    override fun onShow() {
+        // Placed below the button that opens this modal, which only has a known position when shown.
+        val triggerCorner = trigger.toSceneSpace(trigger.bounds.width, trigger.bounds.height)
 
-        val (triggerX, triggerY) = trigger.convertLocalToSceneCoordinates(trigger.width, trigger.height)
-        card.x = triggerX
-        card.y = triggerY + 3f.srem
+        card.x = triggerCorner.x.px
+        card.y = (triggerCorner.y + 12f.dip.toPixels()).px
+
+        super.onShow()
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
         titleText.text = MusicManager.currentBeatmap?.titleText ?: "Unknown"
         artistText.text = MusicManager.currentBeatmap?.artistText ?: "Unknown"
 
@@ -185,14 +179,18 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
         currentTime.text = format.format(MusicManager.position)
         totalTime.text = format.format(MusicManager.length)
 
-        (playPauseButton.icon as UIIcon).iconCode = if (MusicManager.isPlaying) FAIcon.Pause else FAIcon.Play
+        playPauseButton.icon = if (MusicManager.isPlaying) FAIcon.Pause else FAIcon.Play
 
         progressSlider.max = MusicManager.length / 1000f
         if (!draggingProgressSlider) {
             progressSlider.value = MusicManager.position / 1000f
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
+
+    private companion object {
+        val FULL_RADIUS = 9999f.px
+    }
 }

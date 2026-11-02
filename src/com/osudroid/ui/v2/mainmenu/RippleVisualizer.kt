@@ -1,63 +1,30 @@
 package com.osudroid.ui.v2.mainmenu
 
 import com.osudroid.RythimManager
-import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.PaintStyle
-import com.reco1l.verktex.ui.shape.UICircle
-import com.reco1l.verktex.theme.Colors
 import com.reco1l.framework.forEachTolerant
-import org.anddev.andengine.engine.camera.Camera
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.graphics.GraphicsRenderer
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.UICanvas
 import java.lang.ref.WeakReference
-import javax.microedition.khronos.opengles.GL10
 import kotlin.math.max
 
-class RippleVisualizer : UIComponent() {
+class RippleVisualizer : UICanvas() {
 
     /**
      * The thickness of each ripple.
      */
-    var rippleThickness = 2f // 2 pixels
-        set(value) {
-            if (field != value) {
-                field = value
-                ripple.lineWidth = rippleThickness
-            }
-        }
+    var rippleThickness: Dimension.Fixed = 2f.px
 
 
-    private val ripple = UICircle()
     private val referenceToThis = WeakReference(this)
 
     private var activeRipples = mutableListOf<RippleInfo>()
 
-    /**
-     * The base size of the ripple relative to the largest dimension.
-     */
-    private val baseRippleSize: Float
-        get() = max(width, height)
-
-
-    init {
-        attachChild(ripple.apply {
-            color = Colors.White
-            anchor = Anchor.Center
-            origin = Anchor.Center
-            paintStyle = PaintStyle.Outline
-            lineWidth = rippleThickness
-        })
-    }
-
-    override fun onSizeChanged() {
-        super.onSizeChanged()
-        ripple.width = baseRippleSize
-        ripple.height = baseRippleSize
-    }
 
     override fun onAttached() {
         super.onAttached()
-        ripple.width = baseRippleSize
-        ripple.height = baseRippleSize
 
         RythimManager.addOnBeatChangeListener(referenceToThis) {
             if (RythimManager.isKiai) {
@@ -73,20 +40,30 @@ class RippleVisualizer : UIComponent() {
         activeRipples.add(RippleInfo(0f, 1f))
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
         activeRipples.forEachTolerant { info ->
-            info.update(deltaTimeSec)
+            info.update(clock.elapsedFrameTime)
         }
         activeRipples.removeAll { it.alpha <= 0f }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
-    override fun onDrawChildren(gl: GL10, camera: Camera) {
+    override fun onDraw(renderer: GraphicsRenderer) {
+        val baseSize = max(bounds.width, bounds.height)
+        val thickness = rippleThickness.toPixels()
+
         activeRipples.forEachTolerant { info ->
-            ripple.setScale(1f + info.scale)
-            ripple.alpha = info.alpha
-            ripple.onDraw(gl, camera)
+            val size = baseSize * (1f + info.scale)
+
+            renderer.drawArcStroke(
+                x = (bounds.width - size) / 2f,
+                y = (bounds.height - size) / 2f,
+                width = size,
+                height = size,
+                thickness = thickness,
+                color = contentColor.copy(alpha = info.alpha)
+            )
         }
     }
 
