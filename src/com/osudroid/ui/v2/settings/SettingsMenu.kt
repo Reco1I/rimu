@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.settings
 
+import ru.nsu.ccfit.zuev.osu.online.OnlineManager
+import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
 import androidx.annotation.ArrayRes
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.Verktex
@@ -262,9 +264,13 @@ class SettingsMenu : UIScene() {
         Config.loadConfig(global.mainActivity)
         onPlayfieldChanged = null
 
-        // The player button and the beat tracking of the main menu keep themselves up to date.
         if (!Multiplayer.isMultiplayer) {
             global.songService.isGaming = false
+
+            // The account may have changed (Config.loadConfig above reloads it), the player button
+            // follows the login by itself.
+            OnlineManager.getInstance().init()
+            OnlineScoring.getInstance().login()
         }
 
         Verktex.withTreeLock { Verktex.popScene() }
