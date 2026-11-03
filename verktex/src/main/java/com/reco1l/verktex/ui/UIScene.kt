@@ -4,7 +4,8 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.data.fill
-import com.reco1l.verktex.data.toPadding
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.container.UIContainer
@@ -28,7 +29,15 @@ open class UIScene : UIContainer() {
 
         // Padding will be applied to the scene's content, but not to the background since it is not
         // present on the children list.
-        padding = Verktex.graphics.window.insets.safeArea.toPadding()
+        // The safe area is shifted up while the on-screen keyboard would cover the focused input.
+        val safeArea = Verktex.graphics.window.insets.safeArea
+        val imeShift = Verktex.imeShift
+        padding = Padding(
+            left = safeArea.x.px,
+            top = (safeArea.y - imeShift).px,
+            right = safeArea.z.px,
+            bottom = (safeArea.w + imeShift).px
+        )
 
         onPerformLayout()
 

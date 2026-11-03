@@ -21,6 +21,11 @@ class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), Su
         safeArea = Vec4.Zero,
         offsets = Vec2.Zero
     )
+        // The keyboard doesn't dispatch insets to this view (the window pans instead of resizing),
+        // so its height is read from the root insets, which are always up to date.
+        get() = field.copy(offsets = Vec2(0f, -imeHeight().toFloat()))
+
+    private fun imeHeight() = ViewCompat.getRootWindowInsets(this)?.getInsets(WindowInsetsCompat.Type.ime())?.bottom ?: 0
 
     @Volatile
     private var surfaceDestroyed = false
@@ -80,11 +85,9 @@ class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), Su
                 w = 0f
             )
 
-            val virtualKeyboardHeight = compatInsets?.getInsets(WindowInsetsCompat.Type.ime())?.bottom ?: 0
-
             insets = GraphicsWindow.Insets(
                 safeArea = safeArea,
-                offsets = Vec2(0f, -virtualKeyboardHeight.toFloat())
+                offsets = Vec2.Zero
             )
 
             viewInsets
