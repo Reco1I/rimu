@@ -28,6 +28,11 @@ object BuiltIn {
          * A shader for rendering external (video) textures, sampled through their transform.
          */
         lateinit var Video: GraphicsShader
+
+        /**
+         * A shader for rendering particles, see [com.reco1l.verktex.ui.UIParticleSystem].
+         */
+        lateinit var Particle: GraphicsShader
     }
 
     /**
