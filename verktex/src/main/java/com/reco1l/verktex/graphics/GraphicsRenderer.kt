@@ -590,6 +590,35 @@ abstract class GraphicsRenderer {
         borderColor: Color4 = Color4.Transparent,
         radius: Float = 0f
     ) {
+        // Without a shape to cut, only the colors are needed. The UI shader costs much more per
+        // pixel, which adds up for large gradients (a fullscreen one took ~3 ms on an Adreno 610),
+        // even if it breaks the batch.
+        if (radius <= 0f && borderWidth <= 0f) {
+            setState(shader = BuiltIn.Shaders.Color, texture = null, uniformSet = EMPTY_UNIFORMS)
+
+            drawGeometry { transform, _ ->
+                val p = points
+                transform.transform(x, y, p, 0)
+                transform.transform(x + width, y, p, 2)
+                transform.transform(x + width, y + height, p, 4)
+                transform.transform(x, y + height, p, 6)
+
+                val c0 = transformColor(topLeft).packedRGBA
+                val c1 = transformColor(topRight).packedRGBA
+                val c2 = transformColor(bottomRight).packedRGBA
+                val c3 = transformColor(bottomLeft).packedRGBA
+
+                putVertex(p[0], p[1], 0f, 0f, c0)
+                putVertex(p[2], p[3], 1f, 0f, c1)
+                putVertex(p[4], p[5], 1f, 1f, c2)
+
+                putVertex(p[0], p[1], 0f, 0f, c0)
+                putVertex(p[4], p[5], 1f, 1f, c2)
+                putVertex(p[6], p[7], 0f, 1f, c3)
+            }
+            return
+        }
+
         setUIState(null)
 
         val buffer = activeBuffer ?: throw IllegalStateException("No active vertex buffer to draw geometry.")

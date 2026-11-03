@@ -20,6 +20,12 @@ object BuiltIn {
         lateinit var SolidQuad: GraphicsShader
 
         /**
+         * A shader drawing only the interpolated vertex color. It's much cheaper per pixel than
+         * [UI], which matters for large areas such as fullscreen gradients.
+         */
+        lateinit var Color: GraphicsShader
+
+        /**
          * A shader for rounded boxes and text in the same batches, see [com.reco1l.verktex.graphics.VertexLayout.UI].
          */
         lateinit var UI: GraphicsShader
