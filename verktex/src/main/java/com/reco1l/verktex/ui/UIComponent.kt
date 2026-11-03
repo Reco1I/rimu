@@ -1001,7 +1001,8 @@ abstract class UIComponent {
      * Measures the component with the given layout constraints. This method will call [onMeasure]
      * to perform the actual measurement.
      */
-    fun measure(parentContraints: LayoutConstraints): Vec2 {
+    fun measure(requestedConstraints: LayoutConstraints): Vec2 {
+        val parentContraints = adjustParentConstraints(requestedConstraints)
 
         if (!measureInvalid && parentContraints == lastMeasureConstraints) {
             return measuredSize
@@ -1046,6 +1047,12 @@ abstract class UIComponent {
      * Layouts the component within the given bounds. This method will call [onLayout] to perform
      * the actual layout of the component. The bounds are expected to be in the parent's coordinate system.
      */
+    /**
+     * Adjusts the constraints the parent measures this component with, e.g. to grow past its
+     * padding as [com.reco1l.verktex.ui.container.UIFullscreenContainer] does.
+     */
+    protected open fun adjustParentConstraints(constraints: LayoutConstraints) = constraints
+
     open fun layout(assignedBounds: Vec4) {
         if (isLayoutStatic) {
             if (!layoutInvalid && assignedBounds == lastLayoutBounds) {
