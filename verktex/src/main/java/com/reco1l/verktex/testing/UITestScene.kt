@@ -182,6 +182,15 @@ class UITestScene(
         val stage = UITestStage(::log)
         stageHost += stage
 
+        // Overlays opened by the test (e.g. modals) are kept inside the stage, above its content,
+        // instead of covering the whole browser.
+        val overlayLayer = UIContainer().apply {
+            width = fill()
+            height = fill()
+        }
+        stageHost += overlayLayer
+        Verktex.overlayHost = overlayLayer
+
         try {
             test.build(stage)
         } catch (e: Throwable) {

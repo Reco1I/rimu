@@ -15,6 +15,7 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.time.SystemBasedFrameClock
 import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.worker.LoopWorker
 import com.reco1l.verktex.worker.RunOnDrawWorker
 import com.reco1l.verktex.worker.RunOnUpdateWorker
@@ -398,7 +399,7 @@ object Verktex {
      */
     @JvmStatic
     fun addOverlay(overlay: UIComponent) {
-        overlayContainer += overlay
+        (overlayHost ?: overlayContainer) += overlay
     }
 
     /**
@@ -408,7 +409,16 @@ object Verktex {
     @JvmStatic
     fun removeOverlay(overlay: UIComponent) {
         overlayContainer -= overlay
+        overlayHost?.let { it -= overlay }
     }
+
+    /**
+     * When set, overlays added with [addOverlay] go into this container instead of covering the
+     * whole window. Used to sandbox overlays (e.g. modals) inside a part of a scene, like the stage
+     * of the UI test browser.
+     */
+    @JvmStatic
+    var overlayHost: UIContainer? = null
 
     //endregion
 
