@@ -53,6 +53,9 @@ open class UIModal(
     // The finger that pressed the backdrop, releasing it outside of the card hides the modal.
     private var backdropPointerId = -1
 
+    // The fingers that pressed the modal, only their events are handled.
+    private val pressedPointers = mutableSetOf<Int>()
+
     // Whether onShown was called for the current show.
     private var isFullyShown = false
 
@@ -85,6 +88,7 @@ open class UIModal(
         isShown = true
         isVisible = true
         isFullyShown = false
+        pressedPointers.clear()
         onShow()
     }
 
@@ -165,6 +169,24 @@ open class UIModal(
         // While hiding the scene below is usable again.
         if (!isShown) {
             return false
+        }
+
+        // Only pointers pressed on the modal are handled, so components outside of it still get
+        // the moves and releases of their own presses (the modal doesn't always cover the window).
+        if (event is PointerEvent) {
+            when (event.action) {
+                PointerEvent.Action.Down -> if (containsScenePoint(event.x, event.y)) {
+                    pressedPointers += event.pointerId
+                } else {
+                    return false
+                }
+
+                else -> if (event.pointerId !in pressedPointers) {
+                    return false
+                } else if (event.action != PointerEvent.Action.Move) {
+                    pressedPointers -= event.pointerId
+                }
+            }
         }
 
         if (super.onInputEvent(event)) {
