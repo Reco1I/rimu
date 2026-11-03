@@ -179,7 +179,6 @@ class UITestScene(
                     padding = Padding(12f.dip, 6f.dip)
                     fontSize = Verktex.theme.typography.caption.size
                     color = Color4(1f, 1f, 1f, 0.7f)
-                    backgroundColor = Verktex.theme.palette.surface
                     text = " "
                 }
             }
