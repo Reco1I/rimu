@@ -623,6 +623,35 @@ abstract class GraphicsRenderer {
         }
     }
 
+    // The points of the last arc on a unit circle, cos and sin of each segment boundary. Arcs of
+    // the same resolution and angles (e.g. several rings) reuse them instead of computing them.
+    private var arcPointsSegments = -1
+    private var arcPointsStart = 0f
+    private var arcPointsEnd = 0f
+    private var arcPointsCache = FloatArray(0)
+
+    private fun arcPoints(segments: Int, startAngle: Float, endAngle: Float): FloatArray {
+        if (segments == arcPointsSegments && startAngle == arcPointsStart && endAngle == arcPointsEnd) {
+            return arcPointsCache
+        }
+
+        val start = (startAngle - 90f).toRadians()
+        val delta = ((endAngle - 90f).toRadians() - start) / segments
+
+        val points = FloatArray((segments + 1) * 2)
+        for (i in 0..segments) {
+            val angle = start + i * delta
+            points[i * 2] = cos(angle)
+            points[i * 2 + 1] = sin(angle)
+        }
+
+        arcPointsSegments = segments
+        arcPointsStart = startAngle
+        arcPointsEnd = endAngle
+        arcPointsCache = points
+        return points
+    }
+
     // Full circles can be drawn by the rounded box shader. Not while writing depth: the box's
     // corners would write it too, while masks rely on the circle's shape.
     private fun canDrawAsRoundedBox(width: Float, height: Float, startAngle: Float, endAngle: Float): Boolean {
@@ -727,13 +756,8 @@ abstract class GraphicsRenderer {
     ) {
         if (thickness <= 0f) return
 
-        // A full ring is a rounded box with only its border, which is inside its bounds as the
-        // stroke is, instead of a strip of segments.
-        if (canDrawAsRoundedBox(width, height, startAngle, endAngle)) {
-            drawRect(x, y, width, height, borderWidth = thickness, borderColor = color, radius = width / 2f)
-            return
-        }
-
+        // Rings stay segments: as a rounded box the whole square inside them is shaded, which made
+        // big rings (the menu's ripples) cost the GPU much more than the segments cost.
         val segments = calculateArcResolution(width, height, abs(endAngle - startAngle))
         if (segments <= 0) return
 
@@ -752,20 +776,20 @@ abstract class GraphicsRenderer {
             val innerX = (outerX - thickness).coerceAtLeast(0f)
             val innerY = (outerY - thickness).coerceAtLeast(0f)
 
-            val start = (startAngle - 90f).toRadians()
-            val delta = ((endAngle - 90f).toRadians() - start) / segments
-
+            val unitCircle = arcPoints(segments, startAngle, endAngle)
             val p = points
 
             for (segment in 0 until segments) {
-                val a0 = start + segment * delta
-                val a1 = a0 + delta
+                val cos0 = unitCircle[segment * 2]
+                val sin0 = unitCircle[segment * 2 + 1]
+                val cos1 = unitCircle[segment * 2 + 2]
+                val sin1 = unitCircle[segment * 2 + 3]
 
                 // Outer start and end, then inner start and end.
-                transform.transform(cx + outerX * cos(a0), cy + outerY * sin(a0), p, 0)
-                transform.transform(cx + outerX * cos(a1), cy + outerY * sin(a1), p, 2)
-                transform.transform(cx + innerX * cos(a0), cy + innerY * sin(a0), p, 4)
-                transform.transform(cx + innerX * cos(a1), cy + innerY * sin(a1), p, 6)
+                transform.transform(cx + outerX * cos0, cy + outerY * sin0, p, 0)
+                transform.transform(cx + outerX * cos1, cy + outerY * sin1, p, 2)
+                transform.transform(cx + innerX * cos0, cy + innerY * sin0, p, 4)
+                transform.transform(cx + innerX * cos1, cy + innerY * sin1, p, 6)
 
                 addVertex(p[0], p[1], 0.5f, 0.5f, color)
                 addVertex(p[2], p[3], 0.5f, 0.5f, color)
