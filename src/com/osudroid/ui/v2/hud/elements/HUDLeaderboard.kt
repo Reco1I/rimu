@@ -3,6 +3,7 @@ package com.osudroid.ui.v2.hud.elements
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.hud.HUDElement
+import com.osudroid.ui.v2.songselect.SongSelect
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
@@ -31,7 +32,7 @@ class HUDLeaderboard : HUDElement() {
 
     private val isReplaying = replayId != -1
 
-    private val isGlobalLeaderboard = GlobalManager.getInstance().songMenu.isBoardOnline
+    private val isGlobalLeaderboard = SongSelect.isLeaderboardOnline
 
 
     init {
@@ -43,7 +44,7 @@ class HUDLeaderboard : HUDElement() {
         super.onUpdate(clock)
 
         if (!Multiplayer.isMultiplayer) {
-            val items = GlobalManager.getInstance().songMenu.board
+            val items = SongSelect.scoreBoardItems.takeIf { it.isNotEmpty() }
 
             // We consider that if it's in replay mode the length should be the same, in case it's not then the
             // length should be +1 greater (because of the new score).

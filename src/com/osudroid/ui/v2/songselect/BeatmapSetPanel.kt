@@ -1,37 +1,36 @@
 package com.osudroid.ui.v2.songselect
 
-import android.graphics.*
 import android.util.Log
-import com.reco1l.andengine.*
-import com.reco1l.andengine.Anchor
-import com.reco1l.andengine.buffered.BufferSharingMode
-import com.reco1l.andengine.buffered.CompoundBuffer
-import com.reco1l.andengine.buffered.MutableReference
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.shape.UIBox
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.text.*
-import com.reco1l.andengine.theme.Colors
-import com.reco1l.andengine.theme.Fonts
-import com.reco1l.andengine.theme.Radius
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.*
-import com.reco1l.framework.*
-import com.reco1l.framework.math.*
-import com.reco1l.toolkt.graphics.*
-import kotlinx.coroutines.*
-import ru.nsu.ccfit.zuev.osu.*
-import java.io.File
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.math.interpolateColor
+import com.reco1l.verktex.math.interpolateFloat
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.container.RecyclableComponent
+import com.reco1l.verktex.ui.container.UIClickableContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.clickableContainer
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.shape.box
+import com.reco1l.verktex.ui.sprite
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.text
+import kotlin.math.abs
 import kotlin.random.*
 
+/**
+ * Moves towards [end], jumping to it once it is closer than [snapBy].
+ */
+internal fun FrameClock.interpolateWithSnap(duration: Float, start: Float, end: Float, snapBy: Float): Float {
+    return if (abs(end - start) < snapBy) end else interpolateFloat(duration, start, end)
+}
 
-private val textBufferRef = MutableReference<CompoundBuffer?>(null)
-private val coverBufferRef = MutableReference<UISprite.SpriteVBO?>(null)
-private val buttonBackgroundBufferRef = MutableReference<UIBox.BoxVBO?>(null)
-private val buttonBorderBufferRef = MutableReference<UIBox.BoxVBO?>(null)
 
 class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableComponent<BeatmapSetModel>(), IPanelContainer<BeatmapPanel> {
 
@@ -40,10 +39,13 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
 
     /**
-     * The local position for the currently selected panel.
+     * The position in scene space of the middle of the currently selected panel.
      */
-    val selectedPanelY: Float
-        get() = panelsContainer.absoluteY + (selectedPanel?.let { it.absoluteY + it.height / 2f } ?: 0f)
+    val selectedPanelSceneY: Float
+        get() {
+            val panel = selectedPanel ?: return panelsContainer.toSceneSpace(0f, 0f).y
+            return panel.toSceneSpace(0f, panel.bounds.height / 2f).y
+        }
 
 
     /**
@@ -92,12 +94,10 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
 
     private var isTransitioning = false
-        set(value) {
-            if (field != value) {
-                field = value
-                Log.d("BeatmapSetPanel", "Transitioning: $value")
-            }
-        }
+
+    private var buttonExtraWidth = 0f
+    private var buttonBorderWidth = BORDER_WIDTH.dip.toPixels()
+    private var panelsHeight = 0f
 
     private lateinit var cover: UISprite
     private lateinit var titleText: UIText
@@ -105,19 +105,17 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
 
     init {
-        width = Size.Full
+        width = Dimension.FillAvailable
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
 
         linearContainer {
-            orientation = Orientation.Vertical
-            width = Size.Full
-            style = {
-                spacing = 1f.srem
-            }
+            orientation = UILinearContainer.Orientation.Vertical
+            width = Dimension.FillAvailable
+            spacing = 4f.dip
 
             button = clickableContainer {
-                width = Size.Full
+                width = Dimension.FillAvailable
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
                 onActionUp = {
@@ -128,76 +126,58 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                         select()
                     }
                 }
-                style = {
-                    borderColor = it.accentColor.copy(alpha = 0.3f)
-                    borderWidth = 0.25f.srem
-                    minHeight = 4.5f.rem
-                    radius = Radius.XL
-                    border?.apply {
-                        bufferSharingMode = BufferSharingMode.Dynamic
-                        bufferReference = buttonBorderBufferRef
-                    }
+                style = Style { theme ->
+                    borderColor = theme.palette.accent.copy(alpha = 0.3f)
+                    borderWidth = BORDER_WIDTH.dip
+                    radius = theme.radius.xl
                 }
 
                 cover = sprite {
-                    width = Size.Full
-                    height = Size.Full
-                    scaleType = ScaleType.Crop
-                    bufferSharingMode = BufferSharingMode.Dynamic
-                    bufferReference = coverBufferRef
-                    style = {
-                        backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.5f)
-                        radius = Radius.XL
+                    width = Dimension.FillAvailable
+                    height = Dimension.FillAvailable
+                    scaleType = UISprite.ScaleType.Crop
+                    style = Style { theme ->
+                        backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.5f)
+                        radius = theme.radius.xl
                     }
                 }
 
                 box {
-                    width = Size.Full
-                    height = Size.Full
-                    color = Colors.Black.copy(alpha = 0.6f)
-                    bufferSharingMode = BufferSharingMode.Dynamic
-                    bufferReference = buttonBackgroundBufferRef
-                    style = {
-                        radius = Radius.XL
+                    width = Dimension.FillAvailable
+                    height = Dimension.FillAvailable
+                    backgroundColor = Color4.Black.copy(alpha = 0.6f)
+                    style = Style { theme ->
+                        radius = theme.radius.xl
                     }
                 }
 
                 linearContainer {
-                    orientation = Orientation.Vertical
-                    width = Size.Full
-                    style = {
-                        padding = Vec4(2.5f.srem)
-                    }
+                    orientation = UILinearContainer.Orientation.Vertical
+                    width = Dimension.FillAvailable
+                    padding = Padding(10f.dip)
 
                     titleText = text {
                         text = "Unknown"
-                        style = {
-                            fontFamily = Fonts.TorusBold
-                            color = it.accentColor
+                        style = Style { theme ->
+                            fontSettings = theme.typography.h3
+                            fontSize = theme.typography.body.size
+                            color = theme.palette.accent
                         }
-                        bufferSharingMode = BufferSharingMode.Dynamic
-                        bufferReference = textBufferRef
                     }
 
                     artistText = text {
                         text = "Unknown"
-                        style = { color = it.accentColor * 0.8f }
-                        bufferSharingMode = BufferSharingMode.Dynamic
-                        bufferReference = textBufferRef
+                        style = Style { theme -> color = theme.palette.accent * 0.8f }
                     }
-
                 }
-
             }
 
             panelsContainer = linearContainer {
-                orientation = Orientation.Vertical
-                width = Size.Full
-                height = 0f
+                orientation = UILinearContainer.Orientation.Vertical
+                width = Dimension.FillAvailable
+                height = 0f.px
                 alpha = 0f
-                style = {
-                    spacing = 1f.srem
-                }
+                spacing = 4f.dip
             }
         }
     }
@@ -206,98 +186,63 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
     override fun onBind(data: BeatmapSetModel) {
         titleText.text = data.beatmapSetInfo.beatmaps.getOrNull(0)?.titleText ?: "Unknown"
         artistText.text = data.beatmapSetInfo.beatmaps.getOrNull(0)?.artistText ?: "Unknown"
-
-    }
-
-    private fun loadCover(model: BeatmapSetModel) = coverLoadScope.launch {
-        model.isLoadingCover = true
-
-        if (!ResourceManager.getInstance().isTextureLoaded("cover@${model.beatmapSetInfo[0].md5}")) {
-
-            if (!coverCacheDirectory.exists()) {
-                coverCacheDirectory.mkdirs()
-            }
-
-            val cacheFile = File(coverCacheDirectory, "${model.beatmapSetInfo[0].md5}.webp")
-
-            fun loadTextureFromFile() {
-                val texture = ResourceManager.getInstance().loadHighQualityFile("cover@${model.beatmapSetInfo[0].md5}", cacheFile)
-                if (texture != null) {
-                    model.coverTexture = texture
-                } else {
-                    cacheFile.delete()
-                }
-            }
-
-            if (!cacheFile.exists()) {
-                cacheFile.createNewFile()
-
-                val bitmap = BitmapFactory.decodeFile(model.beatmapSetInfo[0].backgroundPath).let { it.cropInCenter(it.width, 100) }
-
-                cacheFile.outputStream().use { out ->
-                    if (bitmap.compress(Bitmap.CompressFormat.WEBP, 10, out)) {
-                        loadTextureFromFile()
-                    } else {
-                        cacheFile.delete()
-                    }
-                }
-            } else {
-                loadTextureFromFile()
-            }
-        } else {
-            model.coverTexture = ResourceManager.getInstance().getTexture("cover@${model.beatmapSetInfo[0].md5}")
-        }
-
-        model.isLoadingCover = false
-
-        if (isBound) {
-            cover.textureRegion = model.coverTexture
-        }
+        cover.textureRegion = data.coverTexture
     }
 
 
     fun select(beatmapIndex: Int = 0) {
         beatmapCarrousel.selectedPanel = this
-        selectedPanel = panelsContainer[beatmapIndex]
+        selectedPanel = panelsContainer[beatmapIndex] as BeatmapPanel
     }
 
     fun selectRandom() {
         beatmapCarrousel.selectedPanel = this
-        selectedPanel = panelsContainer[Random.nextInt(panelsContainer.childCount - 1)]
+        selectedPanel = panelsContainer[Random.nextInt(panelsContainer.childCount)] as BeatmapPanel
     }
 
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        val accent = Verktex.theme.palette.accent
 
-        val buttonContainerTargetWidth = if (isExpanded) width + 2f.rem else width
-        val buttonContainerTargetBorderColor = if (isExpanded) Theme.current.accentColor else Theme.current.accentColor.copy(alpha = 0.3f)
-        val buttonContainerTargetBorderWidth = if (isExpanded) 0.5f.srem else 0.25f.srem
+        val targetExtraWidth = if (isExpanded) EXPANDED_EXTRA_WIDTH.dip.toPixels() else 0f
+        val targetBorderColor = if (isExpanded) accent else accent.copy(alpha = 0.3f)
+        val targetBorderWidth = (if (isExpanded) EXPANDED_BORDER_WIDTH else BORDER_WIDTH).dip.toPixels()
+
+        buttonExtraWidth = clock.interpolateWithSnap(0.1f, buttonExtraWidth, targetExtraWidth, 0.5f)
+        buttonBorderWidth = clock.interpolateWithSnap(0.1f, buttonBorderWidth, targetBorderWidth, 0.5f)
 
         button.apply {
-            width = Interpolation.floatLerpWithSnap(deltaTimeSec, 0.1f, width, buttonContainerTargetWidth, 0.5f)
-            borderColor = Interpolation.colorLerp(deltaTimeSec, 0.1f, borderColor, buttonContainerTargetBorderColor)
-            borderWidth = Interpolation.floatLerpWithSnap(deltaTimeSec, 0.1f, borderWidth, buttonContainerTargetBorderWidth, 0.5f)
+            borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
+            borderWidth = buttonBorderWidth.px
         }
 
-        val panelContainerTargetHeight = if (isExpanded) panelsContainer.intrinsicHeight else 0f
-        val panelContainerTargetAlpha = if (isExpanded) 1f else 0f
+        val targetPanelsHeight = if (isExpanded) panelsContentHeight() else 0f
+        val targetPanelsAlpha = if (isExpanded) 1f else 0f
+
+        panelsHeight = clock.interpolateWithSnap(0.1f, panelsHeight, targetPanelsHeight, 0.5f)
 
         panelsContainer.apply {
-            height = Interpolation.floatLerpWithSnap(deltaTimeSec, 0.1f, height, panelContainerTargetHeight, 0.5f)
-            alpha = Interpolation.floatLerpWithSnap(deltaTimeSec, 0.1f, alpha, panelContainerTargetAlpha, 0.1f)
+            height = panelsHeight.px
+            alpha = clock.interpolateWithSnap(0.1f, alpha, targetPanelsAlpha, 0.1f)
         }
 
-        isTransitioning = button.width != buttonContainerTargetWidth
-            || button.borderColor != buttonContainerTargetBorderColor
-            || button.borderWidth != buttonContainerTargetBorderWidth
-            || panelsContainer.height != panelContainerTargetHeight
-            || panelsContainer.alpha != panelContainerTargetAlpha
+        isTransitioning = buttonExtraWidth != targetExtraWidth
+            || buttonBorderWidth != targetBorderWidth
+            || button.borderColor != targetBorderColor
+            || panelsHeight != targetPanelsHeight
+            || panelsContainer.alpha != targetPanelsAlpha
 
         if (!isExpanded && !isTransitioning && panelsContainer.childCount > 0) {
-            panelsContainer.detachChildren()
+            panelsContainer.clearChildren()
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
+    }
+
+    private fun panelsContentHeight(): Float {
+        var height = 0f
+        panelsContainer.forEach { height += it.measuredSize.y }
+        return height + panelsContainer.spacing.toPixels() * (panelsContainer.childCount - 1).coerceAtLeast(0)
     }
 
     fun expand() {
@@ -312,7 +257,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
             isExpanded = true
 
             data.beatmapSetInfo.beatmaps.sortedBy { it.droidStarRating }.forEach {
-                panelsContainer.attachChild(BeatmapPanel(this@BeatmapSetPanel, it))
+                panelsContainer += BeatmapPanel(this@BeatmapSetPanel, it)
             }
         }
     }
@@ -330,9 +275,9 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
     }
 
 
-    companion object {
-        private val coverLoadScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-        private val coverCacheDirectory = File(GlobalManager.getInstance().mainActivity.cacheDir, "covers")
+    private companion object {
+        const val BORDER_WIDTH = 1f
+        const val EXPANDED_BORDER_WIDTH = 2f
+        const val EXPANDED_EXTRA_WIDTH = 32f
     }
-
 }

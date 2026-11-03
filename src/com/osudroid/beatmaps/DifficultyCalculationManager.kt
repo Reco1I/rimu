@@ -1,5 +1,7 @@
 package com.osudroid.beatmaps
 
+import com.osudroid.ui.v2.songselect.SongSelect
+
 import android.util.Log
 import androidx.preference.PreferenceManager
 import com.osudroid.ui.v1.LoadingBadgeFragment
@@ -165,7 +167,7 @@ object DifficultyCalculationManager {
                     badge?.dismiss()
                     badge = null
                 }
-                GlobalManager.getInstance().songMenu?.onDifficultyCalculationEnd()
+                SongSelect.loadBeatmaps()
 
             } catch (e: InterruptedException) {
                 Log.e("DifficultyCalculation", "Failed while waiting for executor termination.", e)

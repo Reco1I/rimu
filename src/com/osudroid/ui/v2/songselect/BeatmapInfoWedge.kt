@@ -1,32 +1,34 @@
 package com.osudroid.ui.v2.songselect
 
+import com.osudroid.GameMode
+import com.osudroid.beatmaps.*
+import com.osudroid.beatmaps.DroidHitWindow.Companion.hitWindow300ToOverallDifficulty
 import com.osudroid.data.*
+import com.osudroid.mods.*
 import com.osudroid.ui.*
 import com.osudroid.ui.v2.StarRatingBadge
 import com.osudroid.ui.v2.modmenu.*
-import com.reco1l.andengine.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.text.*
-import com.reco1l.andengine.theme.Fonts
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.theme.Radius
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.*
-import com.reco1l.framework.*
-import com.reco1l.framework.math.*
-import com.reco1l.toolkt.*
-import com.rian.osu.*
-import com.rian.osu.beatmap.*
-import com.rian.osu.beatmap.DroidHitWindow.Companion.hitWindow300ToOverallDifficulty
-import com.rian.osu.mods.*
-import com.rian.osu.utils.ModUtils.applyModsToBeatmapDifficulty
-import com.rian.osu.utils.ModUtils.calculateRateWithMods
-import ru.nsu.ccfit.zuev.osu.*
-import ru.nsu.ccfit.zuev.osu.game.*
+import com.osudroid.utils.applyMods
+import com.osudroid.utils.calculateRate
+import com.reco1l.framework.math.roundBy
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIBadge
+import com.reco1l.verktex.ui.UILabeledBadge
+import com.reco1l.verktex.ui.badge
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.labeledBadge
+import com.reco1l.verktex.ui.shape.UIWedge
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.text.text
 import java.text.*
 import java.util.*
 import kotlin.math.roundToInt
@@ -37,8 +39,8 @@ class BeatmapInfoWedge : UIContainer() {
     private lateinit var titleText: UIText
     private lateinit var artistText: UIText
 
-    private lateinit var lengthText: CompoundText
-    private lateinit var bpmText: CompoundText
+    private lateinit var lengthText: UIBadge
+    private lateinit var bpmText: UIBadge
 
     private lateinit var arText: UILabeledBadge
     private lateinit var csText: UILabeledBadge
@@ -54,64 +56,61 @@ class BeatmapInfoWedge : UIContainer() {
 
 
     init {
-        width = Size.Full
-        translationX = -2f
-        translationY = -2f
+        width = Dimension.FillAvailable
+        translationX = (-2f).px
+        translationY = (-2f).px
 
         +UIWedge().apply {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
+            alpha = 0.75f
 
-            style = {
-                color = it.accentColor * 0.1f
-                alpha = 0.75f
-                radius = 0.75f.rem
+            style = Style { theme ->
+                color = (theme.palette.accent * 0.1f).copy(alpha = 0.75f)
+                radius = 12f.dip
+                strokeWidth = 2f.px
+                strokeColor = theme.palette.accent * 0.2f
             }
         }
 
         linearContainer {
-            width = Size.Full
-            orientation = Orientation.Vertical
-            style = {
-                padding = Vec4(
-                    UIEngine.current.safeArea.x + 4f.srem,
-                    4f.srem,
-                    4f.srem,
-                    4f.srem,
-                )
-                spacing = 1.5f.srem
-            }
+            width = Dimension.FillAvailable
+            orientation = UILinearContainer.Orientation.Vertical
+            padding = Padding(16f.dip)
+            spacing = 6f.dip
 
-            fillContainer {
-                orientation = Orientation.Horizontal
-                spacing = 10f
-                width = Size.Full
+            linearContainer {
+                orientation = UILinearContainer.Orientation.Horizontal
+                spacing = 10f.px
+                width = Dimension.FillAvailable
 
                 linearContainer {
-                    width = Size.Full
-                    orientation = Orientation.Vertical
+                    width = Dimension.FillAvailable
+                    orientation = UILinearContainer.Orientation.Vertical
 
                     artistText = text {
                         text = "Unknown"
-                        style = {
-                            color = it.accentColor * 0.8f
-                            fontFamily = Fonts.TorusBold
+                        style = Style { theme ->
+                            fontSettings = theme.typography.h3
+                            fontSize = theme.typography.body.size
+                            color = theme.palette.accent * 0.8f
                         }
                     }
 
                     titleText = text {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
                         text = "No selected beatmap"
-                        style = {
-                            color = it.accentColor
-                            fontFamily = Fonts.TorusBold
+                        style = Style { theme ->
+                            fontSettings = theme.typography.h3
+                            fontSize = theme.typography.body.size
+                            color = theme.palette.accent
                         }
-                        clipToBounds = true
+                        clipping = ClipMode.Bounds
                     }
 
                     versionText = text {
                         text = "Unknown"
-                        style = { color = it.accentColor * 0.8f}
+                        style = Style { theme -> color = theme.palette.accent * 0.8f }
                     }
                 }
                 starsText = StarRatingBadge()
@@ -119,96 +118,74 @@ class BeatmapInfoWedge : UIContainer() {
             }
 
             linearContainer {
-                orientation = Orientation.Horizontal
-                style = {
-                    spacing = 2f.srem
+                orientation = UILinearContainer.Orientation.Horizontal
+                spacing = 8f.dip
+
+                fun StatisticBadge(iconCode: Int) = badge {
+                    leadingIcon = faSolidIcon(iconCode)
+                    density = UIBadge.Density.Small
+                    style += Style { theme ->
+                        backgroundColor = Color4.Transparent
+                        color = theme.palette.accent
+                    }
                 }
 
-                lengthText = badge {
-                    leadingIcon = FontAwesomeIcon(Icon.Clock)
-                    text = "00:00"
-                    colorVariant = ColorVariant.Tertiary
-                    sizeVariant = SizeVariant.Small
-                }
-
-                bpmText = badge {
-                    leadingIcon = FontAwesomeIcon(Icon.HeartPulse)
-                    text = "0"
-                    colorVariant = ColorVariant.Tertiary
-                    sizeVariant = SizeVariant.Small
-                }
+                lengthText = StatisticBadge(FAIcon.Clock).apply { text = "00:00" }
+                bpmText = StatisticBadge(FAIcon.HeartPulse).apply { text = "0" }
             }
 
             linearContainer {
-                orientation = Orientation.Vertical
-                style = {
-                    spacing = 1f.srem
-                }
+                orientation = UILinearContainer.Orientation.Vertical
+                spacing = 4f.dip
 
                 linearContainer {
-                    orientation = Orientation.Horizontal
-                    style = {
-                        spacing = 1f.srem
-                    }
+                    orientation = UILinearContainer.Orientation.Horizontal
+                    spacing = 4f.dip
 
                     circlesBadge = labeledBadge {
                         label = "Circles"
                         value = "0"
-                        sizeVariant = SizeVariant.Small
+                        density = UIBadge.Density.Small
                     }
                     slidersBadge = labeledBadge {
                         label = "Sliders"
                         value = "0"
-                        sizeVariant = SizeVariant.Small
+                        density = UIBadge.Density.Small
                     }
                     spinnersBadge = labeledBadge {
                         label = "Spinners"
                         value = "0"
-                        sizeVariant = SizeVariant.Small
+                        density = UIBadge.Density.Small
                     }
                 }
 
                 linearContainer {
-                    orientation = Orientation.Horizontal
-                    style = {
-                        spacing = 1f.srem
-                    }
+                    orientation = UILinearContainer.Orientation.Horizontal
+                    spacing = 4f.dip
 
                     arText = labeledBadge {
                         label = "AR"
                         value = "00.0"
-                        sizeVariant = SizeVariant.Small
+                        density = UIBadge.Density.Small
                     }
                     odText = labeledBadge {
                         label = "OD"
                         value = "00.0"
-                        sizeVariant = SizeVariant.Small
+                        density = UIBadge.Density.Small
                     }
                     csText = labeledBadge {
                         label = "CS"
                         value = "00.0"
-                        sizeVariant = SizeVariant.Small
+                        density = UIBadge.Density.Small
                     }
                     hpText = labeledBadge {
                         label = "HP"
                         value = "00.0"
-                        sizeVariant = SizeVariant.Small
+                        density = UIBadge.Density.Small
                     }
                 }
             }
         }
-
-        +UIWedge().apply {
-            width = Size.Full
-            height = Size.Full
-            paintStyle = PaintStyle.Outline
-            lineWidth = 2f
-            style = {
-                color = it.accentColor * 0.2f
-                radius = 0.75f.rem
-            }
-        }
-
     }
 
 
@@ -241,28 +218,28 @@ class BeatmapInfoWedge : UIContainer() {
 
         val mods = ModMenu.enabledMods
         val isPreciseMod = ModPrecise::class in mods
-        val totalSpeedMultiplier = calculateRateWithMods(mods.values, Double.POSITIVE_INFINITY)
+        val totalSpeedMultiplier = mods.values.calculateRate(Double.POSITIVE_INFINITY)
 
         val difficulty = beatmapInfo.getBeatmapDifficulty()
 
-        applyModsToBeatmapDifficulty(difficulty, GameMode.Droid, mods.values, true)
+        difficulty.applyMods(GameMode.Droid, mods.values, true)
 
         if (isPreciseMod) {
             // Special case for OD. The Precise mod changes the hit window and not the OD itself, but we must
             // map the hit window back to the original hit window for the user to understand the difficulty
             // increase of the mod.
             val greatWindow = PreciseDroidHitWindow(difficulty.od).greatWindow
-            difficulty.od = hitWindow300ToOverallDifficulty(greatWindow)
+            difficulty.od = hitWindow300ToOverallDifficulty(greatWindow).toFloat()
         }
 
         // Round to 2 decimal places.
         // Using difficulty circle size is quite inaccurate here as the real circle size changes
         // depending on the height of the running device, but for the sake of comparison across
         // players, we assume the height of the device to be fixed.
-        difficulty.difficultyCS = GameHelper.Round(difficulty.difficultyCS.toDouble(), 2)
-        difficulty.ar = GameHelper.Round(difficulty.ar.toDouble(), 2)
-        difficulty.od = GameHelper.Round(difficulty.od.toDouble(), 2)
-        difficulty.hp = GameHelper.Round(difficulty.hp.toDouble(), 2)
+        difficulty.difficultyCS = difficulty.difficultyCS.roundBy(2)
+        difficulty.ar = difficulty.ar.roundBy(2)
+        difficulty.od = difficulty.od.roundBy(2)
+        difficulty.hp = difficulty.hp.roundBy(2)
 
         val minBpm = (beatmapInfo.bpmMin * totalSpeedMultiplier).roundToInt()
         val maxBpm = (beatmapInfo.bpmMax * totalSpeedMultiplier).roundToInt()
@@ -290,13 +267,5 @@ class BeatmapInfoWedge : UIContainer() {
         starsText.rating = value
     }
 
-
-    companion object {
-        init {
-            ResourceManager.getInstance().loadHighQualityAsset("clock", "clock.png")
-            ResourceManager.getInstance().loadHighQualityAsset("bpm", "bpm.png")
-            ResourceManager.getInstance().loadHighQualityAsset("star", "star.png")
-        }
-    }
 }
 

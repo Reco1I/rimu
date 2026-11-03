@@ -1,20 +1,21 @@
 package com.osudroid.ui.v2.songselect
 
 import com.osudroid.data.*
-import com.reco1l.andengine.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.theme.Size
-import com.reco1l.framework.math.*
-import org.anddev.andengine.engine.camera.*
-import org.anddev.andengine.input.touch.*
-import org.anddev.andengine.opengl.texture.region.*
-import javax.microedition.khronos.opengles.*
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.container.UIRecyclerContainer
 import kotlin.math.*
 
 class BeatmapSetModel(
     val beatmapSetInfo: BeatmapSetInfo,
-    var coverTexture: TextureRegion? = null,
+    var coverTexture: GraphicsTexture.Region? = null,
     var isLoadingCover: Boolean = false,
 ) {
     override fun toString(): String {
@@ -49,55 +50,47 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
 
 
     init {
-        scrollAxes = Axes.Y
-        width = Size.Full
-        height = Size.Full
+        scrollAxes = Axis.Y
+        width = Dimension.FillAvailable
+        height = Dimension.FillAvailable
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
+        spacing = (-2f).px
 
         componentWrapper.apply {
-            orientation = Orientation.Vertical
-            width = Size.Full
-            spacing = -2f
-            padding = Vec4(0f, 200f)
-            translationX = 14f
+            padding = Padding(0f.px, 200f.px)
+            translationX = 14f.px
         }
 
         onCreateComponent = { BeatmapSetPanel(this) }
     }
 
 
-    private fun getPositionPercentage(componentY: Float, componentHeight: Float, parentScroll: Float, parentHeight: Float): Float {
-        val positionInScreen = componentY + componentHeight / 2f - parentScroll
-        val percentage = positionInScreen / parentHeight
+    private fun getPositionPercentage(sceneY: Float, componentHeight: Float): Float {
+        val positionInView = sceneY + componentHeight / 2f - toSceneSpace(0f, 0f).y
 
-        return percentage
+        return positionInView / bounds.height
     }
 
-    override fun onDrawComponent(gl: GL10, camera: Camera, component: BeatmapSetPanel) {
+    override fun onUpdate(clock: FrameClock) {
 
-        val buttonAbsoluteY = component.absoluteY + component.button.absoluteY
-        val mainPanelYPercentage = getPositionPercentage(buttonAbsoluteY, component.button.height, scrollY, height)
+        // The panels follow a curve along the height of the container.
+        boundComponents.values.forEach { component ->
+            val button = component.button
 
-        component.button.translationX = SHEAR * (1f - mainPanelYPercentage)
+            button.translationX = (SHEAR * (1f - getPositionPercentage(button.toSceneSpace(0f, 0f).y, button.bounds.height))).px
 
-        if (selectedPanel == component) {
-            component.panelsContainer.forEach { panel -> panel as BeatmapPanel
-                val panelYPercentage = getPositionPercentage(buttonAbsoluteY + panel.absoluteY, panel.height, scrollY, height)
-
-                panel.translationX = -component.translationX + SHEAR * (1f - panelYPercentage)
+            if (selectedPanel == component) {
+                component.panelsContainer.forEach { panel ->
+                    panel.translationX = (SHEAR * (1f - getPositionPercentage(panel.toSceneSpace(0f, 0f).y, panel.bounds.height))).px
+                }
             }
         }
-
-        super.onDrawComponent(gl, camera, component)
-    }
-
-    override fun onManagedUpdate(deltaTimeSec: Float) {
 
         val panel = selectedPanel
         if (panel != null && autoScrollToSelectedPanel) {
 
-            val panelY = panel.absoluteY + panel.selectedPanelY - height / 2f
+            val panelY = panel.selectedPanelSceneY - toSceneSpace(0f, 0f).y + scrollY - bounds.height / 2f
             val difference = panelY - scrollY
 
             var targetY = scrollY
@@ -112,14 +105,14 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
             scrollY = targetY.coerceAtLeast(0f).coerceAtMost(maxScrollY)
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
-    override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-        if (event.isActionDown) {
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (event is PointerEvent && event.action == PointerEvent.Action.Down && containsScenePoint(event.x, event.y)) {
             autoScrollToSelectedPanel = false
         }
-        return super.onAreaTouched(event, localX, localY)
+        return super.onInputEvent(event)
     }
 
 

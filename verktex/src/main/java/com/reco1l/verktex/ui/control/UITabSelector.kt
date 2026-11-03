@@ -1,26 +1,32 @@
-package com.reco1l.andengine.ui
+package com.reco1l.verktex.ui.control
 
-import com.edlplan.framework.easing.Easing
-import com.reco1l.andengine.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.modifier.*
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.theme.Radius
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.srem
-import com.reco1l.framework.Interpolation
-import com.reco1l.framework.math.*
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.math.FloatInterpolation
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.ui.shape.box
 
+/**
+ * A row of buttons where only one is selected, marked by an indicator moving between them.
+ */
 class UITabSelector : UIContainer() {
 
-
     /**
-     * The currently selected tab index.
+     * The index of the selected tab, if any.
      */
     var selectedTab: Int?
-        get() = if (selectedButton == null) null else buttonsContainer.getChildIndex(selectedButton)
+        get() = selectedButton?.let { buttonsContainer.indexOfFirst { child -> child === it } }?.takeIf { it >= 0 }
         set(value) {
-            selectedButton = if (value == null) null else buttonsContainer.getChild(value) as UITextButton
+            selectedButton = if (value == null) null else buttonsContainer[value] as UITextButton
         }
 
 
@@ -29,68 +35,71 @@ class UITabSelector : UIContainer() {
 
     private var selectedButton: UITextButton? = null
 
+    private var indicatorX = 0f
+    private var indicatorWidth = 0f
+
 
     init {
-        style = {
-            padding = Vec4(1f.srem)
-            backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.25f)
-            radius = Radius.LG
+        style = Style { theme ->
+            padding = Padding(theme.gap.xs)
+            backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.25f)
+            radius = theme.radius.lg
         }
 
         selectionIndicator = box {
             alpha = 0f
-            height = Size.Full
-            style = {
-                color = it.accentColor * 0.2f
-                radius = Radius.LG
+            height = Dimension.FillAvailable
+            style = Style { theme ->
+                backgroundColor = theme.palette.accent * 0.2f
+                radius = theme.radius.lg
             }
         }
 
-        buttonsContainer = fillContainer {
-            width = Size.Full
-            style = {
-                spacing = 1f.srem
+        buttonsContainer = linearContainer {
+            width = Dimension.FillAvailable
+            style = Style { theme ->
+                spacing = theme.gap.xs
             }
         }
-
     }
 
 
+    /**
+     * Adds a tab, calling [onSelect] when the user selects it.
+     */
     fun addButton(name: String, onSelect: () -> Unit) {
-        buttonsContainer.attachChild(UITextButton().apply {
-            width = Size.Full
+        buttonsContainer += UITextButton().apply {
+            width = Dimension.FillAvailable
             text = name
             alignment = Anchor.Center
-            sizeVariant = SizeVariant.Small
-            colorVariant = ColorVariant.Tertiary
+            density = UIButton.Density.Small
+            variant = UIButton.Variant.Ghost
             onActionUp = {
                 selectedButton = this
                 onSelect()
             }
-        })
+        }
     }
 
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        val deltaTimeSec = clock.elapsedFrameTime
+        val button = selectedButton
 
         selectionIndicator.apply {
-            val selectedButton = selectedButton
+            if (button != null) {
+                alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), alpha, 1f, 0f, 0.1f, Easing.None)
 
-            if (selectedButton != null) {
+                indicatorWidth = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), indicatorWidth, button.bounds.width, 0f, 0.1f, Easing.None)
+                indicatorX = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), indicatorX, button.bounds.x, 0f, 0.2f, Easing.None)
 
-                alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), alpha, 1f, 0f, 0.1f)
-                width = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), width, selectedButton.width, 0f, 0.1f)
-                x = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), x, selectedButton.x, 0f, 0.2f, Easing.OutQuint)
-
+                width = indicatorWidth.px
+                x = indicatorX.px
             } else {
-                alpha = Interpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), alpha, 0f, 0f, 0.1f)
+                alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), alpha, 0f, 0f, 0.1f, Easing.None)
             }
         }
 
-
-
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
-
-
 }

@@ -27,6 +27,7 @@ import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.modmenu.ModMenu
 import com.osudroid.ui.v2.setText
 import com.osudroid.ui.v2.settings.SettingsMenu
+import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.async
 import com.osudroid.utils.mainThread
 import com.osudroid.utils.runSafe
@@ -328,9 +329,8 @@ class RoomScene(
                                             BeatmapListing().show()
                                         }
 
-                                        GlobalManager.getInstance().songMenu.reload()
-                                        GlobalManager.getInstance().songMenu.show()
-                                        GlobalManager.getInstance().songMenu.select()
+                                        SongSelect.loadBeatmaps()
+                                        SongSelect.show()
 
                                         // We notify all clients that the host is changing beatmap
                                         RoomAPI.changeBeatmap()
@@ -1105,7 +1105,7 @@ class RoomScene(
                 }
 
                 allowAutomaticPlaybackRestart = false
-                global.songMenu.stopMusic()
+                global.songService.stop()
                 global.gameScene.startGame(global.selectedBeatmap, null, ModMenu.enabledMods)
 
             }

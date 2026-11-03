@@ -177,13 +177,18 @@ object MainScene : UIScene() {
 
                                 GlobalManager.getInstance().mainActivity.checkNewSkins()
                                 GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
+                                SongSelect.loadBeatmaps()
 
                                 if (LibraryManager.getLibrary().isEmpty()) {
                                     Verktex.withTreeLock { Verktex.popScene() }
                                     BeatmapListing().show()
                                 } else {
                                     GlobalManager.getInstance().songService.isGaming = true
-                                    UIEngine.current.scene = SongSelect
+
+                                    Verktex.withTreeLock {
+                                        Verktex.popScene()
+                                        Verktex.pushScene(SongSelect)
+                                    }
                                 }
                             }
                         }
@@ -205,7 +210,8 @@ object MainScene : UIScene() {
                                 GlobalManager.getInstance().mainActivity.checkNewSkins()
                                 GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
 
-                                GlobalManager.getInstance().songMenu.reload()
+                                SongSelect.loadBeatmaps()
+
                                 Verktex.withTreeLock {
                                     Verktex.popScene()
                                     Verktex.pushScene(LobbyScene())
