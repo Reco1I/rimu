@@ -12,7 +12,7 @@ import okhttp3.OkHttpClient;
 
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.anddev.andengine.util.Debug;
+import ru.nsu.ccfit.zuev.osu.helper.Debug;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 
 import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.GlobalManager;
-import ru.nsu.ccfit.zuev.osu.ResourceManager;
+import com.osudroid.ui.v2.CachedTextures;
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -317,8 +317,7 @@ public class OnlineManager {
 
         if (imageWidth * imageHeight > 0) {
             // Avatar has been cached locally
-            ResourceManager.getInstance().loadHighQualityFile(filename, picfile);
-            if (ResourceManager.getInstance().getAvatarTextureIfLoaded(avatarURL) != null) {
+            if (CachedTextures.INSTANCE.get(avatarURL) != null) {
                 return true;
             }
         } else {
@@ -335,8 +334,7 @@ public class OnlineManager {
 
             if (imageWidth * imageHeight > 0) {
                 //Avatar has been cached locally
-                ResourceManager.getInstance().loadHighQualityFile(defaultAvatarFilename, avatarFile);
-                if (ResourceManager.getInstance().getAvatarTextureIfLoaded(defaultAvatarURL) != null) {
+                if (CachedTextures.INSTANCE.get(defaultAvatarURL) != null) {
                     return true;
                 }
             }
@@ -349,7 +347,7 @@ public class OnlineManager {
     public boolean loadProfileBannerToTextureManager(String bannerURL) {
         if (bannerURL == null || bannerURL.isEmpty()) return false;
 
-        if (ResourceManager.getInstance().getProfileBannerTextureIfLoaded(bannerURL) != null) {
+        if (CachedTextures.INSTANCE.get(bannerURL) != null) {
             return true;
         }
 
@@ -370,8 +368,7 @@ public class OnlineManager {
             return false;
         }
 
-        ResourceManager.getInstance().loadHighQualityFile(filename, bannerFile);
-        return ResourceManager.getInstance().getProfileBannerTextureIfLoaded(bannerURL) != null;
+        return CachedTextures.INSTANCE.get(bannerURL) != null;
     }
 
     private Bitmap loadFileToBitmap(File file) {

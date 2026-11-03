@@ -2,11 +2,13 @@ package com.osudroid.game.replay
 
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.linearContainer
+import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.textButton
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.form.FormSlider
-import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
 import java.text.DecimalFormat
 
 class ReplayPlaybackRate : UILinearContainer() {
@@ -33,15 +35,15 @@ class ReplayPlaybackRate : UILinearContainer() {
         +slider
 
         linearContainer {
-            spacing = 10f
-            padding = Vec4(0f, 16f)
+            spacing = 10f.dip
+            padding = Padding(0f.dip, 16f.dip)
             anchor = Anchor.TopCenter
             origin = Anchor.TopCenter
 
             fun addStepButton(step: Float) = textButton {
                 text = "%+.2f".format(step)
-                height = 42f
-                padding = Vec4(12f, 0f)
+                height = 42f.dip
+                padding = Padding(12f.dip, 0f.dip)
                 onActionUp = { slider.value += step }
             }
 

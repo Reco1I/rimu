@@ -1,7 +1,6 @@
 package com.osudroid.ui.skinning
 
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.HexComposition
 import org.json.JSONObject
 
 sealed class SkinData<T>(val tag: String, val defaultValue: T) {
@@ -45,7 +44,7 @@ class ColorSkinData @JvmOverloads constructor(tag: String, default: Color4? = nu
             defaultValue
         } else {
             try {
-                Color4(hex, HexComposition.RRGGBB)
+                Color4(hex)
             } catch (_: NumberFormatException) {
                 defaultValue
             }

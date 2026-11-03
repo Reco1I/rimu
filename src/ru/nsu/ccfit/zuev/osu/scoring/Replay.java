@@ -20,7 +20,7 @@ import com.osudroid.mods.ModReplayV6;
 import com.osudroid.utils.ModHashMap;
 import com.osudroid.utils.ModUtils;
 
-import org.anddev.andengine.util.Debug;
+import ru.nsu.ccfit.zuev.osu.helper.Debug;
 
 import java.io.EOFException;
 import java.io.File;

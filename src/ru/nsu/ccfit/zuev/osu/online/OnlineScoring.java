@@ -8,7 +8,7 @@ import com.osudroid.data.BeatmapInfo;
 import com.osudroid.utils.Execution;
 import com.osudroid.ui.SendingPanel;
 
-import org.anddev.andengine.util.Debug;
+import ru.nsu.ccfit.zuev.osu.helper.Debug;
 
 import java.util.concurrent.CancellationException;
 
@@ -22,8 +22,6 @@ public class OnlineScoring {
     private static final int attemptCount = 5;
     private static OnlineScoring instance = null;
     private final Boolean onlineMutex = Boolean.FALSE;
-    private OnlinePanel panel = null;
-    private OnlinePanel secondPanel = null;
     private boolean avatarLoaded = false;
     private final Snackbar snackbar = Snackbar.make(
             GlobalManager.getInstance().getMainActivity().getWindow().getDecorView(),
@@ -35,48 +33,6 @@ public class OnlineScoring {
         if (instance == null)
             instance = new OnlineScoring();
         return instance;
-    }
-
-    public void createPanel() {
-        panel = new OnlinePanel();
-    }
-
-    public OnlinePanel getPanel() {
-        return panel;
-    }
-
-    public OnlinePanel createSecondPanel() {
-        if (!OnlineManager.getInstance().isStayOnline())
-            return null;
-        secondPanel = new OnlinePanel();
-        secondPanel.setInfo();
-        String avatarURL = OnlineManager.getInstance().getAvatarURL();
-        secondPanel.setProfile(avatarLoaded && !avatarURL.isEmpty() ? avatarURL : null);
-        return secondPanel;
-    }
-
-    public OnlinePanel getSecondPanel() {
-        return secondPanel;
-    }
-
-    public void setPanelMessage(String message, String submessage) {
-        panel.setMessage(message, submessage);
-        if (secondPanel != null)
-            secondPanel.setMessage(message, submessage);
-    }
-
-    public void updatePanels() {
-        panel.setInfo();
-        if (secondPanel != null)
-            secondPanel.setInfo();
-    }
-
-    public void updatePanelProfiles() {
-        final String avatarUrl = OnlineManager.getInstance().getAvatarURL();
-        String avatarTexName = avatarLoaded && !avatarUrl.isEmpty() ? avatarUrl : null;
-        panel.setProfile(avatarTexName);
-        if (secondPanel != null)
-            secondPanel.setProfile(avatarTexName);
     }
 
     public void login() {
@@ -94,14 +50,12 @@ public class OnlineScoring {
 
                 //Trying to send request
                 for (int i = 0; i < 3; i++) {
-                    setPanelMessage("Logging in...", "");
 
                     try {
                         JobKt.ensureActive(scope.getCoroutineContext());
                         success = OnlineManager.getInstance().logIn();
                     } catch (OnlineManager.OnlineManagerException e) {
                         Debug.e("Login error: " + e.getMessage());
-                        setPanelMessage("Login failed", "Retrying in 5 sec");
                         try {
                             Thread.sleep(3000);
                         } catch (InterruptedException e1) {
@@ -112,11 +66,9 @@ public class OnlineScoring {
                     break;
                 }
                 if (success) {
-                    Execution.updateThread(this::updatePanels);
                     OnlineManager.getInstance().setStayOnline(true);
                     loadProfileAssets(true);
                 } else {
-                    setPanelMessage("Cannot log in", OnlineManager.getInstance().getFailMessage());
                     OnlineManager.getInstance().setStayOnline(false);
 
                     if (OnlineManager.getInstance().getFailMessage().equals("Cannot connect to server")) {
@@ -167,7 +119,6 @@ public class OnlineScoring {
                         if (OnlineManager.getInstance().getFailMessage().equals("Invalid record data"))
                             i = attemptCount;
                     } else if (success) {
-                        Execution.updateThread(this::updatePanels);
                         OnlineManager mgr = OnlineManager.getInstance();
                         panel.show(mgr.getMapRank(), mgr.getRank(), mgr.getScore(), mgr.getAccuracy(), mgr.getPP());
                         break;
@@ -208,12 +159,6 @@ public class OnlineScoring {
                 }
                 JobKt.ensureActive(scope.getCoroutineContext());
 
-                Execution.updateThread(() -> {
-                    if (both)
-                        updatePanelProfiles();
-                    else if (secondPanel != null)
-                        secondPanel.setProfile(avatarLoaded ? avatarUrl : null);
-                });
             }
         });
     }

@@ -1,193 +1,145 @@
 package com.osudroid.ui
 
-import org.anddev.andengine.entity.modifier.MoveYModifier
-import org.anddev.andengine.entity.primitive.Rectangle
-import org.anddev.andengine.entity.scene.Scene.ITouchArea
-import org.anddev.andengine.entity.sprite.Sprite
-import org.anddev.andengine.entity.text.ChangeableText
-import org.anddev.andengine.entity.text.Text
-import org.anddev.andengine.input.touch.TouchEvent
-import org.anddev.andengine.util.HorizontalAlign
-import ru.nsu.ccfit.zuev.osu.Config
+import com.osudroid.ui.v2.SkinTextures
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.moveTo
+import com.reco1l.verktex.ui.text.UIText
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.round
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
 
+/**
+ * The panel that slides down from the top of the results screen with the changes in the player's ranking.
+ */
 class SendingPanel(
     private val overallRank: Long,
     private val score: Long,
     private val accuracy: Float,
     private val pp: Float
-) : Rectangle(0f, -200f, 800f, 200f) {
-    val dismissTouchArea: ITouchArea
-        get() = dismissButton
+) : UIContainer() {
 
-    private val overallCaptionText = Text(0f, 0f, getResources().getFont("CaptionFont"), "Overall Ranking").also {
-        it.setPosition((width - it.width) / 2, height / 5)
-        attachChild(it)
-    }
-
-    private val minWidth = width
-    private val minHeight = height
-    private val columnGap = 10
-
-    private var moveModifier: MoveYModifier? = null
-
-    private val dismissButton = object : DismissButton() {
-        override fun onAreaTouched(touchEvent: TouchEvent, localX: Float, localY: Float): Boolean {
-            if (canBeDismissed) {
-                this@SendingPanel.let {
-                    if (moveModifier != null) {
-                        it.unregisterEntityModifier(moveModifier)
-                    }
-
-                    val offset = it.height + height
-                    moveModifier = MoveYModifier(0.5f * (it.y + offset) / offset, it.y, -offset)
-                    it.registerEntityModifier(moveModifier)
-                }
-
-                canBeDismissed = false
-                return true
-            }
-
-            return false
-        }
-    }.also {
-        attachChild(it)
-        it.setPosition((width - it.width) / 2, height)
+    private val dismissButton = DismissButton().also {
+        it.anchor = Anchor.BottomCenter
+        it.origin = Anchor.TopCenter
         it.setText("Sending...")
     }
 
-    private val rowContainer = Rectangle(0f, 0f, width, height * 0.8f).also {
-        it.setColor(0f, 0f, 0f, 0f)
-        attachChild(it)
-    }
+    private val mapRankColumn = Column("Map Rank")
+    private val overallRankColumn = Column("Overall Rank")
+    private val accuracyColumn = Column("Accuracy")
+    private val scoreColumn = Column("Score")
+    private val ppColumn = Column("Performance")
 
-    private val mapRankColumn = Column("Map Rank").also { rowContainer.attachChild(it) }
-    private val overallRankColumn = Column("Overall Rank").also { rowContainer.attachChild(it) }
-    private val accuracyColumn = Column("Accuracy").also { rowContainer.attachChild(it) }
-    private val scoreColumn = Column("Score").also { rowContainer.attachChild(it) }
-    private val ppColumn = Column("Performance").also { rowContainer.attachChild(it) }
 
     init {
-        setColor(0f, 0f, 0f, 0.7f)
-        resetPosition()
+        anchor = Anchor.TopCenter
+        origin = Anchor.TopCenter
+        minWidth = 800f.px
+        minHeight = 200f.px
+        backgroundColor = Color4(0f, 0f, 0f, 0.7f)
+
+        +UILinearContainer().apply {
+            orientation = Orientation.Vertical
+            anchor = Anchor.TopCenter
+            origin = Anchor.TopCenter
+            spacing = 10f.dip
+            padding = Padding(10f.dip)
+
+            +UIText().apply {
+                anchor = Anchor.TopCenter
+                origin = Anchor.TopCenter
+                text = "Overall Ranking"
+            }
+
+            +UILinearContainer().apply {
+                spacing = 10f.px
+
+                +mapRankColumn
+                +overallRankColumn
+                +accuracyColumn
+                +scoreColumn
+                +ppColumn
+            }
+        }
+
+        +dismissButton
+
+        // Hidden above the screen until the results arrive.
+        translationY = HIDDEN_POSITION.px
     }
+
 
     fun show(newMapRank: Long, newOverallRank: Long, newScore: Long, newAccuracy: Float, newPP: Float) {
         dismissButton.canBeDismissed = true
 
         // Map rank column is special, as its color is different when ranking up
-        updateColumn(mapRankColumn, "#$newMapRank", 0f)
+        mapRankColumn.update("#$newMapRank", 0f)
+
         if (newScore > score) {
-            mapRankColumn.setValueRectColor(1f, 1f, 0f, 0.8f)
+            mapRankColumn.valueColor = Color4(1f, 1f, 0f, 0.8f)
         }
 
-        updateColumn(
-            overallRankColumn,
+        overallRankColumn.update(
             when {
                 newOverallRank == overallRank -> "#$newOverallRank"
                 newOverallRank < overallRank -> "#$newOverallRank\n(+${overallRank - newOverallRank})"
                 else -> "#$newOverallRank\n(-${newOverallRank - overallRank})"
             },
-            (overallRank - newOverallRank).toFloat(),
-            mapRankColumn
+            (overallRank - newOverallRank).toFloat()
         )
 
-        updateColumn(
-            accuracyColumn,
+        accuracyColumn.update(
             when {
-                abs(newAccuracy - accuracy) < 0.0001f -> String.format("%.2f%%", newAccuracy * 100f)
-                newAccuracy < accuracy -> String.format("%.2f%%\n(%.2f%%)", newAccuracy * 100f, (newAccuracy - accuracy) * 100f)
-                else -> String.format("%.2f%%\n(+%.2f%%)", newAccuracy * 100f, (newAccuracy - accuracy) * 100f)
+                abs(newAccuracy - accuracy) < 0.0001f -> "%.2f%%".format(newAccuracy * 100f)
+                newAccuracy < accuracy -> "%.2f%%\n(%.2f%%)".format(newAccuracy * 100f, (newAccuracy - accuracy) * 100f)
+                else -> "%.2f%%\n(+%.2f%%)".format(newAccuracy * 100f, (newAccuracy - accuracy) * 100f)
             },
-            newAccuracy - accuracy,
-            overallRankColumn
+            newAccuracy - accuracy
         )
 
-        updateColumn(
-            scoreColumn,
+        scoreColumn.update(
             when {
                 newScore == score -> formatScore(newScore)
                 newScore < score -> "${formatScore(newScore)}\n(${formatScore(newScore - score)})"
                 else -> "${formatScore(newScore)}\n(+${formatScore(newScore - score)})"
             },
-            (newScore - score).toFloat(),
-            accuracyColumn
+            (newScore - score).toFloat()
         )
 
-        updateColumn(
-            ppColumn,
+        ppColumn.update(
             // For PP, we only want to show significant changes.
             when {
-                round(newPP) - round(pp) < 1 -> String.format("%.0fpp", round(newPP))
-                round(newPP) - round(pp) < 0 -> String.format("%.0fpp\n(%.0fpp)", round(newPP), round(newPP) - round(pp))
-                else -> String.format("%.0fpp\n(+%.0fpp)", round(newPP), round(newPP) - round(pp))
+                round(newPP) - round(pp) < 1 -> "%.0fpp".format(round(newPP))
+                else -> "%.0fpp\n(+%.0fpp)".format(round(newPP), round(newPP) - round(pp))
             },
-            round(newPP - pp),
-            scoreColumn
+            round(newPP - pp)
         )
 
-        // Obtain the maximum height of all columns
-        val columnMaxHeight = maxOf(
-            mapRankColumn.height,
-            overallRankColumn.height,
-            accuracyColumn.height,
-            scoreColumn.height,
-            ppColumn.height
-        )
+        dismissButton.setText("Dismiss")
 
-        // Update the height of all columns to the maximum height
-        mapRankColumn.height = columnMaxHeight
-        overallRankColumn.height = columnMaxHeight
-        accuracyColumn.height = columnMaxHeight
-        scoreColumn.height = columnMaxHeight
-        ppColumn.height = columnMaxHeight
-
-        rowContainer.let {
-            it.width = ppColumn.x + ppColumn.width - mapRankColumn.x
-            it.height = columnMaxHeight
-        }
-
-        width = max(minWidth, max(overallCaptionText.width, rowContainer.width) + 20)
-        height = max(minHeight, minHeight / 5 + overallCaptionText.height + rowContainer.height + 10)
-
-        rowContainer.let {
-            it.setPosition((width - it.width) / 2, height - it.height - 10)
-        }
-
-        resetPosition()
-
-        overallCaptionText.setPosition((width - overallCaptionText.width) / 2, (height - overallCaptionText.height) / 5)
-
-        dismissButton.let {
-            it.setText("Dismiss")
-            it.setPosition((width - it.width) / 2, height)
-        }
-
-        moveModifier = MoveYModifier(0.5f, -height, 0f)
-        registerEntityModifier(moveModifier)
+        clearTransforms()
+        moveTo(0f, 0f, 0.5f)
     }
 
     fun setFail() {
         dismissButton.setText("Failed")
     }
 
-    private fun resetPosition() {
-        setPosition((Config.getRES_WIDTH() - width) / 2f, -height)
-    }
-
-    private fun updateColumn(column: Column, value: String, difference: Float, prevColumn: Column? = null) = column.apply {
-        updateValue(value)
-
-        when {
-            difference > 0 -> setValueRectColor(0f, 1f, 0f, 0.5f)
-            difference < 0 -> setValueRectColor(1f, 0f, 0f, 0.5f)
-            else -> setValueRectColor(0.4f, 0.4f, 0.4f, 0.8f)
-        }
-
-        setPosition(if (prevColumn != null) prevColumn.x + prevColumn.width + columnGap else 0f, 0f)
+    private fun dismiss() {
+        clearTransforms()
+        moveTo(0f, HIDDEN_POSITION, 0.5f)
     }
 
     private fun formatScore(score: Long) = score
@@ -201,94 +153,84 @@ class SendingPanel(
         // Reverse back to maintain original order
         .reversed()
 
-    private open class DismissButton : Sprite(0f, 0f, getResources().getTexture("ranking_button")) {
+
+    private inner class DismissButton : UIContainer() {
+
         var canBeDismissed = false
 
-        private val text = ChangeableText(0f, 0f, getResources().getFont("font"), "", 10).also {
-            attachChild(it)
+        private val text = UIText().also {
+            it.anchor = Anchor.Center
+            it.origin = Anchor.Center
         }
 
-        fun setText(text: String) {
-            this.text.text = text
-
-            updateTextPosition()
+        init {
+            +UISprite(SkinTextures["ranking_button"])
+            +text
         }
 
-        private fun updateTextPosition() = text.let {
-            it.setPosition(
-                (width - it.width) / 2,
-                // For whatever reason, the text is not centered vertically,
-                // so we need to manually adjust it by subtracting 10...
-                (height - it.height) / 2 - 10
-            )
+        fun setText(value: String) {
+            Verktex.withTreeLock { text.text = value }
+        }
+
+        override fun onInputEvent(event: InputEvent): Boolean {
+            if (canBeDismissed && event is PointerEvent && event.action == PointerEvent.Action.Up && containsScenePoint(event.x, event.y)) {
+                canBeDismissed = false
+                dismiss()
+                return true
+            }
+
+            return event is PointerEvent && canBeDismissed && containsScenePoint(event.x, event.y)
         }
     }
 
-    private class Column(caption: String) : Rectangle(0f, 0f, 100f, 80f) {
-        private val minWidth = width
-        private val minHeight = height
+    private class Column(caption: String) : UILinearContainer() {
 
-        private val captionText = Text(0f, 0f, getResources().getFont("font"), caption).also {
-            attachChild(it)
+        private val valueText = UIText().also {
+            it.anchor = Anchor.Center
+            it.origin = Anchor.Center
+            it.alignment = Anchor.Center
         }
 
-        private val valueRect = Rectangle(0f, 80f, width, 0f).also {
-            it.setColor(0.4f, 0.4f, 0.4f, 0.8f)
-            attachChild(it)
+        private val valueBox = UIContainer().also {
+            it.width = Dimension.FillAvailable
+            it.padding = Padding(4f.dip)
+            it.backgroundColor = Color4(0.4f, 0.4f, 0.4f, 0.8f)
+            it.minHeight = 40f.dip
+            it += valueText
         }
 
-        private val valueText = ChangeableText(0f, 0f, getResources().getFont("font"), "", HorizontalAlign.CENTER, 100).also {
-            valueRect.attachChild(it)
+        var valueColor: Color4
+            get() = valueBox.backgroundColor
+            set(value) {
+                valueBox.backgroundColor = value
+            }
+
+        init {
+            orientation = Orientation.Vertical
+            minWidth = 100f.px
+
+            +UIText().apply {
+                anchor = Anchor.TopCenter
+                origin = Anchor.TopCenter
+                text = caption
+            }
+
+            +valueBox
         }
 
-        init { setColor(0f, 0f, 0f, 0f) }
-
-        fun updateValue(value: String) {
+        fun update(value: String, difference: Float) {
             valueText.text = value
 
-            updateSizes()
-        }
-
-        fun setValueRectColor(pRed: Float, pGreen: Float, pBlue: Float, pAlpha: Float = 1f) {
-            valueRect.setColor(pRed, pGreen, pBlue, pAlpha)
-        }
-
-        override fun setWidth(pWidth: Float) {
-            super.setWidth(pWidth)
-
-            // Center the caption text
-            captionText.let { it.setPosition((width - it.width) / 2, 0f) }
-
-            // Update the value rectangle width
-            valueRect.let {
-                it.width = width
-                it.setPosition(0f, height - it.height)
-            }
-
-            // Center the value text
-            valueText.let {
-                it.setPosition((valueRect.width - it.width) / 2, (valueRect.height - it.height) / 2)
+            valueColor = when {
+                difference > 0 -> Color4(0f, 1f, 0f, 0.5f)
+                difference < 0 -> Color4(1f, 0f, 0f, 0.5f)
+                else -> Color4(0.4f, 0.4f, 0.4f, 0.8f)
             }
         }
+    }
 
-        override fun setHeight(pHeight: Float) {
-            super.setHeight(pHeight)
 
-            // Update the value rectangle height
-            valueRect.let {
-                it.height = height - captionText.y - captionText.height
-                it.setPosition(0f, height - it.height)
-            }
-
-            // Center the value text
-            valueText.let {
-                it.setPosition((valueRect.width - it.width) / 2, (valueRect.height - it.height) / 2)
-            }
-        }
-
-        private fun updateSizes() {
-            width = max(minWidth, max(captionText.width + 10, valueText.width + 20))
-            height = max(minHeight, captionText.height + valueText.height)
-        }
+    private companion object {
+        const val HIDDEN_POSITION = -1000f
     }
 }

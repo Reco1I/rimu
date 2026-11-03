@@ -3,13 +3,15 @@ package com.osudroid.game.replay
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.iconButton
-import com.reco1l.verktex.ui.linearContainer
+import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.ui.textButton
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.form.FormSlider
-import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
 import java.text.DecimalFormat
 import kotlin.math.abs
 
@@ -74,15 +76,15 @@ class ReplayPlaybackSeek : UILinearContainer() {
         +seekBar
 
         linearContainer {
-            spacing = 10f
-            padding = Vec4(0f, 16f)
+            spacing = 10f.dip
+            padding = Padding(0f.dip, 16f.dip)
             anchor = Anchor.TopCenter
             origin = Anchor.TopCenter
 
             fun addSeekButton(delta: Float) = textButton {
                 text = "%+d s".format(delta.toInt())
-                height = 42f
-                padding = Vec4(12f, 0f)
+                height = 42f.dip
+                padding = Padding(12f.dip, 0f.dip)
                 onActionUp = { onSeek?.invoke((seekBar.value + delta).coerceIn(minDuration, totalDuration)) }
             }
 
@@ -90,13 +92,13 @@ class ReplayPlaybackSeek : UILinearContainer() {
             addSeekButton(-1f)
 
             iconButton {
-                height = 42f
-                padding = Vec4(12f, 0f)
-                icon = UIIcon(FAIcon.Pause)
+                height = 42f.dip
+                padding = Padding(12f.dip, 0f.dip)
+                icon = FAIcon.Pause
 
                 onActionUp = {
                     isPlaybackPaused = !isPlaybackPaused
-                    icon = UIIcon(if (isPlaybackPaused) FAIcon.Play else FAIcon.Pause)
+                    icon = if (isPlaybackPaused) FAIcon.Play else FAIcon.Pause
                     onPauseToggle?.invoke(isPlaybackPaused)
                 }
             }

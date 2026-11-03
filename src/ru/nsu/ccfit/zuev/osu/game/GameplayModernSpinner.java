@@ -14,7 +14,7 @@ import com.osudroid.beatmaps.hitobjects.Spinner;
 import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.Constants;
 import ru.nsu.ccfit.zuev.osu.Utils;
-import ru.nsu.ccfit.zuev.osu.scoring.ScoreNumber;
+import com.osudroid.ui.v2.game.ScoreNumber;
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
 
 /**

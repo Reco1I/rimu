@@ -76,7 +76,8 @@ import ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils;
 import ru.nsu.ccfit.zuev.osu.helper.StringTable;
-import ru.nsu.ccfit.zuev.osu.menu.SplashScene;
+import ru.nsu.ccfit.zuev.osu.helper.Debug;
+import com.osudroid.ui.v2.SplashScene;
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager;
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
 
@@ -155,6 +156,8 @@ public class MainActivity extends AndroidGameHost {
                 maxRefreshRateModeId = mode.getModeId();
             }
         }
+
+        Verktex.pushScene(SplashScene.INSTANCE);
 
         Execution.async(() -> {
             GlobalManager.getInstance().init();

@@ -2776,7 +2776,7 @@ public class GameScene implements GameObjectListener {
 
     private void showPauseMenu(boolean isFail) {
         pauseMenu = new PauseMenu(this, isFail);
-        pauseMenu.show(scene);
+        pauseMenu.show();
     }
 
     public void gameover() {

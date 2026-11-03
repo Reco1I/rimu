@@ -134,6 +134,15 @@ class Choreography internal constructor(private val target: UIComponent) {
         return this
     }
 
+    /**
+     * Changes only the vertical scale.
+     */
+    @JvmOverloads
+    fun addScaleY(value: Float, duration: Float = 0f, easing: Easing = Easing.None): Choreography {
+        addStep(Property.ScaleY, value, duration, easing)
+        return this
+    }
+
     @JvmOverloads
     fun fadeTo(value: Float, duration: Float = 0f, easing: Easing = Easing.None): Choreography {
         addStep(Property.Alpha, value, duration, easing)

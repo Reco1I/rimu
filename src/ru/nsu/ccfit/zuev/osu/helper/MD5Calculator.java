@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.helper;
 
-import org.anddev.andengine.util.Debug;
+import ru.nsu.ccfit.zuev.osu.helper.Debug;
 
 import java.io.File;
 import java.io.FileInputStream;
