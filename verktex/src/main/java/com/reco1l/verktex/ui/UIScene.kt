@@ -81,6 +81,17 @@ open class UIScene : UIContainer() {
     }
 
 
+    /**
+     * Called when this scene becomes the current one, either pushed or shown again after the scene
+     * above it was popped.
+     */
+    open fun onEnter() {}
+
+    /**
+     * Called when this scene stops being the current one, either popped or covered by a new scene.
+     */
+    open fun onLeave() {}
+
     open fun onGameWindowFocusChange(hasFocus: Boolean) {
         // Override this method to handle game window focus changes.
     }

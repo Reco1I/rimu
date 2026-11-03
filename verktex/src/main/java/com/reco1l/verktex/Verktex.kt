@@ -404,8 +404,12 @@ object Verktex {
      * scene and will be drawn and updated in subsequent frames.
      */
     @JvmStatic
-    fun pushScene(scene: UIScene) {
+    fun pushScene(scene: UIScene) = treeLock.withLock {
+        val previousScene = sceneStack.last()
         sceneStack.addLast(scene)
+
+        previousScene.onLeave()
+        scene.onEnter()
     }
 
     /**
@@ -413,7 +417,7 @@ object Verktex {
      * stack, it returns null.
      */
     @JvmStatic
-    fun popScene(): UIScene? {
+    fun popScene(): UIScene? = treeLock.withLock {
         if (sceneStack.size <= 1) {
             Logger.w(
                 "Verktex",
@@ -422,10 +426,10 @@ object Verktex {
             return null
         }
 
-        val scene = sceneStack.lastOrNull()
-        if (scene != null) {
-            sceneStack.removeLast()
-        }
+        val scene = sceneStack.removeLast()
+
+        scene.onLeave()
+        sceneStack.last().onEnter()
         return scene
     }
 
