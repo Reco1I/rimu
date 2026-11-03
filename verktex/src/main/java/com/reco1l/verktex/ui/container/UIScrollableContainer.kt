@@ -229,7 +229,9 @@ open class UIScrollableContainer : UIContainer() {
 
         contentSize = Vec2(contentWidth, contentHeight)
 
-        val measuredSize = parentConstraints.constrain(contentSize.expand(padding.toVec4()))
+        // The own constraints, so the limits of this container (e.g. minWidth) are what filling
+        // children are stretched to.
+        val measuredSize = contentConstraints.constrain(contentSize).expand(padding.toVec4())
         stretchFillingChildren(measuredSize) { childConstraints }
         return measuredSize
     }
