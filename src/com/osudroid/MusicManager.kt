@@ -6,6 +6,8 @@ import com.osudroid.beatmaps.timings.EffectControlPointManager
 import com.osudroid.beatmaps.timings.TimingControlPoint
 import com.osudroid.beatmaps.timings.TimingControlPointManager
 import com.osudroid.data.BeatmapInfo
+import com.osudroid.data.BeatmapSetInfo
+import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 
@@ -62,6 +64,9 @@ object MusicManager {
 
     private var onBeatmapChangeListeners = mapOf<Any, (BeatmapInfo?) -> Unit>()
 
+    // Whether the song is meant to be playing, set by play() and cleared by pause() and stop().
+    private var isPlaybackWanted = false
+
     private var timingControlPointManager: TimingControlPointManager? = null
     private var effectControlPointManager: EffectControlPointManager? = null
 
@@ -77,7 +82,11 @@ object MusicManager {
     }
 
 
-    fun load() {
+    /**
+     * Loads the control points of the current beatmap and, if [reloadAudio], its song, which is
+     * otherwise expected to be already playing (e.g. started by song select).
+     */
+    fun load(reloadAudio: Boolean = true) {
         if (isLoading) {
             return
         }
@@ -101,11 +110,14 @@ object MusicManager {
             currentTimingControlPoint = timingControlPointManager?.controlPointAt(0.0) ?: TimingControlPointManager.DEFAULT_TIMING_CONTROL_POINT
             currentEffectControlPoint = effectControlPointManager?.controlPointAt(0.0) ?: EffectControlPointManager.DEFAULT_EFFECT_CONTROL_POINT
 
-            songService.preLoad(beatmap.audioPath)
-
-            isLoading = false
+            if (reloadAudio) {
+                songService.preLoad(beatmap.audioPath)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
+        } finally {
+            // Otherwise a failed load would prevent loading any other beatmap.
+            isLoading = false
         }
     }
 
@@ -113,18 +125,41 @@ object MusicManager {
         if (songService.status != Status.PLAYING) {
             songService.play()
         }
+        // A song that can't be played is not waited for, see onUpdate.
+        isPlaybackWanted = songService.status == Status.PLAYING
     }
 
     fun stop() {
+        isPlaybackWanted = false
         if (songService.status == Status.PLAYING) {
             songService.stop()
         }
     }
 
     fun pause() {
+        isPlaybackWanted = false
         if (songService.status == Status.PLAYING) {
             songService.pause()
         }
+    }
+
+    /**
+     * Plays a random beatmap of the next beatmap set of the library.
+     */
+    fun next() = playBeatmapSet(LibraryManager.selectNextBeatmapSet())
+
+    /**
+     * Plays a random beatmap of the previous beatmap set of the library.
+     */
+    fun previous() = playBeatmapSet(LibraryManager.selectPreviousBeatmapSet())
+
+    private fun playBeatmapSet(beatmapSet: BeatmapSetInfo?) {
+        // Null when the library is empty.
+        val beatmap = beatmapSet?.beatmaps?.randomOrNull() ?: return
+
+        currentBeatmap = beatmap
+        load()
+        play()
     }
 
     fun addOnBeatmapChangeListener(key: Any, listener: (BeatmapInfo?) -> Unit) {
@@ -137,6 +172,13 @@ object MusicManager {
 
 
     fun onUpdate(secondsElapsed: Float) {
+        // A song that stopped while it was meant to play reached its end, outside of gameplay the
+        // next one plays, as it did in the old menu.
+        if (isPlaybackWanted && !isLoading && songService.status == Status.STOPPED && !songService.isGaming) {
+            isPlaybackWanted = false
+            next()
+        }
+
         if (songService.status == Status.PLAYING) {
             val positon = songService.position
 
