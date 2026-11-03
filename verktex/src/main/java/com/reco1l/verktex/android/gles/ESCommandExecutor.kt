@@ -4,7 +4,7 @@ import android.opengl.GLES32
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.graphics.DrawCommand
-import com.reco1l.verktex.graphics.GraphicsRenderer.Companion.VERTEX_2D_STRIDE
+import com.reco1l.verktex.graphics.VertexLayout
 import com.reco1l.verktex.graphics.GraphicsShader
 
 /**
@@ -108,17 +108,53 @@ object ESCommandExecutor {
 
         command.buffer.bind()
         command.buffer.uploadDataToGPU()
+        applyLayout(command.vertexLayout)
 
-        // Vertex layout: position (2 floats), UV (2 floats), color (4 normalized unsigned bytes).
-        GLES32.glEnableVertexAttribArray(0)
-        GLES32.glVertexAttribPointer(0, 2, GLES32.GL_FLOAT, false, VERTEX_2D_STRIDE, 0)
-        GLES32.glEnableVertexAttribArray(1)
-        GLES32.glVertexAttribPointer(1, 2, GLES32.GL_FLOAT, false, VERTEX_2D_STRIDE, 8)
-        GLES32.glEnableVertexAttribArray(2)
-        GLES32.glVertexAttribPointer(2, 4, GLES32.GL_UNSIGNED_BYTE, true, VERTEX_2D_STRIDE, 16)
+        val vertexCount = command.buffer.position / command.vertexLayout.stride
 
-        val vertexCount = command.buffer.position / VERTEX_2D_STRIDE
+        val instanceBuffer = command.instanceBuffer
+        val instanceLayout = command.instanceLayout
 
-        GLES32.glDrawArrays(GLES32.GL_TRIANGLES, 0, vertexCount)
+        if (instanceBuffer == null || instanceLayout == null) {
+            GLES32.glDrawArrays(GLES32.GL_TRIANGLES, 0, vertexCount)
+        } else {
+            instanceBuffer.bind()
+            instanceBuffer.uploadDataToGPU()
+            applyLayout(instanceLayout)
+
+            GLES32.glDrawArraysInstanced(GLES32.GL_TRIANGLES, 0, vertexCount, command.instanceCount)
+
+            resetLayout(instanceLayout)
+        }
+
+        resetLayout(command.vertexLayout)
+    }
+
+    private fun applyLayout(layout: VertexLayout) {
+        layout.attributes.forEachIndexed { index, attribute ->
+            GLES32.glEnableVertexAttribArray(attribute.location)
+            GLES32.glVertexAttribPointer(
+                attribute.location,
+                attribute.size,
+                when (attribute.type) {
+                    VertexLayout.Type.Float -> GLES32.GL_FLOAT
+                    VertexLayout.Type.NormalizedByte -> GLES32.GL_UNSIGNED_BYTE
+                },
+                attribute.type == VertexLayout.Type.NormalizedByte,
+                layout.stride,
+                layout.offsets[index]
+            )
+            GLES32.glVertexAttribDivisor(attribute.location, if (attribute.isPerInstance) 1 else 0)
+        }
+    }
+
+    /**
+     * Leaves the attributes as the next draw expects them, as they persist between draws.
+     */
+    private fun resetLayout(layout: VertexLayout) {
+        for (attribute in layout.attributes) {
+            GLES32.glVertexAttribDivisor(attribute.location, 0)
+            GLES32.glDisableVertexAttribArray(attribute.location)
+        }
     }
 }

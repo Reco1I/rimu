@@ -138,6 +138,46 @@ abstract class GraphicsRenderer {
     }
 
     /**
+     * Records an instanced draw, in which [vertexBuffer] is drawn [instanceCount] times advancing through
+     * [instanceBuffer]. Both buffers are owned by the caller and must keep their data until the frame is drawn.
+     */
+    fun drawInstanced(
+        shader: GraphicsShader,
+        texture: GraphicsTexture?,
+        vertexBuffer: GraphicsBuffer,
+        vertexLayout: VertexLayout,
+        vertexCount: Int,
+        instanceBuffer: GraphicsBuffer,
+        instanceLayout: VertexLayout,
+        instanceCount: Int,
+        uniformSet: GraphicsShader.UniformSet
+    ) {
+        require(vertexBuffer.position == vertexCount * vertexLayout.stride) {
+            "The vertex buffer doesn't hold $vertexCount vertices of the given layout."
+        }
+
+        commandBatch.addLast(DrawCommand(
+            buffer = vertexBuffer,
+            shader = shaderStack.lastOrNull() ?: shader,
+            texture = texture,
+            scissor = scissorStack.lastOrNull(),
+            blendMode = blendModeStack.lastOrNull() ?: BlendMode.Alpha,
+            depthState = depthStateStack.lastOrNull() ?: DepthState.Default,
+            uniformSet = uniformSet,
+            vertexLayout = vertexLayout,
+            instanceBuffer = instanceBuffer,
+            instanceLayout = instanceLayout,
+            instanceCount = instanceCount
+        ))
+    }
+
+    /**
+     * The transformation currently applied to what gets drawn.
+     */
+    val currentTransform: Mat2
+        get() = matrixStack.lastOrNull() ?: Mat2.Identity
+
+    /**
      * Clears the depth buffer at this point of the frame. Draws recorded before stay before the clear
      * and the next draw starts a new command.
      */

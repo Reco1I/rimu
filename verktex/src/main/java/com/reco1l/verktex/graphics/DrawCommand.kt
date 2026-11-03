@@ -48,6 +48,26 @@ data class DrawCommand(
      * buffer or shader and is never merged with other commands.
      */
     val clearDepth: Boolean = false,
+
+    /**
+     * How the data of [buffer] maps to the attributes of the shader.
+     */
+    val vertexLayout: VertexLayout = VertexLayout.Default,
+
+    /**
+     * The per-instance data of an instanced draw, which is never merged with other commands.
+     */
+    val instanceBuffer: GraphicsBuffer? = null,
+
+    /**
+     * How the data of [instanceBuffer] maps to the attributes of the shader.
+     */
+    val instanceLayout: VertexLayout? = null,
+
+    /**
+     * The number of instances to draw, only used with an [instanceBuffer].
+     */
+    val instanceCount: Int = 0,
 ) {
 
     /**
@@ -62,6 +82,7 @@ data class DrawCommand(
         uniformSet: GraphicsShader.UniformSet,
     ): Boolean {
         return !clearDepth &&
+                instanceBuffer == null &&
                 this.shader == shader &&
                 this.uniformSet == uniformSet &&
                 this.texture == texture &&
