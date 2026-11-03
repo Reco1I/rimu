@@ -1,5 +1,6 @@
 package com.osudroid.beatmaps.parser
 
+import kotlin.math.roundToInt
 import com.osudroid.beatmaps.Beatmap
 import com.osudroid.beatmaps.constants.BeatmapCountdown
 import com.osudroid.beatmaps.constants.SampleBank
@@ -29,9 +30,9 @@ class BeatmapParserTest {
     @Test
     fun `Test version 14 beatmap colors section`() {
         fun test(color: Color4, red: Int, green: Int, blue: Int) {
-            Assert.assertEquals(red, color.redInt)
-            Assert.assertEquals(green, color.greenInt)
-            Assert.assertEquals(blue, color.blueInt)
+            Assert.assertEquals(red, color.red.times(255).roundToInt())
+            Assert.assertEquals(green, color.green.times(255).roundToInt())
+            Assert.assertEquals(blue, color.blue.times(255).roundToInt())
         }
 
         val colors = v14Beatmap.colors
@@ -98,9 +99,9 @@ class BeatmapParserTest {
             Assert.assertEquals("katamari2.jpg", backgroundFilename)
 
             Assert.assertNotNull(backgroundColor)
-            Assert.assertEquals(54, backgroundColor!!.redInt)
-            Assert.assertEquals(140, backgroundColor!!.greenInt)
-            Assert.assertEquals(191, backgroundColor!!.blueInt)
+            Assert.assertEquals(54, backgroundColor!!.red.times(255).roundToInt())
+            Assert.assertEquals(140, backgroundColor!!.green.times(255).roundToInt())
+            Assert.assertEquals(191, backgroundColor!!.blue.times(255).roundToInt())
 
             Assert.assertEquals(breaks.size, 3)
             Assert.assertNull(videoFilename)
