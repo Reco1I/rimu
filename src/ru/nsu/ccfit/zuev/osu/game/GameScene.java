@@ -364,7 +364,7 @@ public class GameScene implements GameObjectListener {
         root.plusAssign(backgroundLayer);
         root.plusAssign(playfield);
 
-        createScene();
+        scene = new GameUIScene();
         scene.setBackground(root);
     }
 

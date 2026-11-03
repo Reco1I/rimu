@@ -109,7 +109,8 @@ public class MainActivity extends AndroidGameHost {
     public void onEngineInitialized() {
 
         if (!checkPermissions()) {
-            throw new RuntimeException("Required permissions not granted.");
+            // The permission screen was opened, the game starts again once access is granted.
+            return;
         }
 
         analytics = FirebaseAnalytics.getInstance(this);
