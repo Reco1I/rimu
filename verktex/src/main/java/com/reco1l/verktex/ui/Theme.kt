@@ -2,6 +2,7 @@ package com.reco1l.verktex.ui
 
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.fonts.Font
 
@@ -79,6 +80,25 @@ open class Theme(
         minimumHeight = 40f.dip,
     ),
 
+    /**
+     * The sizes of badges. Badges are read-only, so unlike controls they don't need a comfortable
+     * touch target and are sized after their text.
+     */
+    val badgeStyle: BadgeStyle = BadgeStyle(
+        small = BadgeStyle.Size(
+            fontSize = typography.smallCaption.size,
+            padding = Padding(6f.dip, 2f.dip),
+            iconSpacing = 4f.dip,
+            radius = radius.xs,
+        ),
+        medium = BadgeStyle.Size(
+            fontSize = typography.caption.size,
+            padding = Padding(8f.dip, 3f.dip),
+            iconSpacing = 6f.dip,
+            radius = radius.sm,
+        ),
+    ),
+
 ) {
 
     /**
@@ -87,6 +107,33 @@ open class Theme(
     open class ControlStyle(
         val minimumHeight: Dimension,
     )
+
+    /**
+     * A class that holds badge style information, with a [Size] for each [UIBadge.Density].
+     */
+    open class BadgeStyle(
+        val small: Size,
+        val medium: Size,
+    ) {
+
+        /**
+         * Returns the size used for the given density.
+         */
+        operator fun get(density: UIBadge.Density) = when (density) {
+            UIBadge.Density.Small -> small
+            UIBadge.Density.Medium -> medium
+        }
+
+        /**
+         * The size definitions of a badge density.
+         */
+        open class Size(
+            val fontSize: Dimension.Fixed,
+            val padding: Padding,
+            val iconSpacing: Dimension.Fixed,
+            val radius: Dimension.Fixed,
+        )
+    }
 
     /**
      * A class that holds typography information.

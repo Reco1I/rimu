@@ -2,8 +2,7 @@ package com.osudroid.ui.v2
 
 import com.osudroid.ui.OsuColors
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Padding
-import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.fonts.Fonts
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
@@ -39,13 +38,12 @@ class StarRatingBadge : UIBadge() {
         }
 
     init {
-        // Badge color is determined by rating and should not be styled.
-        style = Style { theme ->
-            fontSettings = theme.typography.h3
-            fontSize = theme.typography.smallBody.size
-            padding = Padding(8f.dip, 5f.dip)
-            iconSpacing = 8f.dip
-            radius = theme.radius.lg
+        // Sized like any badge, with a bolder font. The colors are determined by the rating, so
+        // they're applied again over the ones of the badge style.
+        style += Style { theme ->
+            fontFamily = Fonts[theme.typography.h3.family]
+            fontWeight = theme.typography.h3.weight
+            applyRating(counter.currentValue)
         }
         text = "0.00"
         leadingIcon = faSolidIcon(FAIcon.Star)
