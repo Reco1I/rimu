@@ -38,7 +38,8 @@ import com.osudroid.BuildSettings;
 import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.data.DatabaseManager;
 import com.osudroid.resources.R;
-import com.osudroid.ui.FPSCounter;
+import com.reco1l.verktex.settings.Settings;
+import com.reco1l.verktex.settings.VerktexSettings;
 import com.osudroid.ui.v2.GameLoaderScene;
 import com.osudroid.ui.v2.LoaderScene;
 import com.osudroid.ui.v2.mainmenu.MainScene;
@@ -163,7 +164,8 @@ public class MainActivity extends AndroidGameHost {
         Execution.async(() -> {
             GlobalManager.getInstance().init();
 
-            Verktex.addOverlay(new FPSCounter());
+            // The "Show FPS" setting shows the engine's performance overlay.
+            Settings.INSTANCE.set(VerktexSettings.ShowPerformanceOverlay, Config.isShowFPS());
 
             analytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, null);
             GlobalManager.getInstance().setLoadingProgress(50);
