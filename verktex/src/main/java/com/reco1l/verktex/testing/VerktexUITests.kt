@@ -371,41 +371,6 @@ object VerktexUITests : UITestSuite("Verktex") {
             }
         }
 
-        test("Layout") {
-            column {
-                section("Fill sharing") {
-                    orientation = UILinearContainer.Orientation.Vertical
-                    linearContainer {
-                        width = 500f.dip
-                        spacing = 4f.dip
-                        box { width = 60f.dip; height = 40f.dip; color = Color4.Red400 }
-                        box { width = fill(); height = 40f.dip; color = Color4.Green400 }
-                        box { width = fill(); height = 40f.dip; color = Color4.Blue400 }
-                    }
-                }
-
-                section("Anchors") {
-                    container {
-                        width = 300f.dip
-                        height = 160f.dip
-                        backgroundColor = Color4(1f, 1f, 1f, 0.1f)
-
-                        for (anchor in listOf(
-                            Anchor.TopLeft, Anchor.TopCenter, Anchor.TopRight,
-                            Anchor.CenterLeft, Anchor.Center, Anchor.CenterRight,
-                            Anchor.BottomLeft, Anchor.BottomCenter, Anchor.BottomRight
-                        )) {
-                            box {
-                                this.anchor = anchor
-                                origin = anchor
-                                width = 24f.dip
-                                height = 24f.dip
-                                color = Color4.Pink400
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        addContainerTests()
     }
 }

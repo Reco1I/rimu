@@ -1,6 +1,9 @@
 package com.reco1l.verktex.ui.container
 
 import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.LayoutConstraints
+import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Vec4
 
 
@@ -18,6 +21,39 @@ open class UIConstraintContainer : UIContainer() {
 
     private val constraints = mutableMapOf<UIComponent, UIComponent>()
 
+
+    override fun onMeasure(parentConstraints: LayoutConstraints, contentConstraints: LayoutConstraints): Vec2 {
+        val measuredSize = super.onMeasure(parentConstraints, contentConstraints)
+        val remeasured = mutableSetOf<UIComponent>()
+
+        // Constrained children are laid out inside their target, so the axes they fill resolve against
+        // it. Other sizes keep the container limits, a label next to a target may be larger than it.
+        // Targets are measured first, as in the layout.
+        fun remeasure(child: UIComponent) {
+            val target = constraints[child] ?: return
+
+            if (!remeasured.add(child)) {
+                return
+            }
+
+            remeasure(target)
+
+            val fillsWidth = child.width is Dimension.AvailableSizeFraction
+            val fillsHeight = child.height is Dimension.AvailableSizeFraction
+
+            if (fillsWidth || fillsHeight) {
+                child.measure(LayoutConstraints(
+                    minWidth = 0f,
+                    maxWidth = if (fillsWidth) target.measuredSize.x else contentConstraints.availableWidth,
+                    minHeight = 0f,
+                    maxHeight = if (fillsHeight) target.measuredSize.y else contentConstraints.availableHeight
+                ))
+            }
+        }
+
+        forEach(::remeasure)
+        return measuredSize
+    }
 
     override fun onLayout(bounds: Vec4) {
         val contentBounds = contentBounds(bounds)
