@@ -133,6 +133,9 @@ object Verktex {
     // A scene of its own, so overlays are measured and laid out over the whole window.
     private val overlayContainer = UIScene()
 
+    // Above the overlays, so the performance overlay stays visible over modals and dialogs.
+    private val diagnosticsContainer = UIScene()
+
 
     /**
      * The clock used across the engine.
@@ -193,6 +196,7 @@ object Verktex {
             scene.draw(graphics)
             PerformanceStats.drawCommands = graphics.commandCount
             overlayContainer.draw(graphics)
+            diagnosticsContainer.draw(graphics)
             PerformanceStats.recordTime = (System.nanoTime() - recordStartNanos) / 1_000_000f
         }
         graphics.end()
@@ -217,13 +221,14 @@ object Verktex {
             val updateStartNanos = System.nanoTime()
 
             if (showPerformanceOverlay != (performanceOverlay.parent != null)) {
-                if (showPerformanceOverlay) overlayContainer += performanceOverlay else overlayContainer -= performanceOverlay
+                if (showPerformanceOverlay) diagnosticsContainer += performanceOverlay else diagnosticsContainer -= performanceOverlay
             }
 
             updateImeShift()
 
             scene.update(clock)
             overlayContainer.update(clock)
+            diagnosticsContainer.update(clock)
 
             PerformanceStats.updateTime = (System.nanoTime() - updateStartNanos) / 1_000_000f
         }
@@ -388,6 +393,7 @@ object Verktex {
         treeLock.withLock {
             focusedComponent = null
             overlayContainer.clearChildren()
+            diagnosticsContainer.clearChildren()
             while (sceneStack.size > 1) {
                 sceneStack.removeLast()
             }
@@ -520,7 +526,7 @@ object Verktex {
 
 
     private fun onThemeChange() = treeLock.withLock {
-        for (root in sceneStack + listOf(overlayContainer)) {
+        for (root in sceneStack + listOf(overlayContainer, diagnosticsContainer)) {
             // Containers apply the style to their children themselves.
             root.style()
             root.propagate { it.onThemeChanged() }
@@ -538,7 +544,7 @@ object Verktex {
                 clearFocus()
             }
 
-            return overlayContainer.onInputEvent(event) || scene.onInputEvent(event)
+            return diagnosticsContainer.onInputEvent(event) || overlayContainer.onInputEvent(event) || scene.onInputEvent(event)
         }
     }
 

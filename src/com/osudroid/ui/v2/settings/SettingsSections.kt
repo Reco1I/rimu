@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.settings
 
+import com.reco1l.verktex.settings.VerktexSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.form.FormSelect
 import com.reco1l.verktex.ui.UIButton
 import kotlin.math.max
@@ -651,7 +653,9 @@ val gameplaySection = listOf(
                 key = "fps",
                 title = R.string.opt_fps_title,
                 summary = R.string.opt_fps_summary,
-                defaultValue = true
+                defaultValue = true,
+                // Shows the engine's performance overlay.
+                onChange = { value -> Settings[VerktexSettings.ShowPerformanceOverlay] = value as Boolean }
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
