@@ -459,6 +459,12 @@ abstract class GraphicsRenderer {
 
     /**
      * Draws a rectangle with the specified position, size, color, border width, border color, and corner radius.
+     *
+     * @param borderColorBottom The color of the border at the bottom, it fades from [borderColor] at
+     * the top (e.g. a bezel). Null for a single color.
+     * @param softness The width of a soft edge in pixels, which blurs the rectangle (e.g. a shadow).
+     * @param inset How far the rectangle is inside the drawn area on each side, so a soft edge can
+     * extend past it.
      */
     fun drawRect(
         x: Float,
@@ -468,17 +474,37 @@ abstract class GraphicsRenderer {
         color: Color4 = Color4.Transparent,
         borderWidth: Float = 0f,
         borderColor: Color4 = Color4.Transparent,
-        radius: Float = 0f
+        radius: Float = 0f,
+        borderColorBottom: Color4? = null,
+        softness: Float = 0f,
+        inset: Float = 0f
     ) {
-        setState(
-            shader = BuiltIn.Shaders.SolidQuad,
-            uniformSet = GraphicsShader.UniformSet().apply {
-                set("uRadius", radius)
-                set("uBorderWidth", borderWidth)
-                set("uBorderColor", transformColor(borderColor))
-                set("uSize", Vec2(width, height))
-            },
-        )
+        // The box shader sets all of its uniforms, the solid quad one is shared with draws setting
+        // none and is kept for the plain rectangles.
+        if (borderColorBottom != null || softness > 0f || inset > 0f) {
+            setState(
+                shader = BuiltIn.Shaders.Box,
+                uniformSet = GraphicsShader.UniformSet().apply {
+                    set("uRadius", radius)
+                    set("uBorderWidth", borderWidth)
+                    set("uBorderColor", transformColor(borderColor))
+                    set("uBorderColorBottom", transformColor(borderColorBottom ?: borderColor))
+                    set("uSize", Vec2(width, height))
+                    set("uInset", inset)
+                    set("uSoftness", softness)
+                },
+            )
+        } else {
+            setState(
+                shader = BuiltIn.Shaders.SolidQuad,
+                uniformSet = GraphicsShader.UniformSet().apply {
+                    set("uRadius", radius)
+                    set("uBorderWidth", borderWidth)
+                    set("uBorderColor", transformColor(borderColor))
+                    set("uSize", Vec2(width, height))
+                },
+            )
+        }
 
         drawGeometry { transform, baseColor ->
 
