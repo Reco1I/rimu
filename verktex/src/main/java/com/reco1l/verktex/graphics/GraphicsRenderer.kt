@@ -630,10 +630,26 @@ abstract class GraphicsRenderer {
     private var arcPointsEnd = 0f
     private var arcPointsCache = FloatArray(0)
 
+    // Full circles of every resolution, as rings of different sizes alternate.
+    private val fullCirclePoints = HashMap<Int, FloatArray>()
+
     private fun arcPoints(segments: Int, startAngle: Float, endAngle: Float): FloatArray {
+        if (startAngle == 0f && endAngle == 360f) {
+            return fullCirclePoints.getOrPut(segments) { computeArcPoints(segments, startAngle, endAngle) }
+        }
+
         if (segments == arcPointsSegments && startAngle == arcPointsStart && endAngle == arcPointsEnd) {
             return arcPointsCache
         }
+
+        arcPointsSegments = segments
+        arcPointsStart = startAngle
+        arcPointsEnd = endAngle
+        arcPointsCache = computeArcPoints(segments, startAngle, endAngle)
+        return arcPointsCache
+    }
+
+    private fun computeArcPoints(segments: Int, startAngle: Float, endAngle: Float): FloatArray {
 
         val start = (startAngle - 90f).toRadians()
         val delta = ((endAngle - 90f).toRadians() - start) / segments
@@ -645,10 +661,6 @@ abstract class GraphicsRenderer {
             points[i * 2 + 1] = sin(angle)
         }
 
-        arcPointsSegments = segments
-        arcPointsStart = startAngle
-        arcPointsEnd = endAngle
-        arcPointsCache = points
         return points
     }
 
