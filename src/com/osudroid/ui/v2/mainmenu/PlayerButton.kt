@@ -15,6 +15,13 @@ import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
+import com.edlplan.ui.fragment.WebViewFragment
+import com.osudroid.resources.R
+import com.osudroid.utils.mainThread
+import com.reco1l.verktex.ui.dialog.UIConfirmDialog
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
+import java.util.Locale
+import kotlin.math.roundToInt
 
 class PlayerButton : UIClickableContainer() {
 
@@ -30,6 +37,21 @@ class PlayerButton : UIClickableContainer() {
 
 
     init {
+        onActionUp = {
+            // Like the old online panel, the profile is only reachable while logged in.
+            if (onlineManager.isStayOnline) {
+                UIConfirmDialog().apply {
+                    title = onlineManager.username
+                    text = StringTable.get(R.string.dialog_visit_osudroid_profile_page)
+                    onConfirm = {
+                        mainThread {
+                            WebViewFragment().setURL(WebViewFragment.PROFILE_URL + onlineManager.userId).show()
+                        }
+                    }
+                }.show()
+            }
+        }
+
         linearContainer {
             orientation = UILinearContainer.Orientation.Horizontal
             minWidth = 208f.dip
@@ -76,7 +98,18 @@ class PlayerButton : UIClickableContainer() {
 
     override fun onUpdate(clock: FrameClock) {
         nameText.text = onlineManager.username
-        informationText.text = OnlineManager.getInstance().failMessage
+
+        // Logged in it shows the player's statistics, otherwise why it isn't.
+        if (onlineManager.isStayOnline && onlineManager.userId > 0) {
+            informationText.text = "#%,d · %,dpp · %.2f%%".format(
+                Locale.US,
+                onlineManager.rank,
+                onlineManager.pp.roundToInt(),
+                onlineManager.accuracy * 100f
+            )
+        } else {
+            informationText.text = onlineManager.failMessage
+        }
 
         if (avatarUri != onlineManager.avatarURL || avatarLoaded != onlineScoring.isAvatarLoaded) {
             avatarUri = onlineManager.avatarURL
