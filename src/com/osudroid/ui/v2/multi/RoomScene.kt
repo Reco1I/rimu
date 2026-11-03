@@ -52,6 +52,7 @@ import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.badge
+import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
@@ -157,23 +158,26 @@ class RoomScene(
         RoomAPI.roomEventListener = this
         chat = RoomChat()
 
-        backgroundSprite = sprite {
+        background = UIContainer().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            scaleType = UISprite.ScaleType.Crop
-            textureRegion = SkinTextures["menu-background"]
 
-            if (!Config.isSafeBeatmapBg()) {
-                textureRegion = Textures["::background"] ?: textureRegion
+            backgroundSprite = sprite {
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                scaleType = UISprite.ScaleType.Crop
+                textureRegion = SkinTextures["menu-background"]
+
+                if (!Config.isSafeBeatmapBg()) {
+                    textureRegion = Textures["::background"] ?: textureRegion
+                }
             }
-        }
 
-        box {
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
-            alpha = 0.9f
-            style = Style { theme ->
-                backgroundColor = theme.palette.accent * 0.1f
+            box {
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                alpha = 0.9f
+                backgroundColor = Verktex.theme.palette.accent * 0.1f
             }
         }
 
