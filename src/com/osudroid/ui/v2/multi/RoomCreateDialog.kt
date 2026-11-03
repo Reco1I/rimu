@@ -11,7 +11,7 @@ import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.container.UILinearContainer
@@ -29,9 +29,7 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
     width = Dimension.FillAvailable
     clipping = ClipMode.Bounds
     padding = Padding(8f.dip, 0f.dip)
-    style = Style {
-        height = (Verktex.graphics.window.windowHeight * 0.55f).px
-    }
+    maxHeight = 0.55f.pct
 }) {
     init {
 

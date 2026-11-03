@@ -32,6 +32,7 @@ class PlayerButton : UIClickableContainer() {
     init {
         linearContainer {
             orientation = UILinearContainer.Orientation.Horizontal
+            minWidth = 208f.dip
             padding = Padding(9f.dip)
             spacing = 8f.dip
             style = Style { theme ->

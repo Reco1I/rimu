@@ -1,5 +1,8 @@
 package com.reco1l.verktex.data
 
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * Represents layout constraints for a UI component, defining the minimum and maximum width and height.
  * All values are represented in absolute pixels.
@@ -76,6 +79,47 @@ data class LayoutConstraints(
             minHeight = if (overrideLimitsVertically) resolvedHeight else minHeight,
             maxHeight = if (overrideLimitsVertically) resolvedHeight else maxHeight
         )
+    }
+
+    /**
+     * Applies the size limits of a component on top of these constraints, relative to the available size.
+     * Those win over the limits of the parent, and a minimum size wins over a maximum size.
+     */
+    fun limit(
+        minWidthLimit: Dimension.ConstraintDriven?,
+        maxWidthLimit: Dimension.ConstraintDriven?,
+        minHeightLimit: Dimension.ConstraintDriven?,
+        maxHeightLimit: Dimension.ConstraintDriven?,
+        availableWidth: Float,
+        availableHeight: Float
+    ): LayoutConstraints {
+
+        var newMinWidth = minWidth
+        var newMaxWidth = maxWidth
+        var newMinHeight = minHeight
+        var newMaxHeight = maxHeight
+
+        if (maxWidthLimit != null) {
+            newMaxWidth = min(newMaxWidth, maxWidthLimit.resolve(availableWidth))
+            newMinWidth = min(newMinWidth, newMaxWidth)
+        }
+
+        if (minWidthLimit != null) {
+            newMinWidth = max(newMinWidth, minWidthLimit.resolve(availableWidth))
+            newMaxWidth = max(newMaxWidth, newMinWidth)
+        }
+
+        if (maxHeightLimit != null) {
+            newMaxHeight = min(newMaxHeight, maxHeightLimit.resolve(availableHeight))
+            newMinHeight = min(newMinHeight, newMaxHeight)
+        }
+
+        if (minHeightLimit != null) {
+            newMinHeight = max(newMinHeight, minHeightLimit.resolve(availableHeight))
+            newMaxHeight = max(newMaxHeight, newMinHeight)
+        }
+
+        return LayoutConstraints(newMinWidth, newMaxWidth, newMinHeight, newMaxHeight)
     }
 
     /**

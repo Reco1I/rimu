@@ -15,6 +15,7 @@ import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.math.Easing
@@ -83,15 +84,13 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             }
         }
 
-        mainContainer = linearContainer {
-            orientation = UILinearContainer.Orientation.Horizontal
+        mainContainer = container {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             alpha = 0f
             scaleX = 0.9f
             scaleY = 0.9f
             scaleOrigin = Anchor.Center
-            spacing = 16f.dip
             style = Style {
                 padding = com.reco1l.verktex.data.Padding(
                     top = 16f.dip,
@@ -100,7 +99,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             }
 
             container {
-                width = Dimension.FillAvailable
+                width = 0.67f.pct
                 height = Dimension.FillAvailable
 
                 if (beatmapInfo.epilepsyWarning) {
@@ -271,13 +270,12 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     private inner class QuickSettingsLayout : UIScrollableContainer() {
 
         init {
+            width = 0.3f.pct
             height = Dimension.FillAvailable
+            anchor = Anchor.TopRight
+            origin = Anchor.TopRight
             scrollAxes = Axis.Y
             alpha = 0.5f
-
-            style = Style {
-                width = (Verktex.graphics.window.windowWidth * 0.3f).px
-            }
 
             linearContainer {
                 width = Dimension.FillAvailable

@@ -65,6 +65,46 @@ abstract class UIComponent {
             invalidateMeasure()
         }
 
+    /**
+     * The minimum width of the component, either fixed or relative to the available width. It wins over [maxWidth].
+     */
+    var minWidth: Dimension.ConstraintDriven? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidateMeasure()
+        }
+
+    /**
+     * The maximum width of the component, either fixed or relative to the available width.
+     */
+    var maxWidth: Dimension.ConstraintDriven? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidateMeasure()
+        }
+
+    /**
+     * The minimum height of the component, either fixed or relative to the available height. It wins over [maxHeight].
+     */
+    var minHeight: Dimension.ConstraintDriven? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidateMeasure()
+        }
+
+    /**
+     * The maximum height of the component, either fixed or relative to the available height.
+     */
+    var maxHeight: Dimension.ConstraintDriven? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidateMeasure()
+        }
+
 
     /**
      * The width of this component with transformations applied.
@@ -841,7 +881,14 @@ abstract class UIComponent {
             layoutInvalid = true
         }
 
-        val ownConstraints = parentContraints.resolve(width, height)
+        val ownConstraints = parentContraints.resolve(width, height).limit(
+            minWidth,
+            maxWidth,
+            minHeight,
+            maxHeight,
+            parentContraints.availableWidth,
+            parentContraints.availableHeight
+        )
         val contentConstraints = ownConstraints.shrink(padding)
 
         val oldMeasuredSize = measuredSize
