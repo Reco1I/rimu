@@ -81,6 +81,36 @@ open class Theme(
     ),
 
     /**
+     * The sizes of buttons.
+     */
+    val buttonStyle: ButtonStyle = ButtonStyle(
+        small = ButtonStyle.Size(
+            height = 32f.dip,
+            horizontalPadding = 12f.dip,
+            fontSize = typography.smallBody.size,
+            iconSize = typography.smallBody.size,
+            iconSpacing = gap.xs,
+            radius = radius.sm,
+        ),
+        medium = ButtonStyle.Size(
+            height = 40f.dip,
+            horizontalPadding = gap.md,
+            fontSize = typography.body.size,
+            iconSize = typography.body.size,
+            iconSpacing = gap.md,
+            radius = radius.md,
+        ),
+        large = ButtonStyle.Size(
+            height = 52f.dip,
+            horizontalPadding = gap.lg,
+            fontSize = typography.h3.size,
+            iconSize = 20f.dip,
+            iconSpacing = gap.lg,
+            radius = radius.lg,
+        ),
+    ),
+
+    /**
      * The sizes of badges. Badges are read-only, so unlike controls they don't need a comfortable
      * touch target and are sized after their text.
      */
@@ -107,6 +137,37 @@ open class Theme(
     open class ControlStyle(
         val minimumHeight: Dimension,
     )
+
+    /**
+     * A class that holds button style information, with a [Size] for each [UIButton.Density].
+     */
+    open class ButtonStyle(
+        val small: Size,
+        val medium: Size,
+        val large: Size,
+    ) {
+
+        /**
+         * Returns the size used for the given density.
+         */
+        operator fun get(density: UIButton.Density) = when (density) {
+            UIButton.Density.Small -> small
+            UIButton.Density.Medium -> medium
+            UIButton.Density.Large -> large
+        }
+
+        /**
+         * The size definitions of a button density.
+         */
+        open class Size(
+            val height: Dimension.Fixed,
+            val horizontalPadding: Dimension.Fixed,
+            val fontSize: Dimension.Fixed,
+            val iconSize: Dimension.Fixed,
+            val iconSpacing: Dimension.Fixed,
+            val radius: Dimension.Fixed,
+        )
+    }
 
     /**
      * A class that holds badge style information, with a [Size] for each [UIBadge.Density].
