@@ -119,9 +119,12 @@ import ru.nsu.ccfit.zuev.osu.GlobalManager;
 import ru.nsu.ccfit.zuev.osu.ToastLogger;
 import ru.nsu.ccfit.zuev.osu.Utils;
 import ru.nsu.ccfit.zuev.osu.game.GameHelper.SliderPath;
-import ru.nsu.ccfit.zuev.osu.game.cursor.flashlight.FlashLightEntity;
-import ru.nsu.ccfit.zuev.osu.game.cursor.main.AutoCursor;
-import ru.nsu.ccfit.zuev.osu.game.cursor.main.CursorEntity;
+import com.osudroid.ui.v2.game.BreakAnimator;
+import com.osudroid.ui.v2.game.ComboBurst;
+import com.osudroid.ui.v2.game.Countdown;
+import com.osudroid.ui.v2.game.FlashLightEntity;
+import com.osudroid.ui.v2.game.AutoCursor;
+import com.osudroid.ui.v2.game.CursorEntity;
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator;
 import ru.nsu.ccfit.zuev.osu.helper.StringTable;
 import com.osudroid.ui.v2.game.PauseMenu;
@@ -1622,7 +1625,7 @@ public class GameScene implements GameObjectListener {
                 }
             }
 
-            flashlightSprite.onUpdate(stat.getCombo());
+            flashlightSprite.updateCombo(stat.getCombo());
         }
 
         while (timingControlPointIndex + 1 < timingControlPoints.length) {
@@ -2984,7 +2987,7 @@ public class GameScene implements GameObjectListener {
             return;
         }
 
-        if (Config.isHitLighting() && !name.equals("sliderpoint10") && !name.equals("sliderpoint30") && ResourceManager.getInstance().getTexture("lighting") != null) {
+        if (Config.isHitLighting() && !name.equals("sliderpoint10") && !name.equals("sliderpoint30") && SkinTextures.get("lighting") != null) {
 
             // Reference https://github.com/ppy/osu/blob/a7e110f6693beca6f6e6a20efb69a6913d58550e/osu.Game.Rulesets.Osu/Objects/Drawables/DrawableOsuJudgement.cs#L71-L88
 
@@ -3522,7 +3525,7 @@ public class GameScene implements GameObjectListener {
 
         // Reset auto cursor modifiers.
         if (autoCursor != null) {
-            autoCursor.clearAnimations();
+            autoCursor.stopMoving();
         }
 
         // Clear pending cursor events.

@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.acivev.ui.addSnowfallWithPeriod
+import com.acivev.ui.addFireworksWithPeriod
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import com.reco1l.verktex.ui.dialog.UIConfirmDialog
 import com.osudroid.data.BeatmapInfo
@@ -79,6 +81,7 @@ object MainScene : UIScene() {
 
     private var isMenuExpanded = false
     private var isExiting = false
+    private var areSeasonalEffectsAdded = false
 
     private var lastMusicChange = System.currentTimeMillis()
 
@@ -426,6 +429,17 @@ object MainScene : UIScene() {
 
     override fun onAttached() {
         super.onAttached()
+
+        if (!areSeasonalEffectsAdded) {
+            areSeasonalEffectsAdded = true
+
+            val context = GlobalManager.getInstance().mainActivity
+
+            (background as? UIContainer)?.let {
+                addSnowfallWithPeriod(it, context)
+                addFireworksWithPeriod(it, context)
+            }
+        }
 
         if (!MusicManager.isPlaying || MusicManager.currentBeatmap == null) {
             if (MusicManager.currentBeatmap == null) {
