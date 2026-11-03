@@ -1,5 +1,19 @@
 package com.osudroid.ui.v2.settings
 
+import com.reco1l.verktex.ui.form.FormSelect
+import com.reco1l.verktex.ui.UIButton
+import kotlin.math.max
+import androidx.core.content.getSystemService
+import android.content.ClipboardManager
+import android.content.ClipData
+import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.ui.form.FormInput
+import com.reco1l.verktex.ui.form.FormControl
+import com.osudroid.multiplayer.api.data.WinCondition
+import com.osudroid.multiplayer.api.data.RoomTeam
+import com.osudroid.multiplayer.api.data.TeamMode
+import com.osudroid.multiplayer.api.LobbyAPI
+import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.ui.v2.SkinSounds
 import android.content.Context
@@ -44,9 +58,194 @@ import java.io.File
 internal var onPlayfieldChanged: (() -> Unit)? = null
 
 
+val playerSection = listOf(
+    CategoryInfo(
+        title = StringTable.get(R.string.mp_room_category_lobby),
+        options = listOf(
+            OptionInfo(
+                type = OptionType.Select,
+                key = "player_team",
+                title = R.string.mp_room_category_teams_title,
+                summary = R.string.mp_room_category_teams_summary,
+                entries = R.array.mp_team_names,
+                entryValues = R.array.mp_team_values,
+                initialValue = { Multiplayer.player?.team?.ordinal?.toString() ?: "" },
+                onAttach = { (it as FormControl<*, *>).isEnabled = Multiplayer.room?.teamMode == TeamMode.TeamVS },
+                onChange = { value ->
+                    @Suppress("UNCHECKED_CAST")
+                    val team = (value as List<String>).firstOrNull()?.toIntOrNull()?.let { RoomTeam.entries.getOrNull(it) }
+                    if (team != null) {
+                        RoomAPI.setPlayerTeam(team)
+                    }
+                }
+            ),
+            OptionInfo(
+                type = OptionType.Checkbox,
+                key = "player_preferModAcronym",
+                title = R.string.mp_room_prefer_mod_acronym_title,
+                summary = R.string.mp_room_prefer_mod_acronym_summary,
+                defaultValue = false
+            )
+        )
+    ),
+
+    CategoryInfo(
+        title = StringTable.get(R.string.mp_room_category_in_game),
+        options = listOf(
+            OptionInfo(
+                type = OptionType.Checkbox,
+                key = "player_submitScore",
+                title = R.string.mp_room_enable_score_submission_title,
+                summary = R.string.mp_room_enable_score_submission_summary,
+                defaultValue = true
+            ),
+            OptionInfo(
+                type = OptionType.Checkbox,
+                key = "player_nightcore",
+                title = R.string.mp_room_nightcore_title,
+                summary = R.string.mp_room_nightcore_summary,
+                defaultValue = false,
+                onChange = { value ->
+                    Config.setUseNightcoreOnMultiplayer(value as Boolean)
+                    Multiplayer.room?.let { Multiplayer.roomScene?.onRoomModsChange(it.mods) }
+                }
+            )
+        )
+    )
+)
+
+// Settings of the room, only for its host. They're the room's current values, not preferences.
+val roomSection = listOf(
+    CategoryInfo(
+        title = StringTable.get(R.string.mp_room_category_details),
+        options = listOf(
+            OptionInfo(
+                type = OptionType.Input,
+                key = "room_name",
+                title = R.string.mp_room_name_title,
+                summary = R.string.mp_room_name_summary,
+                initialValue = { Multiplayer.room?.name ?: "" },
+                // Applied once confirmed with the keyboard, not on every typed character.
+                onAttach = {
+                    val input = (it as FormInput).control
+                    input.onConfirm = {
+                        if (input.value.isNotBlank()) {
+                            RoomAPI.setRoomName(input.value)
+                        }
+                    }
+                }
+            ),
+            OptionInfo(
+                type = OptionType.Input,
+                key = "room_password",
+                title = R.string.mp_room_password_title,
+                summary = R.string.mp_room_password_summary,
+                // The current password isn't known, only whether there's one.
+                initialValue = { "" },
+                // Applied once confirmed with the keyboard, not on every typed character.
+                onAttach = {
+                    val input = (it as FormInput).control
+                    input.isPassword = true
+                    input.onConfirm = { RoomAPI.setRoomPassword(input.value) }
+                }
+            ),
+            OptionInfo(
+                type = OptionType.Slider,
+                key = "room_max_players",
+                title = R.string.mp_room_max_players_title,
+                summary = R.string.mp_room_max_players_summary,
+                max = 16f,
+                step = 1f,
+                initialValue = { Multiplayer.room?.maxPlayers ?: 2 },
+                onAttach = {
+                    // Not fewer than the players already in the room.
+                    (it as FormSlider).control.min = max(2, Multiplayer.room?.activePlayers?.size ?: 0).toFloat()
+                },
+                onChange = { value -> RoomAPI.setRoomMaxPlayers((value as Float).toInt()) }
+            )
+        )
+    ),
+
+    CategoryInfo(
+        title = StringTable.get(R.string.mp_room_category_variables),
+        options = listOf(
+            OptionInfo(
+                type = OptionType.Checkbox,
+                key = "room_free_mods",
+                title = R.string.mp_room_free_mods_title,
+                summary = R.string.mp_room_free_mods_summary,
+                initialValue = { Multiplayer.room?.gameplaySettings?.isFreeMod ?: false },
+                onChange = { value -> RoomAPI.setRoomFreeMods(value as Boolean) }
+            ),
+            OptionInfo(
+                type = OptionType.Select,
+                key = "room_versus_mode",
+                title = R.string.mp_room_versus_mode_title,
+                summary = R.string.mp_room_versus_mode_summary,
+                entries = R.array.mp_team_versus_names,
+                entryValues = R.array.mp_team_versus_values,
+                initialValue = { Multiplayer.room?.teamMode?.ordinal?.toString() ?: "" },
+                onChange = { value ->
+                    @Suppress("UNCHECKED_CAST")
+                    val mode = (value as List<String>).firstOrNull()?.toIntOrNull()?.let { TeamMode.entries.getOrNull(it) }
+                    if (mode != null) {
+                        RoomAPI.setRoomTeamMode(mode)
+                    }
+                }
+            ),
+            OptionInfo(
+                type = OptionType.Select,
+                key = "room_win_condition",
+                title = R.string.mp_room_win_condition_title,
+                summary = R.string.mp_room_win_condition_summary,
+                entries = R.array.mp_win_condition_names,
+                entryValues = R.array.mp_win_condition_values,
+                initialValue = { Multiplayer.room?.winCondition?.ordinal?.toString() ?: "" },
+                onChange = { value ->
+                    @Suppress("UNCHECKED_CAST")
+                    val condition = (value as List<String>).firstOrNull()?.toIntOrNull()?.let { WinCondition.entries.getOrNull(it) }
+                    if (condition != null) {
+                        RoomAPI.setRoomWinCondition(condition)
+                    }
+                }
+            ),
+            OptionInfo(
+                type = OptionType.Checkbox,
+                key = "room_removeSliderLock",
+                title = R.string.opt_remove_sliderlock_spinnerlock_title,
+                summary = R.string.opt_remove_sliderlock_spinnerlock_summary,
+                initialValue = { Multiplayer.room?.gameplaySettings?.isRemoveSliderLock ?: false },
+                onChange = { value -> RoomAPI.setRoomRemoveSliderLock(value as Boolean) }
+            )
+        )
+    ),
+
+    CategoryInfo(
+        title = StringTable.get(R.string.mp_room_category_share),
+        options = listOf(
+            OptionInfo(
+                type = OptionType.Button,
+                key = "room_link",
+                title = R.string.mp_room_link_title,
+                summary = R.string.mp_room_link_summary,
+                onClick = {
+                    val room = Multiplayer.room
+                    if (room != null) {
+                        val context = GlobalManager.getInstance().mainActivity
+                        context.getSystemService<ClipboardManager>()?.setPrimaryClip(
+                            ClipData.newPlainText(room.name, "${LobbyAPI.INVITE_HOST}/${room.id}/")
+                        )
+                        ToastLogger.showText("Link copied to clipboard. If the room has a password, you can write it at the end of the link.", false)
+                    }
+                }
+            )
+        )
+    )
+)
+
 val generalSection = listOf(
     CategoryInfo(
-        title = "Online", // opt_category_online
+        title = StringTable.get(R.string.opt_category_online),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -65,6 +264,8 @@ val generalSection = listOf(
                 key = "difficultyAlgorithm",
                 title = R.string.difficulty_algorithm_title,
                 summary = R.string.difficulty_algorithm_summary,
+                // The default of Config.getDifficultyAlgorithm, shown while it was never changed.
+                defaultValue = "0",
                 entries = R.array.difficulty_algorithm_names,
                 entryValues = R.array.difficulty_algorithm_values,
                 onChange = { value ->
@@ -80,7 +281,7 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Account", // opt_category_account
+        title = StringTable.get(R.string.opt_category_account),
         options = listOf(
             OptionInfo(
                 type = OptionType.Input,
@@ -111,7 +312,7 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Community", // opt_category_community
+        title = StringTable.get(R.string.opt_category_community),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -123,7 +324,7 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Updates", // opt_category_updates
+        title = StringTable.get(R.string.opt_category_updates),
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
@@ -138,7 +339,7 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Configuration Backup", // opt_category_config_backup
+        title = StringTable.get(R.string.opt_category_config_backup),
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
@@ -180,7 +381,7 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Localization", // opt_category_localization
+        title = StringTable.get(R.string.opt_category_localization),
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
@@ -190,7 +391,10 @@ val generalSection = listOf(
                 entries = R.array.placeholder_array,
                 entryValues = R.array.placeholder_array,
                 onAttach = {
-                    (it as PreferenceSelect).options = listOf(
+                    // Changing it restarts the game, which would leave the room.
+                    (it as PreferenceSelect).isEnabled = !Multiplayer.isMultiplayer
+
+                    it.options = listOf(
                         UISelect.Option("system", "System Default"),
                         UISelect.Option("en", "English"),
                         // German
@@ -241,7 +445,7 @@ val generalSection = listOf(
 
 val gameplaySection = listOf(
     CategoryInfo(
-        title = "Skin", // opt_category_skin
+        title = StringTable.get(R.string.opt_category_skin),
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
@@ -250,19 +454,24 @@ val gameplaySection = listOf(
                 summary = R.string.opt_skinpath_summary,
                 entries = R.array.placeholder_array,
                 entryValues = R.array.placeholder_array,
+                // Config ends the path with a slash, which the folders don't, so it's shown and stored
+                // as Config has it rather than through the preference.
+                initialValue = { Config.getSkinPath() },
                 onAttach = {
                     val skinMain = File(Config.getSkinTopPath())
                     val skins = Config.getSkins().map { skin ->
-                        UISelect.Option(skin.value, skin.key)
-                    }.toMutableList()
-                    skins.add(0, UISelect.Option(skinMain.path, skinMain.name + " (Default)"))
+                        UISelect.Option(skin.value.withTrailingSlash(), skin.key)
+                    }.sortedBy { it.text }.toMutableList()
+                    skins.add(0, UISelect.Option(skinMain.path.withTrailingSlash(), skinMain.name + " (Default)"))
 
-                    (it as PreferenceSelect).options = skins
+                    @Suppress("UNCHECKED_CAST")
+                    (it as FormSelect<String>).options = skins
                 },
                 onChange = { value ->
                     @Suppress("UNCHECKED_CAST")
-                    val newValue = (value as List<String>)[0]
+                    val newValue = (value as List<String>).firstOrNull() ?: return@OptionInfo
                     val context = GlobalManager.getInstance().mainActivity
+                    Config.setString("skinPath", newValue)
                     loadSkin(context, newValue)
                 }
             ),
@@ -271,6 +480,8 @@ val gameplaySection = listOf(
                 key = "hud_editor",
                 title = R.string.opt_hudEditor_title,
                 summary = R.string.opt_hudEditor_summary,
+                // It plays the beatmap, which can't be done from a multiplayer room.
+                onAttach = { (it as UIButton).isEnabled = !Multiplayer.isMultiplayer },
                 onClick = {
                     val global = GlobalManager.getInstance()
                     val selectedBeatmap = global.selectedBeatmap
@@ -281,6 +492,9 @@ val gameplaySection = listOf(
                         val modMap = ModHashMap().apply {
                             put(ModAutoplay::class)
                         }
+
+                        // The editor returns to the menu, as the settings closed before it.
+                        (Verktex.scene as? SettingsMenu)?.back()
 
                         global.gameScene.setOldScene(MainScene)
                         global.gameScene.startGame(selectedBeatmap, null, modMap, true)
@@ -307,7 +521,7 @@ val gameplaySection = listOf(
     ),
 
     CategoryInfo(
-        title = "Hit Objects", // opt_category_hit_objects
+        title = StringTable.get(R.string.opt_category_hit_objects),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -320,7 +534,7 @@ val gameplaySection = listOf(
     ),
 
     CategoryInfo(
-        title = "Background", // opt_category_background
+        title = StringTable.get(R.string.opt_category_background),
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
@@ -358,7 +572,7 @@ val gameplaySection = listOf(
     ),
 
     CategoryInfo(
-        title = "Playfield", // opt_category_playfield
+        title = StringTable.get(R.string.opt_category_playfield),
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
@@ -416,7 +630,7 @@ val gameplaySection = listOf(
     ),
 
     CategoryInfo(
-        title = "HUD", // opt_category_hud
+        title = StringTable.get(R.string.opt_category_hud),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -452,7 +666,7 @@ val gameplaySection = listOf(
 
 val graphicsSection = listOf(
     CategoryInfo(
-        title = "Cursor", // opt_category_cursor
+        title = StringTable.get(R.string.opt_category_cursor),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -483,7 +697,7 @@ val graphicsSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Animations", // opt_category_animations
+        title = StringTable.get(R.string.opt_category_animations),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -561,7 +775,7 @@ val graphicsSection = listOf(
 
 val audioSection = listOf(
     CategoryInfo(
-        title = "Volume", // opt_category_volume
+        title = StringTable.get(R.string.opt_category_volume),
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
@@ -603,7 +817,7 @@ val audioSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Offset", // opt_category_offset
+        title = StringTable.get(R.string.opt_category_offset),
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
@@ -642,7 +856,7 @@ val audioSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Effect", // opt_category_effect
+        title = StringTable.get(R.string.opt_category_effect),
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
@@ -664,7 +878,7 @@ val audioSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Miscellaneous", // opt_category_miscellaneous
+        title = StringTable.get(R.string.opt_category_miscellaneous),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -686,7 +900,7 @@ val audioSection = listOf(
 
 val librarySection = listOf(
     CategoryInfo(
-        title = "Import", // opt_category_import
+        title = StringTable.get(R.string.opt_category_import),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -734,7 +948,7 @@ val librarySection = listOf(
     ),
 
     CategoryInfo(
-        title = "Metadata", // opt_category_metadata
+        title = StringTable.get(R.string.opt_category_metadata),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -747,7 +961,7 @@ val librarySection = listOf(
     ),
 
     CategoryInfo(
-        title = "Storage", // opt_category_storage
+        title = StringTable.get(R.string.opt_category_storage),
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
@@ -774,7 +988,7 @@ val librarySection = listOf(
 
 val inputSection = listOf(
     CategoryInfo(
-        title = "Gameplay", // opt_category_gameplay
+        title = StringTable.get(R.string.opt_category_gameplay),
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
@@ -861,7 +1075,7 @@ val inputSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Synchronization", // opt_category_synchronization
+        title = StringTable.get(R.string.opt_category_synchronization),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -876,7 +1090,7 @@ val inputSection = listOf(
 
 val advancedSection = listOf(
     CategoryInfo(
-        title = "Directories", // opt_category_directories
+        title = StringTable.get(R.string.opt_category_directories),
         options = listOf(
             OptionInfo(
                 type = OptionType.Input,
@@ -918,7 +1132,7 @@ val advancedSection = listOf(
     ),
 
     CategoryInfo(
-        title = "Miscellaneous", // opt_category_miscellaneous
+        title = StringTable.get(R.string.opt_category_miscellaneous),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -930,6 +1144,9 @@ val advancedSection = listOf(
                     // Obtaining supported refresh rates is only available on Android 12 and above.
                     // See https://developer.android.com/reference/android/view/Display.Mode#getAlternativeRefreshRates().
                     component.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                },
+                onChange = { value ->
+                    GlobalManager.getInstance().mainActivity.applyRefreshRateSetting(value as Boolean)
                 }
             ),
             OptionInfo(
@@ -944,6 +1161,8 @@ val advancedSection = listOf(
 )
 
 // Constants
+private fun String.withTrailingSlash() = if (endsWith('/')) this else "$this/"
+
 const val REGISTER_URL: String = "https://${OnlineManager.hostname}/user/?action=register"
 
 // Helper functions
