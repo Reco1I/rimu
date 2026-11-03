@@ -5,15 +5,15 @@ import android.graphics.PointF;
 
 import com.osudroid.utils.Execution;
 import com.reco1l.verktex.data.Anchor;
-import com.reco1l.verktex.Scene;
-import com.reco1l.verktex.component.BlendInfo;
-import com.reco1l.verktex.component.ComponentsKt;
+import com.reco1l.verktex.ui.container.UIContainer;
+import com.reco1l.verktex.ui.ChoreographyKt;
+import com.reco1l.verktex.ui.TransformsKt;
+import com.osudroid.ui.v2.SkinTextures;
+import com.reco1l.verktex.graphics.BlendMode;
+import com.reco1l.verktex.ui.Choreography;
 import com.reco1l.verktex.ui.UIAnimatedSprite;
 import com.reco1l.verktex.ui.UISprite;
 import com.reco1l.verktex.data.Color4;
-import com.rian.andengine.modifier.UniversalModifierSequence;
-
-import org.anddev.andengine.entity.shape.Shape;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
-import ru.nsu.ccfit.zuev.osu.ResourceManager;
 import ru.nsu.ccfit.zuev.skins.OsuSkin;
 
 public class GameEffect extends GameObject {
@@ -32,18 +31,16 @@ public class GameEffect extends GameObject {
     UISprite hit;
     String texname;
 
-    private float duration;
-
     public GameEffect(final String texname) {
         this.texname = texname;
 
-        if (isAnimationEffect(texname) && ResourceManager.getInstance().isTextureLoaded(texname + "-0")) {
-            var hit = new UIAnimatedSprite(texname, true, OsuSkin.get().getAnimationFramerate());
+        if (isAnimationEffect(texname) && (SkinTextures.get(texname + "-0") != null)) {
+            var hit = new UIAnimatedSprite(SkinTextures.frames(texname), OsuSkin.get().getAnimationFramerate());
             hit.setLoop(false);
             this.hit = hit;
         } else {
             hit = new UISprite();
-            hit.setTextureRegion(ResourceManager.getInstance().getTexture(texname));
+            hit.setTextureRegion(SkinTextures.get(texname));
         }
     }
 
@@ -55,44 +52,41 @@ public class GameEffect extends GameObject {
         if (color == null) {
             hit.setColor(1f, 1f, 1f);
         } else {
-            ComponentsKt.setColor4(hit, color);
+            hit.setColor(color);
         }
     }
 
     @SafeVarargs
-    public final void init(final Scene scene, final PointF pos, final float scale,
-                           final Consumer<UniversalModifierSequence>... sequenceConsumers) {
+    public final void init(final UIContainer scene, final PointF pos, final float scale,
+                           final Consumer<Choreography>... sequenceConsumers) {
         if (hit instanceof UIAnimatedSprite animatedHit) {
-            animatedHit.reset();
+            animatedHit.stop();
+            animatedHit.play();
         }
         hit.setPosition(pos.x, pos.y);
         hit.setOrigin(Anchor.Center);
         hit.setScale(scale);
         hit.setAlpha(1);
-        hit.detachSelf();
-        hit.setBlendInfo(new BlendInfo(Shape.BLENDFUNCTION_SOURCE_DEFAULT, Shape.BLENDFUNCTION_DESTINATION_DEFAULT));
-        scene.attachChild(hit);
+        hit.removeSelf();
+        hit.setBlendMode(BlendMode.Alpha.INSTANCE);
+        scene.plusAssign(hit);
 
-        duration = 0;
+        hit.clearAnimations();
 
         for (int i = 0; i < sequenceConsumers.length; ++i) {
-            var consumer = sequenceConsumers[i];
-
-            hit.beginModifierSequence(sequence -> {
-                consumer.accept(sequence);
-                duration = Math.max(duration, sequence.getDuration());
-            });
+            ChoreographyKt.choreographNow(hit, sequenceConsumers[i]);
         }
 
-        hit.beginDelayedSequence(duration, sequence -> sequence.after(e -> Execution.updateThread(() -> {
-            hit.detachSelf();
-            hit.clearEntityModifiers();
+        // Fired once every sequence has finished.
+        ChoreographyKt.choreographAt(hit, ChoreographyKt.choreography(hit).getEndTime(), sequence -> sequence.after(e -> Execution.updateThread(() -> {
+            hit.removeSelf();
+            hit.clearAnimations();
             GameObjectPool.getInstance().putEffect(GameEffect.this);
         })));
     }
 
-    public void setBlendFunction(int sourceBlend, int destBlend) {
-        hit.setBlendInfo(new BlendInfo(sourceBlend, destBlend));
+    public void setBlendMode(BlendMode blendMode) {
+        hit.setBlendMode(blendMode);
     }
 
     public String getTexname() {

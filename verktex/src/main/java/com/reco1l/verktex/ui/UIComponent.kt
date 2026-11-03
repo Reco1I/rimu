@@ -13,6 +13,7 @@ import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.almostEquals
 import com.reco1l.verktex.settings.Setting
 import com.reco1l.verktex.settings.VerktexSettings
@@ -650,7 +651,7 @@ abstract class UIComponent {
      * Whether the bounds of this component, transformed to scene space, overlap the given scene
      * rectangle. Anything drawn outside of the bounds is not considered.
      */
-    fun intersectsSceneRect(x: Float, y: Float, width: Float, height: Float): Boolean {
+    open fun intersectsSceneRect(x: Float, y: Float, width: Float, height: Float): Boolean {
         if (transformationsInvalid) {
             transformationsInvalid = false
             calculateTransformations()
@@ -750,8 +751,9 @@ abstract class UIComponent {
      * updating the component's state.
      */
     fun update(clock: FrameClock) {
+        engineClockTime = clock.time
         transforms?.update(this, clock.elapsedFrameTime)
-        choreography?.update(activeClock?.time ?: clock.time)
+        choreography?.update(currentClockTime)
         onUpdate(clock)
     }
 
@@ -768,9 +770,54 @@ abstract class UIComponent {
         get() = clock ?: parent?.activeClock
 
     /**
+     * The current time of the clock pacing this component, in seconds.
+     */
+    val currentClockTime: Float
+        get() = activeClock?.time ?: engineClockTime
+
+    /**
      * The timeline of this component, see [Choreography].
      */
     var choreography: Choreography? = null
+
+    /**
+     * Whether a transform or a step of the choreography is still running.
+     */
+    val isAnimating: Boolean
+        get() = transforms?.hasTransforms == true || choreography?.let { currentClockTime < it.endTime } == true
+
+    private var engineClockTime = 0f
+
+    /**
+     * Removes all the transforms and the choreography, leaving the properties at their current values.
+     */
+    fun clearAnimations() {
+        transforms?.clear()
+        choreography?.clear()
+    }
+
+    /**
+     * Sets the position to the given amount of pixels.
+     */
+    fun setPosition(x: Float, y: Float) {
+        this.x = x.px
+        this.y = y.px
+    }
+
+    /**
+     * Sets the size to the given amount of pixels.
+     */
+    fun setSize(width: Float, height: Float) {
+        this.width = width.px
+        this.height = height.px
+    }
+
+    /**
+     * Sets the color channels, leaving the alpha as it is.
+     */
+    fun setColor(red: Float, green: Float, blue: Float) {
+        color = Color4(red, green, blue, alpha)
+    }
 
     /**
      * The transforms running on this component, created when the first one is added.

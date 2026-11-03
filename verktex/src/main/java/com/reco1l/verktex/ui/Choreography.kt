@@ -4,6 +4,7 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.ColorInterpolation
 import com.reco1l.verktex.math.Easing
+import java.util.function.Consumer
 
 /**
  * A timeline of changes to the properties of a component with a defined lifetime, such as a hit object.
@@ -45,6 +46,7 @@ class Choreography internal constructor(private val target: UIComponent) {
     private val callbacks = ArrayList<Callback>()
 
     private var cursor = 0f
+    private var chainEnd = 0f
     private var lifetimeEndReached = false
 
     // The value each property ends at after the steps added so far, for the next step to start from.
@@ -60,6 +62,7 @@ class Choreography internal constructor(private val target: UIComponent) {
      */
     fun at(time: Float): Choreography {
         cursor = time
+        chainEnd = time
         return this
     }
 
@@ -68,15 +71,24 @@ class Choreography internal constructor(private val target: UIComponent) {
      */
     fun delay(duration: Float): Choreography {
         cursor += duration
+        chainEnd = maxOf(chainEnd, cursor)
         endTime = maxOf(endTime, cursor)
         return this
     }
 
     /**
-     * Makes the next steps start once all the previous ones have ended.
+     * Makes the next steps start once the previous ones since the last [at] have ended.
      */
     fun then(): Choreography {
-        cursor = endTime
+        cursor = chainEnd
+        return this
+    }
+
+    /**
+     * Makes the next steps start after the given delay once the previous ones since the last [at] have ended.
+     */
+    fun then(delay: Float): Choreography {
+        cursor = chainEnd + delay
         return this
     }
 
@@ -99,7 +111,8 @@ class Choreography internal constructor(private val target: UIComponent) {
         step.easing = easing
 
         steps.add(step)
-        endTime = maxOf(endTime, cursor + duration)
+        chainEnd = maxOf(chainEnd, cursor + duration)
+        endTime = maxOf(endTime, chainEnd)
         return step
     }
 
@@ -124,6 +137,16 @@ class Choreography internal constructor(private val target: UIComponent) {
     @JvmOverloads
     fun fadeTo(value: Float, duration: Float = 0f, easing: Easing = Easing.None): Choreography {
         addStep(Property.Alpha, value, duration, easing)
+        return this
+    }
+
+    /**
+     * Fades in starting from fully transparent, regardless of the previous value.
+     */
+    @JvmOverloads
+    fun fadeInFromZero(duration: Float = 0f, easing: Easing = Easing.None): Choreography {
+        addStep(Property.Alpha, 1f, duration, easing)
+        steps.last().from = 0f
         return this
     }
 
@@ -174,12 +197,17 @@ class Choreography internal constructor(private val target: UIComponent) {
         return this
     }
 
+    @JvmOverloads
+    fun colorTo(red: Float, green: Float, blue: Float, duration: Float = 0f, easing: Easing = Easing.None) =
+        colorTo(Color4(red, green, blue), duration, easing)
+
     /**
-     * Calls [callback] once when time reaches the end of all the steps added so far. It isn't called again if time
+     * Calls [callback] once when time reaches the end of the steps added since the last [at]. It isn't called again if time
      * goes back and passes it again.
      */
     fun after(callback: OnTransformFinished): Choreography {
-        callbacks.add(Callback(endTime, callback))
+        callbacks.add(Callback(chainEnd, callback))
+        endTime = maxOf(endTime, chainEnd)
         return this
     }
 
@@ -196,6 +224,7 @@ class Choreography internal constructor(private val target: UIComponent) {
         hasLastValue.fill(false)
 
         cursor = 0f
+        chainEnd = 0f
         endTime = 0f
         lifetimeEnd = null
         onLifetimeEnd = null
@@ -307,6 +336,18 @@ class Choreography internal constructor(private val target: UIComponent) {
  * Gets the choreography of this component, creating it if needed.
  */
 fun UIComponent.choreography(): Choreography = choreography ?: Choreography(this).also { choreography = it }
+
+/**
+ * Adds steps to the choreography of this component starting at the given time.
+ */
+fun UIComponent.choreographAt(time: Float, block: Consumer<Choreography>) {
+    block.accept(choreography().at(time))
+}
+
+/**
+ * Adds steps to the choreography of this component starting at the current time.
+ */
+fun UIComponent.choreographNow(block: Consumer<Choreography>) = choreographAt(currentClockTime, block)
 
 /**
  * Adds steps to the choreography of this component.
