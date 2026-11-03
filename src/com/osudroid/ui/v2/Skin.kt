@@ -5,6 +5,9 @@ import com.osudroid.ui.skinning.convertToJson
 import com.osudroid.ui.skinning.ensureOptionalTexture
 import com.osudroid.ui.skinning.ensureTexture
 import com.osudroid.ui.skinning.mergeMissing
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.ui.Theme
 import java.io.File
 import org.json.JSONObject
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -16,6 +19,14 @@ import ru.nsu.ccfit.zuev.skins.SkinJsonReader
  * [SkinSounds].
  */
 object Skin {
+
+    /**
+     * Applies the accent color of a skin to the theme of the UI.
+     */
+    @JvmStatic
+    fun applyAccentColor(color: Color4) {
+        Verktex.theme = Theme(palette = Theme.ColorPalette(color))
+    }
 
     /**
      * Loads the configuration of the skin in the given folder.

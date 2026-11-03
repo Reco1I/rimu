@@ -258,7 +258,7 @@ public class GameplayModernSpinner extends GameplaySpinner {
                     bonusScore.setText(String.valueOf(bonusScoreCounter * 1000));
                     listener.onSpinnerHit(id, 1000, false, 0);
                     bonusScoreCounter++;
-                    if (!bonusScore.hasParent()) {
+                    if (bonusScore.getParent() == null) {
                         scene.plusAssign(bonusScore);
                     }
                     spinnerBonusSample.play();

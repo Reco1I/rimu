@@ -203,6 +203,9 @@ public class MainActivity extends AndroidGameHost {
         });
     }
 
+    @Override
+    public void onEngineStarted() {}
+
     private void initialGameDirectory() {
         File dir = new File(Config.getBeatmapPath());
         // Creating Osu directory if it doesn't exist

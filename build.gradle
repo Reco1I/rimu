@@ -138,8 +138,6 @@ android {
         main {
             manifest.srcFile 'AndroidManifest.xml'
             java.srcDirs = ['src']
-            // Storyboards still use the old renderer, this code is kept for when they are rewritten.
-            java.exclude 'com/edlplan/framework/support/**'
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
             jniLibs.srcDirs = ['libs']
@@ -232,6 +230,7 @@ dependencies {
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
+    kapt "org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.10"
     implementation "androidx.room:room-ktx:$room_version"
     testImplementation "androidx.room:room-testing:$room_version"
 }

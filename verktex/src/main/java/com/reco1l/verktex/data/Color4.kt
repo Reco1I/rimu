@@ -5,7 +5,7 @@ import kotlin.math.*
 /**
  * Represents a color with red, green, blue, and alpha components.
  */
-data class Color4(
+data class Color4 @JvmOverloads constructor(
     val red: Float = 0f,
     val green: Float = 0f,
     val blue: Float = 0f,
@@ -428,8 +428,12 @@ data class Color4(
         val Stone900 = oklch(0.216f, 0.006f, 56.043f)
         val Stone950 = oklch(0.147f, 0.004f, 49.25f)
 
+        @JvmField
+
         val Black = rgb(0, 0, 0)
+        @JvmField
         val White = rgb(1f, 1f, 1f)
+        @JvmField
         val Transparent = rgb(0, 0, 0, 0)
 
         //endregion

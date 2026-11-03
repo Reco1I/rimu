@@ -1264,7 +1264,7 @@ public class GameplaySlider extends GameObject {
             listener.onSliderHit(id, isTracking ? 10 : -1, tmpPoint, false, bodyColor, GameObjectListener.SLIDER_TICK, isTracking);
             currentNestedObjectIndex++;
 
-            var tickSprite = (SliderTickSprite) tickContainer.getChild(currentTickSpriteIndex);
+            var tickSprite = (SliderTickSprite) tickContainer.get(currentTickSpriteIndex);
             tickSprite.onHit(isTracking);
 
             if (reverse && currentTickSpriteIndex > 0) {
@@ -1346,7 +1346,7 @@ public class GameplaySlider extends GameObject {
     }
 
     private void applyDim(UIComponent piece) {
-        if (!piece.hasParent() || !piece.isVisible()) {
+        if (piece.getParent() == null || !piece.isVisible()) {
             return;
         }
 

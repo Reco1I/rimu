@@ -2,6 +2,7 @@ package ru.nsu.ccfit.zuev.skins;
 
 import androidx.annotation.NonNull;
 
+import com.reco1l.verktex.data.Dimension;
 import com.reco1l.verktex.ui.UISprite;
 import org.json.JSONObject;
 
@@ -36,10 +37,10 @@ public class SkinLayout {
             sprite.setScale(scale);
         }
         if (width != -1) {
-            sprite.setWidth(width);
+            sprite.setWidth(new Dimension.Fixed.Pixels(width));
         }
         if (height != -1) {
-            sprite.setHeight(height);
+            sprite.setHeight(new Dimension.Fixed.Pixels(height));
         }
 
         // The origin of the sprite that is using this class is in bottom left, but without its
@@ -50,7 +51,7 @@ public class SkinLayout {
         float y = Config.getRES_HEIGHT() - sprite.getTransformedHeight() - yPosition;
 
         if (Float.isNaN(x)) {
-            x = previousSprite != null ? previousSprite.getX() + previousSprite.getTransformedWidth() : 0;
+            x = previousSprite != null ? previousSprite.getX().resolve(0f) + previousSprite.getTransformedWidth() : 0;
         }
 
         if (Float.isNaN(y)) {

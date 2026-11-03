@@ -179,7 +179,7 @@ public class ScoringScene {
         content = new UIContainer();
         content.setSize(Config.getRES_WIDTH(), Config.getRES_HEIGHT());
         content.setScaleOrigin(Anchor.TopLeft);
-        content.setScale((float) Verktex.getGraphics().getWindow().getWindowWidth() / Config.getRES_WIDTH());
+        content.setScale((float) Verktex.INSTANCE.getGraphics().getWindow().getWindowWidth() / Config.getRES_WIDTH());
         scene.plusAssign(content);
 
         var bgTopRect = new UIBox();

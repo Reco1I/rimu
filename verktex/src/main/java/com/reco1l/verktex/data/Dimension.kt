@@ -81,10 +81,14 @@ sealed class Dimension {
 
 
     companion object {
+        @JvmField
         val Zero = Fixed.Pixels(0f)
         val Max = Fixed.Pixels(Float.MAX_VALUE)
 
+        @JvmField
+
         val FillAvailable = AvailableSizeFraction(1f)
+        @JvmField
         val WrapContent = ContentSizeFraction(1f)
     }
 }

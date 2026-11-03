@@ -55,7 +55,7 @@ import com.reco1l.verktex.time.FrameClock;
 import com.reco1l.verktex.ui.ChoreographyKt;
 import com.reco1l.verktex.ui.UIComponent;
 import com.reco1l.verktex.ui.UIScene;
-import com.reco1l.verktex.ui.UIText;
+import com.reco1l.verktex.ui.text.UIText;
 import com.reco1l.verktex.ui.container.UIContainer;
 import com.reco1l.verktex.ui.shape.UIBox;
 import com.reco1l.verktex.ui.UIAnimatedSprite;
@@ -333,6 +333,8 @@ public class GameScene implements GameObjectListener {
 
 
     public GameScene() {
+        gameplayClock = new FrameStableClock(new SongClock(true, true, null));
+
         createScene();
     }
 
@@ -1395,7 +1397,11 @@ public class GameScene implements GameObjectListener {
         }
 
         if (!isHUDEditorMode && !Config.isShowScoreboard()) {
-            hud.detachChild(e -> e instanceof HUDLeaderboard);
+            for (int i = hud.getChildCount() - 1; i >= 0; --i) {
+                if (hud.get(i) instanceof HUDLeaderboard) {
+                    hud.get(i).removeSelf();
+                }
+            }
         }
 
         if (!isHUDEditorMode && !replaying && !GameHelper.isAutoplay() && !GameHelper.isAutopilot()) {
@@ -2130,17 +2136,19 @@ public class GameScene implements GameObjectListener {
         float mSecPassed = gameplayClock.getTime() * 1000;
         var selectedBeatmap = GlobalManager.getInstance().getSelectedBeatmap();
         var songService = GlobalManager.getInstance().getSongService();
-        var songMenu = GlobalManager.getInstance().getSongMenu();
 
         if (songService != null && selectedBeatmap != null && !Multiplayer.isMultiplayer) {
             // osu!stable restarts the song back to preview time when the player is in the last 10 seconds *or* 2% of the beatmap.
             boolean continuePreview = mSecPassed < totalLength - 10000 && mSecPassed / totalLength < 0.98f;
             int previewTime = continuePreview ? songService.getPosition() : selectedBeatmap.getPreviewTime();
 
-            songMenu.playMusic(selectedBeatmap.getAudioPath(), previewTime);
-
-            if (continuePreview) {
-                songMenu.startMusicVolumeAnimation(0.3f);
+            if (Config.isPlayMusicPreview()) {
+                Execution.async(() -> {
+                    songService.stop();
+                    songService.preLoad(selectedBeatmap.getAudioPath());
+                    songService.play();
+                    songService.seekTo(previewTime);
+                });
             }
         }
 
@@ -2941,7 +2949,7 @@ public class GameScene implements GameObjectListener {
     private void createHitEffect(final PointF pos, final String name, Color4 color) {
 
         var effect = GameObjectPool.getInstance().getEffect(name);
-        var isAnimated = effect.hit instanceof UIAnimatedSprite animatedHit && animatedHit.getFrames().length > 1;
+        var isAnimated = effect.hit instanceof UIAnimatedSprite animatedHit && animatedHit.getFrames().size() > 1;
 
         // Reference https://github.com/ppy/osu/blob/ebf637bd3c33f1c886f6bfc81aa9ea2132c9e0d2/osu.Game/Skinning/LegacyJudgementPieceOld.cs
 
@@ -2974,7 +2982,7 @@ public class GameScene implements GameObjectListener {
                             .fadeOut(fadeOutLength),
                     sequence -> sequence
                             .scaleTo(scale, 0.1f, Easing.InQuad)
-                            .translateToY(-5)
+                            .moveToY(-5)
                             .moveToY(80, fadeOutDelay + fadeOutLength, Easing.InQuad),
                     sequence -> sequence
                             .rotateTo(0)
@@ -4085,7 +4093,7 @@ public class GameScene implements GameObjectListener {
 
                 super.onUpdate(clock);
                 // 10ms of allowance when catching up.
-            } while (gameplayClock.getRequiresCatchUp() && stopwatch.getElapsedSeconds() < 0.01f);
+            } while (gameplayClock.requiresCatchUp() && stopwatch.getElapsedSeconds() < 0.01f);
         }
 
         private void updateReplayText(float deltaTimeSec) {

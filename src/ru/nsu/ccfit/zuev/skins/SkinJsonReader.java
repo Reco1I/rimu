@@ -4,9 +4,8 @@ import androidx.annotation.NonNull;
 
 import com.edlplan.framework.utils.interfaces.Consumer;
 import com.osudroid.ui.v2.hud.HUDSkinData;
-import com.reco1l.verktex.ui.Theme;
+import com.osudroid.ui.v2.Skin;
 import com.reco1l.verktex.data.Color4;
-import com.reco1l.verktex.data.HexComposition;
 
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
@@ -100,19 +99,19 @@ public class SkinJsonReader extends SkinReader {
         skin.comboColor.clear();
         JSONArray array = data.optJSONArray("colors");
         if (array == null || array.length() == 0) {
-            skin.comboColor.add(new Color4(skin.DEFAULT_COLOR_HEX, HexComposition.RRGGBB));
+            skin.comboColor.add(new Color4(skin.DEFAULT_COLOR_HEX));
         } else {
             for (int i = 0; i < array.length(); i++) {
                 String hex = array.optString(i, skin.DEFAULT_COLOR_HEX);
 
                 try {
-                    skin.comboColor.add(new Color4(hex, HexComposition.RRGGBB));
+                    skin.comboColor.add(new Color4(hex));
                 } catch (NumberFormatException ignored) {}
             }
 
             // If no valid colors were found, use the default color
             if (skin.comboColor.isEmpty()) {
-                skin.comboColor.add(new Color4(skin.DEFAULT_COLOR_HEX, HexComposition.RRGGBB));
+                skin.comboColor.add(new Color4(skin.DEFAULT_COLOR_HEX));
             }
         }
     }
@@ -173,7 +172,7 @@ public class SkinJsonReader extends SkinReader {
         if (names == null) return;
         for (int i = 0; i < names.length(); i++) {
             try {
-                skin.colorData.put(names.optString(i), new Color4(data.optString(names.optString(i)), HexComposition.RRGGBB));
+                skin.colorData.put(names.optString(i), new Color4(data.optString(names.optString(i))));
             } catch (NumberFormatException ignored) {}
         }
     }
@@ -189,9 +188,9 @@ public class SkinJsonReader extends SkinReader {
     @Override
     protected void loadTheme() {
         var accentColor =
-            new Color4(currentThemeData.optString("accentColor", "#C2CAFF"), HexComposition.RRGGBB);
+            new Color4(currentThemeData.optString("accentColor", "#C2CAFF"));
 
-        Theme.Companion.setCurrent(new Theme(accentColor));
+        Skin.applyAccentColor(accentColor);
     }
 
     public void load(String tag, @NonNull JSONObject data, Consumer<JSONObject> consumer) {
