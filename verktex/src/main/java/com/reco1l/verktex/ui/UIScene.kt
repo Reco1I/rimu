@@ -37,6 +37,11 @@ open class UIScene : UIContainer() {
     }
 
 
+    override fun onUpdate(clock: FrameClock) {
+        background?.update(clock)
+        super.onUpdate(clock)
+    }
+
     /**
      * Called when the scene should process layout invalidations.
      */

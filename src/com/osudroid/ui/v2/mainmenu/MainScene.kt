@@ -23,7 +23,6 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.data.toPadding
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.FloatInterpolation
 import com.reco1l.verktex.texture.Textures
@@ -84,7 +83,7 @@ object MainScene : UIScene() {
 
     init {
 
-        container {
+        background = UIContainer().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
@@ -124,10 +123,8 @@ object MainScene : UIScene() {
                 height = Dimension.FillAvailable
                 gradientAngle = 270f
                 alpha = 0f
-                style = Style { theme ->
-                    colorStart = theme.palette.accent * 0.1f
-                    colorEnd = (theme.palette.accent * 0.1f).copy(alpha = 0.5f)
-                }
+                colorStart = Verktex.theme.palette.accent * 0.1f
+                colorEnd = (Verktex.theme.palette.accent * 0.1f).copy(alpha = 0.5f)
                 menuGradientBox = this
             }
         }
@@ -263,9 +260,7 @@ object MainScene : UIScene() {
 
         container {
             width = Dimension.FillAvailable
-            style = Style {
-                padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 8f.dip, bottom = 8f.dip)
-            }
+            padding = Padding(top = 8f.dip, bottom = 8f.dip)
 
             +PlayerButton().apply {
                 anchor = Anchor.TopLeft
@@ -291,10 +286,7 @@ object MainScene : UIScene() {
         clickableContainer {
             anchor = Anchor.BottomLeft
             origin = Anchor.BottomLeft
-            style = Style {
-                paddingLeft = Verktex.graphics.window.insets.safeArea.x.px
-                paddingBottom = 16f.dip
-            }
+            paddingBottom = 16f.dip
 
             text {
                 text = "osu!droid ${BuildConfig.VERSION_NAME}"

@@ -16,7 +16,6 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.data.toPadding
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.texture.Textures
@@ -65,18 +64,23 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     private var minimumTimeout = if (isRestart) 500L else 2000L
 
     init {
-        sprite {
+        background = UIContainer().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            scaleType = UISprite.ScaleType.Crop
-            textureRegion = if (Config.isSafeBeatmapBg()) SkinTextures["menu-background"] else Textures["::background"]
-        }
 
-        dimBox = box {
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
-            backgroundColor = Color4.Black
-            alpha = 0.7f
+            sprite {
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                scaleType = UISprite.ScaleType.Crop
+                textureRegion = if (Config.isSafeBeatmapBg()) SkinTextures["menu-background"] else Textures["::background"]
+            }
+
+            dimBox = box {
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                backgroundColor = Color4.Black
+                alpha = 0.7f
+            }
         }
 
         mainContainer = linearContainer {
@@ -89,7 +93,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             scaleOrigin = Anchor.Center
             spacing = 16f.dip
             style = Style {
-                padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(
+                padding = com.reco1l.verktex.data.Padding(
                     top = 16f.dip,
                     bottom = (16f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
                 )

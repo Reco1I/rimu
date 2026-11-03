@@ -96,10 +96,10 @@ object CalibrationScene : UIScene() {
 
     init {
         // Background
-        box {
+        background = UIBox().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            style = Style { theme -> backgroundColor = theme.palette.accent * 0.08f }
+            backgroundColor = Verktex.theme.palette.accent * 0.08f
         }
 
         textButton {

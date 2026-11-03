@@ -14,7 +14,6 @@ import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.data.toPadding
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
@@ -33,7 +32,6 @@ import com.reco1l.verktex.ui.control.UITextInput
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.sprite
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
@@ -69,7 +67,7 @@ class LobbyScene : UIScene() {
 
 
     init {
-        sprite {
+        background = UISprite().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             scaleType = UISprite.ScaleType.Crop
@@ -86,7 +84,7 @@ class LobbyScene : UIScene() {
             height = Dimension.FillAvailable
             spacing = 16f.dip
             style = Style { theme ->
-                padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 8f.dip, bottom = 8f.dip)
+                padding = Padding(top = 8f.dip, bottom = 8f.dip)
                 backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.9f)
             }
 
