@@ -159,11 +159,11 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
     private fun placeBelowTrigger() {
         val (sceneX, sceneY) = trigger.toSceneSpace(trigger.bounds.width, trigger.bounds.height)
 
-        // The card is placed in this modal's space, which is offset by the safe area of the overlays.
+        // The card is laid out inside this modal's padding, the safe area.
         val (x, y) = toLocalSpaceFromScene(sceneX, sceneY)
 
-        card.x = x.px
-        card.y = (y + 12f.dip.toPixels()).px
+        card.x = (x - paddingLeft.toPixels()).px
+        card.y = (y - paddingTop.toPixels() + 12f.dip.toPixels()).px
     }
 
     override fun onUpdate(clock: FrameClock) {
