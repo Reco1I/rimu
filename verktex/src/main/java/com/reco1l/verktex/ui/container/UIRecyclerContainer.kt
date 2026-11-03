@@ -1,5 +1,6 @@
 package com.reco1l.verktex.ui.container
 
+import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Vec2
@@ -56,12 +57,13 @@ open class UIRecyclerContainer<T : Any, C : RecyclableComponent<T>>(private val 
         }
 
     /**
-     * The direction in which the items are placed.
+     * The direction in which the items are placed. The container scrolls along it.
      */
     var orientation = UILinearContainer.Orientation.Vertical
         set(value) {
             if (field == value) return
             field = value
+            scrollAxes = scrollAxisOf(value)
             componentWrapper.invalidateMeasure()
         }
 
@@ -84,8 +86,14 @@ open class UIRecyclerContainer<T : Any, C : RecyclableComponent<T>>(private val 
 
 
     init {
+        // Scrolling on both axes would measure the items with an unbounded cross axis.
+        scrollAxes = scrollAxisOf(orientation)
         +componentWrapper
     }
+
+
+    private fun scrollAxisOf(orientation: UILinearContainer.Orientation) =
+        if (orientation == UILinearContainer.Orientation.Vertical) Axis.Y else Axis.X
 
 
     private fun resetComponents() {
@@ -130,6 +138,13 @@ open class UIRecyclerContainer<T : Any, C : RecyclableComponent<T>>(private val 
      * Binds the items entering the visible area and unbinds the ones that left it.
      */
     private fun updateBoundComponents() {
+        // Until an item is measured every size is zero and all of them would seem visible, so only the
+        // first one is bound to learn the size.
+        if (estimatedItemSize == 0f) {
+            data.firstOrNull()?.let(::bindComponent)
+            return
+        }
+
         val isVertical = orientation == UILinearContainer.Orientation.Vertical
         val spacingPixels = spacing.toPixels()
 
