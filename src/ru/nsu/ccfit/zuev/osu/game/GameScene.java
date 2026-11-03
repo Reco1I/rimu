@@ -41,6 +41,7 @@ import android.util.Log;
 import com.osudroid.ui.v2.SkinSounds;
 import com.osudroid.ui.v2.SkinTextures;
 import com.reco1l.verktex.Verktex;
+import com.reco1l.verktex.data.Border;
 import com.reco1l.verktex.data.ClipMode;
 import com.reco1l.verktex.data.Dimension;
 import com.reco1l.verktex.data.DimensionKt;
@@ -515,8 +516,7 @@ public class GameScene implements GameObjectListener {
                 {
                     setAnchor(Anchor.Center);
                     setOrigin(Anchor.Center);
-                    setBorderWidth(new Dimension.Fixed.Pixels(5f));
-                    setBorderColor(new Color4(1f, 1f, 1f, 1f));
+                    setBorder(new Border(new Dimension.Fixed.Pixels(5f), Color4.White, Color4.White));
                     setAlpha(Interpolation.linear(0.2f, 0.8f, brightness));
                     setSize(Config.getRES_WIDTH(), Config.getRES_HEIGHT());
                 }
