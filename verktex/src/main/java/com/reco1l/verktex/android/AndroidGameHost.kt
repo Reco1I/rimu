@@ -22,6 +22,8 @@ import com.reco1l.verktex.GameHost
 import com.reco1l.verktex.input.KeyboardEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.fonts.Fonts
+import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.input.Input
 import com.reco1l.verktex.ui.ITextInput
 
@@ -66,6 +68,7 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
 
         val windowView = Verktex.initializeAndroid(this)
         setContentView(windowView)
+        loadBuiltInFonts()
         onEngineInitialized()
 
         insetsController = WindowCompat.getInsetsController(window, windowView)
@@ -238,6 +241,18 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
         }
 
         return consumed || super.onTouchEvent(event)
+    }
+
+    private fun loadBuiltInFonts() {
+        fun load(key: String, file: String) =
+            Fonts.load(key, "verktex/fonts/$file", isInternal = true)
+                ?: throw IllegalStateException("Failed to load built-in font: $file")
+
+        BuiltIn.Fonts.Default = load("nunito", "nunito-medium.ttf")
+        BuiltIn.Fonts.FontAwesomeIconRegular = load("fa-regular", "fa-regular.otf")
+        BuiltIn.Fonts.FontAwesomeIconSolid = load("fa-solid", "fa-solid.otf")
+        BuiltIn.Fonts.FontAwesomeIconBrands = load("fa-brands", "fa-brands.otf")
+        load("torus", "torus-bold.otf")
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
