@@ -166,10 +166,7 @@ open class UIParticleSystem(val maxParticles: Int = 256) : UICanvas() {
 
             val color = colors[particle]
 
-            buffer.putByte(color.red8.toByte())
-            buffer.putByte(color.green8.toByte())
-            buffer.putByte(color.blue8.toByte())
-            buffer.putByte(color.alpha8.toByte())
+            buffer.putPackedBytes(color.packedRGBA)
 
             count++
         }

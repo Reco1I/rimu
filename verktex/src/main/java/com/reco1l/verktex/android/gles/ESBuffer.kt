@@ -9,54 +9,92 @@ import kotlin.math.max
 class ESBuffer : GraphicsBuffer() {
 
     private var id: Int = 0
-    private var data = allocateDirect(0).order(ByteOrder.nativeOrder())
+
+    // Written as ints into a plain array, which is much cheaper per value than a direct buffer,
+    // and copied into the direct buffer in one go when uploaded. Every vertex layout is made of
+    // 4-byte floats and groups of 4 bytes, so the data is always whole ints.
+    private var words = IntArray(INITIAL_WORDS)
+    private var wordCount = 0
+
+    // Bytes put one by one until they make up a whole int.
+    private var pendingBytes = 0
+    private var pendingByteCount = 0
+
+    private var uploadBuffer = allocateDirect(INITIAL_WORDS * 4).order(ByteOrder.nativeOrder()).asIntBuffer()
 
 
     override val capacity: Int
-        get() = data.capacity()
+        get() = words.size * 4
 
     override val position: Int
-        get() = data.position()
+        get() = wordCount * 4 + pendingByteCount
 
 
     override fun clear() {
-        data.clear()
+        wordCount = 0
+        pendingBytes = 0
+        pendingByteCount = 0
     }
 
     override fun requireCapacity(requiredBytes: Int) {
-        if (data.remaining() >= requiredBytes) {
-            return
+        val requiredWords = wordCount + (pendingByteCount + requiredBytes + 3) / 4
+        if (requiredWords > words.size) {
+            words = words.copyOf(max(words.size * 2, requiredWords))
         }
-        data.flip()
-
-        val newCapacity = max(data.capacity() * 2, data.capacity() + requiredBytes)
-        val newBuffer = allocateDirect(newCapacity).order(ByteOrder.nativeOrder())
-        newBuffer.put(data)
-
-        data = newBuffer
     }
 
 
     override fun putByte(byte: Byte) {
-        requireCapacity(1)
-        data.put(byte)
+        val shift = if (IS_LITTLE_ENDIAN) pendingByteCount * 8 else (3 - pendingByteCount) * 8
+        pendingBytes = pendingBytes or ((byte.toInt() and 0xFF) shl shift)
+
+        if (++pendingByteCount == 4) {
+            requireCapacity(0)
+            words[wordCount++] = pendingBytes
+            pendingBytes = 0
+            pendingByteCount = 0
+        }
     }
 
     override fun putFloat(float: Float) {
         requireCapacity(4)
-        data.putFloat(float)
+        words[wordCount++] = java.lang.Float.floatToRawIntBits(float)
+    }
+
+    override fun putPackedBytes(value: Int) {
+        requireCapacity(4)
+        words[wordCount++] = if (IS_LITTLE_ENDIAN) value else Integer.reverseBytes(value)
+    }
+
+    override fun putVertex(x: Float, y: Float, u: Float, v: Float, packedRGBA: Int) {
+        if (wordCount + 5 > words.size) {
+            requireCapacity(VERTEX_STRIDE)
+        }
+
+        val words = words
+        var i = wordCount
+        words[i++] = java.lang.Float.floatToRawIntBits(x)
+        words[i++] = java.lang.Float.floatToRawIntBits(y)
+        words[i++] = java.lang.Float.floatToRawIntBits(u)
+        words[i++] = java.lang.Float.floatToRawIntBits(v)
+        words[i++] = if (IS_LITTLE_ENDIAN) packedRGBA else Integer.reverseBytes(packedRGBA)
+        wordCount = i
     }
 
     /**
      * Uploads the written vertex data to the GPU. The buffer is left bound.
      */
     override fun uploadDataToGPU() {
-        // glBufferData reads from the buffer's current position, so upload a view starting at 0.
-        val written = data.duplicate().order(ByteOrder.nativeOrder())
-        written.flip()
+        if (uploadBuffer.capacity() < wordCount) {
+            uploadBuffer = allocateDirect(words.size * 4).order(ByteOrder.nativeOrder()).asIntBuffer()
+        }
+
+        uploadBuffer.clear()
+        uploadBuffer.put(words, 0, wordCount)
+        uploadBuffer.flip()
 
         GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, id)
-        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER, written.limit(), written, GLES32.GL_DYNAMIC_DRAW)
+        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER, wordCount * 4, uploadBuffer, GLES32.GL_DYNAMIC_DRAW)
     }
 
     override fun onBind() {
@@ -82,4 +120,10 @@ class ESBuffer : GraphicsBuffer() {
         id = 0
     }
 
+
+    private companion object {
+        const val INITIAL_WORDS = 256
+
+        val IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
+    }
 }

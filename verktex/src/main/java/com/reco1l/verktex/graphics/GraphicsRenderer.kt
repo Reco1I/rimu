@@ -433,15 +433,7 @@ abstract class GraphicsRenderer {
     //region Shape
 
     fun GraphicsBuffer.addVertex(x: Float, y: Float, u: Float, v: Float, color: Color4) {
-        requireCapacity(VERTEX_2D_STRIDE)
-        putFloat(x)
-        putFloat(y)
-        putFloat(u)
-        putFloat(v)
-        putByte(color.red8.toByte())
-        putByte(color.green8.toByte())
-        putByte(color.blue8.toByte())
-        putByte(color.alpha8.toByte())
+        putVertex(x, y, u, v, color.packedRGBA)
     }
 
 

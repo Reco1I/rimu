@@ -61,6 +61,23 @@ data class Color4 @JvmOverloads constructor(
     val alpha8
         get() = (alpha * 255f).roundToInt().coerceIn(0, 255)
 
+    // Cached as vertices of a shape usually share their color object, see packedRGBA.
+    private var packedCache = 0
+    private var isPacked = false
+
+    /**
+     * The color as 8-bit red, green, blue and alpha channels in this order in memory, the way vertex
+     * colors are stored, as a little-endian int (red in the lowest byte).
+     */
+    val packedRGBA: Int
+        get() {
+            if (!isPacked) {
+                packedCache = red8 or (green8 shl 8) or (blue8 shl 16) or (alpha8 shl 24)
+                isPacked = true
+            }
+            return packedCache
+        }
+
     /**
      * Returns the red channel in 8 bits representation (0..255)
      */
