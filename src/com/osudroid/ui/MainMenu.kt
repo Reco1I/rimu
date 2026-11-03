@@ -81,10 +81,7 @@ class MainMenu(val main: MainScene) {
                         BeatmapListing().show()
                     } else {
                         main.musicControl(MainScene.MusicOption.PLAY)
-
-                        GlobalManager.getInstance().songMenu.reload()
-                        GlobalManager.getInstance().songMenu.show()
-                        GlobalManager.getInstance().songMenu.select()
+                        UIEngine.current.scene = SongSelect
                     }
                 }
 

@@ -14,6 +14,7 @@ import com.osudroid.multiplayer.api.data.RoomMods
 import com.osudroid.scoring.ScoreMultiplierCalculator
 import com.osudroid.ui.v2.ModsIndicator
 import com.osudroid.ui.v2.StarRatingBadge
+import com.osudroid.ui.v2.songselect.*
 import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.allModsInstances
 import com.osudroid.utils.applyMods
@@ -354,10 +355,8 @@ object ModMenu : UIContainer() {
                 }
             }
 
-            val songMenu = GlobalManager.getInstance().songMenu
-
             if (beatmap == null) {
-                songMenu.setStarsDisplay(0f)
+                SongSelect.setStarRatingDisplay(0.0)
                 return@scope
             }
 
@@ -401,8 +400,8 @@ object ModMenu : UIContainer() {
             ensureActive()
 
             starRatingBadge.rating = attributes.starRating
-            songMenu.changeDimensionInfo(selectedBeatmap)
-            songMenu.setStarsDisplay(attributes.starRating.toFloat())
+            SongSelect.setDifficultyStatistics(selectedBeatmap)
+            SongSelect.setStarRatingDisplay(attributes.starRating)
         }
     }
 
@@ -597,7 +596,7 @@ object ModMenu : UIContainer() {
         customizeButton.isEnabled = !customizationMenu.isEmpty()
 
         if (modChangeQueue.any { it is IModApplicableToTrackRate }) {
-            GlobalManager.getInstance().songMenu.updateMusicEffects()
+            SongSelect.updateMusicEffects()
         }
         modChangeQueue.clear()
 
@@ -605,6 +604,7 @@ object ModMenu : UIContainer() {
 
         selectedModsIndicator.mods = enabledMods
         modPresetsSection.onModsChanged()
+        SongSelect.onModsChanged()
     }
 
     fun addMod(mod: Mod) {

@@ -12,6 +12,7 @@ import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.multi.*
 import com.osudroid.ui.v2.settings.SettingsMenu
+import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
@@ -182,9 +183,7 @@ object MainScene : UIScene() {
                                     BeatmapListing().show()
                                 } else {
                                     GlobalManager.getInstance().songService.isGaming = true
-                                    GlobalManager.getInstance().songMenu.reload()
-                                    GlobalManager.getInstance().songMenu.show()
-                                    GlobalManager.getInstance().songMenu.select()
+                                    UIEngine.current.scene = SongSelect
                                 }
                             }
                         }

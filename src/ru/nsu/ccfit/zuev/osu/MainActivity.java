@@ -43,6 +43,7 @@ import com.osudroid.ui.FPSCounter;
 import com.osudroid.ui.v2.GameLoaderScene;
 import com.osudroid.ui.v2.LoaderScene;
 import com.osudroid.ui.v2.mainmenu.MainScene;
+import com.osudroid.ui.v2.songselect.SongSelect;
 import com.osudroid.utils.Execution;
 import com.osudroid.multiplayer.api.LobbyAPI;
 import com.osudroid.utils.AccessibilityDetector;
@@ -180,6 +181,7 @@ public class MainActivity extends AndroidGameHost {
                 GlobalManager.getInstance().setLoadingProgress(100);
                 ResourceManager.getInstance().loadFont("font", null, 28, Color.WHITE);
                 Verktex.pushScene(MainScene.INSTANCE);
+                SongSelect.INSTANCE.loadBeatmaps();
 
                 initPreferences();
                 availableInternalMemory();
