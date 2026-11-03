@@ -34,92 +34,130 @@ fun interface Easing {
 
     companion object {
 
+        @JvmField
+
         val None = Easing { x -> x }
+
+        @JvmField
 
         val InQuad = Easing { x ->
             var x = x
             x * x
         }
 
+        @JvmField
+
         val OutQuad = Easing { x ->
             var x = x
             x * (2f - x)
         }
+
+        @JvmField
 
         val InOutQuad = Easing { x ->
             var x = x
             if (x < 0.5f) x * x * 2f else --x * x * -2f + 1f
         }
 
+        @JvmField
+
         val InCubic = Easing { x ->
             var x = x
             x * x * x
         }
+
+        @JvmField
 
         val OutCubic = Easing { x ->
             var x = x
             --x * x * x + 1f
         }
 
+        @JvmField
+
         val InOutCubic = Easing { x ->
             var x = x
             if (x < 0.5f) x * x * x * 4f else --x * x * x * 4f + 1f
         }
+
+        @JvmField
 
         val InQuart = Easing { x ->
             var x = x
             x * x * x * x
         }
 
+        @JvmField
+
         val OutQuart = Easing { x ->
             var x = x
             1f - --x * x * x * x
         }
+
+        @JvmField
 
         val InOutQuart = Easing { x ->
             var x = x
             if (x < 0.5f) x * x * x * x * 8 else --x * x * x * x * -8f + 1f
         }
 
+        @JvmField
+
         val InQuint = Easing { x ->
             var x = x
             x * x * x * x * x
         }
+
+        @JvmField
 
         val OutQuint = Easing { x ->
             var x = x
             --x * x * x * x * x + 1
         }
 
+        @JvmField
+
         val InOutQuint = Easing { x ->
             var x = x
             if (x < 0.5f) x * x * x * x * x * 16f else --x * x * x * x * x * 16f + 1f
         }
+
+        @JvmField
 
         val InSine = Easing { x ->
             var x = x
             1f - cos(x * PI.toFloat() * 0.5f)
         }
 
+        @JvmField
+
         val OutSine = Easing { x ->
             var x = x
             sin(x * PI.toFloat() * 0.5f)
         }
+
+        @JvmField
 
         val InOutSine = Easing { x ->
             var x = x
             0.5f - 0.5f * cos(PI.toFloat() * x)
         }
 
+        @JvmField
+
         val InExpo = Easing { x ->
             var x = x
             2f.pow(10f * (x - 1f)) + expoOffset * (x - 1f)
         }
 
+        @JvmField
+
         val OutExpo = Easing { x ->
             var x = x
             -(2f.pow(-10f * x)) + 1f + expoOffset * x
         }
+
+        @JvmField
 
         val InOutExpo = Easing { x ->
             var x = x
@@ -130,15 +168,21 @@ fun interface Easing {
             }
         }
 
+        @JvmField
+
         val InCirc = Easing { x ->
             var x = x
             1f - sqrt(1f - x * x)
         }
 
+        @JvmField
+
         val OutCirc = Easing { x ->
             var x = x
             sqrt(1f - --x * x)
         }
+
+        @JvmField
 
         val InOutCirc = Easing { x ->
             var x = x
@@ -149,25 +193,35 @@ fun interface Easing {
             }
         }
 
+        @JvmField
+
         val InElastic = Easing { x ->
             var x = x
             -(2f.pow(-10f + 10f * x)) * sin((1f - elasticConst2 - x) * elasticConst) + elasticOffsetFull * (1f - x)
         }
+
+        @JvmField
 
         val OutElastic = Easing { x ->
             var x = x
             2f.pow(-10f * x) * sin((x - elasticConst2) * elasticConst) + 1f - elasticOffsetFull * x
         }
 
+        @JvmField
+
         val OutElasticHalf = Easing { x ->
             var x = x
             2f.pow(-10f * x) * sin((0.5f * x - elasticConst2) * elasticConst) + 1f - elasticOffsetHalf * x
         }
 
+        @JvmField
+
         val OutElasticQuarter = Easing { x ->
             var x = x
             2f.pow(-10f * x) * sin((0.25f * x - elasticConst2) * elasticConst) + 1f - elasticOffsetQuarter * x
         }
+
+        @JvmField
 
         val InOutElastic = Easing { x ->
             var x = x
@@ -180,15 +234,21 @@ fun interface Easing {
             }
         }
 
+        @JvmField
+
         val InBack = Easing { x ->
             var x = x
             x * x * ((1.70158f + 1) * x - 1.70158f)
         }
 
+        @JvmField
+
         val OutBack = Easing { x ->
             var x = x
             --x * x * ((1.70158f + 1f) * x + 1.70158f) + 1f
         }
+
+        @JvmField
 
         val InOutBack = Easing { x ->
             var x = x
@@ -198,6 +258,8 @@ fun interface Easing {
                 0.5f * (let { x -= 2f; x } * x * ((1.70158f * 1.525f + 1f) * x + 1.70158f * 1.525f) + 2f)
             }
         }
+
+        @JvmField
 
         val InBounce = Easing { x ->
             var x = x
@@ -213,6 +275,8 @@ fun interface Easing {
             }
         }
 
+        @JvmField
+
         val OutBounce = Easing { x ->
             var x = x
             when {
@@ -225,6 +289,8 @@ fun interface Easing {
                 else -> 7.5625f * let { x -= 2.625f * (1f / 2.75f); x } * x + 0.984375f
             }
         }
+
+        @JvmField
 
         val InOutBounce = Easing { x ->
             var x = x

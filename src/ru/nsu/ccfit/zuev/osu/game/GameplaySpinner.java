@@ -2,8 +2,11 @@ package ru.nsu.ccfit.zuev.osu.game;
 
 import android.graphics.PointF;
 
-import com.reco1l.verktex.Scene;
-import com.reco1l.verktex.ui.sprite.ScaleType;
+import com.reco1l.verktex.ui.container.UIContainer;
+import com.reco1l.verktex.ui.ChoreographyKt;
+import com.reco1l.verktex.ui.TransformsKt;
+import com.osudroid.ui.v2.SkinTextures;
+import com.reco1l.verktex.data.ClipMode;
 import com.reco1l.verktex.ui.UISprite;
 import com.reco1l.verktex.data.Anchor;
 import com.osudroid.beatmaps.hitobjects.BankHitSampleInfo;
@@ -11,15 +14,12 @@ import com.osudroid.beatmaps.hitobjects.Spinner;
 import com.osudroid.game.GameplayHitSampleInfo;
 import com.osudroid.game.GameplaySequenceHitSampleInfo;
 
-import org.anddev.andengine.opengl.texture.region.TextureRegion;
-import org.anddev.andengine.util.MathUtils;
 
 import java.util.ArrayList;
 
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;
 import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.Constants;
-import ru.nsu.ccfit.zuev.osu.ResourceManager;
 import ru.nsu.ccfit.zuev.osu.Utils;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoreNumber;
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
@@ -29,18 +29,16 @@ public class GameplaySpinner extends GameObject {
     private final UISprite background;
     private final UISprite circle;
     private final UISprite approachCircle;
-    private final UISprite metre;
-    private final int metreRegionOriginalHeight;
-    private float metreY;
+    private final UIContainer metre;
+    private final float fullHeight;
     private final UISprite spinText;
-    private final TextureRegion metreRegion;
     private final UISprite clearText;
     private final ScoreNumber bonusScore;
 
     protected Spinner beatmapSpinner;
     protected PointF oldMouse;
     protected GameObjectListener listener;
-    protected Scene scene;
+    protected UIContainer scene;
     protected int fullRotations = 0;
     protected float rotations = 0;
     protected float needRotations;
@@ -58,45 +56,51 @@ public class GameplaySpinner extends GameObject {
     protected final PointF currMouse = new PointF();
 
     public GameplaySpinner() {
-        ResourceManager.getInstance().checkSpinnerTextures();
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f);
         Utils.trackToRealCoords(position);
 
         background = new UISprite();
         background.setOrigin(Anchor.Center);
         background.setPosition(position.x, position.y);
-        background.setTextureRegion(ResourceManager.getInstance().getTexture("spinner-background"));
-        background.setScale(Config.getRES_WIDTH() / background.getWidth());
+        background.setTextureRegion(SkinTextures.get("spinner-background"));
+        var backgroundTexture = SkinTextures.get("spinner-background");
+        background.setScale(backgroundTexture != null ? Config.getRES_WIDTH() / (float) backgroundTexture.getWidth() : 1f);
+        fullHeight = backgroundTexture != null ? backgroundTexture.getHeight() * background.getScaleY() : 0f;
 
         circle = new UISprite();
         circle.setOrigin(Anchor.Center);
         circle.setPosition(position.x, position.y);
-        circle.setTextureRegion(ResourceManager.getInstance().getTexture("spinner-circle"));
+        circle.setTextureRegion(SkinTextures.get("spinner-circle"));
 
-        metreRegion = ResourceManager.getInstance().getTexture("spinner-metre").deepCopy();
-        metreRegionOriginalHeight = metreRegion.getHeight();
+        // The metre fills from the bottom: the sprite stays in place while the container clipping it grows.
+        var metreSprite = new UISprite();
+        metreSprite.setScaleType(UISprite.ScaleType.Stretch);
+        metreSprite.setTextureRegion(SkinTextures.get("spinner-metre"));
+        metreSprite.setAnchor(Anchor.BottomLeft);
+        metreSprite.setOrigin(Anchor.BottomLeft);
+        metreSprite.setSize(Config.getRES_WIDTH(), fullHeight);
 
-        metre = new UISprite();
-        metre.setScaleType(ScaleType.Stretch);
-        metre.setPosition(background.getX() - background.getTransformedWidth() / 2f, position.y);
-        metre.setTextureRegion(metreRegion);
-        metre.setWidth(background.getTransformedWidth());
-        metre.setHeight(background.getTransformedHeight());
+        metre = new UIContainer();
+        metre.setClipping(ClipMode.Bounds);
+        metre.setOrigin(Anchor.BottomLeft);
+        metre.setPosition(position.x - Config.getRES_WIDTH() / 2f, position.y + fullHeight / 2f);
+        metre.setSize(Config.getRES_WIDTH(), 0f);
+        metre.plusAssign(metreSprite);
 
         approachCircle = new UISprite();
         approachCircle.setOrigin(Anchor.Center);
         approachCircle.setPosition(position.x, position.y);
-        approachCircle.setTextureRegion(ResourceManager.getInstance().getTexture("spinner-approachcircle"));
+        approachCircle.setTextureRegion(SkinTextures.get("spinner-approachcircle"));
 
         spinText = new UISprite();
         spinText.setOrigin(Anchor.Center);
         spinText.setPosition(position.x, position.y * 1.5f);
-        spinText.setTextureRegion(ResourceManager.getInstance().getTexture("spinner-spin"));
+        spinText.setTextureRegion(SkinTextures.get("spinner-spin"));
 
         clearText = new UISprite();
         clearText.setOrigin(Anchor.Center);
         clearText.setPosition(position.x, position.y * 0.5f);
-        clearText.setTextureRegion(ResourceManager.getInstance().getTexture("spinner-clear"));
+        clearText.setTextureRegion(SkinTextures.get("spinner-clear"));
 
         bonusScore = new ScoreNumber(position.x, position.y + 100, "", 1.1f, true);
 
@@ -108,7 +112,7 @@ public class GameplaySpinner extends GameObject {
         endsCombo = true;
     }
 
-    public void init(final GameObjectListener listener, final Scene scene,
+    public void init(final GameObjectListener listener, final UIContainer scene,
                      final Spinner beatmapSpinner, final float rps, final StatisticV2 stat) {
         fullRotations = 0;
         rotations = 0;
@@ -128,7 +132,6 @@ public class GameplaySpinner extends GameObject {
         startHit = false;
 
         reloadHitSounds();
-        ResourceManager.getInstance().checkSpinnerTextures();
 
         hitTime = (float) beatmapSpinner.startTime / 1000f;
         float timePreempt = (float) beatmapSpinner.timePreempt / 1000f;
@@ -137,46 +140,42 @@ public class GameplaySpinner extends GameObject {
         background.setVisible(!GameHelper.isTraceable() ||
                 (Config.isShowFirstApproachCircle() && GameHelper.getTraceable().getFirstObject() == beatmapSpinner));
 
-        metreRegion.setHeight(0);
-        metreRegion.setTexturePosition(0, metreRegionOriginalHeight);
-        metre.setHeight(0);
+        metre.setSize(Config.getRES_WIDTH(), 0f);
         
-        scene.attachChild(spinText, 0);
+        scene.add(0, spinText);
 
         if (!GameHelper.isHidden()) {
-            scene.attachChild(approachCircle, 0);
+            scene.add(0, approachCircle);
             approachCircle.setAlpha(0);
 
-            approachCircle.beginAbsoluteSequence(hitTime, sequence -> sequence
+            ChoreographyKt.choreographAt(approachCircle, hitTime, sequence -> sequence
                     .fadeTo(0.75f)
                     .fadeTo(1, duration)
                     .scaleTo(2)
                     .scaleTo(0, duration));
         }
 
-        scene.attachChild(circle, 0);
-        scene.attachChild(metre, 0);
-        scene.attachChild(background, 0);
+        scene.add(0, circle);
+        scene.add(0, metre);
+        scene.add(0, background);
 
         float fadeDuration = timePreempt * 0.25f;
         float fadeInStartTime = hitTime - fadeDuration;
 
         if (background.isVisible()) {
             background.setAlpha(0);
-            background.beginAbsoluteSequence(fadeInStartTime, sequence -> sequence.fadeIn(fadeDuration));
+            ChoreographyKt.choreographAt(background, fadeInStartTime, sequence -> sequence.fadeIn(fadeDuration));
         }
 
         circle.setAlpha(0);
-        circle.beginAbsoluteSequence(fadeInStartTime, sequence -> sequence.fadeIn(fadeDuration));
+        ChoreographyKt.choreographAt(circle, fadeInStartTime, sequence -> sequence.fadeIn(fadeDuration));
 
-        metreY = background.getY() - background.getTransformedHeight() / 2f;
-        metre.setY(background.getY() + background.getTransformedHeight() / 2f);
 
         metre.setAlpha(0);
-        metre.beginAbsoluteSequence(fadeInStartTime, sequence -> sequence.fadeIn(fadeDuration));
+        ChoreographyKt.choreographAt(metre, fadeInStartTime, sequence -> sequence.fadeIn(fadeDuration));
 
         spinText.setAlpha(0);
-        spinText.beginAbsoluteSequence(fadeInStartTime, sequence -> sequence
+        ChoreographyKt.choreographAt(spinText, fadeInStartTime, sequence -> sequence
                 .fadeIn(fadeDuration)
                 .then(timePreempt / 2)
                 .fadeOut(fadeDuration));
@@ -191,25 +190,25 @@ public class GameplaySpinner extends GameObject {
             return;
         }
 
-        clearText.clearEntityModifiers();
-        scene.detachChild(clearText);
+        clearText.clearAnimations();
+        clearText.removeSelf();
 
-        spinText.clearEntityModifiers();
-        scene.detachChild(spinText);
+        spinText.clearAnimations();
+        spinText.removeSelf();
 
-        background.clearEntityModifiers();
-        scene.detachChild(background);
+        background.clearAnimations();
+        background.removeSelf();
 
-        approachCircle.clearEntityModifiers();
-        approachCircle.detachSelf();
+        approachCircle.clearAnimations();
+        approachCircle.removeSelf();
 
-        circle.clearEntityModifiers();
-        scene.detachChild(circle);
+        circle.clearAnimations();
+        circle.removeSelf();
 
-        metre.clearEntityModifiers();
-        scene.detachChild(metre);
+        metre.clearAnimations();
+        metre.removeSelf();
 
-        scene.detachChild(bonusScore);
+        bonusScore.removeSelf();
         setLifetimeEnd(hitTime + duration);
         scene = null;
     }
@@ -283,12 +282,12 @@ public class GameplaySpinner extends GameObject {
                 applySeekRotations();
 
                 if (clear) {
-                    scene.attachChild(clearText);
+                    scene.plusAssign(clearText);
                 }
 
                 if (bonusScoreCounter > 1) {
                     bonusScore.setText(String.valueOf((bonusScoreCounter - 1) * 1000));
-                    scene.attachChild(bonusScore);
+                    scene.plusAssign(bonusScore);
                 }
             }
         }
@@ -323,7 +322,7 @@ public class GameplaySpinner extends GameObject {
         }
 
         if (mouse != null) {
-            circle.setRotationZ(MathUtils.radToDeg(Utils.direction(currMouse)));
+            circle.setRotationZ((float) Math.toDegrees(Utils.direction(currMouse)));
 
             var len1 = Utils.length(currMouse);
             var len2 = Utils.length(oldMouse);
@@ -358,10 +357,10 @@ public class GameplaySpinner extends GameObject {
                 percentfill = 1;
 
                 if (!clear) {
-                    scene.attachChild(clearText);
+                    scene.plusAssign(clearText);
                     clearText.fadeInFromZero(0.25f);
                     clearText.setScale(1.5f);
-                    clearText.scaleTo(1, 0.25f);
+                    TransformsKt.scaleTo(clearText, 1, 0.25f);
 
                     clear = true;
 
@@ -376,7 +375,7 @@ public class GameplaySpinner extends GameObject {
                     listener.onSpinnerHit(id, 1000, false, 0);
                     bonusScoreCounter++;
                     if (!bonusScore.hasParent()) {
-                        scene.attachChild(bonusScore);
+                        scene.plusAssign(bonusScore);
                     }
                     spinnerBonusSample.play();
                     float rate = 0.375f;
@@ -398,13 +397,7 @@ public class GameplaySpinner extends GameObject {
                 }
             }
 
-            float fillOffset = 1 - Math.min(1, Math.abs(percentfill));
-
-            metre.setHeight(background.getTransformedHeight() * Math.min(1, Math.abs(percentfill)));
-            metre.setPosition(metre.getX(), metreY + background.getTransformedHeight() * fillOffset);
-
-            metreRegion.setHeight((int) (metreRegionOriginalHeight * Math.min(1, Math.abs(percentfill))));
-            metreRegion.setTexturePosition(0, (int) (metreRegionOriginalHeight * fillOffset));
+            metre.setSize(Config.getRES_WIDTH(), fullHeight * Math.min(1, Math.abs(percentfill)));
 
             oldMouse.set(currMouse);
         }

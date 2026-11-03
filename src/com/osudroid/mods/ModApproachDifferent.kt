@@ -1,6 +1,6 @@
 package com.osudroid.mods
 
-import com.edlplan.framework.easing.Easing
+import com.reco1l.verktex.math.Easing
 import com.reco1l.framework.math.roundBy
 import com.osudroid.mods.settings.*
 import com.osudroid.utils.isInstanceOfAny
@@ -53,10 +53,10 @@ class ModApproachDifferent : Mod() {
             AnimationStyle.Gravity -> Easing.InBack
             AnimationStyle.InOut1 -> Easing.InOutCubic
             AnimationStyle.InOut2 -> Easing.InOutQuint
-            AnimationStyle.Accelerate1 -> Easing.In
+            AnimationStyle.Accelerate1 -> Easing.InQuad
             AnimationStyle.Accelerate2 -> Easing.InCubic
             AnimationStyle.Accelerate3 -> Easing.InQuint
-            AnimationStyle.Decelerate1 -> Easing.Out
+            AnimationStyle.Decelerate1 -> Easing.OutQuad
             AnimationStyle.Decelerate2 -> Easing.OutCubic
             AnimationStyle.Decelerate3 -> Easing.OutQuint
             AnimationStyle.BounceIn -> Easing.InBounce

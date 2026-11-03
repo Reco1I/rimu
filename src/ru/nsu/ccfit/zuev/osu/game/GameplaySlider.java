@@ -2,13 +2,16 @@ package ru.nsu.ccfit.zuev.osu.game;
 
 import android.graphics.PointF;
 
-import com.edlplan.framework.easing.Easing;
+import com.reco1l.verktex.math.Easing;
 import com.edlplan.framework.math.FMath;
 import com.edlplan.framework.math.line.LinePath;
 import com.edlplan.osu.support.slider.SliderBody;
 import com.osudroid.game.CursorEvent;
 import com.osudroid.utils.Execution;
-import com.reco1l.verktex.Scene;
+import com.reco1l.verktex.ui.container.UIContainer;
+import com.reco1l.verktex.ui.ChoreographyKt;
+import com.reco1l.verktex.ui.TransformsKt;
+import com.osudroid.ui.v2.SkinTextures;
 import com.reco1l.verktex.ui.UIComponent;
 import com.reco1l.verktex.ui.UIAnimatedSprite;
 import com.reco1l.verktex.ui.UISprite;
@@ -18,7 +21,6 @@ import com.osudroid.ui.v2.game.CirclePiece;
 import com.osudroid.ui.v2.game.NumberedCirclePiece;
 import com.osudroid.ui.v2.game.SliderTickContainer;
 import com.reco1l.verktex.data.Color4;
-import com.rian.andengine.modifier.UniversalModifier;
 import com.osudroid.beatmaps.HitWindow;
 import com.osudroid.beatmaps.constants.HitObjectType;
 import com.osudroid.beatmaps.hitobjects.BankHitSampleInfo;
@@ -32,10 +34,8 @@ import com.osudroid.math.Precision;
 import com.osudroid.mods.ModHidden;
 import com.osudroid.mods.ModSynesthesia;
 
-import org.anddev.andengine.util.MathUtils;
 
 import ru.nsu.ccfit.zuev.osu.Config;
-import ru.nsu.ccfit.zuev.osu.ResourceManager;
 import ru.nsu.ccfit.zuev.osu.Utils;
 import ru.nsu.ccfit.zuev.osu.game.GameHelper.SliderPath;
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType;
@@ -58,7 +58,7 @@ public class GameplaySlider extends GameObject {
     private final UISprite startArrow, endArrow;
     private Slider beatmapSlider;
     private BeatmapControlPoints controlPoints;
-    private Scene scene;
+    private UIContainer scene;
     private StatisticV2 stat;
     private GameObjectListener listener;
     private SliderPath path;
@@ -109,7 +109,6 @@ public class GameplaySlider extends GameObject {
     private float lastSnakeOutEndLength;
 
     private final SliderBody sliderBody;
-    private UniversalModifier sliderHeadLateMissFadeModifier;
 
     /**
      * The absolute slider's path end position.
@@ -158,21 +157,21 @@ public class GameplaySlider extends GameObject {
 
         startArrow = new UISprite();
         startArrow.setOrigin(Anchor.Center);
-        startArrow.setTextureRegion(ResourceManager.getInstance().getTexture("reversearrow"));
+        startArrow.setTextureRegion(SkinTextures.get("reversearrow"));
 
         endArrow = new UISprite();
         endArrow.setOrigin(Anchor.Center);
-        endArrow.setTextureRegion(ResourceManager.getInstance().getTexture("reversearrow"));
+        endArrow.setTextureRegion(SkinTextures.get("reversearrow"));
 
-        ball = new UIAnimatedSprite("sliderb", false, 60f);
+        ball = new UIAnimatedSprite(SkinTextures.frames("sliderb"), 60f);
         ball.setOrigin(Anchor.Center);
 
         // Avoid to use AnimatedSprite if not necessary.
-        if (ResourceManager.getInstance().isTextureLoaded("sliderfollowcircle-0")) {
-            followCircle = new UIAnimatedSprite("sliderfollowcircle", true, OsuSkin.get().getAnimationFramerate());
+        if ((SkinTextures.get("sliderfollowcircle-0") != null)) {
+            followCircle = new UIAnimatedSprite(SkinTextures.frames("sliderfollowcircle"), OsuSkin.get().getAnimationFramerate());
         } else {
             followCircle = new UISprite();
-            followCircle.setTextureRegion(ResourceManager.getInstance().getTexture("sliderfollowcircle"));
+            followCircle.setTextureRegion(SkinTextures.get("sliderfollowcircle"));
         }
         followCircle.setOrigin(Anchor.Center);
 
@@ -184,7 +183,7 @@ public class GameplaySlider extends GameObject {
         sliderWhistleSample = new GameplaySequenceHitSampleInfo();
     }
 
-    public void init(final GameObjectListener listener, final Scene scene, final StatisticV2 stat,
+    public void init(final GameObjectListener listener, final UIContainer scene, final StatisticV2 stat,
                      final Slider beatmapSlider, final BeatmapControlPoints controlPoints, final Color4 comboColor,
                      final Color4 borderColor, final SliderPath sliderPath, final SliderBody.RenderPathCache buildCache) {
         this.listener = listener;
@@ -266,11 +265,11 @@ public class GameplaySlider extends GameObject {
         approachCircle.setVisible(!GameHelper.isHidden() ||
                 (Config.isShowFirstApproachCircle() && GameHelper.getHidden().getFirstObject() == beatmapSlider));
 
-        approachCircle.setTextureRegion(ResourceManager.getInstance().getTexture(
+        approachCircle.setTextureRegion(SkinTextures.get(
                 GameHelper.isTraceable() ? "defaultapproachcircle" : "approachcircle"));
 
-        scene.attachChild(headCirclePiece, 0);
-        scene.attachChild(approachCircle);
+        scene.add(0, headCirclePiece);
+        scene.plusAssign(approachCircle);
 
         // End circle
         getPositionAt(1, false, false);
@@ -295,7 +294,7 @@ public class GameplaySlider extends GameObject {
             getPositionAt(0, true, false);
             startArrow.setRotationZ(ballAngle);
 
-            scene.attachChild(startArrow, 0);
+            scene.add(0, startArrow);
         }
 
         // When snaking in is enabled, the first repeat or tail needs to be delayed until the snaking completes.
@@ -319,44 +318,41 @@ public class GameplaySlider extends GameObject {
                 endArrow.setPosition(pathEndPosition.x, pathEndPosition.y);
             }
 
-            scene.attachChild(endArrow, 0);
+            scene.add(0, endArrow);
 
             // We can use headFadeIn here since the tail's fade in time is the same as the head.
-            endArrow.beginAbsoluteSequence(initialModifierTime, sequence -> sequence
+            ChoreographyKt.choreographAt(endArrow, initialModifierTime, sequence -> sequence
                     .delay(fadeInDelay)
                     .fadeIn(headFadeIn));
         }
 
-        scene.attachChild(tailCirclePiece, 0);
+        scene.add(0, tailCirclePiece);
 
         if (GameHelper.isHidden() && !GameHelper.getHidden().isOnlyFadeApproachCircles()) {
             float fadeOutDuration = timePreempt * (float) ModHidden.FADE_OUT_DURATION_MULTIPLIER;
             float finalTailAlpha = (headFadeIn - fadeInDelay) / headFadeIn;
 
-            headCirclePiece.beginAbsoluteSequence(initialModifierTime, sequence -> sequence
+            ChoreographyKt.choreographAt(headCirclePiece, initialModifierTime, sequence -> sequence
                     .fadeIn(headFadeIn)
                     .then()
                     .fadeOut(fadeOutDuration));
 
-            tailCirclePiece.beginAbsoluteSequence(initialModifierTime, sequence -> sequence
+            ChoreographyKt.choreographAt(tailCirclePiece, initialModifierTime, sequence -> sequence
                     .delay(fadeInDelay)
                     .fadeTo(finalTailAlpha, headFadeIn - fadeInDelay)
                     .then()
                     .fadeOut(fadeOutDuration));
         } else {
-            headCirclePiece.beginAbsoluteSequence(initialModifierTime,
+            ChoreographyKt.choreographAt(headCirclePiece, initialModifierTime,
                     sequence -> sequence.fadeIn(headFadeIn));
 
             float mehWindow = (float) hitWindow.getMehWindow() / 1000;
             float okWindow = (float) hitWindow.getOkWindow() / 1000;
 
-            headCirclePiece.beginAbsoluteSequence(hitTime + okWindow,
-                    sequence -> sliderHeadLateMissFadeModifier = sequence
-                            .fadeOut(mehWindow - okWindow)
-                            .after(e -> sliderHeadLateMissFadeModifier = null)
-                            .getLastActiveModifier());
+            ChoreographyKt.choreographAt(headCirclePiece, hitTime + okWindow,
+                    sequence -> sequence.fadeOut(mehWindow - okWindow));
 
-            tailCirclePiece.beginAbsoluteSequence(initialModifierTime, sequence -> sequence
+            ChoreographyKt.choreographAt(tailCirclePiece, initialModifierTime, sequence -> sequence
                     .delay(fadeInDelay)
                     .fadeIn(headFadeIn));
         }
@@ -372,7 +368,7 @@ public class GameplaySlider extends GameObject {
                 easing = Easing.None;
             }
 
-            approachCircle.beginAbsoluteSequence(initialModifierTime, sequence -> sequence
+            ChoreographyKt.choreographAt(approachCircle, initialModifierTime, sequence -> sequence
                     .fadeTo(0.9f, Math.min(headFadeIn * 2, timePreempt))
                     .scaleTo(scale, timePreempt, easing)
                     .after(e -> e.setAlpha(0)));
@@ -415,8 +411,8 @@ public class GameplaySlider extends GameObject {
             sliderBody.setHintVisible(false);
         }
 
-        scene.attachChild(tickContainer, 0);
-        scene.attachChild(sliderBody, 0);
+        scene.add(0, tickContainer);
+        scene.add(0, sliderBody);
 
         tickContainer.init(beatmapSlider);
 
@@ -427,7 +423,7 @@ public class GameplaySlider extends GameObject {
             applyDim(sliderBody);
         }
 
-        sliderBody.beginAbsoluteSequence(initialModifierTime, sequence -> {
+        ChoreographyKt.choreographAt(sliderBody, initialModifierTime, sequence -> {
             float fadeInDuration = (float) beatmapSlider.timeFadeIn / 1000;
             sequence.fadeInFromZero(fadeInDuration);
 
@@ -435,7 +431,7 @@ public class GameplaySlider extends GameObject {
                 // New duration from completed fade in to end (before fading out)
                 float fadeOutDuration = (float) duration + timePreempt - fadeInDuration;
 
-                sequence.then().fadeOut(fadeOutDuration, Easing.Out);
+                sequence.then().fadeOut(fadeOutDuration, Easing.OutQuad);
             }
         });
 
@@ -474,7 +470,7 @@ public class GameplaySlider extends GameObject {
             }
 
             if (found) {
-                float aimRotation = MathUtils.radToDeg(Utils.direction(tmpPoint.x, tmpPoint.y, tmpTargetPoint.x, tmpTargetPoint.y));
+                float aimRotation = (float) Math.toDegrees(Utils.direction(tmpPoint.x, tmpPoint.y, tmpTargetPoint.x, tmpTargetPoint.y));
 
                 if (updateBallAngle) {
                     ballAngle = wrapRotation(aimRotation, ballAngle);
@@ -528,26 +524,26 @@ public class GameplaySlider extends GameObject {
 
         if (Config.isAnimateFollowCircle()) {
             if (isInRadius) {
-                followCircle.clearEntityModifiers();
+                followCircle.clearAnimations();
 
-                followCircle.beginAbsoluteSequence(modifierStartTime, sequence -> {
-                    sequence.scaleTo(beatmapSlider.getScreenSpaceGameplayScale() * 0.8f, 0.2f, Easing.Out)
-                            .fadeOut(0.2f, Easing.In);
+                ChoreographyKt.choreographAt(followCircle, modifierStartTime, sequence -> {
+                    sequence.scaleTo(beatmapSlider.getScreenSpaceGameplayScale() * 0.8f, 0.2f, Easing.OutQuad)
+                            .fadeOut(0.2f, Easing.InQuad);
 
                     extendLifetime(sequence);
                 });
             }
         } else {
-            followCircle.detachSelf();
+            followCircle.removeSelf();
         }
 
         if (GameHelper.getHidden() != null && !GameHelper.getHidden().isOnlyFadeApproachCircles()) {
-            sliderBody.detachSelf();
+            sliderBody.removeSelf();
         } else {
-            sliderBody.beginAbsoluteSequence(modifierStartTime, sequence -> {
+            ChoreographyKt.choreographAt(sliderBody, modifierStartTime, sequence -> {
                 // Short fade for snaking out sliders to allow for any body color to smoothly disappear.
                 sequence.fadeOut(headWasHit && shouldSnakeOut ? 0.04f : 0.24f)
-                        .after(e -> Execution.updateThread(e::detachSelf));
+                        .after(e -> Execution.updateThread(e::removeSelf));
 
                 extendLifetime(sequence);
             });
@@ -555,14 +551,14 @@ public class GameplaySlider extends GameObject {
 
         if (!headCirclePiece.isAnimating()) {
             // When animating, the head circle will detach after the animation ends.
-            headCirclePiece.detachSelf();
+            headCirclePiece.removeSelf();
         }
 
-        tailCirclePiece.detachSelf();
-        approachCircle.detachSelf();
-        startArrow.detachSelf();
-        endArrow.detachSelf();
-        tickContainer.detachSelf();
+        tailCirclePiece.removeSelf();
+        approachCircle.removeSelf();
+        startArrow.removeSelf();
+        endArrow.removeSelf();
+        tickContainer.removeSelf();
 
         stopSlidingSamples();
 
@@ -582,27 +578,26 @@ public class GameplaySlider extends GameObject {
 
     @Override
     public void onExpire() {
-        headCirclePiece.clearEntityModifiers();
-        tailCirclePiece.clearEntityModifiers();
-        startArrow.clearEntityModifiers();
-        endArrow.clearEntityModifiers();
-        approachCircle.clearEntityModifiers();
-        followCircle.clearEntityModifiers();
-        ball.clearEntityModifiers();
-        sliderBody.clearEntityModifiers();
-        tickContainer.clearEntityModifiers();
+        headCirclePiece.clearAnimations();
+        tailCirclePiece.clearAnimations();
+        startArrow.clearAnimations();
+        endArrow.clearAnimations();
+        approachCircle.clearAnimations();
+        followCircle.clearAnimations();
+        ball.clearAnimations();
+        sliderBody.clearAnimations();
+        tickContainer.clearAnimations();
 
-        headCirclePiece.detachSelf();
-        tailCirclePiece.detachSelf();
-        startArrow.detachSelf();
-        endArrow.detachSelf();
-        approachCircle.detachSelf();
-        followCircle.detachSelf();
-        ball.detachSelf();
-        sliderBody.detachSelf();
-        tickContainer.detachSelf();
+        headCirclePiece.removeSelf();
+        tailCirclePiece.removeSelf();
+        startArrow.removeSelf();
+        endArrow.removeSelf();
+        approachCircle.removeSelf();
+        followCircle.removeSelf();
+        ball.removeSelf();
+        sliderBody.removeSelf();
+        tickContainer.removeSelf();
 
-        sliderHeadLateMissFadeModifier = null;
 
         // removeFromScene() stops looping sounds and releases hit samples, but during a seek, onExpire() fires without
         // removeFromScene(). This causes looping sounds to continuously play after a seek, and nested hit samples
@@ -835,11 +830,11 @@ public class GameplaySlider extends GameObject {
                 float remainTime = (float) Math.max(0, duration - elapsedSpanTime);
                 float initialScale = followCircle.getAlpha() == 0 ? scale * 0.5f : followCircle.getScaleX();
 
-                followCircle.clearEntityModifiers();
+                followCircle.clearAnimations();
                 followCircle.setScale(initialScale);
 
-                followCircle.scaleTo(scale, Math.min(remainTime, 0.18f), Easing.Out);
-                followCircle.fadeIn(Math.min(remainTime, 0.06f));
+                TransformsKt.scaleTo(followCircle, scale, Math.min(remainTime, 0.18f), Easing.OutQuad);
+                TransformsKt.fadeIn(followCircle, Math.min(remainTime, 0.06f));
             } else {
                 followCircle.setAlpha(1);
             }
@@ -847,10 +842,10 @@ public class GameplaySlider extends GameObject {
             stopSlidingSamples();
 
             if (Config.isAnimateFollowCircle()) {
-                followCircle.clearEntityModifiers();
+                followCircle.clearAnimations();
 
-                followCircle.scaleTo(scale * 2, 0.1f);
-                followCircle.fadeOut(0.1f);
+                TransformsKt.scaleTo(followCircle, scale * 2, 0.1f);
+                TransformsKt.fadeOut(followCircle, 0.1f);
             } else {
                 followCircle.setAlpha(0);
             }
@@ -915,7 +910,7 @@ public class GameplaySlider extends GameObject {
         {
             if (startHit) {
                 // Hide the approach circle if the slider is already hit.
-                approachCircle.clearEntityModifiers();
+                approachCircle.clearAnimations();
                 approachCircle.setAlpha(0);
             }
 
@@ -980,14 +975,14 @@ public class GameplaySlider extends GameObject {
             // the "tracking starts" branch and makes the follow circle visible.
             isInRadius = false;
 
-            scene.attachChild(ball);
-            scene.attachChild(followCircle);
+            scene.plusAssign(ball);
+            scene.plusAssign(followCircle);
 
-            ball.beginAbsoluteSequence((float) beatmapSlider.getEndTime() / 1000,
-                    sequence -> sequence.fadeOut().after(e -> Execution.updateThread(e::detachSelf)));
+            ChoreographyKt.choreographAt(ball, (float) beatmapSlider.getEndTime() / 1000,
+                    sequence -> sequence.fadeOut().after(e -> Execution.updateThread(e::removeSelf)));
         }
 
-        approachCircle.clearEntityModifiers();
+        approachCircle.clearAnimations();
 
         if (startHit) {
             approachCircle.setAlpha(0);
@@ -1188,10 +1183,8 @@ public class GameplaySlider extends GameObject {
         elapsedSpanTime = listener.getElapsedTime() - hitTime - completedSpanCount * spanDuration;
 
         if (beatmapSlider.getSpanCount() - completedSpanCount > 1) {
-            if (sliderHeadLateMissFadeModifier != null) {
-                headCirclePiece.removeModifier(sliderHeadLateMissFadeModifier);
-                sliderHeadLateMissFadeModifier = null;
-            }
+            // The head stays visible as the end of the next span, so it must not fade out for being missed.
+            headCirclePiece.clearAnimations();
 
             // Change the head circle to the end circle piece.
             headCirclePiece.hideNumber();
@@ -1200,13 +1193,16 @@ public class GameplaySlider extends GameObject {
 
             startArrow.setAlpha(1);
         } else if (headCirclePiece.isVisible()) {
-            headCirclePiece.clearEntityModifiers();
+            headCirclePiece.clearAnimations();
 
             if (hitOffset >= -mehWindow || headCirclePiece.getAlpha() == 0) {
-                headCirclePiece.detachSelf();
+                headCirclePiece.removeSelf();
             } else {
                 // Slider head is hit too early - slowly fade it.
-                extendLifetime(headCirclePiece.fadeOut(0.1f).after(e -> Execution.updateThread(e::detachSelf)));
+                ChoreographyKt.choreographNow(headCirclePiece, sequence -> {
+                    sequence.fadeOut(0.1f).after(e -> Execution.updateThread(e::removeSelf));
+                    extendLifetime(sequence);
+                });
             }
         }
     }
@@ -1249,10 +1245,10 @@ public class GameplaySlider extends GameObject {
 
             if (isTracking) {
                 if (Config.isAnimateFollowCircle() && followCircle.getScaleX() > 1f) {
-                    followCircle.clearEntityModifiers();
+                    followCircle.clearAnimations();
 
                     followCircle.setScale(scale * 1.1f);
-                    followCircle.scaleTo(scale, 0.2f);
+                    TransformsKt.scaleTo(followCircle, scale, 0.2f);
                 }
 
                 playCurrentNestedObjectHitSound();
@@ -1358,7 +1354,7 @@ public class GameplaySlider extends GameObject {
         float colorDim = 195f / 255f;
 
         piece.setColor(colorDim, colorDim, colorDim);
-        piece.beginAbsoluteSequence(hitTime - (float) HitWindow.MISS_WINDOW / 1000,
+        ChoreographyKt.choreographAt(piece, hitTime - (float) HitWindow.MISS_WINDOW / 1000,
                 sequence -> sequence.colorTo(1, 1, 1, 0.1f));
     }
 

@@ -1,9 +1,12 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
-import com.edlplan.framework.easing.Easing;
+import com.reco1l.verktex.math.Easing;
 import com.edlplan.framework.math.FMath;
 import com.osudroid.utils.Execution;
-import com.reco1l.verktex.Scene;
+import com.reco1l.verktex.ui.container.UIContainer;
+import com.reco1l.verktex.ui.ChoreographyKt;
+import com.reco1l.verktex.ui.TransformsKt;
+import com.osudroid.ui.v2.SkinTextures;
 import com.reco1l.verktex.ui.UISprite;
 import com.reco1l.verktex.data.Anchor;
 import com.osudroid.ui.v2.game.NumberedCirclePiece;
@@ -17,7 +20,6 @@ import com.osudroid.mods.ModHidden;
 import java.util.ArrayList;
 
 import ru.nsu.ccfit.zuev.osu.Config;
-import ru.nsu.ccfit.zuev.osu.ResourceManager;
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType;
 import ru.nsu.ccfit.zuev.skins.OsuSkin;
 
@@ -26,7 +28,7 @@ public class GameplayHitCircle extends GameObject {
     private final UISprite approachCircle;
     private Color4 comboColor = new Color4();
     private GameObjectListener listener;
-    private Scene scene;
+    private UIContainer scene;
     private HitCircle beatmapCircle;
     private float passedTime;
     private float timePreempt;
@@ -47,7 +49,7 @@ public class GameplayHitCircle extends GameObject {
         approachCircle.setOrigin(Anchor.Center);
     }
 
-    public void init(final GameObjectListener listener, final Scene pScene, final HitCircle beatmapCircle,
+    public void init(final GameObjectListener listener, final UIContainer pScene, final HitCircle beatmapCircle,
                      final Color4 comboColor) {
         // Storing parameters into fields
         this.beatmapCircle = beatmapCircle;
@@ -98,15 +100,15 @@ public class GameplayHitCircle extends GameObject {
         approachCircle.setVisible(!GameHelper.isHidden() ||
                 (Config.isShowFirstApproachCircle() && GameHelper.getHidden().getFirstObject() == beatmapCircle));
 
-        approachCircle.setTextureRegion(ResourceManager.getInstance().getTexture(
+        approachCircle.setTextureRegion(SkinTextures.get(
                 GameHelper.isTraceable() ? "defaultapproachcircle" : "approachcircle"));
 
-        scene.attachChild(circlePiece, 0);
-        scene.attachChild(approachCircle);
+        scene.add(0, circlePiece);
+        scene.plusAssign(approachCircle);
 
         boolean fadeOutCircle = GameHelper.isHidden() && !GameHelper.getHidden().isOnlyFadeApproachCircles();
 
-        circlePiece.beginAbsoluteSequence(initialModifierTime, sequence -> {
+        ChoreographyKt.choreographAt(circlePiece, initialModifierTime, sequence -> {
             sequence.fadeIn(fadeInDuration);
 
             if (fadeOutCircle) {
@@ -118,7 +120,7 @@ public class GameplayHitCircle extends GameObject {
         if (!fadeOutCircle && circlePiece.isVisible()) {
             float okWindow = (float) beatmapCircle.hitWindow.getOkWindow() / 1000;
 
-            circlePiece.beginAbsoluteSequence(hitTime + okWindow,
+            ChoreographyKt.choreographAt(circlePiece, hitTime + okWindow,
                     sequence -> sequence.fadeOut(mehWindow - okWindow));
         }
 
@@ -133,7 +135,7 @@ public class GameplayHitCircle extends GameObject {
                 easing = Easing.None;
             }
 
-            approachCircle.beginAbsoluteSequence(initialModifierTime, sequence -> sequence
+            ChoreographyKt.choreographAt(approachCircle, initialModifierTime, sequence -> sequence
                     .fadeTo(0.9f, Math.min(fadeInDuration * 2, timePreempt))
                     .scaleTo(scale, timePreempt, easing)
                     .after(e -> e.setAlpha(0)));
@@ -144,7 +146,7 @@ public class GameplayHitCircle extends GameObject {
             var colorDim = 195f / 255f;
 
             circlePiece.setColor(colorDim, colorDim, colorDim);
-            circlePiece.beginAbsoluteSequence(hitTime - (float) HitWindow.MISS_WINDOW / 1000,
+            ChoreographyKt.choreographAt(circlePiece, hitTime - (float) HitWindow.MISS_WINDOW / 1000,
                     sequence -> sequence.colorTo(1, 1, 1, 0.1f));
         }
 
@@ -178,14 +180,17 @@ public class GameplayHitCircle extends GameObject {
         }
 
         hitSamples.clear();
-        circlePiece.clearEntityModifiers();
-        approachCircle.clearEntityModifiers();
-        approachCircle.detachSelf();
+        circlePiece.clearAnimations();
+        approachCircle.clearAnimations();
+        approachCircle.removeSelf();
 
         if (successfulHit || !circlePiece.isVisible() || circlePiece.getAlpha() == 0) {
-            circlePiece.detachSelf();
+            circlePiece.removeSelf();
         } else {
-            extendLifetime(circlePiece.fadeOut(0.1f).after(e -> Execution.updateThread(e::detachSelf)));
+            ChoreographyKt.choreographNow(circlePiece, sequence -> {
+                    sequence.fadeOut(0.1f).after(e -> Execution.updateThread(e::removeSelf));
+                    extendLifetime(sequence);
+                });
         }
 
         scene = null;
@@ -274,7 +279,7 @@ public class GameplayHitCircle extends GameObject {
             }
             removeFromScene();
         } else {
-            approachCircle.clearEntityModifiers();
+            approachCircle.clearAnimations();
             approachCircle.setAlpha(1 - FMath.clamp(passedTime / 0.05f, 0, 1));
 
             // If passed too much time, counting it as miss
@@ -291,11 +296,11 @@ public class GameplayHitCircle extends GameObject {
 
     @Override
     public void onExpire() {
-        circlePiece.clearEntityModifiers();
-        approachCircle.clearEntityModifiers();
+        circlePiece.clearAnimations();
+        approachCircle.clearAnimations();
 
-        circlePiece.detachSelf();
-        approachCircle.detachSelf();
+        circlePiece.removeSelf();
+        approachCircle.removeSelf();
 
         for (int i = hitSamples.size() - 1; i >= 0; --i) {
             hitSamples.get(i).release();

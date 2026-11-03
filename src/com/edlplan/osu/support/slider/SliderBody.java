@@ -5,11 +5,10 @@ import com.edlplan.framework.math.FMath;
 import com.edlplan.framework.math.Vec2;
 import com.edlplan.framework.math.line.AbstractPath;
 import com.edlplan.framework.math.line.LinePath;
-import com.reco1l.andengine.component.ClearInfo;
-import com.reco1l.andengine.component.DepthInfo;
-import com.reco1l.andengine.shape.UITriangleMesh;
-import com.reco1l.andengine.container.UIContainer;
-import com.reco1l.framework.Color4;
+import com.osudroid.ui.v2.game.UITriangleMesh;
+import com.reco1l.verktex.data.Color4;
+import com.reco1l.verktex.time.FrameClock;
+import com.reco1l.verktex.ui.container.UIContainer;
 import com.osudroid.math.Vector2;
 
 import org.jetbrains.annotations.NotNull;
@@ -63,22 +62,22 @@ public class SliderBody extends UIContainer {
         if (allowHint) {
             hint = new UITriangleMesh();
             hint.setVisible(false);
-            hint.setClearInfo(ClearInfo.ClearDepthBuffer);
-            hint.setDepthInfo(DepthInfo.Less);
+            hint.setClearDepthBeforeDraw(true);
+            hint.setDepthState(UITriangleMesh.DEPTH_LESS);
         } else {
             hint = null;
         }
 
         border = new UITriangleMesh();
-        border.setDepthInfo(DepthInfo.Default);
-        attachChild(border, 0);
+        border.setDepthState(UITriangleMesh.DEPTH_DEFAULT);
+        add(0, border);
 
         background = new UITriangleMesh();
-        background.setDepthInfo(DepthInfo.Default);
-        attachChild(background, 0);
+        background.setDepthState(UITriangleMesh.DEPTH_DEFAULT);
+        add(0, background);
 
         if (hint != null) {
-            attachChild(hint, 0);
+            add(0, hint);
         }
 
         setHintVisible(false);
@@ -127,7 +126,7 @@ public class SliderBody extends UIContainer {
     }
 
     public void setBackgroundColor(float r, float g, float b, float a) {
-        background.setColor(r, g, b, a);
+        background.setColor(new Color4(r, g, b, a));
     }
 
     public void setBackgroundColor(Color4 color, float alpha) {
@@ -139,11 +138,11 @@ public class SliderBody extends UIContainer {
     public void setHintVisible(boolean visible) {
         if (hint != null) {
             hint.setVisible(visible);
-            background.setClearInfo(visible ? ClearInfo.None : ClearInfo.ClearDepthBuffer);
-            background.setDepthInfo(visible ? DepthInfo.Default : DepthInfo.Less);
+            background.setClearDepthBeforeDraw(!visible);
+            background.setDepthState(visible ? UITriangleMesh.DEPTH_DEFAULT : UITriangleMesh.DEPTH_LESS);
         } else {
-            background.setClearInfo(ClearInfo.ClearDepthBuffer);
-            background.setDepthInfo(DepthInfo.Less);
+            background.setClearDepthBeforeDraw(true);
+            background.setDepthState(UITriangleMesh.DEPTH_LESS);
         }
     }
 
@@ -153,7 +152,7 @@ public class SliderBody extends UIContainer {
 
     public void setHintColor(float r, float g, float b, float a) {
         if (hint != null) {
-            hint.setColor(r, g, b, a);
+            hint.setColor(new Color4(r, g, b, a));
         }
     }
 
@@ -212,8 +211,6 @@ public class SliderBody extends UIContainer {
                     .reset(subPath, getClampedHintWidth())
                     .computeTriangles(builder)
                     .applyVertices(hint.getVertices());
-
-            hint.setContentSize(builder.maxX, builder.maxY);
         }
 
         cache.drawLinePath
@@ -221,19 +218,15 @@ public class SliderBody extends UIContainer {
                 .computeTriangles(builder)
                 .applyVertices(background.getVertices());
 
-        background.setContentSize(builder.maxX, builder.maxY);
-
         cache.drawLinePath
                 .reset(subPath, getClampedBackgroundWidth())
                 .computeTriangles(builder)
                 .applyVertices(border.getVertices());
-
-        border.setContentSize(builder.maxX, builder.maxY);
     }
 
 
     @Override
-    protected void onManagedUpdate(float deltaTimeSec) {
+    protected void onUpdate(@NotNull FrameClock clock) {
 
         if (cache != null && shouldRebuildVertices) {
             shouldRebuildVertices = false;
@@ -259,7 +252,13 @@ public class SliderBody extends UIContainer {
             }
         }
 
-        super.onManagedUpdate(deltaTimeSec);
+        super.onUpdate(clock);
+    }
+
+    @Override
+    public boolean intersectsSceneRect(float x, float y, float width, float height) {
+        // The path can extend in any direction from the position, so the bounds say nothing about what's visible.
+        return true;
     }
 
     public void setStartLength(float length) {
@@ -493,7 +492,6 @@ public class SliderBody extends UIContainer {
         }
 
         builder.applyVertices(target.getVertices());
-        target.setContentSize(builder.maxX, builder.maxY);
         return true;
     }
 
@@ -541,7 +539,6 @@ public class SliderBody extends UIContainer {
         }
 
         builder.applyVertices(target.getVertices());
-        target.setContentSize(builder.maxX, builder.maxY);
         return true;
     }
 
@@ -551,7 +548,6 @@ public class SliderBody extends UIContainer {
         }
 
         target.getVertices().length = 0;
-        target.setContentSize(0, 0);
     }
 
     private int getSegmentIndexForEndLength(float length) {

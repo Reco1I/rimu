@@ -90,8 +90,10 @@ object SkinTextures {
             }
         }
 
+        val delimiter = if (get("$name-0") != null) "-" else ""
+
         while (true) {
-            frames += get("$name-${frames.size}") ?: return frames
+            frames += get("$name$delimiter${frames.size}") ?: return frames
         }
     }
 

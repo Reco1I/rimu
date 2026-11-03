@@ -153,6 +153,9 @@ internal class TransformTracker {
         return transform
     }
 
+    val hasTransforms
+        get() = transforms.isNotEmpty()
+
     fun clear() {
         transforms.clear()
     }

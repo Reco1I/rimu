@@ -2,16 +2,17 @@ package ru.nsu.ccfit.zuev.osu.game;
 
 import android.graphics.PointF;
 
-import com.reco1l.verktex.Scene;
+import com.reco1l.verktex.ui.container.UIContainer;
+import com.reco1l.verktex.ui.ChoreographyKt;
+import com.reco1l.verktex.ui.TransformsKt;
+import com.osudroid.ui.v2.SkinTextures;
 import com.reco1l.verktex.ui.UISprite;
 import com.reco1l.verktex.data.Anchor;
 import com.osudroid.beatmaps.hitobjects.Spinner;
 
-import org.anddev.andengine.util.MathUtils;
 
 import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.Constants;
-import ru.nsu.ccfit.zuev.osu.ResourceManager;
 import ru.nsu.ccfit.zuev.osu.Utils;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoreNumber;
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
@@ -29,34 +30,33 @@ public class GameplayModernSpinner extends GameplaySpinner {
     private final ScoreNumber bonusScore;
 
     public GameplayModernSpinner() {
-        ResourceManager.getInstance().checkEvoSpinnerTextures();
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f);
         Utils.trackToRealCoords(position);
 
         middle = new UISprite();
         middle.setOrigin(Anchor.Center);
         middle.setPosition(position.x, position.y);
-        middle.setTextureRegion(ResourceManager.getInstance().getTexture("spinner-middle"));
+        middle.setTextureRegion(SkinTextures.get("spinner-middle"));
 
         middle2 = new UISprite();
         middle2.setOrigin(Anchor.Center);
         middle2.setPosition(position.x, position.y);
-        middle2.setTextureRegion(ResourceManager.getInstance().getTexture("spinner-middle2"));
+        middle2.setTextureRegion(SkinTextures.get("spinner-middle2"));
 
         bottom = new UISprite();
         bottom.setOrigin(Anchor.Center);
         bottom.setPosition(position.x, position.y);
-        bottom.setTextureRegion(ResourceManager.getInstance().getTexture("spinner-bottom"));
+        bottom.setTextureRegion(SkinTextures.get("spinner-bottom"));
 
         top = new UISprite();
         top.setOrigin(Anchor.Center);
         top.setPosition(position.x, position.y);
-        top.setTextureRegion(ResourceManager.getInstance().getTexture("spinner-top"));
+        top.setTextureRegion(SkinTextures.get("spinner-top"));
 
         glow = new UISprite();
         glow.setOrigin(Anchor.Center);
         glow.setPosition(position.x, position.y);
-        glow.setTextureRegion(ResourceManager.getInstance().getTexture("spinner-glow"));
+        glow.setTextureRegion(SkinTextures.get("spinner-glow"));
 
         bonusScore = new ScoreNumber(position.x, position.y + 100, "", 1.1f, true);
 
@@ -65,7 +65,7 @@ public class GameplayModernSpinner extends GameplaySpinner {
     }
 
     @Override
-    public void init(final GameObjectListener listener, final Scene scene,
+    public void init(final GameObjectListener listener, final UIContainer scene,
                      final Spinner beatmapSpinner, final float rps, final StatisticV2 stat) {
         this.scene = scene;
         this.beatmapSpinner = beatmapSpinner;
@@ -107,13 +107,13 @@ public class GameplayModernSpinner extends GameplaySpinner {
         top.setAlpha(0f);
         top.setScale(0.9f);
 
-        scene.attachChild(glow);
-        scene.attachChild(bottom);
-        scene.attachChild(top);
+        scene.plusAssign(glow);
+        scene.plusAssign(bottom);
+        scene.plusAssign(top);
 
         if (isBackgroundVisible) {
-            scene.attachChild(middle);
-            scene.attachChild(middle2);
+            scene.plusAssign(middle);
+            scene.plusAssign(middle2);
         }
 
         float timePreempt = (float) beatmapSpinner.timePreempt / 1000f;
@@ -133,7 +133,7 @@ public class GameplayModernSpinner extends GameplaySpinner {
     private void fadeIn(UISprite sprite) {
         float timePreempt = (float) beatmapSpinner.timePreempt / 1000;
 
-        sprite.beginAbsoluteSequence(hitTime - timePreempt,
+        ChoreographyKt.choreographAt(sprite, hitTime - timePreempt,
                 sequence -> sequence.fadeIn(timePreempt));
     }
 
@@ -158,7 +158,7 @@ public class GameplayModernSpinner extends GameplaySpinner {
                 // visually on next frame.
                 if (bonusScoreCounter > 1) {
                     bonusScore.setText(String.valueOf((bonusScoreCounter - 1) * 1000));
-                    scene.attachChild(bonusScore);
+                    scene.plusAssign(bonusScore);
                 }
             }
         }
@@ -193,7 +193,7 @@ public class GameplayModernSpinner extends GameplaySpinner {
         }
 
         if (mouse != null) {
-            float degree = MathUtils.radToDeg(Utils.direction(currMouse));
+            float degree = (float) Math.toDegrees(Utils.direction(currMouse));
             top.setRotationZ(degree);
             bottom.setRotationZ(degree / 2);
 
@@ -259,11 +259,11 @@ public class GameplayModernSpinner extends GameplaySpinner {
                     listener.onSpinnerHit(id, 1000, false, 0);
                     bonusScoreCounter++;
                     if (!bonusScore.hasParent()) {
-                        scene.attachChild(bonusScore);
+                        scene.plusAssign(bonusScore);
                     }
                     spinnerBonusSample.play();
 
-                    glow.beginModifierSequence(sequence -> sequence
+                    ChoreographyKt.choreographNow(glow, sequence -> sequence
                             .colorTo(0, 1, 0.8f)
                             .colorTo(1, 1, 1, 0.1f)
                             .then()
@@ -305,22 +305,22 @@ public class GameplayModernSpinner extends GameplaySpinner {
 
         setLifetimeEnd((float) beatmapSpinner.getEndTime() / 1000);
 
-        middle.clearEntityModifiers();
-        scene.detachChild(middle);
+        middle.clearAnimations();
+        middle.removeSelf();
 
-        middle2.clearEntityModifiers();
-        scene.detachChild(middle2);
+        middle2.clearAnimations();
+        middle2.removeSelf();
 
-        bottom.clearEntityModifiers();
-        scene.detachChild(bottom);
+        bottom.clearAnimations();
+        bottom.removeSelf();
 
-        top.clearEntityModifiers();
-        scene.detachChild(top);
+        top.clearAnimations();
+        top.removeSelf();
 
-        glow.clearEntityModifiers();
-        scene.detachChild(glow);
+        glow.clearAnimations();
+        glow.removeSelf();
 
-        scene.detachChild(bonusScore);
+        bonusScore.removeSelf();
         scene = null;
     }
 
