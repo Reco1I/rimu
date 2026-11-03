@@ -3,8 +3,6 @@ package com.reco1l.verktex.testing
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.ui.container.container
-import com.reco1l.verktex.settings.VerktexSettings
-import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.ClipMode
@@ -151,16 +149,6 @@ class UITestScene(
                             val index = (RATES.indexOf(stageClock.rate) + 1) % RATES.size
                             stageClock.rate = RATES[index]
                             text = formatRate(stageClock.rate)
-                        }
-                    }
-
-                    iconButton {
-                        icon = FAIcon.Gauge
-                        variant = UIButton.Variant.Surface
-                        isSelected = Settings[VerktexSettings.ShowPerformanceOverlay, false]
-                        onActionUp = {
-                            isSelected = !isSelected
-                            Settings[VerktexSettings.ShowPerformanceOverlay] = isSelected
                         }
                     }
 
