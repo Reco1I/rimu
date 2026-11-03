@@ -1,5 +1,6 @@
 package com.reco1l.verktex
 
+import com.reco1l.verktex.audio.AudioDriver
 import com.reco1l.verktex.worker.LoopWorker
 
 /**
@@ -17,6 +18,15 @@ object Platform {
         get() {
             checkImplementation()
             return implementation.provider
+        }
+
+    /**
+     * The driver used to access the audio devices of the platform.
+     */
+    val audioDriver: AudioDriver
+        get() {
+            checkImplementation()
+            return implementation.audioDriver
         }
 
     /**
@@ -59,6 +69,11 @@ object Platform {
          * The source provider used to load physical resources from the platform.
          */
         val provider: Provider
+
+        /**
+         * The driver used to access the audio devices of the platform.
+         */
+        val audioDriver: AudioDriver
 
         /**
          * The configuration of the current display.

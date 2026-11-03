@@ -65,4 +65,9 @@ interface Provider {
      * @param isExternal Whether the path is external or internal, in some platforms this may affect
      */
     fun createAudioStreamSource(path: String, isExternal: Boolean): AudioStream.Source?
+
+    /**
+     * Creates an AudioSource that streams from the given URL.
+     */
+    fun createAudioUrlStreamSource(url: String): AudioStream.Source?
 }

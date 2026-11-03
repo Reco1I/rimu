@@ -47,7 +47,7 @@ abstract class AudioDriver {
             Logger.w("AudioBackend", "No audio devices found! Working without sound.")
         }
 
-        activeDevice = devices.firstOrNull()
+        activeDevice = devices.firstOrNull { it.isDefault } ?: devices.firstOrNull()
         return devices
     }
 

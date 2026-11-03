@@ -32,7 +32,8 @@ import androidx.recyclerview.widget.RecyclerView.OnScrollListener
 import com.edlplan.ui.fragment.BaseFragment
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.osudroid.BuildSettings
-import com.reco1l.framework.bass.URLBassStream
+import com.reco1l.verktex.Platform
+import com.reco1l.verktex.audio.AudioStream
 import com.reco1l.framework.net.IFileRequestObserver
 import com.reco1l.framework.net.JsonArrayRequest
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel.OrderType
@@ -568,7 +569,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
 
     var detailsFragment: BeatmapSetDetails? = null
 
-    var previewStream: URLBassStream? = null
+    var previewStream: AudioStream? = null
 
 
     val cover: ImageView = itemView.findViewById(R.id.cover)
@@ -715,11 +716,13 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
         previewJob = mediaScope.launch {
 
             try {
-                previewStream = URLBassStream(BeatmapListing.mirror.preview.request(beatmapSet.beatmaps[0].id).toString()) {
-                    stopPreview(true)
-
-                    if (BeatmapListing.isPlayingMusic) {
-                        GlobalManager.getInstance().mainScene.musicControl(MusicOption.PLAY)
+                previewStream = Platform.provider.createAudioUrlStreamSource(BeatmapListing.mirror.preview.request(beatmapSet.beatmaps[0].id).toString())!!.createStream().also {
+                    it.onEnd = {
+                        stopPreview(true)
+    
+                        if (BeatmapListing.isPlayingMusic) {
+                            GlobalManager.getInstance().mainScene.musicControl(MusicOption.PLAY)
+                        }
                     }
                 }
 
@@ -727,7 +730,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
 
                 GlobalManager.getInstance().mainScene.musicControl(MusicOption.PAUSE)
 
-                previewStream!!.setVolume(Config.getBgmVolume())
+                previewStream!!.volume = Config.getBgmVolume()
                 previewStream!!.play()
 
                 BeatmapListing.previewPlayCount++
@@ -764,7 +767,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
         try {
             previewJob?.cancel()
             previewJob = null
-            previewStream?.free()
+            previewStream?.dispose()
             previewStream = null
 
         } catch (e: Exception) {

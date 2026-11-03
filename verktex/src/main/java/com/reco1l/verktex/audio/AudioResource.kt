@@ -47,6 +47,23 @@ abstract class AudioSample : AudioResource {
  */
 abstract class AudioStream : AudioResource, AudioPlayback {
 
+    /**
+     * Called when the stream reaches its end. It may be called from an audio thread.
+     */
+    abstract var onEnd: (() -> Unit)?
+
+    /**
+     * The frequency the stream plays at in Hz, usually derived from [speed], [pitch] and [adjustPitch]. Setting
+     * it overrides them until one of them changes.
+     */
+    abstract var frequency: Float
+
+    /**
+     * Reads the current frequency spectrum, or null if the stream isn't playing.
+     */
+    abstract fun readFFT(): FloatArray?
+
+
     override fun createPlayback(): AudioPlayback {
         return this
     }
