@@ -24,11 +24,7 @@ open class UIIconButton : UIButton() {
         style = Style { theme ->
             color = if (variant == Variant.Solid) theme.palette.contentOnSolid else Color4.White
 
-            iconSize = when (density) {
-                Density.Small -> theme.typography.smallBody.size
-                Density.Medium -> theme.typography.body.size
-                Density.Large -> theme.typography.body.size
-            }
+            iconSize = theme.buttonStyle[density].iconSize
         }
     }
 

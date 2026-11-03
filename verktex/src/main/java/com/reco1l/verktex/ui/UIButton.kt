@@ -92,23 +92,10 @@ open class UIButton : UIClickableContainer() {
                 backgroundColor = theme.palette.controlActiveBackground
             }
 
-            when (density) {
-                Density.Small -> {
-                    height = theme.controlStyle.minimumHeight
-                    padding = horizontalPadding(theme.gap.sm)
-                    radius = theme.radius.sm
-                }
-                Density.Medium -> {
-                    height = theme.controlStyle.minimumHeight
-                    padding = horizontalPadding(theme.gap.md)
-                    radius = theme.radius.md
-                }
-                Density.Large -> {
-                    height = theme.controlStyle.minimumHeight
-                    padding = horizontalPadding(theme.gap.lg)
-                    radius = theme.radius.lg
-                }
-            }
+            val size = theme.buttonStyle[density]
+            height = size.height
+            padding = horizontalPadding(size.horizontalPadding)
+            radius = size.radius
 
             alpha = if (isEnabled) 1f else 0.5f
         }

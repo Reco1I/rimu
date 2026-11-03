@@ -24,20 +24,10 @@ open class UITextButton : UIButton() {
         style = Style { theme ->
             color = if (variant == Variant.Solid) theme.palette.contentOnSolid else Color4.White
 
-            when (density) {
-                Density.Small -> {
-                    fontSettings = theme.typography.smallBody
-                    iconSpacing = theme.gap.sm
-                }
-                Density.Medium -> {
-                    fontSettings = theme.typography.body
-                    iconSpacing = theme.gap.md
-                }
-                Density.Large -> {
-                    fontSettings = theme.typography.body
-                    iconSpacing = theme.gap.lg
-                }
-            }
+            val size = theme.buttonStyle[density]
+            fontSettings = theme.typography.body
+            fontSize = size.fontSize
+            iconSpacing = size.iconSpacing
         }
         alignment = Anchor.Center
     }
