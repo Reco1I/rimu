@@ -1,38 +1,38 @@
-package com.rian.andengine.timing
+package com.reco1l.verktex.time
 
 class TestStopwatchClockWithRangeLimit(source: () -> Long = System::nanoTime) : StopwatchClock(true, source) {
     val minTime = 0f
     var maxTime = Float.POSITIVE_INFINITY
 
-    override val currentTime: Float
+    override val time: Float
         get() {
-            val currentTime = super.currentTime
-            val clamped = currentTime.coerceIn(minTime, maxTime)
+            val time = super.time
+            val clamped = time.coerceIn(minTime, maxTime)
 
-            if (clamped == currentTime) {
+            if (clamped == time) {
                 return clamped
             }
 
             if ((rate > 0 && clamped == maxTime) || (rate < 0 && clamped == minTime)) {
-                stop()
+                pause()
             }
 
             return clamped
         }
 
-    override fun seek(position: Float): Boolean {
-        val clamped = position.coerceIn(minTime, maxTime)
+    override fun seek(to: Float): Boolean {
+        val clamped = to.coerceIn(minTime, maxTime)
 
-        if (clamped != position) {
+        if (clamped != to) {
             // Emulate what a BASS track would do in this situation.
-            if (position >= maxTime) {
-                stop()
+            if (to >= maxTime) {
+                pause()
             }
 
             super.seek(clamped)
             return false
         }
 
-        return super.seek(position)
+        return super.seek(to)
     }
 }

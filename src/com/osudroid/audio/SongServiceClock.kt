@@ -1,18 +1,15 @@
 package com.osudroid.audio
 
-import com.rian.andengine.timing.IAdjustableClock
-import com.osudroid.game.FramedBeatmapClock
+import com.reco1l.verktex.time.AdjustableClock
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 
 /**
- * An [IAdjustableClock] that uses [SongService] as its backing source.
- *
- * This adapter converts [SongService]'s playback position into an [IAdjustableClock], allowing integration with
- * [FramedBeatmapClock].
+ * A clock following the song being played by a [SongService].
  */
-class SongServiceClock(private val songService: SongService) : IAdjustableClock {
-    override val currentTime
+class SongServiceClock(private val songService: SongService) : AdjustableClock() {
+
+    override val time
         get() = (songService.getPositionPrecise() / 1000.0).toFloat()
 
     override var rate by songService::speed
@@ -29,22 +26,20 @@ class SongServiceClock(private val songService: SongService) : IAdjustableClock 
         songService.play()
     }
 
-    override fun stop() {
+    override fun pause() {
         songService.pause()
     }
 
-    override fun seek(position: Float): Boolean {
-        // Clamp position to valid range [0, trackLength].
+    override fun seek(to: Float): Boolean {
         val trackLength = songService.getLength() / 1000f
 
         // Avoid allocation
         @Suppress("ConvertTwoComparisonsToRangeCheck")
-        if (position < 0f || position > trackLength) {
+        if (to < 0f || to > trackLength) {
             return false
         }
 
-        val positionMs = (position * 1000).toInt()
-        songService.seekTo(positionMs)
+        songService.seekTo((to * 1000).toInt())
         return true
     }
 

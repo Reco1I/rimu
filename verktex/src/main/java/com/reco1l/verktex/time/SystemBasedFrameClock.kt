@@ -36,8 +36,9 @@ class SystemBasedFrameClock : FrameClock(), IFrameProcessableClock, IControllabl
 
     //region Controllable implementation
 
-    override fun seek(to: Float) {
+    override fun seek(to: Float): Boolean {
         time = to
+        return true
     }
 
     override fun reset() {

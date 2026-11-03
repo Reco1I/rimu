@@ -35,8 +35,9 @@ class DerivedFrameClock<SourceClock : FrameClock>(override val source: SourceClo
     }
 
 
-    override fun seek(to: Float) {
+    override fun seek(to: Float): Boolean {
         time = to
+        return true
     }
 
     override fun start() {

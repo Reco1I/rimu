@@ -8,8 +8,7 @@ interface IControllableClock {
     /**
      * Seeks to the given time in seconds.
      */
-    fun seek(to: Float)
-
+    fun seek(to: Float): Boolean
     /**
      * Starts the clock from the current time.
      */

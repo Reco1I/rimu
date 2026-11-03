@@ -15,6 +15,12 @@ abstract class Clock {
      */
     abstract val isRunning: Boolean
 
+    /**
+     * The rate at which the time of this clock advances.
+     */
+    open val rate: Float
+        get() = 1f
+
 
 }
 

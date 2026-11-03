@@ -7,7 +7,7 @@ import com.reco1l.verktex.ui.UISprite
 import com.reco1l.framework.net.JsonArrayRequest
 import com.reco1l.framework.net.WebRequest
 import com.rian.andengine.modifier.ModifierType
-import com.rian.andengine.timing.IFrameBasedClock
+import com.reco1l.verktex.time.FrameClock
 import org.anddev.andengine.input.touch.TouchEvent
 import org.anddev.andengine.opengl.texture.region.TextureRegion
 import ru.nsu.ccfit.zuev.osu.Config
@@ -103,7 +103,7 @@ object BannerManager {
         }
 
 
-        override fun onUpdate(clock: IFrameBasedClock) {
+        override fun onUpdate(clock: FrameClock) {
             if (banners.size > 1) {
 
                 if (elapsedTimeSinceLastChange > BANNER_DURATION) {
