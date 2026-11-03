@@ -64,6 +64,7 @@ class ESShader(
         GLES32.glDeleteShader(fragmentId)
 
         uniformLocations.clear()
+        appliedUniforms.clear()
 
         val uniformCount = GLES32Helper.glGetProgramiv(programId, GLES32.GL_ACTIVE_UNIFORMS)
 
@@ -80,14 +81,32 @@ class ESShader(
         }
 
         uniformLocations.clear()
+        appliedUniforms.clear()
     }
 
 
+    // The values the program holds, uniforms keep them between draws. Arrays may be changed in
+    // place, so they're always applied.
+    private val appliedUniforms = HashMap<String, Any>()
+
     override fun applyUniforms(uniformSet: UniformSet) {
         for ((name, value) in uniformSet.entries) {
-            val location = uniformLocations[name] ?: continue
+            applyUniform(name, value)
+        }
+    }
 
-            when (value) {
+    /**
+     * Sets a uniform of the program, unless it already holds the value.
+     */
+    fun applyUniform(name: String, value: Any) {
+        val location = uniformLocations[name] ?: return
+
+        if (value !is FloatArray && value !is IntArray) {
+            if (appliedUniforms[name] == value) return
+            appliedUniforms[name] = value
+        }
+
+        when (value) {
                 is Float -> GLES32.glUniform1f(location, value)
                 is Int -> GLES32.glUniform1i(location, value)
                 is Vec2 -> GLES32.glUniform2f(location, value.x, value.y)
@@ -112,6 +131,5 @@ class ESShader(
                 }
                 else -> throw IllegalArgumentException("Unsupported uniform type: ${value::class.java}")
             }
-        }
     }
 }
