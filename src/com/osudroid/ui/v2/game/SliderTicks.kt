@@ -2,12 +2,12 @@ package com.osudroid.ui.v2.game
 
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.transformSequence
+import com.reco1l.verktex.ui.choreograph
+import com.reco1l.verktex.ui.choreography
 
 import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTick
@@ -104,21 +104,20 @@ class SliderTickSprite : UISprite(), IPoolable {
         val timePreempt = (tick.timePreempt / 1000).toFloat()
         val fadeInStartTime = startTime - timePreempt
 
-        clearTransforms()
+        choreography?.clear()
 
         alpha = 0f
         scale = 0.5f
 
-        transformSequence(fadeInStartTime - gameplayTime()) {
+        choreograph {
+            at(fadeInStartTime)
             scaleTo(1f, ANIM_DURATION * 4, Easing.OutElasticHalf)
             fadeIn(ANIM_DURATION)
-        }
 
-        if (GameHelper.isHidden() && !GameHelper.getHidden().onlyFadeApproachCircles) {
-            val fadeOutDuration = min(timePreempt - ANIM_DURATION, 1f)
-            val fadeOutStartTime = startTime - fadeOutDuration
+            if (GameHelper.isHidden() && !GameHelper.getHidden().onlyFadeApproachCircles) {
+                val fadeOutDuration = min(timePreempt - ANIM_DURATION, 1f)
 
-            transformSequence(fadeOutStartTime - gameplayTime()) {
+                at(startTime - fadeOutDuration)
                 fadeOut(fadeOutDuration)
             }
         }
@@ -132,9 +131,10 @@ class SliderTickSprite : UISprite(), IPoolable {
     fun onHit(isSuccessful: Boolean) {
         val tick = tick ?: return
 
-        clearTransforms()
+        choreography?.clear()
 
-        transformSequence(tick.startTime.toFloat() / 1000 - gameplayTime()) {
+        choreograph {
+            at(tick.startTime.toFloat() / 1000)
             fadeOut(ANIM_DURATION, Easing.OutQuint)
 
             if (isSuccessful) {
@@ -145,11 +145,9 @@ class SliderTickSprite : UISprite(), IPoolable {
         this.tick = null
     }
 
-    private fun gameplayTime() = GlobalManager.getInstance().gameScene.elapsedTime
-
     override fun onDetached() {
         super.onDetached()
-        clearTransforms()
+        choreography?.clear()
         pool.release(this)
     }
 

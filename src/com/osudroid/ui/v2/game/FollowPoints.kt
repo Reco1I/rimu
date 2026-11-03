@@ -10,11 +10,11 @@ import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.UIAnimatedSprite
-import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.OnTransformFinished
+import com.reco1l.verktex.ui.choreograph
+import com.reco1l.verktex.ui.choreography
 import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.transformSequence
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.math.*
@@ -46,7 +46,7 @@ object FollowPointConnection {
         return sprite
     }
 
-    private val expire: (UIComponent) -> Unit = { fp ->
+    private val expire = OnTransformFinished { fp ->
         updateThread {
             val poolable = fp as IPoolable
 
@@ -76,7 +76,7 @@ object FollowPointConnection {
             val child = scene[i]
 
             if (child is PoolableFollowPoint || child is PoolableAnimatedFollowPoint) {
-                child.clearTransforms()
+                child.choreography?.clear()
                 child.removeSelf()
                 pool.release(child as IPoolable)
             }
@@ -140,7 +140,7 @@ object FollowPointConnection {
 
             val fp = obtainFollowPoint()
 
-            fp.clearTransforms()
+            fp.choreography?.clear()
             fp.translationX = pointStartX.px
             fp.translationY = pointStartY.px
             fp.scaleOrigin = Anchor.Center
@@ -151,13 +151,15 @@ object FollowPointConnection {
 
             scene.add(0, fp)
 
-            fp.transformSequence(fadeInTime - GlobalManager.getInstance().gameScene.elapsedTime) {
+            fp.choreograph {
+                at(fadeInTime)
                 fadeIn(endFadeInTime)
                 scaleTo(scale, endFadeInTime, Easing.OutQuad)
                 moveTo(pointEndX, pointEndY, endFadeInTime, Easing.OutQuad)
 
                 delay(fadeOutTime - fadeInTime)
                 fadeOut(endFadeInTime)
+                then()
                 after(expire)
             }
 
