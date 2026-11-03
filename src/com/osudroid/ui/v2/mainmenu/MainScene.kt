@@ -1,5 +1,9 @@
 package com.osudroid.ui.v2.mainmenu
 
+import ru.nsu.ccfit.zuev.osu.scoring.Replay
+import com.reco1l.verktex.ui.dialog.UIConfirmDialog
+import com.osudroid.data.BeatmapInfo
+import com.osudroid.ui.v2.SkinSounds
 import android.content.*
 import android.net.*
 import android.util.*
@@ -74,6 +78,7 @@ object MainScene : UIScene() {
     private lateinit var menuGradientBox: UIGradientBox
 
     private var isMenuExpanded = false
+    private var isExiting = false
 
     private var lastMusicChange = System.currentTimeMillis()
 
@@ -334,11 +339,68 @@ object MainScene : UIScene() {
     }
 
 
-    private fun exit() {
+    /**
+     * Asks for confirmation before leaving the game.
+     */
+    fun showExitDialog() {
+        if (isExiting) {
+            return
+        }
+
+        UIConfirmDialog().apply {
+            title = "Exit"
+            text = GlobalManager.getInstance().mainActivity.getString(R.string.dialog_exit_message)
+            onConfirm = { exit() }
+        }.show()
+    }
+
+    /**
+     * Sets the beatmap being played in the menu.
+     */
+    fun setBeatmap(beatmapInfo: BeatmapInfo) {
+        GlobalManager.getInstance().selectedBeatmap = beatmapInfo
+
+        MusicManager.currentBeatmap = beatmapInfo
+        MusicManager.load()
+        MusicManager.play()
+    }
+
+    /**
+     * Shows the results screen of a replay file.
+     */
+    fun watchReplay(replayFile: String) {
+        val replay = Replay()
+
+        if (!replay.load(replayFile, false) || replay.replayVersion < 3) {
+            return
+        }
+
+        val beatmap = LibraryManager.findBeatmapByMD5(replay.md5) ?: return
+        val global = GlobalManager.getInstance()
+
+        setBeatmap(beatmap)
+
+        val stat = replay.stat
+        stat.migrateLegacyMods(beatmap.getBeatmapDifficulty())
+        stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
+
+        global.scoring.load(stat, null, global.songService, replayFile, null, beatmap)
+        Verktex.pushScene(global.scoring.scene)
+    }
+
+    /**
+     * Plays the exit animation and closes the game.
+     */
+    fun exit() {
+        if (isExiting) {
+            return
+        }
+
+        isExiting = true
         isMenuExpanded = false
 
         MusicManager.stop()
-        ResourceManager.getInstance().getSound("seeya")?.play()
+        SkinSounds["seeya"].play()
 
         backgroundSprite.fadeOut(0.4f)
 
@@ -380,6 +442,8 @@ object MainScene : UIScene() {
 
     override fun onUpdate(clock: FrameClock) {
         val deltaTimeSec = clock.elapsedFrameTime
+
+        MusicManager.onUpdate(deltaTimeSec)
 
         logo.scale = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), logo.scaleX, if (isMenuExpanded) 1f else 1.3f, 0f, 0.1f)
 

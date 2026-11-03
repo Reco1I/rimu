@@ -174,10 +174,10 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         text = "Back"
                         leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
                         onActionUp = {
-                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
+                            SkinSounds["click-short-confirm"].play()
                             cancel()
                         }
-                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { SkinSounds["click-short"].play() }
                     }
                 }
             }

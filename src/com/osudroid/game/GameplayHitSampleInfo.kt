@@ -2,12 +2,12 @@ package com.osudroid.game
 
 import com.osudroid.beatmaps.hitobjects.BankHitSampleInfo
 import com.osudroid.beatmaps.hitobjects.HitSampleInfo
+import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import kotlin.math.max
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider
 import ru.nsu.ccfit.zuev.skins.OsuSkin
-import ru.nsu.ccfit.zuev.osu.ResourceManager.getInstance as getResources
 
 /**
  * A wrapper for [HitSampleInfo]s to allow for additional gameplay-specific information to be stored.
@@ -62,8 +62,8 @@ class GameplayHitSampleInfo : IGameplayHitSampleInfo, IPoolable {
         for (i in sampleInfo.lookupNames.indices) {
             val name = sampleInfo.lookupNames[i]
             val soundProvider =
-                if (sampleInfo.useBeatmapSample) getResources().getCustomSound(name, false)
-                else getResources().getSound(name, false)
+                if (sampleInfo.useBeatmapSample) SkinSounds.getBeatmapOrNull(name)
+                else SkinSounds.getOrNull(name)
 
             if (soundProvider != null) {
                 soundProvider.setFrequency(frequency)

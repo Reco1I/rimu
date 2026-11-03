@@ -20,7 +20,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.osudroid.multiplayer.Multiplayer;
-import com.reco1l.verktex.Engine;
 import com.reco1l.verktex.data.Color4;
 import com.reco1l.verktex.data.HexComposition;
 
@@ -302,8 +301,6 @@ public class Config {
 
             RES_WIDTH = (int) (width * ratio);
             RES_HEIGHT = (int) (height * ratio);
-
-            Engine.setLegacyResolutionPolicyScaleRatio(ratio);
         } else {
             RES_WIDTH = width;
             RES_HEIGHT = height;

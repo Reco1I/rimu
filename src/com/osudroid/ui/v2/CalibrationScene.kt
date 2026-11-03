@@ -5,7 +5,6 @@ import androidx.annotation.IdRes
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.math.Interpolation
 import com.osudroid.resources.R.string
-import com.osudroid.ui.v1.SettingsFragment
 import com.osudroid.utils.mainThread
 import com.osudroid.utils.median
 import com.osudroid.utils.standardDeviation
@@ -48,7 +47,6 @@ import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 
 object CalibrationScene : UIScene() {
@@ -81,7 +79,6 @@ object CalibrationScene : UIScene() {
      * Invoked on the main thread after the overlay closes (Back or SET).
      * Set by the caller so that the current settings can re-show itself (e.g. Settings → Audio).
      */
-    internal var settingsFragment: SettingsFragment? = null
 
     private lateinit var approachCircle: UIBox
     private lateinit var hitCircleFill: UICircle
@@ -470,11 +467,6 @@ object CalibrationScene : UIScene() {
             GlobalManager.getInstance().songService.play()
         }
 
-        mainThread {
-            settingsFragment?.show()
-            settingsFragment = null
-        }
-
         Verktex.withTreeLock { Verktex.popScene() }
     }
 
@@ -500,7 +492,7 @@ object CalibrationScene : UIScene() {
     // -------------------------------------------------------------------------
 
     private fun onBeat() {
-        ResourceManager.getInstance().getSound("drum-hitclap")?.play()
+        SkinSounds["drum-hitclap"].play()
 
         hitCircleFill.apply {
             clearTransforms()
@@ -752,11 +744,11 @@ object CalibrationScene : UIScene() {
     }
 
     private fun playShortClickSound() {
-        ResourceManager.getInstance().getSound("click-short")?.play()
+        SkinSounds["click-short"].play()
     }
 
     private fun playShortClickConfirmSound() {
-        ResourceManager.getInstance().getSound("click-short-confirm")?.play()
+        SkinSounds["click-short-confirm"].play()
     }
 
     private fun applyOffset() {

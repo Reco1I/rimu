@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.data.BeatmapInfo
@@ -128,10 +129,10 @@ object ModMenu : UIContainer() {
                         text = "Back"
                         leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
                         onActionUp = {
-                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
+                            SkinSounds["click-short-confirm"].play()
                             back()
                         }
-                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { SkinSounds["click-short"].play() }
                     }
 
                     customizeButton = UITextButton().apply {
@@ -139,14 +140,14 @@ object ModMenu : UIContainer() {
                         isEnabled = false
                         leadingIcon = faSolidIcon(FAIcon.Wrench)
                         onActionUp = {
-                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
+                            SkinSounds["click-short-confirm"].play()
                             if (customizationMenu.isShown) {
                                 customizationMenu.hide()
                             } else {
                                 customizationMenu.show()
                             }
                         }
-                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { SkinSounds["click-short"].play() }
                     }
 
                     +customizeButton
@@ -160,10 +161,10 @@ object ModMenu : UIContainer() {
                         }
                         leadingIcon = faSolidIcon(FAIcon.DeleteLeft)
                         onActionUp = {
-                            ResourceManager.getInstance().getSound("click-short-confirm")?.play()
+                            SkinSounds["click-short-confirm"].play()
                             clear()
                         }
-                        onActionCancel = { ResourceManager.getInstance().getSound("click-short")?.play() }
+                        onActionCancel = { SkinSounds["click-short"].play() }
                     }
 
                     +UIScrollableContainer().apply {

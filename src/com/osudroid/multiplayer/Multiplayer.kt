@@ -1,5 +1,7 @@
 package com.osudroid.multiplayer
 
+import com.reco1l.verktex.Verktex
+import com.osudroid.ui.v2.songselect.SongSelect
 import android.net.*
 import android.util.Log
 import com.osudroid.multiplayer.api.RoomAPI
@@ -146,7 +148,7 @@ object Multiplayer {
                 ToastLogger.showText("Failed to connect to the room: ${e.javaClass} - ${e.message}", true)
                 Log.e("LobbyScene", "Failed to connect to room.", e)
 
-                Engine.current.scene = LobbyScene()
+                updateThread { Verktex.pushScene(LobbyScene()) }
             }
 
         }
@@ -159,7 +161,7 @@ object Multiplayer {
 
     fun onLiveLeaderboard(array: JSONArray) {
 
-        if (GlobalManager.getInstance().engine.scene != GlobalManager.getInstance().gameScene.scene) {
+        if (Verktex.scene != GlobalManager.getInstance().gameScene.scene) {
             return
         }
 
@@ -184,7 +186,7 @@ object Multiplayer {
         finalData = null
 
         // Avoiding data parsing if user left from ScoringScene
-        if (GlobalManager.getInstance().engine.scene == roomScene || GlobalManager.getInstance().engine.scene == GlobalManager.getInstance().songMenu.scene) {
+        if (Verktex.scene == roomScene || Verktex.scene == SongSelect) {
             return
         }
 
@@ -278,7 +280,7 @@ object Multiplayer {
             // Do not interrupt an active game session; the teardown will happen naturally
             // when the player finishes (or abandons) the game.
             val gameScene = GlobalManager.getInstance().gameScene
-            if (gameScene == null || GlobalManager.getInstance().engine.scene != gameScene.scene) {
+            if (gameScene == null || Verktex.scene != gameScene.scene) {
                 updateThread { roomScene?.back() }
             }
         }

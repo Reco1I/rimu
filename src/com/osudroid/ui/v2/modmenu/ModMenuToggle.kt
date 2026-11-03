@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.mods.*
 import com.osudroid.multiplayer.*
 import com.osudroid.utils.searchContiguously
@@ -71,10 +72,10 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
         onActionUp = {
             if (isSelected) {
                 ModMenu.removeMod(mod)
-                ResourceManager.getInstance().getSound("check-off")?.play()
+                SkinSounds["check-off"].play()
             } else {
                 ModMenu.addMod(mod)
-                ResourceManager.getInstance().getSound("check-on")?.play()
+                SkinSounds["check-on"].play()
             }
         }
 

@@ -12,7 +12,6 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Color;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Build;
@@ -60,8 +59,6 @@ import com.reco1l.verktex.Verktex;
 import com.reco1l.verktex.android.AndroidGameHost;
 
 import net.lingala.zip4j.ZipFile;
-
-import org.anddev.andengine.sensor.accelerometer.AccelerometerData;
 
 import java.io.File;
 import java.io.IOException;
@@ -179,7 +176,6 @@ public class MainActivity extends AndroidGameHost {
                 DatabaseManager.notifyIfResetDueToDowngrade();
                 GlobalManager.getInstance().setInfo("");
                 GlobalManager.getInstance().setLoadingProgress(100);
-                ResourceManager.getInstance().loadFont("font", null, 28, Color.WHITE);
                 Verktex.pushScene(MainScene.INSTANCE);
                 SongSelect.INSTANCE.loadBeatmaps();
 
@@ -196,12 +192,10 @@ public class MainActivity extends AndroidGameHost {
                     roomInviteLink = null;
                     Multiplayer.connectFromLink(inviteLink);
                 } else if (willReplay) {
-                    GlobalManager.getInstance().getMainScene().watchReplay(fileToAdd);
+                    MainScene.INSTANCE.watchReplay(fileToAdd);
                     fileToAdd = null;
                     willReplay = false;
                 }
-
-                //GlobalManager.getInstance().getMainScene().loadBannerSprite();
             });
         });
     }
@@ -613,15 +607,12 @@ public class MainActivity extends AndroidGameHost {
 
             if (roomInviteLink != null) {
                 Execution.updateThread(() -> {
-                    if (mEngine != null) {
-                        var scene = mEngine.getScene();
-                        var gameScene = globalManager.getGameScene();
+                    var gameScene = globalManager.getGameScene();
 
-                        // Ensure gameplay is cleaned up before joining the lobby to prevent any potential issues with
-                        // lingering game state.
-                        if (scene != null && gameScene != null && scene == gameScene.getScene()) {
-                            gameScene.quit();
-                        }
+                    // Ensure gameplay is cleaned up before joining the lobby to prevent any potential issues with
+                    // lingering game state.
+                    if (gameScene != null && Verktex.getScene() == gameScene.getScene()) {
+                        gameScene.quit();
                     }
 
                     Multiplayer.connectFromLink(roomInviteLink);
@@ -638,7 +629,7 @@ public class MainActivity extends AndroidGameHost {
                     final String replayFile = fileToAdd;
 
                     Execution.updateThread(() -> {
-                        globalManager.getMainScene().watchReplay(replayFile);
+                        MainScene.INSTANCE.watchReplay(replayFile);
                         fileToAdd = null;
                         willReplay = false;
                     });
@@ -713,11 +704,8 @@ public class MainActivity extends AndroidGameHost {
         super.onWindowFocusChanged(hasFocus);
 
         if (!hasFocus) {
-            var gameScene = GlobalManager.getInstance().getGameScene();
-
             if (Multiplayer.isConnected()
-                    && (Verktex.getScene() == Multiplayer.roomScene
-                    || Verktex.getScene() == GlobalManager.getInstance().getSongMenu().getScene())) {
+                    && (Verktex.getScene() == Multiplayer.roomScene || Verktex.getScene() == SongSelect.INSTANCE)) {
                 Execution.async(() -> Execution.runSafe(Multiplayer.roomScene::invalidateStatus));
             }
         }
@@ -743,69 +731,23 @@ public class MainActivity extends AndroidGameHost {
     }
 
     @Override
-    public void onAccelerometerChanged(final AccelerometerData arg0) {
-        if (this.mEngine == null) {
-            return;
-        }
-        if (GlobalManager.getInstance().getCamera().getRotation() == 0 && arg0.getY() < -5) {
-            GlobalManager.getInstance().getCamera().setRotation(180);
-        } else if (GlobalManager.getInstance().getCamera().getRotation() == 180 && arg0.getY() > 5) {
-            GlobalManager.getInstance().getCamera().setRotation(0);
-        }
-    }
-
-    @Override
-    public boolean onKeyMultiple(int keyCode, int repeatCount, KeyEvent event) {
-        if (this.mEngine == null) {
-            return false;
-        }
-
+    public boolean onKeyDown(final int keyCode, final KeyEvent event) {
         if (AccessibilityDetector.isIllegalServiceDetected()) {
             return false;
         }
 
-        if (GlobalManager.getInstance().getEngine() == null) {
-            return super.onKeyMultiple(keyCode, repeatCount, event);
-        }
-
-        var action = event.getAction();
-
-        // See:
-        // - https://stackoverflow.com/a/7232186
-        // - https://developer.android.com/reference/android/view/KeyEvent#ACTION_MULTIPLE
-        // For now, we are only interested in using this for input to support characters that require multiple key
-        // presses to be inputted.
-        if (action == KeyEvent.ACTION_MULTIPLE && Engine.getCurrent().onKeyPress(keyCode, event)) {
-            return true;
-        }
-
-        return super.onKeyMultiple(keyCode, repeatCount, event);
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
-    public boolean onKeyDown(final int keyCode, final KeyEvent event) {
-        if (this.mEngine == null) {
-            return false;
-        }
-
-        if (AccessibilityDetector.isIllegalServiceDetected())
-            return false;
-
-        if (GlobalManager.getInstance().getEngine() == null) {
-            return super.onKeyDown(keyCode, event);
-        }
-
-        if (Engine.getCurrent().onKeyPress(keyCode, event)) {
-            return true;
-        }
-
+    protected boolean onUnhandledKeyDown(final int keyCode, @NonNull final KeyEvent event) {
         if (event.getAction() != KeyEvent.ACTION_DOWN) {
-            return super.onKeyDown(keyCode, event);
+            return false;
         }
 
-        Scene currentScene = GlobalManager.getInstance().getEngine().getScene();
+        var currentScene = Verktex.getScene();
 
-        if (event.getAction() == TouchEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BACK && ActivityOverlay.onBackPress()) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && ActivityOverlay.onBackPress()) {
             return true;
         }
 
@@ -821,89 +763,55 @@ public class MainActivity extends AndroidGameHost {
             return true;
         }
 
+        if (keyCode != KeyEvent.KEYCODE_BACK) {
+            return false;
+        }
+
         var scoringScene = GlobalManager.getInstance().getScoring();
 
-        if (scoringScene != null && keyCode == KeyEvent.KEYCODE_BACK && currentScene == scoringScene.getScene()) {
+        if (scoringScene != null && currentScene == scoringScene.getScene()) {
             scoringScene.back();
             return true;
         }
 
-        var songMenu = GlobalManager.getInstance().getSongMenu();
-
-        if ((keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ENTER)
-                && songMenu != null && currentScene == songMenu.getScene() && songMenu.getScene().hasChildScene()) {
-            var searchBar = songMenu.getSearchBar();
-
-            if (searchBar != null && songMenu.getScene().getChildScene() == searchBar.getScene()) {
-                searchBar.hideMenu();
-            }
-
-            if (songMenu.getScene().getChildScene() == ModMenu.INSTANCE) {
-                ModMenu.INSTANCE.back();
-            }
-
-            return true;
-        }
-
-        if (songMenu != null && keyCode == KeyEvent.KEYCODE_MENU
-                && currentScene == songMenu.getScene() && !songMenu.getScene().hasChildScene()) {
-            songMenu.stopScroll(0);
-            songMenu.showPropertiesMenu(null);
-            return true;
-        }
-
-        if (keyCode == KeyEvent.KEYCODE_BACK && Verktex.getScene() instanceof SettingsMenu settingsMenu) {
+        if (currentScene instanceof SettingsMenu settingsMenu) {
             settingsMenu.back();
             return true;
         }
 
-        if (keyCode == KeyEvent.KEYCODE_BACK && ModMenu.INSTANCE.isShown()) {
+        if (ModMenu.INSTANCE.isShown()) {
             ModMenu.INSTANCE.back();
             return true;
         }
 
-        if (keyCode == KeyEvent.KEYCODE_BACK && Verktex.getScene() == SongSelect.INSTANCE) {
+        if (currentScene == SongSelect.INSTANCE) {
             SongSelect.INSTANCE.back();
             return true;
         }
 
-        if (keyCode == KeyEvent.KEYCODE_BACK && songMenu != null) {
-            if (currentScene == songMenu.getScene()) {
-                //SongMenu 界面按返回按钮（系统按钮）
-                songMenu.back();
-            } else {
-                if (currentScene instanceof LoaderScene) {
-                    return true;
-                }
-
-                if (Multiplayer.isMultiplayer) {
-                    if (currentScene instanceof LobbyScene lobbyScene) {
-                        lobbyScene.back();
-                        return true;
-                    }
-
-                    if (currentScene == Multiplayer.roomScene) {
-
-                        if (Multiplayer.roomScene.hasChildScene() && Multiplayer.roomScene.getChildScene() == ModMenu.INSTANCE) {
-                            ModMenu.INSTANCE.back();
-                            return true;
-                        }
-                        runOnUiThread(Multiplayer.roomScene.getLeaveDialog()::show);
-                        return true;
-                    }
-                }
-
-                if (currentScene instanceof GameLoaderScene loaderScene) {
-                    loaderScene.cancel();
-                    return true;
-                }
-
-                GlobalManager.getInstance().getMainScene().showExitDialog();
-            }
+        if (currentScene instanceof GameLoaderScene loaderScene) {
+            loaderScene.cancel();
             return true;
         }
 
-        return super.onKeyDown(keyCode, event);
+        if (currentScene instanceof LoaderScene) {
+            return true;
+        }
+
+        if (Multiplayer.isMultiplayer) {
+            if (currentScene instanceof LobbyScene lobbyScene) {
+                lobbyScene.back();
+                return true;
+            }
+
+            if (currentScene == Multiplayer.roomScene) {
+                runOnUiThread(Multiplayer.roomScene.getLeaveDialog()::show);
+                return true;
+            }
+        }
+
+        MainScene.INSTANCE.showExitDialog();
+        return true;
     }
 
     @Override
@@ -921,11 +829,19 @@ public class MainActivity extends AndroidGameHost {
     }
 
     public void forcedExit() {
-        if (GlobalManager.getInstance().getEngine().getScene() == GlobalManager.getInstance().getGameScene().getScene()) {
-            GlobalManager.getInstance().getGameScene().quit();
-        }
-        GlobalManager.getInstance().getEngine().setScene(GlobalManager.getInstance().getMainScene().getScene());
-        GlobalManager.getInstance().getMainScene().exit();
+        Execution.updateThread(() -> {
+            var gameScene = GlobalManager.getInstance().getGameScene();
+
+            if (Verktex.getScene() == gameScene.getScene()) {
+                gameScene.quit();
+            }
+
+            if (Verktex.getScene() != MainScene.INSTANCE) {
+                Verktex.pushScene(MainScene.INSTANCE);
+            }
+
+            MainScene.INSTANCE.exit();
+        });
     }
 
     public long getVersionCode() {

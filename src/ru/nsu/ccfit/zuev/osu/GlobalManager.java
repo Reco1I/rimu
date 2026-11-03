@@ -2,14 +2,12 @@ package ru.nsu.ccfit.zuev.osu;
 
 import com.osudroid.data.BeatmapInfo;
 import com.osudroid.data.DatabaseManager;
-import com.reco1l.verktex.Engine;
-
-import org.anddev.andengine.engine.camera.Camera;
+import com.osudroid.ui.v2.Skin;
+import com.osudroid.ui.v2.SkinSounds;
 
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;
 import ru.nsu.ccfit.zuev.osu.game.GameScene;
-import ru.nsu.ccfit.zuev.osu.menu.SongMenu;
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene;
 
 /**
@@ -17,12 +15,8 @@ import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene;
  */
 public class GlobalManager {
     private static GlobalManager instance;
-    private Engine engine;
-    private Camera camera;
     private GameScene gameScene;
-    private MainScene mainScene;
     private ScoringScene scoring;
-    private SongMenu songMenu;
     private MainActivity mainActivity;
     private int loadingProgress;
     private String info;
@@ -51,39 +45,17 @@ public class GlobalManager {
         songService = saveServiceObject.getSongService();
         SongService.initAudio();
         setLoadingProgress(10);
-        setMainScene(new MainScene());
-        getMainScene().load(mainActivity);
         setInfo("Loading skin...");
-        ResourceManager.getInstance().loadSkin(Config.getSkinPath());
+        Skin.load(Config.getSkinPath());
+        SkinSounds.preload();
         setLoadingProgress(30);
-        setGameScene(new GameScene(getEngine()));
-        setSongMenu(new SongMenu());
+        setGameScene(new GameScene());
         setLoadingProgress(40);
-        getSongMenu().init(mainActivity, getEngine(), getGameScene());
-        getSongMenu().load();
-        setScoring(new ScoringScene(getEngine(), getGameScene(), getSongMenu()));
-        getSongMenu().setScoringScene(getScoring());
+        setScoring(new ScoringScene(getGameScene()));
         getGameScene().setScoringScene(getScoring());
-        getGameScene().setOldScene(getSongMenu().getScene());
         if (songService != null) {
             songService.stop();
         }
-    }
-
-    public Engine getEngine() {
-        return engine;
-    }
-
-    public void setEngine(Engine engine) {
-        this.engine = engine;
-    }
-
-    public Camera getCamera() {
-        return camera;
-    }
-
-    public void setCamera(Camera camera) {
-        this.camera = camera;
     }
 
     public GameScene getGameScene() {
@@ -94,28 +66,12 @@ public class GlobalManager {
         this.gameScene = gameScene;
     }
 
-    public MainScene getMainScene() {
-        return mainScene;
-    }
-
-    public void setMainScene(MainScene mainScene) {
-        this.mainScene = mainScene;
-    }
-
     public ScoringScene getScoring() {
         return scoring;
     }
 
     public void setScoring(ScoringScene scoring) {
         this.scoring = scoring;
-    }
-
-    public SongMenu getSongMenu() {
-        return songMenu;
-    }
-
-    public void setSongMenu(SongMenu songMenu) {
-        this.songMenu = songMenu;
     }
 
     public MainActivity getMainActivity() {

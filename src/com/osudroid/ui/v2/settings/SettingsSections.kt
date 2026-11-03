@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.settings
 
+import com.osudroid.ui.v2.mainmenu.MainScene
+import com.osudroid.ui.v2.SkinSounds
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -15,6 +17,7 @@ import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.resources.R
 import com.osudroid.ui.v2.CalibrationScene
+import com.osudroid.ui.v2.Skin
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.utils.async
 import com.osudroid.utils.mainThread
@@ -28,7 +31,6 @@ import ru.nsu.ccfit.zuev.osu.ConfigBackup
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osu.MainActivity
-import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -280,7 +282,7 @@ val gameplaySection = listOf(
                             put(ModAutoplay::class)
                         }
 
-                        global.gameScene.setOldScene(global.mainScene.scene)
+                        global.gameScene.setOldScene(MainScene)
                         global.gameScene.startGame(selectedBeatmap, null, modMap, true)
                     }
                 }
@@ -594,7 +596,7 @@ val audioSection = listOf(
 
                     // Use the sound when the osu! cookie is clicked since it is guaranteed to be available and not
                     // skinnable (which means the player cannot silence it via skins).
-                    ResourceManager.getInstance().loadSound("menuhit", "sfx/menuhit.ogg", false)?.play()
+                    SkinSounds.getDefault("menuhit").play()
                 }
             )
         )
@@ -954,7 +956,8 @@ fun loadSkin(context: Context, path: String): Job {
     return async {
         BeatmapSkinManager.getInstance().clearSkin()
         Config.setSkinPath(path)
-        ResourceManager.getInstance().loadSkin(path)
+        Skin.load(path)
+        SkinSounds.onSkinChanged()
         Verktex.withTreeLock { SkinTextures.onSkinChanged() }
 
         mainThread {

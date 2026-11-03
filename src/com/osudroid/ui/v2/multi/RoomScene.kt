@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.BuildSettings
 import java.util.concurrent.atomic.AtomicBoolean
 import com.osudroid.beatmaplisting.BeatmapDownloader
@@ -70,7 +71,6 @@ import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
-import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 
@@ -419,7 +419,7 @@ class RoomScene(
                                     }
                                 }
 
-                                ResourceManager.getInstance().getSound("menuhit")?.play()
+                                SkinSounds["menuhit"].play()
                                 RoomAPI.notifyMatchPlay()
                             }
                             startButton = this
@@ -436,7 +436,7 @@ class RoomScene(
                                     return@callback
                                 }
 
-                        ResourceManager.getInstance().getSound("menuclick")?.play()
+                        SkinSounds["menuclick"].play()
 
                                 // Guard: if back() nulled player between the isWaitingForStatusChange check
                         // and here, reset the flag and exit instead of crashing.
