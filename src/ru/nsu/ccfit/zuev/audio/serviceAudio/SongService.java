@@ -18,6 +18,7 @@ import ru.nsu.ccfit.zuev.osu.MainActivity;
 
 
 public class SongService extends Service {
+    public static final int defaultFrequency = 44100;
     private SongPlayer audioFunc;
     private boolean isGaming = false;
     // private boolean isSettingMenu = false;

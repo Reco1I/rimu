@@ -9,7 +9,6 @@ import com.osudroid.ui.skinning.FloatSkinData;
 import com.osudroid.ui.skinning.StringSkinData;
 import com.osudroid.ui.v2.hud.HUDSkinData;
 import com.reco1l.verktex.data.Color4;
-import com.reco1l.verktex.data.HexComposition;
 
 import okio.BufferedSource;
 import okio.Okio;
@@ -49,7 +48,7 @@ public class OsuSkin {
 
     protected final ColorSkinData sliderBorderColor = new ColorSkinData("sliderBorderColor", null);
     protected final ColorSkinData sliderBodyColor = new ColorSkinData("sliderBodyColor", null);
-    protected final ColorSkinData sliderHintColor = new ColorSkinData("sliderHintColor", new Color4(DEFAULT_COLOR_HEX, HexComposition.RRGGBB));
+    protected final ColorSkinData sliderHintColor = new ColorSkinData("sliderHintColor", new Color4(DEFAULT_COLOR_HEX));
 
     protected final StringSkinData hitCirclePrefix = new StringSkinData("hitCirclePrefix", "default");
     protected final StringSkinData scorePrefix = new StringSkinData("scorePrefix", "score");
@@ -138,7 +137,7 @@ public class OsuSkin {
 
     public ArrayList<Color4> getComboColor() {
         if (comboColor.isEmpty()) {
-            comboColor.add(new Color4(DEFAULT_COLOR_HEX, HexComposition.RRGGBB));
+            comboColor.add(new Color4(DEFAULT_COLOR_HEX));
         }
         return comboColor;
     }

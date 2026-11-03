@@ -21,7 +21,6 @@ import java.util.UUID;
 
 import com.osudroid.multiplayer.Multiplayer;
 import com.reco1l.verktex.data.Color4;
-import com.reco1l.verktex.data.HexComposition;
 
 import net.margaritov.preference.colorpicker.ColorPickerPreference;
 
@@ -221,7 +220,7 @@ public class Config {
         useCustomComboColors = prefs.getBoolean("useCustomColors", useCustomComboColors);
         comboColors = new Color4[4];
         for (int i = 1; i <= 4; i++) {
-            comboColors[i - 1] = new Color4(ColorPickerPreference.convertToRGB(prefs.getInt("combo" + i, 0xff000000)), HexComposition.RRGGBB);
+            comboColors[i - 1] = new Color4(ColorPickerPreference.convertToRGB(prefs.getInt("combo" + i, 0xff000000)));
         }
 
         // beatmaps

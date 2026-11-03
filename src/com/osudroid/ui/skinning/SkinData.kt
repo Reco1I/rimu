@@ -45,7 +45,7 @@ class ColorSkinData @JvmOverloads constructor(tag: String, default: Color4? = nu
         } else {
             try {
                 Color4(hex)
-            } catch (_: NumberFormatException) {
+            } catch (_: IllegalArgumentException) {
                 defaultValue
             }
         }

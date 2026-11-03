@@ -46,10 +46,10 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
                 // Move to front
                 if (value != null) {
-                    moveToFront(value)
+                    bringToFront(value)
 
                     // Preserve overlay on top of the element.
-                    value.editorOverlay?.let(::moveToFront)
+                    value.editorOverlay?.let(::bringToFront)
 
                     elementSelector?.collapse()
                 }
@@ -89,7 +89,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
     }
 
 
-    private fun moveToFront(component: UIComponent) {
+    private fun bringToFront(component: UIComponent) {
         if (children.remove(component)) {
             children.add(component)
         }

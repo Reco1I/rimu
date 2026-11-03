@@ -358,7 +358,8 @@ public class GameplaySpinner extends GameObject {
 
                 if (!clear) {
                     scene.plusAssign(clearText);
-                    clearText.fadeInFromZero(0.25f);
+                    clearText.setAlpha(0f);
+                    TransformsKt.fadeIn(clearText, 0.25f);
                     clearText.setScale(1.5f);
                     TransformsKt.scaleTo(clearText, 1, 0.25f);
 
@@ -374,7 +375,7 @@ public class GameplaySpinner extends GameObject {
                     bonusScore.setText(String.valueOf(bonusScoreCounter * 1000));
                     listener.onSpinnerHit(id, 1000, false, 0);
                     bonusScoreCounter++;
-                    if (!bonusScore.hasParent()) {
+                    if (bonusScore.getParent() == null) {
                         scene.plusAssign(bonusScore);
                     }
                     spinnerBonusSample.play();

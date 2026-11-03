@@ -237,6 +237,7 @@ object Verktex {
      * The lock is reentrant. [block] must not wait for a task scheduled with [scheduleOnUpdate] or
      * [scheduleOnDraw] to finish, those tasks take the same lock.
      */
+    @JvmStatic
     fun <T> withTreeLock(block: () -> T): T = treeLock.withLock(block)
 
     private var lastUpdateNanos = 0L
