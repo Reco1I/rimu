@@ -12,6 +12,7 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.rian.framework.RollingDoubleCounter
 import kotlin.math.abs
 
+
 /**
  * A [UIBadge] for displaying star ratings. Automatically adjusts its styling according to the rating.
  */
@@ -40,6 +41,7 @@ class StarRatingBadge : UIBadge() {
     init {
         // Badge color is determined by rating and should not be styled.
         style = Style { theme ->
+            fontSettings = theme.typography.h3
             fontSize = theme.typography.smallBody.size
             padding = Padding(8f.dip, 5f.dip)
             iconSpacing = 8f.dip
@@ -50,20 +52,32 @@ class StarRatingBadge : UIBadge() {
     }
 
 
+    private fun applyRating(value: Double) {
+        text = "%.2f".format(value)
+        backgroundColor = OsuColors.getStarRatingColor(value)
+
+        if (value >= 6.5) {
+            color = OsuColors.getStarRatingTextColor(value)
+            alpha = 1f
+        } else {
+            color = Color4.Black
+            alpha = 0.75f
+        }
+    }
+
+    /**
+     * Skips the rolling animation, jumping to the colors and text of the current rating.
+     */
+    fun applyColorsInstantly() {
+        counter.setValueWithoutRolling(counter.targetValue)
+        applyRating(counter.currentValue)
+    }
+
     override fun onUpdate(clock: FrameClock) {
         counter.onUpdate(clock.elapsedFrameTime)
 
         if (counter.isRolling) {
-            text = "%.2f".format(counter.currentValue)
-            backgroundColor = OsuColors.getStarRatingColor(counter.currentValue)
-
-            if (counter.currentValue >= 6.5) {
-                color = OsuColors.getStarRatingTextColor(counter.currentValue)
-                alpha = 1f
-            } else {
-                color = Color4.Black
-                alpha = 0.75f
-            }
+            applyRating(counter.currentValue)
         }
 
         super.onUpdate(clock)

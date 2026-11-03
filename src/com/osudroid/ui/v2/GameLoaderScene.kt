@@ -197,15 +197,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             return
         }
 
-        val global = GlobalManager.getInstance()
-        val songMenu = global.songMenu
-        val selectedBeatmap = songMenu.selectedBeatmap
-
         Verktex.withTreeLock { Verktex.popScene() }
-
-        if (selectedBeatmap != null) {
-            songMenu.playMusic(selectedBeatmap.audioPath, selectedBeatmap.previewTime)
-        }
     }
 
 
