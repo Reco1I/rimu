@@ -89,6 +89,26 @@
 
         </activity>
 
+        <!-- The UI test browser, only enabled in debug builds. It runs in its own process since the
+             engine is a singleton shared with the game. -->
+        <activity
+            android:name="com.osudroid.ui.v2.test.OsuUITestActivity"
+            android:theme="@style/AppTheme"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:screenOrientation="sensorLandscape"
+            android:windowSoftInputMode="adjustPan"
+            android:label="osu!droid UI tests"
+            android:process=":uitest"
+            android:taskAffinity=".uitest"
+            android:enabled="${uiTestsEnabled}"
+            android:exported="true"
+            tools:ignore="LockedOrientationActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name="ru.nsu.ccfit.zuev.osu.PermissionActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"
