@@ -2,7 +2,7 @@ package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.OnTransformFinished
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.scaleTo
@@ -36,7 +36,7 @@ class HUDComboCounter : HUDElement() {
         add(0, it)
     }
 
-    private val updateDisplayedCount: (UIComponent) -> Unit = {
+    private val updateDisplayedCount = OnTransformFinished {
         displayedCountTextSprite.text = "${current}x"
     }
 

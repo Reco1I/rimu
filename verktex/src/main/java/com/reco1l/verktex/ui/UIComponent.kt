@@ -16,6 +16,7 @@ import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.math.almostEquals
 import com.reco1l.verktex.settings.Setting
 import com.reco1l.verktex.settings.VerktexSettings
+import com.reco1l.verktex.time.Clock
 import com.reco1l.verktex.time.FrameClock
 import kotlin.math.max
 
@@ -750,8 +751,26 @@ abstract class UIComponent {
      */
     fun update(clock: FrameClock) {
         transforms?.update(this, clock.elapsedFrameTime)
+        choreography?.update(activeClock?.time ?: clock.time)
         onUpdate(clock)
     }
+
+    /**
+     * The clock pacing the transforms and the choreography of this component and its children. When null it's
+     * inherited from the parent, falling back to the clock of the engine.
+     */
+    var clock: Clock? = null
+
+    /**
+     * The clock actually pacing this component, null if it's the one of the engine.
+     */
+    val activeClock: Clock?
+        get() = clock ?: parent?.activeClock
+
+    /**
+     * The timeline of this component, see [Choreography].
+     */
+    var choreography: Choreography? = null
 
     /**
      * The transforms running on this component, created when the first one is added.
