@@ -46,7 +46,7 @@ open class UICard : UILinearContainer() {
 
             // No animation for now, just hide the title bar if the card is not collapsible.
             if (value) {
-                titleBar.height = Verktex.theme.controlStyle.minimumHeight
+                titleBar.height = resolvedTheme.controlStyle.minimumHeight
                 titleBar.isVisible = true
             } else {
                 titleBar.height = 0f.px

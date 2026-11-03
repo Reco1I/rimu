@@ -57,7 +57,7 @@ open class UILoadingIndicator : UICanvas() {
             thickness = thickness.toPixels(),
             startAngle = angle,
             endAngle = angle + ARC_LENGTH,
-            color = arcColor ?: Verktex.theme.palette.accent
+            color = arcColor ?: resolvedTheme.palette.accent
         )
     }
 

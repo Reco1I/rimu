@@ -182,7 +182,7 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
     override fun onUpdate(clock: FrameClock) {
 
         // Errors flash the border red, then it goes back to its normal color.
-        val targetBorderColor = errorColor ?: borderTargetColor(Verktex.theme)
+        val targetBorderColor = errorColor ?: borderTargetColor(resolvedTheme)
         errorColor = null
         borderColor = clock.interpolateColor(0.2f, borderColor, targetBorderColor)
 
