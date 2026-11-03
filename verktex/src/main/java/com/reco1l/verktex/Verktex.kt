@@ -3,6 +3,9 @@ package com.reco1l.verktex
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import com.reco1l.verktex.audio.AudioDriver
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.math.interpolateFloat
+import kotlin.math.max
 import com.reco1l.verktex.audio.Sounds
 import com.reco1l.verktex.fonts.Fonts
 import com.reco1l.verktex.texture.Textures
@@ -214,11 +217,41 @@ object Verktex {
                 if (showPerformanceOverlay) overlayContainer += performanceOverlay else overlayContainer -= performanceOverlay
             }
 
+            updateImeShift()
+
             scene.update(clock)
             overlayContainer.update(clock)
 
             PerformanceStats.updateTime = (System.nanoTime() - updateStartNanos) / 1_000_000f
         }
+    }
+
+    /**
+     * How far the content of the scenes is moved up so the focused text input isn't covered by the
+     * on-screen keyboard, in window pixels. It shifts the safe area, so backgrounds stay in place.
+     */
+    var imeShift = 0f
+        private set
+
+    /**
+     * Moves the content of the scene and the overlays up while the focused text input would be
+     * covered by the on-screen keyboard, and back down once it's hidden or the input loses focus.
+     */
+    private fun updateImeShift() {
+        val focused = focusedComponent
+        val keyboardHeight = -imeOffset
+        var targetShift = 0f
+
+        // The keyboard is only shown for the focused component, e.g. a text input.
+        if (focused is UIComponent && keyboardHeight > 0f) {
+            // The bottom of the input where it would be without the shift.
+            val inputBottom = focused.toSceneSpace(0f, focused.bounds.height).y + imeShift
+            val visibleBottom = graphics.window.windowHeight - keyboardHeight
+
+            targetShift = max(0f, inputBottom + IME_MARGIN.toPixels() - visibleBottom)
+        }
+
+        imeShift = clock.interpolateFloat(0.15f, imeShift, targetShift)
     }
 
     private val showPerformanceOverlay by Setting(VerktexSettings.ShowPerformanceOverlay, false)
@@ -244,6 +277,9 @@ object Verktex {
     private var lastUpdateNanos = 0L
 
     private const val UPDATE_INTERVAL_NANOS = 1_000_000_000L / 240
+
+    // Space left between the focused text input and the on-screen keyboard.
+    private val IME_MARGIN = 16f.dip
 
 
     /**
