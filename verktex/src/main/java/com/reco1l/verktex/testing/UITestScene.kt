@@ -57,11 +57,12 @@ class UITestScene(
         palette = Verktex.theme.palette,
         radius = Theme.FixedSizeBreakpoints(0f.dip, 0f.dip, 0f.dip, 0f.dip, 0f.dip),
     ).let { theme ->
-        // Without the bezel and shadow of the buttons.
+        // Without the bezel and shadow of buttons and cards.
         Theme(
             palette = theme.palette,
             radius = theme.radius,
             buttonStyle = theme.buttonStyle.withoutElevation(),
+            cardStyle = theme.cardStyle.withoutElevation(),
         )
     }
 

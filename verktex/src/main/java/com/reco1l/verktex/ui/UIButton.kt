@@ -94,17 +94,7 @@ open class UIButton : UIClickableContainer() {
 
             // Only filled buttons look raised, a shadow would show through transparent ones.
             val isFilled = variant == Variant.Solid || variant == Variant.Soft || variant == Variant.Surface
-            val bezel = theme.buttonStyle.bezel
-
-            if (isFilled && bezel != null) {
-                borderWidth = 1f.dip
-                borderColor = bezel.top
-                borderColorBottom = bezel.bottom
-            } else {
-                borderColorBottom = null
-            }
-
-            shadow = if (isFilled) theme.buttonStyle.shadow else null
+            applyElevation(if (isFilled) theme.buttonStyle.elevation else null)
 
             val size = theme.buttonStyle[density]
             height = size.height

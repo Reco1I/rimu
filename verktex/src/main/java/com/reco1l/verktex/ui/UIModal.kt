@@ -28,6 +28,7 @@ open class UIModal(
         style = Style { theme ->
             backgroundColor = theme.palette.surface
             radius = theme.radius.lg
+            applyElevation(theme.cardStyle.elevation)
         }
     }
 
