@@ -623,6 +623,13 @@ abstract class GraphicsRenderer {
         }
     }
 
+    // Full circles can be drawn by the rounded box shader. Not while writing depth: the box's
+    // corners would write it too, while masks rely on the circle's shape.
+    private fun canDrawAsRoundedBox(width: Float, height: Float, startAngle: Float, endAngle: Float): Boolean {
+        val depthState = depthStateStack.lastOrNull() ?: DepthState.Default
+        return abs(endAngle - startAngle) >= 360f && abs(width - height) < 0.5f && !(depthState.enabled && depthState.writeEnabled)
+    }
+
     private fun calculateArcResolution(width: Float, height: Float, angle: Float = 360f): Int {
         if (angle <= 0f || width <= 0f || height <= 0f) return 0
 
@@ -642,6 +649,12 @@ abstract class GraphicsRenderer {
         endAngle: Float = 360f,
         color: Color4 = Color4.White
     ) {
+        // A full circle is a single rounded box instead of a fan of segments.
+        if (canDrawAsRoundedBox(width, height, startAngle, endAngle)) {
+            drawRect(x, y, width, height, color = color, radius = width / 2f)
+            return
+        }
+
         val segments = calculateArcResolution(width, height, abs(endAngle - startAngle)).coerceAtLeast(1)
 
         setState(
@@ -712,8 +725,17 @@ abstract class GraphicsRenderer {
         endAngle: Float = 360f,
         color: Color4 = Color4.White
     ) {
+        if (thickness <= 0f) return
+
+        // A full ring is a rounded box with only its border, which is inside its bounds as the
+        // stroke is, instead of a strip of segments.
+        if (canDrawAsRoundedBox(width, height, startAngle, endAngle)) {
+            drawRect(x, y, width, height, borderWidth = thickness, borderColor = color, radius = width / 2f)
+            return
+        }
+
         val segments = calculateArcResolution(width, height, abs(endAngle - startAngle))
-        if (segments <= 0 || thickness <= 0f) return
+        if (segments <= 0) return
 
         setState(
             shader = BuiltIn.Shaders.SolidQuad,
