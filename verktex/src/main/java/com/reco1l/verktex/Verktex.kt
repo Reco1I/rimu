@@ -189,11 +189,14 @@ object Verktex {
         PerformanceStats.onFrameStart()
         graphics.begin()
         treeLock.withLock {
+            val recordStartNanos = System.nanoTime()
             scene.draw(graphics)
             PerformanceStats.drawCommands = graphics.commandCount
             overlayContainer.draw(graphics)
+            PerformanceStats.recordTime = (System.nanoTime() - recordStartNanos) / 1_000_000f
         }
         graphics.end()
+
     }
 
     @RunOnUpdateWorker

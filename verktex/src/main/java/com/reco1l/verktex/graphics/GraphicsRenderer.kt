@@ -941,9 +941,11 @@ abstract class GraphicsRenderer {
     abstract fun drawCommand(command: DrawCommand)
 
     open fun end() {
+        val submitStartNanos = System.nanoTime()
         while (commandBatch.isNotEmpty()) {
             drawCommand(commandBatch.removeFirst())
         }
+        PerformanceStats.submitTime = (System.nanoTime() - submitStartNanos) / 1_000_000f
         buffersUsed = 0
         PerformanceStats.onFrameDrawn()
     }

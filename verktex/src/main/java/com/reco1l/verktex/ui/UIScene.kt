@@ -1,5 +1,6 @@
 package com.reco1l.verktex.ui
 
+import com.reco1l.verktex.PerformanceStats
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Vec4
@@ -39,7 +40,9 @@ open class UIScene : UIContainer() {
             bottom = (safeArea.w + imeShift).px
         )
 
+        val layoutStartNanos = System.nanoTime()
         onPerformLayout()
+        PerformanceStats.addLayoutTime(System.nanoTime() - layoutStartNanos)
 
         background?.draw(renderer)
         super.onDraw(renderer)
