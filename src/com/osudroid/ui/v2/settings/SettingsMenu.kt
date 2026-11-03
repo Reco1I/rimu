@@ -29,6 +29,10 @@ import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.control.UISelect
 import com.reco1l.verktex.ui.form.FormControl
+import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.ui.form.FormSelect
+import com.reco1l.verktex.ui.form.FormInput
+import com.reco1l.verktex.ui.form.FormCheckbox
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.text.faSolidIcon
@@ -40,6 +44,8 @@ import ru.nsu.ccfit.zuev.osu.GlobalManager
 
 
 enum class Section {
+    Player,
+    Room,
     General,
     Gameplay,
     Graphics,
@@ -172,6 +178,12 @@ data class OptionInfo(
      * Called when the component is attached to the scene.
      */
     val onAttach: (component: UIComponent) -> Unit = { },
+
+    /**
+     * The current value of an option that isn't a preference, e.g. a setting of the multiplayer
+     * room. When set the value is taken from it and not stored, [onChange] applies it.
+     */
+    val initialValue: (() -> Any)? = null,
 )
 
 class SettingsMenu : UIScene() {
@@ -222,13 +234,26 @@ class SettingsMenu : UIScene() {
                         style = Style { theme -> backgroundColor = theme.palette.divider }
                     }
 
-                    +SectionButton(Section.General, FAIcon.Gears, generalSection)
-                    +SectionButton(Section.Gameplay, FAIcon.Gamepad, gameplaySection)
-                    +SectionButton(Section.Graphics, FAIcon.Display, graphicsSection)
-                    +SectionButton(Section.Audio, FAIcon.Headphones, audioSection)
-                    +SectionButton(Section.Library, FAIcon.Book, librarySection)
-                    +SectionButton(Section.Input, FAIcon.ComputerMouse, inputSection)
-                    +SectionButton(Section.Advanced, FAIcon.ScrewdriverWrench, advancedSection)
+                    // In a room its settings come first, and the ones only meant for the menu are hidden.
+                    if (Multiplayer.isMultiplayer) {
+                        sidebarCaption("Multiplayer")
+                        +SectionButton(Section.Player, FAIcon.User)
+                        if (Multiplayer.isRoomHost) {
+                            +SectionButton(Section.Room, FAIcon.UserGroup)
+                        }
+                        sidebarCaption("Game")
+                    } else {
+                        +SectionButton(Section.General, FAIcon.Gears)
+                    }
+
+                    +SectionButton(Section.Gameplay, FAIcon.Gamepad)
+                    +SectionButton(Section.Graphics, FAIcon.Display)
+                    +SectionButton(Section.Audio, FAIcon.Headphones)
+                    if (!Multiplayer.isMultiplayer) {
+                        +SectionButton(Section.Library, FAIcon.Book)
+                    }
+                    +SectionButton(Section.Input, FAIcon.ComputerMouse)
+                    +SectionButton(Section.Advanced, FAIcon.ScrewdriverWrench)
                 }
             }
 
@@ -251,7 +276,40 @@ class SettingsMenu : UIScene() {
         +playfieldAreaDisplay
         onPlayfieldChanged = { playfieldAreaDisplay.update() }
 
-        generateSection(generalSection)
+        selectedSection = when {
+            Multiplayer.isRoomHost -> Section.Room
+            Multiplayer.isMultiplayer -> Section.Player
+            else -> Section.General
+        }
+        // The section is generated in onEnter.
+    }
+
+
+    // Values may have changed elsewhere meanwhile, e.g. the offset in its calibration.
+    override fun onEnter() {
+        super.onEnter()
+        generateSection(contentOf(selectedSection))
+    }
+
+    private fun contentOf(section: Section) = when (section) {
+        Section.Player -> playerSection
+        Section.Room -> roomSection
+        Section.General -> generalSection
+        Section.Gameplay -> gameplaySection
+        Section.Graphics -> graphicsSection
+        Section.Audio -> audioSection
+        Section.Library -> librarySection
+        Section.Input -> inputSection
+        Section.Advanced -> advancedSection
+    }
+
+    private fun UILinearContainer.sidebarCaption(caption: String) = text {
+        text = caption
+        alpha = 0.6f
+        style = Style { theme ->
+            fontSettings = theme.typography.caption
+            padding = Padding(theme.gap.sm, theme.gap.xs)
+        }
     }
 
 
@@ -264,7 +322,12 @@ class SettingsMenu : UIScene() {
         Config.loadConfig(global.mainActivity)
         onPlayfieldChanged = null
 
-        if (!Multiplayer.isMultiplayer) {
+        if (Multiplayer.isMultiplayer) {
+            if (Multiplayer.isConnected) {
+                Multiplayer.roomScene?.chat?.show()
+                Multiplayer.roomScene?.updatePlayerList()
+            }
+        } else {
             global.songService.isGaming = false
 
             // The account may have changed (Config.loadConfig above reloads it), the player button
@@ -364,42 +427,57 @@ class SettingsMenu : UIScene() {
         }
     }
 
-    private fun createControl(option: OptionInfo): FormControl<*, *> = when (option.type) {
+    private fun createControl(option: OptionInfo): FormControl<*, *> {
+        val initialValue = option.initialValue?.invoke()
 
-        OptionType.Checkbox -> PreferenceCheckbox(option.key, option.defaultValue as? Boolean ?: false)
-
-        OptionType.Input -> PreferenceInput(option.key, option.defaultValue as? String ?: "")
-
-        OptionType.Select -> PreferenceSelect(option.key, option.defaultValue as? String ?: "").apply {
-            if (option.entries != null && option.entryValues != null) {
-                val resources = GlobalManager.getInstance().mainActivity.resources
-                val entries = resources.getStringArray(option.entries)
-                val values = resources.getStringArray(option.entryValues)
-
-                if (entries.size == values.size) {
-                    options = entries.mapIndexed { i, entry -> UISelect.Option(values[i], entry) }
-                }
+        // Options that aren't preferences show the current value and aren't stored.
+        val control = if (initialValue != null) {
+            when (option.type) {
+                OptionType.Checkbox -> FormCheckbox(initialValue as Boolean)
+                OptionType.Input -> FormInput(initialValue as String)
+                OptionType.Select -> FormSelect(listOf(initialValue as String))
+                OptionType.Slider -> FormSlider((initialValue as Number).toFloat())
+                OptionType.Button -> error("Buttons are not form controls")
+            }.apply { showResetButton = false }
+        } else {
+            when (option.type) {
+                OptionType.Checkbox -> PreferenceCheckbox(option.key, option.defaultValue as? Boolean ?: false)
+                OptionType.Input -> PreferenceInput(option.key, option.defaultValue as? String ?: "")
+                OptionType.Select -> PreferenceSelect(option.key, option.defaultValue as? String ?: "")
+                OptionType.Slider ->
+                    if (option.isFloat) FloatPreferenceSlider(option.key, (option.defaultValue as? Number)?.toFloat() ?: 0f)
+                    else IntPreferenceSlider(option.key, (option.defaultValue as? Number)?.toInt() ?: 0)
+                OptionType.Button -> error("Buttons are not form controls")
             }
         }
 
-        OptionType.Slider -> (
-            if (option.isFloat) FloatPreferenceSlider(option.key, (option.defaultValue as? Number)?.toFloat() ?: 0f)
-            else IntPreferenceSlider(option.key, (option.defaultValue as? Number)?.toInt() ?: 0)
-        ).apply {
+        if (control is FormSelect<*> && option.entries != null && option.entryValues != null) {
+            val resources = GlobalManager.getInstance().mainActivity.resources
+            val entries = resources.getStringArray(option.entries)
+            val values = resources.getStringArray(option.entryValues)
+
+            if (entries.size == values.size) {
+                @Suppress("UNCHECKED_CAST")
+                (control as FormSelect<String>).options = entries.mapIndexed { i, entry -> UISelect.Option(values[i], entry) }
+            }
+        }
+
+        if (control is FormSlider) {
             val step = option.step ?: 1f
 
-            control.min = option.min ?: 0f
-            control.max = option.max ?: 100f
-            control.step = step
+            // The maximum first, the range starts at 0..1 and a minimum above it is rejected.
+            control.control.max = option.max ?: 100f
+            control.control.min = option.min ?: 0f
+            control.control.step = step
 
             if (step > 0f && step < 1f) {
-                control.precision = ceil(-log10(step.toDouble())).toInt()
+                control.control.precision = ceil(-log10(step.toDouble())).toInt()
             }
 
-            valueFormatter = option.valueFormatter ?: { it.toInt().toString() }
+            control.valueFormatter = option.valueFormatter ?: { it.toInt().toString() }
         }
 
-        OptionType.Button -> error("Buttons are not form controls")
+        return control
     }
 
 
@@ -451,7 +529,7 @@ class SettingsMenu : UIScene() {
     }
 
 
-    inner class SectionButton(private val section: Section, icon: Int, content: List<CategoryInfo>) : UITextButton() {
+    inner class SectionButton(private val section: Section, icon: Int) : UITextButton() {
 
         init {
             leadingIcon = faSolidIcon(icon)
@@ -464,7 +542,7 @@ class SettingsMenu : UIScene() {
             onActionUp = {
                 if (selectedSection != section) {
                     selectedSection = section
-                    generateSection(content)
+                    generateSection(contentOf(section))
                 }
             }
         }

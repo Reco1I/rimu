@@ -249,6 +249,8 @@ class RoomScene(
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
                         onActionUp = {
+                            // Shown again when leaving the settings.
+                            chat.hide()
                             Verktex.pushScene(SettingsMenu())
                         }
                         setText(R.string.multiplayer_room_settings)
