@@ -16,10 +16,12 @@ import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.iconButton
+import com.reco1l.verktex.ui.textButton
+import com.reco1l.verktex.time.derive
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
 
@@ -43,6 +45,8 @@ class UITestScene(
     private lateinit var stageHost: UIContainer
 
     private val logLines = ArrayDeque<String>()
+
+    private val stageClock = Verktex.clock.derive()
 
     // The browser is drawn flat, with square corners and filled buttons, so it can be told apart
     // from the components under test, which use the global theme.
@@ -120,6 +124,25 @@ class UITestScene(
                     }
 
                     iconButton {
+                        icon = FAIcon.Pause
+                        variant = UIButton.Variant.Surface
+                        onActionUp = {
+                            if (stageClock.isRunning) stageClock.pause() else stageClock.start()
+                            icon = if (stageClock.isRunning) FAIcon.Pause else FAIcon.Play
+                        }
+                    }
+
+                    textButton {
+                        text = formatRate(stageClock.rate)
+                        variant = UIButton.Variant.Surface
+                        onActionUp = {
+                            val index = (RATES.indexOf(stageClock.rate) + 1) % RATES.size
+                            stageClock.rate = RATES[index]
+                            text = formatRate(stageClock.rate)
+                        }
+                    }
+
+                    iconButton {
                         icon = FAIcon.ArrowRotateRight
                         variant = UIButton.Variant.Surface
                         onActionUp = { reload() }
@@ -135,7 +158,15 @@ class UITestScene(
                     }
                 }
 
-                stageHost = container {
+                // The tests run on a clock of their own, so they can be paused or sped up.
+                stageHost = object : UIContainer() {
+                    override fun onUpdate(clock: FrameClock) {
+                        stageClock.processFrame()
+                        super.onUpdate(stageClock)
+                    }
+                }.also { +it }
+
+                stageHost.apply {
                     width = fill()
                     height = fill()
                     clipping = ClipMode.Bounds
@@ -243,6 +274,10 @@ class UITestScene(
             Color4(0.5f, 0.5f, 0.5f),
             Color4.White,
         )
+
+        private val RATES = listOf(0.25f, 0.5f, 1f, 2f, 4f)
+
+        private fun formatRate(rate: Float) = "${rate.toString().removeSuffix(".0")}x"
 
         fun idOf(suite: UITestSuite, test: UITest) = "${suite.name}/${test.name}"
     }
