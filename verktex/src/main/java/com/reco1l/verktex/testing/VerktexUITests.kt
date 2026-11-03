@@ -39,6 +39,7 @@ import com.reco1l.verktex.ui.shape.triangle
 import com.reco1l.verktex.ui.shape.wedge
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.ui.textButton
 import com.reco1l.verktex.ui.transformSequence
 
@@ -79,6 +80,95 @@ object VerktexUITests : UITestSuite("Verktex") {
                         width = 300f.dip
                         maxLines = 1
                         text = "A single line that is cut once it reaches the end of its width."
+                    }
+                }
+            }
+        }
+
+        test("Spanned text") {
+            column {
+                section("Styles") {
+                    orientation = Orientation.Vertical
+                    text {
+                        spans {
+                            +"Plain, "
+                            color(Color4.Red400) { +"colored, " }
+                            bold { +"bold, " }
+                            italic { +"italic, " }
+                            bold { italic { +"both, " } }
+                            size(24f.dip) { +"bigger, " }
+                            background(Color4(0.3f, 0.3f, 0.6f)) { +" highlighted " }
+                            +" and "
+                            font(com.reco1l.verktex.Verktex.theme.typography.h3) { +"another font" }
+                        }
+                    }
+                }
+
+                section("Icons") {
+                    orientation = Orientation.Vertical
+                    text {
+                        spans {
+                            icon(FAIcon.Star)
+                            space(6f.dip)
+                            bold { +"5.00" }
+                        }
+                    }
+                    text {
+                        spans {
+                            +"Icons "
+                            color(Color4.Red400) { icon(FAIcon.Heart) }
+                            +" in the middle "
+                            icon(FAIcon.Music)
+                            +" of a text"
+                        }
+                    }
+                    text {
+                        spans {
+                            size(32f.dip) { icon(FAIcon.CircleInfo) }
+                            space(12f.dip)
+                            +"A big icon centered with the text"
+                        }
+                    }
+                    text {
+                        text = "Leading and trailing icons"
+                        leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
+                        trailingIcon = faSolidIcon(FAIcon.ArrowRight)
+                        iconSpacing = 8f.dip
+                    }
+                }
+
+                section("Mixed sizes share a baseline") {
+                    text {
+                        spans {
+                            size(32f.dip) { bold { +"128" } }
+                            size(14f.dip) { color(Color4(1f, 1f, 1f, 0.6f)) { +" ms" } }
+                        }
+                    }
+                }
+
+                section("Wrapping across spans") {
+                    orientation = Orientation.Vertical
+                    text {
+                        width = 300f.dip
+                        spans {
+                            +"A paragraph with "
+                            bold { +"bold words" }
+                            +" and "
+                            color(Color4.Red400) { +"colored ones" }
+                            +" that wraps between words, even "
+                            icon(FAIcon.Star)
+                            +" around icons and "
+                            size(22f.dip) { +"bigger text" }
+                            +" inside a fixed width."
+                        }
+                    }
+                    text {
+                        width = 300f.dip
+                        maxLines = 2
+                        spans {
+                            bold { +"Truncated: " }
+                            +"a long text limited to two lines that ends with an ellipsis once it doesn't fit anymore."
+                        }
                     }
                 }
             }
