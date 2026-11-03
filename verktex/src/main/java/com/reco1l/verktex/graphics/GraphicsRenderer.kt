@@ -209,6 +209,12 @@ abstract class GraphicsRenderer {
      * Pushes a color onto the color stack. Its alpha is multiplied into subsequent colors, its RGB
      * is not, see [pushTint] for that.
      */
+    /**
+     * The alpha the pushed colors multiply everything drawn by.
+     */
+    val currentAlpha: Float
+        get() = colorStack.lastOrNull()?.alpha ?: 1f
+
     fun pushColor(color: Color4) {
         colorStack.addLast(color.copy(alpha = color.alpha * (colorStack.lastOrNull()?.alpha ?: 1f)))
     }

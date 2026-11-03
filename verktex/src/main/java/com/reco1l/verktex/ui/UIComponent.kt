@@ -723,6 +723,13 @@ abstract class UIComponent {
             calculateTransformations()
         }
 
+        // The alpha is multiplied into everything drawn below, so a transparent component and its
+        // children change no pixel but would still be filled and blended, e.g. a faded out
+        // fullscreen sprite. The transformations above are kept current for hit testing.
+        if (renderer.currentAlpha * color.alpha <= 0f && !drawsWhenTransparent) {
+            return
+        }
+
         renderer.pushMatrix(localToSceneMatrix)
         renderer.pushColor(color)
 
@@ -785,6 +792,13 @@ abstract class UIComponent {
         renderer.popColor()
         renderer.popMatrix()
     }
+
+    /**
+     * Whether this component must be drawn even when fully transparent, because it draws with a
+     * blend mode that ignores the alpha (e.g. [com.reco1l.verktex.graphics.BlendMode.Opaque]).
+     */
+    protected open val drawsWhenTransparent: Boolean
+        get() = false
 
     /**
      * Draws the component and its children by calling [onDraw]. Subclasses can wrap it to set up
