@@ -1,7 +1,10 @@
 package com.osudroid.ui.v2
 
 import com.osudroid.ui.skinning.IniReader
-import com.osudroid.ui.skinning.SkinConverter
+import com.osudroid.ui.skinning.convertToJson
+import com.osudroid.ui.skinning.ensureOptionalTexture
+import com.osudroid.ui.skinning.ensureTexture
+import com.osudroid.ui.skinning.mergeMissing
 import java.io.File
 import org.json.JSONObject
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -38,7 +41,7 @@ object Skin {
 
                 // Backfill any skin.ini derived keys missing
                 if (iniFile.exists()) {
-                    IniReader(iniFile).use { SkinConverter.mergeMissing(json, SkinConverter.convertToJson(it)) }
+                    IniReader(iniFile).use { mergeMissing(json, convertToJson(it)) }
                 }
 
                 return json
@@ -55,18 +58,18 @@ object Skin {
         GlobalManager.getInstance().setInfo("Reading skin.ini...")
 
         val json = try {
-            IniReader(iniFile).use { SkinConverter.convertToJson(it) }
+            IniReader(iniFile).use { convertToJson(it) }
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
 
-        SkinConverter.ensureOptionalTexture(File(folder, "sliderendcircle.png"))
-        SkinConverter.ensureOptionalTexture(File(folder, "sliderendcircleoverlay.png"))
+        ensureOptionalTexture(File(folder, "sliderendcircle.png"))
+        ensureOptionalTexture(File(folder, "sliderendcircleoverlay.png"))
 
-        SkinConverter.ensureTexture(File(folder, "selection-mods.png"))
-        SkinConverter.ensureTexture(File(folder, "selection-random.png"))
-        SkinConverter.ensureTexture(File(folder, "selection-options.png"))
+        ensureTexture(File(folder, "selection-mods.png"))
+        ensureTexture(File(folder, "selection-random.png"))
+        ensureTexture(File(folder, "selection-options.png"))
 
         return json
     }
