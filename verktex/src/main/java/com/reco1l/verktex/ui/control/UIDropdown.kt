@@ -129,6 +129,9 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
             val (triggerTopLeftX, triggerTopLeftY) = trigger.toSceneSpace(0f, 0f)
             val (triggerBottomRightX, triggerBottomRightY) = trigger.toSceneSpace(trigger.bounds.width, trigger.bounds.height)
 
+            // The menu is at least as wide as the trigger, so it reads as coming out of it.
+            minWidth = (triggerBottomRightX - triggerTopLeftX).px
+
             val spaceBelow = Verktex.scene.bounds.height - triggerBottomRightY
             val expandUpwards = triggerTopLeftY > spaceBelow && spaceBelow < optionsContainer.measuredSize.y
 
