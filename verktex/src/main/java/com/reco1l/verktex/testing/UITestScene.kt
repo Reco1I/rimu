@@ -121,6 +121,7 @@ class UITestScene(
 
                     titleText = text {
                         width = fill()
+                        height = fill()
                         alignment = Anchor.CenterLeft
                         text = "Select a test"
                         fontSettings = Verktex.theme.typography.h3
