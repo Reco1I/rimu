@@ -3,6 +3,7 @@ package com.reco1l.verktex.ui
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.fonts.Font
 
@@ -108,6 +109,15 @@ open class Theme(
             iconSpacing = gap.lg,
             radius = radius.lg,
         ),
+        bezel = ButtonStyle.Bezel(
+            top = Color4.White.copy(alpha = 0.08f),
+            bottom = Color4.Black.copy(alpha = 0.3f),
+        ),
+        shadow = Shadow(
+            color = Color4.Black.copy(alpha = 0.3f),
+            offsetY = 1f.dip,
+            blur = 2f.dip,
+        ),
     ),
 
     /**
@@ -145,7 +155,23 @@ open class Theme(
         val small: Size,
         val medium: Size,
         val large: Size,
+
+        /**
+         * The border of filled buttons, lighter on top and darker at the bottom so they look raised.
+         * Null for none.
+         */
+        val bezel: Bezel? = null,
+
+        /**
+         * The shadow below filled buttons. Null for none.
+         */
+        val shadow: Shadow? = null,
     ) {
+
+        /**
+         * Returns this style without [bezel] and [shadow], for flat themes.
+         */
+        fun withoutElevation() = ButtonStyle(small, medium, large)
 
         /**
          * Returns the size used for the given density.
@@ -155,6 +181,14 @@ open class Theme(
             UIButton.Density.Medium -> medium
             UIButton.Density.Large -> large
         }
+
+        /**
+         * The colors of a bezel, the border fades from [top] to [bottom].
+         */
+        data class Bezel(
+            val top: Color4,
+            val bottom: Color4,
+        )
 
         /**
          * The size definitions of a button density.
