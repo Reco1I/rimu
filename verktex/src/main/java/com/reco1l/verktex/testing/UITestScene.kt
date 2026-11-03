@@ -11,6 +11,7 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.container.UIContainer
@@ -43,6 +44,13 @@ class UITestScene(
 
     private val logLines = ArrayDeque<String>()
 
+    // The browser is drawn flat, with square corners and filled buttons, so it can be told apart
+    // from the components under test, which use the global theme.
+    private val flatTheme = Theme(
+        palette = Verktex.theme.palette,
+        radius = Theme.FixedSizeBreakpoints(0f.dip, 0f.dip, 0f.dip, 0f.dip, 0f.dip),
+    )
+
     private var currentTest: UITest? = null
     private var backgroundIndex = 0
 
@@ -56,6 +64,7 @@ class UITestScene(
             height = fill()
 
             scrollableContainer {
+                theme = flatTheme
                 scrollAxes = Axis.Y
                 width = 220f.dip
                 height = fill()
@@ -80,7 +89,7 @@ class UITestScene(
                                 text = test.name
                                 width = fill()
                                 alignment = Anchor.CenterLeft
-                                variant = UIButton.Variant.Ghost
+                                variant = UIButton.Variant.Surface
                                 density = UIButton.Density.Small
                                 onActionUp = { select(suite, test) }
                             }
@@ -97,6 +106,7 @@ class UITestScene(
                 height = fill()
 
                 linearContainer {
+                    theme = flatTheme
                     orientation = UILinearContainer.Orientation.Horizontal
                     width = fill()
                     padding = Padding(12f.dip, 6f.dip)
@@ -111,13 +121,13 @@ class UITestScene(
 
                     iconButton {
                         icon = FAIcon.ArrowRotateRight
-                        variant = UIButton.Variant.Ghost
+                        variant = UIButton.Variant.Surface
                         onActionUp = { reload() }
                     }
 
                     iconButton {
                         icon = FAIcon.Palette
-                        variant = UIButton.Variant.Ghost
+                        variant = UIButton.Variant.Surface
                         onActionUp = {
                             backgroundIndex = (backgroundIndex + 1) % BACKGROUNDS.size
                             stageHost.backgroundColor = BACKGROUNDS[backgroundIndex]
@@ -133,6 +143,7 @@ class UITestScene(
                 }
 
                 logText = text {
+                    theme = flatTheme
                     width = fill()
                     padding = Padding(12f.dip, 6f.dip)
                     fontSize = Verktex.theme.typography.caption.size
