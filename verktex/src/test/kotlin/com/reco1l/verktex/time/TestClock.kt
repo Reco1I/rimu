@@ -1,14 +1,14 @@
-package com.rian.andengine.timing
+package com.reco1l.verktex.time
 
-open class TestClock : IAdjustableClock {
-    override var currentTime = 0f
+open class TestClock : AdjustableClock() {
+    override var time = 0f
     override var rate = 1f
 
     override var isRunning = false
         protected set
 
     override fun reset() {
-        currentTime = 0f
+        time = 0f
         isRunning = false
     }
 
@@ -16,12 +16,12 @@ open class TestClock : IAdjustableClock {
         isRunning = true
     }
 
-    override fun stop() {
+    override fun pause() {
         isRunning = false
     }
 
-    override fun seek(position: Float): Boolean {
-        currentTime = position
+    override fun seek(to: Float): Boolean {
+        time = to
         return true
     }
 
@@ -32,5 +32,5 @@ open class TestClock : IAdjustableClock {
     /**
      * The current time of this [TestClock], in nanoseconds.
      */
-    fun currentTimeLong() = (currentTime * 1e9).toLong()
+    fun currentTimeLong() = (time * 1e9).toLong()
 }

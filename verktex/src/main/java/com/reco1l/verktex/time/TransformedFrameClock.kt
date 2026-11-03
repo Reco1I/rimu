@@ -13,7 +13,7 @@ class TransformedFrameClock<SourceClock : FrameClock>(override val source: Sourc
     /**
      * The speed rate of the clock.
      */
-    var rate = 1f
+    override var rate = 1f
 
 
     //region Transformed properties

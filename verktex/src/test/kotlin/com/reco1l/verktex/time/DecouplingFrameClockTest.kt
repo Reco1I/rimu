@@ -1,4 +1,4 @@
-package com.rian.andengine.timing
+package com.reco1l.verktex.time
 
 import org.junit.Assert.*
 import org.junit.Before
@@ -7,15 +7,15 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 sealed class BaseDecouplingFramedClockTest {
-    protected lateinit var source: IAdjustableClock
+    protected lateinit var source: AdjustableClock
     protected lateinit var realTimeClock: TestClock
-    protected lateinit var decouplingClock: DecouplingFramedClock
+    protected lateinit var decouplingClock: DecouplingFrameClock
 
     @Before
     open fun setUp() {
         source = TestClockWithRange()
         realTimeClock = TestClock().apply { start() }
-        decouplingClock = DecouplingFramedClock(realtimeReferenceClockSource = realTimeClock)
+        decouplingClock = DecouplingFrameClock(realtimeReferenceClock = realTimeClock)
         decouplingClock.changeSource(source)
     }
 }
@@ -62,8 +62,8 @@ class DecouplingFramedClockDecouplingIndependentTest(private val allowDecoupling
     fun `Test seeking from decoupling without processFrame`() {
         decouplingClock.allowDecoupling = true
 
-        assertEquals(0f, source.currentTime, 0f)
-        assertEquals(0f, decouplingClock.currentTime, 0f)
+        assertEquals(0f, source.time, 0f)
+        assertEquals(0f, decouplingClock.time, 0f)
 
         decouplingClock.start()
 
@@ -78,11 +78,11 @@ class DecouplingFramedClockDecouplingIndependentTest(private val allowDecoupling
         decouplingClock.seek(-0.001f)
 
         // Intentionally make sure that reference time has increased to push time into positive before a process frame.
-        realTimeClock.currentTime += 0.5f
+        realTimeClock.time += 0.5f
         decouplingClock.processFrame()
 
-        while (decouplingClock.currentTime < 0) {
-            realTimeClock.currentTime += 0.01f
+        while (decouplingClock.time < 0) {
+            realTimeClock.time += 0.01f
             decouplingClock.processFrame()
         }
 
@@ -93,18 +93,18 @@ class DecouplingFramedClockDecouplingIndependentTest(private val allowDecoupling
     fun `Test seek from decoupling`() {
         decouplingClock.allowDecoupling = allowDecoupling
 
-        assertEquals(0f, source.currentTime, 0f)
-        assertEquals(0f, decouplingClock.currentTime, 0f)
+        assertEquals(0f, source.time, 0f)
+        assertEquals(0f, decouplingClock.time, 0f)
 
         decouplingClock.seek(1f)
 
-        assertEquals(1f, source.currentTime, 0f)
-        assertEquals(0f, decouplingClock.currentTime, 0f)
+        assertEquals(1f, source.time, 0f)
+        assertEquals(0f, decouplingClock.time, 0f)
 
         decouplingClock.processFrame()
 
-        assertEquals(1f, source.currentTime, 0f)
-        assertEquals(1f, decouplingClock.currentTime, 0f)
+        assertEquals(1f, source.time, 0f)
+        assertEquals(1f, decouplingClock.time, 0f)
     }
 
     @Test
@@ -115,14 +115,14 @@ class DecouplingFramedClockDecouplingIndependentTest(private val allowDecoupling
         // but it will work if the source is running.
         source.start()
 
-        assertEquals(0f, source.currentTime, 0f)
-        assertEquals(0f, decouplingClock.currentTime, 0f)
+        assertEquals(0f, source.time, 0f)
+        assertEquals(0f, decouplingClock.time, 0f)
 
         source.seek(1f)
         decouplingClock.processFrame()
 
-        assertEquals(1f, source.currentTime, 0f)
-        assertEquals(1f, decouplingClock.currentTime, 0f)
+        assertEquals(1f, source.time, 0f)
+        assertEquals(1f, decouplingClock.time, 0f)
     }
 
     @Test
@@ -137,15 +137,15 @@ class DecouplingFramedClockDecouplingIndependentTest(private val allowDecoupling
 
         decouplingClock.processFrame()
 
-        val secondSource = TestClock().apply { currentTime = secondSourceTime }
+        val secondSource = TestClock().apply { time = secondSourceTime }
 
-        assertEquals(firstSourceTime, decouplingClock.currentTime, 0f)
+        assertEquals(firstSourceTime, decouplingClock.time, 0f)
 
         decouplingClock.changeSource(secondSource)
         decouplingClock.processFrame()
 
-        assertEquals(secondSourceTime, secondSource.currentTime, 0f)
-        assertEquals(secondSourceTime, decouplingClock.currentTime, 0f)
+        assertEquals(secondSourceTime, secondSource.time, 0f)
+        assertEquals(secondSourceTime, decouplingClock.time, 0f)
     }
 
     @Test
@@ -177,15 +177,15 @@ class DecouplingFramedClockDecouplingIndependentTest(private val allowDecoupling
         decouplingClock.processFrame()
 
         assertTrue(decouplingClock.isRunning)
-        assertEquals(2f, decouplingClock.currentTime, 0f)
+        assertEquals(2f, decouplingClock.time, 0f)
 
         decouplingClock.reset()
         decouplingClock.processFrame()
 
         assertFalse(decouplingClock.isRunning)
         assertFalse(source.isRunning)
-        assertEquals(0f, decouplingClock.currentTime, 0f)
-        assertEquals(0f, source.currentTime, 0f)
+        assertEquals(0f, decouplingClock.time, 0f)
+        assertEquals(0f, source.time, 0f)
     }
 }
 
@@ -203,7 +203,7 @@ class DecouplingFramedClockNonDecouplingTest : BaseDecouplingFramedClockTest() {
         assertTrue(source.isRunning)
         assertTrue(decouplingClock.isRunning)
 
-        source.stop()
+        source.pause()
         decouplingClock.processFrame()
 
         assertFalse(source.isRunning)
@@ -216,8 +216,8 @@ class DecouplingFramedClockNonDecouplingTest : BaseDecouplingFramedClockTest() {
 
         assertFalse(decouplingClock.seek(-1f))
 
-        assertEquals(0f, source.currentTime, 0f)
-        assertEquals(0f, decouplingClock.currentTime, 0f)
+        assertEquals(0f, source.time, 0f)
+        assertEquals(0f, decouplingClock.time, 0f)
     }
 
     @Test
@@ -226,8 +226,8 @@ class DecouplingFramedClockNonDecouplingTest : BaseDecouplingFramedClockTest() {
         assertTrue(decouplingClock.seek(1f))
         decouplingClock.processFrame()
 
-        assertEquals(1f, source.currentTime, 0f)
-        assertEquals(1f, decouplingClock.currentTime, 0f)
+        assertEquals(1f, source.time, 0f)
+        assertEquals(1f, decouplingClock.time, 0f)
     }
 }
 
@@ -245,7 +245,7 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
         assertTrue(source.isRunning)
         assertTrue(decouplingClock.isRunning)
 
-        source.stop()
+        source.pause()
 
         assertFalse(source.isRunning)
         // We are decoupling, so we should still be running.
@@ -259,9 +259,9 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
 
         decouplingClock.processFrame()
 
-        assertEquals(0f, source.currentTime, 0f)
+        assertEquals(0f, source.time, 0f)
         // We are decoupling, so we should be able to go beyond zero.
-        assertEquals(-1f, decouplingClock.currentTime, 0f)
+        assertEquals(-1f, decouplingClock.time, 0f)
     }
 
     @Test
@@ -270,8 +270,8 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
         assertTrue(decouplingClock.seek(1f))
         decouplingClock.processFrame()
 
-        assertEquals(1f, source.currentTime, 0f)
-        assertEquals(1f, decouplingClock.currentTime, 0f)
+        assertEquals(1f, source.time, 0f)
+        assertEquals(1f, decouplingClock.time, 0f)
     }
 
     @Test
@@ -284,8 +284,8 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
         assertTrue(decouplingClock.seek(1f))
         decouplingClock.processFrame()
 
-        assertEquals(0.5f, source.currentTime, 0f)
-        assertEquals(1f, decouplingClock.currentTime, 0f)
+        assertEquals(0.5f, source.time, 0f)
+        assertEquals(1f, decouplingClock.time, 0f)
     }
 
     @Test
@@ -300,17 +300,17 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
         assertTrue(decouplingClock.seek(-1f))
         decouplingClock.processFrame()
 
-        assertEquals(0f, source.currentTime, 0.03f)
+        assertEquals(0f, source.time, 0.03f)
         assertFalse(source.isRunning)
-        assertEquals(-1f, decouplingClock.currentTime, 0f)
+        assertEquals(-1f, decouplingClock.time, 0f)
         assertTrue(decouplingClock.isRunning)
 
         assertTrue(decouplingClock.seek(1f))
         decouplingClock.processFrame()
 
-        assertEquals(0.5f, source.currentTime, 0f)
+        assertEquals(0.5f, source.time, 0f)
         assertFalse(source.isRunning)
-        assertEquals(1f, decouplingClock.currentTime, 0.03f)
+        assertEquals(1f, decouplingClock.time, 0.03f)
         assertTrue(decouplingClock.isRunning)
     }
 
@@ -319,21 +319,21 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
     fun `Test seek from source while decoupling`() {
         decouplingClock.allowDecoupling = true
 
-        assertEquals(0f, source.currentTime, 0f)
-        assertEquals(0f, decouplingClock.currentTime, 0f)
+        assertEquals(0f, source.time, 0f)
+        assertEquals(0f, decouplingClock.time, 0f)
 
         source.seek(1f)
 
-        assertEquals(1f, source.currentTime, 0f)
+        assertEquals(1f, source.time, 0f)
         // One might expect this to match the source, but with the current implementation, it does not.
-        assertNotEquals(1f, decouplingClock.currentTime, 0f)
+        assertNotEquals(1f, decouplingClock.time, 0f)
 
         // One should seek the decoupling clock directly.
         decouplingClock.seek(1f)
         decouplingClock.processFrame()
 
-        assertEquals(1f, source.currentTime, 0f)
-        assertEquals(1f, decouplingClock.currentTime, 0f)
+        assertEquals(1f, source.time, 0f)
+        assertEquals(1f, decouplingClock.time, 0f)
     }
 
     @Test
@@ -349,20 +349,20 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
         decouplingClock.processFrame()
 
         while (source.isRunning) {
-            realTimeClock.currentTime += 0.01f
+            realTimeClock.time += 0.01f
             decouplingClock.processFrame()
-            assertEquals(source.currentTime, decouplingClock.currentTime, 0.03f)
+            assertEquals(source.time, decouplingClock.time, 0.03f)
         }
 
         assertFalse(source.isRunning)
 
-        var time = decouplingClock.currentTime
+        var time = decouplingClock.time
 
-        while (decouplingClock.currentTime > -0.5f) {
-            realTimeClock.currentTime += 0.01f
+        while (decouplingClock.time > -0.5f) {
+            realTimeClock.time += 0.01f
             assertFalse(source.isRunning)
-            assertTrue(decouplingClock.currentTime <= time)
-            time = decouplingClock.currentTime
+            assertTrue(decouplingClock.time <= time)
+            time = decouplingClock.time
 
             decouplingClock.processFrame()
         }
@@ -379,22 +379,22 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
 
         decouplingClock.processFrame()
 
-        var time = decouplingClock.currentTime
+        var time = decouplingClock.time
 
-        while (decouplingClock.currentTime < 0) {
-            realTimeClock.currentTime += 0.01f
+        while (decouplingClock.time < 0) {
+            realTimeClock.time += 0.01f
             assertFalse(source.isRunning)
-            assertTrue(decouplingClock.currentTime >= time)
-            time = decouplingClock.currentTime
+            assertTrue(decouplingClock.time >= time)
+            time = decouplingClock.time
 
             decouplingClock.processFrame()
         }
 
-        assertEquals(decouplingClock.currentTime, source.currentTime, 0.03f)
+        assertEquals(decouplingClock.time, source.time, 0.03f)
         assertTrue(source.isRunning)
 
         // Subsequently test stop/start works correctly.
-        decouplingClock.stop()
+        decouplingClock.pause()
         decouplingClock.processFrame()
         assertFalse(decouplingClock.isRunning)
         assertFalse(source.isRunning)
@@ -417,7 +417,7 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
 
         decouplingClock.processFrame()
 
-        var time = decouplingClock.currentTime
+        var time = decouplingClock.time
         val tolerance = 0.03f
 
         // The decoupling clock generally lags behind the source clock, so we don't want the threshold here to go up to
@@ -436,29 +436,29 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
         // Subtracting the tolerance ensures that both the decoupling and source clocks stay in the same 30ms band, but
         // neither stops yet.
         // We will assert that the source should eventually stop further down anyway.
-        while (decouplingClock.currentTime < 10f - tolerance) {
-            realTimeClock.currentTime += 0.01f
+        while (decouplingClock.time < 10f - tolerance) {
+            realTimeClock.time += 0.01f
             assertTrue(source.isRunning)
-            assertEquals(decouplingClock.currentTime, source.currentTime, tolerance)
-            assertTrue(decouplingClock.currentTime >= time)
-            time = decouplingClock.currentTime
+            assertEquals(decouplingClock.time, source.time, tolerance)
+            assertTrue(decouplingClock.time >= time)
+            time = decouplingClock.time
 
             decouplingClock.processFrame()
         }
 
         while (source.isRunning) {
-            realTimeClock.currentTime += 0.01f
+            realTimeClock.time += 0.01f
             decouplingClock.processFrame()
         }
 
         assertFalse(source.isRunning)
-        assertTrue(decouplingClock.currentTime <= 10.1f)
+        assertTrue(decouplingClock.time <= 10.1f)
 
-        while (decouplingClock.currentTime < 10.2f) {
-            realTimeClock.currentTime += 0.01f
+        while (decouplingClock.time < 10.2f) {
+            realTimeClock.time += 0.01f
             assertTrue(decouplingClock.isRunning)
-            assertTrue(decouplingClock.currentTime >= time)
-            time = decouplingClock.currentTime
+            assertTrue(decouplingClock.time >= time)
+            time = decouplingClock.time
 
             decouplingClock.processFrame()
         }
@@ -492,7 +492,7 @@ class DecouplingFramedClockDecouplingTest : BaseDecouplingFramedClockTest() {
         decouplingClock.processFrame()
 
         val secondSource = TestClock()
-        secondSource.currentTime = 0f
+        secondSource.time = 0f
         decouplingClock.changeSource(secondSource)
 
         // If source restart is still true, the next processFrame will call secondSource.start().
@@ -514,7 +514,7 @@ class DecouplingFramedClockDecouplingNegativeTimeSeek(private val seekBeforeStar
     fun `Test start from negative time increments correctly`() {
         // Intentionally wait some time to allow the reference clock to build up some elapsed difference.
         // We want to make sure that this is not all applied at once causing a large jump.
-        realTimeClock.currentTime += 0.5f
+        realTimeClock.time += 0.5f
 
         decouplingClock.allowDecoupling = true
 
@@ -529,18 +529,18 @@ class DecouplingFramedClockDecouplingNegativeTimeSeek(private val seekBeforeStar
         decouplingClock.processFrame()
 
         assertFalse(source.isRunning)
-        assertEquals(0f, source.currentTime, 0f)
+        assertEquals(0f, source.time, 0f)
 
-        val time = decouplingClock.currentTime
+        val time = decouplingClock.time
 
         assertTrue(decouplingClock.isRunning)
-        assertTrue(decouplingClock.currentTime < 0)
+        assertTrue(decouplingClock.time < 0)
 
-        realTimeClock.currentTime += 0.1f
+        realTimeClock.time += 0.1f
 
         decouplingClock.processFrame()
-        assertTrue(decouplingClock.currentTime < 0)
-        assertTrue(decouplingClock.currentTime > time)
+        assertTrue(decouplingClock.time < 0)
+        assertTrue(decouplingClock.time > time)
     }
 }
 
@@ -565,11 +565,11 @@ class DecouplingFramedClockDecouplingNoDriftTest(private val simulatedUpdateRate
         // Initialize lastReferenceTime
         decouplingClock.processFrame()
 
-        while (decouplingClock.currentTime < 0) {
-            realTimeClock.currentTime += simulatedUpdateRate
+        while (decouplingClock.time < 0) {
+            realTimeClock.time += simulatedUpdateRate
 
             decouplingClock.processFrame()
-            assertEquals(stopwatch.currentTime, decouplingClock.currentTime, 1e-3f)
+            assertEquals(stopwatch.time, decouplingClock.time, 1e-3f)
         }
     }
 }
@@ -580,11 +580,11 @@ private class TestClockWithRange : TestClock() {
     val minTime = 0f
     var maxTime = Float.POSITIVE_INFINITY
 
-    override fun seek(position: Float): Boolean {
-        if (position.coerceIn(minTime, maxTime) != position) {
+    override fun seek(to: Float): Boolean {
+        if (to.coerceIn(minTime, maxTime) != to) {
             return false
         }
 
-        return super.seek(position)
+        return super.seek(to)
     }
 }
