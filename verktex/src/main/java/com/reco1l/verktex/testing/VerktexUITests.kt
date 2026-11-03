@@ -11,7 +11,7 @@ import com.reco1l.verktex.ui.UIBadge
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.badge
 import com.reco1l.verktex.ui.card
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.control.UICheckbox
@@ -52,7 +52,7 @@ object VerktexUITests : UITestSuite("Verktex") {
                 val typography = com.reco1l.verktex.Verktex.theme.typography
 
                 section("Typography") {
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = Orientation.Vertical
                     text { text = "Heading 1"; fontSettings = typography.h1 }
                     text { text = "Heading 2"; fontSettings = typography.h2 }
                     text { text = "Heading 3"; fontSettings = typography.h3 }
@@ -160,7 +160,7 @@ object VerktexUITests : UITestSuite("Verktex") {
                 }
 
                 section("Slider") {
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = Orientation.Vertical
                     slider {
                         width = 300f.dip
                         value = 0.5f
@@ -176,7 +176,7 @@ object VerktexUITests : UITestSuite("Verktex") {
                 }
 
                 section("Text input") {
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = Orientation.Vertical
                     textInput {
                         width = 300f.dip
                         onValueChange = { log("Input: $it") }
@@ -217,6 +217,7 @@ object VerktexUITests : UITestSuite("Verktex") {
             column {
                 +FormContainer().apply {
                     width = 400f.dip
+                    orientation = Orientation.Vertical
 
                     +FormCheckbox(true).apply { label = "Checkbox"; key = "checkbox" }
                     +FormSlider(0.5f).apply { label = "Slider"; key = "slider" }
