@@ -5,6 +5,7 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
 import com.reco1l.verktex.fonts.Font
 
 /**
@@ -109,14 +110,35 @@ open class Theme(
             iconSpacing = gap.lg,
             radius = radius.lg,
         ),
-        bezel = ButtonStyle.Bezel(
-            top = Color4.White.copy(alpha = 0.08f),
-            bottom = Color4.Black.copy(alpha = 0.3f),
+        elevation = Elevation(
+            bezel = Elevation.Bezel(
+                width = 1f.px,
+                top = Color4.White.copy(alpha = 0.06f),
+                bottom = Color4.Black.copy(alpha = 0.2f),
+            ),
+            shadow = Shadow(
+                color = Color4.Black.copy(alpha = 0.3f),
+                offsetY = 1f.dip,
+                blur = 2f.dip,
+            ),
         ),
-        shadow = Shadow(
-            color = Color4.Black.copy(alpha = 0.3f),
-            offsetY = 1f.dip,
-            blur = 2f.dip,
+    ),
+
+    /**
+     * The style of cards, including the ones of modals and dialogs.
+     */
+    val cardStyle: CardStyle = CardStyle(
+        elevation = Elevation(
+            bezel = Elevation.Bezel(
+                width = 1f.px,
+                top = Color4.White.copy(alpha = 0.06f),
+                bottom = Color4.Black.copy(alpha = 0.2f),
+            ),
+            shadow = Shadow(
+                color = Color4.Black.copy(alpha = 0.35f),
+                offsetY = 2f.dip,
+                blur = 8f.dip,
+            ),
         ),
     ),
 
@@ -149,6 +171,49 @@ open class Theme(
     )
 
     /**
+     * A class that holds card style information.
+     */
+    open class CardStyle(
+
+        /**
+         * How cards look raised. Null for flat cards.
+         */
+        val elevation: Elevation? = null,
+    ) {
+
+        /**
+         * Returns this style without [elevation], for flat themes.
+         */
+        fun withoutElevation() = CardStyle()
+    }
+
+    /**
+     * How a component looks raised from what is below it, like Windows 11 controls.
+     */
+    data class Elevation(
+
+        /**
+         * The border, lighter on top and darker at the bottom. Null for none.
+         */
+        val bezel: Bezel? = null,
+
+        /**
+         * The shadow below the component. Null for none.
+         */
+        val shadow: Shadow? = null,
+    ) {
+
+        /**
+         * The colors of a bezel, the border fades from [top] to [bottom].
+         */
+        data class Bezel(
+            val width: Dimension.Fixed,
+            val top: Color4,
+            val bottom: Color4,
+        )
+    }
+
+    /**
      * A class that holds button style information, with a [Size] for each [UIButton.Density].
      */
     open class ButtonStyle(
@@ -157,19 +222,13 @@ open class Theme(
         val large: Size,
 
         /**
-         * The border of filled buttons, lighter on top and darker at the bottom so they look raised.
-         * Null for none.
+         * How filled buttons look raised. Null for flat buttons.
          */
-        val bezel: Bezel? = null,
-
-        /**
-         * The shadow below filled buttons. Null for none.
-         */
-        val shadow: Shadow? = null,
+        val elevation: Elevation? = null,
     ) {
 
         /**
-         * Returns this style without [bezel] and [shadow], for flat themes.
+         * Returns this style without [elevation], for flat themes.
          */
         fun withoutElevation() = ButtonStyle(small, medium, large)
 
@@ -181,14 +240,6 @@ open class Theme(
             UIButton.Density.Medium -> medium
             UIButton.Density.Large -> large
         }
-
-        /**
-         * The colors of a bezel, the border fades from [top] to [bottom].
-         */
-        data class Bezel(
-            val top: Color4,
-            val bottom: Color4,
-        )
 
         /**
          * The size definitions of a button density.
@@ -303,4 +354,23 @@ open class Theme(
          */
         val DEFAULT_ACCENT_COLOR = Color4(0xFFC2CAFF)
     }
+}
+
+
+/**
+ * Makes this component look raised with the given [elevation], or removes its bezel and shadow when
+ * null. The border width is left as it is without a bezel.
+ */
+fun UIComponent.applyElevation(elevation: Theme.Elevation?) {
+    val bezel = elevation?.bezel
+
+    if (bezel != null) {
+        borderWidth = bezel.width
+        borderColor = bezel.top
+        borderColorBottom = bezel.bottom
+    } else {
+        borderColorBottom = null
+    }
+
+    shadow = elevation?.shadow
 }

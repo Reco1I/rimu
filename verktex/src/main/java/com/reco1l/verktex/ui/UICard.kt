@@ -133,6 +133,7 @@ open class UICard : UILinearContainer() {
         style = Style { theme ->
             backgroundColor = theme.palette.surface
             radius = theme.radius.md
+            applyElevation(theme.cardStyle.elevation)
         }
 
         titleBar += titleText
