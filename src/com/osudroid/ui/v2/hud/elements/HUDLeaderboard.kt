@@ -36,7 +36,8 @@ class HUDLeaderboard : HUDElement() {
 
 
     init {
-        width = SPRITE_WIDTH.px
+        minWidth = SPRITE_WIDTH.px
+        minHeight = SPRITE_HEIGHT.px
     }
 
 

@@ -22,6 +22,7 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.FloatInterpolation
@@ -156,9 +157,6 @@ object MainScene : UIScene() {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
                 padding = Padding(left = 32f.dip)
-                style = Style {
-                    height = Verktex.graphics.window.windowHeight.toFloat().px
-                }
                 width = 0f.px
                 alpha = 0f
 
@@ -473,9 +471,7 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
     width = Dimension.FillAvailable
     clipping = ClipMode.Bounds
     scrollAxes = Axis.Y
-    style = Style {
-        height = (Verktex.graphics.window.windowHeight * 0.7f).px
-    }
+    maxHeight = 0.7f.pct
 }) {
     init {
         title = "About"

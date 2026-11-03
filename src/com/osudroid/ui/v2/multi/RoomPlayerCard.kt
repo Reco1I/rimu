@@ -234,7 +234,7 @@ class RoomPlayerCard : UILinearContainer() {
                     modDisplay?.removeSelf()
 
                     modDisplay = UIText().apply {
-                        height = 24f.px // Force to take space even if no mods are enabled
+                        minHeight = 24f.px // Force to take space even if no mods are enabled
                         style = Style { theme ->
                             fontSize = theme.typography.smallCaption.size
                             color = theme.palette.accent * 0.8f
@@ -250,7 +250,7 @@ class RoomPlayerCard : UILinearContainer() {
                     modDisplay?.removeSelf()
 
                     modDisplay = ModsIndicator().apply {
-                        height = 24f.px // Force to take space even if no mods are enabled
+                        minHeight = 24f.px // Force to take space even if no mods are enabled
                         style = Style {
                             iconSize = 24f.px
                             spacing = (-5f).px
@@ -265,6 +265,8 @@ class RoomPlayerCard : UILinearContainer() {
 
             onActionLongPress = {
                 UIDropdown(this@RoomPlayerButton).apply dropdown@{
+                    maxWidth = 384f.dip
+
                     addButton {
                         setText(R.string.multiplayer_room_player_menu_view_profile)
                         onActionUp = {
