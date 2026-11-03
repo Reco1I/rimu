@@ -5,6 +5,7 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UIFullscreenContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.data.Anchor
@@ -60,11 +61,12 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
 
     private val optionsContainer: UILinearContainer
 
-    private val wrapper = object : UIContainer() {
+    // Covers the host with its padding (e.g. a scene's safe area) and without padding of its own,
+    // so the menu is positioned in the host's space.
+    private val wrapper = object : UIFullscreenContainer() {
 
         init {
-            width = fill()
-            height = fill()
+            keepsParentPadding = false
         }
 
 
