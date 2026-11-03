@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.data.LayoutConstraints
 import com.acivev.ui.addSnowfallWithPeriod
 import com.acivev.ui.addFireworksWithPeriod
@@ -38,7 +39,6 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.UIGradientBox
-import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.UITextButton
@@ -506,22 +506,13 @@ class MenuButton(icon: Int, title: String) : UIButton() {
             padding = Padding(24f.dip)
         }
 
-        linearContainer {
+        text {
             width = Dimension.FillAvailable
-            orientation = UILinearContainer.Orientation.Horizontal
-            spacing = 16f.dip
-
-            +UIIcon(icon).apply {
-                iconSize = 20f.dip
-                anchor = Anchor.CenterLeft
-                origin = Anchor.CenterLeft
-                scaleOrigin = Anchor.Center
-            }
-
-            text {
-                width = Dimension.FillAvailable
-                text = title
-                fontSize = 16f.dip
+            fontSize = 16f.dip
+            spans {
+                size(20f.dip) { icon(icon) }
+                space(16f.dip)
+                +title
             }
         }
     }

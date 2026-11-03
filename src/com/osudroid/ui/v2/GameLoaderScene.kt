@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2
 
+import com.reco1l.verktex.ui.text.spans
 import com.osudroid.data.*
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.RoomAPI
@@ -22,7 +23,6 @@ import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.ui.UILoadingIndicator
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UISprite
@@ -103,19 +103,11 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 height = Dimension.FillAvailable
 
                 if (beatmapInfo.epilepsyWarning) {
-                    linearContainer {
-                        orientation = UILinearContainer.Orientation.Horizontal
-                        spacing = 8f.dip
-
-                        +UIIcon(FAIcon.TriangleExclamation).apply {
-                            anchor = Anchor.CenterLeft
-                            origin = Anchor.CenterLeft
-                        }
-
-                        text {
-                            anchor = Anchor.CenterLeft
-                            origin = Anchor.CenterLeft
-                            text = StringTable.get(R.string.epilepsy_warning)
+                    text {
+                        spans {
+                            icon(FAIcon.TriangleExclamation)
+                            space(8f.dip)
+                            +StringTable.get(R.string.epilepsy_warning)
                         }
                     }
                 }
