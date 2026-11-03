@@ -4,7 +4,7 @@ import android.graphics.PointF
 import android.os.SystemClock
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
-import org.anddev.andengine.input.touch.TouchEvent
+import com.reco1l.verktex.input.PointerEvent
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
@@ -36,28 +36,28 @@ class CursorEvent : IPoolable {
     var offset = 0.0
 
     /**
-     * The action of the [CursorEvent], which can be one of [TouchEvent.ACTION_DOWN], [TouchEvent.ACTION_MOVE], or [TouchEvent.ACTION_UP].
+     * The action of the [CursorEvent], which can be one of [PointerEvent.Action.Down], [PointerEvent.Action.Move], or [PointerEvent.Action.Up].
      */
     @JvmField
-    var action = TouchEvent.ACTION_DOWN
+    var action = PointerEvent.Action.Down
 
     /**
-     * Whether the action is [TouchEvent.ACTION_DOWN].
+     * Whether the action is [PointerEvent.Action.Down].
      */
     val isActionDown
-        get() = action == TouchEvent.ACTION_DOWN
+        get() = action == PointerEvent.Action.Down
 
     /**
-     * Whether the action is [TouchEvent.ACTION_MOVE].
+     * Whether the action is [PointerEvent.Action.Move].
      */
     val isActionMove
-        get() = action == TouchEvent.ACTION_MOVE
+        get() = action == PointerEvent.Action.Move
 
     /**
-     * Whether the action is [TouchEvent.ACTION_UP].
+     * Whether the action is [PointerEvent.Action.Up].
      */
     val isActionUp
-        get() = action == TouchEvent.ACTION_UP
+        get() = action == PointerEvent.Action.Up
 
     /**
      * The time at which this [CursorEvent] occurred, accounting for [Config.isFixFrameOffset], in the gameplay time
@@ -97,8 +97,8 @@ class CursorEvent : IPoolable {
         copy.trackPosition.set(trackPosition)
     }
 
-    private fun apply(event: TouchEvent) {
-        systemTime = event.motionEvent.eventTime
+    private fun apply(event: PointerEvent, x: Float, y: Float) {
+        systemTime = event.time
         trackTime = 0f
         action = event.action
         offset = 0.0
@@ -106,11 +106,11 @@ class CursorEvent : IPoolable {
         val width = Config.getRES_WIDTH().toFloat()
         val height = Config.getRES_HEIGHT().toFloat()
 
-        position.x = event.x.coerceIn(0f, width)
-        position.y = event.y.coerceIn(0f, height)
+        position.x = x.coerceIn(0f, width)
+        position.y = y.coerceIn(0f, height)
 
-        trackPosition.x = event.x
-        trackPosition.y = event.y
+        trackPosition.x = x
+        trackPosition.y = y
 
         if (GameHelper.isHardRock()) {
             trackPosition.y -= height / 2f
@@ -139,10 +139,12 @@ class CursorEvent : IPoolable {
         /**
          * Obtains an instance of [CursorEvent] from the pool or creates a new one if the pool is empty.
          *
-         * @param event The [TouchEvent] to apply to the [CursorEvent].
+         * @param event The [PointerEvent] to apply to the [CursorEvent].
+         * @param x The horizontal position of the event in the playfield.
+         * @param y The vertical position of the event in the playfield.
          * @return An instance of [CursorEvent].
          */
         @JvmStatic
-        fun obtain(event: TouchEvent) = obtain().also { it.apply(event) }
+        fun obtain(event: PointerEvent, x: Float, y: Float) = obtain().also { it.apply(event, x, y) }
     }
 }

@@ -2,14 +2,14 @@ package com.osudroid.game
 
 import android.os.SystemClock
 
-import org.anddev.andengine.input.touch.TouchEvent
+import com.reco1l.verktex.input.PointerEvent
 
 /**
  * Represents a cursor in gameplay.
  */
 class Cursor {
     /**
-     * Whether this [Cursor] is blocked from a [TouchEvent.ACTION_DOWN].
+     * Whether this [Cursor] is blocked from a [PointerEvent.Action.Down].
      */
     @JvmField
     var mouseBlocked = false
@@ -22,7 +22,7 @@ class Cursor {
         get() = latestEvent?.isActionDown == true || latestEvent?.isActionMove == true
 
     /**
-     * [TouchEvent.ACTION_DOWN] [CursorEvent]s of this [Cursor] that have not been processed yet.
+     * [PointerEvent.Action.Down] [CursorEvent]s of this [Cursor] that have not been processed yet.
      */
     @JvmField
     val downEvents = ArrayList<CursorEvent>(25)
@@ -65,7 +65,7 @@ class Cursor {
 
         events.add(event)
 
-        if (event.action == TouchEvent.ACTION_DOWN) {
+        if (event.action == PointerEvent.Action.Down) {
             downEvents.add(event)
         }
 
@@ -73,37 +73,37 @@ class Cursor {
     }
 
     /**
-     * Obtains the latest [TouchEvent.ACTION_DOWN] [CursorEvent].
+     * Obtains the latest [PointerEvent.Action.Down] [CursorEvent].
      */
     fun getLatestDownEvent(): CursorEvent? {
         if (!events.isEmpty()) {
             for (i in events.size - 1 downTo 0) {
                 val event = events[i]
 
-                if (event.action == TouchEvent.ACTION_DOWN) {
+                if (event.action == PointerEvent.Action.Down) {
                     return event
                 }
             }
         }
 
-        return latestEvent?.takeIf { it.action == TouchEvent.ACTION_DOWN }
+        return latestEvent?.takeIf { it.action == PointerEvent.Action.Down }
     }
 
     /**
-     * Obtains the latest non-[TouchEvent.ACTION_UP] [CursorEvent].
+     * Obtains the latest non-[PointerEvent.Action.Up] [CursorEvent].
      */
     fun getLatestNonUpEvent(): CursorEvent? {
         if (!events.isEmpty()) {
             for (i in events.size - 1 downTo 0) {
                 val event = events[i]
 
-                if (event.action != TouchEvent.ACTION_UP) {
+                if (event.action != PointerEvent.Action.Up) {
                     return event
                 }
             }
         }
 
-        return latestEvent?.takeIf { it.action != TouchEvent.ACTION_UP }
+        return latestEvent?.takeIf { it.action != PointerEvent.Action.Up }
     }
 
     /**

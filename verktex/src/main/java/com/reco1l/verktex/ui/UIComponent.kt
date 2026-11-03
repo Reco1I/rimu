@@ -751,6 +751,10 @@ abstract class UIComponent {
      * updating the component's state.
      */
     fun update(clock: FrameClock) {
+        if (ignoreUpdate) {
+            return
+        }
+
         engineClockTime = clock.time
         transforms?.update(this, clock.elapsedFrameTime)
         choreography?.update(currentClockTime)
@@ -785,6 +789,11 @@ abstract class UIComponent {
      */
     val isAnimating: Boolean
         get() = transforms?.hasTransforms == true || choreography?.let { currentClockTime < it.endTime } == true
+
+    /**
+     * Whether this component and its children stop updating, which freezes them in place.
+     */
+    var ignoreUpdate = false
 
     private var engineClockTime = 0f
 
