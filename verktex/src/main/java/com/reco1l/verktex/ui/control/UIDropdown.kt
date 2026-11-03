@@ -17,7 +17,6 @@ import com.reco1l.verktex.math.FloatAnimation
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.data.dip
@@ -33,7 +32,7 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
      * Whether the dropdown menu is currently expanded or not.
      */
     val isExpanded
-        get() = parentScene != null
+        get() = host != null
 
     /**
      * A callback that is invoked when the dropdown menu is expanded.
@@ -46,7 +45,9 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
     var onCollapse: (() -> Unit)? = null
 
 
-    private var parentScene: UIScene? = null
+    // The container the menu is shown in: the overlay host if there's one (e.g. the stage of the UI
+    // test browser), otherwise the scene.
+    private var host: UIContainer? = null
 
     @Volatile
     private var isRemovalScheduled = false
@@ -67,10 +68,15 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
         }
 
 
+        // The fingers that pressed the backdrop or the menu, only their events are handled, so
+        // components outside of the host still get the moves and releases of their own presses.
+        private val pressedPointers = mutableSetOf<Int>()
+
         override fun onInputEvent(event: InputEvent): Boolean {
 
             // While closing the menu must not block the scene below.
             if (!isExpanded) {
+                pressedPointers.clear()
                 return false
             }
 
@@ -78,11 +84,20 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
 
                 // The menu is modal, presses outside of it must not reach the scene below.
                 if (event.action == PointerEvent.Action.Down) {
+                    pressedPointers += event.pointerId
                     super.onInputEvent(event)
                     return true
                 }
 
-                if (!super.onInputEvent(event) && !this@UIDropdown.bounds.contains(event.x, event.y)) {
+                if (event.pointerId !in pressedPointers) {
+                    return false
+                }
+
+                if (event.action != PointerEvent.Action.Move) {
+                    pressedPointers -= event.pointerId
+                }
+
+                if (!super.onInputEvent(event) && !this@UIDropdown.containsScenePoint(event.x, event.y)) {
                     hide()
                 }
 
@@ -125,25 +140,30 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
 
     override fun onUpdate(clock: FrameClock) {
 
-        if (isExpanded) {
-            val (triggerTopLeftX, triggerTopLeftY) = trigger.toSceneSpace(0f, 0f)
-            val (triggerBottomRightX, triggerBottomRightY) = trigger.toSceneSpace(trigger.bounds.width, trigger.bounds.height)
+        val host = host
+
+        if (host != null) {
+            // In the space of the host, which the menu is positioned in.
+            val (triggerSceneLeft, triggerSceneTop) = trigger.toSceneSpace(0f, 0f)
+            val (triggerSceneRight, triggerSceneBottom) = trigger.toSceneSpace(trigger.bounds.width, trigger.bounds.height)
+            val (triggerTopLeftX, triggerTopLeftY) = host.toLocalSpaceFromScene(triggerSceneLeft, triggerSceneTop)
+            val (triggerBottomRightX, triggerBottomRightY) = host.toLocalSpaceFromScene(triggerSceneRight, triggerSceneBottom)
 
             // The menu is at least as wide as the trigger, so it reads as coming out of it.
             minWidth = (triggerBottomRightX - triggerTopLeftX).px
 
-            val spaceBelow = Verktex.scene.bounds.height - triggerBottomRightY
+            val spaceBelow = host.bounds.height - triggerBottomRightY
             val expandUpwards = triggerTopLeftY > spaceBelow && spaceBelow < optionsContainer.measuredSize.y
 
             // Height of the dropdown menu is limited to the available space below or above the trigger,
             // depending on the expansion direction.
             height = min(optionsContainer.measuredSize.y, if (expandUpwards) triggerTopLeftY else spaceBelow).px
 
-            // Position of the dropdown menu is clamped to the screen bounds, so it doesn't go off.
+            // Position of the dropdown menu is clamped to the host bounds, so it doesn't go off.
             // Essentially it will always be aligned to the trigger, but if the trigger is too close
-            // to the right edge of the screen, the dropdown will be shifted to the left to fit within
-            // the screen.
-            val targetX = triggerTopLeftX + min(0f, Verktex.scene.bounds.width - triggerTopLeftX - optionsContainer.bounds.width)
+            // to the right edge of the host, the dropdown will be shifted to the left to fit within
+            // it.
+            val targetX = triggerTopLeftX + min(0f, host.bounds.width - triggerTopLeftX - optionsContainer.bounds.width)
 
             val targetY = if (expandUpwards) {
                 triggerTopLeftY - min(optionsContainer.bounds.height, triggerTopLeftY)
@@ -218,11 +238,12 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
 
     fun show() {
         val wasExpanded = isExpanded
+        val host = Verktex.overlayHost ?: Verktex.scene
 
-        parentScene = Verktex.scene
+        this.host = host
 
         wrapper.removeSelf()
-        Verktex.scene += wrapper
+        host += wrapper
 
         if (!wasExpanded) {
             onExpand?.invoke()
@@ -230,7 +251,7 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
     }
 
     fun hide() {
-        parentScene = null
+        host = null
     }
 
     //endregion
