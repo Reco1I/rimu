@@ -44,6 +44,14 @@ class ESRenderer(
             ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/video.frag and verktex/main.vert")
         )
 
+        BuiltIn.Shaders.Particle = createShader(
+            Platform.provider.createShaderSource(
+                vertexShaderPath = "verktex/shaders/particle.vert",
+                fragmentShaderPath = "verktex/shaders/particle.frag",
+                isExternal = false
+            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/shaders/particle")
+        )
+
         version = GLES32.glGetString(GLES32.GL_VERSION) ?: run {
             Logger.w("ESRenderer", "Couldn't retrieve OpenGL ES version.")
             "Unknown OpenGL ES version"
