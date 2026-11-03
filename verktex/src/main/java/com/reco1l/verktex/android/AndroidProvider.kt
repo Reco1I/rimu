@@ -5,6 +5,7 @@ import android.graphics.Typeface
 import com.reco1l.verktex.Provider
 import com.reco1l.verktex.android.bass.BASSAudioSampleFileSource
 import com.reco1l.verktex.android.bass.BASSAudioStreamFileSource
+import com.reco1l.verktex.android.bass.BASSAudioStreamUrlSource
 import com.reco1l.verktex.audio.AudioSample
 import com.reco1l.verktex.audio.AudioStream
 import com.reco1l.verktex.fonts.FontFamily
@@ -113,6 +114,10 @@ class AndroidProvider(private val context: android.content.Context) : Provider {
 
     override fun createAudioStreamSource(path: String, isExternal: Boolean): AudioStream.Source {
         return BASSAudioStreamFileSource(context, path, isExternal)
+    }
+
+    override fun createAudioUrlStreamSource(url: String): AudioStream.Source {
+        return BASSAudioStreamUrlSource(url)
     }
 
     //endregion

@@ -26,6 +26,25 @@ class BASSAudioStreamFileSource(
 
         val channelId = BASS_FX.BASS_FX_TempoCreate(decodingChannel, BASS.BASS_STREAM_AUTOFREE)
 
+        if (channelId == 0) {
+            throw IllegalStateException("Failed to create a stream from $filePath, error code: ${BASS.BASS_ErrorGetCode()}")
+        }
+
+        BASS.BASS_ChannelSetAttribute(channelId, BASS.BASS_ATTRIB_BUFFER, 0.1f)
+
+        return BASSAudioStream(channelId)
+    }
+}
+
+class BASSAudioStreamUrlSource(val url: String) : AudioStream.Source {
+
+    override fun createStream(): AudioStream {
+        val channelId = BASS.BASS_StreamCreateURL(url, 0, BASS.BASS_STREAM_AUTOFREE, null, null)
+
+        if (channelId == 0) {
+            throw IllegalStateException("Failed to create a stream from $url, error code: ${BASS.BASS_ErrorGetCode()}")
+        }
+
         return BASSAudioStream(channelId)
     }
 }
@@ -44,6 +63,11 @@ class BASSAudioSampleFileSource(
             val asset = BASS.Asset(context.assets, filePath)
             sampleId = BASS.BASS_SampleLoad(asset, 0, 0, 1, BASS.BASS_SAMPLE_OVER_POS)
         }
+
+        if (sampleId == 0) {
+            throw IllegalStateException("Failed to load a sample from $filePath, error code: ${BASS.BASS_ErrorGetCode()}")
+        }
+
         return BASSAudioSample(sampleId)
     }
 }

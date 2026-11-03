@@ -607,7 +607,7 @@ public class ResourceManager {
                 if (!snd.prepare(file)) {
                     // 外部文件加载失败尝试自带皮肤
                     String shortName = file.substring(file.lastIndexOf("/") + 1);
-                    if (!snd.prepare(context.getAssets(), "sfx/" + shortName)) {
+                    if (!snd.prepareAsset("sfx/" + shortName)) {
                         return null;
                     }
                 }
@@ -618,7 +618,7 @@ public class ResourceManager {
         } else {
             //若是没有自定义音效，则使用自带音效
             try {
-                if (!snd.prepare(context.getAssets(), file)) {
+                if (!snd.prepareAsset(file)) {
                     return null;
                 }
             } catch (final Exception e) {

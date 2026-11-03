@@ -10,49 +10,29 @@ import androidx.annotation.Nullable;
 
 import java.io.File;
 
-import com.un4seen.bass.BASS;
+import com.osudroid.audio.SongPlayer;
+import com.reco1l.verktex.Platform;
 
 import ru.nsu.ccfit.zuev.audio.Status;
 import ru.nsu.ccfit.zuev.osu.MainActivity;
 
 
 public class SongService extends Service {
-    public static int defaultFrequency = 44100;
-
-    private BassAudioFunc audioFunc;
+    private SongPlayer audioFunc;
     private boolean isGaming = false;
     // private boolean isSettingMenu = false;
 
-    public static void initBASS() {
-        // This likely doesn't help, but also doesn't seem to cause any issues or any CPU increase.
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATEPERIOD, 5);
-
-        // Reduce latency to a known sane minimum.
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_PERIOD, 5);
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_BUFFER, 10);
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_BUFFER, 100);
-
-        // Ensure there are no brief delays on audio operations (causing stream stalls etc.) after periods of silence.
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_NONSTOP, 1);
-
-        // Disable this to keep BASS audio output from pausing on device processing timeout.
-        // See https://www.un4seen.com/forum/?topic=19601 for more information.
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_TIMEOUT, 0);
-
-        BASS.BASS_Init(-1, defaultFrequency, 0);
-
-        Log.i("BASS-Config", "BASS initialized");
-        Log.i("BASS-Config", "Update period:          " + BASS.BASS_GetConfig(BASS.BASS_CONFIG_UPDATEPERIOD));
-        Log.i("BASS-Config", "Device period:          " + BASS.BASS_GetConfig(BASS.BASS_CONFIG_DEV_PERIOD));
-        Log.i("BASS-Config", "Device buffer length:   " + BASS.BASS_GetConfig(BASS.BASS_CONFIG_DEV_BUFFER));
-        Log.i("BASS-Config", "Playback buffer length: " + BASS.BASS_GetConfig(BASS.BASS_CONFIG_BUFFER));
-        Log.i("BASS-Config", "Device nonstop:         " + BASS.BASS_GetConfig(BASS.BASS_CONFIG_DEV_NONSTOP));
+    /**
+     * Starts the audio driver of the platform.
+     */
+    public static void initAudio() {
+        Platform.INSTANCE.getAudioDriver().enumerateDevices();
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         if (audioFunc == null) {
-            audioFunc = new BassAudioFunc();
+            audioFunc = new SongPlayer();
         }
         return new ReturnBindObject();
     }
@@ -113,14 +93,14 @@ public class SongService extends Service {
         Log.w("SongService", "Hei Service is on EXIT()");
         if (audioFunc == null) return false;
         audioFunc.stop();
-        audioFunc.freeALL();
+        Platform.INSTANCE.getAudioDriver().dispose();
         stopSelf();
         return true;
     }
 
     public void seekTo(int time) {
         if (audioFunc == null) return;
-        Log.i("BASS", "Seeking to " + time + " ms: " + (audioFunc.jump(time) ? "Success" : "Failed"));
+        Log.i("SongService", "Seeking to " + time + " ms: " + (audioFunc.jump(time) ? "Success" : "Failed"));
     }
 
     public boolean isGaming() {

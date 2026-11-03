@@ -11,6 +11,16 @@ interface AudioPlayback {
     val isPlaying: Boolean
 
     /**
+     * Whether the playback is paused, so it can continue from where it was.
+     */
+    val isPaused: Boolean
+
+    /**
+     * Whether the playback ran out of data to play for the moment, such as a stream waiting for a download.
+     */
+    val isStalled: Boolean
+
+    /**
      * The length of this resource in seconds.
      */
     val length: Double
@@ -55,7 +65,12 @@ interface AudioPlayback {
     /**
      * Plays this playback.
      */
-    fun play()
+    /**
+     * Starts or continues the playback.
+     *
+     * @param restart Whether to start from the beginning even if it's currently playing or paused.
+     */
+    fun play(restart: Boolean = false)
 
     /**
      * Pauses this playback at the current position.

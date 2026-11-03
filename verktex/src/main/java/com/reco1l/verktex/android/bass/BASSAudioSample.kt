@@ -20,6 +20,7 @@ class BASSAudioSample(
 
     override fun createPlayback(): AudioPlayback {
         val channelId = BASS.BASS_SampleGetChannel(sampleId, BASS.BASS_SAMCHAN_STREAM)
+        BASS.BASS_ChannelSetAttribute(channelId, BASS.BASS_ATTRIB_NOBUFFER, 1f)
         return Playback(channelId)
     }
 
@@ -32,6 +33,12 @@ class BASSAudioSample(
 
         override val isPlaying: Boolean
             get() = BASS.BASS_ChannelIsActive(channelId) == BASS.BASS_ACTIVE_PLAYING
+
+        override val isPaused: Boolean
+            get() = BASS.BASS_ChannelIsActive(channelId) == BASS.BASS_ACTIVE_PAUSED
+
+        override val isStalled: Boolean
+            get() = BASS.BASS_ChannelIsActive(channelId) == BASS.BASS_ACTIVE_STALLED
 
         override val length: Double
             get() {
@@ -113,9 +120,9 @@ class BASSAudioSample(
 
         //region Controls
 
-        override fun play() {
-            if (isPlaying) return
-            BASS.BASS_ChannelPlay(channelId, false)
+        override fun play(restart: Boolean) {
+            if (isPlaying && !restart) return
+            BASS.BASS_ChannelPlay(channelId, restart)
         }
 
         override fun pause() {
