@@ -5,7 +5,8 @@ import com.reco1l.verktex.data.Color4;
 import java.io.File;
 
 import ru.nsu.ccfit.zuev.osu.Config;
-import ru.nsu.ccfit.zuev.osu.ResourceManager;
+import com.osudroid.ui.v2.SkinSounds;
+import com.osudroid.ui.v2.SkinTextures;
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils;
 
 public class BeatmapSkinManager {
@@ -58,11 +59,11 @@ public class BeatmapSkinManager {
                     || f.getName().toLowerCase().matches(".*[.]mp3")
                     || f.getName().toLowerCase().matches(".*[.]ogg"))
                 && f.length() >= 1024) {
-                ResourceManager.getInstance().loadCustomSound(f);
+                SkinSounds.loadBeatmapSound(f);
             } else if (Config.isUseCustomSkins()
                     && (f.getName().toLowerCase().matches(".*[.]png")
                     || f.getName().toLowerCase().matches(".*[.]jpg"))) {
-                ResourceManager.getInstance().loadCustomTexture(f);
+                SkinTextures.loadBeatmapTexture(f);
             }
 
         }
@@ -73,6 +74,7 @@ public class BeatmapSkinManager {
             return;
         }
         skinname = "";
-        ResourceManager.getInstance().clearCustomResources();
+        SkinSounds.clearBeatmapSounds();
+        SkinTextures.clearBeatmapTextures();
     }
 }

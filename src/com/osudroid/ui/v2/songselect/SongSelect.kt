@@ -194,7 +194,7 @@ object SongSelect : UIScene() {
      * Starts playing the given beatmap, or sets it as the beatmap of the room in multiplayer.
      */
     fun onBeatmapConfirmed(beatmapInfo: BeatmapInfo) {
-        ResourceManager.getInstance().getSound("menuhit")?.play()
+        SkinSounds["menuhit"].play()
         cancelJobs()
 
         if (Multiplayer.isMultiplayer) {

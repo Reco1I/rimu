@@ -10,6 +10,7 @@ import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.container.UIContainer
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
+import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import java.io.File
 
 /**
@@ -35,25 +36,32 @@ object CachedTextures {
 
 /**
  * Looks up skin assets through Verktex [Textures], preferring the custom skin folder and falling back to
- * the default skin's assets.
- *
- * Beatmap skins aren't handled here yet, those are still managed by the legacy resource manager.
+ * the default skin's assets. Textures of the beatmap skin take priority over those while it's enabled.
  */
 object SkinTextures {
 
     private const val KEY_PREFIX = "skin:"
 
+    private const val BEATMAP_KEY_PREFIX = "beatmap:"
+
+    private val frameNameRegex = Regex("(.+?)-?\\d+")
+
     private val missingTextures = mutableSetOf<String>()
+
+    // The files of the beatmap skin by texture name, each one is loaded when it's first used.
+    private val beatmapFiles = mutableMapOf<String, String>()
 
 
     /**
      * Gets a skin texture by name, loading it if needed.
      */
+    @JvmStatic
     operator fun get(name: String): GraphicsTexture.Region? = lookup(name, name)
 
     /**
      * Gets a skin texture named with a configurable prefix, such as the hit circle font, loading it if needed.
      */
+    @JvmStatic
     operator fun get(prefix: StringSkinData, name: String): GraphicsTexture.Region? {
         return lookup("${prefix.currentValue}-$name".replace("\\", ""), "${prefix.defaultValue}-$name")
     }
@@ -61,12 +69,86 @@ object SkinTextures {
     /**
      * Gets the frames of an animated skin texture, an empty list if it isn't animated.
      */
+    @JvmStatic
     fun frames(name: String): List<GraphicsTexture.Region> {
         val frames = mutableListOf<GraphicsTexture.Region>()
+
+        // The frames of a beatmap skin replace the whole animation.
+        if (BeatmapSkinManager.isSkinEnabled()) {
+            val delimiter = when {
+                "$name-0" in beatmapFiles -> "-"
+                "${name}0" in beatmapFiles -> ""
+                else -> null
+            }
+
+            if (delimiter != null) {
+                while ("$name$delimiter${frames.size}" in beatmapFiles) {
+                    frames += get("$name$delimiter${frames.size}") ?: return frames
+                }
+
+                return frames
+            }
+        }
 
         while (true) {
             frames += get("$name-${frames.size}") ?: return frames
         }
+    }
+
+    /**
+     * Registers a texture of the beatmap skin. Files that don't replace a known texture are ignored.
+     */
+    @JvmStatic
+    fun loadBeatmapTexture(file: File) {
+        val name = file.name.substringBeforeLast('.').lowercase()
+        val path = file.absolutePath
+
+        if (!isKnown(name)) {
+            // A single image replacing all the frames of an animation.
+            val delimiter = when {
+                isKnown("$name-0") -> "-"
+                isKnown("${name}0") -> ""
+                else -> {
+                    val baseName = frameNameRegex.matchEntire(name)?.groupValues?.get(1)
+
+                    if (baseName != null && (isKnown(baseName) || isKnown("$baseName-0") || isKnown("${baseName}0"))) {
+                        beatmapFiles[name] = path
+                    }
+
+                    return
+                }
+            }
+
+            var frame = 0
+
+            while (isKnown("$name$delimiter$frame")) {
+                beatmapFiles.putIfAbsent("$name$delimiter$frame", path)
+                frame++
+            }
+
+            return
+        }
+
+        beatmapFiles[name] = path
+
+        if (name == "hitcircle") {
+            beatmapFiles.putIfAbsent("sliderstartcircle", path)
+            beatmapFiles.putIfAbsent("sliderendcircle", path)
+        }
+
+        if (name == "hitcircleoverlay") {
+            beatmapFiles.putIfAbsent("sliderstartcircleoverlay", path)
+            beatmapFiles.putIfAbsent("sliderendcircleoverlay", path)
+        }
+    }
+
+    /**
+     * Releases the textures of the beatmap skin.
+     */
+    @JvmStatic
+    fun clearBeatmapTextures() {
+        beatmapFiles.clear()
+        Textures.unloadAll { key, _ -> key.startsWith(BEATMAP_KEY_PREFIX) }
     }
 
     /**
@@ -89,7 +171,26 @@ object SkinTextures {
         }
     }
 
+    private fun isKnown(name: String): Boolean {
+        return File(Config.getSkinPath(), "$name.png").isFile
+            || Platform.provider.exists("gfx/$name.png", false)
+            || Platform.provider.exists("$name.png", false)
+    }
+
+    private fun lookupBeatmap(name: String): GraphicsTexture.Region? {
+        if (!BeatmapSkinManager.isSkinEnabled()) {
+            return null
+        }
+
+        val path = beatmapFiles[name] ?: return null
+        val key = BEATMAP_KEY_PREFIX + name
+
+        return Textures[key] ?: Textures.load(key, path, isInternal = false)
+    }
+
     private fun lookup(customName: String, defaultName: String): GraphicsTexture.Region? {
+        lookupBeatmap(defaultName)?.let { return it }
+
         val key = KEY_PREFIX + customName
 
         Textures[key]?.let { return it }

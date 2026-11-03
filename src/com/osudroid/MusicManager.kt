@@ -6,11 +6,10 @@ import com.osudroid.beatmaps.timings.EffectControlPointManager
 import com.osudroid.beatmaps.timings.TimingControlPoint
 import com.osudroid.beatmaps.timings.TimingControlPointManager
 import com.osudroid.data.BeatmapInfo
-import org.anddev.andengine.engine.handler.IUpdateHandler
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 
-object MusicManager : IUpdateHandler {
+object MusicManager {
 
     /**
      * The currently loaded beatmap.
@@ -137,7 +136,7 @@ object MusicManager : IUpdateHandler {
     }
 
 
-    override fun onUpdate(secondsElapsed: Float) {
+    fun onUpdate(secondsElapsed: Float) {
         if (songService.status == Status.PLAYING) {
             val positon = songService.position
 
@@ -151,11 +150,9 @@ object MusicManager : IUpdateHandler {
         RythimManager.onUpdate(secondsElapsed)
     }
 
-    override fun reset() {}
-
 }
 
-object RythimManager : IUpdateHandler {
+object RythimManager {
 
     /**
      * The current beat index.
@@ -216,7 +213,7 @@ object RythimManager : IUpdateHandler {
     }
 
 
-    override fun onUpdate(secondsElapsed: Float) {
+    fun onUpdate(secondsElapsed: Float) {
         if (MusicManager.isPlaying) {
             updateControlPointInformation(
                 secondsElapsed,
@@ -231,8 +228,6 @@ object RythimManager : IUpdateHandler {
             )
         }
     }
-
-    override fun reset() {}
 
 
     fun addOnBeatChangeListener(key: Any, listener: () -> Unit) {

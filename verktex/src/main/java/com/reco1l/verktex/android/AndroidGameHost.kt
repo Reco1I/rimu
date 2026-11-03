@@ -249,8 +249,15 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
             altPressed = event.isAltPressed,
             metaPressed = event.isMetaPressed
         )
-        return consumed || super.onKeyDown(keyCode, event)
+        return consumed || onUnhandledKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
     }
+
+    /**
+     * Called when a key press wasn't consumed by the current scene.
+     *
+     * @return Whether the key press was consumed.
+     */
+    protected open fun onUnhandledKeyDown(keyCode: Int, event: KeyEvent) = false
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         val consumed = Input.dispatchKeyboardEvent(

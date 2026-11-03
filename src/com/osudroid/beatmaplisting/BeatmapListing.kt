@@ -1,5 +1,6 @@
 package com.osudroid.beatmaplisting
 
+import com.osudroid.MusicManager
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.Log
@@ -31,7 +32,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.OnScrollListener
 import com.edlplan.ui.fragment.BaseFragment
 import com.google.android.material.progressindicator.CircularProgressIndicator
-import com.osudroid.BuildSettings
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.audio.AudioStream
 import com.reco1l.framework.net.IFileRequestObserver
@@ -56,7 +56,6 @@ import kotlinx.coroutines.SupervisorJob
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.MainScene.MusicOption
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osuplus.R
 import java.net.URL
@@ -636,7 +635,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
 
         coverJob?.cancel()
 
-        if (beatmapSet.thumbnail != null && !BuildSettings.NO_TEXTURES_MODE) {
+        if (beatmapSet.thumbnail != null) {
             coverJob = mediaScope.launch {
 
                 try {
@@ -721,14 +720,14 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
                         stopPreview(true)
     
                         if (BeatmapListing.isPlayingMusic) {
-                            GlobalManager.getInstance().mainScene.musicControl(MusicOption.PLAY)
+                            MusicManager.play()
                         }
                     }
                 }
 
                 ensureActive()
 
-                GlobalManager.getInstance().mainScene.musicControl(MusicOption.PAUSE)
+                MusicManager.pause()
 
                 previewStream!!.volume = Config.getBgmVolume()
                 previewStream!!.play()
@@ -783,7 +782,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
         }
 
         if (shouldResumeMusic && BeatmapListing.isPlayingMusic) {
-            GlobalManager.getInstance().mainScene.musicControl(MusicOption.PLAY)
+            MusicManager.play()
         }
     }
 

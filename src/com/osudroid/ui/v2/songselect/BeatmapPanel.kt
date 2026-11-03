@@ -64,7 +64,7 @@ open class BeatmapPanel(private val beatmapSetPanel: BeatmapSetPanel, val beatma
             if (SongSelect.selectedBeatmap == beatmapInfo && beatmapSetPanel.selectedPanel == this) {
                 SongSelect.onBeatmapConfirmed(beatmapInfo)
             } else {
-                ResourceManager.getInstance().getSound("menuclick")?.play()
+                SkinSounds["menuclick"].play()
             }
 
             beatmapSetPanel.selectedPanel = this

@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.ui.v2.SkinSounds
 import android.icu.text.SimpleDateFormat
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.*
@@ -177,7 +178,7 @@ class RoomChat : UILinearContainer() {
     private fun appendMessage(message: Message) {
 
         if (Verktex.scene != GlobalManager.getInstance().gameScene.scene) {
-            ResourceManager.getInstance().getSound("heartbeat")?.play(0.75f)
+            SkinSounds["heartbeat"].play(0.75f)
         }
 
         messages.add(message)
