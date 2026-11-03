@@ -6,6 +6,7 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Shadow
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Mat2
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Vec4
@@ -493,20 +494,9 @@ abstract class UIComponent {
     var backgroundColor = Color4.Transparent
 
     /**
-     * The border color of this component.
+     * The border drawn along the inner edge of this component. Null for none.
      */
-    var borderColor = Color4.Transparent
-
-    /**
-     * The border width of this component.
-     */
-    var borderWidth: Dimension.Fixed = Dimension.Zero
-
-    /**
-     * The color of the border at the bottom, it fades from [borderColor] at the top, e.g. a bezel
-     * lighter on top and darker at the bottom. Null for a single color.
-     */
-    var borderColorBottom: Color4? = null
+    var border: Border? = null
 
     /**
      * The shadow drawn below this component, following its shape.
@@ -754,18 +744,18 @@ abstract class UIComponent {
         }
 
         // The background is drawn before clipping, padding clipping must only affect the content.
-        val hasBorder = borderWidth.value > 0f && (borderColor.alpha > 0f || (borderColorBottom?.alpha ?: 0f) > 0f)
-        if (backgroundColor.alpha > 0f || hasBorder) {
+        val border = border?.takeIf { it.isVisible }
+        if (backgroundColor.alpha > 0f || border != null) {
             renderer.drawRect(
                 x = 0f,
                 y = 0f,
                 width = bounds.width,
                 height = bounds.height,
                 color = backgroundColor,
-                borderWidth = borderWidth.toPixels(),
-                borderColor = borderColor,
+                borderWidth = border?.width?.toPixels() ?: 0f,
+                borderColor = border?.color ?: Color4.Transparent,
                 radius = radius.toPixels(),
-                borderColorBottom = borderColorBottom
+                borderColorBottom = border?.colorBottom?.takeIf { it != border.color }
             )
         }
 
@@ -1157,3 +1147,28 @@ abstract class UIComponent {
         private val showComponentBoundaries by Setting(VerktexSettings.ShowComponentBoundaries, false)
     }
 }
+
+
+//region Border compatibility
+
+/**
+ * The color of the [UIComponent.border], transparent without one. Setting it gives the border a
+ * single color, creating a border without width if there was none.
+ */
+var UIComponent.borderColor: Color4
+    get() = border?.color ?: Color4.Transparent
+    set(value) {
+        border = border?.copy(color = value, colorBottom = value) ?: Border(Dimension.Zero, value)
+    }
+
+/**
+ * The width of the [UIComponent.border], zero without one. Setting it creates a transparent border
+ * if there was none.
+ */
+var UIComponent.borderWidth: Dimension.Fixed
+    get() = border?.width ?: Dimension.Zero
+    set(value) {
+        border = border?.copy(width = value) ?: Border(value, Color4.Transparent)
+    }
+
+//endregion

@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
+import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.ui.borderColor
 import android.util.Log
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor

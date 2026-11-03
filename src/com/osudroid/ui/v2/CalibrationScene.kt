@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2
 
+import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.ui.borderColor
 import android.text.InputType
 import androidx.annotation.IdRes
 import com.osudroid.beatmaps.DroidHitWindow

@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
+import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.ui.borderColor
 import com.osudroid.data.*
 import com.osudroid.ui.v2.*
 import com.reco1l.verktex.Verktex

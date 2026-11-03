@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.hud.editor
 
+import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.ui.borderColor
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.utils.updateThread
