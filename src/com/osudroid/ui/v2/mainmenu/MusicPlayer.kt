@@ -2,6 +2,7 @@ package com.osudroid.ui.v2.mainmenu
 
 import com.osudroid.MusicManager
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
@@ -18,8 +19,6 @@ import com.reco1l.verktex.ui.control.UISlider
 import com.reco1l.verktex.ui.iconButton
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
-import ru.nsu.ccfit.zuev.osu.LibraryManager
-import java.text.SimpleDateFormat
 
 class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
@@ -32,13 +31,10 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
     private var draggingProgressSlider = false
 
-    private val timeFormat = SimpleDateFormat("mm:ss")
-    private val timeFormatWithHours = SimpleDateFormat("HH:mm:ss")
-
 
     init {
-        // Removes the background dim
-        style = Style {}
+        // Without the dimmed backdrop of modals.
+        backgroundColor = Color4.Transparent
 
         card.apply {
             anchor = Anchor.TopLeft
@@ -118,11 +114,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         origin = Anchor.CenterLeft
                         scaleOrigin = Anchor.Center
 
-                        onActionUp = {
-                            MusicManager.currentBeatmap = LibraryManager.selectPreviousBeatmapSet().beatmaps.random()
-                            MusicManager.load()
-                            MusicManager.play()
-                        }
+                        onActionUp = { MusicManager.previous() }
                     }
 
                     playPauseButton = iconButton {
@@ -149,11 +141,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         origin = Anchor.CenterLeft
                         scaleOrigin = Anchor.Center
 
-                        onActionUp = {
-                            MusicManager.currentBeatmap = LibraryManager.selectNextBeatmapSet().beatmaps.random()
-                            MusicManager.load()
-                            MusicManager.play()
-                        }
+                        onActionUp = { MusicManager.next() }
                     }
                 }
 
@@ -162,22 +150,29 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
     }
 
     override fun onShow() {
-        // Placed below the button that opens this modal, which only has a known position when shown.
+        placeBelowTrigger()
+        super.onShow()
+    }
+
+    // Below the button that opens this modal. It follows it, the button may still be sliding in.
+    private fun placeBelowTrigger() {
         val triggerCorner = trigger.toSceneSpace(trigger.bounds.width, trigger.bounds.height)
 
         card.x = triggerCorner.x.px
         card.y = (triggerCorner.y + 12f.dip.toPixels()).px
-
-        super.onShow()
     }
 
     override fun onUpdate(clock: FrameClock) {
+        if (isShown) {
+            placeBelowTrigger()
+        }
+
         titleText.text = MusicManager.currentBeatmap?.titleText ?: "Unknown"
         artistText.text = MusicManager.currentBeatmap?.artistText ?: "Unknown"
 
-        val format = if (MusicManager.length >= 3600000) timeFormatWithHours else timeFormat
-        currentTime.text = format.format(MusicManager.position)
-        totalTime.text = format.format(MusicManager.length)
+        val showHours = MusicManager.length >= 3600000
+        currentTime.text = formatDuration(MusicManager.position, showHours)
+        totalTime.text = formatDuration(MusicManager.length, showHours)
 
         playPauseButton.icon = if (MusicManager.isPlaying) FAIcon.Pause else FAIcon.Play
 
@@ -192,5 +187,15 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
     private companion object {
         val FULL_RADIUS = 9999f.px
+
+        // A date format would apply the time zone to the duration.
+        fun formatDuration(millis: Int, showHours: Boolean): String {
+            val totalSeconds = (millis / 1000).coerceAtLeast(0)
+            val hours = totalSeconds / 3600
+            val minutes = totalSeconds / 60 % 60
+            val seconds = totalSeconds % 60
+
+            return if (showHours) "%d:%02d:%02d".format(hours, minutes, seconds) else "%02d:%02d".format(totalSeconds / 60, seconds)
+        }
     }
 }
