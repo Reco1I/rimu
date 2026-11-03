@@ -154,8 +154,13 @@ open class UILinearContainer : UIContainer() {
 
     override fun onLayout(bounds: Vec4) {
 
-        var currentX = paddingLeft.toPixels()
-        var currentY = paddingTop.toPixels()
+        val contentLeft = paddingLeft.toPixels()
+        val contentTop = paddingTop.toPixels()
+        val contentRight = bounds.width - paddingRight.toPixels()
+        val contentBottom = bounds.height - paddingBottom.toPixels()
+
+        var currentX = contentLeft
+        var currentY = contentTop
 
         forEach { child ->
 
@@ -163,12 +168,22 @@ open class UILinearContainer : UIContainer() {
                 return@forEach
             }
 
-            val childBounds = Vec4(
-                x = currentX,
-                y = currentY,
-                z = currentX + child.measuredSize.x,
-                w = currentY + child.measuredSize.y
-            )
+            // The cell of a child spans the whole cross axis, so its anchor places it along it,
+            // e.g. centered vertically in a horizontal container.
+            val childBounds = when (orientation) {
+                Orientation.Horizontal -> Vec4(
+                    x = currentX,
+                    y = contentTop,
+                    z = currentX + child.measuredSize.x,
+                    w = max(contentBottom, contentTop + child.measuredSize.y)
+                )
+                Orientation.Vertical -> Vec4(
+                    x = contentLeft,
+                    y = currentY,
+                    z = max(contentRight, contentLeft + child.measuredSize.x),
+                    w = currentY + child.measuredSize.y
+                )
+            }
 
             child.layout(childBounds)
 

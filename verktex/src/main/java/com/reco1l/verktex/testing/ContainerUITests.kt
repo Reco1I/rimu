@@ -109,6 +109,15 @@ fun UITestSuite.addContainerTests() {
                 }
             }
 
+            section("Anchors place children along the cross axis") {
+                row {
+                    block("80 tall", colorAt(0)) { width = 80f.dip; height = 80f.dip }
+                    block("Top", colorAt(1)) { anchor = Anchor.TopLeft; origin = Anchor.TopLeft }
+                    block("Center", colorAt(2)) { anchor = Anchor.CenterLeft; origin = Anchor.CenterLeft }
+                    block("Bottom", colorAt(3)) { anchor = Anchor.BottomLeft; origin = Anchor.BottomLeft }
+                }
+            }
+
             section("height = fill() stretches to the row height") {
                 row {
                     block("80 tall", colorAt(0)) { width = 80f.dip; height = 80f.dip }
