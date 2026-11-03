@@ -63,7 +63,7 @@ android {
     ndkVersion '22.1.7171670'
 
     defaultConfig {
-        manifestPlaceholders = [uiTestsEnabled: "false"]
+        manifestPlaceholders = [uiTestsEnabled: "false", profileable: "false"]
         minSdkVersion 24
         targetSdkVersion 29
         versionCode getReleaseVersionCode()
@@ -107,7 +107,7 @@ android {
         debug {
             resValue "string", "app_name", "osu!droid-debug"
             applicationIdSuffix '.debug'
-            manifestPlaceholders = [uiTestsEnabled: "true"]
+            manifestPlaceholders = [uiTestsEnabled: "true", profileable: "false"]
             firebaseCrashlytics {
                 mappingFileUploadEnabled false
             }
@@ -121,6 +121,16 @@ android {
             firebaseCrashlytics {
                 mappingFileUploadEnabled false
             }
+        }
+
+        // Compiled like a release, so profiles show the real cost instead of the interpreter's, but
+        // profileable from the shell (simpleperf) and with the UI tests. Installs over the debug app.
+        profile {
+            initWith debug
+            debuggable false
+            matchingFallbacks = ['release']
+            manifestPlaceholders = [uiTestsEnabled: "true", profileable: "true"]
+            signingConfig signingConfigs.debug
         }
 
         pre_release {
@@ -151,6 +161,7 @@ android {
         debug.assets.srcDirs += files("$projectDir/schemas".toString())
         release.assets.srcDirs += files("$projectDir/schemas".toString())
         pre_release.assets.srcDirs += files("$projectDir/schemas".toString())
+        profile.assets.srcDirs += files("$projectDir/schemas".toString())
     }
 
     compileOptions {
