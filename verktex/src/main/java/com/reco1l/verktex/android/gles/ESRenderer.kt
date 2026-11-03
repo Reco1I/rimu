@@ -3,6 +3,7 @@ package com.reco1l.verktex.android.gles
 import android.opengl.GLES32
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Logger
+import com.reco1l.verktex.PerformanceStats
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec2
@@ -68,6 +69,8 @@ class ESRenderer(
 
     private var capabilitiesRefreshed = false
 
+    private val gpuTimer = ESGpuTimer()
+
     override fun prepareFrame(): Boolean {
         if (!context.prepare()) return false
 
@@ -82,6 +85,8 @@ class ESRenderer(
     override fun begin() {
         super.begin()
 
+        gpuTimer.begin()
+
         GLES32.glViewport(0, 0, window.windowWidth, window.windowHeight)
         GLES32.glClearColor(0f, 0f, 0f, 1f)
         GLES32.glClear(GLES32.GL_COLOR_BUFFER_BIT or GLES32.GL_DEPTH_BUFFER_BIT or GLES32.GL_STENCIL_BUFFER_BIT)
@@ -91,6 +96,10 @@ class ESRenderer(
         // Textures and glyphs were uploaded while recording, the cached state is stale.
         ESCommandExecutor.resetState()
         super.end()
+
+        gpuTimer.end()
+        PerformanceStats.gpuTime = gpuTimer.gpuTime
+
         context.swapBuffers()
     }
 
