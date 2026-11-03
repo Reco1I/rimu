@@ -216,7 +216,7 @@ class SettingsMenu : UIScene() {
 
                 linearContainer {
                     orientation = UILinearContainer.Orientation.Vertical
-                    style = Style { theme -> spacing = theme.gap.sm }
+                    style = Style { theme -> spacing = theme.gap.xs }
 
                     +UITextButton().apply {
                         text = "Back"
@@ -533,7 +533,6 @@ class SettingsMenu : UIScene() {
 
         init {
             leadingIcon = faSolidIcon(icon)
-            density = Density.Large
             variant = Variant.Ghost
             alignment = Anchor.CenterLeft
             text = section.name
