@@ -2,6 +2,9 @@ package com.reco1l.verktex.testing
 
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.settings.VerktexSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.ClipMode
@@ -143,6 +146,16 @@ class UITestScene(
                     }
 
                     iconButton {
+                        icon = FAIcon.Gauge
+                        variant = UIButton.Variant.Surface
+                        isSelected = Settings[VerktexSettings.ShowPerformanceOverlay, false]
+                        onActionUp = {
+                            isSelected = !isSelected
+                            Settings[VerktexSettings.ShowPerformanceOverlay] = isSelected
+                        }
+                    }
+
+                    iconButton {
                         icon = FAIcon.ArrowRotateRight
                         variant = UIButton.Variant.Surface
                         onActionUp = { reload() }
@@ -158,28 +171,36 @@ class UITestScene(
                     }
                 }
 
-                // The tests run on a clock of their own, so they can be paused or sped up.
-                stageHost = object : UIContainer() {
-                    override fun onUpdate(clock: FrameClock) {
-                        stageClock.processFrame()
-                        super.onUpdate(stageClock)
-                    }
-                }.also { +it }
-
-                stageHost.apply {
+                container {
                     width = fill()
                     height = fill()
-                    clipping = ClipMode.Bounds
-                    backgroundColor = BACKGROUNDS[0]
-                }
 
-                logText = text {
-                    theme = flatTheme
-                    width = fill()
-                    padding = Padding(12f.dip, 6f.dip)
-                    fontSize = Verktex.theme.typography.caption.size
-                    color = Color4(1f, 1f, 1f, 0.7f)
-                    text = " "
+                    // The tests run on a clock of their own, so they can be paused or sped up.
+                    stageHost = object : UIContainer() {
+                        override fun onUpdate(clock: FrameClock) {
+                            stageClock.processFrame()
+                            super.onUpdate(stageClock)
+                        }
+                    }.also { +it }
+
+                    stageHost.apply {
+                        width = fill()
+                        height = fill()
+                        clipping = ClipMode.Bounds
+                        backgroundColor = BACKGROUNDS[0]
+                    }
+
+                    // Over the stage, text doesn't take input so the test below stays usable.
+                    logText = text {
+                        theme = flatTheme
+                        width = fill()
+                        anchor = Anchor.BottomLeft
+                        origin = Anchor.BottomLeft
+                        padding = Padding(12f.dip, 6f.dip)
+                        fontSize = Verktex.theme.typography.caption.size
+                        color = Color4(1f, 1f, 1f, 0.7f)
+                        text = " "
+                    }
                 }
             }
         }
