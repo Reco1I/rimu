@@ -20,10 +20,9 @@ object BuiltIn {
         lateinit var SolidQuad: GraphicsShader
 
         /**
-         * A shader for rendering rounded boxes with a vertical border gradient and soft edges, used
-         * for bezels and shadows.
+         * A shader for rounded boxes and text in the same batches, see [com.reco1l.verktex.graphics.VertexLayout.UI].
          */
-        lateinit var Box: GraphicsShader
+        lateinit var UI: GraphicsShader
 
         /**
          * A shader for rendering textured quads.
