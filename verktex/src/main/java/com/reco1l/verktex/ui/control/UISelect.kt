@@ -72,9 +72,7 @@ open class UISelect<T : Any>(initialValues: List<T> = emptyList()) : UIControl<L
         set(value) {
             if (field != value) {
                 field = value
-                if (value.isEmpty()) {
-                    button.text = value
-                }
+                updateTrigger()
             }
         }
 
@@ -88,7 +86,7 @@ open class UISelect<T : Any>(initialValues: List<T> = emptyList()) : UIControl<L
 
     init {
         // The button is already attached by its builder.
-        button.text = placeholder
+        updateTrigger()
         +chevronIcon
     }
 
@@ -147,28 +145,18 @@ open class UISelect<T : Any>(initialValues: List<T> = emptyList()) : UIControl<L
         updateTrigger()
     }
 
+    // Shows the selected options on the button, or the placeholder when there are none.
     private fun updateTrigger() {
-        when (selectionMode) {
-
-            SelectionMode.Single -> {
-                val selectedOption = options.firstOrNull { it.value == value.firstOrNull() }
-                button.text = selectedOption?.text ?: placeholder
-            }
-
-            SelectionMode.Multiple -> {
-                button.text = options.filter { o -> o.value in value }.joinToString { it.text }
-            }
+        val selectedOptions = when (selectionMode) {
+            SelectionMode.Single -> listOfNotNull(options.firstOrNull { it.value == value.firstOrNull() })
+            SelectionMode.Multiple -> options.filter { it.value in value }
         }
+
+        button.text = if (selectedOptions.isEmpty()) placeholder else selectedOptions.joinToString { it.text }
     }
 
     override fun onValueChanged() {
         super.onValueChanged()
-
-        if (value.isEmpty()) {
-            button.text = placeholder
-            dropdown.forEachButton { it.isSelected = false }
-            return
-        }
 
         updateTrigger()
 
