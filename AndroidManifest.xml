@@ -27,6 +27,7 @@
         android:resizeableActivity="false"
         android:name="ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject"
         tools:ignore="UnusedAttribute">
+        <profileable android:shell="${profileable}" tools:targetApi="29"/>
         <service android:name="ru.nsu.ccfit.zuev.audio.serviceAudio.SongService" android:exported="false"/>
 
         <meta-data
