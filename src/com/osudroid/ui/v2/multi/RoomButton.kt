@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import com.reco1l.verktex.ui.text.spans
 import com.osudroid.resources.R.string
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.*
@@ -15,7 +16,6 @@ import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIBadge
 import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.badge
 import com.reco1l.verktex.ui.container.UILinearContainer
@@ -47,14 +47,14 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 width = fill()
                 spacing = 8f.dip
 
-                +UIIcon(if (room.isLocked) FAIcon.Lock else FAIcon.LockOpen).apply {
-                    style = Style { theme -> color = theme.palette.accent }
-                }
-
                 text {
                     width = fill()
-                    text = room.name
                     style = Style { theme -> color = theme.palette.accent }
+                    spans {
+                        icon(if (room.isLocked) FAIcon.Lock else FAIcon.LockOpen)
+                        space(8f.dip)
+                        +room.name
+                    }
                 }
 
                 text {

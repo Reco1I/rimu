@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.songselect
 
+import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
 import com.osudroid.data.*
@@ -18,7 +19,6 @@ import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.ui.UILoadingIndicator
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.clearTransforms
@@ -155,18 +155,16 @@ class SongSelectLeaderboard : UILinearContainer() {
         overlayContainer.apply {
             clearChildren()
 
-            +UIIcon(FAIcon.CircleInfo).apply {
-                anchor = Anchor.TopCenter
-                origin = Anchor.TopCenter
-                iconSize = 32f.px
-                style = Style { theme -> color = theme.palette.accent }
-            }
-
             text {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
+                alignment = Anchor.TopCenter
                 style = Style { theme -> color = theme.palette.accent }
-                text = message
+                spans {
+                    size(32f.px) { icon(FAIcon.CircleInfo) }
+                    +"\n"
+                    +message
+                }
             }
         }
     }

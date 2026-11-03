@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import com.reco1l.verktex.ui.text.spans
 import com.osudroid.ui.v2.SkinSounds
 import android.icu.text.SimpleDateFormat
 import com.osudroid.multiplayer.*
@@ -24,7 +25,6 @@ import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.UIClickableContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
@@ -288,8 +288,7 @@ class RoomChat : UILinearContainer() {
 
     inner class ChatButton : UIClickableContainer() {
 
-        private lateinit var tagText: UIText
-        private lateinit var messageText: UIText
+        private lateinit var summaryText: UIText
 
 
         init {
@@ -308,62 +307,35 @@ class RoomChat : UILinearContainer() {
                 }
             }
 
-            linearContainer {
+            // The icon, who sent the last message and the message.
+            summaryText = text {
                 width = Dimension.FillAvailable
-                height = Dimension.FillAvailable
-                orientation = UILinearContainer.Orientation.Horizontal
-                spacing = 8f.dip
-
-                +UIIcon(FAIcon.Message).apply {
-                    anchor = Anchor.CenterLeft
-                    origin = Anchor.CenterLeft
-                    style = Style { theme -> color = theme.palette.accent }
-                }
-
-                linearContainer {
-                    width = Dimension.FillAvailable
-                    anchor = Anchor.CenterLeft
-                    origin = Anchor.CenterLeft
-                    orientation = UILinearContainer.Orientation.Horizontal
-
-                    tagText = text {
-                        text = StringTable.get(R.string.multiplayer_room_chat)
-                        anchor = Anchor.CenterLeft
-                        origin = Anchor.CenterLeft
-                        color = Verktex.theme.palette.accent
-                    }
-
-                    messageText = text {
-                        width = Dimension.FillAvailable
-                        anchor = Anchor.CenterLeft
-                        origin = Anchor.CenterLeft
-                        style = Style { theme -> color = theme.palette.accent }
-                    }
-                }
+                anchor = Anchor.CenterLeft
+                origin = Anchor.CenterLeft
+                maxLines = 1
+                style = Style { theme -> color = theme.palette.accent }
             }
+
+            updateState()
         }
 
 
         fun updateState() {
             val lastMessage = messages.peekLast()
 
-            if (isExpanded || lastMessage == null) {
-                tagText.apply {
-                    text = StringTable.get(R.string.multiplayer_room_chat)
-                    color = Verktex.theme.palette.accent
+            summaryText.spans {
+                icon(FAIcon.Message)
+                space(8f.dip)
+
+                if (isExpanded || lastMessage == null) {
+                    +StringTable.get(R.string.multiplayer_room_chat)
+                } else if (lastMessage is PlayerMessage) {
+                    color(getPlayerTagColor(lastMessage.player)) { +"${lastMessage.player.name}: " }
+                    +lastMessage.content.substringBefore('\n')
+                } else {
+                    +"${StringTable.get(R.string.multiplayer_room_chat_system)}: "
+                    +lastMessage.content.substringBefore('\n')
                 }
-                messageText.text = ""
-            } else {
-                tagText.apply {
-                    text = "${
-                        if (lastMessage is PlayerMessage) lastMessage.player.name else StringTable.get(
-                            R.string.multiplayer_room_chat_system
-                        )
-                    }: "
-                    color =
-                        if (lastMessage is PlayerMessage) getPlayerTagColor(lastMessage.player) else Verktex.theme.palette.accent
-                }
-                messageText.text = lastMessage.content.substringBefore('\n')
             }
         }
 
