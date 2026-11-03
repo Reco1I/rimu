@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.reco1l.verktex.data.LayoutConstraints
 import com.acivev.ui.addSnowfallWithPeriod
 import com.acivev.ui.addFireworksWithPeriod
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
@@ -86,6 +87,7 @@ object MainScene : UIScene() {
     private var lastMusicChange = System.currentTimeMillis()
 
     private var menuWidth = 0f
+    private var menuContentWidth = 0f
     private var musicButtonTranslation = 0f
     private var playerButtonTranslation = 0f
 
@@ -474,7 +476,11 @@ object MainScene : UIScene() {
         rightFlash.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, beatLengthSeconds), rightFlash.alpha, 0f, 0f, beatLengthSeconds)
 
         // Menu expansion animations
-        val menuContentWidth = (if (menuContainer.childCount > 0) menuContainer[0].measuredSize.x else 0f) + menuContainer.paddingLeft.toPixels()
+        // The content is measured by itself, inside the container it would be limited to the width being animated.
+        if (menuContentWidth <= 0f && menuContainer.childCount > 0) {
+            val unbounded = LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
+            menuContentWidth = menuContainer[0].measure(unbounded).x + menuContainer.paddingLeft.toPixels()
+        }
 
         menuWidth = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), menuWidth, if (isMenuExpanded) menuContentWidth else 0f, 0f, 0.2f, Easing.OutQuint)
         menuContainer.width = menuWidth.px
@@ -528,13 +534,21 @@ class CarrouselLinearContainer(private val logo: OsuLogo) : UILinearContainer() 
     var shear: Dimension.Fixed = 32f.dip
 
     override fun onUpdate(clock: FrameClock) {
-        val logoCenterY = logo.toSceneSpace(0f, logo.bounds.height / 2f).y
+        val logoHalfHeight = logo.bounds.height / 2f
+
+        // Before the first layout the logo has no size yet, and dividing by it would leave the buttons at NaN.
+        if (logoHalfHeight <= 0f) {
+            super.onUpdate(clock)
+            return
+        }
+
+        val logoCenterY = logo.toSceneSpace(0f, logoHalfHeight).y
         val shear = shear.toPixels()
 
         forEach { component ->
             val componentMiddleY = component.toSceneSpace(0f, component.bounds.height / 2f).y
 
-            val percentageDistance = (componentMiddleY - logoCenterY) / (logo.bounds.height / 2f)
+            val percentageDistance = (componentMiddleY - logoCenterY) / logoHalfHeight
 
             component.translationX = (-shear * abs(percentageDistance)).px
         }
