@@ -1,19 +1,21 @@
 package com.reco1l.verktex.time
 
 /**
- * Represents a clock that its elapsed time is derived from another clock.
+ * Represents a clock that its elapsed time is derived from another clock, scaled by its [rate].
  *
  * This derived clock requires [processFrame] to be called manually in order to update its state.
  */
 class DerivedFrameClock<SourceClock : FrameClock>(override val source: SourceClock) :
     FrameClock(),
-    IControllableClock,
+    IAdjustableClock,
     IFrameProcessableClock,
     ISourceBasedClock<SourceClock>
 {
 
+    override var rate = 1f
+
     override val elapsedFrameTime: Float
-        get() = source.elapsedFrameTime
+        get() = if (isRunning) source.elapsedFrameTime * rate else 0f
 
 
     override var isRunning: Boolean = true
@@ -50,6 +52,10 @@ class DerivedFrameClock<SourceClock : FrameClock>(override val source: SourceClo
 
     override fun reset() {
         time = 0f
+    }
+
+    override fun resetSpeedAdjustments() {
+        rate = 1f
     }
 }
 
