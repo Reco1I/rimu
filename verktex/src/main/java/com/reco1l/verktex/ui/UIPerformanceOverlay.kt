@@ -68,8 +68,17 @@ class UIPerformanceOverlay : UIClickableContainer() {
         set(value) {
             if (field == value) return
             field = value
-            summaryText.isVisible = !value
-            panel.isVisible = value
+
+            // Only the part shown is a child: a hidden one would still make this overlay as big as
+            // it, catching the presses around it.
+            if (value) {
+                this -= summaryText
+                this += panel
+            } else {
+                this -= panel
+                this += summaryText
+            }
+
             // Shown with the current values instead of waiting for the next refresh.
             timeSinceTextUpdate = TEXT_INTERVAL
         }
@@ -85,7 +94,7 @@ class UIPerformanceOverlay : UIClickableContainer() {
 
         +summaryText
 
-        +panel.apply {
+        panel.apply {
             orientation = UILinearContainer.Orientation.Vertical
             anchor = Anchor.BottomRight
             origin = Anchor.BottomRight
@@ -94,7 +103,6 @@ class UIPerformanceOverlay : UIClickableContainer() {
             spacing = 8f.dip
             radius = 8f.dip
             backgroundColor = BACKGROUND_COLOR
-            isVisible = false
 
             +UIContainer().apply {
                 width = fill()
