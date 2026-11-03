@@ -1,0 +1,215 @@
+package com.osudroid.ui.v2
+
+import android.net.Uri
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.decoder.ffmpeg.ExperimentalFfmpegVideoRenderer
+import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.Renderer
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import androidx.media3.exoplayer.video.VideoRendererEventListener
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.android.gles.ESExternalTexture
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.ui.UISprite
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+
+/**
+ * Plays a video file without sound. It lives in the app rather than in the engine because it depends on
+ * the FFmpeg decoder, which is a local AAR that a library module can't include.
+ */
+@OptIn(UnstableApi::class)
+class UIVideo(source: String) : UISprite() {
+
+    /**
+     * The width of the video once the player reported it, 0 until then.
+     */
+    @Volatile
+    var videoWidth = 0
+        private set
+
+    /**
+     * The height of the video once the player reported it, 0 until then.
+     */
+    @Volatile
+    var videoHeight = 0
+        private set
+
+
+    private val player: ExoPlayer
+
+    // Its region always covers it whole and the decoder sizes the buffers, so its own size is only nominal.
+    private val texture = Verktex.graphics.createExternalTexture(NOMINAL_SIZE, NOMINAL_SIZE) as ESExternalTexture
+
+    private val onReady = AtomicReference<Runnable?>()
+    private val isReleased = AtomicBoolean(false)
+
+
+    init {
+        textureRegion = texture.region
+        scaleType = ScaleType.Stretch
+        scaleOrigin = Anchor.Center
+
+        // ExoPlayer enforces that its calls run on its looper, the main thread here.
+        player = createPlayer()
+
+        mainHandler.post {
+            player.volume = 0f
+            player.repeatMode = Player.REPEAT_MODE_OFF
+            player.addListener(object : Player.Listener {
+                override fun onVideoSizeChanged(videoSize: VideoSize) {
+                    if (videoSize.width == 0 || videoSize.height == 0) {
+                        return
+                    }
+
+                    videoWidth = videoSize.width
+                    videoHeight = videoSize.height
+                    notifyReady()
+                }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    Log.e("UIVideo", "Failed to play the video", error)
+                }
+            })
+            player.setMediaItem(MediaItem.fromUri(Uri.fromFile(File(source))))
+            player.prepare()
+        }
+
+        // The surface is (re)created on the draw thread, on the first load and after a context loss.
+        texture.onSurfaceRecreated = {
+            val surface = texture.surface
+
+            mainHandler.post {
+                if (!isReleased.get()) {
+                    player.setVideoSurface(surface)
+                }
+            }
+        }
+
+        // Loaded right away: a decoder may report no size until it has a surface to decode into, and this
+        // component only has a size to be drawn with once that is known.
+        Verktex.scheduleOnDraw { texture.load() }
+    }
+
+
+    /**
+     * Sets the callback called once on the update thread when the size of the video is known.
+     */
+    fun setOnReady(callback: Runnable) {
+        onReady.set(callback)
+
+        // The size may have arrived before the callback was set.
+        if (videoWidth > 0) {
+            notifyReady()
+        }
+    }
+
+    private fun notifyReady() {
+        Verktex.scheduleOnUpdate {
+            width = videoWidth.toFloat().px
+            height = videoHeight.toFloat().px
+
+            onReady.getAndSet(null)?.run()
+        }
+    }
+
+    fun play() {
+        mainHandler.post { player.play() }
+    }
+
+    fun pause() {
+        mainHandler.post { player.pause() }
+    }
+
+    fun seekTo(ms: Int) {
+        mainHandler.post { player.seekTo(ms.toLong()) }
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        mainHandler.post { player.playbackParameters = PlaybackParameters(speed) }
+    }
+
+    /**
+     * Stops the video and frees its resources. Only the first call has an effect.
+     */
+    fun release() {
+        if (!isReleased.compareAndSet(false, true)) {
+            return
+        }
+
+        texture.onSurfaceRecreated = null
+
+        Verktex.scheduleOnUpdate {
+            removeSelf()
+
+            mainHandler.post {
+                // In this order: the codec thread must stop writing to the surface before the player is
+                // released, and the surface must outlive the player.
+                player.setVideoSurface(null)
+                player.release()
+
+                Verktex.scheduleOnDraw {
+                    texture.dispose()
+                    Verktex.graphics.unregisterResource(texture)
+                }
+            }
+        }
+    }
+
+
+    private companion object {
+
+        const val NOMINAL_SIZE = 16f
+
+        val mainHandler = Handler(Looper.getMainLooper())
+
+        fun createPlayer(): ExoPlayer {
+            val context = GlobalManager.getInstance().mainActivity.applicationContext
+
+            // The extension mode finds the FFmpeg audio renderer by itself, but the video one has to be added
+            // by hand as the default factory looks for it under its former name.
+            val renderersFactory = object : DefaultRenderersFactory(context) {
+                override fun buildVideoRenderers(
+                    context: android.content.Context,
+                    extensionRendererMode: Int,
+                    mediaCodecSelector: MediaCodecSelector,
+                    enableDecoderFallback: Boolean,
+                    eventHandler: Handler,
+                    eventListener: VideoRendererEventListener,
+                    allowedVideoJoiningTimeMs: Long,
+                    out: ArrayList<Renderer>
+                ) {
+                    super.buildVideoRenderers(
+                        context,
+                        extensionRendererMode,
+                        mediaCodecSelector,
+                        enableDecoderFallback,
+                        eventHandler,
+                        eventListener,
+                        allowedVideoJoiningTimeMs,
+                        out
+                    )
+
+                    out.add(ExperimentalFfmpegVideoRenderer(allowedVideoJoiningTimeMs, eventHandler, eventListener, 50))
+                }
+            }.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+
+            return ExoPlayer.Builder(context, renderersFactory)
+                .setLooper(Looper.getMainLooper())
+                .build()
+        }
+    }
+}

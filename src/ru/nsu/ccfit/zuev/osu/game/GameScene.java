@@ -47,7 +47,7 @@ import com.reco1l.verktex.ui.shape.UIBox;
 import com.reco1l.verktex.ui.UIAnimatedSprite;
 import com.reco1l.verktex.ui.UISprite;
 import com.reco1l.verktex.data.Anchor;
-import com.reco1l.verktex.ui.UIVideoSprite;
+import com.osudroid.ui.v2.UIVideo;
 import com.reco1l.verktex.Scene;
 import com.osudroid.resources.R;
 import com.osudroid.ui.v2.game.FollowPointConnection;
@@ -302,7 +302,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
     private boolean videoEnabled;
 
     /**The video sprite*/
-    private UIVideoSprite video;
+    private UIVideo video;
 
     /**Video offset aka video start time in seconds*/
     private float videoOffset;
@@ -500,7 +500,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
 
         videoLoadingJob = Execution.async(scope -> {
             try {
-                var video = new UIVideoSprite(beatmapInfo.getAbsoluteSetDirectory() + "/" + videoFilename, engine);
+                var video = new UIVideo(beatmapInfo.getAbsoluteSetDirectory() + "/" + videoFilename);
                 video.setAlpha(0f);
 
                 ensureActive(scope.getCoroutineContext());
@@ -538,7 +538,7 @@ public class GameScene implements GameObjectListener, IOnSceneTouchListener {
     private void applyBackground() {
         // Guard: video sprite exists but dimensions not yet reported by ExoPlayer.
         // onVideoSizeChanged will trigger another applyBackground call when they arrive.
-        if (video != null && (video.getWidth() == 0 || video.getHeight() == 0)) {
+        if (video != null && (video.getVideoWidth() == 0 || video.getVideoHeight() == 0)) {
             return;
         }
 
