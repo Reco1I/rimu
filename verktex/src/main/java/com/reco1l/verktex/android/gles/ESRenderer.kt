@@ -29,6 +29,14 @@ class ESRenderer(
             ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/quad.frag and verktex/main.vert")
         )
 
+        BuiltIn.Shaders.Color = createShader(
+            Platform.provider.createShaderSource(
+                vertexShaderPath = "verktex/shaders/main.vert",
+                fragmentShaderPath = "verktex/shaders/color.frag",
+                isExternal = false
+            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/color.frag and verktex/main.vert")
+        )
+
         BuiltIn.Shaders.UI = createShader(
             Platform.provider.createShaderSource(
                 vertexShaderPath = "verktex/shaders/ui.vert",
