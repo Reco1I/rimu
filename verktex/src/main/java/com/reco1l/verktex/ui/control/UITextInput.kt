@@ -4,6 +4,7 @@ import androidx.core.text.isDigitsOnly
 import com.reco1l.verktex.*
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.horizontalPadding
@@ -132,9 +133,8 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
             height = theme.controlStyle.minimumHeight
             padding = horizontalPadding(theme.gap.md)
             radius = theme.radius.md
-            borderWidth = 1.5f.dip
             backgroundColor = theme.palette.controlInactiveBackground
-            borderColor = borderTargetColor(theme)
+            border = Border(1.5f.dip, borderTargetColor(theme))
 
             textComponent.color = Color4.White
             placeholderText.color = Color4.White.copy(alpha = 0.5f)
@@ -184,7 +184,11 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
         // Errors flash the border red, then it goes back to its normal color.
         val targetBorderColor = errorColor ?: borderTargetColor(resolvedTheme)
         errorColor = null
-        borderColor = clock.interpolateColor(0.2f, borderColor, targetBorderColor)
+        val border = border
+        if (border != null) {
+            val color = clock.interpolateColor(0.2f, border.color, targetBorderColor)
+            this.border = border.copy(color = color, colorBottom = color)
+        }
 
         val contentWidth = bounds.width - paddingLeft.toPixels() - paddingRight.toPixels()
         val textWidth = if (value.isEmpty()) 0f else textComponent.measuredSize.x
@@ -251,7 +255,7 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
      */
     open fun notifyInputError() {
         errorColor = ERROR_COLOR
-        borderColor = ERROR_COLOR
+        border = border?.copy(color = ERROR_COLOR, colorBottom = ERROR_COLOR)
     }
 
     //endregion

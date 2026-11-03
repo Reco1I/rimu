@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.ui.borderColor
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing

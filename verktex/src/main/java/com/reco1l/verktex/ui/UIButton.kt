@@ -1,6 +1,7 @@
 package com.reco1l.verktex.ui
 
 import com.reco1l.verktex.ui.container.UIClickableContainer
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.dip
@@ -63,30 +64,14 @@ open class UIButton : UIClickableContainer() {
         scaleOrigin = Anchor.Center
 
         style = Style { theme ->
-            borderWidth = if (variant == Variant.Outline) 1.5f.dip else Dimension.Zero
-
-            when (variant) {
-                Variant.Solid -> {
-                    backgroundColor = theme.palette.buttonBackgroundSolid
-                    borderColor = Color4.Transparent
-                }
-                Variant.Soft -> {
-                    backgroundColor = theme.palette.buttonBackgroundSoft
-                    borderColor = Color4.Transparent
-                }
-                Variant.Surface -> {
-                    backgroundColor = theme.palette.buttonBackgroundSurface
-                    borderColor = Color4.Transparent
-                }
-                Variant.Outline -> {
-                    backgroundColor = Color4.Transparent
-                    borderColor = theme.palette.buttonBackgroundSolid
-                }
-                Variant.Ghost -> {
-                    backgroundColor = Color4.Transparent
-                    borderColor = Color4.Transparent
-                }
+            backgroundColor = when (variant) {
+                Variant.Solid -> theme.palette.buttonBackgroundSolid
+                Variant.Soft -> theme.palette.buttonBackgroundSoft
+                Variant.Surface -> theme.palette.buttonBackgroundSurface
+                Variant.Outline, Variant.Ghost -> Color4.Transparent
             }
+
+            border = if (variant == Variant.Outline) Border(1.5f.dip, theme.palette.buttonBackgroundSolid) else null
 
             if (isSelected) {
                 backgroundColor = theme.palette.controlActiveBackground

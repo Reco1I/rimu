@@ -1,6 +1,7 @@
 package com.reco1l.verktex.testing
 
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.dip
@@ -313,8 +314,7 @@ object VerktexUITests : UITestSuite("Verktex") {
                         width = 120f.dip
                         height = 80f.dip
                         radius = 12f.dip
-                        borderWidth = 2f.dip
-                        borderColor = Color4.White
+                        border = Border(2f.dip, Color4.White)
                     }
                 }
             }

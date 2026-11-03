@@ -46,8 +46,8 @@ open class UIGradientBox : UICanvas() {
             shader = BuiltIn.Shaders.SolidQuad,
             uniformSet = GraphicsShader.UniformSet().apply {
                 set("uRadius", radius.toPixels())
-                set("uBorderWidth", borderWidth.toPixels())
-                set("uBorderColor", renderer.transformColor(borderColor))
+                set("uBorderWidth", border?.width?.toPixels() ?: 0f)
+                set("uBorderColor", renderer.transformColor(border?.color ?: Color4.Transparent))
                 set("uSize", Vec2(width, height))
             },
         )

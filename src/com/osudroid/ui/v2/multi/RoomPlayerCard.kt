@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.multi
 
+import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.ui.borderColor
 import com.edlplan.ui.fragment.WebViewFragment
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI

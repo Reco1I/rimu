@@ -1,6 +1,7 @@
 package com.reco1l.verktex.ui
 
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.dip
@@ -40,27 +41,16 @@ open class UIBadge : UIText() {
 
     init {
         style = Style { theme ->
-            borderWidth = if (variant == Variant.Outline) 1.5f.dip else Dimension.Zero
             color = if (variant == Variant.Solid) theme.palette.contentOnSolid else Color4.White
 
-            when (variant) {
-                Variant.Solid -> {
-                    backgroundColor = theme.palette.badgeBackgroundSolid
-                    borderColor = Color4.Transparent
-                }
-                Variant.Soft -> {
-                    backgroundColor = theme.palette.badgeBackgroundSoft
-                    borderColor = Color4.Transparent
-                }
-                Variant.Surface -> {
-                    backgroundColor = theme.palette.badgeBackgroundSurface
-                    borderColor = Color4.Transparent
-                }
-                Variant.Outline -> {
-                    backgroundColor = Color4.Transparent
-                    borderColor = theme.palette.badgeBackgroundSolid
-                }
+            backgroundColor = when (variant) {
+                Variant.Solid -> theme.palette.badgeBackgroundSolid
+                Variant.Soft -> theme.palette.badgeBackgroundSoft
+                Variant.Surface -> theme.palette.badgeBackgroundSurface
+                Variant.Outline -> Color4.Transparent
             }
+
+            border = if (variant == Variant.Outline) Border(1.5f.dip, theme.palette.badgeBackgroundSolid) else null
 
             val size = theme.badgeStyle[density]
             fontSize = size.fontSize
