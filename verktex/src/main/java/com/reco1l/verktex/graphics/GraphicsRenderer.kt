@@ -97,7 +97,8 @@ abstract class GraphicsRenderer {
         scissor: Vec4? = scissorStack.lastOrNull(),
         blendMode: BlendMode = blendModeStack.lastOrNull() ?: BlendMode.Alpha,
         depthState: DepthState = depthStateStack.lastOrNull() ?: DepthState.Default,
-        uniformSet: GraphicsShader.UniformSet = activeUniformSet
+        uniformSet: GraphicsShader.UniformSet = activeUniformSet,
+        vertexLayout: VertexLayout = VertexLayout.Default
     ) {
         // A pushed shader replaces the one the draw call asked for, see pushShader.
         val usedShader = shaderStack.lastOrNull() ?: shader
@@ -111,6 +112,7 @@ abstract class GraphicsRenderer {
                 blendMode,
                 depthState,
                 uniformSet,
+                vertexLayout,
             )
         ) return
 
@@ -131,7 +133,8 @@ abstract class GraphicsRenderer {
             scissor = scissor,
             blendMode = blendMode,
             depthState = depthState,
-            uniformSet = uniformSet
+            uniformSet = uniformSet,
+            vertexLayout = vertexLayout
         )
 
         commandBatch.addLast(command)
@@ -449,6 +452,75 @@ abstract class GraphicsRenderer {
         } ?: throw IllegalStateException("No active vertex buffer to draw geometry. Make sure to call setState() before drawing.")
     }
 
+    //region UI batches
+
+    /**
+     * Sets the state for the UI shader, which draws boxes and text in the same commands. Boxes
+     * don't sample the texture, so they join the current command whatever its texture is, and
+     * [texture] is only needed for text: it joins a command with the same texture or without one
+     * yet, which then takes it.
+     */
+    private fun setUIState(texture: GraphicsTexture?) {
+        val last = commandBatch.lastOrNull()
+
+        if (shaderStack.isEmpty() && last != null &&
+            last.shader === BuiltIn.Shaders.UI &&
+            last.vertexLayout === VertexLayout.UI &&
+            !last.clearDepth &&
+            last.instanceBuffer == null &&
+            last.uniformSet === EMPTY_UNIFORMS &&
+            last.scissor == scissorStack.lastOrNull() &&
+            last.blendMode == (blendModeStack.lastOrNull() ?: BlendMode.Alpha) &&
+            last.depthState == (depthStateStack.lastOrNull() ?: DepthState.Default)
+        ) {
+            if (texture == null || last.texture === texture) {
+                activeBuffer = last.buffer
+                return
+            }
+
+            if (last.texture == null) {
+                commandBatch[commandBatch.lastIndex] = last.copy(texture = texture)
+                activeTexture = texture
+                activeBuffer = last.buffer
+                return
+            }
+        }
+
+        setState(
+            shader = BuiltIn.Shaders.UI,
+            texture = texture,
+            uniformSet = EMPTY_UNIFORMS,
+            vertexLayout = VertexLayout.UI
+        )
+    }
+
+    // A vertex of VertexLayout.UI.
+    private fun GraphicsBuffer.addUIVertex(
+        x: Float, y: Float, u: Float, v: Float, color: Int,
+        boxWidth: Float, boxHeight: Float,
+        radius: Float, borderWidth: Float, softness: Float, inset: Float,
+        borderColor: Int, borderColorBottom: Int,
+        mode: Float
+    ) {
+        requireCapacity(UI_VERTEX_STRIDE)
+        putFloat(x)
+        putFloat(y)
+        putFloat(u)
+        putFloat(v)
+        putPackedBytes(color)
+        putFloat(boxWidth)
+        putFloat(boxHeight)
+        putFloat(radius)
+        putFloat(borderWidth)
+        putFloat(softness)
+        putFloat(inset)
+        putPackedBytes(borderColor)
+        putPackedBytes(borderColorBottom)
+        putFloat(mode)
+    }
+
+    //endregion
+
     /**
      * Draws a rectangle with the specified position, size, color, border width, border color, and corner radius.
      *
@@ -471,53 +543,28 @@ abstract class GraphicsRenderer {
         softness: Float = 0f,
         inset: Float = 0f
     ) {
-        // The box shader sets all of its uniforms, the solid quad one is shared with draws setting
-        // none and is kept for the plain rectangles.
-        if (borderColorBottom != null || softness > 0f || inset > 0f) {
-            setState(
-                shader = BuiltIn.Shaders.Box,
-                uniformSet = GraphicsShader.UniformSet().apply {
-                    set("uRadius", radius)
-                    set("uBorderWidth", borderWidth)
-                    set("uBorderColor", transformColor(borderColor))
-                    set("uBorderColorBottom", transformColor(borderColorBottom ?: borderColor))
-                    set("uSize", Vec2(width, height))
-                    set("uInset", inset)
-                    set("uSoftness", softness)
-                },
-            )
-        } else {
-            setState(
-                shader = BuiltIn.Shaders.SolidQuad,
-                uniformSet = GraphicsShader.UniformSet().apply {
-                    set("uRadius", radius)
-                    set("uBorderWidth", borderWidth)
-                    set("uBorderColor", transformColor(borderColor))
-                    set("uSize", Vec2(width, height))
-                },
-            )
-        }
+        setUIState(null)
 
-        drawGeometry { transform, baseColor ->
+        val buffer = activeBuffer ?: throw IllegalStateException("No active vertex buffer to draw geometry.")
+        val transform = matrixStack.lastOrNull() ?: Mat2.Identity
 
-            val color = transformColor(color)
-            val p = points
+        val fill = transformColor(color).packedRGBA
+        val top = transformColor(borderColor).packedRGBA
+        val bottom = if (borderColorBottom != null) transformColor(borderColorBottom).packedRGBA else top
 
-            transform.transform(x, y, p, 0)
-            transform.transform(x + width, y, p, 2)
-            transform.transform(x + width, y + height, p, 4)
-            transform.transform(x, y + height, p, 6)
+        val p = points
+        transform.transform(x, y, p, 0)
+        transform.transform(x + width, y, p, 2)
+        transform.transform(x + width, y + height, p, 4)
+        transform.transform(x, y + height, p, 6)
 
-            // Triangle 1
-            addVertex(p[0], p[1], 0f, 0f, color)
-            addVertex(p[2], p[3], 1f, 0f, color)
-            addVertex(p[4], p[5], 1f, 1f, color)
+        buffer.addUIVertex(p[0], p[1], 0f, 0f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
+        buffer.addUIVertex(p[2], p[3], 1f, 0f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
+        buffer.addUIVertex(p[4], p[5], 1f, 1f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
 
-            // Triangle 2
-            addVertex(p[0], p[1], 0f, 0f, color)
-            addVertex(p[4], p[5], 1f, 1f, color)
-            addVertex(p[6], p[7], 0f, 1f, color)
-        }
+        buffer.addUIVertex(p[0], p[1], 0f, 0f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
+        buffer.addUIVertex(p[4], p[5], 1f, 1f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
+        buffer.addUIVertex(p[6], p[7], 0f, 1f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
     }
 
     /**
@@ -892,7 +939,7 @@ abstract class GraphicsRenderer {
         color: Color4 = Color4.White
     ) {
         val transform = matrixStack.lastOrNull() ?: Mat2.Identity
-        val color = transformColor(color)
+        val packedColor = transformColor(color).packedRGBA
 
         // Glyphs are laid out in local space and every corner is transformed, so rotation and
         // scale apply to text as well.
@@ -921,13 +968,10 @@ abstract class GraphicsRenderer {
             // Some glyphs may not have a texture region if they not need a visible representation
             // (like a space). In such cases, we skip rendering but still advance the cursor.
             if (glyph.region != null) {
+                // Text shares the UI batches with boxes, a glyph on another atlas page needs another one.
                 if (glyph.region.texture !== page) {
                     page = glyph.region.texture
-                    setState(
-                        shader = BuiltIn.Shaders.TextureQuad,
-                        texture = page,
-                        uniformSet = EMPTY_UNIFORMS
-                    )
+                    setUIState(page)
                     buffer = activeBuffer
                 }
 
@@ -950,13 +994,13 @@ abstract class GraphicsRenderer {
                 transform.transform(right, top, p, 6)
 
                 buffer!!.apply {
-                    addVertex(p[0], p[1], u0, v0, color)
-                    addVertex(p[2], p[3], u0, v1, color)
-                    addVertex(p[4], p[5], u1, v1, color)
+                    addUIVertex(p[0], p[1], u0, v0, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
+                    addUIVertex(p[2], p[3], u0, v1, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
+                    addUIVertex(p[4], p[5], u1, v1, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
 
-                    addVertex(p[4], p[5], u1, v1, color)
-                    addVertex(p[6], p[7], u1, v0, color)
-                    addVertex(p[0], p[1], u0, v0, color)
+                    addUIVertex(p[4], p[5], u1, v1, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
+                    addUIVertex(p[6], p[7], u1, v0, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
+                    addUIVertex(p[0], p[1], u0, v0, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
                 }
             }
 
@@ -1005,6 +1049,7 @@ abstract class GraphicsRenderer {
 
     companion object {
         const val VERTEX_2D_STRIDE = 20 // 8 bytes for position, 8 bytes for UV, 4 bytes for color
+        const val UI_VERTEX_STRIDE = 56 // VertexLayout.UI
 
         // Shared by every draw without uniforms of its own. Nothing writes to it, commands and
         // shaders only read their set.

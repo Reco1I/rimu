@@ -80,9 +80,11 @@ data class DrawCommand(
         blendMode: BlendMode,
         depthState: DepthState,
         uniformSet: GraphicsShader.UniformSet,
+        vertexLayout: VertexLayout = VertexLayout.Default,
     ): Boolean {
         return !clearDepth &&
                 instanceBuffer == null &&
+                this.vertexLayout === vertexLayout &&
                 this.shader == shader &&
                 this.uniformSet == uniformSet &&
                 this.texture == texture &&

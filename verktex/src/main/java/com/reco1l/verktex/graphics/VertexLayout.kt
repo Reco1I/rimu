@@ -80,5 +80,19 @@ class VertexLayout(val attributes: List<Attribute>) {
             Attribute(1, 2),
             Attribute(2, 4, Type.NormalizedByte)
         ))
+
+        /**
+         * The layout of the UI shader: [Default] followed by the rounded box parameters and the mode.
+         */
+        val UI = VertexLayout(listOf(
+            Attribute(0, 2),
+            Attribute(1, 2),
+            Attribute(2, 4, Type.NormalizedByte),
+            Attribute(3, 2),
+            Attribute(4, 4),
+            Attribute(5, 4, Type.NormalizedByte),
+            Attribute(6, 4, Type.NormalizedByte),
+            Attribute(7, 1)
+        ))
     }
 }
