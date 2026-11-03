@@ -5,6 +5,7 @@ import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.Mat2
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Vec4
@@ -502,6 +503,17 @@ abstract class UIComponent {
     var borderWidth: Dimension.Fixed = Dimension.Zero
 
     /**
+     * The color of the border at the bottom, it fades from [borderColor] at the top, e.g. a bezel
+     * lighter on top and darker at the bottom. Null for a single color.
+     */
+    var borderColorBottom: Color4? = null
+
+    /**
+     * The shadow drawn below this component, following its shape.
+     */
+    var shadow: Shadow? = null
+
+    /**
      * The radius of the corners of this component. If the radius is greater than 0, the component will be drawn with rounded corners.
      */
     var radius: Dimension.Fixed = Dimension.Zero
@@ -724,8 +736,26 @@ abstract class UIComponent {
         renderer.pushMatrix(localToSceneMatrix)
         renderer.pushColor(color)
 
+        val shadow = shadow
+        if (shadow != null && shadow.color.alpha > 0f) {
+            val blur = shadow.blur.toPixels()
+
+            // Grown by the blur, so the soft edge fits around the component's shape.
+            renderer.drawRect(
+                x = -blur,
+                y = shadow.offsetY.toPixels() - blur,
+                width = bounds.width + blur * 2f,
+                height = bounds.height + blur * 2f,
+                color = shadow.color,
+                radius = radius.toPixels(),
+                softness = blur,
+                inset = blur
+            )
+        }
+
         // The background is drawn before clipping, padding clipping must only affect the content.
-        if (backgroundColor.alpha > 0f || (borderColor.alpha > 0f && borderWidth.value > 0f)) {
+        val hasBorder = borderWidth.value > 0f && (borderColor.alpha > 0f || (borderColorBottom?.alpha ?: 0f) > 0f)
+        if (backgroundColor.alpha > 0f || hasBorder) {
             renderer.drawRect(
                 x = 0f,
                 y = 0f,
@@ -734,7 +764,8 @@ abstract class UIComponent {
                 color = backgroundColor,
                 borderWidth = borderWidth.toPixels(),
                 borderColor = borderColor,
-                radius = radius.toPixels()
+                radius = radius.toPixels(),
+                borderColorBottom = borderColorBottom
             )
         }
 

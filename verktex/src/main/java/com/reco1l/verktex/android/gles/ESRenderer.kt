@@ -28,6 +28,14 @@ class ESRenderer(
             ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/quad.frag and verktex/main.vert")
         )
 
+        BuiltIn.Shaders.Box = createShader(
+            Platform.provider.createShaderSource(
+                vertexShaderPath = "verktex/shaders/main.vert",
+                fragmentShaderPath = "verktex/shaders/box.frag",
+                isExternal = false
+            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/box.frag and verktex/main.vert")
+        )
+
         BuiltIn.Shaders.TextureQuad = createShader(
             Platform.provider.createShaderSource(
                 vertexShaderPath = "verktex/shaders/main.vert",

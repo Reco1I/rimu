@@ -20,6 +20,12 @@ object BuiltIn {
         lateinit var SolidQuad: GraphicsShader
 
         /**
+         * A shader for rendering rounded boxes with a vertical border gradient and soft edges, used
+         * for bezels and shadows.
+         */
+        lateinit var Box: GraphicsShader
+
+        /**
          * A shader for rendering textured quads.
          */
         lateinit var TextureQuad: GraphicsShader
