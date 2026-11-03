@@ -13,6 +13,7 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.input.ScrollEvent
+import com.reco1l.verktex.input.VelocityTracker
 import com.reco1l.verktex.math.almostEquals
 import com.reco1l.verktex.math.almostZero
 import com.reco1l.verktex.time.FrameClock
@@ -108,7 +109,8 @@ open class UIScrollableContainer : UIContainer() {
      */
     var velocityX = 0f
         private set(value) {
-            val velocity = if (value.almostZero()) 0f else value.coerceIn(-maxVelocity.x, maxVelocity.x)
+            val max = maxVelocity.x * 1f.dip.toPixels()
+            val velocity = if (value.almostZero()) 0f else value.coerceIn(-max, max)
 
             if (field != velocity) {
                 field = velocity
@@ -121,7 +123,8 @@ open class UIScrollableContainer : UIContainer() {
      */
     var velocityY = 0f
         private set(value) {
-            val velocity = if (value.almostZero()) 0f else value.coerceIn(-maxVelocity.y, maxVelocity.y)
+            val max = maxVelocity.y * 1f.dip.toPixels()
+            val velocity = if (value.almostZero()) 0f else value.coerceIn(-max, max)
 
             if (field != velocity) {
                 field = velocity
@@ -130,12 +133,13 @@ open class UIScrollableContainer : UIContainer() {
         }
 
     /**
-     * The deceleration factor for the scrollable container.
+     * The fraction of the velocity kept after flinging for one second, for both axes. Lower values
+     * stop the content sooner.
      */
     var deceleration = Vec2(DEFAULT_DECELERATION)
 
     /**
-     * The maximum velocity in px/s for both axes.
+     * The maximum velocity in dip/s for both axes.
      */
     var maxVelocity = Vec2(DEFAULT_MAX_VELOCITY)
 
@@ -252,7 +256,9 @@ open class UIScrollableContainer : UIContainer() {
     private var indicatorYAlpha = 0f
     private var indicatorXAlpha = 0f
 
-    private var dragStartTimeSec = 0f
+    private var lastWheelTimeSec = 0f
+
+    private val velocityTracker = VelocityTracker()
 
     private var lastPointerX = 0f
     private var lastPointerY = 0f
@@ -297,8 +303,14 @@ open class UIScrollableContainer : UIContainer() {
         scrollX -= velocityX * deltaTimeSec
         scrollY -= velocityY * deltaTimeSec
 
-        velocityX *= deceleration.x
-        velocityY *= deceleration.y
+        // Time based, so the content glides the same distance at any frame rate.
+        velocityX *= deceleration.x.pow(deltaTimeSec)
+        velocityY *= deceleration.y.pow(deltaTimeSec)
+
+        // The decay never reaches zero, stop once the movement isn't noticeable anymore.
+        val minimumVelocity = MINIMUM_FLING_VELOCITY.toPixels()
+        if (abs(velocityX) < minimumVelocity) velocityX = 0f
+        if (abs(velocityY) < minimumVelocity) velocityY = 0f
     }
 
     private fun handleOverflow() {
@@ -406,9 +418,8 @@ open class UIScrollableContainer : UIContainer() {
 
     //region Input
 
-    private fun handleUserScroll(deltaX: Float, deltaY: Float) {
+    private fun handleUserScroll(deltaX: Float, deltaY: Float, velocityX: Float, velocityY: Float) {
 
-        val dragTimeSeconds = (Verktex.clock.time - dragStartTimeSec)
         val length = hypot(deltaX, deltaY)
 
         fun decreaseInBoundary(current: Float, delta: Float, max: Float): Float {
@@ -419,7 +430,7 @@ open class UIScrollableContainer : UIContainer() {
         }
 
         if (scrollAxes.isHorizontal && !deltaX.almostZero()) {
-            velocityX = if (dragTimeSeconds > 0.3f) 0f else deltaX / dragTimeSeconds
+            this.velocityX = velocityX
             scrollX -= decreaseInBoundary(scrollX, deltaX, maxScrollX)
 
             if (!overflowAxes.isHorizontal) {
@@ -428,7 +439,7 @@ open class UIScrollableContainer : UIContainer() {
         }
 
         if (scrollAxes.isVertical && !deltaY.almostZero()) {
-            velocityY = if (dragTimeSeconds > 0.3f) 0f else deltaY / dragTimeSeconds
+            this.velocityY = velocityY
             scrollY -= decreaseInBoundary(scrollY, deltaY, maxScrollY)
 
             if (!overflowAxes.isVertical) {
@@ -455,7 +466,8 @@ open class UIScrollableContainer : UIContainer() {
             when (event.action) {
                 PointerEvent.Action.Down -> {
                     dragPointerId = event.pointerId
-                    dragStartTimeSec = Verktex.clock.time
+                    velocityTracker.clear()
+                    velocityTracker.addSample(event.timeMillis(), event.x, event.y)
                     lastPointerX = event.x
                     lastPointerY = event.y
                     pointerTravel = 0f
@@ -472,6 +484,7 @@ open class UIScrollableContainer : UIContainer() {
                     pointerTravel += hypot(deltaX, deltaY)
                     dragX += deltaX
                     dragY += deltaY
+                    velocityTracker.addSample(event.timeMillis(), event.x, event.y)
 
                     // Nested scrollable containers get the drag first, this one only takes it over
                     // when none of them is scrolling and it goes along one of its scroll axes.
@@ -489,12 +502,22 @@ open class UIScrollableContainer : UIContainer() {
                         super.onInputEvent(event.copy(action = PointerEvent.Action.Unknown))
                     }
 
-                    handleUserScroll(deltaX, deltaY)
+                    handleUserScroll(deltaX, deltaY, velocityTracker.velocityX, velocityTracker.velocityY)
                     isUserScrolling = true
-                    dragStartTimeSec = Verktex.clock.time
                 }
 
-                PointerEvent.Action.Up, PointerEvent.Action.Unknown, PointerEvent.Action.Cancel -> {
+                PointerEvent.Action.Up -> {
+                    // Fling with the velocity the finger had when lifted.
+                    if (isUserScrolling) {
+                        velocityTracker.release(event.timeMillis())
+                        if (scrollAxes.isHorizontal) velocityX = velocityTracker.velocityX
+                        if (scrollAxes.isVertical) velocityY = velocityTracker.velocityY
+                    }
+                    isUserScrolling = false
+                    dragPointerId = -1
+                }
+
+                PointerEvent.Action.Unknown, PointerEvent.Action.Cancel -> {
                     isUserScrolling = false
                     dragPointerId = -1
                 }
@@ -506,9 +529,13 @@ open class UIScrollableContainer : UIContainer() {
             val isScrollingVertical = scrollAxes.isVertical && abs(event.deltaY) > minimumTravel.y
 
             if (isScrolling || isScrollingHorizontal || isScrollingVertical) {
-                handleUserScroll(event.deltaX, event.deltaY)
+                // A wheel has no samples to track, its velocity is the one of the last step.
+                val stepTime = Verktex.clock.time - lastWheelTimeSec
+                val velocityX = if (stepTime > 0.3f || stepTime <= 0f) 0f else event.deltaX / stepTime
+                val velocityY = if (stepTime > 0.3f || stepTime <= 0f) 0f else event.deltaY / stepTime
+                handleUserScroll(event.deltaX, event.deltaY, velocityX, velocityY)
                 isUserScrolling = true
-                dragStartTimeSec = Verktex.clock.time
+                lastWheelTimeSec = Verktex.clock.time
             } else {
                 isUserScrolling = false
             }
@@ -521,6 +548,9 @@ open class UIScrollableContainer : UIContainer() {
     }
 
 
+    // The time of the event, or the one of the frame when the platform didn't give one.
+    private fun PointerEvent.timeMillis() = if (time != 0L) time else (Verktex.clock.time * 1000f).toLong()
+
     private fun hasScrollingDescendant() = propagateConsumable {
         it !== this && it is UIScrollableContainer && it.isUserScrolling
     }
@@ -530,11 +560,12 @@ open class UIScrollableContainer : UIContainer() {
 
     companion object {
 
-        const val DEFAULT_DECELERATION = 0.98f
+        const val DEFAULT_DECELERATION = 0.15f
         const val DEFAULT_MINIMUM_TRAVEL = 20f
-        const val DEFAULT_MAX_VELOCITY = 3000f
+        const val DEFAULT_MAX_VELOCITY = 8000f
 
         private val INDICATOR_THICKNESS = 3f.dip
+        private val MINIMUM_FLING_VELOCITY = 10f.dip
 
     }
 }
