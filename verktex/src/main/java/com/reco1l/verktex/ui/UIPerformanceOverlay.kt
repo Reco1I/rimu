@@ -51,6 +51,7 @@ class UIPerformanceOverlay : UIClickableContainer() {
     }
 
     private val drawTimeText = statValue()
+    private val gpuTimeText = statValue()
     private val updateTimeText = statValue()
     private val drawCallsText = statValue()
     private val layoutTimeText = statValue()
@@ -136,8 +137,8 @@ class UIPerformanceOverlay : UIClickableContainer() {
                 spacing = STAT_SPACING.dip
 
                 +stat("DRAW", drawTimeText)
+                +stat("GPU", gpuTimeText)
                 +stat("UPDATE", updateTimeText)
-                +stat("DRAW CALLS", drawCallsText)
             }
 
             // Where the draw time goes.
@@ -148,6 +149,13 @@ class UIPerformanceOverlay : UIClickableContainer() {
                 +stat("LAYOUT", layoutTimeText)
                 +stat("RECORD", recordTimeText)
                 +stat("SUBMIT", submitTimeText)
+            }
+
+            +UILinearContainer().apply {
+                width = fill()
+                spacing = STAT_SPACING.dip
+
+                +stat("DRAW CALLS", drawCallsText)
             }
         }
     }
@@ -197,6 +205,8 @@ class UIPerformanceOverlay : UIClickableContainer() {
             fpsText.color = fpsColor
             frameTimeText.text = "%.1f ms · max %.1f ms".format(PerformanceStats.frameTime, PerformanceStats.maxFrameTime)
             drawTimeText.text = "%.1f ms".format(PerformanceStats.drawTime)
+            // The time the GPU spent on a frame, shown when the device can measure it.
+            gpuTimeText.text = if (PerformanceStats.gpuTime >= 0f) "%.1f ms".format(PerformanceStats.gpuTime) else "n/a"
             updateTimeText.text = "%.2f ms".format(PerformanceStats.updateTime)
             drawCallsText.text = PerformanceStats.drawCommands.toString()
             layoutTimeText.text = "%.2f ms".format(PerformanceStats.layoutTime)

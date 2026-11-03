@@ -36,6 +36,13 @@ object PerformanceStats {
      */
     var submitTime = 0f
 
+    /**
+     * Milliseconds the GPU took to execute a recent frame, measured a few frames late, or -1 when
+     * the device can't measure it. A frame time above the draw time and close to this one means
+     * the GPU is what limits the frame rate.
+     */
+    var gpuTime = -1f
+
     // Accumulated during the frame, as every scene lays itself out.
     private var frameLayoutNanos = 0L
 
