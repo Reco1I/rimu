@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew lint
 ```
 
-Requires **Java 17** and **Android NDK 22.1.7171670**. The project has three Gradle modules: the main app, `:AndEngine` (modified GLES2 engine), and `:LibBASS` (native audio). Tests live under `tests/test/kotlin/` (not the standard `src/test/`).
+Requires **Java 17** and **Android NDK 22.1.7171670**. The project has three Gradle modules: the main app, `:verktex` (the engine), and `:LibBASS` (native audio). Engine tests live under `verktex/src/test/`, run with `./gradlew :verktex:testDebugUnitTest`. Tests live under `tests/test/kotlin/` (not the standard `src/test/`).
 
 ## Architecture Overview
 
@@ -34,23 +34,23 @@ The codebase is split across multiple main package roots:
 
 - **`ru/nsu/ccfit/zuev/osu/`** — Legacy Java code. Contains the original `MainActivity`, `GameScene`, `MainScene`, `ResourceManager`, and `Config`. Most subsystems here are singletons.
 - **`com/acivev/`** — Vibration and haptic feedback management (`VibratorManager`, `VibratorCheckUtils`, etc.) as well as snow effects (`ui/Effect.kt`).
-- **`com/edlplan/andengine/`** — Helpers for AndEngine's texture management as well as triangle-based rendering (`TriangleBuilder`, `TriangleRenderer`, etc.).
-- **`com/edlplan/framework/`** — Parsing and rendering of storyboard elements, including sprites, animations, and video (`OsbContext`, `StoryboardSprite`, etc.). Also contains some helper classes for AndEngine and utility classes for Android development.
+- **`com/edlplan/andengine/`** — `TriangleBuilder`, used to build slider body geometry.
+- **`com/edlplan/framework/`** — Math, easing and utility classes.
+- **`legacy/storyboard/`** — The storyboard renderer, outside the source set until it's rewritten on Verktex.
 - **`com/edlplan/osu/`** — Slider body rendering (`AbstractSliderBody`, `DrawLinePath`, `SliderBody`, etc.) and some beatmap parsing.
 - **`com/edlplan/replay/`** — Replay imports and exports.
 - **`com/edlplan/ui/`** — Fragments and utilities to manage their lifecycle (`ActivityOverlay`, `BaseFragment`, `BeatmapPropertiesFragment`, etc.).
 - **`com/osudroid/`** — Modern Kotlin code. Contains beatmap parsing, difficulty calculation, the mod system, multiplayer, Room database, and newer UI scenes.
-- **`com/reco1l/andengine/`** — Kotlin extensions on top of AndEngine for layout, sprites, animations, and UI components (`UISprite`, `UIScene`, `UIEngine`, etc.).
+- **`verktex/`** — The engine: rendering, audio, input, clocks (`time/`), and the UI components (`UIComponent`, `UIContainer`, `UIScene`, `UISprite`, etc.).
 - **`com/reco1l/framework/`** — Kotlin extensions for some Android classes and existing classes, such as bitmaps and easing. 
 - **`com/reco1l/osu/ui`** — New UI components, primarily dialogs and settings preferences.
-- **`com/rian/andengine/`** — Kotlin extensions on top of AndEngine for modifiers and clock-based timing (`FramedClock`, `ThrottledFrameClock`, `UniversalModifier`, etc.).
 - **`com/rian/framework/`** — A couple of utility classes such as `RollingNumber`.
 - **`tests/test/kotlin/`** — Unit tests for beatmap parsing, difficulty calculation, and other core logic.
 - **`tests/test/resources/`** — Resources for unit tests, such as beatmap and storyboard files.
 
 ### Game Loop
 
-`MainActivity` (extends AndEngine's `BaseGameActivity`) owns the `Engine` and scene lifecycle. The scene flow for singleplayer is:
+`MainActivity` extends Verktex's `AndroidGameHost`. Scenes are kept in a stack through `Verktex.pushScene` and `Verktex.popScene`. The scene flow for singleplayer is:
 
 ```
 SplashScene → LoadingScreen → MainScene (menu hub)
@@ -70,15 +70,15 @@ SplashScene → LoadingScreen → MainScene (menu hub) → LobbyScene
 
 ### Rendering
 
-AndEngine (GLES1) handles all rendering. The modern UI layer wraps it via `UIEngine`/`UIScene` and a custom entity hierarchy (`Entity` → `UIComponent` → `UIBufferedComponent`/`UIContainer`/etc.).
+Verktex handles all rendering. UI is a tree of `UIComponent`s measured and laid out through `LayoutConstraints`, animated with transforms for UI, and with `Choreography` for anything on the gameplay clock, whose state depends only on the time so that seeking works.
 
 ### Asset / Resource Loading
 
-`ResourceManager` (singleton) loads all skins, textures, sounds, and fonts. Textures use `BitmapTextureAtlas`. Skin resolution falls back to the default skin when a custom skin is missing an asset.
+`SkinTextures` and `SkinSounds` look up skin assets, preferring the beatmap skin, then the custom skin folder, then the default skin. `Skin` loads the configuration of a skin folder. Other textures and sounds go through Verktex's `Textures` and `Sounds`.
 
 ### Audio
 
-BASS native library, wrapped in `LibBASS`. Access is through `BassSoundProvider`, `SongService`, and the `com/reco1l/framework/bass/` wrappers.
+BASS native library, wrapped in `LibBASS` and reached through Verktex's audio API. `SongService` plays songs, and `BassSoundProvider` plays sound effects.
 
 ### Beatmaps & Difficulty
 
@@ -99,7 +99,7 @@ Socket.IO for real-time lobby/room events. REST calls use OkHttp3. Firebase Mess
 ## Key Conventions
 
 - New gameplay/beatmap/difficulty code goes in `com/osudroid/` (Kotlin).
-- UI components that extend AndEngine belong in `com/reco1l/andengine/` or `com/rian/andengine/` (Kotlin).
+- Generic UI components belong in `verktex/`, and game-specific ones in `com/osudroid/ui/v2/` (Kotlin).
 - Legacy Java files in `ru/nsu/ccfit/zuev/osu/` are modified in-place; avoid moving them.
 
 @CLAUDE.local.md
