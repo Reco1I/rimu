@@ -1,38 +1,33 @@
 package com.osudroid.ui.v2.songselect
 
-import com.reco1l.andengine.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.sprite.UISprite
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.ui.*
-import com.reco1l.framework.math.*
-import ru.nsu.ccfit.zuev.osu.*
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.control.UITextInput
+import com.reco1l.verktex.ui.iconButton
 
-class SongSelectFilterBar : UIFillContainer() {
+class SongSelectFilterBar : UILinearContainer() {
 
     init {
-        ResourceManager.getInstance().loadHighQualityAsset("filters", "filters.png")
-        ResourceManager.getInstance().loadHighQualityAsset("search-small", "search-small.png")
-
-        width = Size.Full
+        width = Dimension.FillAvailable
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
-        padding = Vec4(32f, 16f)
-        spacing = 14f
-
-        /*onSubmit = {
-            SongSelect.loadBeatmaps(
-                query = it.optString("query"),
-                sort = it.optJSONArray("sort")?.optString(0) ?: "title",
-            )
-        }*/
+        padding = Padding(32f.px, 16f.px)
+        spacing = 14f.px
 
         iconButton {
-            icon = UISprite(ResourceManager.getInstance().getTexture("filters"))
+            icon = FAIcon.Filter
         }
 
         container {
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
 
             +object : UITextInput("") {
 
@@ -40,8 +35,8 @@ class SongSelectFilterBar : UIFillContainer() {
 
                 init {
                     key = "query"
-                    width = Size.Full
-                    height = Size.Full
+                    width = Dimension.FillAvailable
+                    height = Dimension.FillAvailable
                 }
 
                 override fun onValueChanged() {
@@ -49,8 +44,8 @@ class SongSelectFilterBar : UIFillContainer() {
                     lastValueChangeMillis = System.currentTimeMillis()
                 }
 
-                override fun onManagedUpdate(deltaTimeSec: Float) {
-                    super.onManagedUpdate(deltaTimeSec)
+                override fun onUpdate(clock: FrameClock) {
+                    super.onUpdate(clock)
 
                     if (lastValueChangeMillis > 0L && System.currentTimeMillis() - lastValueChangeMillis > 300) {
                         lastValueChangeMillis = -1L
@@ -59,76 +54,12 @@ class SongSelectFilterBar : UIFillContainer() {
                 }
             }
 
-            sprite {
-                width = 52f
-                height = 28f
+            +UIIcon(FAIcon.MagnifyingGlass).apply {
                 anchor = Anchor.CenterRight
                 origin = Anchor.CenterRight
-                textureRegion = ResourceManager.getInstance().getTexture("search-small")
-                style = { color = it.accentColor }
+                x = (-12f).px
+                style = Style { theme -> color = theme.palette.accent }
             }
-        }
-
-
-        /*flexContainer {
-            width = Size.Full
-            gap = 8f
-
-            iconButton {
-                icon = ResourceManager.getInstance().getTexture("heart")
-                onActionUp = {
-                    isSelected = !isSelected
-                }
-            }
-
-            +UISelect<String>().apply {
-                placeholder = "Collection"
-                options = listOf(
-                    Option("All", "All"),
-                    Option("Standard", "Standard"),
-                    Option("Taiko", "Taiko"),
-                    Option("Catch", "Catch"),
-                )
-                flexRules {
-                    grow = 1f
-                    basis = 0f
-                }
-            }
-
-            +object : UISelect<String>() {
-
-                init {
-                    key = "sort"
-                    placeholder = "Sort by"
-                    options = listOf(
-                         Option(if (Config.isForceRomanized()) "titleUnicode" else "title", "Title"),
-                         Option(if (Config.isForceRomanized()) "artistUnicode" else "artist", "Artist"),
-                         Option("length", "Length"),
-                         Option("creator", "Creator"),
-                         Option("dateImported", "Date imported"),
-                         Option("mostCommonBPM", "Most common BPM"),
-                         Option("droidStarRating", "Droid star rating"),
-                         Option("standardStarRating", "Standard star rating"),
-                    )
-                    flexRules {
-                        grow = 1f
-                        basis = 0f
-                    }
-                }
-
-                override fun onValueChanged() {
-                    super.onValueChanged()
-                    //submit()
-                }
-            }
-
-        }*/
-    }
-
-
-    companion object {
-        init {
-            ResourceManager.getInstance().loadHighQualityAsset("heart", "heart.png")
         }
     }
 }

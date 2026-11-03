@@ -857,6 +857,16 @@ public class MainActivity extends AndroidGameHost {
             return true;
         }
 
+        if (keyCode == KeyEvent.KEYCODE_BACK && ModMenu.INSTANCE.isShown()) {
+            ModMenu.INSTANCE.back();
+            return true;
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_BACK && Verktex.getScene() == SongSelect.INSTANCE) {
+            SongSelect.INSTANCE.back();
+            return true;
+        }
+
         if (keyCode == KeyEvent.KEYCODE_BACK && songMenu != null) {
             if (currentScene == songMenu.getScene()) {
                 //SongMenu 界面按返回按钮（系统按钮）

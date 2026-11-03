@@ -1,29 +1,33 @@
 package com.osudroid.ui.v2.songselect
 
+import com.osudroid.beatmaps.parser.*
 import com.osudroid.data.*
+import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateDroidDifficulty
+import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateStandardDifficulty
+import com.osudroid.mods.*
+import com.osudroid.multiplayer.*
+import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.ui.v2.*
-import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.ui.v2.modmenu.*
 import com.osudroid.utils.*
-import com.reco1l.andengine.*
-import com.reco1l.andengine.component.scaleCenter
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.text.FontAwesomeIcon
-import com.reco1l.andengine.theme.Colors
-import com.reco1l.andengine.theme.Icon
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.*
-import com.reco1l.framework.math.*
-import com.rian.osu.beatmap.parser.*
-import com.rian.osu.difficulty.BeatmapDifficultyCalculator.calculateDroidDifficulty
-import com.rian.osu.difficulty.BeatmapDifficultyCalculator.calculateStandardDifficulty
-import com.rian.osu.mods.*
-import com.rian.osu.utils.*
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIScene
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.textButton
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.*
-import java.io.*
+import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import kotlin.coroutines.cancellation.CancellationException
 
 
@@ -35,6 +39,18 @@ object SongSelect : UIScene() {
     var selectedBeatmap: BeatmapInfo? = null
         private set
 
+    /**
+     * The scores currently shown in the leaderboard, in the format used by the gameplay leaderboard.
+     */
+    val scoreBoardItems: List<ScoreBoardItem>
+        get() = leaderboard.scoreBoardItems
+
+    /**
+     * Whether the leaderboard is showing online scores.
+     */
+    val isLeaderboardOnline
+        get() = leaderboard.leaderboardType == LeaderboardType.Global
+
 
     private val beatmapLoadingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -44,7 +60,7 @@ object SongSelect : UIScene() {
     private val beatmapInfoWedge = BeatmapInfoWedge()
     private val backgroundSprite: UISprite
 
-    private lateinit var modsButton: UITextButton
+    private lateinit var modsIndicator: ModsIndicator
 
     private var currentSongPath: String? = null
     private var currentBackgroundPath: String? = null
@@ -53,29 +69,25 @@ object SongSelect : UIScene() {
 
 
     init {
-        ResourceManager.getInstance().loadHighQualityAsset("mods", "mods.png")
-        ResourceManager.getInstance().loadHighQualityAsset("random", "random.png")
-
-        backgroundSprite = sprite {
-            width = Size.Full
-            height = Size.Full
-            textureRegion = ResourceManager.getInstance().getTexture("menu-background")
-            scaleType = ScaleType.Crop
+        backgroundSprite = UISprite().apply {
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
+            textureRegion = SkinTextures["menu-background"]
+            scaleType = UISprite.ScaleType.Crop
             color *= 0.4f
         }
+        background = backgroundSprite
 
-        fillContainer {
-            width = Size.Full
-            height = Size.Full
+        linearContainer {
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
 
             // Left side
             linearContainer {
-                width = Size.Full
-                height = Size.Full
-                orientation = Orientation.Vertical
-                style = {
-                    spacing = 2f.srem
-                }
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                orientation = UILinearContainer.Orientation.Vertical
+                spacing = 8f.dip
 
                 +beatmapInfoWedge
                 +leaderboard
@@ -83,52 +95,143 @@ object SongSelect : UIScene() {
 
             // Right side
             container {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
 
-                +beatmapCarrousel.apply {
-                    setScale(0.8f)
-                    scaleCenter = Anchor.Center
-                    borderWidth = 4f
-                    borderColor = Colors.White
-                }
+                +beatmapCarrousel
                 +filterBar
             }
         }
 
         linearContainer {
-            orientation = Orientation.Horizontal
+            orientation = UILinearContainer.Orientation.Horizontal
             anchor = Anchor.BottomLeft
             origin = Anchor.BottomLeft
-            style = {
-                padding = Vec4(UIEngine.current.safeArea.x + 2f.srem, 4f.srem)
-                spacing = 2f.srem
-            }
+            padding = Padding(8f.dip, 16f.dip)
+            spacing = 8f.dip
 
             textButton {
                 text = "Back"
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                leadingIcon = FontAwesomeIcon(Icon.ArrowLeft)
+                leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
 
-                onActionUp = {
-                    UIEngine.current.scene = MainScene
-                }
-            }
-
-            modsButton = textButton {
-                text = "Mods"
-                leadingIcon = UISprite(ResourceManager.getInstance().getTexture("mods"))
-                onActionUp = { ModMenu.show() }
+                onActionUp = { back() }
             }
 
             textButton {
-                text = "Random"
-                leadingIcon = UISprite(ResourceManager.getInstance().getTexture("random"))
-                onActionUp = {
-                    beatmapCarrousel.applyComponent(beatmapCarrousel.data.random()) { selectRandom() }
+                text = "Mods"
+                leadingIcon = faSolidIcon(FAIcon.Sliders)
+                onActionUp = { ModMenu.show() }
+            }
+
+            modsIndicator = ModsIndicator().apply {
+                anchor = Anchor.CenterLeft
+                origin = Anchor.CenterLeft
+                style = Style {
+                    iconSize = 28f.px
+                    spacing = (-5f).px
                 }
             }
+            +modsIndicator
+
+            textButton {
+                text = "Random"
+                leadingIcon = faSolidIcon(FAIcon.Shuffle)
+                onActionUp = {
+                    if (beatmapCarrousel.data.isNotEmpty()) {
+                        beatmapCarrousel.applyComponent(beatmapCarrousel.data.random()) { selectRandom() }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Makes this scene the current one, unless it already is.
+     */
+    fun show() {
+        Verktex.withTreeLock {
+            if (Verktex.scene !== this) {
+                Verktex.pushScene(this)
+            }
+        }
+    }
+
+    /**
+     * Leaves this scene without changing the beatmap of the multiplayer room.
+     */
+    fun back() = back(true)
+
+    private fun back(resetMultiplayerBeatmap: Boolean) {
+        cancelJobs()
+
+        Verktex.withTreeLock { Verktex.popScene() }
+
+        if (Multiplayer.isMultiplayer) {
+            if (resetMultiplayerBeatmap) {
+                resetMultiplayerRoomBeatmap()
+            }
+
+            Multiplayer.roomScene?.show()
+            return
+        }
+
+        GlobalManager.getInstance().songService.apply {
+            setSpeed(1f)
+            setAdjustPitch(false)
+        }
+    }
+
+    private fun cancelJobs() {
+        currentCalculationJob?.cancel(CancellationException("Calculation cancelled, leaving the scene."))
+        currentBeatmapLoadingJob?.cancel(CancellationException("Beatmap loading cancelled, leaving the scene."))
+    }
+
+
+    /**
+     * Starts playing the given beatmap, or sets it as the beatmap of the room in multiplayer.
+     */
+    fun onBeatmapConfirmed(beatmapInfo: BeatmapInfo) {
+        ResourceManager.getInstance().getSound("menuhit")?.play()
+        cancelJobs()
+
+        if (Multiplayer.isMultiplayer) {
+            setMultiplayerRoomBeatmap(beatmapInfo)
+            back(false)
+            return
+        }
+
+        val gameScene = GlobalManager.getInstance().gameScene
+
+        gameScene.setOldScene(this)
+        gameScene.startGame(beatmapInfo, null, ModMenu.enabledMods)
+    }
+
+    private fun resetMultiplayerRoomBeatmap() {
+        // Locking host from change beatmap before the server responses to beatmapChange
+        Multiplayer.roomScene?.isWaitingForBeatmapChange?.set(true)
+
+        if (!Multiplayer.isConnected) {
+            return
+        }
+
+        val beatmap = Multiplayer.room?.previousBeatmap
+
+        if (beatmap != null) {
+            RoomAPI.changeBeatmap(beatmap.md5, beatmap.title, beatmap.artist, beatmap.version, beatmap.creator)
+        } else {
+            RoomAPI.changeBeatmap()
+        }
+    }
+
+    private fun setMultiplayerRoomBeatmap(beatmapInfo: BeatmapInfo) {
+        // Locking host from change beatmap before the server responses to beatmapChange
+        Multiplayer.roomScene?.isWaitingForBeatmapChange?.set(true)
+
+        if (Multiplayer.isConnected) {
+            RoomAPI.changeBeatmap(beatmapInfo.md5, beatmapInfo.title, beatmapInfo.artist, beatmapInfo.version, beatmapInfo.creator)
         }
     }
 
@@ -145,13 +248,10 @@ object SongSelect : UIScene() {
         currentCalculationJob?.cancel(CancellationException("Calculation cancelled due to new selection."))
         currentBeatmapLoadingJob?.cancel(CancellationException("Beatmap loading cancelled due to new selection."))
 
+        beatmapInfoWedge.onBeatmapSelected(beatmapInfo)
+        leaderboard.onBeatmapSelected(beatmapInfo)
+
         currentBeatmapLoadingJob = beatmapLoadingScope.launch {
-
-            ensureActive()
-            beatmapInfoWedge.onBeatmapSelected(beatmapInfo)
-
-            ensureActive()
-            leaderboard.onBeatmapSelected(beatmapInfo)
 
             GlobalManager.getInstance().selectedBeatmap = beatmapInfo
 
@@ -160,8 +260,7 @@ object SongSelect : UIScene() {
                 currentSongPath = null
                 currentBackgroundPath = null
 
-                ensureActive()
-                backgroundSprite.textureRegion = ResourceManager.getInstance().getTexture("menu-background")
+                updateThread { backgroundSprite.textureRegion = SkinTextures["menu-background"] }
 
                 ensureActive()
                 GlobalManager.getInstance().songService.stop()
@@ -169,23 +268,25 @@ object SongSelect : UIScene() {
                 return@launch
             }
 
-            if (!Config.isSafeBeatmapBg() && currentBackgroundPath != beatmapInfo.backgroundPath) {
-                currentBackgroundPath = beatmapInfo.backgroundPath
+            val backgroundPath = beatmapInfo.backgroundPath
 
-                val backgroundFile = File(beatmapInfo.backgroundPath)
-
-                ensureActive()
-                val textureRegion = ResourceManager.getInstance().loadHighQualityFile("::background", backgroundFile)
+            if (!Config.isSafeBeatmapBg() && backgroundPath != null && currentBackgroundPath != backgroundPath) {
+                currentBackgroundPath = backgroundPath
 
                 ensureActive()
-                backgroundSprite.textureRegion = textureRegion ?: ResourceManager.getInstance().getTexture("menu-background")
+                val textureRegion = Textures.load("::background", backgroundPath)
+
+                ensureActive()
+                updateThread { backgroundSprite.textureRegion = textureRegion ?: SkinTextures["menu-background"] }
             }
 
             if (currentSongPath != beatmapInfo.audioPath) {
                 currentSongPath = beatmapInfo.audioPath
 
+                val songService = GlobalManager.getInstance().songService
+
                 ensureActive()
-                GlobalManager.getInstance().songService.preLoad(beatmapInfo.audioPath)
+                songService.preLoad(beatmapInfo.audioPath)
 
                 ensureActive()
                 updateMusicEffects()
@@ -193,76 +294,63 @@ object SongSelect : UIScene() {
                 val previewTime = if (beatmapInfo.previewTime >= 0)
                     beatmapInfo.previewTime
                 else
-                    (GlobalManager.getInstance().songService.length * 0.4f).toInt()
+                    (songService.length * 0.4f).toInt()
 
                 ensureActive()
-                GlobalManager.getInstance().songService.play()
+                songService.play()
 
                 ensureActive()
-                GlobalManager.getInstance().songService.seekTo(previewTime)
+                songService.seekTo(previewTime)
             }
 
             ensureActive()
             currentCalculationJob = beatmapLoadingScope.launch calculationJob@{
 
                 ensureActive()
-                BeatmapParser(beatmapInfo.path, this@calculationJob).use { parser ->
+                val data = BeatmapParser(beatmapInfo.path, this@calculationJob).parse(true)
 
+                if (data == null) {
                     ensureActive()
-                    val data = parser.parse(true)
-
-                    if (data == null) {
-                        ensureActive()
-                        beatmapInfoWedge.setDifficultyStatistics(beatmapInfo)
-                        return@calculationJob
-                    }
-
-                    ensureActive()
-                    val newBeatmapInfo = BeatmapInfo(data, beatmapInfo.dateImported, true, this@calculationJob)
-                    beatmapInfo.apply(newBeatmapInfo)
-
-                    ensureActive()
-                    beatmapInfoWedge.setDifficultyStatistics(beatmapInfo)
-
-                    val mods = ModMenu.enabledMods.deepCopy().values
-
-                    ensureActive()
-                    val attributes = when (Config.getDifficultyAlgorithm()) {
-                        DifficultyAlgorithm.droid -> calculateDroidDifficulty(data, mods, this@calculationJob)
-                        DifficultyAlgorithm.standard -> calculateStandardDifficulty(data, mods, this@calculationJob)
-                    }
-
-                    ensureActive()
-                    beatmapInfoWedge.setStarRatingDisplay(attributes.starRating)
+                    updateThread { beatmapInfoWedge.setDifficultyStatistics(beatmapInfo) }
+                    return@calculationJob
                 }
+
+                ensureActive()
+                val newBeatmapInfo = BeatmapInfo(data, beatmapInfo.dateImported, true, this@calculationJob)
+                beatmapInfo.apply(newBeatmapInfo)
+
+                ensureActive()
+                updateThread { beatmapInfoWedge.setDifficultyStatistics(beatmapInfo) }
+
+                val mods = ModMenu.enabledMods.deepCopy().values
+
+                ensureActive()
+                val attributes = when (Config.getDifficultyAlgorithm()) {
+                    DifficultyAlgorithm.droid -> calculateDroidDifficulty(data, mods, this@calculationJob)
+                    DifficultyAlgorithm.standard -> calculateStandardDifficulty(data, mods, this@calculationJob)
+                }
+
+                ensureActive()
+                updateThread { beatmapInfoWedge.setStarRatingDisplay(attributes.starRating) }
             }
         }
     }
 
     fun onModsChanged() {
-        modsButton.apply {
-            if (ModMenu.enabledMods.isEmpty()) {
-                trailingIcon = null
-            } else {
-                trailingIcon = ModsIndicator().apply {
-                    iconSize = 28f
-                    mods = ModMenu.enabledMods.values
-                }
-            }
-        }
+        modsIndicator.mods = ModMenu.enabledMods.values.toList()
     }
 
-    fun setDifficultyStatistics(beatmapInfo: BeatmapInfo?) {
+    fun setDifficultyStatistics(beatmapInfo: BeatmapInfo?) = updateThread {
         beatmapInfoWedge.setDifficultyStatistics(beatmapInfo)
     }
 
-    fun setStarRatingDisplay(starRating: Double) {
+    fun setStarRatingDisplay(starRating: Double) = updateThread {
         beatmapInfoWedge.setStarRatingDisplay(starRating)
     }
 
     fun updateMusicEffects() {
-        val speed = ModUtils.calculateRateWithMods(ModMenu.enabledMods.values, Double.POSITIVE_INFINITY)
-        val adjustPitch = ModMenu.enabledMods.contains(ModNightCore::class.java)
+        val speed = ModMenu.enabledMods.values.calculateRate(Double.POSITIVE_INFINITY)
+        val adjustPitch = ModNightCore::class in ModMenu.enabledMods
 
         GlobalManager.getInstance().songService.setSpeed(speed)
         GlobalManager.getInstance().songService.setAdjustPitch(adjustPitch)
@@ -281,12 +369,9 @@ object SongSelect : UIScene() {
 
             beatmapCarrousel.applyComponent(model) {
                 val beatmapInfoIndex = model.beatmapSetInfo.beatmaps.indexOfFirst { it.path == currentBeatmapInfo?.path }
-                select(beatmapInfoIndex)
+                select(beatmapInfoIndex.coerceAtLeast(0))
             }
         }
     }
 
-
 }
-
-

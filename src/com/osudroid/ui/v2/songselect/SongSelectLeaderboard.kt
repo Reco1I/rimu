@@ -5,21 +5,34 @@ import com.osudroid.online.*
 import com.osudroid.online.model.*
 import com.osudroid.ui.v2.*
 import com.osudroid.ui.v2.songselect.LeaderboardType.*
-import com.reco1l.andengine.*
-import com.reco1l.andengine.buffered.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.modifier.*
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.sprite.*
-import com.reco1l.andengine.text.*
-import com.reco1l.andengine.theme.Size
-import com.reco1l.andengine.theme.rem
-import com.reco1l.andengine.theme.srem
-import com.reco1l.andengine.ui.*
-import com.reco1l.framework.math.*
+import com.osudroid.utils.updateThread
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.UILoadingIndicator
+import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.container.RecyclableComponent
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UIRecyclerContainer
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.control.UITabSelector
+import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.ui.scaleTo
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.text
 import kotlinx.coroutines.*
-import ru.nsu.ccfit.zuev.osu.*
+import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.online.*
 import java.text.*
 import java.util.*
@@ -35,14 +48,28 @@ class SongSelectLeaderboard : UILinearContainer() {
         set(value) {
             if (field != value) {
                 field = value
-                scoresContainer.onCreateComponent = null
-                onBeatmapSelected(SongSelect.selectedBeatmap)
                 scoresContainer.onCreateComponent = { LeaderboardItem(value == Global) }
+                onBeatmapSelected(SongSelect.selectedBeatmap)
+            }
+        }
+
+    /**
+     * The scores currently shown, in the format used by the gameplay leaderboard.
+     */
+    val scoreBoardItems: List<ScoreBoardItem>
+        get() = scoresContainer.data.mapIndexed { index, score ->
+            ScoreBoardItem().apply {
+                userName = score.playerName
+                playScore = score.score
+                scoreId = score.scoreId.toInt()
+                rank = index + 1
+                maxCombo = score.maxCombo
+                accuracy = score.accuracy
             }
         }
 
 
-    private val scoreLoadingScope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
+    private val scoreLoadingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private val scoresContainer = UIRecyclerContainer<BeatmapScoreModel, LeaderboardItem>(18)
 
@@ -53,55 +80,43 @@ class SongSelectLeaderboard : UILinearContainer() {
 
 
     init {
-        ResourceManager.getInstance().loadHighQualityAsset("info", "info.png")
-
-        height = Size.Full
-        width = Size.Full
+        height = Dimension.FillAvailable
+        width = Dimension.FillAvailable
         orientation = Orientation.Vertical
-        style = {
-            padding = Vec4(
-                UIEngine.current.safeArea.x + 4f.srem,
-                0f,
-                8f.srem + 2f.srem, // The shear size
-                0f,
-            )
-        }
+        // The right side leaves space for the shear of the wedge.
+        padding = Padding(left = 16f.dip, right = 40f.dip)
 
         +UITabSelector().apply {
-            width = Size.Full
+            width = Dimension.FillAvailable
             addButton("Local") { leaderboardType = Local }
             addButton("Global") { leaderboardType = Global }
             selectedTab = 0
         }
 
         container {
-            width = Size.Full
-            height = Size.Full
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
 
             +overlayContainer.apply {
-                width = Size.Full
-                height = Size.Full
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
                 orientation = Orientation.Vertical
-                spacing = 8f
-                padding = Vec4(24f)
-                scaleCenter = Anchor.Center
+                spacing = 8f.px
+                padding = Padding(24f.px)
+                scaleOrigin = Anchor.Center
             }
 
             +scoresContainer.apply {
-                width = Size.Full
-                height = Size.Full
-                scrollAxes = Axes.Y
-                clipToBounds = true
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                scrollAxes = Axis.Y
+                clipping = ClipMode.Bounds
                 alpha = 0f
                 isVisible = false
-                scaleCenter = Anchor.Center
+                scaleOrigin = Anchor.Center
+                spacing = 4f.px
 
-                componentWrapper.apply {
-                    orientation = Orientation.Vertical
-                    width = Size.Full
-                    spacing = 4f
-                    padding = Vec4(0f, 0f, 0f, 90f)
-                }
+                componentWrapper.padding = Padding(bottom = 90f.px)
 
                 // Without avatars because local is chosen by default
                 onCreateComponent = { LeaderboardItem(false) }
@@ -114,17 +129,16 @@ class SongSelectLeaderboard : UILinearContainer() {
     private fun switchContainers(adverseContainer: UIComponent, showingContainer: UIComponent) {
 
         adverseContainer.apply {
-            clearModifiers(ModifierType.Alpha, ModifierType.ScaleXY)
+            clearTransforms()
             fadeOut(0.2f).after {
                 isVisible = false
             }
         }
 
         showingContainer.apply {
-            clearModifiers(ModifierType.Alpha, ModifierType.ScaleXY)
+            clearTransforms()
             isVisible = true
-            scaleX = 0.95f
-            scaleY = 0.95f
+            scale = 0.95f
             alpha = 0f
 
             scaleTo(1f, 0.1f)
@@ -137,21 +151,19 @@ class SongSelectLeaderboard : UILinearContainer() {
         switchContainers(scoresContainer, overlayContainer)
 
         overlayContainer.apply {
-            detachChildren()
+            clearChildren()
 
-            sprite {
+            +UIIcon(FAIcon.CircleInfo).apply {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                width = 32f
-                height = 32f
-                textureRegion = ResourceManager.getInstance().getTexture("info")
-                style = { color = it.accentColor }
+                iconSize = 32f.px
+                style = Style { theme -> color = theme.palette.accent }
             }
 
             text {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = { color = it.accentColor }
+                style = Style { theme -> color = theme.palette.accent }
                 text = message
             }
         }
@@ -161,19 +173,19 @@ class SongSelectLeaderboard : UILinearContainer() {
         switchContainers(scoresContainer, overlayContainer)
 
         overlayContainer.apply {
-            detachChildren()
+            clearChildren()
 
-            +CircularProgressBar().apply {
+            +UILoadingIndicator().apply {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                width = 32f
-                height = 32f
+                width = 32f.px
+                height = 32f.px
             }
 
             text {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = { color = it.accentColor }
+                style = Style { theme -> color = theme.palette.accent }
                 text = "Loading scores..."
             }
         }
@@ -182,58 +194,57 @@ class SongSelectLeaderboard : UILinearContainer() {
 
     fun onBeatmapSelected(beatmapInfo: BeatmapInfo?) {
 
+        showLoading()
+        scoresContainer.data = listOf()
+
         currentLoadingJob?.cancel(CancellationException())
+
+        if (beatmapInfo == null) {
+            return
+        }
+
         currentLoadingJob = scoreLoadingScope.launch {
 
-            ensureActive()
-            showLoading()
+            var itemModels = listOf<BeatmapScoreModel>()
 
-            ensureActive()
-            scoresContainer.data = listOf()
+            try {
+                when (leaderboardType) {
 
-            if (beatmapInfo != null) {
-                var itemModels = listOf<BeatmapScoreModel>()
-
-                try {
-                    when (leaderboardType) {
-
-                        Local -> {
+                    Local -> {
+                        ensureActive()
+                        itemModels = DatabaseManager.scoreInfoTable.getBeatmapScores(beatmapInfo.md5).map { scoreInfo ->
                             ensureActive()
-                            itemModels = DatabaseManager.scoreInfoTable.getBeatmapScores(beatmapInfo.md5).map { scoreInfo ->
-                                ensureActive()
-                                BeatmapScore(scoreInfo)
-                            }
-                        }
-
-                        Global -> {
-                            if (!OnlineManager.getInstance().isStayOnline) {
-                                ensureActive()
-                                showMessage("You must be online to view global leaderboard.")
-                                return@launch
-                            }
-
-                            ensureActive()
-                            itemModels = IBanchoAPI.getBeatmapLeaderboard(beatmapInfo.md5)
+                            BeatmapScore(scoreInfo)
                         }
                     }
-                } catch (e: Exception) {
-                    if (e is CancellationException) throw e
-                    ensureActive()
-                    showMessage("Failed to load global leaderboard.")
+
+                    Global -> {
+                        if (!OnlineManager.getInstance().isStayOnline) {
+                            ensureActive()
+                            updateThread { showMessage("You must be online to view global leaderboard.") }
+                            return@launch
+                        }
+
+                        ensureActive()
+                        itemModels = IBanchoAPI.getBeatmapLeaderboard(beatmapInfo.md5)
+                    }
                 }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                ensureActive()
+                updateThread { showMessage("Failed to load global leaderboard.") }
+                return@launch
+            }
 
+            ensureActive()
+            updateThread {
                 if (itemModels.isNotEmpty()) {
-                    ensureActive()
                     scoresContainer.data = itemModels
-
-                    ensureActive()
                     switchContainers(overlayContainer, scoresContainer)
                 } else {
-                    ensureActive()
                     showMessage("No scores found for this beatmap.")
                 }
             }
-
         }
 
     }
@@ -258,77 +269,80 @@ class SongSelectLeaderboard : UILinearContainer() {
 
 
         init {
-            width = Size.Full
+            width = Dimension.FillAvailable
 
-            +UIButton().apply {
-                width = Size.Full
-                button = this
+            button = UIButton().apply {
+                width = Dimension.FillAvailable
+                style += Style {
+                    height = Dimension.WrapContent
+                    padding = Padding.Zero
+                }
 
                 linearContainer {
-                    width = Size.Full
+                    width = Dimension.FillAvailable
 
-                    orientation = Orientation.Horizontal
-                    padding = Vec4(8f)
-                    spacing = 8f
+                    orientation = UILinearContainer.Orientation.Horizontal
+                    padding = Padding(8f.px)
+                    spacing = 8f.px
+                    radius = 12f.px
+                    borderWidth = 2f.px
 
-                    style = {
-                        backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.75f)
-                        radius = 12f
-                        borderWidth = 2f
-                        borderColor = it.accentColor * 0.2f
+                    style = Style { theme ->
+                        backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.75f)
+                        borderColor = theme.palette.accent * 0.2f
                     }
 
                     container {
-                        width = Size.Full
+                        width = Dimension.FillAvailable
 
                         linearContainer {
                             anchor = Anchor.CenterLeft
                             origin = Anchor.CenterLeft
-                            orientation = Orientation.Horizontal
-                            spacing = 8f
+                            orientation = UILinearContainer.Orientation.Horizontal
+                            spacing = 8f.px
 
                             +rankText.apply {
-                                width = 18f
+                                width = 18f.px
                                 anchor = Anchor.CenterLeft
                                 origin = Anchor.CenterLeft
                                 alignment = Anchor.Center
-                                style = { color = it.accentColor }
-                                //buffer = sharedTextCB
+                                style = Style { theme -> color = theme.palette.accent }
                                 text = ""
                             }
 
-                            if (withAvatars) {
-                                +avatarSprite!!.apply {
-                                    width = 32f
-                                    height = 32f
+                            if (avatarSprite != null) {
+                                +avatarSprite.apply {
+                                    width = 32f.px
+                                    height = 32f.px
                                     anchor = Anchor.CenterLeft
                                     origin = Anchor.CenterLeft
-                                    radius = 12f - 4f
-                                    textureRegion = ResourceManager.getInstance().getTexture("offline-avatar")
-                                    //buffer = sharedSpriteVBO
+                                    radius = 8f.px
+                                    textureRegion = SkinTextures["offline-avatar"]
                                 }
                             }
 
                             linearContainer {
-                                orientation = Orientation.Vertical
-                                spacing = 2f
+                                orientation = UILinearContainer.Orientation.Vertical
+                                spacing = 2f.px
 
                                 +nameText.apply {
                                     text = "Unknown Player"
-                                    style = { color = it.accentColor }
-                                    //buffer = sharedTextCB
+                                    style = Style { theme -> color = theme.palette.accent }
                                 }
 
                                 +modsIndicator.apply {
-                                    iconSize = 16f
+                                    style = Style {
+                                        iconSize = 16f.px
+                                        spacing = (-5f).px
+                                    }
                                 }
                             }
 
                         }
 
                         linearContainer {
-                            orientation = Orientation.Horizontal
-                            spacing = 8f
+                            orientation = UILinearContainer.Orientation.Horizontal
+                            spacing = 8f.px
                             anchor = Anchor.CenterRight
                             origin = Anchor.CenterRight
 
@@ -336,18 +350,16 @@ class SongSelectLeaderboard : UILinearContainer() {
 
                                 val metricText = UIText().apply {
                                     text = placeholder
-                                    style = { color = it.accentColor }
-                                    //buffer = sharedTextCB
+                                    style = Style { theme -> color = theme.palette.accent }
                                 }
 
                                 linearContainer {
-                                    orientation = Orientation.Vertical
-                                    spacing = -2f
+                                    orientation = UILinearContainer.Orientation.Vertical
+                                    spacing = (-2f).px
 
                                     text {
                                         text = name.uppercase()
-                                        style = { color = it.accentColor * 0.8f }
-                                        //buffer = sharedTextCB
+                                        style = Style { theme -> color = theme.palette.accent * 0.8f }
                                     }
                                     +metricText
                                 }
@@ -363,6 +375,7 @@ class SongSelectLeaderboard : UILinearContainer() {
                     }
                 }
             }
+            +button
         }
 
 
@@ -371,7 +384,9 @@ class SongSelectLeaderboard : UILinearContainer() {
             //modsIndicator.mods = data.mods
 
             if (avatarSprite != null) {
-                avatarSprite.textureRegion = ResourceManager.getInstance().getTextureIfLoaded(data.avatarUrl ?: "offline-avatar")
+                val avatarUrl = data.avatarUrl
+
+                avatarSprite.textureRegion = (if (avatarUrl != null) CachedTextures[avatarUrl] else null) ?: SkinTextures["offline-avatar"]
             }
 
             scoreText.text = NumberFormat.getNumberInstance(Locale.US).format(data.score)

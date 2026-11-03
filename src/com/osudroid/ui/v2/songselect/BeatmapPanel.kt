@@ -2,59 +2,49 @@ package com.osudroid.ui.v2.songselect
 
 import com.osudroid.data.*
 import com.osudroid.ui.v2.*
-import com.osudroid.ui.v2.modmenu.*
-import com.reco1l.andengine.*
-import com.reco1l.andengine.buffered.*
-import com.reco1l.andengine.component.*
-import com.reco1l.andengine.container.*
-import com.reco1l.andengine.shape.*
-import com.reco1l.andengine.theme.*
-import com.reco1l.andengine.ui.*
-import com.reco1l.framework.*
-import com.reco1l.framework.math.*
-import org.anddev.andengine.input.touch.*
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.math.interpolateColor
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.UIBadge
+import com.reco1l.verktex.ui.container.UIClickableContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.*
 
-private val textBufferRef = MutableReference<CompoundBuffer?>(null)
-private val backgroundBufferRef = MutableReference<UIBox.BoxVBO?>(null)
-private val foregroundBufferRef = MutableReference<UIBox.BoxVBO?>(null)
-
 @Suppress("LeakingThis")
-open class BeatmapPanel(private val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: BeatmapInfo) : UIContainer() {
+open class BeatmapPanel(private val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: BeatmapInfo) : UIClickableContainer() {
 
     private var isExpanded = false
 
+    private var currentBorderWidth = BORDER_WIDTH.dip.toPixels()
+    private var currentExtraWidth = 0f
+
 
     init {
-        width = Size.Full
+        width = Dimension.FillAvailable
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
-        cullingMode = CullingMode.CameraBounds
-        style = {
-            radius = Radius.XL
-            backgroundColor = (it.accentColor * 0.1f).copy(alpha = 0.6f)
-            borderColor = it.accentColor.copy(alpha = 0.3f)
-            borderWidth = 0.25f.srem
-        }
-        background?.apply {
-            bufferSharingMode = BufferSharingMode.Dynamic
-            bufferReference = backgroundBufferRef
-        }
-        border?.apply {
-            bufferSharingMode = BufferSharingMode.Dynamic
-            bufferReference = foregroundBufferRef
+        style = Style { theme ->
+            radius = theme.radius.xl
+            backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.6f)
+            borderColor = theme.palette.accent.copy(alpha = 0.3f)
+            borderWidth = BORDER_WIDTH.dip
         }
 
         linearContainer {
-            orientation = Orientation.Horizontal
-            style = {
-                padding = Vec4(4f.srem)
-                spacing = 2f.srem
-            }
+            orientation = UILinearContainer.Orientation.Horizontal
+            padding = Padding(16f.dip)
+            spacing = 8f.dip
 
             +StarRatingBadge().apply {
                 rating = beatmapInfo.getStarRating().toDouble()
-                sizeVariant = SizeVariant.Small
+                density = UIBadge.Density.Small
                 applyColorsInstantly()
             }
 
@@ -62,29 +52,41 @@ open class BeatmapPanel(private val beatmapSetPanel: BeatmapSetPanel, val beatma
                 text = beatmapInfo.version
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                bufferSharingMode = BufferSharingMode.Dynamic
-                bufferReference = textBufferRef
-                style = {
-                    color = it.accentColor
-                    fontFamily = Fonts.TorusBold
+                style = Style { theme ->
+                    fontSettings = theme.typography.h3
+                    fontSize = theme.typography.body.size
+                    color = theme.palette.accent
                 }
             }
-
         }
 
+        onActionUp = {
+            if (SongSelect.selectedBeatmap == beatmapInfo && beatmapSetPanel.selectedPanel == this) {
+                SongSelect.onBeatmapConfirmed(beatmapInfo)
+            } else {
+                ResourceManager.getInstance().getSound("menuclick")?.play()
+            }
+
+            beatmapSetPanel.selectedPanel = this
+        }
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        val accent = Verktex.theme.palette.accent
 
-        val targetBorderColor = if (isExpanded) Theme.current.accentColor else Theme.current.accentColor.copy(alpha = 0.3f)
-        val targetBorderWidth = if (isExpanded) 0.5f.srem else 0.25f.srem
-        val targetWidth = if (isExpanded) parent.innerWidth + 3f.rem else parent.innerWidth
+        val targetBorderColor = if (isExpanded) accent else accent.copy(alpha = 0.3f)
+        val targetBorderWidth = (if (isExpanded) EXPANDED_BORDER_WIDTH else BORDER_WIDTH).dip.toPixels()
+        val targetExtraWidth = if (isExpanded) EXPANDED_EXTRA_WIDTH.dip.toPixels() else 0f
 
-        borderColor = Interpolation.colorLerp(deltaTimeSec, 0.1f, borderColor, targetBorderColor)
-        borderWidth = Interpolation.floatLerpWithSnap(deltaTimeSec, 0.1f, borderWidth, targetBorderWidth, 0.5f)
-        width = Interpolation.floatLerpWithSnap(deltaTimeSec, 0.1f, width, targetWidth, 0.5f)
+        borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
 
-        super.onManagedUpdate(deltaTimeSec)
+        currentBorderWidth = clock.interpolateWithSnap(0.1f, currentBorderWidth, targetBorderWidth, 0.5f)
+        borderWidth = currentBorderWidth.px
+
+        currentExtraWidth = clock.interpolateWithSnap(0.1f, currentExtraWidth, targetExtraWidth, 0.5f)
+        translationX = (-currentExtraWidth).px
+
+        super.onUpdate(clock)
     }
 
 
@@ -97,36 +99,9 @@ open class BeatmapPanel(private val beatmapSetPanel: BeatmapSetPanel, val beatma
     }
 
 
-    override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float): Boolean {
-
-        if (event.isActionDown) {
-            /*background?.apply {
-                clearModifiers(ModifierType.Alpha)
-                fadeIn(0.2f).eased(Easing.Out)
-            }*/
-        }
-
-        if (event.isActionUp) {
-
-            if (SongSelect.selectedBeatmap == beatmapInfo && beatmapSetPanel.selectedPanel == this) {
-                ResourceManager.getInstance().getSound("menuhit").play()
-
-                GlobalManager.getInstance().gameScene.setOldScene(SongSelect)
-                GlobalManager.getInstance().gameScene.startGame(beatmapInfo, null, ModMenu.enabledMods)
-            } else {
-                ResourceManager.getInstance().getSound("menuclick").play()
-            }
-
-            beatmapSetPanel.selectedPanel = this
-        }
-
-        if (event.isActionUp || event.isActionOutside || event.isActionCancel) {
-            /*background?.apply {
-                clearModifiers(ModifierType.Alpha)
-                fadeTo(0.75f, 0.1f)
-            }*/
-        }
-        return true
+    private companion object {
+        const val BORDER_WIDTH = 1f
+        const val EXPANDED_BORDER_WIDTH = 2f
+        const val EXPANDED_EXTRA_WIDTH = 48f
     }
-
 }
