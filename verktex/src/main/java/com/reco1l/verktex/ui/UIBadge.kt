@@ -4,7 +4,6 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.text.UIText
@@ -63,20 +62,11 @@ open class UIBadge : UIText() {
                 }
             }
 
-            when (density) {
-                Density.Small -> {
-                    fontSize = theme.typography.smallBody.size
-                    padding = Padding(theme.gap.sm, theme.gap.xs)
-                    iconSpacing = theme.gap.sm
-                    radius = theme.radius.sm
-                }
-                Density.Medium -> {
-                    fontSize = theme.typography.body.size
-                    padding = Padding(theme.gap.md, theme.gap.sm)
-                    iconSpacing = theme.gap.md
-                    radius = theme.radius.md
-                }
-            }
+            val size = theme.badgeStyle[density]
+            fontSize = size.fontSize
+            padding = size.padding
+            iconSpacing = size.iconSpacing
+            radius = size.radius
 
         }
     }
@@ -93,7 +83,7 @@ open class UIBadge : UIText() {
     }
 
     /**
-     * The densities of the badge.
+     * The densities of the badge, their sizes are defined by [Theme.badgeStyle].
      */
     enum class Density {
         Small,
@@ -170,20 +160,10 @@ open class UILabeledBadge : UILinearContainer() {
             labelComponent.color = textColor
             valueComponent.color = textColor
 
-            val componentPadding = when (density) {
-                UIBadge.Density.Small -> Padding(theme.gap.sm, theme.gap.xs)
-                UIBadge.Density.Medium -> Padding(theme.gap.md, theme.gap.sm)
-            }
-
-            val fontSize = when (density) {
-                UIBadge.Density.Small -> theme.typography.smallBody.size
-                UIBadge.Density.Medium -> theme.typography.body.size
-            }
-
-            radius = when (density) {
-                UIBadge.Density.Small -> theme.radius.sm
-                UIBadge.Density.Medium -> theme.radius.md
-            }
+            val size = theme.badgeStyle[density]
+            val componentPadding = size.padding
+            val fontSize = size.fontSize
+            radius = size.radius
 
             labelComponent.radius = radius
             labelComponent.padding = componentPadding

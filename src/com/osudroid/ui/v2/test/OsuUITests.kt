@@ -10,6 +10,7 @@ import com.osudroid.mods.ModRelax
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.SpriteFont
 import com.osudroid.ui.v2.StarRatingBadge
+import com.reco1l.verktex.ui.UIBadge
 import com.osudroid.ui.v2.game.CursorSprite
 import com.osudroid.ui.v2.game.NumberedCirclePiece
 import com.osudroid.ui.v2.mainmenu.OsuLogo
@@ -162,11 +163,14 @@ object OsuUITests : UITestSuite("osu!") {
                     }
                 }
 
-                section("Presets") {
-                    for (rating in listOf(1.5, 3.2, 5.4, 6.8, 8.2, 10.0)) {
-                        +StarRatingBadge().apply {
-                            this.rating = rating
-                            applyColorsInstantly()
+                for (density in UIBadge.Density.entries) {
+                    section("Presets ($density)") {
+                        for (rating in listOf(1.5, 3.2, 5.4, 6.8, 8.2, 10.0)) {
+                            +StarRatingBadge().apply {
+                                this.density = density
+                                this.rating = rating
+                                applyColorsInstantly()
+                            }
                         }
                     }
                 }
