@@ -129,7 +129,9 @@ open class UILinearContainer : UIContainer() {
             }
         }
 
-        val measuredSize = parentConstraints.constrain(Vec2(totalWidth, totalHeight).expand(padding.toVec4()))
+        // The own constraints, so the limits of this container (e.g. minWidth) are what filling
+        // children are stretched to.
+        val measuredSize = contentConstraints.constrain(Vec2(totalWidth, totalHeight)).expand(padding.toVec4())
 
         // The main axis keeps the size the child got in the first pass.
         stretchFillingChildren(measuredSize) { child ->

@@ -96,7 +96,9 @@ open class UIContainer : UIComponent(), MutableIterable<UIComponent> {
             measuredHeight = max(measuredHeight, child.y.resolve(contentConstraints.availableHeight) + childMeasuredSize.y)
         }
 
-        val measuredSize = parentConstraints.constrain(Vec2(measuredWidth, measuredHeight).expand(padding.toVec4()))
+        // The own constraints, so the limits of this container (e.g. minWidth) are what filling
+        // children are stretched to.
+        val measuredSize = contentConstraints.constrain(Vec2(measuredWidth, measuredHeight)).expand(padding.toVec4())
         stretchFillingChildren(measuredSize) { childConstraints }
         return measuredSize
     }
