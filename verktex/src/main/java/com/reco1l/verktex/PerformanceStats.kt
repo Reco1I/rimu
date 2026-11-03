@@ -20,6 +20,33 @@ object PerformanceStats {
         private set
 
     /**
+     * Milliseconds the last frame spent measuring and laying out the scenes, part of [recordTime].
+     */
+    var layoutTime = 0f
+        private set
+
+    /**
+     * Milliseconds the last frame spent going through the component tree, recording draw commands
+     * (including [layoutTime]).
+     */
+    var recordTime = 0f
+
+    /**
+     * Milliseconds the last frame spent executing the draw commands through the graphics API.
+     */
+    var submitTime = 0f
+
+    // Accumulated during the frame, as every scene lays itself out.
+    private var frameLayoutNanos = 0L
+
+    /**
+     * Adds time spent measuring and laying out to the current frame.
+     */
+    fun addLayoutTime(nanos: Long) {
+        frameLayoutNanos += nanos
+    }
+
+    /**
      * Milliseconds the last update frame took.
      */
     @Volatile
@@ -83,6 +110,9 @@ object PerformanceStats {
 
         lastFrameNanos = now
         frameStartNanos = now
+
+        layoutTime = frameLayoutNanos / 1_000_000f
+        frameLayoutNanos = 0L
     }
 
     fun onFrameDrawn() {

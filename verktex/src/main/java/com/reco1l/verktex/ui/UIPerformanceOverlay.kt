@@ -40,6 +40,9 @@ class UIPerformanceOverlay : UILinearContainer() {
     private val drawTimeText = statValue()
     private val updateTimeText = statValue()
     private val drawCallsText = statValue()
+    private val layoutTimeText = statValue()
+    private val recordTimeText = statValue()
+    private val submitTimeText = statValue()
 
     private var timeSinceTextUpdate = TEXT_INTERVAL
 
@@ -91,6 +94,16 @@ class UIPerformanceOverlay : UILinearContainer() {
             +stat("UPDATE", updateTimeText)
             +stat("DRAW CALLS", drawCallsText)
         }
+
+        // Where the draw time goes.
+        +UILinearContainer().apply {
+            width = fill()
+            spacing = STAT_SPACING.dip
+
+            +stat("LAYOUT", layoutTimeText)
+            +stat("RECORD", recordTimeText)
+            +stat("SUBMIT", submitTimeText)
+        }
     }
 
 
@@ -129,6 +142,9 @@ class UIPerformanceOverlay : UILinearContainer() {
             drawTimeText.text = "%.1f ms".format(PerformanceStats.drawTime)
             updateTimeText.text = "%.2f ms".format(PerformanceStats.updateTime)
             drawCallsText.text = PerformanceStats.drawCommands.toString()
+            layoutTimeText.text = "%.2f ms".format(PerformanceStats.layoutTime)
+            recordTimeText.text = "%.2f ms".format(PerformanceStats.recordTime)
+            submitTimeText.text = "%.2f ms".format(PerformanceStats.submitTime)
         }
 
         super.onUpdate(clock)
