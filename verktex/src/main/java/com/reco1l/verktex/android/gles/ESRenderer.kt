@@ -88,6 +88,8 @@ class ESRenderer(
     }
 
     override fun end() {
+        // Textures and glyphs were uploaded while recording, the cached state is stale.
+        ESCommandExecutor.resetState()
         super.end()
         context.swapBuffers()
     }

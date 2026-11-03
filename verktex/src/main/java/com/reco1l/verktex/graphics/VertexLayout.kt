@@ -11,6 +11,11 @@ class VertexLayout(val attributes: List<Attribute>) {
     val stride = attributes.sumOf { it.sizeInBytes }
 
     /**
+     * The attribute locations this layout uses, one bit per location.
+     */
+    val locationMask = attributes.fold(0) { mask, attribute -> mask or (1 shl attribute.location) }
+
+    /**
      * The offset in bytes of each attribute, in the same order as [attributes].
      */
     val offsets = IntArray(attributes.size).also { offsets ->
