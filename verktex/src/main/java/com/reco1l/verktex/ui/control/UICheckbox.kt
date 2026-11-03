@@ -48,7 +48,7 @@ class UICheckbox(initialValue: Boolean = false) : UIControl<Boolean>(initialValu
     override fun onUpdate(clock: FrameClock) {
 
         val targetScaleAndAlpha = if (value) 1f else 0f
-        val targetBackgroundCOlor = if (value) Verktex.theme.palette.controlActiveBackground else Verktex.theme.palette.controlInactiveBackground
+        val targetBackgroundCOlor = if (value) resolvedTheme.palette.controlActiveBackground else resolvedTheme.palette.controlInactiveBackground
 
         checkScale.target = targetScaleAndAlpha
         checkIcon.scale = checkScale.update(clock)

@@ -508,10 +508,43 @@ abstract class UIComponent {
 
 
     /**
+     * The theme of this component and its children, or null to use the one of its parent.
+     *
+     * Components are styled when constructed, so changing it styles them again, overriding the
+     * values set after construction on themed properties, as a change of [Verktex.theme] does.
+     */
+    var theme: Theme? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                applyTheme()
+            }
+        }
+
+    /**
+     * The theme this component is styled with: its own [theme], the one of the closest parent
+     * with one, or [Verktex.theme].
+     */
+    val resolvedTheme: Theme
+        get() = theme ?: parent?.resolvedTheme ?: Verktex.theme
+
+    // The theme the style was last applied with.
+    private var styledTheme: Theme? = null
+
+
+    /**
      * Applies the current style to the component.
      */
     fun style() {
-        onStyle(Verktex.theme)
+        val theme = resolvedTheme
+        styledTheme = theme
+        onStyle(theme)
+    }
+
+    // Styles the component and its children again after the resolved theme changed.
+    private fun applyTheme() {
+        style()
+        if (this is UIContainer) propagate { it.onThemeChanged() } else onThemeChanged()
     }
 
     /**
@@ -604,6 +637,12 @@ abstract class UIComponent {
             field?.onChildDetached(this)
             field = value
             field?.onChildAttached(this)
+
+            // The style is applied on construction, before the component has a parent. If it's
+            // attached under a different theme it must be styled again with it.
+            if (value != null && styledTheme !== resolvedTheme) {
+                applyTheme()
+            }
         }
 
 
