@@ -56,7 +56,14 @@ class UITestScene(
     private val flatTheme = Theme(
         palette = Verktex.theme.palette,
         radius = Theme.FixedSizeBreakpoints(0f.dip, 0f.dip, 0f.dip, 0f.dip, 0f.dip),
-    )
+    ).let { theme ->
+        // Without the bezel and shadow of the buttons.
+        Theme(
+            palette = theme.palette,
+            radius = theme.radius,
+            buttonStyle = theme.buttonStyle.withoutElevation(),
+        )
+    }
 
     private var currentTest: UITest? = null
     private var backgroundIndex = 0
