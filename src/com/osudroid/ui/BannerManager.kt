@@ -6,13 +6,17 @@ import android.util.Log
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.framework.net.JsonArrayRequest
 import com.reco1l.framework.net.WebRequest
-import com.rian.andengine.modifier.ModifierType
 import com.reco1l.verktex.time.FrameClock
-import org.anddev.andengine.input.touch.TouchEvent
-import org.anddev.andengine.opengl.texture.region.TextureRegion
+import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.ui.scaleTo
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ResourceManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import java.io.File
 
@@ -56,10 +60,8 @@ object BannerManager {
                                 }
                             }
 
-                            ResourceManager.getInstance().loadHighQualityFile("banner@${i}", bannerFile)
+                            banners.add(Banner(url, Textures.load("banner@${i}", bannerFile.absolutePath, isInternal = false)))
                         }
-
-                        banners.add(Banner(url, ResourceManager.getInstance().getTexture("banner@${i}")))
 
                     } catch (e: Exception) {
                         Log.e("BannerManager", "Failed to get banner at index ${i}.", e)
@@ -81,7 +83,7 @@ object BannerManager {
 
     data class Banner(
         val url: String,
-        val image: TextureRegion?,
+        val image: GraphicsTexture.Region?,
     )
 
     class BannerSprite(private val banners: List<Banner>) : UISprite() {
@@ -98,7 +100,8 @@ object BannerManager {
         }
 
 
-        override fun onLoadComplete() {
+        override fun onAttached() {
+            super.onAttached()
             fadeIn(0.75f)
         }
 
@@ -124,27 +127,31 @@ object BannerManager {
             super.onUpdate(clock)
         }
 
-        override fun onTouchEvent(event: TouchEvent, localX: Float, localY: Float): Boolean {
+        override fun onInputEvent(event: InputEvent): Boolean {
+            if (event !is PointerEvent || !containsScenePoint(event.x, event.y)) {
+                return false
+            }
 
             elapsedTimeSinceLastChange = 0f
 
-            if (event.isActionDown) {
-                clearModifiers(ModifierType.ScaleXY)
+            if (event.action == PointerEvent.Action.Down) {
+                clearTransforms()
                 scaleTo(0.95f, 0.1f)
             }
 
-            if (event.isActionUp || event.isActionCancel || event.isActionOutside) {
-                clearModifiers(ModifierType.ScaleXY)
+            if (event.action == PointerEvent.Action.Up || event.action == PointerEvent.Action.Cancel) {
+                clearTransforms()
                 scaleTo(1f, 0.1f)
 
                 val banner = banners[currentBannerIndex]
 
-                if (event.isActionUp && banner.url.isNotBlank()) {
+                if (event.action == PointerEvent.Action.Up && banner.url.isNotBlank()) {
                     val uri = Uri.parse(banner.url)
                     val intent = Intent(Intent.ACTION_VIEW, uri)
                     GlobalManager.getInstance().mainActivity.startActivity(intent)
                 }
             }
+
             return true
         }
     }

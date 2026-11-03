@@ -6,7 +6,7 @@ import android.os.Environment;
 import kotlin.io.FilesKt;
 import net.lingala.zip4j.ZipFile;
 
-import org.anddev.andengine.util.Debug;
+import ru.nsu.ccfit.zuev.osu.helper.Debug;
 
 import java.io.BufferedInputStream;
 import java.io.File;

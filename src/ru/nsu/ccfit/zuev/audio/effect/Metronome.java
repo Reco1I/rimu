@@ -3,16 +3,15 @@ package ru.nsu.ccfit.zuev.audio.effect;
 import com.osudroid.beatmaps.timings.TimingControlPoint;
 
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider;
-import ru.nsu.ccfit.zuev.osu.ResourceManager;
+import com.osudroid.ui.v2.SkinSounds;
 
 public class Metronome {
 
-    private final ResourceManager resources = ResourceManager.getInstance();
 
-    private final BassSoundProvider kickSound = resources.getSound("nightcore-kick");
-    private final BassSoundProvider finishSound = resources.getSound("nightcore-finish");
-    private final BassSoundProvider clapSound = resources.getSound("nightcore-clap");
-    private final BassSoundProvider hatSound = resources.getSound("nightcore-hat");
+    private final BassSoundProvider kickSound = SkinSounds.get("nightcore-kick");
+    private final BassSoundProvider finishSound = SkinSounds.get("nightcore-finish");
+    private final BassSoundProvider clapSound = SkinSounds.get("nightcore-clap");
+    private final BassSoundProvider hatSound = SkinSounds.get("nightcore-hat");
 
     private int lastBeatIndex = -1;
 

@@ -5,9 +5,6 @@ import android.graphics.PointF;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
-import org.anddev.andengine.entity.sprite.Sprite;
-import org.anddev.andengine.opengl.texture.region.TextureRegion;
-import org.anddev.andengine.util.MathUtils;
 
 import java.util.Arrays;
 
@@ -38,16 +35,6 @@ public class Utils {
                                final float percent) {
         return new PointF(v1.x * (1 - percent) + v2.x * percent, v1.y
                 * (1 - percent) + v2.y * percent);
-    }
-
-    public static void putSpriteAnchorCenter(float x, float y, Sprite sprite) {
-        final TextureRegion tex = sprite.getTextureRegion();
-        sprite.setPosition(x - tex.getWidth() / 2f, y - tex.getHeight() / 2f);
-    }
-
-    public static void putSpriteAnchorCenter(PointF pos, Sprite sprite) {
-        final TextureRegion tex = sprite.getTextureRegion();
-        sprite.setPosition(pos.x - tex.getWidth() / 2f, pos.y - tex.getHeight() / 2f);
     }
 
     public static PointF trackToRealCoords(final PointF coords) {
@@ -150,7 +137,7 @@ public class Utils {
     }
 
     public static float distance(final PointF v1, final PointF v2) {
-        return MathUtils.distance(v1.x, v1.y, v2.x, v2.y);
+        return (float) Math.hypot(v1.x - v2.x, v1.y - v2.y);
     }
 
     public static float squaredDistance(final PointF v1, final PointF v2) {

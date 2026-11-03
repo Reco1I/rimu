@@ -8,7 +8,7 @@ import ru.nsu.ccfit.zuev.osu.GlobalManager
 import kotlin.math.abs
 
 sealed class HUDHitErrorMeter : HUDElement() {
-    protected val hitWindow: HitWindow = GlobalManager.getInstance().gameScene.hitWindow
+    protected val hitWindow: HitWindow = GlobalManager.getInstance().gameScene.hitWindow!!
 
     protected val greatColor = Color4(70, 180, 220)
     protected val okColor = Color4(100, 220, 40)

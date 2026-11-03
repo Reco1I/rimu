@@ -1,17 +1,17 @@
 package com.osudroid.ui
 
-import com.edlplan.framework.easing.Easing
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.data.Color4
 import com.osudroid.math.Interpolation
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.Engine
-import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.ui.text.UIText
-import com.reco1l.verktex.theme.FontSize
-import com.reco1l.verktex.data.Vec4
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
 import java.util.Formatter
 import java.util.Locale
-import kotlin.math.min
 import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
@@ -20,8 +20,6 @@ import ru.nsu.ccfit.zuev.osu.GlobalManager.getInstance as getGlobal
  * Represents an FPS counter.
  */
 class FPSCounter : UIText() {
-    private val updateClock
-        get() = Engine.current.clock
 
     //region Counting logic
 
@@ -68,18 +66,16 @@ class FPSCounter : UIText() {
     private val maximumTextColor = Color4(0xccff99)
 
     init {
-        fontSize = FontSize.SM
-        padding = Vec4(6f, 4f)
+        padding = Padding(6f.dip, 4f.dip)
         anchor = Anchor.BottomRight
         origin = Anchor.BottomRight
         alignment = Anchor.Center
-        style = {
-            //backgroundColor = it.accentColor * 0.1f
-            radius = 8f
-        }
+        radius = 8f.dip
     }
 
-    override fun onManagedUpdate(deltaTimeSec: Float) {
+    override fun onUpdate(clock: FrameClock) {
+        val elapsed = clock.elapsedFrameTime
+
         isVisible = Config.isShowFPS()
 
         if (isVisible) {
@@ -88,9 +84,9 @@ class FPSCounter : UIText() {
             }
 
             wasVisible = true
-            timeSinceLastSignificantChange += updateClock.timeInfo.elapsed
+            timeSinceLastSignificantChange += elapsed
 
-            updateFPS()
+            updateFPS(elapsed)
 
             if (isDisplayed && timeSinceLastSignificantChange > displayTimeout) {
                 fadeTo(idleAlpha, fadeDuration, Easing.OutQuint)
@@ -100,7 +96,7 @@ class FPSCounter : UIText() {
             wasVisible = false
         }
 
-        super.onManagedUpdate(deltaTimeSec)
+        super.onUpdate(clock)
     }
 
     private fun requestDisplay() {
@@ -112,9 +108,7 @@ class FPSCounter : UIText() {
         }
     }
 
-    private fun updateFPS() {
-        val elapsedUpdateFrameTime = updateClock.elapsedFrameTime
-
+    private fun updateFPS(elapsedUpdateFrameTime: Float) {
         // If the game goes into a suspended state (i.e., debugger attached), we want to ignore really long periods of
         // no processing.
         if (elapsedUpdateFrameTime > 10) {
@@ -140,9 +134,9 @@ class FPSCounter : UIText() {
         } else {
             Interpolation.dampContinuously(
                 displayedFpsCount,
-                updateClock.framesPerSecond,
+                if (elapsedUpdateFrameTime > 0f) 1f / elapsedUpdateFrameTime else displayedFpsCount,
                 dampTime,
-                updateClock.timeInfo.elapsed
+                elapsedUpdateFrameTime
             )
         }
 
@@ -153,7 +147,7 @@ class FPSCounter : UIText() {
             requestDisplay()
         }
 
-        timeSinceLastUpdate += updateClock.timeInfo.elapsed
+        timeSinceLastUpdate += elapsedUpdateFrameTime
 
         if (!hasSignificantChanges && timeSinceLastUpdate < updateInterval) {
             return
@@ -180,7 +174,7 @@ class FPSCounter : UIText() {
         stringBuilder.setLength(0)
 
         formatter.format(
-            "%.${if (isHighPrecision) "1" else "0"}f ms | %d FPS | ${GraphicsRenderer.drawCallsOnLastFrame} DCs",
+            "%.${if (isHighPrecision) "1" else "0"}f ms | %d FPS",
             displayedMs,
             displayedFps
         )
@@ -191,13 +185,7 @@ class FPSCounter : UIText() {
     }
 
     private fun updateAimFPS(): Boolean {
-        val refreshRate = getGlobal().mainActivity.refreshRate
-
-        val newAimFPS = if (updateClock.throttling && updateClock.maximumUpdateHz > 0) {
-            min(updateClock.maximumUpdateHz, refreshRate)
-        } else {
-            refreshRate
-        }
+        val newAimFPS = getGlobal().mainActivity.refreshRate
 
         if (aimFPS != newAimFPS) {
             aimFPS = newAimFPS
@@ -227,24 +215,7 @@ class FPSCounter : UIText() {
             blue = Interpolation.linear(middleTextColor.blue, maximumTextColor.blue, t)
         }
 
-        setColor(red, green, blue)
-    }
-
-    //endregion
-
-    //region Reset
-
-    override fun reset() {
-        super.reset()
-
-        displayedFpsCount = 0f
-        displayedFrameTime = 0f
-        lastDisplayedFps = 0
-        lastDisplayedFrameTime = 0f
-        timeSinceLastUpdate = 0f
-        isDisplayed = false
-        timeSinceLastSignificantChange = 0f
-        wasVisible = false
+        color = Color4(red, green, blue, alpha)
     }
 
     //endregion

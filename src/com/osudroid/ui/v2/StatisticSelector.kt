@@ -1,0 +1,134 @@
+package com.osudroid.ui.v2
+
+import com.osudroid.multiplayer.Multiplayer
+import com.osudroid.multiplayer.api.data.WinCondition.Accuracy
+import com.reco1l.verktex.data.Axis
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.text.UIText
+import java.text.NumberFormat.getNumberInstance
+import java.util.Locale.ENGLISH
+import java.util.Locale.US
+import kotlin.math.hypot
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
+
+/**
+ * The list of scores of a multiplayer match shown in the results screen.
+ */
+class StatisticSelector(stats: Array<StatisticV2>?) : UIScrollableContainer() {
+
+    private val selected: StatisticV2? = GlobalManager.getInstance().scoring.currentStatistic
+
+
+    init {
+        scrollAxes = Axis.Y
+        width = 140f.px
+        height = Dimension.FillAvailable
+        x = 570f.px
+        showVerticalIndicator = false
+
+        +UILinearContainer().apply {
+            orientation = UILinearContainer.Orientation.Vertical
+            width = Dimension.FillAvailable
+
+            stats?.forEachIndexed { index, stat -> +BoardItem(index, stat) }
+        }
+    }
+
+
+    private fun select(stat: StatisticV2) {
+        if (stat == selected) {
+            return
+        }
+
+        val global = GlobalManager.getInstance()
+
+        global.scoring.load(stat, global.scoring.beatmapInfo, global.songService, null, null, null)
+    }
+
+
+    private inner class BoardItem(index: Int, private val stat: StatisticV2) : UIContainer() {
+
+        private var pressX = 0f
+        private var pressY = 0f
+        private var isPressed = false
+
+
+        init {
+            val isSelected = stat.playerName == selected?.playerName
+
+            width = Dimension.FillAvailable
+            height = 100f.px
+            padding = Padding(10f.dip, 4f.dip)
+
+            backgroundColor = when {
+                stat.isAlive && isSelected -> Color4(0.5f, 0.5f, 1f, 0.9f)
+                stat.isAlive -> Color4(0.5f, 0.5f, 0.5f, 0.9f)
+                isSelected -> Color4(1f, 0.4f, 0.4f, 0.9f)
+                else -> Color4(1f, 0.6f, 0.6f, 0.9f)
+            }
+
+            +UIText().apply {
+                color = if (stat.isAlive) Color4(0.6f, 0.6f, 0.6f, 0.9f) else Color4(1f, 0.6f, 0.6f, 0.9f)
+                text = "#${index + 1}"
+                anchor = com.reco1l.verktex.data.Anchor.CenterRight
+                origin = com.reco1l.verktex.data.Anchor.CenterRight
+            }
+
+            +UIText().apply {
+                color = if (stat.isAlive) Color4(0.9f, 0.9f, 0.9f) else Color4(1f, 0.8f, 0.8f)
+                text = listOf(
+                    stat.playerName,
+                    getNumberInstance(US).format(stat.totalScoreWithMultiplier),
+                    when (Multiplayer.room?.winCondition) {
+                        Accuracy -> "%2.2f%%".format(ENGLISH, stat.accuracy * 100f)
+                        else -> "${getNumberInstance(US).format(stat.scoreMaxCombo)}x"
+                    }
+                ).joinToString("\n")
+            }
+        }
+
+
+        override fun onInputEvent(event: InputEvent): Boolean {
+            if (event !is PointerEvent) {
+                return false
+            }
+
+            when (event.action) {
+                PointerEvent.Action.Down -> {
+                    isPressed = containsScenePoint(event.x, event.y)
+                    pressX = event.x
+                    pressY = event.y
+                }
+
+                PointerEvent.Action.Move -> {
+                    if (hypot(event.x - pressX, event.y - pressY) > 50f) {
+                        isPressed = false
+                    }
+                }
+
+                PointerEvent.Action.Up -> {
+                    if (isPressed && containsScenePoint(event.x, event.y)) {
+                        select(stat)
+                    }
+
+                    isPressed = false
+                }
+
+                else -> isPressed = false
+            }
+
+            // Moves must reach the scrollable container.
+            return false
+        }
+    }
+}

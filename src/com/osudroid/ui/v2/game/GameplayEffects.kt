@@ -40,7 +40,7 @@ class FlashLightEntity(flashlight: ModFlashlight) : UIContainer() {
 
     private val followDelay = flashlight.followDelay
     private val sizeMultiplier = flashlight.sizeMultiplier
-    private val comboBasedSize = flashlight.isComboBasedSize
+    private val comboBasedSize = flashlight.comboBasedSize
 
     private val mainSprite = UISprite(SkinTextures["flashlight_cursor"]).also {
         it.origin = Anchor.Center

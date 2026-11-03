@@ -1,19 +1,25 @@
 package com.osudroid.game.replay
 
 import com.osudroid.math.Precision
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.PointerEvent
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.ui.fadeTo
+import com.reco1l.verktex.ui.moveToX
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.ui.container.Orientation
+import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
-import com.reco1l.verktex.ui.linearContainer
-import com.reco1l.verktex.ui.text
-import com.reco1l.verktex.theme.FontSize
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec4
-import org.anddev.andengine.input.touch.TouchEvent
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
 
 /**
  * A panel that contains settings for replay playback. Can be expanded and collapsed by tapping the button on the left.
@@ -26,20 +32,20 @@ class ReplaySettingsPanel : UIContainer() {
         private set
 
     private val isExpanded
-        get() = Precision.almostEquals(x, 0f)
+        get() = Precision.almostEquals(translationX.resolve(0f), 0f)
 
     private val elementContainer = UIScrollableContainer().apply {
-        x = BUTTON_WIDTH
+        x = BUTTON_WIDTH.px
 
         scrollAxes = Axis.Y
-        width = PANEL_WIDTH
+        width = PANEL_WIDTH.px
         height = Dimension.FillAvailable
         showVerticalIndicator = false
 
         linearContainer {
             width = Dimension.FillAvailable
-            spacing = 20f
-            padding = Vec4(0f, 20f)
+            spacing = 20f.dip
+            padding = Padding(0f.dip, 20f.dip)
             orientation = Orientation.Vertical
 
             addControls()
@@ -47,7 +53,7 @@ class ReplaySettingsPanel : UIContainer() {
     }
 
     init {
-        x = PANEL_WIDTH
+        translationX = PANEL_WIDTH.px
         height = Dimension.FillAvailable
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
@@ -58,7 +64,8 @@ class ReplaySettingsPanel : UIContainer() {
         +elementContainer
     }
 
-    override fun onLoadComplete() {
+    override fun onAttached() {
+        super.onAttached()
         fadeTo(0.5f, 0.2f)
     }
 
@@ -69,7 +76,7 @@ class ReplaySettingsPanel : UIContainer() {
 
         elementContainer.isVisible = true
 
-        clearEntityModifiers()
+        clearTransforms()
         moveToX(0f, 0.2f)
         fadeIn(0.2f)
     }
@@ -79,7 +86,7 @@ class ReplaySettingsPanel : UIContainer() {
             return
         }
 
-        clearEntityModifiers()
+        clearTransforms()
         moveToX(PANEL_WIDTH, 0.2f)
         fadeTo(0.5f, 0.2f).after { elementContainer.isVisible = false }
     }
@@ -95,10 +102,10 @@ class ReplaySettingsPanel : UIContainer() {
     private inner class ReplaySettingsPanelButton : UIContainer() {
         init {
             backgroundColor = Color4(0xFF181825)
-            radius = BUTTON_RADIUS
+            radius = BUTTON_RADIUS.px
 
             setSize(BUTTON_WIDTH, 150f)
-            y = -125f
+            y = (-125f).px
 
             anchor = Anchor.CenterLeft
             origin = Anchor.CenterLeft
@@ -107,25 +114,24 @@ class ReplaySettingsPanel : UIContainer() {
                 rotationZ = -90f
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                fontSize = FontSize.SM
                 text = "Settings"
             }
         }
 
-        override fun onAreaTouched(event: TouchEvent, localX: Float, localY: Float) = when {
-            event.isActionDown || event.isActionMove -> true
+        override fun onInputEvent(event: InputEvent): Boolean {
+            if (event !is PointerEvent || !containsScenePoint(event.x, event.y)) {
+                return false
+            }
 
-            event.isActionUp -> {
+            if (event.action == PointerEvent.Action.Up) {
                 if (isExpanded) {
                     collapse()
                 } else {
                     expand()
                 }
-
-                false
             }
 
-            else -> false
+            return event.action != PointerEvent.Action.Cancel
         }
     }
 
