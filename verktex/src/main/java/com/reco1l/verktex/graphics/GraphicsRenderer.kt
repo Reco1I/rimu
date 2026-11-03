@@ -574,6 +574,49 @@ abstract class GraphicsRenderer {
     }
 
     /**
+     * Draws a rectangle like [drawRect] with a color at each corner, interpolated across it. A
+     * linear gradient is linear across the rectangle, so its colors at the corners are exact.
+     */
+    fun drawGradientRect(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        topLeft: Color4,
+        topRight: Color4,
+        bottomRight: Color4,
+        bottomLeft: Color4,
+        borderWidth: Float = 0f,
+        borderColor: Color4 = Color4.Transparent,
+        radius: Float = 0f
+    ) {
+        setUIState(null)
+
+        val buffer = activeBuffer ?: throw IllegalStateException("No active vertex buffer to draw geometry.")
+        val transform = matrixStack.lastOrNull() ?: Mat2.Identity
+
+        val c0 = transformColor(topLeft).packedRGBA
+        val c1 = transformColor(topRight).packedRGBA
+        val c2 = transformColor(bottomRight).packedRGBA
+        val c3 = transformColor(bottomLeft).packedRGBA
+        val border = transformColor(borderColor).packedRGBA
+
+        val p = points
+        transform.transform(x, y, p, 0)
+        transform.transform(x + width, y, p, 2)
+        transform.transform(x + width, y + height, p, 4)
+        transform.transform(x, y + height, p, 6)
+
+        buffer.addUIVertex(p[0], p[1], 0f, 0f, c0, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
+        buffer.addUIVertex(p[2], p[3], 1f, 0f, c1, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
+        buffer.addUIVertex(p[4], p[5], 1f, 1f, c2, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
+
+        buffer.addUIVertex(p[0], p[1], 0f, 0f, c0, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
+        buffer.addUIVertex(p[4], p[5], 1f, 1f, c2, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
+        buffer.addUIVertex(p[6], p[7], 0f, 1f, c3, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
+    }
+
+    /**
      * Draws a triangle with the specified position, size, and color.
      */
     fun drawTriangle(
