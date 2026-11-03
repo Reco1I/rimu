@@ -2,6 +2,8 @@ package com.reco1l.verktex.android
 
 import android.content.Context
 import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.settings.Settings
+import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.testing.UITestScene
 import com.reco1l.verktex.testing.UITestSuite
 import com.reco1l.verktex.testing.VerktexUITests
@@ -30,6 +32,9 @@ abstract class UITestActivity : AndroidGameHost() {
     override fun onEngineStarted() {
         val preferences = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
         val initialTest = intent.getStringExtra(EXTRA_TEST) ?: preferences.getString(KEY_LAST_TEST, null)
+
+        // Always shown while trying components, this process doesn't share settings with the game.
+        Settings[VerktexSettings.ShowPerformanceOverlay] = true
 
         Verktex.withTreeLock {
             Verktex.pushScene(UITestScene(createSuites(), initialTest) { id ->
