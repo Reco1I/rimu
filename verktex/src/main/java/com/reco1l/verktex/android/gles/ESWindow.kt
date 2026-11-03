@@ -23,9 +23,29 @@ class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), Su
     )
         // The keyboard doesn't dispatch insets to this view (the window pans instead of resizing),
         // so its height is read from the root insets, which are always up to date.
-        get() = field.copy(offsets = Vec2(0f, -imeHeight().toFloat()))
+        get() {
+            val imeHeight = imeHeight().toFloat()
+            if (field.offsets.y != -imeHeight) {
+                field = field.copy(offsets = Vec2(0f, -imeHeight))
+            }
+            return field
+        }
 
-    private fun imeHeight() = ViewCompat.getRootWindowInsets(this)?.getInsets(WindowInsetsCompat.Type.ime())?.bottom ?: 0
+    @Volatile
+    private var cachedImeHeight = 0
+    @Volatile
+    private var imeHeightQueryNanos = 0L
+
+    // Read every frame by the draw and update workers, querying the insets allocates, so they're
+    // queried a few times per second only. The content follows the keyboard eased anyway.
+    private fun imeHeight(): Int {
+        val now = System.nanoTime()
+        if (now - imeHeightQueryNanos >= IME_QUERY_INTERVAL_NANOS) {
+            imeHeightQueryNanos = now
+            cachedImeHeight = ViewCompat.getRootWindowInsets(this)?.getInsets(WindowInsetsCompat.Type.ime())?.bottom ?: 0
+        }
+        return cachedImeHeight
+    }
 
     @Volatile
     private var surfaceDestroyed = false
@@ -123,4 +143,8 @@ class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), Su
         surfaceDestroyed = true
     }
 
+
+    private companion object {
+        const val IME_QUERY_INTERVAL_NANOS = 50_000_000L
+    }
 }
