@@ -357,7 +357,6 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
                                 // Storyboard and video should not be enabled if the background brightness is too low,
                                 // so we trigger a reload when changing brightness.
-                                gameScene.loadStoryboard(beatmapInfo)
                                 gameScene.loadVideo(beatmapInfo)
 
                                 if (!isStarting) {
@@ -369,7 +368,6 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         +PreferenceCheckbox("enableStoryboard").apply {
                             label = StringTable.get(R.string.opt_enableStoryboard_title)
                             onValueChanged = {
-                                gameScene.loadStoryboard(beatmapInfo)
                             }
                         }
 

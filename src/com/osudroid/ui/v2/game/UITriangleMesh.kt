@@ -21,7 +21,7 @@ class UITriangleMesh : UICanvas() {
 
     override fun onDraw(renderer: GraphicsRenderer) {
         if (vertices.length > 0) {
-            renderer.drawTriangles(vertices.ary, vertices.length / 2, color)
+            renderer.drawTriangles(vertices.ary, vertices.length / 2, contentColor)
         }
     }
 
@@ -32,6 +32,6 @@ class UITriangleMesh : UICanvas() {
         val DEPTH_LESS = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
 
         @JvmField
-        val DEPTH_DEFAULT = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.LessEqual)
+        val DEPTH_DEFAULT = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
     }
 }
