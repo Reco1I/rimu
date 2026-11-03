@@ -1,11 +1,13 @@
 package com.reco1l.verktex.android
 
+import android.os.Build
 import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
 import android.text.TextWatcher
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
@@ -38,6 +40,10 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
 
     private lateinit var insetsController: WindowInsetsControllerCompat
 
+    // The view the engine draws into, touches are made relative to it.
+    private lateinit var windowView: View
+    private val windowViewLocation = IntArray(2)
+
 
     // Using a hidden EditText is the only way to properly handle soft keyboard
     // input in Android allowing UTF-16 characters, selection and clipboard operations.
@@ -66,7 +72,16 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val windowView = Verktex.initializeAndroid(this)
+        // Edge to edge: the game view covers the whole window, cutouts included, and the scenes
+        // keep their content inside the safe area from the window insets themselves.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes = window.attributes.apply {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
+
+        windowView = Verktex.initializeAndroid(this)
         setContentView(windowView)
         loadBuiltInFonts()
         onEngineInitialized()
@@ -182,6 +197,13 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        // The activity gets the event in window coordinates, but the game view can be placed past
+        // the window's origin (e.g. after a display cutout), so it's moved into the view's space.
+        windowView.getLocationInWindow(windowViewLocation)
+        val offsetX = -windowViewLocation[0].toFloat()
+        val offsetY = -windowViewLocation[1].toFloat()
+        event.offsetLocation(offsetX, offsetY)
+
         val consumed: Boolean
 
         if (event.action == MotionEvent.ACTION_SCROLL) {
@@ -240,6 +262,7 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
             }
         }
 
+        event.offsetLocation(-offsetX, -offsetY)
         return consumed || super.onTouchEvent(event)
     }
 
