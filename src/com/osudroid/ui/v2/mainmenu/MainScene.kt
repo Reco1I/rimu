@@ -23,6 +23,12 @@ import com.osudroid.ui.v2.settings.SettingsMenu
 import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
+import kotlin.random.Random
+import kotlinx.coroutines.Job
+import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.Platform
+import com.reco1l.verktex.ui.UIParticleSystem
+import com.reco1l.verktex.ui.particleSystem
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.ClipMode
@@ -41,6 +47,8 @@ import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.UIGradientBox
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.UICrossfadeSprite
+import com.reco1l.verktex.ui.crossfadeSprite
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
@@ -50,7 +58,6 @@ import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.dialog.UIDialog
-import com.reco1l.verktex.ui.dialog.UIMessageDialog
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.rotateTo
@@ -73,18 +80,43 @@ object MainScene : UIScene() {
 
     private lateinit var playerButton: PlayerButton
     private lateinit var musicButton: UITextButton
+    // Animated instead of the button, which drives its own alpha.
+    private lateinit var musicButtonHolder: UIContainer
+    private lateinit var musicPlayer: MusicPlayer
+    private lateinit var kiaiParticles: UIParticleSystem
+    private lateinit var backgroundSprite: UICrossfadeSprite
     private lateinit var leftFlash: UIGradientBox
     private lateinit var rightFlash: UIGradientBox
-    private lateinit var backgroundSprite: UISprite
     private lateinit var logo: OsuLogo
     private lateinit var menuContainer: UIContainer
     private lateinit var menuGradientBox: UIGradientBox
 
     private var isMenuExpanded = false
     private var isExiting = false
-    private var areSeasonalEffectsAdded = false
+    private var hasEntered = false
+
+    // Seconds the menu has been expanded without being used.
+    private var menuIdleTime = 0f
 
     private var lastMusicChange = System.currentTimeMillis()
+
+    // The texture key the next background is loaded under. It alternates as the crossfade sprite
+    // does, so the background still shown while fading isn't released.
+    private var backgroundKeyIndex = 0
+    private var backgroundLoadJob: Job? = null
+
+    // Seconds left emitting stars after a kiai section started, and the emission not done yet.
+    private var kiaiParticleTime = 0f
+    private var kiaiParticleBacklog = 0f
+    private var wasKiai = false
+
+    // Seconds the expanded menu waits without being used before folding back.
+    private const val MENU_IDLE_TIMEOUT = 10f
+
+    private const val BACKGROUND_FADE_DURATION = 1.5f
+    private const val KIAI_PARTICLE_DURATION = 2f
+    // Stars per second from each corner.
+    private const val KIAI_PARTICLE_RATE = 40f
 
     private var menuWidth = 0f
     private var menuContentWidth = 0f
@@ -98,11 +130,12 @@ object MainScene : UIScene() {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
-            backgroundSprite = sprite {
+            backgroundSprite = crossfadeSprite {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 scaleType = UISprite.ScaleType.Crop
-                textureRegion = SkinTextures["menu-background"]
+                crossfadeDuration = BACKGROUND_FADE_DURATION
+                crossfadeTo(SkinTextures["menu-background"], 0f)
             }
 
             +UIGradientBox().apply {
@@ -138,6 +171,12 @@ object MainScene : UIScene() {
                 colorEnd = (Verktex.theme.palette.accent * 0.1f).copy(alpha = 0.5f)
                 menuGradientBox = this
             }
+
+            kiaiParticles = particleSystem(maxParticles = 128) {
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                texture = SkinTextures["star"]
+            }
         }
 
         linearContainer {
@@ -155,7 +194,9 @@ object MainScene : UIScene() {
 
                 onActionUp = {
                     playClickEffect()
+                    SkinSounds["menuhit"].play()
                     isMenuExpanded = !isMenuExpanded
+                    onMenuInteraction()
                 }
 
                 logo = this
@@ -175,90 +216,64 @@ object MainScene : UIScene() {
                     spacing = 4.6f.dip
                     padding = Padding(0f.dip, 128f.dip)
 
-                    +MenuButton(FAIcon.User, "Solo").apply {
-                        onActionUp = {
-                            async {
-                                LoaderScene().show()
+                    +menuButton(FAIcon.User, "Solo") {
+                        async {
+                            LoaderScene().show()
 
-                                GlobalManager.getInstance().mainActivity.checkNewSkins()
-                                GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
-                                SongSelect.loadBeatmaps()
+                            GlobalManager.getInstance().mainActivity.checkNewSkins()
+                            GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
+                            SongSelect.loadBeatmaps()
 
-                                if (LibraryManager.getLibrary().isEmpty()) {
-                                    Verktex.withTreeLock { Verktex.popScene() }
-                                    BeatmapListing().show()
-                                } else {
-                                    GlobalManager.getInstance().songService.isGaming = true
-
-                                    Verktex.withTreeLock {
-                                        Verktex.popScene()
-                                        Verktex.pushScene(SongSelect)
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    +MenuButton(FAIcon.UserGroup, "Multi").apply {
-                        onActionUp = action@{
-                            if (!OnlineManager.getInstance().isStayOnline && !BuildSettings.MOCK_MULTIPLAYER) {
-                                ToastLogger.showText(StringTable.format(R.string.multiplayer_not_online), true)
-                                return@action
-                            }
-
-                            GlobalManager.getInstance().songService.isGaming = true
-                            Multiplayer.isMultiplayer = true
-
-                            async {
-                                LoaderScene().show()
-
-                                GlobalManager.getInstance().mainActivity.checkNewSkins()
-                                GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
-
-                                SongSelect.loadBeatmaps()
-
+                            if (LibraryManager.getLibrary().isEmpty()) {
+                                Verktex.withTreeLock { Verktex.popScene() }
+                                BeatmapListing().show()
+                            } else {
                                 Verktex.withTreeLock {
                                     Verktex.popScene()
-                                    Verktex.pushScene(LobbyScene())
+                                    Verktex.pushScene(SongSelect)
                                 }
+
+                                // After the menu was entered again by removing the loader, which resets it.
+                                GlobalManager.getInstance().songService.isGaming = true
                             }
                         }
                     }
 
-                    +MenuButton(FAIcon.TableList, "Browse").apply {
-                        onActionUp = {
-                            mainThread { BeatmapListing().show() }
+                    +menuButton(FAIcon.UserGroup, "Multi") action@{
+                        if (!OnlineManager.getInstance().isStayOnline && !BuildSettings.MOCK_MULTIPLAYER) {
+                            ToastLogger.showText(StringTable.format(R.string.multiplayer_not_online), true)
+                            return@action
+                        }
+
+                        Multiplayer.isMultiplayer = true
+
+                        async {
+                            LoaderScene().show()
+
+                            GlobalManager.getInstance().mainActivity.checkNewSkins()
+                            GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
+
+                            SongSelect.loadBeatmaps()
+
+                            Verktex.withTreeLock {
+                                Verktex.popScene()
+                                Verktex.pushScene(LobbyScene())
+                            }
+
+                            // After the menu was entered again by removing the loader, which resets it.
+                            GlobalManager.getInstance().songService.isGaming = true
                         }
                     }
 
-                    +MenuButton(FAIcon.Gear, "Settings").apply {
-                        onActionUp = {
-                            Verktex.pushScene(SettingsMenu())
-                        }
+                    +menuButton(FAIcon.TableList, "Browse") {
+                        mainThread { BeatmapListing().show() }
                     }
 
-                    +MenuButton(FAIcon.ArrowRightFromBracket, "Exit").apply {
-                        onActionUp = {
-                            UIMessageDialog().apply {
-                                title = "Exit game"
-                                text = "Are you sure you want to exit?"
-                                addButton {
-                                    text = "Yes"
-                                    onActionUp = {
-                                        hide()
-                                        exit()
-                                    }
-                                }
-
-                                addButton {
-                                    text = "No"
-                                    onActionUp = {
-                                        hide()
-                                    }
-                                }
-                            }.show()
-                        }
+                    +menuButton(FAIcon.Gear, "Settings") {
+                        Verktex.pushScene(SettingsMenu())
                     }
+
+                    +menuButton(FAIcon.ArrowRightFromBracket, "Exit") { showExitDialog() }
 
                 }
 
@@ -277,17 +292,22 @@ object MainScene : UIScene() {
                 playerButton = this
             }
 
-            musicButton = textButton {
+            musicButtonHolder = container {
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
-                scaleOrigin = Anchor.Center
-                leadingIcon = faSolidIcon(FAIcon.Music)
+                alpha = 0f
 
-                val musicPlayer = MusicPlayer(this)
-                onActionUp = {
-                    if (alpha > 0f)
-                        musicPlayer.show()
+                musicButton = textButton {
+                    scaleOrigin = Anchor.Center
+                    leadingIcon = faSolidIcon(FAIcon.Music)
+
+                    onActionUp = {
+                        if (musicButtonHolder.alpha > 0f) {
+                            musicPlayer.show()
+                        }
+                    }
                 }
+                musicPlayer = MusicPlayer(musicButton)
             }
         }
 
@@ -330,16 +350,9 @@ object MainScene : UIScene() {
         }
 
         MusicManager.addOnBeatmapChangeListener(this) { beatmap ->
-            val backgroundPath = beatmap?.backgroundPath
-            val textureRegion = if (backgroundPath != null) Textures.load("::background", backgroundPath) else null
+            changeBackground(beatmap)
 
-            if (textureRegion != null && !Config.isSafeBeatmapBg()) {
-                backgroundSprite.textureRegion = textureRegion
-            } else {
-                backgroundSprite.textureRegion = SkinTextures["menu-background"]
-            }
-
-            musicButton.text = "${MusicManager.currentBeatmap?.titleText} - ${MusicManager.currentBeatmap?.artistText}"
+            updateMusicButton()
         }
     }
 
@@ -429,29 +442,137 @@ object MainScene : UIScene() {
     }
 
 
-    override fun onAttached() {
-        super.onAttached()
+    override fun onEnter() {
+        super.onEnter()
 
-        if (!areSeasonalEffectsAdded) {
-            areSeasonalEffectsAdded = true
+        val global = GlobalManager.getInstance()
 
-            val context = GlobalManager.getInstance().mainActivity
+        // Songs end on their own in the menu instead of stopping as in gameplay.
+        global.songService.isGaming = false
+
+        if (!hasEntered) {
+            hasEntered = true
 
             (background as? UIContainer)?.let {
-                addSnowfallWithPeriod(it, context)
-                addFireworksWithPeriod(it, context)
+                addSnowfallWithPeriod(it, global.mainActivity)
+                addFireworksWithPeriod(it, global.mainActivity)
+            }
+
+            // Only logs in when staying online is enabled.
+            OnlineScoring.getInstance().login()
+        }
+
+        val selectedBeatmap = global.selectedBeatmap
+
+        if (MusicManager.isPlaying && selectedBeatmap != null && selectedBeatmap != MusicManager.currentBeatmap) {
+            // Song select left its beatmap playing, the menu follows it from where it is.
+            MusicManager.currentBeatmap = selectedBeatmap
+            MusicManager.load(reloadAudio = false)
+        } else if (!MusicManager.isPlaying) {
+            if (MusicManager.currentBeatmap == null) {
+                // Null with an empty library, the menu stays silent.
+                MusicManager.currentBeatmap = LibraryManager.getLibrary().randomOrNull()?.beatmaps?.randomOrNull()
+            }
+
+            if (MusicManager.currentBeatmap != null) {
+                MusicManager.load()
+                MusicManager.play()
             }
         }
 
-        if (!MusicManager.isPlaying || MusicManager.currentBeatmap == null) {
-            if (MusicManager.currentBeatmap == null) {
-                MusicManager.currentBeatmap = LibraryManager.getLibrary().random().beatmaps.random()
-            }
-            MusicManager.load()
-            MusicManager.play()
+        updateMusicButton()
+    }
 
-            musicButton.text = "${MusicManager.currentBeatmap?.titleText} - ${MusicManager.currentBeatmap?.artistText}"
-            lastMusicChange = System.currentTimeMillis()
+    private fun updateMusicButton() {
+        val beatmap = MusicManager.currentBeatmap
+        musicButton.text = if (beatmap != null) "${beatmap.titleText} - ${beatmap.artistText}" else ""
+        lastMusicChange = System.currentTimeMillis()
+    }
+
+    /**
+     * Fades to the background of [beatmap], or the skin's one without it or with safe backgrounds.
+     * It is decoded off the update thread, the old menu froze while loading it.
+     */
+    private fun changeBackground(beatmap: BeatmapInfo?) {
+        backgroundLoadJob?.cancel()
+
+        val path = beatmap?.backgroundPath
+        if (path == null || Config.isSafeBeatmapBg()) {
+            fadeToBackground(SkinTextures["menu-background"])
+            return
+        }
+
+        backgroundLoadJob = async {
+            val source = Platform.provider.createTextureSource(path, true)
+
+            Verktex.scheduleOnDraw {
+                val region = source?.let { Textures.load("::background-$backgroundKeyIndex", it) }
+                fadeToBackground(region ?: SkinTextures["menu-background"])
+            }
+        }
+    }
+
+    private fun fadeToBackground(region: GraphicsTexture.Region?) {
+        backgroundSprite.crossfadeTo(region)
+        backgroundKeyIndex = 1 - backgroundKeyIndex
+    }
+
+    /**
+     * Bursts stars from the bottom corners for a while when a kiai section starts, as the old menu did.
+     */
+    private fun updateKiaiParticles(deltaTimeSec: Float) {
+        val isKiai = MusicManager.isPlaying && RythimManager.isKiai
+        if (isKiai && !wasKiai) {
+            kiaiParticleTime = KIAI_PARTICLE_DURATION
+        }
+        wasKiai = isKiai
+
+        if (kiaiParticleTime <= 0f) {
+            return
+        }
+        kiaiParticleTime -= deltaTimeSec
+
+        // The old menu was laid out for a 720 pixels tall screen.
+        val scale = kiaiParticles.bounds.height / 720f
+        val y = kiaiParticles.bounds.height * 0.75f
+
+        kiaiParticleBacklog += deltaTimeSec * KIAI_PARTICLE_RATE
+
+        while (kiaiParticleBacklog >= 1f) {
+            kiaiParticleBacklog -= 1f
+
+            for (side in 0..1) {
+                val direction = if (side == 0) 1f else -1f
+
+                kiaiParticles.emit(
+                    x = if (side == 0) -40f * scale else kiaiParticles.bounds.width,
+                    y = y,
+                    lifetime = 1f,
+                    velocityX = direction * Random.nextFloat(150f, 430f) * scale,
+                    velocityY = -Random.nextFloat(480f, 520f) * scale,
+                    accelerationX = direction * Random.nextFloat(10f, 30f) * scale,
+                    accelerationY = 30f * scale,
+                    startScale = 0.5f,
+                    endScale = 2f,
+                    startAlpha = 1f,
+                    endAlpha = 0f,
+                    rotation = Random.nextFloat(0f, 360f)
+                )
+            }
+        }
+    }
+
+    // Resets the time until the expanded menu folds back.
+    private fun onMenuInteraction() {
+        menuIdleTime = 0f
+    }
+
+    // A menu button that clicks and keeps the menu expanded before running its action.
+    private fun menuButton(icon: Int, title: String, action: () -> Unit) = MenuButton(icon, title).apply {
+        onActionUp = {
+            SkinSounds["menuhit"].play()
+            onMenuInteraction()
+            action()
         }
     }
 
@@ -461,14 +582,24 @@ object MainScene : UIScene() {
 
         MusicManager.onUpdate(deltaTimeSec)
 
+        // The expanded menu folds back after a while without being used, as the old menu did.
+        if (isMenuExpanded) {
+            menuIdleTime += deltaTimeSec
+            if (menuIdleTime >= MENU_IDLE_TIMEOUT) {
+                isMenuExpanded = false
+            }
+        }
+
         logo.scale = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), logo.scaleX, if (isMenuExpanded) 1f else 1.3f, 0f, 0.1f)
 
         // Music button
-        val mightShowMusicButton = isMenuExpanded || System.currentTimeMillis() - lastMusicChange < 3000
+        val mightShowMusicButton = isMenuExpanded || musicPlayer.isShown || System.currentTimeMillis() - lastMusicChange < 3000
 
         musicButtonTranslation = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButtonTranslation, if (mightShowMusicButton) 0f else 32f.dip.toPixels(), 0f, 0.05f)
-        musicButton.translationX = musicButtonTranslation.px
-        musicButton.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButton.alpha, if (mightShowMusicButton) 1f else 0f, 0f, 0.05f)
+        musicButtonHolder.translationX = musicButtonTranslation.px
+        musicButtonHolder.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButtonHolder.alpha, if (mightShowMusicButton) 1f else 0f, 0f, 0.05f)
+
+        updateKiaiParticles(deltaTimeSec)
 
         // Beat animations
         val beatLengthSeconds = RythimManager.beatLength.toFloat() / 1000f * (if (RythimManager.isKiai) 1f else RythimManager.beatSignature.toFloat())
@@ -494,6 +625,8 @@ object MainScene : UIScene() {
         super.onUpdate(clock)
     }
 }
+
+private fun Random.nextFloat(from: Float, until: Float) = from + nextFloat() * (until - from)
 
 class MenuButton(icon: Int, title: String) : UIButton() {
 
