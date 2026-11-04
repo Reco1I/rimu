@@ -21,6 +21,10 @@ abstract class ESRenderer(
 
     final override var version: String
 
+    // glCopyTexSubImage2D copies the framebuffer, which starts at the bottom.
+    override val capturesBottomUp: Boolean
+        get() = true
+
 
     init {
         BuiltIn.Shaders.SolidQuad = createShader(
