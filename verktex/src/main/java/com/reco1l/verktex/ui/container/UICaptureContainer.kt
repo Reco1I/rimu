@@ -287,6 +287,6 @@ open class UICaptureContainer : UIIgnoreParentPaddingContainer() {
 
     // The texture is filled by copying the framebuffer, nothing is uploaded.
     private class CaptureSource(override val width: Float, override val height: Float) : GraphicsTexture.Source {
-        override fun uploadToHardware(texturePositionX: Float, texturePositionY: Float) = Unit
+        override fun writePixels(target: GraphicsTexture.PixelTarget, x: Int, y: Int) = Unit
     }
 }
