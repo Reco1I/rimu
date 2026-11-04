@@ -288,7 +288,8 @@ object SongSelect : UIScene() {
                 beatmapCarrousel.selectedPanel = null
                 beatmapCarrousel.data = models
                 beatmapCarrousel.scrollY = 0f
-                (selectedBeatmap ?: GlobalManager.getInstance().selectedBeatmap)?.let(::showBeatmap)
+                // The global selection is set by any selection here, and also by the menu, so it's never older.
+                (GlobalManager.getInstance().selectedBeatmap ?: selectedBeatmap)?.let(::showBeatmap)
             }
         }
     }

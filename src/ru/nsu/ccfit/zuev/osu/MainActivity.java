@@ -83,6 +83,7 @@ import ru.nsu.ccfit.zuev.osu.helper.Debug;
 import com.osudroid.ui.v2.SplashScene;
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager;
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
+import com.osudroid.debug.QuickPlay;
 
 public class MainActivity extends AndroidGameHost {
 
@@ -197,6 +198,11 @@ public class MainActivity extends AndroidGameHost {
                 AccessibilityDetector.register(MainActivity.this);
 
                 logFlushFuture = scheduledExecutor.scheduleAtFixedRate(Multiplayer::flushLog, 0, 5, TimeUnit.SECONDS);
+
+                // TEMPORARY: debug shortcut straight into gameplay, see QuickPlay.
+                if (QuickPlay.startIfRequested(getIntent())) {
+                    return;
+                }
 
                 if (roomInviteLink != null) {
                     final Uri inviteLink = roomInviteLink;
