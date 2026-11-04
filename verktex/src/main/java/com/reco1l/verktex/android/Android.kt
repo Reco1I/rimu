@@ -1,6 +1,8 @@
 package com.reco1l.verktex.android
 
+import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.view.KeyEvent
 import com.reco1l.verktex.Logger
@@ -48,20 +50,56 @@ fun Verktex.initializeAndroid(
     return window
 }
 
+/**
+ * Whether the device reports Vulkan 1.1 hardware, the version the experimental Vulkan backend
+ * targets. It may still fall back to OpenGL ES if it can't be initialized.
+ */
+fun isVulkanAvailable(context: Context): Boolean {
+    return context.packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION, VULKAN_1_1)
+}
+
+/**
+ * Lets Vulkan be tried again after it crashed while starting (see [createVulkanRenderer]), e.g. once
+ * the user picks it again.
+ */
+fun resetVulkanCrashGuard(context: Context) {
+    crashGuardPreferences(context).edit().remove(KEY_VULKAN_STARTING).apply()
+}
+
+private const val VULKAN_1_1 = 0x401000
+private const val KEY_VULKAN_STARTING = "vulkan_starting"
+
+private fun crashGuardPreferences(context: Context) =
+    context.getSharedPreferences("verktex_graphics", Context.MODE_PRIVATE)
+
 // Null when Vulkan can't be used on the device, the caller falls back to OpenGL ES.
 private fun createVulkanRenderer(host: AndroidGameHost, window: AndroidWindow): GraphicsRenderer? {
+    // A driver crash in native code isn't an exception, the process dies. A flag is kept from before
+    // Vulkan starts until its first frame is presented: found on the next launch, Vulkan crashed, and
+    // OpenGL ES is used until it's picked again instead of crashing on every launch.
+    val preferences = crashGuardPreferences(host)
+    if (preferences.getBoolean(KEY_VULKAN_STARTING, false)) {
+        Logger.w("Verktex", "Vulkan didn't start the last time, using OpenGL ES. Pick it again in the settings to retry.")
+        return null
+    }
+    // Committed synchronously, it must be on disk if the process dies right after.
+    preferences.edit().putBoolean(KEY_VULKAN_STARTING, true).commit()
+
     val isDebuggable = host.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
     var context: VKContext? = null
 
     return try {
         context = VKContext(window, enableValidation = isDebuggable)
-        VKRenderer(context, VKDevice(context), window).also {
-            Logger.i("Verktex", "Using the Vulkan backend: ${context.version}.")
+        VKRenderer(context, VKDevice(context), window).also { renderer ->
+            Logger.i("Verktex", "Using the experimental Vulkan backend: ${context.version}.")
+            renderer.onFirstFramePresented = { resetVulkanCrashGuard(host) }
         }
     } catch (e: Throwable) {
-        // UnsatisfiedLinkError included, e.g. an ABI the native library wasn't built for.
+        // UnsatisfiedLinkError included, e.g. an ABI the native library wasn't built for. It failed
+        // without crashing, there's no reason not to try again next time.
         Logger.e("Verktex", "Couldn't use Vulkan, falling back to OpenGL ES.", e)
         try { context?.destroy() } catch (_: Throwable) {}
+        resetVulkanCrashGuard(host)
         null
     }
 }

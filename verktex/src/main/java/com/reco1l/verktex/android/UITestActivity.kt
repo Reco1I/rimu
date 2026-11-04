@@ -3,6 +3,7 @@ package com.reco1l.verktex.android
 import android.content.Context
 import android.os.Bundle
 import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.graphics.GraphicsBackend
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.testing.UITestScene
@@ -31,7 +32,14 @@ abstract class UITestActivity : AndroidGameHost() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Read when the engine is initialized, in super.onCreate.
-        intent.getStringExtra(EXTRA_BACKEND)?.let { Settings[VerktexSettings.GraphicsBackend] = it }
+        intent.getStringExtra(EXTRA_BACKEND)?.let { backend ->
+            Settings[VerktexSettings.GraphicsBackend] = backend
+
+            // Asked for explicitly, it's tried even if it crashed while starting the last time.
+            if (backend == GraphicsBackend.Vulkan.name) {
+                resetVulkanCrashGuard(this)
+            }
+        }
         super.onCreate(savedInstanceState)
     }
 

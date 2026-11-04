@@ -37,6 +37,11 @@ class VKRenderer(
     var skippedCommands = 0
         private set
 
+    /**
+     * Called once, on the draw thread, after the first frame was presented.
+     */
+    var onFirstFramePresented: (() -> Unit)? = null
+
     private val defaultUniforms = DefaultUniforms()
     private val pipelines = HashMap<VKPipelineKey, Long>()
     private var skipsLogged = false
@@ -218,6 +223,11 @@ class VKRenderer(
         PerformanceStats.onFrameDrawn()
 
         context.present()
+
+        onFirstFramePresented?.let {
+            onFirstFramePresented = null
+            it()
+        }
 
         PerformanceStats.gpuTime = VKNative.gpuTime(context.handle)
     }
