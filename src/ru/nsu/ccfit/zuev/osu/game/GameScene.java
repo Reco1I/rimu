@@ -3933,7 +3933,10 @@ public class GameScene implements GameObjectListener {
             stopwatch.restart();
 
             do {
-                GameScene.this.update(deltaTimeSec);
+                // The scene's clock only paces the animations, it must be advanced here. Each step moves it
+                // at most a frame-stable amount, more steps are taken while it is catching up.
+                gameplayClock.processFrame();
+                GameScene.this.update(gameplayClock.getElapsedFrameTime());
 
                 //noinspection ForLoopReplaceableByForEach
                 for (int i = 0; i < cursors.length; ++i) {
