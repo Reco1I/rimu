@@ -31,8 +31,11 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.toPadding
+import com.reco1l.verktex.data.verticalPadding
+import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
@@ -45,15 +48,22 @@ import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.colorTo
 import com.reco1l.verktex.ui.container.UICaptureContainer
 import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UIEdgeToEdgeContainer
+import com.reco1l.verktex.ui.container.UIFullscreenContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.ui.container.edgeToEdgeContainer
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.container.scrollableContainer
+import com.reco1l.verktex.ui.icon
 import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.textButton
 import com.rian.framework.RollingFloatCounter
 import java.io.IOException
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.*
-
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.*
 import java.util.LinkedList
@@ -82,252 +92,252 @@ object ModMenu : UICaptureContainer() {
 
 
     private val modChangeQueue = LinkedList<Mod>()
-    private val modPresetsSection: ModMenuPresetsSection
 
-    private val customizeButton: UITextButton
-    private val customizationMenu: ModCustomizationMenu
-    private val selectedModsIndicator: ModsIndicator
-    private val searchInput: ModMenuSearchInput
-
-    private val rankedBadge: UIBadge
-    private val arBadge: StatisticsBadge
-    private val odBadge: StatisticsBadge
-    private val csBadge: StatisticsBadge
-    private val hpBadge: StatisticsBadge
-    private val bpmBadge: StatisticsBadge
-    private val starRatingBadge: StarRatingBadge
-    private val scoreMultiplierBadge: StatisticsBadge
+    private lateinit var modPresetsSection: ModMenuPresetsSection
+    private lateinit var customizeButton: UITextButton
+    private lateinit var customizationMenu: ModCustomizationMenu
+    private lateinit var selectedModsIndicator: ModsIndicator
+    private lateinit var searchInput: ModMenuSearchInput
+    private lateinit var rankedBadge: UIBadge
+    private lateinit var arBadge: StatisticsBadge
+    private lateinit var odBadge: StatisticsBadge
+    private lateinit var csBadge: StatisticsBadge
+    private lateinit var hpBadge: StatisticsBadge
+    private lateinit var bpmBadge: StatisticsBadge
+    private lateinit var starRatingBadge: StarRatingBadge
+    private lateinit var scoreMultiplierBadge: StatisticsBadge
 
     private var calculationJob: Job? = null
 
 
     init {
-        width = Dimension.FillAvailable
-        height = Dimension.FillAvailable
+        width = fill()
+        height = fill()
 
-        +UILinearContainer().apply {
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
-            orientation = UILinearContainer.Orientation.Vertical
+        edgeToEdgeContainer {
+            width = fill()
+            height = fill()
+
             style = Style { theme ->
                 backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.9f)
             }
 
-            +UIContainer().apply {
-                width = Dimension.FillAvailable
-                height = Dimension.WrapContent
-                style = Style {
-                    padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 8f.dip, bottom = 8f.dip)
-                }
+            linearContainer {
+                width = fill()
+                height = fill()
+                orientation = Orientation.Vertical
+                spacing = 2f.dip
 
-                +UILinearContainer().apply {
-                    orientation = UILinearContainer.Orientation.Horizontal
-                    anchor = Anchor.CenterLeft
-                    origin = Anchor.CenterLeft
-                    spacing = 8f.dip
+                container {
+                    width = fill()
+                    height = wrap()
+                    padding = verticalPadding(8f.dip)
 
-                    +UITextButton().apply {
-                        text = "Back"
-                        leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
-                        onActionUp = {
-                            SkinSounds["click-short-confirm"].play()
-                            back()
-                        }
-                        onActionCancel = { SkinSounds["click-short"].play() }
-                    }
-
-                    customizeButton = UITextButton().apply {
-                        text = "Customize"
-                        isEnabled = false
-                        leadingIcon = faSolidIcon(FAIcon.Wrench)
-                        onActionUp = {
-                            SkinSounds["click-short-confirm"].play()
-                            if (customizationMenu.isShown) {
-                                customizationMenu.hide()
-                            } else {
-                                customizationMenu.show()
-                            }
-                        }
-                        onActionCancel = { SkinSounds["click-short"].play() }
-                    }
-
-                    +customizeButton
-
-                    +UITextButton().apply {
-                        text = "Clear"
-                        tintChildren = true
-                        style += Style {
-                            color = Color4(0xFFFFBFBF)
-                            backgroundColor = Color4(0xFF342121)
-                        }
-                        leadingIcon = faSolidIcon(FAIcon.DeleteLeft)
-                        onActionUp = {
-                            SkinSounds["click-short-confirm"].play()
-                            clear()
-                        }
-                        onActionCancel = { SkinSounds["click-short"].play() }
-                    }
-
-                    +UIScrollableContainer().apply {
-                        width = 192f.dip
-                        height = Dimension.WrapContent
+                    linearContainer {
+                        orientation = Orientation.Horizontal
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
-                        scrollAxes = Axis.X
-                        clipping = ClipMode.Bounds
+                        spacing = 8f.dip
 
-                        selectedModsIndicator = ModsIndicator()
-                        +selectedModsIndicator
-                    }
-                }
-
-                +UIContainer().apply {
-                    anchor = Anchor.CenterRight
-                    origin = Anchor.CenterRight
-
-                    searchInput = ModMenuSearchInput().apply {
-                        width = 288f.dip
-                        onSearchTermUpdate = { searchTerm ->
-                            modSections.forEach { it.onSearchTermUpdate(searchTerm) }
-
-                            if (modPresetsSection.isVisible) {
-                                modPresetsSection.onSearchTermUpdate(searchTerm)
+                        textButton {
+                            text = "Back"
+                            leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
+                            onActionUp = {
+                                SkinSounds["click-short-confirm"].play()
+                                back()
                             }
+                            onActionCancel = { SkinSounds["click-short"].play() }
+                        }
+
+                        customizeButton = textButton {
+                            text = "Customize"
+                            isEnabled = false
+                            leadingIcon = faSolidIcon(FAIcon.Wrench)
+                            onActionUp = {
+                                SkinSounds["click-short-confirm"].play()
+                                if (customizationMenu.isShown) {
+                                    customizationMenu.hide()
+                                } else {
+                                    customizationMenu.show()
+                                }
+                            }
+                            onActionCancel = { SkinSounds["click-short"].play() }
+                        }
+
+                        textButton {
+                            text = "Clear"
+                            tintChildren = true
+                            style += Style {
+                                color = Color4(0xFFFFBFBF)
+                                backgroundColor = Color4(0xFF342121)
+                            }
+                            leadingIcon = faSolidIcon(FAIcon.DeleteLeft)
+                            onActionUp = {
+                                SkinSounds["click-short-confirm"].play()
+                                clear()
+                            }
+                            onActionCancel = { SkinSounds["click-short"].play() }
+                        }
+
+                        scrollableContainer {
+                            width = fill()
+                            height = wrap()
+                            anchor = Anchor.CenterLeft
+                            origin = Anchor.CenterLeft
+                            scrollAxes = Axis.X
+                            clipping = ClipMode.Bounds
+
+                            selectedModsIndicator = ModsIndicator()
+                            +selectedModsIndicator
                         }
                     }
-
-                    +searchInput
 
                     container {
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
-                        padding = Padding(8f.dip, 0f.dip)
 
-                        +UIIcon(FAIcon.MagnifyingGlass).apply {
-                            style = Style { theme ->
-                                color = theme.palette.accent
+                        searchInput = ModMenuSearchInput().apply {
+                            width = 288f.dip
+                            onSearchTermUpdate = { searchTerm ->
+                                modSections.forEach { it.onSearchTermUpdate(searchTerm) }
+
+                                if (modPresetsSection.isVisible) {
+                                    modPresetsSection.onSearchTermUpdate(searchTerm)
+                                }
+                            }
+                        }
+                        +searchInput
+
+                        container {
+                            anchor = Anchor.CenterRight
+                            origin = Anchor.CenterRight
+                            padding = Padding(8f.dip, 0f.dip)
+
+                            +UIIcon(FAIcon.MagnifyingGlass).apply {
+                                style = Style { theme ->
+                                    color = theme.palette.accent
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            +UIScrollableContainer().apply {
-                width = Dimension.FillAvailable
-                height = Dimension.FillAvailable
-                scrollAxes = Axis.X
+                scrollableContainer {
+                    width = fill()
+                    height = fill()
+                    scrollAxes = Axis.X
 
-                +UILinearContainer().apply {
-                    orientation = UILinearContainer.Orientation.Horizontal
-                    width = Dimension.WrapContent
-                    height = Dimension.FillAvailable
-                    spacing = 8f.dip
+                    linearContainer {
+                        orientation = Orientation.Horizontal
+                        width = wrap()
+                        height = fill()
+                        spacing = 8f.dip
+
+                        modPresetsSection = ModMenuPresetsSection()
+                        +modPresetsSection
+
+                        val mods = allModsInstances
+
+                        ModType.entries.forEach { type ->
+                            val sectionName = StringTable.get(type.stringId)
+                            val sectionToggles =
+                                mods.filter { it !is IMigratableMod && it.isUserPlayable && it.type == type }
+                                    .map { ModMenuToggle(it) }
+
+                            if (sectionToggles.isEmpty()) {
+                                return@forEach
+                            }
+
+                            modToggles.addAll(sectionToggles)
+
+                            val section = ModMenuSection(sectionName, sectionToggles)
+
+                            +section
+                            modSections.add(section)
+                        }
+                    }
+                }
+
+                container {
+                    width = fill()
+                    height = wrap()
                     style = Style {
-                        padding = Verktex.graphics.window.insets.safeArea.toPadding()
+                        padding = Padding(
+                            top = 8f.dip,
+                            bottom = (8f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
+                        )
                     }
 
-                    modPresetsSection = ModMenuPresetsSection()
-                    +modPresetsSection
+                    linearContainer {
+                        orientation = Orientation.Horizontal
+                        anchor = Anchor.CenterLeft
+                        origin = Anchor.CenterLeft
+                        spacing = 8f.dip
 
-                    val mods = allModsInstances
-
-                    ModType.entries.forEach { type ->
-                        val sectionName = StringTable.get(type.stringId)
-                        val sectionToggles = mods.filter { it !is IMigratableMod && it.isUserPlayable && it.type == type }.map { ModMenuToggle(it) }
-
-                        if (sectionToggles.isEmpty()) {
-                            return@forEach
+                        arBadge = StatisticsBadge().apply {
+                            label = "AR"
+                            value = "0.00"
                         }
 
-                        modToggles.addAll(sectionToggles)
+                        odBadge = StatisticsBadge().apply {
+                            label = "OD"
+                            value = "0.00"
+                        }
 
-                        val section = ModMenuSection(sectionName, sectionToggles)
+                        csBadge = StatisticsBadge().apply {
+                            label = "CS"
+                            value = "0.00"
+                        }
 
-                        +section
-                        modSections.add(section)
+                        hpBadge = StatisticsBadge().apply {
+                            label = "HP"
+                            value = "0.00"
+                        }
+
+                        bpmBadge = StatisticsBadge { it.roundToInt().toString() }.apply {
+                            label = "BPM"
+                            value = "0.0"
+                        }
+
+                        +arBadge
+                        +odBadge
+                        +csBadge
+                        +hpBadge
+                        +bpmBadge
+                    }
+
+                    linearContainer {
+                        orientation = Orientation.Horizontal
+                        anchor = Anchor.CenterRight
+                        origin = Anchor.CenterRight
+                        spacing = 8f.dip
+
+                        starRatingBadge = StarRatingBadge()
+                        +starRatingBadge
+
+                        rankedBadge = badge {
+                            text = "Ranked"
+                            style = Style {}
+                            backgroundColor = Color4(0xFF342121)
+                            color = Color4(0xFF161622)
+                        }
+
+                        scoreMultiplierBadge = StatisticsBadge { "%.2fx".format(it) }.apply {
+                            label = "Score"
+                            value = "1.00x"
+                        }
+
+                        +scoreMultiplierBadge
                     }
                 }
             }
 
-            +UIContainer().apply {
-                width = Dimension.FillAvailable
-                height = Dimension.WrapContent
-                style = Style {
-                    padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(
-                        top = 8f.dip,
-                        bottom = (8f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
-                    )
-                }
+            // Customizations menu
+            customizationMenu = ModCustomizationMenu(customizeButton)
+            +customizationMenu
 
-                +UILinearContainer().apply {
-                    orientation = UILinearContainer.Orientation.Horizontal
-                    anchor = Anchor.CenterLeft
-                    origin = Anchor.CenterLeft
-                    spacing = 8f.dip
-
-                    arBadge = StatisticsBadge().apply {
-                        label = "AR"
-                        value = "0.00"
-                    }
-
-                    odBadge = StatisticsBadge().apply {
-                        label = "OD"
-                        value = "0.00"
-                    }
-
-                    csBadge = StatisticsBadge().apply {
-                        label = "CS"
-                        value = "0.00"
-                    }
-
-                    hpBadge = StatisticsBadge().apply {
-                        label = "HP"
-                        value = "0.00"
-                    }
-
-                    bpmBadge = StatisticsBadge { it.roundToInt().toString() }.apply {
-                        label = "BPM"
-                        value = "0.0"
-                    }
-
-                    +arBadge
-                    +odBadge
-                    +csBadge
-                    +hpBadge
-                    +bpmBadge
-                }
-
-                +UILinearContainer().apply {
-                    orientation = UILinearContainer.Orientation.Horizontal
-                    anchor = Anchor.CenterRight
-                    origin = Anchor.CenterRight
-                    spacing = 8f.dip
-
-                    starRatingBadge = StarRatingBadge()
-                    +starRatingBadge
-
-                    rankedBadge = badge {
-                        text = "Ranked"
-                        style = Style {}
-                        backgroundColor = Color4(0xFF342121)
-                        color = Color4(0xFF161622)
-                    }
-
-                    scoreMultiplierBadge = StatisticsBadge { "%.2fx".format(it) }.apply {
-                        label = "Score"
-                        value = "1.00x"
-                    }
-
-                    +scoreMultiplierBadge
-                }
-            }
+            modPresetsSection.loadPresets()
         }
-
-        // Customizations menu
-        customizationMenu = ModCustomizationMenu(customizeButton)
-        +customizationMenu
-
-        modPresetsSection.loadPresets()
     }
 
 
@@ -387,9 +397,16 @@ object ModMenu : UICaptureContainer() {
                 odBadge.updateValue(selectedBeatmap.overallDifficulty, difficulty.od)
                 csBadge.updateValue(selectedBeatmap.circleSize, difficulty.difficultyCS)
                 hpBadge.updateValue(selectedBeatmap.hpDrainRate, difficulty.hp)
-                bpmBadge.updateValue(selectedBeatmap.mostCommonBPM, selectedBeatmap.mostCommonBPM * rate)
+                bpmBadge.updateValue(
+                    selectedBeatmap.mostCommonBPM,
+                    selectedBeatmap.mostCommonBPM * rate
+                )
 
-                scoreMultiplierBadge.updateValue(1f, ScoreMultiplierCalculator(beatmap.difficulty).calculateFor(enabledMods.values).toFloat())
+                scoreMultiplierBadge.updateValue(
+                    1f,
+                    ScoreMultiplierCalculator(beatmap.difficulty).calculateFor(enabledMods.values)
+                        .toFloat()
+                )
             }
 
             ensureActive()
@@ -444,7 +461,7 @@ object ModMenu : UICaptureContainer() {
         if (Multiplayer.isConnected) {
             val gameScene = GlobalManager.getInstance().gameScene
             val isInGameplay = gameScene != null &&
-                Verktex.scene == gameScene.scene
+                    Verktex.scene == gameScene.scene
 
             if (!isInGameplay) {
                 Multiplayer.roomScene?.chat?.show()
@@ -584,16 +601,26 @@ object ModMenu : UICaptureContainer() {
             clearTransforms()
             colorTo(if (isRanked) Color4(0xFF161622) else Verktex.theme.palette.accent, 0.1f)
 
-            backgroundColor = if (isRanked) Color4(0xFF83DF6B) else Verktex.theme.palette.accent * 0.15f
+            backgroundColor =
+                if (isRanked) Color4(0xFF83DF6B) else Verktex.theme.palette.accent * 0.15f
         }
 
         modToggles.forEach {
             it.hasIncompatibility =
-                !it.isSelected && enabledMods.any { m -> !it.mod.isCompatibleWith(m) || !m.isCompatibleWith(it.mod) }
+                !it.isSelected && enabledMods.any { m ->
+                    !it.mod.isCompatibleWith(m) || !m.isCompatibleWith(
+                        it.mod
+                    )
+                }
         }
 
         val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap
-        scoreMultiplierBadge.updateValue(1f, ScoreMultiplierCalculator(selectedBeatmap?.getBeatmapDifficulty()).calculateFor(enabledMods).toFloat())
+        scoreMultiplierBadge.updateValue(
+            1f,
+            ScoreMultiplierCalculator(selectedBeatmap?.getBeatmapDifficulty()).calculateFor(
+                enabledMods
+            ).toFloat()
+        )
 
         customizeButton.isEnabled = !customizationMenu.isEmpty()
 
@@ -609,7 +636,7 @@ object ModMenu : UICaptureContainer() {
         SongSelect.onModsChanged()
 
         // The song select behind shows the statistics with the mods.
-        invalidateCapture()
+        //invalidateCapture()
     }
 
     fun addMod(mod: Mod) {
@@ -686,7 +713,8 @@ object ModMenu : UICaptureContainer() {
                         initialValue > finalValue -> 0xFF40CF5D
                         else -> 0xFFFFFFFF
                     }
-                ), counter.rollingDuration, counter.rollingEasing)
+                ), counter.rollingDuration, counter.rollingEasing
+            )
         }
 
         override fun onUpdate(clock: FrameClock) {

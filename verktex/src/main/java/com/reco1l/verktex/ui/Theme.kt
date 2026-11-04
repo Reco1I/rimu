@@ -43,9 +43,9 @@ open class Theme(
 
     val typography: Typography = Typography(
         h1 = FontSettings(
-            size = 24f.dip,
+            size = 22f.dip,
             family = "torus",
-            weight = Font.Weight.Bold
+            weight = Font.Weight.Bold,
         ),
         h2 = FontSettings(
             size = 20f.dip,
@@ -80,7 +80,7 @@ open class Theme(
     ),
 
     val controlStyle: ControlStyle = ControlStyle(
-        minimumHeight = 40f.dip,
+        minimumHeight = 38f.dip,
     ),
 
     /**
@@ -88,7 +88,7 @@ open class Theme(
      */
     val buttonStyle: ButtonStyle = ButtonStyle(
         small = ButtonStyle.Size(
-            height = 32f.dip,
+            height = 28f.dip,
             horizontalPadding = 12f.dip,
             fontSize = typography.smallBody.size,
             iconSize = typography.smallBody.size,

@@ -25,7 +25,6 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
 
     private var isExpanded = false
 
-    private var currentBorderWidth = BORDER_WIDTH.dip.toPixels()
     private var currentExtraWidth = 0f
 
     /**
@@ -48,7 +47,7 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
             radius = theme.radius.xl
             backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.6f)
             borderColor = theme.palette.accent.copy(alpha = 0.3f)
-            borderWidth = BORDER_WIDTH.dip
+            borderWidth = 1f.dip
         }
 
         linearContainer {
@@ -91,13 +90,9 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         val accent = Verktex.theme.palette.accent
 
         val targetBorderColor = if (isExpanded) accent else accent.copy(alpha = 0.3f)
-        val targetBorderWidth = (if (isExpanded) EXPANDED_BORDER_WIDTH else BORDER_WIDTH).dip.toPixels()
         val targetExtraWidth = if (isExpanded) EXPANDED_EXTRA_WIDTH.dip.toPixels() else 0f
 
         borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
-
-        currentBorderWidth = clock.interpolateWithSnap(0.1f, currentBorderWidth, targetBorderWidth, 0.5f)
-        borderWidth = currentBorderWidth.px
 
         currentExtraWidth = clock.interpolateWithSnap(0.1f, currentExtraWidth, targetExtraWidth, 0.5f)
         updateTranslation()
@@ -124,10 +119,8 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
 
 
     private companion object {
-        const val BORDER_WIDTH = 0.25f
-        const val EXPANDED_BORDER_WIDTH = 2f
         const val EXPANDED_EXTRA_WIDTH = 96f
-        const val GLOW_ALPHA = 0.1f
-        const val GLOW_BLUR = 20f
+        const val GLOW_ALPHA = 0.15f
+        const val GLOW_BLUR = 24f
     }
 }
