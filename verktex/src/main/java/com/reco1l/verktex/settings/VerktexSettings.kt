@@ -17,9 +17,8 @@ object VerktexSettings {
     const val ResolutionScale = "resolution_scale"
 
     /**
-     * The graphics backend to use: "auto" (the default) picks the most capable one the device
-     * supports, "es2" forces OpenGL ES 2.0. It's read once when the engine is initialized, so it
-     * must be set before the host is created.
+     * The [com.reco1l.verktex.graphics.GraphicsBackend] to render with, stored by name. It's read
+     * once when the engine is initialized, so it must be set before the host is created.
      */
     const val GraphicsBackend = "graphics_backend"
 }

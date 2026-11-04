@@ -39,6 +39,7 @@ import com.osudroid.BuildSettings;
 import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.data.DatabaseManager;
 import com.osudroid.resources.R;
+import com.reco1l.verktex.graphics.GraphicsBackend;
 import com.reco1l.verktex.settings.Settings;
 import com.reco1l.verktex.settings.VerktexSettings;
 import com.osudroid.ui.v2.GameLoaderScene;
@@ -493,6 +494,10 @@ public class MainActivity extends AndroidGameHost {
         // Some components may already start using this class when onCreate is called. An example
         // is when the game is restoring after being killed by system due to low system memory.
         GlobalManager.getInstance().setMainActivity(this);
+
+        // The engine picks its graphics backend when the host is created, Config isn't loaded yet.
+        Settings.INSTANCE.set(VerktexSettings.GraphicsBackend, PreferenceManager.getDefaultSharedPreferences(this)
+            .getString(SettingsSectionsKt.GRAPHICS_BACKEND_KEY, GraphicsBackend.Auto.name()));
 
         super.onCreate(pSavedInstanceState);
 
