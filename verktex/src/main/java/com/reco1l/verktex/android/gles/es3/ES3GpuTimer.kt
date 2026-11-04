@@ -1,7 +1,7 @@
-package com.reco1l.verktex.android.gles
+package com.reco1l.verktex.android.gles.es3
 
 import android.opengl.GLES30
-import android.opengl.GLES32
+import android.opengl.GLES20
 
 /**
  * Measures how long the GPU takes to execute each frame with `GL_EXT_disjoint_timer_query`.
@@ -9,7 +9,7 @@ import android.opengl.GLES32
  * Results arrive a few frames late: each frame uses one query of a ring and reads the oldest one
  * when it's available, so the CPU never waits for the GPU.
  */
-internal class ESGpuTimer {
+internal class ES3GpuTimer {
 
     /**
      * Whether the device supports timer queries. Checked on the first frame, with a context.
@@ -36,7 +36,7 @@ internal class ESGpuTimer {
     fun begin() {
         if (!checkedSupport) {
             checkedSupport = true
-            isSupported = GLES32.glGetString(GLES32.GL_EXTENSIONS)?.contains("GL_EXT_disjoint_timer_query") == true
+            isSupported = GLES20.glGetString(GLES20.GL_EXTENSIONS)?.contains("GL_EXT_disjoint_timer_query") == true
         }
 
         if (!isSupported) {
@@ -57,7 +57,7 @@ internal class ESGpuTimer {
 
         // Clears the disjoint flag, which is set when the timings may be wrong (e.g. the GPU
         // changed its frequency).
-        GLES32.glGetIntegerv(GL_GPU_DISJOINT_EXT, result, 0)
+        GLES20.glGetIntegerv(GL_GPU_DISJOINT_EXT, result, 0)
 
         GLES30.glBeginQuery(GL_TIME_ELAPSED_EXT, queries[current])
         running = true
@@ -89,7 +89,7 @@ internal class ESGpuTimer {
 
         val nanos = result[0].toLong() and 0xFFFFFFFFL
 
-        GLES32.glGetIntegerv(GL_GPU_DISJOINT_EXT, result, 0)
+        GLES20.glGetIntegerv(GL_GPU_DISJOINT_EXT, result, 0)
         if (result[0] == 0) {
             gpuTime = nanos / 1_000_000f
         }

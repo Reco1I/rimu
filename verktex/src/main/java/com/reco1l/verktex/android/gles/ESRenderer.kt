@@ -1,23 +1,24 @@
 package com.reco1l.verktex.android.gles
 
-import android.opengl.GLES32
+import android.opengl.GLES20
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Logger
-import com.reco1l.verktex.PerformanceStats
 import com.reco1l.verktex.Platform
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.graphics.DrawCommand
 import com.reco1l.verktex.graphics.GraphicsRenderer
-import com.reco1l.verktex.graphics.GraphicsShader
 
-class ESRenderer(
+/**
+ * The OpenGL ES implementation of [GraphicsRenderer], common to every version. Each backend
+ * provides the [executor] running the draw commands.
+ */
+abstract class ESRenderer(
     override val context: ESContext,
     override val device: ESDevice,
     override val window: ESWindow,
+    protected val executor: ESCommandExecutor,
 ) : GraphicsRenderer() {
 
-    override var version: String
+    final override var version: String
 
 
     init {
@@ -69,15 +70,13 @@ class ESRenderer(
             ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/shaders/particle")
         )
 
-        version = GLES32.glGetString(GLES32.GL_VERSION) ?: run {
+        version = GLES20.glGetString(GLES20.GL_VERSION) ?: run {
             Logger.w("ESRenderer", "Couldn't retrieve OpenGL ES version.")
             "Unknown OpenGL ES version"
         }
     }
 
     private var capabilitiesRefreshed = false
-
-    private val gpuTimer = ESGpuTimer()
 
     override fun prepareFrame(): Boolean {
         if (!context.prepare()) return false
@@ -86,6 +85,7 @@ class ESRenderer(
         if (!capabilitiesRefreshed) {
             capabilitiesRefreshed = true
             device.refreshCapabilities()
+            onContextReady()
         }
         return true
     }
@@ -93,25 +93,40 @@ class ESRenderer(
     override fun begin() {
         super.begin()
 
-        gpuTimer.begin()
+        onFrameBegin()
 
-        GLES32.glViewport(0, 0, window.windowWidth, window.windowHeight)
-        GLES32.glClearColor(0f, 0f, 0f, 1f)
-        GLES32.glClear(GLES32.GL_COLOR_BUFFER_BIT or GLES32.GL_DEPTH_BUFFER_BIT or GLES32.GL_STENCIL_BUFFER_BIT)
+        GLES20.glViewport(0, 0, window.windowWidth, window.windowHeight)
+        GLES20.glClearColor(0f, 0f, 0f, 1f)
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT or GLES20.GL_STENCIL_BUFFER_BIT)
     }
 
     override fun end() {
         // Textures and glyphs were uploaded while recording, the cached state is stale.
-        ESCommandExecutor.resetState()
+        executor.resetState()
         super.end()
 
-        gpuTimer.end()
-        PerformanceStats.gpuTime = gpuTimer.gpuTime
+        onFrameExecuted()
 
         context.swapBuffers()
     }
 
     override fun drawCommand(command: DrawCommand) {
-        ESCommandExecutor.execute(command, window.windowWidth, window.windowHeight)
+        executor.execute(command, window.windowWidth, window.windowHeight)
     }
+
+
+    /**
+     * Called on the draw thread the first time the context is current.
+     */
+    protected open fun onContextReady() = Unit
+
+    /**
+     * Called at the start of every frame, before the window is cleared.
+     */
+    protected open fun onFrameBegin() = Unit
+
+    /**
+     * Called once the frame's commands were executed, before the buffers are swapped.
+     */
+    protected open fun onFrameExecuted() = Unit
 }
