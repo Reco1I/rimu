@@ -4,6 +4,7 @@ import com.reco1l.verktex.Platform
 import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToInt
+import com.reco1l.verktex.graphics.GraphicsBackend
 import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.form.FormSelect
@@ -729,13 +730,31 @@ private fun resolutionScaleOption(): OptionInfo? {
  */
 const val RESOLUTION_SCALE_KEY = "resolutionScale"
 
+/**
+ * The preference storing the [GraphicsBackend] by name, loaded into [VerktexSettings.GraphicsBackend]
+ * before the engine is initialized.
+ */
+const val GRAPHICS_BACKEND_KEY = "graphicsBackend"
+
+private fun graphicsBackendOption() = OptionInfo(
+    type = OptionType.Select,
+    key = GRAPHICS_BACKEND_KEY,
+    title = AppR.string.opt_graphics_backend_title,
+    summary = AppR.string.opt_graphics_backend_summary,
+    entries = AppR.array.opt_graphics_backend_names,
+    entryValues = AppR.array.opt_graphics_backend_values,
+    defaultValue = GraphicsBackend.Auto.name,
+    onChange = {
+        // The engine keeps the backend it was initialized with until the game restarts.
+        ToastLogger.showText(AppR.string.opt_graphics_backend_restart, true)
+    }
+)
+
 val graphicsSection = listOfNotNull(
-    resolutionScaleOption()?.let { option ->
-        CategoryInfo(
-            title = StringTable.get(AppR.string.opt_category_rendering),
-            options = listOf(option)
-        )
-    },
+    CategoryInfo(
+        title = StringTable.get(AppR.string.opt_category_rendering),
+        options = listOfNotNull(graphicsBackendOption(), resolutionScaleOption())
+    ),
 
     CategoryInfo(
         title = StringTable.get(R.string.opt_category_cursor),

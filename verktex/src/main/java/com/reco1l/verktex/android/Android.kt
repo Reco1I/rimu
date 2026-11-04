@@ -16,6 +16,7 @@ import com.reco1l.verktex.android.gles.es2.ES2Device
 import com.reco1l.verktex.android.gles.es2.ES2Renderer
 import com.reco1l.verktex.android.gles.es3.ES3Device
 import com.reco1l.verktex.android.gles.es3.ES3Renderer
+import com.reco1l.verktex.graphics.GraphicsBackend
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.VerktexSettings
 
@@ -29,9 +30,11 @@ fun Verktex.initializeAndroid(
 
     val window = ESWindow(host)
 
-    val preferredVersion = when (Settings[VerktexSettings.GraphicsBackend, "auto"]) {
-        "es2" -> ESVersion.ES2
-        else -> ESVersion.ES3
+    val backend = GraphicsBackend.fromName(Settings[VerktexSettings.GraphicsBackend, GraphicsBackend.Auto.name])
+
+    val preferredVersion = when (backend) {
+        GraphicsBackend.Auto, GraphicsBackend.OpenGLES3 -> ESVersion.ES3
+        GraphicsBackend.OpenGLES2 -> ESVersion.ES2
     }
     val context = ESContext(window, preferredVersion)
 

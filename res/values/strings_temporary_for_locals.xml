@@ -6,5 +6,19 @@
     <string name="opt_category_rendering">Rendering</string>
     <string name="opt_resolution_scale_title">Resolution</string>
     <string name="opt_resolution_scale_summary">Renders at a lower resolution than the display\'s, which improves performance at the cost of sharpness.</string>
+    <string name="opt_graphics_backend_title">Graphics backend</string>
+    <string name="opt_graphics_backend_summary">The graphics API the game renders with. Applied after restarting the game.</string>
+    <string name="opt_graphics_backend_restart">Restart the game to apply the new graphics backend.</string>
+    <string-array name="opt_graphics_backend_names">
+        <item>Automatic</item>
+        <item>OpenGL ES 3</item>
+        <item>OpenGL ES 2</item>
+    </string-array>
+    <!-- Names of com.reco1l.verktex.graphics.GraphicsBackend. -->
+    <string-array name="opt_graphics_backend_values" translatable="false">
+        <item>Auto</item>
+        <item>OpenGLES3</item>
+        <item>OpenGLES2</item>
+    </string-array>
 
 </resources>
