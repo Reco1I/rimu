@@ -1067,6 +1067,13 @@ abstract class UIComponent {
      */
     protected open fun adjustParentConstraints(constraints: LayoutConstraints) = constraints
 
+    /**
+     * Adjusts the bounds this component got from its measured size and the parent, before laying
+     * out its content. They can grow past the measured size without moving the siblings, e.g. into
+     * the safe area as [com.reco1l.verktex.ui.container.UIEdgeToEdgeContainer] does.
+     */
+    protected open fun adjustBounds(bounds: Vec4) = bounds
+
     open fun layout(assignedBounds: Vec4) {
         if (isLayoutStatic) {
             if (!layoutInvalid && assignedBounds == lastLayoutBounds) {
@@ -1097,12 +1104,12 @@ abstract class UIComponent {
 
         val oldBounds = bounds
 
-        bounds = Vec4(
+        bounds = adjustBounds(Vec4(
             x = assignedBounds.x + anchorOffset.x + positionOffset.x - originOffset.x,
             y = assignedBounds.y + anchorOffset.y + positionOffset.y - originOffset.y,
             z = assignedBounds.x + anchorOffset.x + positionOffset.x - originOffset.x + measuredSize.x,
             w = assignedBounds.y + anchorOffset.y + positionOffset.y - originOffset.y + measuredSize.y
-        )
+        ))
 
         onLayout(bounds)
 
