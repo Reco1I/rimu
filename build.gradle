@@ -57,10 +57,6 @@ apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
 apply plugin: 'androidx.room'
 
-// Lint vital guards the builds that ship. The profile build only measures performance and it took most
-// of its build time, so it skips it.
-gradle.startParameter.excludedTaskNames += "lintVitalProfile"
-
 android {
     namespace 'ru.nsu.ccfit.zuev.osuplus'
     compileSdk 34
