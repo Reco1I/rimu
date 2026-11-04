@@ -18,6 +18,11 @@ import com.reco1l.verktex.input.ScrollEvent
 import kotlin.math.pow
 import kotlin.math.sqrt
 
+
+fun UIContainer.captureContainer(block: UICaptureContainer.() -> Unit): UICaptureContainer {
+    return UICaptureContainer().apply(block).also(::plusAssign)
+}
+
 /**
  * An overlay that captures what is drawn behind it, the scene and the overlays below it, and
  * shows that capture instead of drawing them again, until [invalidateCapture] is called. Meant for
@@ -31,11 +36,14 @@ import kotlin.math.sqrt
  * container, unless it blurs: what is behind it is still drawn then, and the blurred capture is drawn
  * over it within its bounds. It is captured again when its bounds in the window change.
  *
+ * Like a [UIIgnoreParentPaddingContainer] it covers its parent including the padding, e.g. the
+ * safe area, so a blurred capture reaches the edges, while its children keep to that padding.
+ *
  * The capture can be blurred, see [blurRadius]. The blur is applied once when capturing, so showing
  * it costs the same as showing the plain capture. Its own background is drawn before the capture,
  * a tint over the blur must be the background of a child.
  */
-open class UICaptureContainer : UIContainer() {
+open class UICaptureContainer : UIIgnoreParentPaddingContainer() {
 
     /**
      * Whether what is behind is shown from the capture instead of being drawn.
