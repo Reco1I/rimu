@@ -1,43 +1,129 @@
 package com.reco1l.verktex.graphics
 
+import com.reco1l.verktex.Logger
+import java.nio.ByteOrder
+import kotlin.math.max
+
+/**
+ * Vertex data written on the CPU and uploaded by the backend when a draw using it is executed.
+ *
+ * Lifetime: a draw reads the buffer's data as it is when the frame is executed (in
+ * [GraphicsRenderer.end]), so a buffer used by a draw recorded this frame must not be cleared or
+ * written again until then. Once the frame was executed it can be rewritten right away for the next
+ * one, even while the GPU may still be drawing the previous frame: the backend makes each upload a
+ * copy that stays valid until the GPU is done with it (GL orphans the storage, a backend with frames
+ * in flight writes it to a per-frame ring).
+ */
 abstract class GraphicsBuffer : GraphicsResource() {
 
-    abstract val capacity: Int
-    abstract val position: Int
+    // Written as ints into a plain array, which is much cheaper per value than a direct buffer, and
+    // copied by the backend in one go when uploaded. Every vertex layout is made of 4-byte floats and
+    // groups of 4 bytes, so the data is always whole ints.
+    private var _words = IntArray(INITIAL_WORDS)
+    private var _wordCount = 0
+
+    // Bytes put one by one until they make up a whole int.
+    private var pendingBytes = 0
+    private var pendingByteCount = 0
+
+
+    /**
+     * The data written so far in native byte order, valid up to [wordCount]. Backends upload it, or
+     * read it to rearrange it on the CPU. It must not be modified.
+     */
+    val words: IntArray
+        get() = _words
+
+    /**
+     * The number of whole words written, bytes still pending to make up a word aren't counted.
+     */
+    val wordCount: Int
+        get() = _wordCount
+
+    val capacity: Int
+        get() = _words.size * 4
+
+    val position: Int
+        get() = _wordCount * 4 + pendingByteCount
 
     fun isEmpty() = position == 0
+
+
+    /**
+     * Whether a draw recorded this frame uses the buffer and wasn't executed yet, set by the renderer.
+     */
+    internal var isRecorded = false
 
     /**
      * Discards the written data, so the buffer can be filled again.
      */
-    abstract fun clear()
+    fun clear() {
+        if (isRecorded) {
+            // The recorded draw would draw what is written next instead, see the lifetime above.
+            Logger.w("GraphicsBuffer", "A buffer was cleared while a draw of this frame still uses it.")
+        }
 
-    abstract fun requireCapacity(requiredBytes: Int)
-    abstract fun putFloat(float: Float)
-    abstract fun putByte(byte: Byte)
+        _wordCount = 0
+        pendingBytes = 0
+        pendingByteCount = 0
+    }
+
+    fun requireCapacity(requiredBytes: Int) {
+        val requiredWords = _wordCount + (pendingByteCount + requiredBytes + 3) / 4
+        if (requiredWords > _words.size) {
+            _words = _words.copyOf(max(_words.size * 2, requiredWords))
+        }
+    }
+
+    fun putByte(byte: Byte) {
+        val shift = if (IS_LITTLE_ENDIAN) pendingByteCount * 8 else (3 - pendingByteCount) * 8
+        pendingBytes = pendingBytes or ((byte.toInt() and 0xFF) shl shift)
+
+        if (++pendingByteCount == 4) {
+            requireCapacity(0)
+            _words[_wordCount++] = pendingBytes
+            pendingBytes = 0
+            pendingByteCount = 0
+        }
+    }
+
+    fun putFloat(float: Float) {
+        requireCapacity(4)
+        _words[_wordCount++] = java.lang.Float.floatToRawIntBits(float)
+    }
 
     /**
      * Puts 4 bytes stored in memory from the lowest to the highest byte of [value], e.g. a
      * [com.reco1l.verktex.data.Color4.packedRGBA].
      */
-    open fun putPackedBytes(value: Int) {
-        putByte(value.toByte())
-        putByte((value shr 8).toByte())
-        putByte((value shr 16).toByte())
-        putByte((value shr 24).toByte())
+    fun putPackedBytes(value: Int) {
+        requireCapacity(4)
+        _words[_wordCount++] = if (IS_LITTLE_ENDIAN) value else Integer.reverseBytes(value)
     }
 
     /**
      * Puts a vertex of the default layout: position, texture coordinates and a packed color.
      */
-    open fun putVertex(x: Float, y: Float, u: Float, v: Float, packedRGBA: Int) {
-        requireCapacity(VERTEX_STRIDE)
-        putFloat(x)
-        putFloat(y)
-        putFloat(u)
-        putFloat(v)
-        putPackedBytes(packedRGBA)
+    fun putVertex(x: Float, y: Float, u: Float, v: Float, packedRGBA: Int) {
+        if (_wordCount + 5 > _words.size) {
+            requireCapacity(VERTEX_STRIDE)
+        }
+
+        val words = _words
+        var i = _wordCount
+        words[i++] = java.lang.Float.floatToRawIntBits(x)
+        words[i++] = java.lang.Float.floatToRawIntBits(y)
+        words[i++] = java.lang.Float.floatToRawIntBits(u)
+        words[i++] = java.lang.Float.floatToRawIntBits(v)
+        words[i++] = if (IS_LITTLE_ENDIAN) packedRGBA else Integer.reverseBytes(packedRGBA)
+        _wordCount = i
     }
+
+    /**
+     * Uploads the [wordCount] words written to the GPU, for the draw being executed. See the
+     * lifetime above for how long the uploaded data must stay valid.
+     */
+    abstract fun uploadDataToGPU()
 
 
     companion object {
@@ -45,7 +131,9 @@ abstract class GraphicsBuffer : GraphicsResource() {
          * The size in bytes of a vertex of [VertexLayout.Default].
          */
         const val VERTEX_STRIDE = 20
-    }
 
-    abstract fun uploadDataToGPU()
+        private const val INITIAL_WORDS = 256
+
+        private val IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
+    }
 }

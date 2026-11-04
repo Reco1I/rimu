@@ -1,7 +1,6 @@
 package com.reco1l.verktex.android.gles.es2
 
 import android.opengl.GLES20
-import com.reco1l.verktex.android.gles.ESBuffer
 import com.reco1l.verktex.android.gles.ESCommandExecutor
 import com.reco1l.verktex.graphics.DrawCommand
 import com.reco1l.verktex.graphics.VertexLayout
@@ -83,8 +82,8 @@ class ES2CommandExecutor : ESCommandExecutor() {
     private var expandedBuffer = 0
 
     override fun drawInstanced(command: DrawCommand, vertexCount: Int) {
-        val vertexBuffer = command.buffer as ESBuffer
-        val instanceBuffer = command.instanceBuffer as ESBuffer
+        val vertexBuffer = command.buffer!!
+        val instanceBuffer = command.instanceBuffer!!
         val vertexLayout = command.vertexLayout
         val instanceLayout = command.instanceLayout!!
 
@@ -92,7 +91,7 @@ class ES2CommandExecutor : ESCommandExecutor() {
         val vertexWords = vertexLayout.stride / 4
         val instanceWords = instanceLayout.stride / 4
 
-        val instanceCount = min(command.instanceCount, instanceBuffer.writtenWordCount / max(instanceWords, 1))
+        val instanceCount = min(command.instanceCount, instanceBuffer.wordCount / max(instanceWords, 1))
         if (vertexCount == 0 || instanceCount == 0) {
             return
         }
@@ -106,8 +105,8 @@ class ES2CommandExecutor : ESCommandExecutor() {
         }
 
         val words = expandedWords
-        val vertexData = vertexBuffer.data
-        val instanceData = instanceBuffer.data
+        val vertexData = vertexBuffer.words
+        val instanceData = instanceBuffer.words
         var position = 0
 
         for (instance in 0 until instanceCount) {

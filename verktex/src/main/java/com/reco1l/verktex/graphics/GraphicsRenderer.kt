@@ -46,7 +46,9 @@ abstract class GraphicsRenderer {
 
     private val commandBatch = ArrayDeque<DrawCommand>()
 
-    // Vertex buffers are reused across frames, creating and deleting them per command is costly.
+    // Vertex buffers are reused across frames, creating and deleting them per command is costly. Each
+    // is used by one command per frame, so it is only rewritten once the frame was executed, see the
+    // lifetime in GraphicsBuffer.
     private val bufferPool = ArrayList<GraphicsBuffer>()
     private var buffersUsed = 0
 
@@ -121,6 +123,7 @@ abstract class GraphicsRenderer {
         val vertexBuffer = bufferPool.getOrNull(buffersUsed) ?: createVertexBuffer().also(bufferPool::add)
         buffersUsed++
         vertexBuffer.clear()
+        vertexBuffer.isRecorded = true
 
         activeTexture = texture
         activeShader = usedShader
@@ -145,7 +148,9 @@ abstract class GraphicsRenderer {
 
     /**
      * Records an instanced draw, in which [vertexBuffer] is drawn [instanceCount] times advancing through
-     * [instanceBuffer]. Both buffers are owned by the caller and must keep their data until the frame is drawn.
+     * [instanceBuffer]. Both buffers are owned by the caller and must keep their data until the frame is
+     * executed, i.e. they can't be rewritten for another draw of the same frame. See the lifetime in
+     * [GraphicsBuffer].
      */
     fun drawInstanced(
         shader: GraphicsShader,
@@ -161,6 +166,9 @@ abstract class GraphicsRenderer {
         require(vertexBuffer.position == vertexCount * vertexLayout.stride) {
             "The vertex buffer doesn't hold $vertexCount vertices of the given layout."
         }
+
+        vertexBuffer.isRecorded = true
+        instanceBuffer.isRecorded = true
 
         commandBatch.addLast(DrawCommand(
             buffer = vertexBuffer,
@@ -1122,16 +1130,27 @@ abstract class GraphicsRenderer {
         activeUniformSet = EMPTY_UNIFORMS
 
         // Should not happen but just in case, clear the command batch to avoid rendering stale commands.
+        for (command in commandBatch) {
+            releaseBuffers(command)
+        }
         commandBatch.clear()
         buffersUsed = 0
     }
 
     abstract fun drawCommand(command: DrawCommand)
 
+    // The command was executed (or dropped), its buffers can be rewritten.
+    private fun releaseBuffers(command: DrawCommand) {
+        command.buffer?.isRecorded = false
+        command.instanceBuffer?.isRecorded = false
+    }
+
     open fun end() {
         val submitStartNanos = System.nanoTime()
         while (commandBatch.isNotEmpty()) {
-            drawCommand(commandBatch.removeFirst())
+            val command = commandBatch.removeFirst()
+            drawCommand(command)
+            releaseBuffers(command)
         }
         PerformanceStats.submitTime = (System.nanoTime() - submitStartNanos) / 1_000_000f
         buffersUsed = 0
