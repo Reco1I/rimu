@@ -52,6 +52,14 @@ open class UIText : UICanvas() {
             invalidateMeasure()
         }
 
+
+    init {
+        style = Style {
+            color = it.palette.accent
+        }
+    }
+
+
     //region Icons
 
     /**

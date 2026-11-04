@@ -4,14 +4,15 @@ import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
 import android.util.Log
 import com.osudroid.data.BeatmapInfo
+import com.osudroid.ui.OsuColors
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.interpolateColor
@@ -22,8 +23,10 @@ import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.container.RecyclableComponent
 import com.reco1l.verktex.ui.container.UIClickableContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
 import com.reco1l.verktex.ui.container.clickableContainer
 import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.sprite
 import com.reco1l.verktex.ui.text.UIText
@@ -110,38 +113,38 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
     private var isTransitioning = false
 
     private var buttonExtraWidth = 0f
-    private var buttonBorderWidth = BORDER_WIDTH.dip.toPixels()
     private var buttonGlow = 0f
     private var panelsExpansion = 0f
 
     private lateinit var cover: UISprite
     private lateinit var titleText: UIText
     private lateinit var artistText: UIText
+    private lateinit var difficultyIndicators: UILinearContainer
 
 
     init {
-        width = Dimension.FillAvailable
+        width = fill()
 
         linearContainer {
-            orientation = UILinearContainer.Orientation.Vertical
-            width = Dimension.FillAvailable
+            orientation = Orientation.Vertical
+            width = fill()
             spacing = 4f.dip
 
             button = clickableContainer {
-                width = Dimension.FillAvailable
+                width = fill()
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
                 onActionLongPress = { beatmapCarrousel.onBeatmapSetLongPress?.invoke(this@BeatmapSetPanel) }
                 onActionUp = { select() }
                 style = Style { theme ->
                     borderColor = theme.palette.accent.copy(alpha = 0.3f)
-                    borderWidth = BORDER_WIDTH.dip
+                    borderWidth = 1f.dip
                     radius = theme.radius.xl
                 }
 
                 cover = sprite {
-                    width = Dimension.FillAvailable
-                    height = Dimension.FillAvailable
+                    width = fill()
+                    height = fill()
                     scaleType = UISprite.ScaleType.Crop
                     style = Style { theme ->
                         backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.5f)
@@ -150,8 +153,8 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 }
 
                 box {
-                    width = Dimension.FillAvailable
-                    height = Dimension.FillAvailable
+                    width = fill()
+                    height = fill()
                     backgroundColor = Color4.Black.copy(alpha = 0.6f)
                     style = Style { theme ->
                         radius = theme.radius.xl
@@ -159,29 +162,38 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 }
 
                 linearContainer {
-                    orientation = UILinearContainer.Orientation.Vertical
-                    width = Dimension.FillAvailable
+                    orientation = Orientation.Vertical
+                    width = fill()
                     padding = Padding(10f.dip)
+                    spacing = 1f.dip
 
                     titleText = text {
                         text = "Unknown"
-                        style = Style { theme ->
-                            fontSettings = theme.typography.h3
-                            fontSize = theme.typography.body.size
-                            color = theme.palette.accent
+                        style = Style {
+                            fontSettings = it.typography.h3
+                            fontSize = it.typography.body.size
                         }
                     }
 
                     artistText = text {
                         text = "Unknown"
-                        style = Style { theme -> color = theme.palette.accent * 0.8f }
+                        style = Style {
+                            fontSettings = it.typography.caption
+                            fontSize = it.typography.smallCaption.size
+                            color = it.palette.accent * 0.8f
+                        }
+                    }
+
+                    difficultyIndicators = linearContainer {
+                        spacing = 2f.dip
+                        padding = Padding(2f.dip)
                     }
                 }
             }
 
             panelsContainer = linearContainer {
-                orientation = UILinearContainer.Orientation.Vertical
-                width = Dimension.FillAvailable
+                orientation = Orientation.Vertical
+                width = fill()
                 height = wrap(0f)
                 alpha = 0f
                 spacing = 4f.dip
@@ -197,6 +209,16 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
         artistText.text = if (data.isDifficulty && firstBeatmap != null) "$artist · ${firstBeatmap.version}" else artist
         cover.textureRegion = data.coverTexture
+
+        difficultyIndicators.clearChildren()
+        data.beatmapSetInfo.beatmaps.sortedBy { it.getStarRating() }.forEach { beatmap ->
+            difficultyIndicators += UIBox().apply {
+                width = 12f.dip
+                height = 2f.dip
+                radius = 8f.dip
+                backgroundColor = OsuColors.getStarRatingColor(beatmap.getStarRating().toDouble()).lighten(0.5f)
+            }
+        }
     }
 
 
@@ -225,16 +247,13 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
         val targetExtraWidth = if (isExpanded) EXPANDED_EXTRA_WIDTH.dip.toPixels() else 0f
         val targetBorderColor = if (isExpanded) accent else accent.copy(alpha = 0.3f)
-        val targetBorderWidth = (if (isExpanded) EXPANDED_BORDER_WIDTH else BORDER_WIDTH).dip.toPixels()
 
         buttonExtraWidth = clock.interpolateWithSnap(0.1f, buttonExtraWidth, targetExtraWidth, 0.5f)
-        buttonBorderWidth = clock.interpolateWithSnap(0.1f, buttonBorderWidth, targetBorderWidth, 0.5f)
 
         buttonGlow = clock.interpolateWithSnap(0.1f, buttonGlow, if (isExpanded) 1f else 0f, 0.01f)
 
         button.apply {
             borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
-            borderWidth = buttonBorderWidth.px
             shadow = if (buttonGlow > 0f) Shadow(accent.copy(alpha = GLOW_ALPHA * buttonGlow), blur = GLOW_BLUR.dip, cutout = true) else null
         }
         updateTranslation()
@@ -252,7 +271,6 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         }
 
         isTransitioning = buttonExtraWidth != targetExtraWidth
-            || buttonBorderWidth != targetBorderWidth
             || buttonGlow != (if (isExpanded) 1f else 0f)
             || button.borderColor != targetBorderColor
             || panelsExpansion != targetPanelsExpansion
@@ -327,10 +345,8 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
          */
         const val OVERFLOW = 128f
 
-        private const val BORDER_WIDTH = 1f
-        private const val EXPANDED_BORDER_WIDTH = 2f
         private const val EXPANDED_EXTRA_WIDTH = 48f
-        private const val GLOW_ALPHA = 0.35f
-        private const val GLOW_BLUR = 12f
+        private const val GLOW_ALPHA = 0.15f
+        private const val GLOW_BLUR = 24f
     }
 }
