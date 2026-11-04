@@ -21,6 +21,14 @@ interface GraphicsWindow {
     var insets: Insets
 
     /**
+     * How many times per second the display shows a new frame, the most frames per second that
+     * can be seen. It can change while running, e.g. when the device switches between 60 and
+     * 120 Hz.
+     */
+    val refreshRate: Float
+        get() = 60f
+
+    /**
      * Whether the window should close.
      */
     fun shouldClose(): Boolean
