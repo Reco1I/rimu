@@ -11,7 +11,11 @@ import com.osudroid.ui.v2.*
 import com.osudroid.ui.v2.modmenu.*
 import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
+import com.edlplan.ui.fragment.CollectionsManagerFragment
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.ui.control.UIDropdown
+import com.reco1l.verktex.ui.dialog.UIConfirmDialog
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
@@ -51,11 +55,6 @@ object SongSelect : UIScene() {
     val isLeaderboardOnline
         get() = leaderboard.leaderboardType == LeaderboardType.Global
 
-    /**
-     * Whether only the favorite beatmap sets are shown.
-     */
-    val isFilteringFavorites
-        get() = filterBar.filter.favoritesOnly
 
 
     private val beatmapLoadingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -88,6 +87,12 @@ object SongSelect : UIScene() {
         background = backgroundSprite
 
         filterBar.onFilterChanged = { applyFilter() }
+
+        beatmapCarrousel.apply {
+            onBeatmapSelected = { onBeatmapSelected(it) }
+            onBeatmapConfirmed = { onBeatmapConfirmed(it) }
+            onBeatmapSetLongPress = { showBeatmapSetOptions(it) }
+        }
 
         linearContainer {
             width = Dimension.FillAvailable
@@ -293,6 +298,64 @@ object SongSelect : UIScene() {
     private fun showBeatmap(beatmapInfo: BeatmapInfo) {
         val model = beatmapCarrousel.data.find { model -> model.beatmapSetInfo.beatmaps.any { it.path == beatmapInfo.path } } ?: return
         beatmapCarrousel.applyComponent(model) { select(beatmapInfo) }
+    }
+
+    /**
+     * Shows the options of a beatmap set below its panel.
+     */
+    private fun showBeatmapSetOptions(panel: BeatmapSetPanel) {
+        val beatmapSetInfo = panel.boundData?.beatmapSetInfo ?: return
+        val directory = beatmapSetInfo.directory
+        val title = beatmapSetInfo.beatmaps.firstOrNull()?.titleText ?: directory
+
+        UIDropdown(panel.button).apply dropdown@{
+            maxWidth = 320f.dip
+
+            val options = DatabaseManager.beatmapOptionsTable.getOptions(directory) ?: BeatmapOptions(directory)
+
+            addButton {
+                text = if (options.isFavorite) "Remove from favorites" else "Add to favorites"
+                leadingIcon = faSolidIcon(FAIcon.Star)
+                onActionUp = {
+                    options.isFavorite = !options.isFavorite
+                    DatabaseManager.beatmapOptionsTable.upsert(options)
+                    this@dropdown.hide()
+
+                    if (filterBar.filter.favoritesOnly) {
+                        applyFilter()
+                    }
+                }
+            }
+
+            addButton {
+                text = "Manage collections"
+                leadingIcon = faSolidIcon(FAIcon.FolderOpen)
+                onActionUp = {
+                    CollectionsManagerFragment().showToAddToFolder(directory)
+                    this@dropdown.hide()
+                }
+            }
+
+            addButton {
+                text = "Delete"
+                leadingIcon = faSolidIcon(FAIcon.Trash)
+                tintChildren = true
+                style += Style { color = Color4("#FFBFBF") }
+                onActionUp = {
+                    UIConfirmDialog().apply {
+                        this.title = "Delete beatmap set"
+                        text = "Are you sure you want to delete \"$title\"? Its files will be removed from the device."
+                        onConfirm = {
+                            async {
+                                LibraryManager.deleteBeatmapSet(beatmapSetInfo)
+                                updateThread { onBeatmapSetDeleted(directory) }
+                            }
+                        }
+                    }.show()
+                    this@dropdown.hide()
+                }
+            }
+        }.show()
     }
 
     /**

@@ -181,6 +181,21 @@ open class UIRecyclerContainer<T : Any, C : RecyclableComponent<T>>(private val 
         return component
     }
 
+    /**
+     * The position of the given item along the scrolling axis, from the start of the content,
+     * following the last measured size of every item. Null if the item isn't in [data].
+     */
+    fun positionOf(item: T): Float? {
+        val index = itemIndices[item] ?: return null
+        val isVertical = orientation == UILinearContainer.Orientation.Vertical
+
+        var position = if (isVertical) componentWrapper.paddingTop.toPixels() else componentWrapper.paddingLeft.toPixels()
+        for (i in 0 until index) {
+            position += itemSizes[i]
+        }
+        return position + spacing.toPixels() * index
+    }
+
     override fun onUpdate(clock: FrameClock) {
         updateBoundComponents()
         super.onUpdate(clock)

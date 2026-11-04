@@ -3,21 +3,13 @@ package com.osudroid.ui.v2.songselect
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
 import android.util.Log
-import com.edlplan.ui.fragment.CollectionsManagerFragment
 import com.osudroid.data.BeatmapInfo
-import com.osudroid.data.BeatmapOptions
-import com.osudroid.data.DatabaseManager
-import com.osudroid.utils.async
-import com.osudroid.utils.updateThread
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.control.UIDropdown
-import com.reco1l.verktex.ui.dialog.UIConfirmDialog
-import com.reco1l.verktex.ui.text.faSolidIcon
-import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.LayoutConstraints
+import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
@@ -25,6 +17,7 @@ import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.interpolateColor
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.container.RecyclableComponent
 import com.reco1l.verktex.ui.container.UIClickableContainer
@@ -53,13 +46,10 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
 
     /**
-     * The position in scene space of the middle of the currently selected panel.
+     * The component the carrousel scrolls to: the selected beatmap panel, or the button while none.
      */
-    val selectedPanelSceneY: Float
-        get() {
-            val panel = selectedPanel ?: return panelsContainer.toSceneSpace(0f, 0f).y
-            return panel.toSceneSpace(0f, panel.bounds.height / 2f).y
-        }
+    val scrollTarget: UIComponent
+        get() = selectedPanel ?: button
 
 
     /**
@@ -71,7 +61,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 field = value
 
                 if (beatmapCarrousel.selectedPanel == this) {
-                    SongSelect.onBeatmapSelected(value?.beatmapInfo)
+                    beatmapCarrousel.onBeatmapSelected?.invoke(value?.beatmapInfo)
                 }
 
                 panelsContainer.forEach { panel ->
@@ -111,12 +101,17 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
      * The horizontal offset of the button given by the curve of the [beatmapCarrousel].
      */
     var curveOffset = 0f
+        set(value) {
+            field = value
+            updateTranslation()
+        }
 
 
     private var isTransitioning = false
 
     private var buttonExtraWidth = 0f
     private var buttonBorderWidth = BORDER_WIDTH.dip.toPixels()
+    private var buttonGlow = 0f
     private var panelsExpansion = 0f
 
     private lateinit var cover: UISprite
@@ -126,8 +121,6 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
     init {
         width = Dimension.FillAvailable
-        anchor = Anchor.TopRight
-        origin = Anchor.TopRight
 
         linearContainer {
             orientation = UILinearContainer.Orientation.Vertical
@@ -138,7 +131,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 width = Dimension.FillAvailable
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
-                onActionLongPress = { showOptions() }
+                onActionLongPress = { beatmapCarrousel.onBeatmapSetLongPress?.invoke(this@BeatmapSetPanel) }
                 onActionUp = {
                     // This will prevent race condition, during transition panelsContainer might
                     // get cleared and since the select() method is based on beatmap indices
@@ -228,63 +221,6 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
             ?: panelsContainer.firstOrNull() as? BeatmapPanel
     }
 
-    /**
-     * Shows the options of the beatmap set below the panel.
-     */
-    fun showOptions() {
-        val data = boundData ?: return
-        val directory = data.beatmapSetInfo.directory
-
-        UIDropdown(button).apply dropdown@{
-            maxWidth = 320f.dip
-
-            val options = DatabaseManager.beatmapOptionsTable.getOptions(directory) ?: BeatmapOptions(directory)
-
-            addButton {
-                text = if (options.isFavorite) "Remove from favorites" else "Add to favorites"
-                leadingIcon = faSolidIcon(FAIcon.Star)
-                onActionUp = {
-                    options.isFavorite = !options.isFavorite
-                    DatabaseManager.beatmapOptionsTable.upsert(options)
-                    this@dropdown.hide()
-
-                    if (SongSelect.isFilteringFavorites) {
-                        SongSelect.applyFilter()
-                    }
-                }
-            }
-
-            addButton {
-                text = "Manage collections"
-                leadingIcon = faSolidIcon(FAIcon.FolderOpen)
-                onActionUp = {
-                    CollectionsManagerFragment().showToAddToFolder(directory)
-                    this@dropdown.hide()
-                }
-            }
-
-            addButton {
-                text = "Delete"
-                leadingIcon = faSolidIcon(FAIcon.Trash)
-                tintChildren = true
-                style += Style { color = Color4("#FFBFBF") }
-                onActionUp = {
-                    UIConfirmDialog().apply {
-                        title = "Delete beatmap set"
-                        text = "Are you sure you want to delete \"${titleText.text}\"? Its files will be removed from the device."
-                        onConfirm = {
-                            async {
-                                LibraryManager.deleteBeatmapSet(data.beatmapSetInfo)
-                                updateThread { SongSelect.onBeatmapSetDeleted(directory) }
-                            }
-                        }
-                    }.show()
-                    this@dropdown.hide()
-                }
-            }
-        }.show()
-    }
-
     fun selectRandom() {
         beatmapCarrousel.selectedPanel = this
         selectedPanel = panelsContainer[Random.nextInt(panelsContainer.childCount)] as BeatmapPanel
@@ -301,11 +237,14 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         buttonExtraWidth = clock.interpolateWithSnap(0.1f, buttonExtraWidth, targetExtraWidth, 0.5f)
         buttonBorderWidth = clock.interpolateWithSnap(0.1f, buttonBorderWidth, targetBorderWidth, 0.5f)
 
+        buttonGlow = clock.interpolateWithSnap(0.1f, buttonGlow, if (isExpanded) 1f else 0f, 0.01f)
+
         button.apply {
             borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
             borderWidth = buttonBorderWidth.px
-            translationX = (curveOffset + beatmapCarrousel.panelOverhang - buttonExtraWidth).px
+            shadow = if (buttonGlow > 0f) Shadow(accent.copy(alpha = GLOW_ALPHA * buttonGlow), blur = GLOW_BLUR.dip) else null
         }
+        updateTranslation()
 
         // A fraction of the height of the content, measuring it with a fixed height would limit
         // the panels to that height.
@@ -321,6 +260,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
         isTransitioning = buttonExtraWidth != targetExtraWidth
             || buttonBorderWidth != targetBorderWidth
+            || buttonGlow != (if (isExpanded) 1f else 0f)
             || button.borderColor != targetBorderColor
             || panelsExpansion != targetPanelsExpansion
             || panelsContainer.alpha != targetPanelsAlpha
@@ -357,6 +297,21 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
     }
 
 
+    // Wider than the carrousel, so the panels popping out to the left still go past the screen.
+    override fun adjustParentConstraints(constraints: LayoutConstraints): LayoutConstraints {
+        val overflow = OVERFLOW.dip.toPixels()
+
+        return constraints.copy(
+            minWidth = constraints.minWidth + overflow,
+            maxWidth = constraints.maxWidth + overflow
+        )
+    }
+
+    private fun updateTranslation() {
+        button.translationX = (curveOffset + beatmapCarrousel.panelOverhang - buttonExtraWidth).px
+    }
+
+
     override fun onRecycle() {
         isExpanded = false
         selectedPanel = null
@@ -368,9 +323,18 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
     }
 
 
-    private companion object {
-        const val BORDER_WIDTH = 1f
-        const val EXPANDED_BORDER_WIDTH = 2f
-        const val EXPANDED_EXTRA_WIDTH = 32f
+    companion object {
+
+        /**
+         * How much wider the panels are than the carrousel, more than the selected ones are moved
+         * to the left.
+         */
+        const val OVERFLOW = 128f
+
+        private const val BORDER_WIDTH = 1f
+        private const val EXPANDED_BORDER_WIDTH = 2f
+        private const val EXPANDED_EXTRA_WIDTH = 48f
+        private const val GLOW_ALPHA = 0.35f
+        private const val GLOW_BLUR = 12f
     }
 }
