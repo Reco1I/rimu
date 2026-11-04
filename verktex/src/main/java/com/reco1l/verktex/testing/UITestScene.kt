@@ -2,6 +2,7 @@ package com.reco1l.verktex.testing
 
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
@@ -67,6 +68,8 @@ class UITestScene(
     private var currentTest: UITest? = null
 
     private var currentStage: UITestStage? = null
+
+    private var pendingTest: Pair<UITestSuite, UITest>? = null
 
     private var currentOverlayLayer: UIContainer? = null
     private var backgroundIndex = 0
@@ -178,6 +181,16 @@ class UITestScene(
 
                     // The tests run on a clock of their own, so they can be paused or sped up.
                     stageHost = object : UIContainer() {
+                        override fun onInputEvent(event: InputEvent): Boolean {
+                            return try {
+                                super.onInputEvent(event)
+                            } catch (e: Exception) {
+                                Logger.e(TAG, "Test ${currentTest?.name} failed handling input", e)
+                                currentStage?.let { showError(it, e) }
+                                true
+                            }
+                        }
+
                         override fun onUpdate(clock: FrameClock) {
                             stageClock.processFrame()
                             try {
@@ -211,8 +224,31 @@ class UITestScene(
             }
         }
 
-        val initial = initialTest?.let(::findTest) ?: suites.firstOrNull()?.let { s -> s.tests.firstOrNull()?.let { s to it } }
-        initial?.let { (suite, test) -> select(suite, test) }
+        // Opened once the browser is shown, the scenes pushed by the test go into its stage then.
+        pendingTest = initialTest?.let(::findTest) ?: suites.firstOrNull()?.let { s -> s.tests.firstOrNull()?.let { s to it } }
+    }
+
+
+    override fun onEnter() {
+        super.onEnter()
+
+        val pending = pendingTest
+        if (pending != null) {
+            pendingTest = null
+            select(pending.first, pending.second)
+        } else {
+            Verktex.sceneHost = currentStage
+        }
+    }
+
+    override fun onLeave() {
+        super.onLeave()
+
+        // Scenes pushed while the browser isn't shown (e.g. by another activity of the engine) are
+        // the engine's own.
+        if (Verktex.sceneHost === currentStage) {
+            Verktex.sceneHost = null
+        }
     }
 
 

@@ -39,6 +39,7 @@ class UITestStageTest {
 
     @Test
     fun `Scenes pushed to the engine go into the host`() {
+        stage.allowsNavigation = true
         val first = RecordingScene(events, "first")
         val second = RecordingScene(events, "second")
 
@@ -54,6 +55,7 @@ class UITestStageTest {
 
     @Test
     fun `Popping goes back through the host scenes only`() {
+        stage.allowsNavigation = true
         val first = RecordingScene(events, "first")
         Verktex.pushScene(first)
 
@@ -61,6 +63,21 @@ class UITestStageTest {
         assertNull(first.parent)
         assertNull(Verktex.popScene())
         assertNull(stage.currentScene)
+    }
+
+    @Test
+    fun `A scene can't leave nor open others unless the stage allows navigation`() {
+        val scene = RecordingScene(events, "scene")
+        val other = RecordingScene(events, "other")
+
+        Verktex.pushScene(scene)
+        Verktex.pushScene(other)
+
+        assertSame(scene, Verktex.scene)
+        assertNull(other.parent)
+        assertNull(Verktex.popScene())
+        assertSame(stage, scene.parent)
+        assertEquals(listOf("scene enter"), events)
     }
 
     @Test

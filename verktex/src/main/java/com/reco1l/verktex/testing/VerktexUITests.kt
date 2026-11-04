@@ -465,6 +465,7 @@ object VerktexUITests : UITestSuite("Verktex") {
         }
 
         test("Embedded scenes") {
+            allowsNavigation = true
             var depth = 0
 
             fun sceneAt(level: Int): UIScene = object : UIScene() {
