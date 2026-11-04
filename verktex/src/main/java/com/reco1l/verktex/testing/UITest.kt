@@ -6,6 +6,7 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.time.FrameClock
@@ -70,6 +71,16 @@ class UITestStage internal constructor(private val logger: (String) -> Unit) : U
      */
     var allowsNavigation = false
 
+    /**
+     * The safe area the scenes of the stage keep, as left, top, right and bottom.
+     */
+    var safeArea = Vec4.Zero
+        set(value) {
+            if (field == value) return
+            field = value
+            scenes.forEach { it.embeddedSafeArea = value }
+        }
+
 
     init {
         width = fill()
@@ -119,6 +130,7 @@ class UITestStage internal constructor(private val logger: (String) -> Unit) : U
 
         // Singleton scenes keep the parent of a previous stage otherwise.
         scene.removeSelf()
+        scene.embeddedSafeArea = safeArea
         scenes.addLast(scene)
         // Above the scenes below it, but under the components of the test, which may control it.
         add(scenes.size - 1, scene)

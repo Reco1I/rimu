@@ -33,10 +33,23 @@ open class UIScene : UIContainer() {
     val isEmbedded
         get() = parent != null
 
+    /**
+     * The safe area the content keeps while the scene is embedded, as left, top, right and bottom,
+     * set by its parent. E.g. the UI test browser sets the window's so a scene looks as in the game.
+     * A root scene uses the window's instead.
+     */
+    var embeddedSafeArea = Vec4.Zero
+
 
     override fun onDraw(renderer: GraphicsRenderer) {
 
         if (isEmbedded) {
+            padding = Padding(
+                left = embeddedSafeArea.x.px,
+                top = embeddedSafeArea.y.px,
+                right = embeddedSafeArea.z.px,
+                bottom = embeddedSafeArea.w.px
+            )
             layoutEmbeddedBackground()
             background?.draw(renderer)
             super.onDraw(renderer)
