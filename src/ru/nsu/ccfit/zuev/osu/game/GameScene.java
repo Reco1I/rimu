@@ -213,6 +213,8 @@ public class GameScene implements GameObjectListener {
     @Nullable
 
     public HitWindow hitWindow;
+
+    private final GameplayEffects effects = new GameplayEffects();
     private ModHashMap lastMods;
 
     private final AtomicInteger loadingRequestId = new AtomicInteger(0);
@@ -357,6 +359,8 @@ public class GameScene implements GameObjectListener {
         mgScene = createLayer();
         mgScene.setClipping(ClipMode.Bounds);
         fgScene = createLayer();
+
+        effects.setLayers(bgScene, mgScene);
 
         playfield.plusAssign(bgScene);
         playfield.plusAssign(mgScene);
@@ -723,6 +727,7 @@ public class GameScene implements GameObjectListener {
         var hitObjects = playableBeatmap.getHitObjects().objects;
         var firstObject = hitObjects.get(0);
         scale = firstObject.getScreenSpaceGameplayScale();
+        effects.setScale(scale);
 
         GameHelper.setOverallDifficulty(playableBeatmap.getDifficulty().od);
         GameHelper.setHealthDrain(playableBeatmap.getDifficulty().hp);
@@ -2320,7 +2325,7 @@ public class GameScene implements GameObjectListener {
         VibratorManager.INSTANCE.circleVibration();
 
         if (accuracy > playableBeatmap.getHitWindow().getMehWindow() / 1000 || forcedScore == ResultType.MISS.getId()) {
-            createHitEffect(pos, "hit0", color);
+            effects.hit(pos, "hit0", color);
             registerHit(id, 0, endCombo);
             return;
         }
@@ -2336,8 +2341,8 @@ public class GameScene implements GameObjectListener {
             scoreName = registerHit(id, 50, endCombo);
         }
 
-        createBurstEffect(pos, color);
-        createHitEffect(pos, scoreName, color);
+        effects.burst(pos, color);
+        effects.hit(pos, scoreName, color);
 
         if (nearestCursorId >= 0) {
             var aimErrorCursorEvent = cursors[nearestCursorId].getLatestNonUpEvent();
@@ -2351,8 +2356,9 @@ public class GameScene implements GameObjectListener {
         hud.onNoteHit(stat);
     }
 
+    @Override
     public void onSliderReverse(PointF pos, float ang, Color4 color) {
-        createBurstEffectSliderReverse(pos, ang, color);
+        effects.burstSliderReverse(pos, ang, color);
     }
 
     public void onSliderHit(int id, final int score, final PointF judgementPos, final boolean endCombo,
@@ -2382,7 +2388,7 @@ public class GameScene implements GameObjectListener {
 
         // Whole slider was missed.
         if (score == 0) {
-            createHitEffect(judgementPos, "hit0", color);
+            effects.hit(judgementPos, "hit0", color);
             registerHit(id, 0, endCombo);
             return;
         }
@@ -2411,7 +2417,7 @@ public class GameScene implements GameObjectListener {
                     scoreName = "sliderpoint30";
                     stat.registerHit(30, false, false);
                     stat.addSliderHeadHit();
-                    createBurstEffectSliderStart(judgementPos, color);
+                    effects.burstSliderStart(judgementPos, color);
 
                     if (nearestCursorId >= 0) {
                         var aimErrorCursorEvent = cursors[nearestCursorId].getLatestNonUpEvent();
@@ -2454,12 +2460,12 @@ public class GameScene implements GameObjectListener {
                 scoreName = registerHit(id, score, endCombo, incrementCombo);
 
                 if (incrementCombo) {
-                    createBurstEffectSliderEnd(judgementPos, color);
+                    effects.burstSliderEnd(judgementPos, color);
                 }
                 break;
         }
 
-        createHitEffect(judgementPos, scoreName, color);
+        effects.hit(judgementPos, scoreName, color);
 
         hud.onNoteHit(stat);
     }
@@ -2539,7 +2545,7 @@ public class GameScene implements GameObjectListener {
             }
         } / 1000;
 
-        createHitEffect(pos, scoreName, null);
+        effects.hit(pos, scoreName, null);
 
         hud.onAccuracyRegister(HitObjectType.Spinner, accuracy);
         hud.onNoteHit(stat);
@@ -2944,165 +2950,6 @@ public class GameScene implements GameObjectListener {
 
     public boolean isPaused() {
         return paused;
-    }
-
-    private void createHitEffect(final PointF pos, final String name, Color4 color) {
-
-        var effect = GameObjectPool.getInstance().getEffect(name);
-        var isAnimated = effect.hit instanceof UIAnimatedSprite animatedHit && animatedHit.getFrames().size() > 1;
-
-        // Reference https://github.com/ppy/osu/blob/ebf637bd3c33f1c886f6bfc81aa9ea2132c9e0d2/osu.Game/Skinning/LegacyJudgementPieceOld.cs
-
-        float fadeInLength = 0.12f;
-        float fadeOutLength = 0.6f;
-        float fadeOutDelay = 0.5f;
-
-        if (name.equals("hit0")) {
-            var rotation = (float) Random.Default.nextDouble(8.6 * 2) - 8.6f;
-
-            if (isAnimated) {
-                // Legacy judgements don't play any transforms if they are an animation.
-                effect.init(
-                    mgScene,
-                    pos,
-                    scale,
-                    sequence -> sequence
-                            .fadeIn(fadeInLength)
-                            .then(fadeOutDelay)
-                            .fadeOut(fadeOutLength)
-                );
-            } else {
-                effect.init(
-                    mgScene,
-                    pos,
-                    scale * 1.6f,
-                    sequence -> sequence
-                            .fadeIn(fadeInLength)
-                            .then(fadeOutDelay)
-                            .fadeOut(fadeOutLength),
-                    sequence -> sequence
-                            .scaleTo(scale, 0.1f, Easing.InQuad)
-                            .moveToY(-5)
-                            .moveToY(80, fadeOutDelay + fadeOutLength, Easing.InQuad),
-                    sequence -> sequence
-                            .rotateTo(0)
-                            .rotateTo(rotation, fadeInLength)
-                            .then()
-                            .rotateTo(rotation * 2, fadeOutDelay + fadeOutLength - fadeInLength, Easing.InQuad)
-                );
-            }
-
-            return;
-        }
-
-        if (Config.isHitLighting() && !name.equals("sliderpoint10") && !name.equals("sliderpoint30") && SkinTextures.get("lighting") != null) {
-
-            // Reference https://github.com/ppy/osu/blob/a7e110f6693beca6f6e6a20efb69a6913d58550e/osu.Game.Rulesets.Osu/Objects/Drawables/DrawableOsuJudgement.cs#L71-L88
-
-            var light = GameObjectPool.getInstance().getEffect("lighting");
-            light.setBlendMode(new BlendMode.Custom(BlendFactor.SrcAlpha, BlendFactor.DstAlpha, BlendFactor.SrcAlpha, BlendFactor.DstAlpha));
-            light.setColor(color);
-            light.init(
-                bgScene,
-                pos,
-                scale * 0.8f,
-                sequence -> sequence.scaleTo(scale * 1.2f, 0.6f, Easing.OutQuad),
-                sequence -> sequence.fadeIn(0.2f).then().fadeOut(1f)
-            );
-        }
-
-        // Legacy judgements don't play any transforms if they are an animation.
-        if (isAnimated) {
-            effect.init(
-                mgScene,
-                pos,
-                scale,
-                sequence -> sequence.fadeIn(fadeInLength).then(fadeOutDelay).fadeOut(fadeOutLength)
-            );
-        } else {
-            effect.init(
-                mgScene,
-                pos,
-                scale * 0.6f,
-                sequence -> sequence.fadeIn(fadeInLength).then(fadeOutDelay).fadeOut(fadeOutLength),
-                sequence -> sequence
-                        .scaleTo(scale * 1.1f, fadeInLength * 0.8f) // t = 0.8
-                        .then(fadeInLength * 0.2f) // t = 1.0
-                        .scaleTo(scale * 0.9f, fadeInLength * 0.2f) // t = 1.2
-                        .then()
-
-                        // stable dictates scale of 0.9->1 over time 1.0 to 1.4, but we are already at 1.2.
-                        // so we need to force the current value to be correct at 1.2 (0.95) then complete the
-                        // second half of the transform.
-                        .scaleTo(scale * 0.95f).scaleTo(scale, fadeInLength * 0.2f) // t = 1.4
-            );
-        }
-    }
-
-    private void applyBurstEffect(GameEffect effect, PointF pos) {
-
-        // Reference: https://github.com/ppy/osu/blob/c5893f245ce7a89d1900dbb620390823702481fe/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyMainCirclePiece.cs#L152-L174
-
-        var fadeDuration = 0.24f;
-
-        effect.init(mgScene, pos, scale,
-                sequence -> sequence
-                        .scaleTo(scale * 1.4f, fadeDuration, Easing.OutQuad)
-                        .fadeOut(fadeDuration)
-        );
-    }
-
-    private void createBurstEffect(final PointF pos, final Color4 color) {
-        if (!Config.isBurstEffects() ||
-                (GameHelper.getHidden() != null && !GameHelper.getHidden().isOnlyFadeApproachCircles()) ||
-                GameHelper.isTraceable())
-            return;
-
-        final GameEffect burst1 = GameObjectPool.getInstance().getEffect("hitcircle");
-        applyBurstEffect(burst1, pos);
-        burst1.setColor(color);
-
-        final GameEffect burst2 = GameObjectPool.getInstance().getEffect("hitcircleoverlay");
-        applyBurstEffect(burst2, pos);
-    }
-
-    private void createBurstEffectSliderStart(final PointF pos, final Color4 color) {
-        if (!Config.isBurstEffects() ||
-                (GameHelper.getHidden() != null && !GameHelper.getHidden().isOnlyFadeApproachCircles()) ||
-                GameHelper.isTraceable())
-            return;
-
-        final GameEffect burst1 = GameObjectPool.getInstance().getEffect("sliderstartcircle");
-        applyBurstEffect(burst1, pos);
-        burst1.setColor(color);
-
-        final GameEffect burst2 = GameObjectPool.getInstance().getEffect("sliderstartcircleoverlay");
-        applyBurstEffect(burst2, pos);
-    }
-
-    private void createBurstEffectSliderEnd(final PointF pos, final Color4 color) {
-        if (!Config.isBurstEffects() ||
-                (GameHelper.getHidden() != null && !GameHelper.getHidden().isOnlyFadeApproachCircles()) ||
-                GameHelper.isTraceable())
-            return;
-
-        final GameEffect burst1 = GameObjectPool.getInstance().getEffect("sliderendcircle");
-        applyBurstEffect(burst1, pos);
-        burst1.setColor(color);
-
-        final GameEffect burst2 = GameObjectPool.getInstance().getEffect("sliderendcircleoverlay");
-        applyBurstEffect(burst2, pos);
-    }
-
-    private void createBurstEffectSliderReverse(final PointF pos, float ang, final Color4 color) {
-        if (!Config.isBurstEffects() ||
-                (GameHelper.getHidden() != null && !GameHelper.getHidden().isOnlyFadeApproachCircles()) ||
-                GameHelper.isTraceable())
-            return;
-
-        final GameEffect burst1 = GameObjectPool.getInstance().getEffect("reversearrow");
-        burst1.hit.setRotationZ(ang);
-        applyBurstEffect(burst1, pos);
     }
 
     public int getCursorsCount() {
