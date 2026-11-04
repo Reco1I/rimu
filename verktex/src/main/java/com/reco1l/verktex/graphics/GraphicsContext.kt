@@ -5,14 +5,17 @@ interface GraphicsContext {
     val version: String
 
     /**
-     * Makes this context the current one for rendering.
+     * Prepares the window for a new frame on the calling thread, (re)creating whatever depends on
+     * its surface when it changed.
+     *
+     * @return `false` if there is nothing to render to right now, in which case the frame is skipped.
      */
-    fun makeCurrent()
+    fun acquireFrame(): Boolean
 
     /**
-     * Swaps the front and back buffers, displaying the rendered content on the screen.
+     * Displays the frame rendered since [acquireFrame] on the window.
      */
-    fun swapBuffers()
+    fun present()
 
     /**
      * Destroys this context and releases any associated resources. After calling this method,

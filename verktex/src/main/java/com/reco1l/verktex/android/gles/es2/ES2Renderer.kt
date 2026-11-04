@@ -4,7 +4,7 @@ import android.opengl.GLES20
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.android.gles.ESContext
 import com.reco1l.verktex.android.gles.ESRenderer
-import com.reco1l.verktex.android.gles.ESWindow
+import com.reco1l.verktex.android.AndroidWindow
 import com.reco1l.verktex.android.gles.GLESHelper
 
 /**
@@ -14,7 +14,7 @@ import com.reco1l.verktex.android.gles.GLESHelper
 class ES2Renderer(
     context: ESContext,
     device: ES2Device,
-    window: ESWindow,
+    window: AndroidWindow,
 ) : ESRenderer(context, device, window, ES2CommandExecutor()) {
 
     override fun onContextReady() {

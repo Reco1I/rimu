@@ -7,6 +7,7 @@ import android.opengl.EGLDisplay
 import android.opengl.EGLExt
 import android.opengl.EGLSurface
 import com.reco1l.verktex.Logger
+import com.reco1l.verktex.android.AndroidWindow
 import com.reco1l.verktex.graphics.GraphicsContext
 
 /**
@@ -16,7 +17,7 @@ import com.reco1l.verktex.graphics.GraphicsContext
  * unavailable, an ES 2 context is created instead, see [esVersion].
  */
 class ESContext(
-    private val window: ESWindow,
+    private val window: AndroidWindow,
     preferredVersion: ESVersion = ESVersion.ES3,
 ) : GraphicsContext {
 
@@ -115,7 +116,7 @@ class ESContext(
      *
      * @return `false` if there is no valid surface to render to, in which case the frame should be skipped.
      */
-    fun prepare(): Boolean {
+    override fun acquireFrame(): Boolean {
         if (!window.hasSurface) {
             releaseSurface()
             return false
@@ -152,7 +153,7 @@ class ESContext(
     }
 
 
-    override fun makeCurrent() {
+    private fun makeCurrent() {
         EGL14.eglMakeCurrent(
             display,
             surface,
@@ -161,7 +162,7 @@ class ESContext(
         )
     }
 
-    override fun swapBuffers() {
+    override fun present() {
         EGL14.eglSwapBuffers(display, surface)
     }
 
