@@ -124,10 +124,10 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
 
 
     private companion object {
-        const val BORDER_WIDTH = 1f
+        const val BORDER_WIDTH = 0.25f
         const val EXPANDED_BORDER_WIDTH = 2f
         const val EXPANDED_EXTRA_WIDTH = 96f
-        const val GLOW_ALPHA = 0.6f
+        const val GLOW_ALPHA = 0.1f
         const val GLOW_BLUR = 20f
     }
 }
