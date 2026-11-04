@@ -5,6 +5,7 @@ import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.view.Surface
 import com.reco1l.verktex.graphics.GraphicsTexture
+import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -108,6 +109,9 @@ open class ESExternalTexture(
      */
     override fun addSource(source: Source): Region? = null
 
+    // Nothing is written, there are no sources.
+    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ByteBuffer) = Unit
+
     override fun onBindTexture() {
         bindExternalTexture()
 
@@ -168,7 +172,7 @@ open class ESExternalTexture(
     private object EmptySource : Source {
         override val width = 0f
         override val height = 0f
-        override fun uploadToHardware(texturePositionX: Float, texturePositionY: Float) = Unit
+        override fun writePixels(target: PixelTarget, x: Int, y: Int) = Unit
     }
 
     companion object {

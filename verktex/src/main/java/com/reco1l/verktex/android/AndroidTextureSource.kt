@@ -1,8 +1,6 @@
 package com.reco1l.verktex.android
 
 import android.graphics.Bitmap
-import android.opengl.GLES20
-import android.opengl.GLUtils
 import com.reco1l.verktex.graphics.GraphicsTexture
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -19,39 +17,55 @@ class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
     override val width = bitmap.width.toFloat()
     override val height = bitmap.height.toFloat()
 
-    override fun uploadToHardware(texturePositionX: Float, texturePositionY: Float) {
-        val x = texturePositionX.toInt()
-        val y = texturePositionY.toInt()
-
-        // Blending uses straight alpha, so premultiplied bitmaps are un-premultiplied first.
-        val isPremultipliedArgb = bitmap.isPremultiplied && bitmap.hasAlpha() &&
-            bitmap.config == Bitmap.Config.ARGB_8888
-
-        if (!isPremultipliedArgb) {
-            GLUtils.texSubImage2D(GLES20.GL_TEXTURE_2D, 0, x, y, bitmap)
-            return
-        }
+    override fun writePixels(target: GraphicsTexture.PixelTarget, x: Int, y: Int) {
+        val width = bitmap.width
+        val height = bitmap.height
 
         // Rows can be padded past width * 4 bytes. Skia keeps the row bytes a multiple of the
         // pixel size, so the stride is a whole number of pixels.
         val rowStride = bitmap.rowBytes / 4
-        val buffer = ByteBuffer.allocateDirect(bitmap.rowBytes * bitmap.height).order(ByteOrder.LITTLE_ENDIAN)
+        val buffer = scratchBuffer(bitmap.rowBytes * height)
 
-        // Raw premultiplied pixels in RGBA byte order, getPixels() would already un-premultiply them.
+        // Raw pixels in RGBA byte order, getPixels() would un-premultiply them as ARGB ints.
         bitmap.copyPixelsToBuffer(buffer)
         buffer.rewind()
 
-        unpremultiplyRows(buffer.asIntBuffer(), bitmap.width, bitmap.height, rowStride)
+        // Blending uses straight alpha, so premultiplied bitmaps are un-premultiplied first.
+        if (bitmap.isPremultiplied && bitmap.hasAlpha()) {
+            unpremultiplyRows(buffer.asIntBuffer(), width, height, rowStride)
+        }
 
-        buffer.rewind()
+        // Targets take tightly packed rows, OpenGL ES 2.0 has no GL_UNPACK_ROW_LENGTH to skip the padding.
+        val pixels = if (rowStride == width) buffer else packRows(buffer, width, height, rowStride)
 
-        // OpenGL ES 2.0 has no GL_UNPACK_ROW_LENGTH to skip the padding, so padded rows are packed.
-        val pixels = if (rowStride == bitmap.width) buffer else packRows(buffer, bitmap.width, bitmap.height, rowStride)
-
-        GLES20.glTexSubImage2D(GLES20.GL_TEXTURE_2D, 0, x, y, bitmap.width, bitmap.height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixels)
+        target.write(x, y, width, height, pixels)
     }
 
     companion object {
+
+        // The largest scratch buffer kept between uploads, 1024 x 1024 pixels. Larger ones (e.g.
+        // backgrounds) are rare enough to allocate each time.
+        private const val MAX_KEPT_SCRATCH_BYTES = 4 shl 20
+
+        private val scratch = ThreadLocal<ByteBuffer>()
+
+        /**
+         * A direct little-endian buffer of [size] bytes between its position and limit. Small ones are
+         * reused, so the content is only valid until the next call on the same thread.
+         */
+        private fun scratchBuffer(size: Int): ByteBuffer {
+            val kept = scratch.get()
+            if (kept != null && kept.capacity() >= size) {
+                kept.clear().limit(size)
+                return kept
+            }
+
+            val buffer = ByteBuffer.allocateDirect(size).order(ByteOrder.LITTLE_ENDIAN)
+            if (size <= MAX_KEPT_SCRATCH_BYTES) {
+                scratch.set(buffer)
+            }
+            return buffer
+        }
 
         /**
          * Un-premultiplies [height] rows of [width] pixels in place, each row starting [rowStride]

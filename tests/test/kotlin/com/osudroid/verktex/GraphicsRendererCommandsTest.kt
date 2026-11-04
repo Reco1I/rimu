@@ -51,6 +51,7 @@ class GraphicsRendererCommandsTest {
     private class FakeTexture(override val width: Float, override val height: Float) : GraphicsTexture() {
         override fun onCreateTexture() = Unit
         override fun onBindTexture() = Unit
+        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: java.nio.ByteBuffer) = Unit
         override fun onUnload() = Unit
     }
 
@@ -61,6 +62,7 @@ class GraphicsRendererCommandsTest {
         override val transform = FloatArray(16) { if (it % 5 == 0) 1f else 0f }
         override fun onCreateTexture() = Unit
         override fun onBindTexture() = Unit
+        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: java.nio.ByteBuffer) = Unit
         override fun onUnload() = Unit
     }
 
@@ -218,7 +220,7 @@ class GraphicsRendererCommandsTest {
     private object FakeSource : GraphicsTexture.Source {
         override val width = 16f
         override val height = 16f
-        override fun uploadToHardware(texturePositionX: Float, texturePositionY: Float) = Unit
+        override fun writePixels(target: GraphicsTexture.PixelTarget, x: Int, y: Int) = Unit
     }
 
     private companion object {

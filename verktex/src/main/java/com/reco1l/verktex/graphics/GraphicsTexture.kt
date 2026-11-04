@@ -1,6 +1,7 @@
 package com.reco1l.verktex.graphics
 
 import com.reco1l.verktex.data.Vec4
+import java.nio.ByteBuffer
 
 /**
  * The [GraphicsTexture] class represents a texture resource that can be used for rendering in the application.
@@ -135,11 +136,19 @@ abstract class GraphicsTexture : GraphicsResource() {
 
         if (pendingUploads.isNotEmpty()) {
             for (region in pendingUploads) {
-                region.source.uploadToHardware(region.x, region.y)
+                region.source.writePixels(pixelTarget, region.x.toInt(), region.y.toInt())
             }
             pendingUploads.clear()
         }
     }
+
+    private val pixelTarget = PixelTarget(::onWritePixels)
+
+    /**
+     * Called while the pending sources are written, with the pixels of a rectangle of the texture
+     * as described by [PixelTarget]. On OpenGL ES the texture is bound.
+     */
+    protected abstract fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ByteBuffer)
 
     /**
      * Called when the texture should be created on the GPU with storage for [width] x [height] pixels.
@@ -223,10 +232,8 @@ abstract class GraphicsTexture : GraphicsResource() {
     }
 
     /**
-     * Represents a source of texture data that can be uploaded to the GPU.
-     *
-     * Implementations of this interface should provide the width and height of the source, as well
-     * as a method to upload the source data to the GPU at a specified position (x, y) within the texture.
+     * Represents a source of texture data. It provides its pixels and the texture uploads them, so
+     * sources don't depend on the graphics backend.
      */
     interface Source {
 
@@ -241,9 +248,23 @@ abstract class GraphicsTexture : GraphicsResource() {
         val height: Float
 
         /**
-         * Uploads the source data to the GPU at the specified position (x, y) within the texture.
+         * Writes the source's pixels into [target] with their top-left corner at ([x], [y]) in the
+         * texture. A source made of several parts may write them separately.
          */
-        fun uploadToHardware(texturePositionX: Float, texturePositionY: Float)
+        fun writePixels(target: PixelTarget, x: Int, y: Int)
+    }
+
+    /**
+     * Receives the pixels of a [Source] for the texture.
+     */
+    fun interface PixelTarget {
+
+        /**
+         * Writes the [width] x [height] rectangle at ([x], [y]) of the texture. [pixels] holds RGBA8
+         * with straight alpha, rows tightly packed from the top, between its position and limit.
+         * The buffer is only read during the call.
+         */
+        fun write(x: Int, y: Int, width: Int, height: Int, pixels: ByteBuffer)
     }
 }
 

@@ -45,8 +45,23 @@ class AndroidTextureSourceTest {
         }
     }
 
+    private class Write(val x: Int, val y: Int, val width: Int, val height: Int, val pixels: IntArray)
+
+    // Copies what the source writes, the buffer is only valid during the call.
+    private fun writeOf(source: AndroidTextureSource, x: Int, y: Int): Write {
+        var write: Write? = null
+
+        source.writePixels({ wx, wy, width, height, pixels ->
+            val ints = IntArray(pixels.remaining() / 4)
+            pixels.duplicate().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(ints)
+            write = Write(wx, wy, width, height, ints)
+        }, x, y)
+
+        return write!!
+    }
+
     @Test
-    fun uploadDoesNotModifyTheBitmap() {
+    fun writeDoesNotModifyTheBitmap() {
         val bitmap = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888)
         val pixels = intArrayOf(0xFFFF8000.toInt(), 0x80800000.toInt(), 0x00000000, 0x40202020)
         bitmap.setPixels(pixels, 0, 2, 0, 0, 2, 2)
@@ -54,15 +69,26 @@ class AndroidTextureSourceTest {
         val before = IntArray(4)
         bitmap.getPixels(before, 0, 2, 0, 0, 2, 2)
 
-        try {
-            AndroidTextureSource(bitmap).uploadToHardware(0f, 0f)
-        } catch (_: UnsatisfiedLinkError) {
-        } catch (_: RuntimeException) {
-        }
+        writeOf(AndroidTextureSource(bitmap), 0, 0)
 
         val after = IntArray(4)
         bitmap.getPixels(after, 0, 2, 0, 0, 2, 2)
         assertArrayEquals(before, after)
+    }
+
+    @Test
+    fun writeGivesTightlyPackedRgbaRowsAtThePosition() {
+        val bitmap = Bitmap.createBitmap(3, 2, Bitmap.Config.ARGB_8888)
+        bitmap.setPixels(IntArray(6) { 0xFFFF8000.toInt() }, 0, 3, 0, 0, 3, 2)
+
+        val write = writeOf(AndroidTextureSource(bitmap), 5, 7)
+
+        assertEquals(5, write.x)
+        assertEquals(7, write.y)
+        assertEquals(3, write.width)
+        assertEquals(2, write.height)
+        // The byte order isn't checked, Robolectric's bitmaps copy ARGB ints instead of RGBA bytes.
+        assertEquals(6, write.pixels.size)
     }
 
     @Test

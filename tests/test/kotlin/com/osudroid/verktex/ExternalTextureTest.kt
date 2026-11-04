@@ -126,7 +126,7 @@ class ExternalTextureTest {
         val source = object : GraphicsTexture.Source {
             override val width = 1f
             override val height = 1f
-            override fun uploadToHardware(texturePositionX: Float, texturePositionY: Float) = Unit
+            override fun writePixels(target: GraphicsTexture.PixelTarget, x: Int, y: Int) = Unit
         }
 
         assertFalse(texture.fitsSource(source))

@@ -17,13 +17,14 @@ import org.junit.Test
 class FontPagesTest {
 
     private class FakeSource(override val width: Float, override val height: Float) : GraphicsTexture.Source {
-        override fun uploadToHardware(texturePositionX: Float, texturePositionY: Float) = Unit
+        override fun writePixels(target: GraphicsTexture.PixelTarget, x: Int, y: Int) = Unit
     }
 
     private class FakeTexture(override val width: Float, override val height: Float) : GraphicsTexture() {
         var disposed = false
         override fun onCreateTexture() = Unit
         override fun onBindTexture() = Unit
+        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: java.nio.ByteBuffer) = Unit
         override fun onUnload() = Unit
         override fun dispose() {
             disposed = true

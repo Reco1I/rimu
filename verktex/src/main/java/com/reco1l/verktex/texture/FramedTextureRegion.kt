@@ -67,8 +67,8 @@ open class FramedTextureRegion(
      * is represented by a [GraphicsTexture.Region], and the source has a specified width and height.
      *
      * Width and height must be calculated based on the atlas packing algorithm, as the frames may
-     * not be arranged in a simple grid. The [uploadToHardware] method uploads all frames to the hardware,
-     * taking into account their positions within the source.
+     * not be arranged in a simple grid. The [writePixels] method writes all frames, taking into account
+     * their positions within the source.
      *
      * @param frames The list of frames that make up the source.
      */
@@ -79,12 +79,9 @@ open class FramedTextureRegion(
         override val width = frames.maxOfOrNull { it.x + it.width } ?: 0f
         override val height = frames.maxOfOrNull { it.y + it.height } ?: 0f
 
-        override fun uploadToHardware(
-            texturePositionX: Float,
-            texturePositionY: Float
-        ) {
+        override fun writePixels(target: GraphicsTexture.PixelTarget, x: Int, y: Int) {
             frames.forEach { frame ->
-                frame.source.uploadToHardware(texturePositionX + frame.x, texturePositionY + frame.y)
+                frame.source.writePixels(target, x + frame.x.toInt(), y + frame.y.toInt())
             }
         }
 
