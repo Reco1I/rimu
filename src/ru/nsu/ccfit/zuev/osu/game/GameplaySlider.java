@@ -685,7 +685,7 @@ public class GameplaySlider extends GameObject {
                 headCirclePiece.setCircleColor(newColor);
             }
 
-            ((GameScene) listener).onSliderReverse(
+            listener.onSliderReverse(
                     spanEndJudgementPosition,
                     reverse ? endArrow.getRotationZ() : startArrow.getRotationZ(),
                     bodyColor);

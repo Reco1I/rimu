@@ -21,6 +21,11 @@ public interface GameObjectListener {
 
     void onSliderEnd(int id, int accuracy, BitSet tickSet);
 
+    /**
+     * Called when a slider reaches the end of a span and goes back, at the reverse arrow.
+     */
+    void onSliderReverse(PointF pos, float ang, Color4 color);
+
     void onSpinnerStart(int id);
 
     void onSpinnerHit(int id, int score, boolean endCombo, int totalScore);
