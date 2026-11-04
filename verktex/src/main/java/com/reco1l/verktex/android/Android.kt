@@ -10,9 +10,14 @@ import com.reco1l.verktex.android.bass.BASSAudioDriver
 import com.reco1l.verktex.audio.AudioDriver
 import com.reco1l.verktex.fonts.Font
 import com.reco1l.verktex.android.gles.ESContext
+import com.reco1l.verktex.android.gles.ESVersion
 import com.reco1l.verktex.android.gles.ESWindow
+import com.reco1l.verktex.android.gles.es2.ES2Device
+import com.reco1l.verktex.android.gles.es2.ES2Renderer
 import com.reco1l.verktex.android.gles.es3.ES3Device
 import com.reco1l.verktex.android.gles.es3.ES3Renderer
+import com.reco1l.verktex.settings.Settings
+import com.reco1l.verktex.settings.VerktexSettings
 
 fun Verktex.initializeAndroid(
     host: AndroidGameHost,
@@ -23,16 +28,23 @@ fun Verktex.initializeAndroid(
     Logger.implementation = AndroidLogger()
 
     val window = ESWindow(host)
-    val context = ESContext(window)
-    val device = ES3Device()
+
+    val preferredVersion = when (Settings[VerktexSettings.GraphicsBackend, "auto"]) {
+        "es2" -> ESVersion.ES2
+        else -> ESVersion.ES3
+    }
+    val context = ESContext(window, preferredVersion)
+
+    Logger.i("Verktex", "Using the OpenGL ${context.esVersion} backend.")
+
+    val renderer = when (context.esVersion) {
+        ESVersion.ES3 -> ES3Renderer(context, ES3Device(), window)
+        ESVersion.ES2 -> ES2Renderer(context, ES2Device(), window)
+    }
 
     initialize(
         host = host,
-        renderer = ES3Renderer(
-            context = context,
-            device = device,
-            window = window
-        ),
+        renderer = renderer,
         audio = audioDriver
     )
 
