@@ -23,6 +23,20 @@ class ESBuffer : GraphicsBuffer() {
     private var uploadBuffer = allocateDirect(INITIAL_WORDS * 4).order(ByteOrder.nativeOrder()).asIntBuffer()
 
 
+    /**
+     * The words written so far, valid up to [writtenWordCount]. Read by backends that rearrange
+     * the data on the CPU, e.g. to emulate instancing.
+     */
+    internal val data: IntArray
+        get() = words
+
+    /**
+     * The number of whole words written, bytes still pending to make up a word aren't counted.
+     */
+    internal val writtenWordCount: Int
+        get() = wordCount
+
+
     override val capacity: Int
         get() = words.size * 4
 
