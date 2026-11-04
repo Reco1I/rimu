@@ -1,37 +1,70 @@
 package com.osudroid.ui.v2.test
 
 import android.graphics.PointF
+import android.os.SystemClock
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.osudroid.beatmaps.sections.BeatmapControlPoints
 import com.osudroid.beatmaps.sections.BeatmapDifficulty
 import com.osudroid.game.Cursor
+import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.mods.ModAutoplay
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.testing.UITestStage
 import com.reco1l.verktex.time.ManualClock
+import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.textButton
 import java.util.BitSet
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.min
+import kotlin.math.sin
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
 import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
+import ru.nsu.ccfit.zuev.osu.game.GameplayEffects
+import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * Plays gameplay objects (circles, sliders, spinners) on a playfield of their own, the way the
- * game scene does, so they can be tried in the UI test browser. Objects are played by autoplay and
- * spawned again once they expire, in a loop.
+ * game scene does, so they can be tried in the UI test browser. Objects are spawned again once they
+ * expire, in a loop, and played as [play] says.
  *
  * It's the [GameObjectListener] of the objects: their time is the time of the harness, which also
- * paces their animations, and their judgements are written to the log of the test.
+ * paces their animations, their judgements show the effects the game shows and are written to the
+ * log of the test.
  */
 class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener {
+
+    /**
+     * How the objects are played.
+     */
+    enum class Play(val label: String) {
+        /**
+         * Hit perfectly by autoplay.
+         */
+        Autoplay("Autoplay"),
+
+        /**
+         * Not touched, so they're missed.
+         */
+        Miss("Miss"),
+
+        /**
+         * A finger spinning around the center of the playfield, for spinners.
+         */
+        Spin("Spin"),
+    }
 
     /**
      * The difficulty the hit objects are created with.
@@ -52,11 +85,26 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         scaleOrigin = Anchor.Center
     }
 
+    /**
+     * How the objects are played. Changing it starts the loop again.
+     */
+    var play = Play.Autoplay
+        set(value) {
+            field = value
+            restart()
+        }
+
     private val clock = ManualClock()
+
+    private val effects = GameplayEffects().apply { setLayers(playfield, playfield) }
+
+    private var cursor = Cursor()
+
+    private var spinAngle = 0.0
 
     private var current: Spawned? = null
 
-    private var spawn: (() -> Spawned)? = null
+    private var spawn: ((Double) -> Pair<HitObject, GameObject>)? = null
 
 
     init {
@@ -71,7 +119,6 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         ).toFloat())
         GameHelper.setBeatLength(0.5)
         GameHelper.setKiai(false)
-        GameHelper.setAutoplay(ModAutoplay())
 
         stage.onEachFrame { frame ->
             // Fits the playfield in the stage, as the game fits it in the screen.
@@ -94,17 +141,29 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     /**
      * Plays the object [factory] creates in a loop. The factory is given the time the object should
-     * start at, in milliseconds, and returns the gameplay object, already initialized.
+     * start at, in milliseconds on the clock of the harness, and returns the gameplay object, already
+     * initialized.
      */
     fun loop(factory: (startTime: Double) -> Pair<HitObject, GameObject>) {
-        current?.let { expire(it) }
-
-        spawn = {
-            val (hitObject, gameObject) = factory(START_TIME)
-            gameObject.setAutoPlay()
-            Spawned(hitObject, gameObject)
-        }
+        spawn = factory
         restart()
+    }
+
+    /**
+     * Adds a button cycling through the given ways of playing the objects.
+     */
+    fun playButton(vararg plays: Play) = stage.textButton {
+        anchor = Anchor.TopRight
+        origin = Anchor.TopRight
+        x = (-16f).dip
+        y = 16f.dip
+        variant = UIButton.Variant.Surface
+        text = play.label
+        onActionUp = {
+            play = plays[(plays.indexOf(play) + 1) % plays.size]
+            text = play.label
+            stage.log("Playing with ${play.label}")
+        }
     }
 
     /**
@@ -123,25 +182,74 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
 
     private fun restart() {
-        val spawn = spawn ?: return
-        val spawned = spawn()
-        current = spawned
+        current?.let { expire(it) }
+        current = null
 
-        // Starts a bit before the object appears.
-        clock.time = ((START_TIME - spawned.hitObject.timePreempt) / 1000 - 0.25).toFloat()
+        val spawn = spawn ?: return
+
+        // Objects check the mod as well as their own flag.
+        GameHelper.setAutoplay(if (play == Play.Autoplay) ModAutoplay() else null)
+        cursor = Cursor()
+
+        // The clock only goes forward, effects of the previous objects are timed on it.
+        val (hitObject, gameObject) = spawn(clock.time * 1000.0 + SPAWN_DELAY)
+        if (play == Play.Autoplay) {
+            gameObject.setAutoPlay()
+        }
+
+        current = Spawned(hitObject, gameObject)
+        effects.setScale(hitObject.screenSpaceGameplayScale)
     }
 
     private fun step(deltaTime: Float) {
         val current = current ?: return
-        current.gameObject.update(deltaTime)
 
-        if (clock.time >= current.gameObject.lifetimeEnd + 0.5f) {
-            expire(current)
+        if (play == Play.Spin) {
+            moveSpinningCursor(deltaTime)
+        }
+
+        val lifetimeEnd = current.gameObject.lifetimeEnd
+
+        // As the game scene does: objects are updated until their lifetime ends, then expired.
+        if (!current.isExpired) {
+            current.gameObject.update(deltaTime)
+
+            if (clock.time >= lifetimeEnd) {
+                expire(current)
+            }
+        }
+
+        // As the game scene does once the objects of the frame were updated.
+        cursor.reset(SystemClock.uptimeMillis(), clock.time * 1000)
+
+        // A pause between objects.
+        if (clock.time >= lifetimeEnd + 0.5f) {
             restart()
         }
     }
 
+    // A finger pressing at the start, then going around the center of the playfield.
+    private fun moveSpinningCursor(deltaTime: Float) {
+        spinAngle += deltaTime * SPIN_ROTATIONS_PER_SECOND * 2 * PI
+
+        val event = CursorEvent.obtain()
+        event.action = if (cursor.latestEvent == null) PointerEvent.Action.Down else PointerEvent.Action.Move
+        event.systemTime = SystemClock.uptimeMillis()
+        event.trackTime = clock.time * 1000
+        event.position.set(
+            Config.getRES_WIDTH() / 2f + SPIN_RADIUS * cos(spinAngle).toFloat(),
+            Config.getRES_HEIGHT() / 2f + SPIN_RADIUS * sin(spinAngle).toFloat()
+        )
+        event.trackPosition.set(event.position)
+        cursor.addEvent(event)
+    }
+
     private fun expire(spawned: Spawned) {
+        if (spawned.isExpired) {
+            return
+        }
+        spawned.isExpired = true
+
         spawned.gameObject.onExpire()
         // The pool keeps expired objects for the game to reuse them, the test makes new ones.
         GameObjectPool.getInstance().apply {
@@ -149,39 +257,98 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
             sliders.remove(spawned.gameObject)
             spinners.remove(spawned.gameObject)
         }
-        current = null
+    }
+
+    private fun scoreName(score: Int) = when (score) {
+        300 -> "hit300"
+        100 -> "hit100"
+        50 -> "hit50"
+        else -> "hit0"
     }
 
 
     //region GameObjectListener
 
-    override fun onCircleHit(id: Int, accuracy: Float, pos: PointF?, endCombo: Boolean, forcedScore: Byte, color: Color4?) =
-        stage.log("Circle hit, offset ${(accuracy * 1000).toInt()}ms")
+    override fun onCircleHit(id: Int, accuracy: Float, pos: PointF, endCombo: Boolean, forcedScore: Byte, color: Color4) {
+        val hitWindow = current?.hitObject?.hitWindow ?: return
+        val error = abs(accuracy) * 1000
 
-    override fun onSliderHit(id: Int, score: Int, judgementPos: PointF?, endCombo: Boolean, color: Color4?, type: Int, incrementCombo: Boolean) {
-        val part = when (type) {
-            GameObjectListener.SLIDER_START -> "head"
-            GameObjectListener.SLIDER_REPEAT -> "repeat"
-            GameObjectListener.SLIDER_END -> "end"
-            GameObjectListener.SLIDER_TICK -> "tick"
-            else -> "part"
+        // As the game scene judges it.
+        val score = when {
+            forcedScore == ResultType.MISS.id || error > hitWindow.mehWindow -> 0
+            forcedScore == ResultType.HIT300.id || forcedScore.toInt() == 0 && error <= hitWindow.greatWindow -> 300
+            forcedScore == ResultType.HIT100.id || forcedScore.toInt() == 0 && error <= hitWindow.okWindow -> 100
+            else -> 50
         }
-        stage.log("Slider $part, score $score")
+
+        if (score > 0) {
+            effects.burst(pos, color)
+        }
+        effects.hit(pos, scoreName(score), color)
+
+        stage.log(if (score == 0) "Circle missed" else "Circle hit $score, offset ${(accuracy * 1000).toInt()}ms")
     }
 
-    override fun onSliderEnd(id: Int, accuracy: Int, tickSet: BitSet?) = stage.log("Slider judged, score $accuracy")
+    override fun onSliderHit(id: Int, score: Int, judgementPos: PointF, endCombo: Boolean, color: Color4, type: Int, incrementCombo: Boolean) {
+        // The whole slider was missed.
+        if (score == 0) {
+            effects.hit(judgementPos, "hit0", color)
+            stage.log("Slider missed")
+            return
+        }
+
+        // A nested object was missed, it only breaks the combo.
+        if (score == -1) {
+            stage.log("Slider ${partName(type)} missed")
+            return
+        }
+
+        val name = when (type) {
+            GameObjectListener.SLIDER_START -> {
+                if (incrementCombo) effects.burstSliderStart(judgementPos, color)
+                "sliderpoint30"
+            }
+            GameObjectListener.SLIDER_REPEAT -> "sliderpoint30"
+            GameObjectListener.SLIDER_TICK -> "sliderpoint10"
+            else -> {
+                if (incrementCombo) effects.burstSliderEnd(judgementPos, color)
+                scoreName(score)
+            }
+        }
+
+        // The end is judged as the whole slider.
+        if (incrementCombo || type == GameObjectListener.SLIDER_END) {
+            effects.hit(judgementPos, name, color)
+        }
+        stage.log("Slider ${partName(type)}, score $score")
+    }
+
+    override fun onSliderReverse(pos: PointF, ang: Float, color: Color4) = effects.burstSliderReverse(pos, ang, color)
+
+    override fun onSliderEnd(id: Int, accuracy: Int, tickSet: BitSet?) = Unit
 
     override fun onSpinnerStart(id: Int) = stage.log("Spinner started")
 
-    override fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int) = stage.log("Spinner judged, score $score")
+    override fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int) {
+        // Bonus spins.
+        if (score == 1000) {
+            return
+        }
+
+        val center = PointF(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f)
+        effects.hit(center, scoreName(score), null)
+        stage.log(if (score == 0) "Spinner missed" else "Spinner judged $score")
+    }
 
     override fun addObject(`object`: GameObject?) = Unit
 
     override fun isObjectHittable(`object`: GameObject?) = true
 
-    override fun getCursor(index: Int): Cursor = throw IndexOutOfBoundsException("Autoplay has no cursors")
+    override fun getCursor(index: Int) = cursor
 
-    override fun getCursorsCount() = 0
+    // Always one, as the game always has its cursors: objects played by autoplay go through them too.
+    // It's only pressed while spinning.
+    override fun getCursorsCount() = 1
 
     override fun registerAccuracy(type: HitObjectType?, acc: Double) = Unit
 
@@ -199,12 +366,27 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     //endregion
 
+    private fun partName(type: Int) = when (type) {
+        GameObjectListener.SLIDER_START -> "head"
+        GameObjectListener.SLIDER_REPEAT -> "repeat"
+        GameObjectListener.SLIDER_END -> "end"
+        GameObjectListener.SLIDER_TICK -> "tick"
+        else -> "part"
+    }
 
-    private class Spawned(val hitObject: HitObject, val gameObject: GameObject)
+
+    private class Spawned(val hitObject: HitObject, val gameObject: GameObject) {
+        var isExpired = false
+    }
 
 
     companion object {
-        private const val START_TIME = 1000.0
+        // Longer than the time the objects are shown before their start, so they appear in a moment.
+        private const val SPAWN_DELAY = 1000.0
+
+        private const val SPIN_RADIUS = 120f
+
+        private const val SPIN_ROTATIONS_PER_SECOND = 3.0
 
         private val COMBO_COLORS = listOf(
             Color4(1f, 0.75f, 0f),
