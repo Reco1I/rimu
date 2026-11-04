@@ -58,7 +58,7 @@ sealed class Dimension {
          */
         data class DensityIndependentPixels(override val value: Float) : Fixed() {
             override fun toPixels(): Float {
-                return value * Platform.currentDisplay.density
+                return value * Platform.currentDisplay.density * Platform.resolutionScale
             }
         }
     }

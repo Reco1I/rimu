@@ -1,5 +1,9 @@
 package com.osudroid.ui.v2.settings
 
+import com.reco1l.verktex.Platform
+import kotlin.math.ceil
+import kotlin.math.min
+import kotlin.math.roundToInt
 import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.form.FormSelect
@@ -32,6 +36,7 @@ import com.osudroid.UpdateManager
 import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.resources.R
+import ru.nsu.ccfit.zuev.osuplus.R as AppR
 import com.osudroid.ui.v2.CalibrationScene
 import com.osudroid.ui.v2.Skin
 import com.osudroid.ui.v2.SkinTextures
@@ -668,7 +673,70 @@ val gameplaySection = listOf(
     )
 )
 
-val graphicsSection = listOf(
+/**
+ * The lowest resolution the game can render at, as the length of the short side of the screen.
+ */
+private const val MIN_RESOLUTION = 720
+
+/**
+ * The resolution scale option, from the scale giving [MIN_RESOLUTION] up to the resolution of the
+ * display. Null if the display isn't larger than that.
+ */
+private fun resolutionScaleOption(): OptionInfo? {
+    val display = Platform.currentDisplay
+    val shortSide = min(display.width, display.height)
+
+    if (shortSide <= MIN_RESOLUTION) {
+        return null
+    }
+
+    val minPercentage = ceil(MIN_RESOLUTION * 100f / shortSide)
+
+    // Applied once the slider is released, every value would make the surface again while dragging.
+    var isDragging = false
+    fun apply(percentage: Float) {
+        Settings[VerktexSettings.ResolutionScale] = percentage / 100f
+    }
+
+    return OptionInfo(
+        type = OptionType.Slider,
+        key = RESOLUTION_SCALE_KEY,
+        title = AppR.string.opt_resolution_scale_title,
+        summary = AppR.string.opt_resolution_scale_summary,
+        defaultValue = 100,
+        min = minPercentage,
+        max = 100f,
+        step = 1f,
+        valueFormatter = { percentage ->
+            val width = (display.width * percentage / 100f).roundToInt()
+            val height = (display.height * percentage / 100f).roundToInt()
+            "${percentage.roundToInt()}% (${max(width, height)}x${min(width, height)})"
+        },
+        onChange = { value -> if (!isDragging) apply((value as Number).toFloat()) },
+        onAttach = { component ->
+            val slider = component as FormSlider
+            slider.control.onStartDragging = { isDragging = true }
+            slider.control.onStopDragging = {
+                isDragging = false
+                apply(slider.value)
+            }
+        }
+    )
+}
+
+/**
+ * The preference storing the resolution scale, as a percentage.
+ */
+const val RESOLUTION_SCALE_KEY = "resolutionScale"
+
+val graphicsSection = listOfNotNull(
+    resolutionScaleOption()?.let { option ->
+        CategoryInfo(
+            title = StringTable.get(AppR.string.opt_category_rendering),
+            options = listOf(option)
+        )
+    },
+
     CategoryInfo(
         title = StringTable.get(R.string.opt_category_cursor),
         options = listOf(

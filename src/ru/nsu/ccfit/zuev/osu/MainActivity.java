@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.osudroid.ui.v2.settings.SettingsSectionsKt;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.content.ComponentName;
@@ -166,6 +167,9 @@ public class MainActivity extends AndroidGameHost {
 
             // The "Show FPS" setting shows the engine's performance overlay.
             Settings.INSTANCE.set(VerktexSettings.ShowPerformanceOverlay, Config.isShowFPS());
+
+            // The resolution scale setting is stored as a percentage.
+            Settings.INSTANCE.set(VerktexSettings.ResolutionScale, Config.getInt(SettingsSectionsKt.RESOLUTION_SCALE_KEY, 100) / 100f);
 
             analytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, null);
             GlobalManager.getInstance().setLoadingProgress(50);

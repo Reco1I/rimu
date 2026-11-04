@@ -1,5 +1,7 @@
 package com.reco1l.verktex.android
 
+import com.reco1l.verktex.Platform
+
 import android.os.Build
 import android.os.Bundle
 import android.text.InputFilter
@@ -219,12 +221,15 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
                 else -> PointerEvent.Button.Unknown
             }
 
+            // The window can render at a lower resolution than the view, see Platform.resolutionScale.
+            val scale = Platform.resolutionScale
+
             fun dispatch(action: PointerEvent.Action, index: Int) = Input.dispatchPointerEvent(
                 action = action,
                 button = button,
                 pointerId = event.getPointerId(index),
-                x = event.getX(index),
-                y = event.getY(index),
+                x = event.getX(index) * scale,
+                y = event.getY(index) * scale,
                 time = event.eventTime
             )
 
@@ -241,8 +246,8 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
                             action = PointerEvent.Action.Move,
                             button = button,
                             pointerId = event.getPointerId(index),
-                            x = event.getHistoricalX(index, i),
-                            y = event.getHistoricalY(index, i),
+                            x = event.getHistoricalX(index, i) * scale,
+                            y = event.getHistoricalY(index, i) * scale,
                             time = event.getHistoricalEventTime(i)
                         ) or consumed
                     }
