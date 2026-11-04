@@ -25,13 +25,8 @@ open class ModMenuSection(name: String, private val toggles: List<UIButton> = li
 
     init {
         height = fill()
+        width = 220f.dip
         orientation = Orientation.Vertical
-
-        style = Style {
-            width = 224f.dip
-            backgroundColor = (it.palette.accent * 0.1f).copy(alpha = 0.5f)
-            radius = it.radius.lg
-        }
 
         text {
             width = fill()

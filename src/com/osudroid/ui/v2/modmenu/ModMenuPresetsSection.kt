@@ -6,9 +6,11 @@ import com.osudroid.ui.v2.modmenu.ModMenu.addMod
 import com.osudroid.ui.v2.modmenu.ModMenu.removeMod
 import com.osudroid.utils.*
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.UITextButton
@@ -27,14 +29,12 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
 
     init {
-        style = Style {
-            width = 192f.dip
-        }
+        minWidth = 192f.dip
 
         addButton = UITextButton().apply {
-            width = Dimension.FillAvailable
-            text = "Add preset"
+            width = fill()
             leadingIcon = faSolidIcon(FAIcon.Plus)
+            text = "Add preset"
             onActionUp = {
                 ModPresetsForm(this@ModMenuPresetsSection).show()
             }
@@ -97,7 +97,8 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
         init {
             width = fill()
             style += Style {
-                height = Dimension.WrapContent
+                height = wrap()
+                padding = Padding(12f.dip)
             }
 
             onActionUp = {
@@ -124,7 +125,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
                     addButton(UITextButton().apply {
                         text = "Delete"
-                        variant = UIButton.Variant.Solid
+                        variant = Variant.Solid
                         onActionUp = {
                             hide()
                             DatabaseManager.modPresetTable.delete(preset)
@@ -143,7 +144,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
             }
 
             linearContainer {
-                orientation = UILinearContainer.Orientation.Vertical
+                orientation = Orientation.Vertical
                 spacing = 8f.px
 
                 text {
@@ -153,7 +154,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
                 +ModsIndicator().apply {
                     style = Style {
-                        iconSize = 21f.px
+                        iconSize = 16f.dip
                         spacing = (-5f).px
                     }
                     mods = preset.mods.values
