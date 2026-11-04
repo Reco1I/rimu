@@ -10,6 +10,7 @@ import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.ui.FAIcon
@@ -72,6 +73,11 @@ class UITestScene(
      * the size it has, as components are.
      */
     private var isFittingWindow = true
+
+    /**
+     * Whether the scenes of the stage keep the safe area of the window, as they do in the game.
+     */
+    private var hasSafeArea = true
 
     // The size the viewport is laid out at while fitting the window, before it's scaled.
     private var virtualWidth = 0f
@@ -199,6 +205,16 @@ class UITestScene(
                             viewport.invalidateMeasure()
                             icon = viewportIcon()
                             log(if (isFittingWindow) "Laid out at the window size" else "Laid out at the stage size")
+                        }
+                    }
+
+                    iconButton {
+                        icon = safeAreaIcon()
+                        variant = UIButton.Variant.Surface
+                        onActionUp = {
+                            hasSafeArea = !hasSafeArea
+                            icon = safeAreaIcon()
+                            log(if (hasSafeArea) "Scenes keep the safe area" else "Scenes ignore the safe area")
                         }
                     }
 
@@ -386,6 +402,8 @@ class UITestScene(
     }
 
     private fun updateViewport(hostWidth: Float, hostHeight: Float) {
+        currentStage?.safeArea = if (hasSafeArea) Verktex.graphics.window.insets.safeArea else Vec4.Zero
+
         if (!isFittingWindow) {
             viewport.width = fill()
             viewport.height = fill()
@@ -410,6 +428,8 @@ class UITestScene(
     }
 
     private fun viewportIcon() = if (isFittingWindow) FAIcon.Mobile else FAIcon.Expand
+
+    private fun safeAreaIcon() = if (hasSafeArea) FAIcon.BorderAll else FAIcon.BorderNone
 
     private fun log(message: String) {
         Logger.i(TAG, message)
