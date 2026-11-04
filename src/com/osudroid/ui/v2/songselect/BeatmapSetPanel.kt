@@ -3,6 +3,17 @@ package com.osudroid.ui.v2.songselect
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
 import android.util.Log
+import com.edlplan.ui.fragment.CollectionsManagerFragment
+import com.osudroid.data.BeatmapInfo
+import com.osudroid.data.BeatmapOptions
+import com.osudroid.data.DatabaseManager
+import com.osudroid.utils.async
+import com.osudroid.utils.updateThread
+import com.reco1l.verktex.ui.FAIcon
+import com.reco1l.verktex.ui.control.UIDropdown
+import com.reco1l.verktex.ui.dialog.UIConfirmDialog
+import com.reco1l.verktex.ui.text.faSolidIcon
+import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
@@ -127,6 +138,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 width = Dimension.FillAvailable
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
+                onActionLongPress = { showOptions() }
                 onActionUp = {
                     // This will prevent race condition, during transition panelsContainer might
                     // get cleared and since the select() method is based on beatmap indices
@@ -194,7 +206,10 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
     override fun onBind(data: BeatmapSetModel) {
         titleText.text = data.beatmapSetInfo.beatmaps.getOrNull(0)?.titleText ?: "Unknown"
-        artistText.text = data.beatmapSetInfo.beatmaps.getOrNull(0)?.artistText ?: "Unknown"
+        val firstBeatmap = data.beatmapSetInfo.beatmaps.getOrNull(0)
+        val artist = firstBeatmap?.artistText ?: "Unknown"
+
+        artistText.text = if (data.isDifficulty && firstBeatmap != null) "$artist · ${firstBeatmap.version}" else artist
         cover.textureRegion = data.coverTexture
     }
 
@@ -202,6 +217,72 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
     fun select(beatmapIndex: Int = 0) {
         beatmapCarrousel.selectedPanel = this
         selectedPanel = panelsContainer[beatmapIndex] as BeatmapPanel
+    }
+
+    /**
+     * Selects the panel of the given beatmap, or the first one if it isn't in this set.
+     */
+    fun select(beatmapInfo: BeatmapInfo) {
+        beatmapCarrousel.selectedPanel = this
+        selectedPanel = panelsContainer.firstOrNull { (it as BeatmapPanel).beatmapInfo.path == beatmapInfo.path } as? BeatmapPanel
+            ?: panelsContainer.firstOrNull() as? BeatmapPanel
+    }
+
+    /**
+     * Shows the options of the beatmap set below the panel.
+     */
+    fun showOptions() {
+        val data = boundData ?: return
+        val directory = data.beatmapSetInfo.directory
+
+        UIDropdown(button).apply dropdown@{
+            maxWidth = 320f.dip
+
+            val options = DatabaseManager.beatmapOptionsTable.getOptions(directory) ?: BeatmapOptions(directory)
+
+            addButton {
+                text = if (options.isFavorite) "Remove from favorites" else "Add to favorites"
+                leadingIcon = faSolidIcon(FAIcon.Star)
+                onActionUp = {
+                    options.isFavorite = !options.isFavorite
+                    DatabaseManager.beatmapOptionsTable.upsert(options)
+                    this@dropdown.hide()
+
+                    if (SongSelect.isFilteringFavorites) {
+                        SongSelect.applyFilter()
+                    }
+                }
+            }
+
+            addButton {
+                text = "Manage collections"
+                leadingIcon = faSolidIcon(FAIcon.FolderOpen)
+                onActionUp = {
+                    CollectionsManagerFragment().showToAddToFolder(directory)
+                    this@dropdown.hide()
+                }
+            }
+
+            addButton {
+                text = "Delete"
+                leadingIcon = faSolidIcon(FAIcon.Trash)
+                tintChildren = true
+                style += Style { color = Color4("#FFBFBF") }
+                onActionUp = {
+                    UIConfirmDialog().apply {
+                        title = "Delete beatmap set"
+                        text = "Are you sure you want to delete \"${titleText.text}\"? Its files will be removed from the device."
+                        onConfirm = {
+                            async {
+                                LibraryManager.deleteBeatmapSet(data.beatmapSetInfo)
+                                updateThread { SongSelect.onBeatmapSetDeleted(directory) }
+                            }
+                        }
+                    }.show()
+                    this@dropdown.hide()
+                }
+            }
+        }.show()
     }
 
     fun selectRandom() {
@@ -262,7 +343,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         if (!isExpanded) {
             isExpanded = true
 
-            data.beatmapSetInfo.beatmaps.sortedBy { it.droidStarRating }.forEach {
+            data.beatmapSetInfo.beatmaps.sortedBy { it.getStarRating() }.forEach {
                 panelsContainer += BeatmapPanel(this@BeatmapSetPanel, it)
             }
         }
@@ -278,6 +359,12 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
     override fun onRecycle() {
         isExpanded = false
+        selectedPanel = null
+
+        // The next beatmap set must not show the difficulties of this one, even for a frame.
+        panelsContainer.clearChildren()
+        panelsContainer.alpha = 0f
+        panelsExpansion = 0f
     }
 
 
