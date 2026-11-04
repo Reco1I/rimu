@@ -1,6 +1,8 @@
 package com.reco1l.verktex.android.gles
 
 import android.opengl.GLES32
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.graphics.DrawCommand
@@ -63,6 +65,42 @@ object ESCommandExecutor {
     private var depthFunction = -1
     private var depthWrite = false
     private var boundShader: GraphicsShader? = null
+
+    // The index buffer shared by every quad command, see DrawCommand.isQuads: two triangles for
+    // each quad of four vertices. It grows to the largest command and is made again for a new
+    // context.
+    private var quadIndexBuffer = 0
+    private var quadIndexCapacity = 0
+    private val bufferId = IntArray(1)
+
+    private fun bindQuadIndices(quadCount: Int) {
+        if (quadIndexBuffer == 0 || !GLES32.glIsBuffer(quadIndexBuffer)) {
+            GLES32.glGenBuffers(1, bufferId, 0)
+            quadIndexBuffer = bufferId[0]
+            quadIndexCapacity = 0
+        }
+
+        GLES32.glBindBuffer(GLES32.GL_ELEMENT_ARRAY_BUFFER, quadIndexBuffer)
+
+        if (quadIndexCapacity >= quadCount) {
+            return
+        }
+
+        val capacity = maxOf(quadCount, quadIndexCapacity * 2, MIN_QUAD_INDEX_CAPACITY)
+        val indices = ByteBuffer.allocateDirect(capacity * 6 * 4).order(ByteOrder.nativeOrder()).asIntBuffer()
+
+        for (quad in 0 until capacity) {
+            val first = quad * 4
+            indices.put(first).put(first + 1).put(first + 2)
+            indices.put(first).put(first + 2).put(first + 3)
+        }
+        indices.flip()
+
+        GLES32.glBufferData(GLES32.GL_ELEMENT_ARRAY_BUFFER, capacity * 6 * 4, indices, GLES32.GL_STATIC_DRAW)
+        quadIndexCapacity = capacity
+    }
+
+    private const val MIN_QUAD_INDEX_CAPACITY = 1024
 
     private const val MAX_ATTRIBUTES = 16
     private val enabledAttributes = BooleanArray(MAX_ATTRIBUTES)
@@ -214,7 +252,14 @@ object ESCommandExecutor {
 
         if (instanceBuffer == null || instanceLayout == null) {
             disableAttributesExcept(command.vertexLayout, null)
-            GLES32.glDrawArrays(GLES32.GL_TRIANGLES, 0, vertexCount)
+
+            if (command.isQuads) {
+                val quadCount = vertexCount / 4
+                bindQuadIndices(quadCount)
+                GLES32.glDrawElements(GLES32.GL_TRIANGLES, quadCount * 6, GLES32.GL_UNSIGNED_INT, 0)
+            } else {
+                GLES32.glDrawArrays(GLES32.GL_TRIANGLES, 0, vertexCount)
+            }
         } else {
             instanceBuffer.bind()
             instanceBuffer.uploadDataToGPU()
