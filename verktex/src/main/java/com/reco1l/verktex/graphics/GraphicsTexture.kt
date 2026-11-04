@@ -133,20 +133,34 @@ abstract class GraphicsTexture : GraphicsResource() {
 
     final override fun onBind() = synchronized(lock) {
         onBindTexture()
+        writePendingUploads()
+    }
 
-        if (pendingUploads.isNotEmpty()) {
-            for (region in pendingUploads) {
-                region.source.writePixels(pixelTarget, region.x.toInt(), region.y.toInt())
-            }
-            pendingUploads.clear()
+    /**
+     * Writes the sources added or moved since the last flush, loading the texture first if needed.
+     * [bind] does it as well, a backend that can't upload while drawing calls this before.
+     */
+    fun flushUploads() {
+        if (state == State.Unloaded) {
+            load()
         }
+        synchronized(lock) { writePendingUploads() }
+    }
+
+    private fun writePendingUploads() {
+        if (pendingUploads.isEmpty()) return
+
+        for (region in pendingUploads) {
+            region.source.writePixels(pixelTarget, region.x.toInt(), region.y.toInt())
+        }
+        pendingUploads.clear()
     }
 
     private val pixelTarget = PixelTarget(::onWritePixels)
 
     /**
-     * Called while the pending sources are written, with the pixels of a rectangle of the texture
-     * as described by [PixelTarget]. On OpenGL ES the texture is bound.
+     * Called while the pending sources are written, see [flushUploads], with the pixels of a
+     * rectangle of the texture as described by [PixelTarget]. It may change which texture is bound.
      */
     protected abstract fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ByteBuffer)
 
