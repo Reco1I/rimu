@@ -11,7 +11,6 @@ import com.reco1l.verktex.audio.AudioDriver
 import com.reco1l.verktex.fonts.Font
 import com.reco1l.verktex.android.gles.ESContext
 import com.reco1l.verktex.android.gles.ESVersion
-import com.reco1l.verktex.android.gles.ESWindow
 import com.reco1l.verktex.android.gles.es2.ES2Device
 import com.reco1l.verktex.android.gles.es2.ES2Renderer
 import com.reco1l.verktex.android.gles.es3.ES3Device
@@ -23,12 +22,12 @@ import com.reco1l.verktex.settings.VerktexSettings
 fun Verktex.initializeAndroid(
     host: AndroidGameHost,
     audioDriver: AudioDriver = BASSAudioDriver()
-): ESWindow {
+): AndroidWindow {
 
     Platform.implementation = AndroidPlatform(host)
     Logger.implementation = AndroidLogger()
 
-    val window = ESWindow(host)
+    val window = AndroidWindow(host)
 
     val backend = GraphicsBackend.fromName(Settings[VerktexSettings.GraphicsBackend, GraphicsBackend.Auto.name])
 

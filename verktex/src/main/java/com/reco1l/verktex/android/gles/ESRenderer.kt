@@ -4,6 +4,7 @@ import android.opengl.GLES20
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
+import com.reco1l.verktex.android.AndroidWindow
 import com.reco1l.verktex.graphics.DrawCommand
 import com.reco1l.verktex.graphics.GraphicsRenderer
 
@@ -14,7 +15,7 @@ import com.reco1l.verktex.graphics.GraphicsRenderer
 abstract class ESRenderer(
     override val context: ESContext,
     override val device: ESDevice,
-    override val window: ESWindow,
+    override val window: AndroidWindow,
     protected val executor: ESCommandExecutor,
 ) : GraphicsRenderer() {
 
@@ -87,7 +88,7 @@ abstract class ESRenderer(
     private var capabilitiesRefreshed = false
 
     override fun prepareFrame(): Boolean {
-        if (!context.prepare()) return false
+        if (!context.acquireFrame()) return false
 
         // The context is current on the draw thread from here on, the device was created without one.
         if (!capabilitiesRefreshed) {
@@ -115,7 +116,7 @@ abstract class ESRenderer(
 
         onFrameExecuted()
 
-        context.swapBuffers()
+        context.present()
     }
 
     override fun drawCommand(command: DrawCommand) {

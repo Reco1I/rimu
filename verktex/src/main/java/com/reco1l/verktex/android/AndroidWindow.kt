@@ -1,4 +1,4 @@
-package com.reco1l.verktex.android.gles
+package com.reco1l.verktex.android
 
 import android.os.Build
 import android.view.RoundedCorner
@@ -18,7 +18,7 @@ import kotlin.math.roundToInt
 import android.content.Context as AndroidContext
 
 
-class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), SurfaceHolder.Callback, GraphicsWindow {
+class AndroidWindow(androidContext: AndroidContext) : SurfaceView(androidContext), SurfaceHolder.Callback, GraphicsWindow {
 
     override var windowWidth: Int = 0
     override var windowHeight: Int = 0
