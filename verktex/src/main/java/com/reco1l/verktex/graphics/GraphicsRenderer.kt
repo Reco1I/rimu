@@ -195,6 +195,17 @@ abstract class GraphicsRenderer {
     }
 
     /**
+     * Copies what was drawn so far in this frame into the texture, which must be the size of the
+     * window. The copy starts at the bottom of the window, as the framebuffer does.
+     */
+    fun captureFramebuffer(texture: GraphicsTexture) {
+        commandBatch.addLast(DrawCommand(captureTexture = texture))
+
+        // A geometry draw without a new setState() would otherwise write into a buffer already queued before the copy.
+        activeBuffer = null
+    }
+
+    /**
      * Pushes a transformation matrix onto the matrix stack. This matrix will be applied to subsequent drawing operations.
      */
     fun pushMatrix(matrix: Mat2) {

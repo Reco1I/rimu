@@ -230,12 +230,19 @@ open class UIContainer : UIComponent(), MutableIterable<UIComponent> {
     }
 
 
+    /**
+     * The index of the first child to draw, the ones before it aren't drawn.
+     */
+    protected open fun firstDrawnChildIndex() = 0
+
     override fun onDraw(renderer: GraphicsRenderer) {
         val clip = renderer.clipBounds
 
         if (tintChildren) renderer.pushTint(color)
 
-        for (child in children) {
+        for (index in firstDrawnChildIndex() until children.size) {
+            val child = children[index]
+
             // Children fully outside the visible area cannot be seen, so they are not drawn.
             if (!child.intersectsSceneRect(clip.x, clip.y, clip.z, clip.w)) {
                 continue

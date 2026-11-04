@@ -1,5 +1,7 @@
 package com.reco1l.verktex
 
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.container.UICaptureContainer
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import com.reco1l.verktex.audio.AudioDriver
@@ -131,7 +133,11 @@ object Verktex {
 
     private val sceneStack = ArrayDeque<UIScene>().apply { addLast(UIScene.EmptyScene) }
     // A scene of its own, so overlays are measured and laid out over the whole window.
-    private val overlayContainer = UIScene()
+    private val overlayContainer = object : UIScene() {
+
+        // The overlays behind the topmost one showing a capture are part of the capture.
+        override fun firstDrawnChildIndex() = topmostCapture()?.let { children.indexOf(it) } ?: 0
+    }
 
     // Above the overlays, so the performance overlay stays visible over modals and dialogs.
     private val diagnosticsContainer = UIScene()
@@ -193,7 +199,11 @@ object Verktex {
         graphics.begin()
         treeLock.withLock {
             val recordStartNanos = System.nanoTime()
-            scene.draw(graphics)
+            // An overlay showing a capture of what is behind it stands for the scene and the
+            // overlays below it, those aren't drawn.
+            val capture = topmostCapture()
+            if (capture != null) capture.drawCapture(graphics) else scene.draw(graphics)
+
             PerformanceStats.drawCommands = graphics.commandCount
             overlayContainer.draw(graphics)
             diagnosticsContainer.draw(graphics)
@@ -441,6 +451,39 @@ object Verktex {
         sceneStack.last().onEnter()
         return scene
     }
+
+    private fun topmostCapture(): UICaptureContainer? {
+        for (index in overlayContainer.childCount - 1 downTo 0) {
+            val overlay = overlayContainer[index]
+            if (overlay is UICaptureContainer && overlay.isVisible && overlay.isShowingCapture) {
+                return overlay
+            }
+        }
+        return null
+    }
+
+    /**
+     * Whether the component is an overlay itself, not inside of one, added with [addOverlay].
+     */
+    internal fun isOverlayRoot(component: UIComponent) = component.parent === overlayContainer
+
+    /**
+     * Whether the component is an overlay or inside of one.
+     */
+    internal fun isInOverlay(component: UIComponent): Boolean {
+        var current: UIComponent? = component
+        while (current != null) {
+            if (current.parent === overlayContainer) return true
+            current = current.parent
+        }
+        return false
+    }
+
+    /**
+     * The container of the overlays, see [addOverlay].
+     */
+    internal val overlays: UIContainer
+        get() = overlayContainer
 
     /**
      * Adds an overlay UI component to the engine. Overlays are drawn on top of the current scene
