@@ -1,74 +1,74 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.DatabaseManager
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateDroidDifficulty
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateStandardDifficulty
-import com.osudroid.mods.*
+import com.osudroid.mods.IMigratableMod
+import com.osudroid.mods.IModApplicableToTrackRate
+import com.osudroid.mods.Mod
+import com.osudroid.mods.ModDifficultyAdjust
+import com.osudroid.mods.ModDoubleTime
+import com.osudroid.mods.ModNightCore
+import com.osudroid.mods.ModScoreV2
+import com.osudroid.mods.ModType
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI.setPlayerMods
 import com.osudroid.multiplayer.api.RoomAPI.setRoomMods
 import com.osudroid.multiplayer.api.data.RoomMods
 import com.osudroid.scoring.ScoreMultiplierCalculator
 import com.osudroid.ui.v2.ModsIndicator
+import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.StarRatingBadge
-import com.osudroid.ui.v2.songselect.*
+import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.allModsInstances
 import com.osudroid.utils.applyMods
 import com.osudroid.utils.async
 import com.osudroid.utils.calculateRate
 import com.osudroid.utils.updateThread
-import com.reco1l.framework.*
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
-import com.reco1l.verktex.data.px
-import com.reco1l.verktex.data.toPadding
+import com.reco1l.verktex.data.horizontalPadding
 import com.reco1l.verktex.data.verticalPadding
 import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIBadge
-import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.ui.UILabeledBadge
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.badge
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.colorTo
 import com.reco1l.verktex.ui.container.UICaptureContainer
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UIExtendIntoSafeAreaContainer
-import com.reco1l.verktex.ui.container.UIIgnoreParentPaddingContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
-import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
-import com.reco1l.verktex.ui.icon
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.textButton
 import com.rian.framework.RollingFloatCounter
-import java.io.IOException
-import kotlinx.coroutines.*
-import ru.nsu.ccfit.zuev.osu.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
+import ru.nsu.ccfit.zuev.osu.Config
+import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.droid
+import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.standard
+import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
-import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.*
+import java.io.IOException
 import java.util.LinkedList
 import java.util.concurrent.CancellationException
-import kotlin.math.*
+import kotlin.math.roundToInt
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 
@@ -111,29 +111,31 @@ object ModMenu : UICaptureContainer() {
 
 
     init {
-        width = fill()
-        height = fill()
+        blurRadius = 12f.dip
 
         extendIntoSafeAreaContainer {
             width = fill()
             height = fill()
-
+            padding = horizontalPadding(8f.dip)
             style = Style { theme ->
-                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.9f)
+                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.75f)
             }
 
             linearContainer {
                 width = fill()
                 height = fill()
                 orientation = Orientation.Vertical
-                spacing = 2f.dip
 
-                container {
+                // TopBar
+                linearContainer {
                     width = fill()
                     height = wrap()
                     padding = verticalPadding(8f.dip)
+                    spacing = 4f.dip
 
+                    // Left side
                     linearContainer {
+                        width = fill()
                         orientation = Orientation.Horizontal
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
@@ -181,7 +183,6 @@ object ModMenu : UICaptureContainer() {
 
                         scrollableContainer {
                             width = fill()
-                            height = wrap()
                             anchor = Anchor.CenterLeft
                             origin = Anchor.CenterLeft
                             scrollAxes = Axis.X
@@ -192,36 +193,21 @@ object ModMenu : UICaptureContainer() {
                         }
                     }
 
-                    container {
-                        anchor = Anchor.CenterRight
-                        origin = Anchor.CenterRight
+                    // Right side: Search box
+                    searchInput = ModMenuSearchInput().apply {
 
-                        searchInput = ModMenuSearchInput().apply {
-                            width = 288f.dip
-                            onSearchTermUpdate = { searchTerm ->
-                                modSections.forEach { it.onSearchTermUpdate(searchTerm) }
+                        onSearchTermUpdate = { searchTerm ->
+                            modSections.forEach { it.onSearchTermUpdate(searchTerm) }
 
-                                if (modPresetsSection.isVisible) {
-                                    modPresetsSection.onSearchTermUpdate(searchTerm)
-                                }
-                            }
-                        }
-                        +searchInput
-
-                        container {
-                            anchor = Anchor.CenterRight
-                            origin = Anchor.CenterRight
-                            padding = Padding(8f.dip, 0f.dip)
-
-                            +UIIcon(FAIcon.MagnifyingGlass).apply {
-                                style = Style { theme ->
-                                    color = theme.palette.accent
-                                }
+                            if (modPresetsSection.isVisible) {
+                                modPresetsSection.onSearchTermUpdate(searchTerm)
                             }
                         }
                     }
+                    +searchInput
                 }
 
+                // Sections container
                 scrollableContainer {
                     width = fill()
                     height = fill()
@@ -231,7 +217,7 @@ object ModMenu : UICaptureContainer() {
                         orientation = Orientation.Horizontal
                         width = wrap()
                         height = fill()
-                        spacing = 8f.dip
+                        spacing = 16f.dip
 
                         modPresetsSection = ModMenuPresetsSection()
                         +modPresetsSection
@@ -240,9 +226,9 @@ object ModMenu : UICaptureContainer() {
 
                         ModType.entries.forEach { type ->
                             val sectionName = StringTable.get(type.stringId)
-                            val sectionToggles =
-                                mods.filter { it !is IMigratableMod && it.isUserPlayable && it.type == type }
-                                    .map { ModMenuToggle(it) }
+                            val sectionToggles = mods
+                                .filter { it !is IMigratableMod && it.isUserPlayable && it.type == type }
+                                .map { ModMenuToggle(it) }
 
                             if (sectionToggles.isEmpty()) {
                                 return@forEach
@@ -261,12 +247,7 @@ object ModMenu : UICaptureContainer() {
                 container {
                     width = fill()
                     height = wrap()
-                    style = Style {
-                        padding = Padding(
-                            top = 8f.dip,
-                            bottom = (8f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
-                        )
-                    }
+                    padding = Padding(8f.dip)
 
                     linearContainer {
                         orientation = Orientation.Horizontal
@@ -335,9 +316,9 @@ object ModMenu : UICaptureContainer() {
             // Customizations menu
             customizationMenu = ModCustomizationMenu(customizeButton)
             +customizationMenu
-
-            modPresetsSection.loadPresets()
         }
+
+        modPresetsSection.loadPresets()
     }
 
 

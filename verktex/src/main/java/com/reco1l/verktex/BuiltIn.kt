@@ -61,6 +61,8 @@ object BuiltIn {
          */
         lateinit var Default: FontFamily
 
+        lateinit var Torus: FontFamily
+
         /**
          * [Font Awesome](https://fontawesome.com/) icon font family for regular icons.
          */
