@@ -10,14 +10,14 @@ import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UIFullscreenContainer
+import com.reco1l.verktex.ui.container.UIIgnoreParentPaddingContainer
 
 /**
  * A container shown above everything else, with a [card] holding its content on top of a dimmed
  * backdrop. It is attached as an overlay when shown, unless it was added somewhere else before.
  *
  * The backdrop covers the whole window while the card stays in the safe area, see
- * [UIFullscreenContainer].
+ * [UIIgnoreParentPaddingContainer].
  */
 @Suppress("LeakingThis")
 open class UIModal(
@@ -36,7 +36,7 @@ open class UIModal(
         }
     }
 
-) : UIFullscreenContainer() {
+) : UIIgnoreParentPaddingContainer() {
 
     /**
      * Whether the modal stays open when the user presses outside of the [card].

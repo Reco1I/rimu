@@ -1065,14 +1065,14 @@ abstract class UIComponent {
      */
     /**
      * Adjusts the constraints the parent measures this component with, e.g. to grow past its
-     * padding as [com.reco1l.verktex.ui.container.UIFullscreenContainer] does.
+     * padding as [com.reco1l.verktex.ui.container.UIIgnoreParentPaddingContainer] does.
      */
     protected open fun adjustParentConstraints(constraints: LayoutConstraints) = constraints
 
     /**
      * Adjusts the bounds this component got from its measured size and the parent, before laying
      * out its content. They can grow past the measured size without moving the siblings, e.g. into
-     * the safe area as [com.reco1l.verktex.ui.container.UIEdgeToEdgeContainer] does.
+     * the safe area as [com.reco1l.verktex.ui.container.UIExtendIntoSafeAreaContainer] does.
      */
     protected open fun adjustBounds(bounds: Vec4) = bounds
 
