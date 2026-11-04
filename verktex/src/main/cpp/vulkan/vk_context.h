@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_android.h>
+#include <android/hardware_buffer.h>
 #include <android/native_window.h>
 
 #include <cstdint>
@@ -43,6 +45,25 @@ enum Opcode : int32_t {
     OP_CAPTURE_INTS = 2,
 };
 
+// A sampler converting the YCbCr frames of a video format to RGB, and the layouts using it: the
+// conversion must be an immutable sampler of the descriptor set layout, so pipelines sampling these
+// frames have a layout of their own.
+struct YcbcrSampler {
+    uint64_t externalFormat = 0;
+    VkFormat format = VK_FORMAT_UNDEFINED;
+    VkSamplerYcbcrModelConversion model{};
+    VkSamplerYcbcrRange range{};
+    VkComponentMapping components{};
+    VkChromaLocation xChromaOffset{};
+    VkChromaLocation yChromaOffset{};
+
+    VkSamplerYcbcrConversion conversion = VK_NULL_HANDLE;
+    VkSampler sampler = VK_NULL_HANDLE;
+    VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
+    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+    VkDescriptorPool pool = VK_NULL_HANDLE;
+};
+
 struct Texture {
     VkImage image = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
@@ -51,6 +72,9 @@ struct Texture {
     VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
     uint32_t width = 0;
     uint32_t height = 0;
+
+    // Set for a video frame imported from a hardware buffer.
+    YcbcrSampler *ycbcr = nullptr;
 };
 
 struct Buffer {
@@ -65,11 +89,20 @@ struct StagingChunk {
     VkDeviceSize used = 0;
 };
 
+enum class TextureOperationKind {
+    // A new texture is cleared to transparent, as it's sampled before any upload.
+    Clear,
+    // A copy from staging.
+    Upload,
+    // A video frame is acquired from its producer (the foreign queue family).
+    AcquireExternal,
+};
+
 // A texture operation recorded before the frame's render pass.
 struct TextureOperation {
     Texture *texture;
-    bool clear;              // A new texture is cleared to transparent, as it's sampled before any upload.
-    VkBuffer source;         // Otherwise a copy from staging.
+    TextureOperationKind kind;
+    VkBuffer source;
     VkDeviceSize sourceOffset;
     int32_t x, y, width, height;
 };
@@ -116,15 +149,20 @@ public:
     // Milliseconds the GPU took for the last measured frame, -1 when unknown.
     float gpuTime() const { return lastGpuTime; }
 
+    // Frames submitted so far, and how many of them the GPU completed.
+    uint64_t submissionCount();
+    uint64_t completedSubmissionCount();
+
     VkShaderModule createShaderModule(const uint32_t *code, size_t size);
     void destroyShaderModule(VkShaderModule module);
 
     // vertexInput: bindingCount, (stride, inputRate) per binding, attributeCount,
     // (location, binding, format, offset) per attribute. blend: the 4 VkBlendFactors.
-    // depth: test enabled, write enabled, VkCompareOp.
+    // depth: test enabled, write enabled, VkCompareOp. ycbcr: the sampler of the video frames the
+    // pipeline samples, null otherwise.
     VkPipeline createPipeline(VkShaderModule vertex, VkShaderModule fragment,
                               const int32_t *vertexInput, int32_t vertexInputCount,
-                              const int32_t *blend, const int32_t *depth);
+                              const int32_t *blend, const int32_t *depth, YcbcrSampler *ycbcr);
     void destroyPipeline(VkPipeline pipeline);
 
     // Textures may be created and destroyed from any thread, destruction waits for the GPU.
@@ -132,6 +170,13 @@ public:
     void uploadTexture(Texture *texture, int32_t x, int32_t y, int32_t width, int32_t height,
                        const void *pixels, size_t size);
     void destroyTexture(Texture *texture);
+
+    // Whether video frames can be imported, see importHardwareBuffer.
+    bool supportsExternalTextures() const { return externalSupported; }
+
+    // Imports a video frame as a texture, acquired from its producer before the next frame draws.
+    // Destroy it with destroyTexture once it's replaced. Null when it can't be imported.
+    Texture *importHardwareBuffer(AHardwareBuffer *buffer);
 
     void *ringMemory(uint32_t frameIndex) const { return frames[frameIndex].ring.mapped; }
 
@@ -159,6 +204,7 @@ private:
     void collectGarbage(uint64_t completedSubmission);
     void deferDestroy(std::function<void()> destroy);
 
+    YcbcrSampler *ycbcrSamplerFor(const VkAndroidHardwareBufferFormatPropertiesANDROID &format);
     void recordTextureOperations(VkCommandBuffer cmd);
     void beginRenderPass(VkCommandBuffer cmd, bool load, bool storeDepth);
     void recordCapture(VkCommandBuffer cmd, Texture *texture);
@@ -167,6 +213,7 @@ private:
     std::recursive_mutex mutex;
 
     VkInstance instance = VK_NULL_HANDLE;
+    uint32_t instanceApiVersion = VK_API_VERSION_1_0;
     VkDebugUtilsMessengerEXT messenger = VK_NULL_HANDLE;
 
     VkPhysicalDevice physical = VK_NULL_HANDLE;
@@ -191,10 +238,18 @@ private:
     VkQueryPool timestamps = VK_NULL_HANDLE;
     float lastGpuTime = -1.0f;
 
+    // Video frames, see importHardwareBuffer.
+    bool externalSupported = false;
+    std::vector<YcbcrSampler *> ycbcrSamplers;
+    PFN_vkGetAndroidHardwareBufferPropertiesANDROID getHardwareBufferProperties = nullptr;
+    PFN_vkCreateSamplerYcbcrConversion createSamplerYcbcrConversion = nullptr;
+    PFN_vkDestroySamplerYcbcrConversion destroySamplerYcbcrConversion = nullptr;
+
     Frame frames[FRAMES_IN_FLIGHT];
     uint32_t frameIndex = 0;
     bool slotOpen = false;
     uint64_t submissions = 0;
+    uint64_t completedSubmissions = 0;
 
     std::vector<TextureOperation> textureOperations;
     std::deque<std::pair<uint64_t, std::function<void()>>> garbage;

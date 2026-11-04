@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <dlfcn.h>
 
 #define LOG_TAG "VerktexVulkan"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -55,6 +56,19 @@ bool hasDeviceExtension(VkPhysicalDevice device, const char *name) {
     std::vector<VkExtensionProperties> extensions(count);
     vkEnumerateDeviceExtensionProperties(device, nullptr, &count, extensions.data());
     return std::any_of(extensions.begin(), extensions.end(), [&](auto &e) { return strcmp(e.extensionName, name) == 0; });
+}
+
+// AHardwareBuffer functions exist from API 26, the minimum SDK is 24: they're looked up at runtime.
+using DescribeHardwareBuffer = void (*)(const AHardwareBuffer *, AHardwareBuffer_Desc *);
+
+DescribeHardwareBuffer describeHardwareBuffer() {
+    static auto function = reinterpret_cast<DescribeHardwareBuffer>(
+            dlsym(dlopen("libandroid.so", RTLD_NOW), "AHardwareBuffer_describe"));
+    return function;
+}
+
+bool isYcbcrFormat(VkFormat format) {
+    return format >= VK_FORMAT_G8B8G8R8_422_UNORM && format <= VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM;
 }
 
 std::string resultName(VkResult result) {
@@ -114,6 +128,7 @@ bool Context::initialize(bool enableValidation, std::string &error) {
     application.pApplicationName = "osu!droid";
     application.pEngineName = "Verktex";
     application.apiVersion = instanceVersion >= VK_API_VERSION_1_1 ? VK_API_VERSION_1_1 : VK_API_VERSION_1_0;
+    instanceApiVersion = application.apiVersion;
 
     VkInstanceCreateInfo instanceInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
     instanceInfo.pApplicationInfo = &application;
@@ -204,6 +219,31 @@ bool Context::createDeviceObjects(std::string &error) {
         extensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME);
     }
 
+    // Video frames are imported from hardware buffers and sampled through a YCbCr conversion, which
+    // needs Vulkan 1.1 (on both sides) and the Android import extensions. Without them, videos aren't shown.
+    VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES};
+    if (instanceApiVersion >= VK_API_VERSION_1_1 && physicalProperties.apiVersion >= VK_API_VERSION_1_1 &&
+        describeHardwareBuffer() != nullptr &&
+        hasDeviceExtension(physical, VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME) &&
+        hasDeviceExtension(physical, VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME)) {
+
+        auto getFeatures2 = reinterpret_cast<PFN_vkGetPhysicalDeviceFeatures2>(
+                vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceFeatures2"));
+
+        if (getFeatures2 != nullptr) {
+            VkPhysicalDeviceFeatures2 features{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
+            features.pNext = &ycbcrFeatures;
+            getFeatures2(physical, &features);
+            externalSupported = ycbcrFeatures.samplerYcbcrConversion == VK_TRUE;
+        }
+    }
+    if (externalSupported) {
+        extensions.push_back(VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME);
+        extensions.push_back(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
+    } else {
+        LOGW("Video frames can't be imported, videos aren't shown.");
+    }
+
     float priority = 1.0f;
     VkDeviceQueueCreateInfo queueInfo{VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
     queueInfo.queueFamilyIndex = queueFamily;
@@ -211,6 +251,10 @@ bool Context::createDeviceObjects(std::string &error) {
     queueInfo.pQueuePriorities = &priority;
 
     VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+    if (externalSupported) {
+        ycbcrFeatures.pNext = nullptr;
+        deviceInfo.pNext = &ycbcrFeatures;
+    }
     deviceInfo.queueCreateInfoCount = 1;
     deviceInfo.pQueueCreateInfos = &queueInfo;
     deviceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
@@ -222,6 +266,16 @@ bool Context::createDeviceObjects(std::string &error) {
         return false;
     }
     vkGetDeviceQueue(device, queueFamily, 0, &queue);
+
+    if (externalSupported) {
+        getHardwareBufferProperties = reinterpret_cast<PFN_vkGetAndroidHardwareBufferPropertiesANDROID>(
+                vkGetDeviceProcAddr(device, "vkGetAndroidHardwareBufferPropertiesANDROID"));
+        createSamplerYcbcrConversion = reinterpret_cast<PFN_vkCreateSamplerYcbcrConversion>(
+                vkGetDeviceProcAddr(device, "vkCreateSamplerYcbcrConversion"));
+        destroySamplerYcbcrConversion = reinterpret_cast<PFN_vkDestroySamplerYcbcrConversion>(
+                vkGetDeviceProcAddr(device, "vkDestroySamplerYcbcrConversion"));
+        externalSupported = getHardwareBufferProperties && createSamplerYcbcrConversion && destroySamplerYcbcrConversion;
+    }
 
     LOGI("Using %s, Vulkan %u.%u.%u.", physicalProperties.deviceName,
          VK_VERSION_MAJOR(physicalProperties.apiVersion), VK_VERSION_MINOR(physicalProperties.apiVersion),
@@ -786,6 +840,7 @@ void Context::openSlot() {
     vkWaitForFences(device, 1, &frame.fence, VK_TRUE, UINT64_MAX);
 
     // The queue executes in order, everything submitted up to this slot's last submission is done.
+    completedSubmissions = std::max(completedSubmissions, frame.submission);
     collectGarbage(frame.submission);
 
     if (frame.timestampsWritten) {
@@ -866,7 +921,23 @@ void Context::recordTextureOperations(VkCommandBuffer cmd) {
     for (auto &operation : textureOperations) {
         Texture *texture = operation.texture;
 
-        if (operation.clear) {
+        if (operation.kind == TextureOperationKind::AcquireExternal) {
+            // The producer (e.g. a video decoder) wrote it outside Vulkan, PREINITIALIZED keeps that content.
+            VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            barrier.oldLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+            barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_FOREIGN_EXT;
+            barrier.dstQueueFamilyIndex = queueFamily;
+            barrier.image = texture->image;
+            barrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+            vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                 0, 0, nullptr, 0, nullptr, 1, &barrier);
+            continue;
+        }
+
+        if (operation.kind == TextureOperationKind::Clear) {
             imageBarrier(cmd, texture->image, VK_IMAGE_ASPECT_COLOR_BIT,
                          VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0,
@@ -1046,11 +1117,13 @@ void Context::submit(const int32_t *commands, int32_t count) {
                 vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                                         &frame.uniformSet, 2, dynamicOffsets);
 
-                VkDescriptorSet textureSet = (texture != nullptr ? texture : whiteTexture)->descriptorSet;
-                if (textureSet != boundTexture) {
-                    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1,
-                                            &textureSet, 0, nullptr);
-                    boundTexture = textureSet;
+                Texture *sampled = texture != nullptr ? texture : whiteTexture;
+                if (sampled->descriptorSet != boundTexture) {
+                    // A video frame's set has the layout of its YCbCr sampler, set 0 is the same in both.
+                    VkPipelineLayout layout = sampled->ycbcr != nullptr ? sampled->ycbcr->pipelineLayout : pipelineLayout;
+                    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1, 1,
+                                            &sampled->descriptorSet, 0, nullptr);
+                    boundTexture = sampled->descriptorSet;
                 }
 
                 vkCmdBindVertexBuffers(cmd, 0, 1, &frame.ring.buffer, &vertexOffset);
@@ -1201,7 +1274,7 @@ void Context::destroyShaderModule(VkShaderModule module) {
 
 VkPipeline Context::createPipeline(VkShaderModule vertex, VkShaderModule fragment,
                                    const int32_t *vertexInput, int32_t vertexInputCount,
-                                   const int32_t *blend, const int32_t *depth) {
+                                   const int32_t *blend, const int32_t *depth, YcbcrSampler *ycbcr) {
     std::lock_guard lock(mutex);
 
     if (renderPasses[0][0] == VK_NULL_HANDLE) {
@@ -1300,7 +1373,7 @@ VkPipeline Context::createPipeline(VkShaderModule vertex, VkShaderModule fragmen
     info.pDepthStencilState = &depthStencil;
     info.pColorBlendState = &blendState;
     info.pDynamicState = &dynamicState;
-    info.layout = pipelineLayout;
+    info.layout = ycbcr != nullptr ? ycbcr->pipelineLayout : pipelineLayout;
     // Compatible with every variant.
     info.renderPass = renderPasses[0][0];
     info.subpass = 0;
@@ -1412,7 +1485,7 @@ Texture *Context::createTexture(uint32_t width, uint32_t height) {
     write.pImageInfo = &imageDescriptor;
     vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
 
-    textureOperations.push_back({texture, true, VK_NULL_HANDLE, 0, 0, 0, 0, 0});
+    textureOperations.push_back({texture, TextureOperationKind::Clear, VK_NULL_HANDLE, 0, 0, 0, 0, 0});
     return texture;
 }
 
@@ -1454,7 +1527,7 @@ void Context::uploadTexture(Texture *texture, int32_t x, int32_t y, int32_t widt
     memcpy(static_cast<uint8_t *>(chunk->buffer.mapped) + offset, pixels, size);
     chunk->used = offset + size;
 
-    textureOperations.push_back({texture, false, chunk->buffer.buffer, offset, x, y, width, height});
+    textureOperations.push_back({texture, TextureOperationKind::Upload, chunk->buffer.buffer, offset, x, y, width, height});
 }
 
 void Context::destroyTexture(Texture *texture) {
@@ -1471,6 +1544,237 @@ void Context::destroyTexture(Texture *texture) {
         vkFreeMemory(device, texture->memory, nullptr);
         delete texture;
     });
+}
+
+uint64_t Context::submissionCount() {
+    std::lock_guard lock(mutex);
+    return submissions;
+}
+
+uint64_t Context::completedSubmissionCount() {
+    std::lock_guard lock(mutex);
+    return completedSubmissions;
+}
+
+YcbcrSampler *Context::ycbcrSamplerFor(const VkAndroidHardwareBufferFormatPropertiesANDROID &format) {
+    // The suggested conversion depends only on the format, frames of a video share one.
+    uint64_t externalFormat = format.format == VK_FORMAT_UNDEFINED ? format.externalFormat : 0;
+    for (auto *candidate : ycbcrSamplers) {
+        if (candidate->externalFormat == externalFormat && candidate->format == format.format &&
+            candidate->model == format.suggestedYcbcrModel && candidate->range == format.suggestedYcbcrRange &&
+            memcmp(&candidate->components, &format.samplerYcbcrConversionComponents, sizeof(VkComponentMapping)) == 0 &&
+            candidate->xChromaOffset == format.suggestedXChromaOffset && candidate->yChromaOffset == format.suggestedYChromaOffset) {
+            return candidate;
+        }
+    }
+
+    auto *ycbcr = new YcbcrSampler();
+    ycbcr->externalFormat = externalFormat;
+    ycbcr->format = format.format;
+    ycbcr->model = format.suggestedYcbcrModel;
+    ycbcr->range = format.suggestedYcbcrRange;
+    ycbcr->components = format.samplerYcbcrConversionComponents;
+    ycbcr->xChromaOffset = format.suggestedXChromaOffset;
+    ycbcr->yChromaOffset = format.suggestedYChromaOffset;
+
+    VkFilter filter = (format.formatFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT)
+            ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+
+    VkExternalFormatANDROID external{VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID};
+    external.externalFormat = externalFormat;
+
+    VkSamplerYcbcrConversionCreateInfo conversionInfo{VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO};
+    conversionInfo.pNext = &external;
+    conversionInfo.format = format.format;
+    conversionInfo.ycbcrModel = format.suggestedYcbcrModel;
+    conversionInfo.ycbcrRange = format.suggestedYcbcrRange;
+    conversionInfo.components = format.samplerYcbcrConversionComponents;
+    conversionInfo.xChromaOffset = format.suggestedXChromaOffset;
+    conversionInfo.yChromaOffset = format.suggestedYChromaOffset;
+    conversionInfo.chromaFilter = filter;
+    conversionInfo.forceExplicitReconstruction = VK_FALSE;
+
+    if (createSamplerYcbcrConversion(device, &conversionInfo, nullptr, &ycbcr->conversion) != VK_SUCCESS) {
+        LOGE("Couldn't create a YCbCr conversion for the video format.");
+        delete ycbcr;
+        return nullptr;
+    }
+
+    VkSamplerYcbcrConversionInfo conversion{VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO};
+    conversion.conversion = ycbcr->conversion;
+
+    // The filters must be the chroma filter unless the format allows a separate one.
+    VkSamplerCreateInfo samplerInfo{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
+    samplerInfo.pNext = &conversion;
+    samplerInfo.magFilter = filter;
+    samplerInfo.minFilter = filter;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    vkCreateSampler(device, &samplerInfo, nullptr, &ycbcr->sampler);
+
+    VkDescriptorSetLayoutBinding binding{};
+    binding.binding = 0;
+    binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    binding.descriptorCount = 1;
+    binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    binding.pImmutableSamplers = &ycbcr->sampler;
+
+    VkDescriptorSetLayoutCreateInfo setLayoutInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+    setLayoutInfo.bindingCount = 1;
+    setLayoutInfo.pBindings = &binding;
+    vkCreateDescriptorSetLayout(device, &setLayoutInfo, nullptr, &ycbcr->setLayout);
+
+    VkDescriptorSetLayout setLayouts[] = {uniformSetLayout, ycbcr->setLayout};
+    VkPipelineLayoutCreateInfo layoutInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+    layoutInfo.setLayoutCount = 2;
+    layoutInfo.pSetLayouts = setLayouts;
+    vkCreatePipelineLayout(device, &layoutInfo, nullptr, &ycbcr->pipelineLayout);
+
+    // Multi-planar formats may take up to three descriptors per set.
+    VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 3 * TEXTURE_SETS_PER_POOL};
+    VkDescriptorPoolCreateInfo poolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+    poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    poolInfo.maxSets = TEXTURE_SETS_PER_POOL;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    vkCreateDescriptorPool(device, &poolInfo, nullptr, &ycbcr->pool);
+
+    LOGI("Created a YCbCr sampler for a video format (external format %llu, VkFormat %d).",
+         static_cast<unsigned long long>(externalFormat), format.format);
+
+    ycbcrSamplers.push_back(ycbcr);
+    return ycbcr;
+}
+
+Texture *Context::importHardwareBuffer(AHardwareBuffer *buffer) {
+    std::lock_guard lock(mutex);
+
+    if (!externalSupported || buffer == nullptr) {
+        return nullptr;
+    }
+
+    VkAndroidHardwareBufferFormatPropertiesANDROID format{VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID};
+    VkAndroidHardwareBufferPropertiesANDROID properties{VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID};
+    properties.pNext = &format;
+
+    if (getHardwareBufferProperties(device, buffer, &properties) != VK_SUCCESS) {
+        LOGE("Couldn't read the properties of a video frame.");
+        return nullptr;
+    }
+
+    // Decoders output YCbCr, through an external format or a multi-planar one. An RGB frame is
+    // sampled as any texture.
+    bool converted = format.format == VK_FORMAT_UNDEFINED || isYcbcrFormat(format.format);
+    YcbcrSampler *ycbcr = converted ? ycbcrSamplerFor(format) : nullptr;
+    if (converted && ycbcr == nullptr) {
+        return nullptr;
+    }
+
+    AHardwareBuffer_Desc description{};
+    describeHardwareBuffer()(buffer, &description);
+
+    auto *texture = new Texture();
+    texture->width = description.width;
+    texture->height = description.height;
+    texture->ycbcr = ycbcr;
+
+    VkExternalFormatANDROID external{VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID};
+    external.externalFormat = format.format == VK_FORMAT_UNDEFINED ? format.externalFormat : 0;
+
+    VkExternalMemoryImageCreateInfo externalMemory{VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO};
+    externalMemory.pNext = &external;
+    externalMemory.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
+
+    // PREINITIALIZED, the content written by the producer is kept when it's acquired.
+    VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+    imageInfo.pNext = &externalMemory;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.format = format.format;
+    imageInfo.extent = {description.width, description.height, 1};
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+
+    if (vkCreateImage(device, &imageInfo, nullptr, &texture->image) != VK_SUCCESS) {
+        LOGE("Couldn't create an image for a video frame.");
+        delete texture;
+        return nullptr;
+    }
+
+    // The memory is the hardware buffer's, imported rather than allocated.
+    VkImportAndroidHardwareBufferInfoANDROID import{VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID};
+    import.buffer = buffer;
+
+    VkMemoryDedicatedAllocateInfo dedicated{VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO};
+    dedicated.pNext = &import;
+    dedicated.image = texture->image;
+
+    VkMemoryAllocateInfo memoryInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
+    memoryInfo.pNext = &dedicated;
+    memoryInfo.allocationSize = properties.allocationSize;
+    memoryInfo.memoryTypeIndex = properties.memoryTypeBits != 0 ? static_cast<uint32_t>(__builtin_ctz(properties.memoryTypeBits)) : 0;
+
+    if (properties.memoryTypeBits == 0 || vkAllocateMemory(device, &memoryInfo, nullptr, &texture->memory) != VK_SUCCESS) {
+        LOGE("Couldn't import the memory of a video frame.");
+        vkDestroyImage(device, texture->image, nullptr);
+        delete texture;
+        return nullptr;
+    }
+    vkBindImageMemory(device, texture->image, texture->memory, 0);
+
+    VkSamplerYcbcrConversionInfo conversion{VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO};
+    conversion.conversion = ycbcr != nullptr ? ycbcr->conversion : VK_NULL_HANDLE;
+
+    VkImageViewCreateInfo viewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+    viewInfo.pNext = ycbcr != nullptr ? &conversion : nullptr;
+    viewInfo.image = texture->image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format.format;
+    viewInfo.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+    vkCreateImageView(device, &viewInfo, nullptr, &texture->view);
+
+    VkDescriptorSetAllocateInfo setInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+    setInfo.descriptorSetCount = 1;
+
+    if (ycbcr != nullptr) {
+        setInfo.descriptorPool = ycbcr->pool;
+        setInfo.pSetLayouts = &ycbcr->setLayout;
+        texture->descriptorPool = ycbcr->pool;
+        if (vkAllocateDescriptorSets(device, &setInfo, &texture->descriptorSet) != VK_SUCCESS) {
+            texture->descriptorSet = VK_NULL_HANDLE;
+        }
+    } else {
+        texture->descriptorSet = allocateTextureSet(texture->descriptorPool);
+    }
+
+    if (texture->descriptorSet == VK_NULL_HANDLE) {
+        LOGE("Couldn't allocate a descriptor set for a video frame.");
+        vkDestroyImageView(device, texture->view, nullptr);
+        vkDestroyImage(device, texture->image, nullptr);
+        vkFreeMemory(device, texture->memory, nullptr);
+        delete texture;
+        return nullptr;
+    }
+
+    // The sampler of a YCbCr set is immutable, the one given here is ignored.
+    VkDescriptorImageInfo imageDescriptor{ycbcr != nullptr ? ycbcr->sampler : sampler, texture->view,
+                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+    VkWriteDescriptorSet write{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+    write.dstSet = texture->descriptorSet;
+    write.dstBinding = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    write.pImageInfo = &imageDescriptor;
+    vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+
+    textureOperations.push_back({texture, TextureOperationKind::AcquireExternal, VK_NULL_HANDLE, 0, 0, 0, 0, 0});
+    return texture;
 }
 
 //endregion
@@ -1492,6 +1796,16 @@ void Context::destroy() {
         textureOperations.clear();
 
         destroyBuffer(quadIndices);
+
+        for (auto *ycbcr : ycbcrSamplers) {
+            vkDestroyDescriptorPool(device, ycbcr->pool, nullptr);
+            vkDestroyPipelineLayout(device, ycbcr->pipelineLayout, nullptr);
+            vkDestroyDescriptorSetLayout(device, ycbcr->setLayout, nullptr);
+            vkDestroySampler(device, ycbcr->sampler, nullptr);
+            destroySamplerYcbcrConversion(device, ycbcr->conversion, nullptr);
+            delete ycbcr;
+        }
+        ycbcrSamplers.clear();
 
         for (auto &frame : frames) {
             destroyBuffer(frame.ring);

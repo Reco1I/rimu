@@ -10,6 +10,7 @@ import com.osudroid.mods.ModRelax
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.SpriteFont
 import com.osudroid.ui.v2.StarRatingBadge
+import com.osudroid.ui.v2.UIVideo
 import com.reco1l.verktex.ui.UIBadge
 import com.osudroid.ui.v2.game.CursorSprite
 import com.osudroid.ui.v2.game.NumberedCirclePiece
@@ -32,12 +33,16 @@ import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.control.slider
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
+import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.skins.OsuSkin
+import java.io.File
 
 /**
  * Tests for the osu!droid components.
  */
 object OsuUITests : UITestSuite("osu!") {
+
+    private val VIDEO_EXTENSIONS = setOf("mp4", "avi", "flv", "m4v", "mkv", "webm", "mov")
 
     private val COMBO_COLORS = listOf(
         Color4(1f, 0.75f, 0f),
@@ -213,6 +218,53 @@ object OsuUITests : UITestSuite("osu!") {
                     log("Logo clicked")
                 }
             }
+        }
+
+        test("Video") {
+            // The first beatmap video found, there's none bundled.
+            val file = File(Config.getBeatmapPath()).listFiles().orEmpty()
+                .filter { it.isDirectory }
+                .flatMap { it.listFiles().orEmpty().asList() }
+                .filter { it.extension.lowercase() in VIDEO_EXTENSIONS }
+                // MP4 first, it's what the decoders support best, then by name so it's always the same.
+                .sortedWith(compareBy({ it.extension.lowercase() != "mp4" }, { it.path }))
+                .firstOrNull()
+
+            if (file == null) {
+                text {
+                    anchor = Anchor.Center
+                    origin = Anchor.Center
+                    text = "No beatmap video found in ${Config.getBeatmapPath()}"
+                }
+                return@test
+            }
+
+            log("Loading ${file.parentFile?.name}/${file.name}")
+
+            val video = UIVideo(file.path).apply {
+                anchor = Anchor.Center
+                origin = Anchor.Center
+            }
+            +video
+            video.play()
+
+            video.setOnReady {
+                // Its size is the video's until then, it's fit in the stage keeping the aspect ratio.
+                val width = 480f
+                video.width = width.dip
+                video.height = (width * video.videoHeight / video.videoWidth).dip
+                log("Playing ${file.name}, ${video.videoWidth}x${video.videoHeight}")
+            }
+
+            textButton {
+                anchor = Anchor.TopCenter
+                origin = Anchor.TopCenter
+                y = 16f.dip
+                text = "Restart"
+                onActionUp = { video.seekTo(0) }
+            }
+
+            onDispose { video.release() }
         }
 
         test("Triangles") {

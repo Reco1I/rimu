@@ -439,7 +439,9 @@ public class GameScene implements GameObjectListener {
         // updated value from the brightness slider.
         float brightness = Config.getNumber("bgbrightness", 25f) / 100f;
         var videoFilename = playableBeatmap.getEvents().videoFilename;
-        videoEnabled = brightness > 0.02f && Config.getBoolean("enableVideo", false) && videoFilename != null;
+        // Some graphics backends can't show video frames on some devices (e.g. Vulkan before Android 10).
+        var videosSupported = Verktex.INSTANCE.getGraphics().getDevice().getCapabilities().getSupportsExternalTextures();
+        videoEnabled = brightness > 0.02f && Config.getBoolean("enableVideo", false) && videoFilename != null && videosSupported;
 
         if (!videoEnabled) {
             cancelVideoLoading();

@@ -17,8 +17,8 @@ import com.reco1l.verktex.shaders.GLSL450VulkanTranslator
  * and submits the whole frame at once when it's presented.
  *
  * Captures have the top-left origin of the rest of the engine, so [framebufferOrigin] is the default.
- * External (video) textures aren't supported yet (phase 6 of the roadmap), their draws are skipped,
- * see [skippedCommands].
+ * External (video) textures are sampled through a YCbCr conversion, their pipelines are made for it.
+ * Where they aren't supported their draws are skipped, see [skippedCommands].
  */
 class VKRenderer(
     override val context: VKContext,
@@ -75,10 +75,6 @@ class VKRenderer(
         }
 
         val texture = command.texture
-        if (texture != null && texture.isExternal) {
-            skippedCommands++
-            return
-        }
 
         if (shader.state == GraphicsResource.State.Unloaded) {
             shader.load()
@@ -87,12 +83,25 @@ class VKRenderer(
         // A command can carry the texture of an earlier draw while its shader doesn't sample it
         // (setState keeps the active one), it's only bound when sampled. Without a texture, a shader
         // that samples gets a white one, e.g. UI boxes, which don't read it.
-        val textureHandle = if (shader.usesSamplers && texture is VKTexture) {
-            // Loads the texture and stages what was added to it since the last frame.
-            texture.flushUploads()
-            texture.handle
-        } else {
-            0L
+        var ycbcrSampler = 0L
+        val textureHandle = when {
+            texture is VKExternalTexture -> {
+                // A video frame, imported when a new one arrived. Nothing is drawn until the first.
+                texture.load()
+                texture.latch()
+                if (texture.handle == 0L) {
+                    if (!texture.hasSurface) skippedCommands++
+                    return
+                }
+                ycbcrSampler = texture.ycbcrSampler
+                texture.handle
+            }
+            shader.usesSamplers && texture is VKTexture -> {
+                // Loads the texture and stages what was added to it since the last frame.
+                texture.flushUploads()
+                texture.handle
+            }
+            else -> 0L
         }
 
         val ring = context.ring
@@ -110,7 +119,7 @@ class VKRenderer(
             return
         }
 
-        val pipeline = pipeline(VKPipelineKey(shader, command.vertexLayout, command.instanceLayout, command.blendMode, command.depthState))
+        val pipeline = pipeline(VKPipelineKey(shader, command.vertexLayout, command.instanceLayout, command.blendMode, command.depthState, ycbcrSampler))
         if (pipeline == 0L) {
             skippedCommands++
             return
@@ -179,7 +188,8 @@ class VKRenderer(
                 key.shader.fragmentModule,
                 VKPipelineState.vertexInput(key.vertexLayout, key.instanceLayout),
                 VKPipelineState.blendFactors(key.blendMode),
-                VKPipelineState.depth(key.depthState)
+                VKPipelineState.depth(key.depthState),
+                key.ycbcrSampler
             )
         }
     }
