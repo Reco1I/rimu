@@ -68,6 +68,12 @@ data class DrawCommand(
      * The number of instances to draw, only used with an [instanceBuffer].
      */
     val instanceCount: Int = 0,
+
+    /**
+     * Whether [buffer] holds quads of four vertices (top left, top right, bottom right, bottom
+     * left), drawn as two triangles each through a shared index buffer instead of six vertices.
+     */
+    val isQuads: Boolean = false,
 ) {
 
     /**
@@ -81,8 +87,10 @@ data class DrawCommand(
         depthState: DepthState,
         uniformSet: GraphicsShader.UniformSet,
         vertexLayout: VertexLayout = VertexLayout.Default,
+        isQuads: Boolean = false,
     ): Boolean {
         return !clearDepth &&
+                this.isQuads == isQuads &&
                 instanceBuffer == null &&
                 this.vertexLayout === vertexLayout &&
                 this.shader == shader &&

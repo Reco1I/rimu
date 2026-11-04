@@ -98,7 +98,8 @@ abstract class GraphicsRenderer {
         blendMode: BlendMode = blendModeStack.lastOrNull() ?: BlendMode.Alpha,
         depthState: DepthState = depthStateStack.lastOrNull() ?: DepthState.Default,
         uniformSet: GraphicsShader.UniformSet = activeUniformSet,
-        vertexLayout: VertexLayout = VertexLayout.Default
+        vertexLayout: VertexLayout = VertexLayout.Default,
+        isQuads: Boolean = false
     ) {
         // A pushed shader replaces the one the draw call asked for, see pushShader.
         val usedShader = shaderStack.lastOrNull() ?: shader
@@ -113,6 +114,7 @@ abstract class GraphicsRenderer {
                 depthState,
                 uniformSet,
                 vertexLayout,
+                isQuads,
             )
         ) return
 
@@ -134,7 +136,8 @@ abstract class GraphicsRenderer {
             blendMode = blendMode,
             depthState = depthState,
             uniformSet = uniformSet,
-            vertexLayout = vertexLayout
+            vertexLayout = vertexLayout,
+            isQuads = isQuads
         )
 
         commandBatch.addLast(command)
@@ -464,7 +467,7 @@ abstract class GraphicsRenderer {
      * Sets the state for the UI shader, which draws boxes and text in the same commands. Boxes
      * don't sample the texture, so they join the current command whatever its texture is, and
      * [texture] is only needed for text: it joins a command with the same texture or without one
-     * yet, which then takes it.
+     * yet, which then takes it. Its vertices are quads of four, see [DrawCommand.isQuads].
      */
     private fun setUIState(texture: GraphicsTexture?) {
         val last = commandBatch.lastOrNull()
@@ -472,6 +475,7 @@ abstract class GraphicsRenderer {
         if (shaderStack.isEmpty() && last != null &&
             last.shader === BuiltIn.Shaders.UI &&
             last.vertexLayout === VertexLayout.UI &&
+            last.isQuads &&
             !last.clearDepth &&
             last.instanceBuffer == null &&
             last.uniformSet === EMPTY_UNIFORMS &&
@@ -496,7 +500,8 @@ abstract class GraphicsRenderer {
             shader = BuiltIn.Shaders.UI,
             texture = texture,
             uniformSet = EMPTY_UNIFORMS,
-            vertexLayout = VertexLayout.UI
+            vertexLayout = VertexLayout.UI,
+            isQuads = true
         )
     }
 
@@ -564,11 +569,9 @@ abstract class GraphicsRenderer {
         transform.transform(x + width, y + height, p, 4)
         transform.transform(x, y + height, p, 6)
 
+        // A quad: top left, top right, bottom right, bottom left.
         buffer.addUIVertex(p[0], p[1], 0f, 0f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
         buffer.addUIVertex(p[2], p[3], 1f, 0f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
-        buffer.addUIVertex(p[4], p[5], 1f, 1f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
-
-        buffer.addUIVertex(p[0], p[1], 0f, 0f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
         buffer.addUIVertex(p[4], p[5], 1f, 1f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
         buffer.addUIVertex(p[6], p[7], 0f, 1f, fill, width, height, radius, borderWidth, softness, inset, top, bottom, 0f)
     }
@@ -636,11 +639,9 @@ abstract class GraphicsRenderer {
         transform.transform(x + width, y + height, p, 4)
         transform.transform(x, y + height, p, 6)
 
+        // A quad: top left, top right, bottom right, bottom left.
         buffer.addUIVertex(p[0], p[1], 0f, 0f, c0, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
         buffer.addUIVertex(p[2], p[3], 1f, 0f, c1, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
-        buffer.addUIVertex(p[4], p[5], 1f, 1f, c2, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
-
-        buffer.addUIVertex(p[0], p[1], 0f, 0f, c0, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
         buffer.addUIVertex(p[4], p[5], 1f, 1f, c2, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
         buffer.addUIVertex(p[6], p[7], 0f, 1f, c3, width, height, radius, borderWidth, 0f, 0f, border, border, 0f)
     }
@@ -1067,18 +1068,16 @@ abstract class GraphicsRenderer {
                 val p = points
 
                 transform.transform(left, top, p, 0)
-                transform.transform(left, bottom, p, 2)
+                transform.transform(right, top, p, 2)
                 transform.transform(right, bottom, p, 4)
-                transform.transform(right, top, p, 6)
+                transform.transform(left, bottom, p, 6)
 
+                // A quad: top left, top right, bottom right, bottom left.
                 buffer!!.apply {
                     addUIVertex(p[0], p[1], u0, v0, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
-                    addUIVertex(p[2], p[3], u0, v1, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
+                    addUIVertex(p[2], p[3], u1, v0, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
                     addUIVertex(p[4], p[5], u1, v1, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
-
-                    addUIVertex(p[4], p[5], u1, v1, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
-                    addUIVertex(p[6], p[7], u1, v0, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
-                    addUIVertex(p[0], p[1], u0, v0, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
+                    addUIVertex(p[6], p[7], u0, v1, packedColor, 0f, 0f, 0f, 0f, 0f, 0f, 0, 0, 1f)
                 }
             }
 
