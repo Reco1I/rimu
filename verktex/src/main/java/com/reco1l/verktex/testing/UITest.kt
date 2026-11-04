@@ -51,8 +51,10 @@ open class UITestSuite(val name: String) {
  * list of tests.
  *
  * While the test is shown, the stage is the [Verktex.sceneHost]: scenes pushed with
- * [Verktex.pushScene] are shown inside it, and [Verktex.popScene] goes back through them without
- * ever leaving the browser.
+ * [Verktex.pushScene] are shown inside it, and [Verktex.popScene] never leaves the browser.
+ *
+ * A scene is tested in isolation: once the stage shows one, the scenes it would open and going
+ * back from it are only logged, unless [allowsNavigation] is set.
  */
 class UITestStage internal constructor(private val logger: (String) -> Unit) : UIContainer(), SceneHost {
 
@@ -61,6 +63,12 @@ class UITestStage internal constructor(private val logger: (String) -> Unit) : U
     private val disposeListeners = mutableListOf<() -> Unit>()
 
     private val scenes = ArrayDeque<UIScene>()
+
+    /**
+     * Whether the scene shown can open other scenes inside the stage and go back from them, instead
+     * of being tested on its own.
+     */
+    var allowsNavigation = false
 
 
     init {
@@ -104,10 +112,16 @@ class UITestStage internal constructor(private val logger: (String) -> Unit) : U
     override fun pushScene(scene: UIScene) {
         val previous = scenes.lastOrNull()
 
+        if (previous != null && !allowsNavigation) {
+            log("Blocked opening ${scene.javaClass.simpleName}")
+            return
+        }
+
         // Singleton scenes keep the parent of a previous stage otherwise.
         scene.removeSelf()
         scenes.addLast(scene)
-        this += scene
+        // Above the scenes below it, but under the components of the test, which may control it.
+        add(scenes.size - 1, scene)
 
         if (previous != null) {
             previous.isVisible = false
@@ -118,10 +132,12 @@ class UITestStage internal constructor(private val logger: (String) -> Unit) : U
     }
 
     override fun popScene(): UIScene? {
-        val scene = scenes.removeLastOrNull() ?: run {
-            log("Nothing to pop, the test is the root scene")
+        if (scenes.size <= 1 && !allowsNavigation || scenes.isEmpty()) {
+            log("Blocked going back")
             return null
         }
+
+        val scene = scenes.removeLast()
 
         this -= scene
         scene.onLeave()
