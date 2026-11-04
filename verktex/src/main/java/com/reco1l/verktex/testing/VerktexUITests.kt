@@ -10,6 +10,8 @@ import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIBadge
 import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UIScene
+import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.badge
 import com.reco1l.verktex.ui.card
 import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
@@ -462,6 +464,47 @@ object VerktexUITests : UITestSuite("Verktex") {
             }
         }
 
+        test("Embedded scenes") {
+            var depth = 0
+
+            fun sceneAt(level: Int): UIScene = object : UIScene() {
+                init {
+                    // Drawn over the whole scene and not affected by its layout.
+                    background = UIBox().apply {
+                        color = BACKGROUND_COLORS[level % BACKGROUND_COLORS.size]
+                    }
+
+                    linearContainer {
+                        orientation = Orientation.Vertical
+                        anchor = Anchor.Center
+                        origin = Anchor.Center
+                        spacing = 8f.dip
+
+                        text { text = "Scene $level" }
+                        textButton {
+                            text = "Push"
+                            onActionUp = { com.reco1l.verktex.Verktex.pushScene(sceneAt(++depth)) }
+                        }
+                        textButton {
+                            text = "Pop"
+                            onActionUp = { com.reco1l.verktex.Verktex.popScene()?.let { depth-- } }
+                        }
+                    }
+                }
+
+                override fun onEnter() = log("Scene $level entered")
+                override fun onLeave() = log("Scene $level left")
+            }
+
+            scene(sceneAt(0))
+        }
+
         addContainerTests()
     }
+
+    private val BACKGROUND_COLORS = arrayOf(
+        Color4(0.2f, 0.25f, 0.4f),
+        Color4(0.35f, 0.2f, 0.3f),
+        Color4(0.2f, 0.35f, 0.25f),
+    )
 }

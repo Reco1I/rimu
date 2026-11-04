@@ -65,6 +65,10 @@ class UITestScene(
     }
 
     private var currentTest: UITest? = null
+
+    private var currentStage: UITestStage? = null
+
+    private var currentOverlayLayer: UIContainer? = null
     private var backgroundIndex = 0
 
 
@@ -176,7 +180,12 @@ class UITestScene(
                     stageHost = object : UIContainer() {
                         override fun onUpdate(clock: FrameClock) {
                             stageClock.processFrame()
-                            super.onUpdate(stageClock)
+                            try {
+                                super.onUpdate(stageClock)
+                            } catch (e: Exception) {
+                                Logger.e(TAG, "Test ${currentTest?.name} failed while updating", e)
+                                currentStage?.let { showError(it, e) }
+                            }
                         }
                     }.also { +it }
 
@@ -234,12 +243,14 @@ class UITestScene(
     fun reload() {
         val test = currentTest ?: return
 
+        disposeStage()
         stageHost.clearChildren()
         logLines.clear()
         logText.text = " "
 
         val stage = UITestStage(::log)
         stageHost += stage
+        currentStage = stage
 
         // Overlays opened by the test (e.g. modals) are kept inside the stage, above its content,
         // instead of covering the whole browser.
@@ -248,24 +259,48 @@ class UITestScene(
             height = fill()
         }
         stageHost += overlayLayer
+        currentOverlayLayer = overlayLayer
         Verktex.overlayHost = overlayLayer
+        // Likewise for scenes, they are shown inside the stage.
+        Verktex.sceneHost = stage
 
         try {
             test.build(stage)
         } catch (e: Throwable) {
             Logger.e(TAG, "Failed to build test ${test.name}", e)
+            showError(stage, e)
+        }
+    }
 
-            stage.clearChildren()
-            stage.scrollableContainer {
+    /**
+     * Closes the current test, so global state it changed is restored before the next one is built.
+     */
+    private fun disposeStage() {
+        currentStage?.dispose()
+        currentStage = null
+
+        // Detached before the next test, so singleton overlays (e.g. menus shown with addOverlay)
+        // don't keep the parent of the old stage.
+        currentOverlayLayer?.clearChildren()
+        currentOverlayLayer = null
+
+        Verktex.sceneHost = null
+        Verktex.overlayHost = null
+    }
+
+    private fun showError(stage: UITestStage, e: Throwable) {
+        stage.dispose()
+        currentOverlayLayer?.clearChildren()
+
+        stage.scrollableContainer {
+            width = fill()
+            height = fill()
+
+            text {
                 width = fill()
-                height = fill()
-
-                text {
-                    width = fill()
-                    padding = Padding(16f.dip)
-                    color = Color4.Red400
-                    text = e.stackTraceToString().take(4000)
-                }
+                padding = Padding(16f.dip)
+                color = Color4.Red400
+                text = e.stackTraceToString().take(4000)
             }
         }
     }
