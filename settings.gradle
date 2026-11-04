@@ -7,3 +7,5 @@ pluginManagement  {
 
 include ':LibBASS'
 include ':verktex'
+include ':verktex-shadertools'
+project(':verktex-shadertools').projectDir = file('verktex/shadertools')

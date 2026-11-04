@@ -85,18 +85,21 @@ Out of scope: `legacy/storyboard/` (`GLWrapped` etc.) is outside the source set 
 `VKExternalTexture`, `VKCommandEncoder` (the `DrawCommand` → stream serializer, mirroring
 `ESCommandExecutor`), `VKPipelineKey`, `VKGpuTimer`, `VKNative` (JNI declarations).
 
-### Shaders
-- Keep GLSL ES 3.00 as the single source of truth. Add a `GLSL450VulkanTranslator` (sibling of
-  `GLSLES100Translator`, same regex approach): `#version 450`, explicit `layout(location)` on
-  varyings, loose non-sampler uniforms → one `layout(set=0, binding=0) uniform Uniforms { … }`
-  block in declaration order (std140), `sampler2D`/`samplerExternalOES` →
-  `layout(set=0, binding=1)` combined image sampler.
-- Compile to SPIR-V **at build time**: a Gradle task runs the translator + NDK `glslc` over
-  `assets/verktex/shaders/*` and emits `*.spv` plus a small reflection JSON (uniform name →
-  offset/type, std140). `GraphicsShader.Source` gains optional `spirvVertex/spirvFragment/reflection`;
-  `AndroidProvider.createShaderSource` loads them when present. Runtime GLSL compilation (shaderc)
-  is not needed while the app defines no custom shaders; `VKDevice.createShader` throws for a
-  source without SPIR-V.
+### Shaders (implemented in phase 3)
+- GLSL ES 3.00 stays the single source of truth. `GLSL450VulkanTranslator` lives in the plain JVM
+  module `:verktex-shadertools` (`verktex/shadertools/`), so the build and the engine at runtime use
+  the same code. Each stage translates on its own: `#version 450`, varyings and fragment outputs
+  located in declaration order, the non-sampler uniforms of a stage → one std140 block
+  (`VertexUniforms` at set 0 binding 0, `FragmentUniforms` at binding 1), samplers (fragment only) →
+  combined image samplers from binding 2, `samplerExternalOES` → `sampler2D` reported as external.
+  `checkInterface` verifies the varyings of a vertex/fragment pair line up.
+- SPIR-V is compiled **at build time** by the app's `compileVulkanShaders` task (NDK `glslc`,
+  `--target-env=vulkan1.0`) into generated assets as `<name>.spv`; without the NDK it skips with a
+  warning. There is no reflection file: the runtime gets the layout by running the translator on the
+  GLSL it already loads. `GraphicsShader.Source` gained `spirvVertex/spirvFragment`, filled by
+  `AndroidProvider.createShaderSource`. `VKDevice.createShader` throws for a source without SPIR-V.
+- The built-in programs are listed once in `BuiltIn.Shaders.Programs` (created with
+  `GraphicsRenderer.createBuiltInShaders`), and `BuiltInShadersVulkanTest` checks they all link.
 
 ### Per-frame flow
 `prepareFrame` = wait fence of frame N, acquire swapchain image (recreate on out-of-date / new
@@ -128,7 +131,7 @@ render pass, then blit to the swapchain image and present.
    keeps in-flight copies valid. The renderer marks recorded buffers and `clear()` warns on a
    violation (`BufferLifetimeTest`). Static buffers (the particle quad) are re-uploaded every frame;
    a `Static` usage that Vulkan keeps device-local is a later optimization.
-3. **Shader tooling.** `GLSL450VulkanTranslator` + JVM unit tests (pattern of `GLSLES100TranslatorTest`), Gradle SPIR-V task, reflection JSON, `GraphicsShader.Source` extension.
+3. **Shader tooling.** ✅ Done, see Shaders above. Requires the NDK installed for the `.spv` to be built.
 4. **Vulkan bring-up.** CMake/JNI module, instance/device/swapchain, `VKContext`, `GraphicsBackend.Vulkan`, fallback chain in `Android.kt`, solid-color quads only (`SolidQuad`, `Color`).
 5. **Feature parity.** Textures + uploads, UI shader/`VertexLayout.UI`, quads index buffer, instancing (particles), depth state & clears, scissor, blend modes, capture/blur, timestamps → `PerformanceStats.gpuTime`, capabilities.
 6. **Video.** `VKExternalTexture` via `ImageReader` + AHB + YCbCr sampler (API 26+, extension required); where unsupported, report it through `Capabilities` and let callers degrade (no video background).
