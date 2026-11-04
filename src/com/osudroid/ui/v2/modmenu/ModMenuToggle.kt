@@ -4,16 +4,21 @@ import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.mods.*
 import com.osudroid.multiplayer.*
 import com.osudroid.utils.searchContiguously
+import com.reco1l.verktex.BuiltIn
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
+import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.fadeTo
+import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.*
 
@@ -31,11 +36,15 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
             }
         }
 
+
+    private lateinit var metadata: UIText
+
+
     init {
         width = fill()
         style += Style {
-            height = Dimension.WrapContent
-            padding = Padding(12f.dip, 8f.dip)
+            height = wrap()
+            padding = Padding(14f.dip)
         }
 
         linearContainer {
@@ -49,22 +58,13 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
                 height = 21.6f.dip
             }
 
-            linearContainer {
+            metadata = text {
+                text = mod.name
                 width = fill()
-                orientation = UILinearContainer.Orientation.Vertical
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-
-                text {
-                    text = mod.name
-                }
-
-                text {
-                    width = fill()
-                    text = mod.description
-                    wrapText = true
-                    fontSize = 10f.dip
-                    alpha = 0.75f
+                spans {
+                    font(BuiltIn.Fonts.Torus) { +mod.name }
                 }
             }
         }
@@ -76,6 +76,18 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
             } else {
                 ModMenu.addMod(mod)
                 SkinSounds["check-on"].play()
+            }
+
+            if (isSelected) {
+                metadata.spans {
+                    font(BuiltIn.Fonts.Torus) { +mod.name }
+                    +"\n"
+                    size(Verktex.theme.typography.smallCaption.size) { +mod.description }
+                }
+            } else {
+                metadata.spans {
+                    font(BuiltIn.Fonts.Torus) { +mod.name }
+                }
             }
         }
 

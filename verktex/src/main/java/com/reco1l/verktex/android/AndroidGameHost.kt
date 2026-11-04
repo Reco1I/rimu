@@ -277,10 +277,10 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
                 ?: throw IllegalStateException("Failed to load built-in font: $file")
 
         BuiltIn.Fonts.Default = load("nunito", "nunito-medium.ttf")
+        BuiltIn.Fonts.Torus = load("torus", "torus-bold.otf")
         BuiltIn.Fonts.FontAwesomeIconRegular = load("fa-regular", "fa-regular.otf")
         BuiltIn.Fonts.FontAwesomeIconSolid = load("fa-solid", "fa-solid.otf")
         BuiltIn.Fonts.FontAwesomeIconBrands = load("fa-brands", "fa-brands.otf")
-        load("torus", "torus-bold.otf")
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {

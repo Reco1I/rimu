@@ -7,52 +7,55 @@ import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.fill
+import com.reco1l.verktex.data.verticalPadding
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.text
 
 @Suppress("LeakingThis")
 open class ModMenuSection(name: String, private val toggles: List<UIButton> = listOf()) : UILinearContainer() {
 
-    protected val toggleContainer: UILinearContainer
+    protected lateinit var toggleContainer: UILinearContainer
 
 
     init {
+        height = fill()
         orientation = Orientation.Vertical
-        height = Dimension.FillAvailable
-        style = Style { theme ->
+
+        style = Style {
             width = 224f.dip
-            backgroundColor = theme.palette.accent * 0.1f
-            radius = theme.radius.lg
+            backgroundColor = (it.palette.accent * 0.1f).copy(alpha = 0.5f)
+            radius = it.radius.lg
         }
 
-        +UIText().apply {
-            width = Dimension.FillAvailable
+        text {
+            width = fill()
             text = name.uppercase()
             alignment = Anchor.Center
+            padding = Padding(8f.dip)
             style = Style { theme ->
-                fontSize = theme.typography.smallCaption.size
-                padding = Padding(12f.dip)
-                color = theme.palette.accent
-                alpha = 0.75f
+                fontSettings = theme.typography.smallCaption
             }
         }
 
-        +UIScrollableContainer().apply {
+        scrollableContainer {
             scrollAxes = Axis.Y
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
+            width = fill()
+            height = fill()
             clipping = ClipMode.Bounds
 
-            +UILinearContainer().apply {
-                width = Dimension.FillAvailable
+            toggleContainer = linearContainer {
+                width = fill()
                 orientation = Orientation.Vertical
-                padding = Padding(8f.dip, 0f.dip, 8f.dip, 8f.dip)
+                padding = verticalPadding(8f.dip)
                 spacing = 8f.dip
 
                 toggles.forEachTolerant { +it }
-                toggleContainer = this
             }
         }
 
