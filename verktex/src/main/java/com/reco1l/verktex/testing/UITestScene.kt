@@ -15,6 +15,8 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UITextButton
@@ -50,6 +52,20 @@ class UITestScene(
 
     // Holds the stage and its overlays, scaled down when the tests are shown at the window size.
     private val viewport = object : UIContainer() {
+        override fun drawContent(renderer: GraphicsRenderer) {
+            if (!outlinesComponents) {
+                return super.drawContent(renderer)
+            }
+
+            // Only what the test shows is outlined, not the browser.
+            UIComponent.isOutliningBoundaries = true
+            try {
+                super.drawContent(renderer)
+            } finally {
+                UIComponent.isOutliningBoundaries = false
+            }
+        }
+
 
         // Scaled to fit, it's bigger than the area it's shown in.
         override fun adjustParentConstraints(constraints: LayoutConstraints): LayoutConstraints {
@@ -78,6 +94,11 @@ class UITestScene(
      * Whether the scenes of the stage keep the safe area of the window, as they do in the game.
      */
     private var hasSafeArea = true
+
+    /**
+     * Whether the components of the test are outlined with their bounds.
+     */
+    private var outlinesComponents = false
 
     // The size the viewport is laid out at while fitting the window, before it's scaled.
     private var virtualWidth = 0f
@@ -215,6 +236,16 @@ class UITestScene(
                             hasSafeArea = !hasSafeArea
                             icon = safeAreaIcon()
                             log(if (hasSafeArea) "Scenes keep the safe area" else "Scenes ignore the safe area")
+                        }
+                    }
+
+                    iconButton {
+                        icon = FAIcon.ObjectGroup
+                        variant = UIButton.Variant.Surface
+                        onActionUp = {
+                            outlinesComponents = !outlinesComponents
+                            variant = if (outlinesComponents) UIButton.Variant.Soft else UIButton.Variant.Surface
+                            log(if (outlinesComponents) "Showing the bounds of components" else "Hiding the bounds of components")
                         }
                     }
 

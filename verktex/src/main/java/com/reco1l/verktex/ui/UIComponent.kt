@@ -785,7 +785,7 @@ abstract class UIComponent {
         drawContent(renderer)
 
         // Debug outline
-        if (showComponentBoundaries) {
+        if (showComponentBoundaries || isOutliningBoundaries) {
             renderer.drawRect(0f, 0f, bounds.width, bounds.height, Color4.Transparent, 1f, Color4.White, 0f)
         }
 
@@ -1175,6 +1175,12 @@ abstract class UIComponent {
 
     companion object {
         private val showComponentBoundaries by Setting(VerktexSettings.ShowComponentBoundaries, false)
+
+        /**
+         * Whether the components drawn meanwhile are outlined as with the setting, e.g. the content
+         * of the UI test browser's stage.
+         */
+        internal var isOutliningBoundaries = false
     }
 }
 
