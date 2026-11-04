@@ -2,7 +2,7 @@ package com.reco1l.verktex.android.gles
 
 import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
-import android.opengl.GLES32
+import android.opengl.GLES20
 import android.view.Surface
 import com.reco1l.verktex.graphics.GraphicsTexture
 import java.util.concurrent.atomic.AtomicBoolean
@@ -78,13 +78,13 @@ open class ESExternalTexture(
 
 
     override fun onCreateTexture() {
-        id = GLES32Helper.glGenTexture()
+        id = GLESHelper.glGenTexture()
         bindExternalTexture()
 
-        GLES32.glTexParameteri(TARGET, GLES32.GL_TEXTURE_MIN_FILTER, GLES32.GL_LINEAR)
-        GLES32.glTexParameteri(TARGET, GLES32.GL_TEXTURE_MAG_FILTER, GLES32.GL_LINEAR)
-        GLES32.glTexParameteri(TARGET, GLES32.GL_TEXTURE_WRAP_S, GLES32.GL_CLAMP_TO_EDGE)
-        GLES32.glTexParameteri(TARGET, GLES32.GL_TEXTURE_WRAP_T, GLES32.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(TARGET, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(TARGET, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(TARGET, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(TARGET, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
 
         val surfaceTexture = SurfaceTexture(id)
         surfaceTexture.setDefaultBufferSize(width.toInt(), height.toInt())
@@ -120,7 +120,7 @@ open class ESExternalTexture(
      * Binds the GL name to the external target.
      */
     protected open fun bindExternalTexture() {
-        GLES32.glBindTexture(TARGET, id)
+        GLES20.glBindTexture(TARGET, id)
     }
 
     /**
@@ -150,7 +150,7 @@ open class ESExternalTexture(
         releaseSurface()
 
         if (id != 0) {
-            GLES32Helper.glDeleteTexture(id)
+            GLESHelper.glDeleteTexture(id)
             id = 0
         }
     }

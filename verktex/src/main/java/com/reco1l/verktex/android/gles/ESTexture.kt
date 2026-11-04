@@ -1,6 +1,6 @@
 package com.reco1l.verktex.android.gles
 
-import android.opengl.GLES32
+import android.opengl.GLES20
 import com.reco1l.verktex.graphics.GraphicsTexture
 
 /**
@@ -15,21 +15,21 @@ class ESTexture(
 
 
     override fun onBindTexture() {
-        GLES32.glBindTexture(GLES32.GL_TEXTURE_2D, id)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, id)
     }
 
     override fun onCreateTexture() {
         if (id == 0) {
-            id = GLES32Helper.glGenTexture()
+            id = GLESHelper.glGenTexture()
         }
 
-        GLES32.glBindTexture(GLES32.GL_TEXTURE_2D, id)
-        GLES32.glTexImage2D(GLES32.GL_TEXTURE_2D, 0, GLES32.GL_RGBA, width.toInt(), height.toInt(), 0, GLES32.GL_RGBA, GLES32.GL_UNSIGNED_BYTE, null)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, id)
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width.toInt(), height.toInt(), 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null)
 
-        GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MIN_FILTER, GLES32.GL_LINEAR)
-        GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MAG_FILTER, GLES32.GL_LINEAR)
-        GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_WRAP_S, GLES32.GL_CLAMP_TO_EDGE)
-        GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_WRAP_T, GLES32.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
     }
 
     override fun onContextLost() {
@@ -40,7 +40,7 @@ class ESTexture(
 
     override fun onUnload() {
         if (id != 0) {
-            GLES32Helper.glDeleteTexture(id)
+            GLESHelper.glDeleteTexture(id)
             id = 0
         }
     }

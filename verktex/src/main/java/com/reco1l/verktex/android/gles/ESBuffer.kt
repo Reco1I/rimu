@@ -1,6 +1,6 @@
 package com.reco1l.verktex.android.gles
 
-import android.opengl.GLES32
+import android.opengl.GLES20
 import com.reco1l.verktex.graphics.GraphicsBuffer
 import java.nio.ByteBuffer.allocateDirect
 import java.nio.ByteOrder
@@ -93,23 +93,23 @@ class ESBuffer : GraphicsBuffer() {
         uploadBuffer.put(words, 0, wordCount)
         uploadBuffer.flip()
 
-        GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, id)
-        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER, wordCount * 4, uploadBuffer, GLES32.GL_DYNAMIC_DRAW)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, id)
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, wordCount * 4, uploadBuffer, GLES20.GL_DYNAMIC_DRAW)
     }
 
     override fun onBind() {
-        GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, id)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, id)
     }
 
     override fun onLoad() {
         if (id == 0) {
-            id = GLES32Helper.glGenBuffer()
+            id = GLESHelper.glGenBuffer()
         }
     }
 
     override fun onUnload() {
         if (id != 0) {
-            GLES32Helper.glDeleteBuffers(id)
+            GLESHelper.glDeleteBuffers(id)
             id = 0
         }
     }

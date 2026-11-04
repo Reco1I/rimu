@@ -1,15 +1,19 @@
 package com.reco1l.verktex.android.gles
 
-import android.opengl.GLES32
+import android.opengl.GLES20
 import com.reco1l.verktex.graphics.GraphicsDevice
 import com.reco1l.verktex.graphics.GraphicsShader
 import com.reco1l.verktex.graphics.GraphicsTexture
 
-class ESDevice : GraphicsDevice {
+/**
+ * The OpenGL ES implementation of [GraphicsDevice]. Textures and buffers are the same in every
+ * version, shaders depend on the backend.
+ */
+abstract class ESDevice : GraphicsDevice {
 
     // Written on the draw thread once a context is current, read from the update thread.
     @Volatile
-    override var capabilities: GraphicsDevice.Capabilities = GraphicsDevice.Capabilities(maxTextureSize = 2048f)
+    final override var capabilities: GraphicsDevice.Capabilities = GraphicsDevice.Capabilities(maxTextureSize = 2048f)
         private set
 
 
@@ -22,9 +26,9 @@ class ESDevice : GraphicsDevice {
      * Re-reads the capabilities from the current GL context. Does nothing when no context is current.
      */
     fun refreshCapabilities() {
-        // No context is current yet when the device is created, in which case the query returns 0.
-        // Fall back to 2048, the minimum guaranteed by OpenGL ES 3.0.
-        val maxTextureSize = GLES32Helper.glGetIntegerv(GLES32.GL_MAX_TEXTURE_SIZE).toFloat()
+        // No context is current yet when the device is created, in which case the query returns 0
+        // and the fallback of 2048 is kept.
+        val maxTextureSize = GLESHelper.glGetIntegerv(GLES20.GL_MAX_TEXTURE_SIZE).toFloat()
         if (maxTextureSize > 0f) {
             capabilities = GraphicsDevice.Capabilities(maxTextureSize = maxTextureSize)
         }
@@ -43,7 +47,5 @@ class ESDevice : GraphicsDevice {
         return ESBuffer()
     }
 
-    override fun createShader(source: GraphicsShader.Source): ESShader {
-        return ESShader(source)
-    }
+    abstract override fun createShader(source: GraphicsShader.Source): ESShader
 }

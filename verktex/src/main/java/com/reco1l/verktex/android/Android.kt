@@ -10,9 +10,9 @@ import com.reco1l.verktex.android.bass.BASSAudioDriver
 import com.reco1l.verktex.audio.AudioDriver
 import com.reco1l.verktex.fonts.Font
 import com.reco1l.verktex.android.gles.ESContext
-import com.reco1l.verktex.android.gles.ESDevice
-import com.reco1l.verktex.android.gles.ESRenderer
 import com.reco1l.verktex.android.gles.ESWindow
+import com.reco1l.verktex.android.gles.es3.ES3Device
+import com.reco1l.verktex.android.gles.es3.ES3Renderer
 
 fun Verktex.initializeAndroid(
     host: AndroidGameHost,
@@ -24,11 +24,11 @@ fun Verktex.initializeAndroid(
 
     val window = ESWindow(host)
     val context = ESContext(window)
-    val device = ESDevice()
+    val device = ES3Device()
 
     initialize(
         host = host,
-        renderer = ESRenderer(
+        renderer = ES3Renderer(
             context = context,
             device = device,
             window = window
