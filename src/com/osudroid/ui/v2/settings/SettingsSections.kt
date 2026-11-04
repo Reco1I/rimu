@@ -5,6 +5,8 @@ import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToInt
 import com.reco1l.verktex.graphics.GraphicsBackend
+import com.reco1l.verktex.android.isVulkanAvailable
+import com.reco1l.verktex.android.resetVulkanCrashGuard
 import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.form.FormSelect
@@ -739,19 +741,33 @@ const val RESOLUTION_SCALE_KEY = "resolutionScale"
  */
 const val GRAPHICS_BACKEND_KEY = "graphicsBackend"
 
-private fun graphicsBackendOption() = OptionInfo(
-    type = OptionType.Select,
-    key = GRAPHICS_BACKEND_KEY,
-    title = AppR.string.opt_graphics_backend_title,
-    summary = AppR.string.opt_graphics_backend_summary,
-    entries = AppR.array.opt_graphics_backend_names,
-    entryValues = AppR.array.opt_graphics_backend_values,
-    defaultValue = GraphicsBackend.Auto.name,
-    onChange = {
-        // The engine keeps the backend it was initialized with until the game restarts.
-        ToastLogger.showText(AppR.string.opt_graphics_backend_restart, true)
-    }
-)
+private fun graphicsBackendOption(): OptionInfo {
+    val context = GlobalManager.getInstance().context
+    // The experimental Vulkan backend is only offered where the device reports Vulkan 1.1.
+    val withVulkan = isVulkanAvailable(context)
+
+    return OptionInfo(
+        type = OptionType.Select,
+        key = GRAPHICS_BACKEND_KEY,
+        title = AppR.string.opt_graphics_backend_title,
+        summary = AppR.string.opt_graphics_backend_summary,
+        entries = if (withVulkan) AppR.array.opt_graphics_backend_names_with_vulkan else AppR.array.opt_graphics_backend_names,
+        entryValues = if (withVulkan) AppR.array.opt_graphics_backend_values_with_vulkan else AppR.array.opt_graphics_backend_values,
+        defaultValue = GraphicsBackend.Auto.name,
+        onChange = { value ->
+            val selected = (value as? List<*>)?.firstOrNull() ?: value
+
+            // The engine keeps the backend it was initialized with until the game restarts.
+            if (selected == GraphicsBackend.Vulkan.name) {
+                // Picking it again retries it, even if it crashed while starting the last time.
+                resetVulkanCrashGuard(context)
+                ToastLogger.showText(AppR.string.opt_graphics_backend_vulkan_experimental, true)
+            } else {
+                ToastLogger.showText(AppR.string.opt_graphics_backend_restart, true)
+            }
+        }
+    )
+}
 
 val graphicsSection = listOfNotNull(
     CategoryInfo(

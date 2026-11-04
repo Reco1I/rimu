@@ -183,7 +183,38 @@ render pass, then blit to the swapchain image and present.
    Verified on the Adreno 610 (external format, no drops at 24 fps, matching colors with ES3).
    Not done: waiting on the producer's acquire fence (`Image.getFence`, API 33), a validation run,
    and keeping imports of recycled buffers instead of importing every frame.
-7. **Ship.** Settings entry + `DevicePerfomanceUtils` check, `Auto` stays GL until Vulkan is proven; consider enabling Vulkan for `Auto` only on API ≥ 29 with Vulkan 1.1 after field testing.
+7. **Ship (experimental).** ✅ Done as an opt-in. The graphics settings list "Vulkan (experimental)"
+   only where the device reports Vulkan 1.1 hardware (`isVulkanAvailable`), and picking it shows a
+   warning. `Auto` stays on OpenGL ES. A crash guard covers driver crashes in native code, which the
+   fallback can't catch: a flag is kept from before Vulkan starts until its first frame is presented,
+   and finding it on the next launch makes it use OpenGL ES until Vulkan is picked again
+   (`resetVulkanCrashGuard`). `DevicePerformanceUtil` only sizes particle effects, so it has no
+   Vulkan check. Still to decide after field testing: enabling Vulkan for `Auto` (e.g. API ≥ 29 with
+   Vulkan 1.1) and dropping the experimental label.
+
+## Follow-ups
+
+Open points found while doing the phases above, to address before Vulkan leaves experimental:
+
+1. **Validation run of phases 5 and 6.** Phase 4 ran clean under `VK_LAYER_KHRONOS_validation`
+   1.4.363.1; textures, uploads, quads, instancing, depth, captures, timestamps and video frames
+   haven't been run under it. Set `verktex.validationLayers` (see Native layer), run the Text, Skin
+   sprites, Shapes, Sliders, Main menu, Mod menu and Video UI tests on Vulkan and check logcat for
+   `VerktexVulkan: Validation`. The video path's layout and queue family transfer
+   (`PREINITIALIZED`, `VK_QUEUE_FAMILY_FOREIGN_EXT`) is the most likely to need adjusting.
+2. **Decoder fence.** Video frames are imported without waiting for the producer's acquire fence
+   (`Image.getFence`, API 33): the GPU may sample a buffer the decoder is still writing. No glitch was
+   seen on the Adreno 610, but nothing guarantees it. Import the fence as a semaphore
+   (`VK_KHR_external_semaphore_fd`, sync fd) waited on by the frame's submission, or wait on it on the
+   CPU before importing.
+3. **Re-importing every frame.** Each new video frame creates an image, imports its memory and
+   allocates a descriptor set, although an `ImageReader` cycles through a handful of buffers. Keep the
+   imports by buffer (until the reader is closed) and only record the acquire barrier for a reused one.
+4. **Memory over long playback.** Imported frames and their `Image`s are released through deferred
+   destruction and submission counts; only a short playback was checked. Watch
+   `adb shell dumpsys meminfo <pid>` (Graphics, EGL mtrack) over a full beatmap with video to confirm
+   nothing grows.
+
 
 ## Risks
 - JNI/encoding overhead could erase Vulkan's CPU gains for a 2D engine — measure `PerformanceStats.submitTime` vs ES3 early in phase 4.

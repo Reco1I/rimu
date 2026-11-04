@@ -9,6 +9,7 @@
     <string name="opt_graphics_backend_title">Graphics backend</string>
     <string name="opt_graphics_backend_summary">The graphics API the game renders with. Applied after restarting the game.</string>
     <string name="opt_graphics_backend_restart">Restart the game to apply the new graphics backend.</string>
+    <string name="opt_graphics_backend_vulkan_experimental">Vulkan support is experimental, some things may not look right. Restart the game to apply it, it falls back to OpenGL ES if it fails to start.</string>
     <string-array name="opt_graphics_backend_names">
         <item>Automatic</item>
         <item>OpenGL ES 3</item>
@@ -19,6 +20,19 @@
         <item>Auto</item>
         <item>OpenGLES3</item>
         <item>OpenGLES2</item>
+    </string-array>
+    <!-- On devices with Vulkan 1.1, see isVulkanAvailable. -->
+    <string-array name="opt_graphics_backend_names_with_vulkan">
+        <item>Automatic</item>
+        <item>OpenGL ES 3</item>
+        <item>OpenGL ES 2</item>
+        <item>Vulkan (experimental)</item>
+    </string-array>
+    <string-array name="opt_graphics_backend_values_with_vulkan" translatable="false">
+        <item>Auto</item>
+        <item>OpenGLES3</item>
+        <item>OpenGLES2</item>
+        <item>Vulkan</item>
     </string-array>
 
 </resources>
