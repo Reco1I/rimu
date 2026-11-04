@@ -9,4 +9,10 @@ object VerktexSettings {
     const val ShowComponentBoundaries = "show_component_boundaries"
     const val ShowPerformanceOverlay = "show_performance_overlay"
     const val DrawTextures = "draw_textures"
+
+    /**
+     * The resolution the window renders at relative to the display, a float from 0 to 1. Below 1
+     * fewer pixels are drawn and the display scales them up.
+     */
+    const val ResolutionScale = "resolution_scale"
 }

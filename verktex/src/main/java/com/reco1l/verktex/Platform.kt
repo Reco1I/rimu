@@ -30,6 +30,14 @@ object Platform {
         }
 
     /**
+     * How many pixels of the rendered window there are per pixel of the display, below 1 when
+     * rendering at a lower resolution. Sizes in density independent pixels follow it, so the UI
+     * keeps its size on the screen.
+     */
+    @Volatile
+    var resolutionScale = 1f
+
+    /**
      * The configuration of the current display.
      */
     val currentDisplay: Display

@@ -3,4 +3,8 @@
 <!-- This file here is for new strings that will be temporary:-->
 <!-- Link to localizations pack: https://github.com/osudroid/language-pack-->
 
+    <string name="opt_category_rendering">Rendering</string>
+    <string name="opt_resolution_scale_title">Resolution</string>
+    <string name="opt_resolution_scale_summary">Renders at a lower resolution than the display\'s, which improves performance at the cost of sharpness.</string>
+
 </resources>

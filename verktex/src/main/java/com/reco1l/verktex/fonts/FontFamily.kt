@@ -37,8 +37,9 @@ class FontFamily(
      * Retrieves a [Font] instance based on the provided size, weight, and style.
      */
     operator fun get(size: Dimension.Fixed, weight: Font.Weight = Font.Weight.Normal, style: Font.Style = Font.Style.Normal): Font {
-        // Every font size follows the user's font scale.
-        val scaledSize = if (Verktex.fontScale == 1f) size else (size.toPixels() * Verktex.fontScale).px
+        // Every font size follows the user's font scale. Fonts are kept by their size in pixels, the
+        // size of a density independent pixel changes with the resolution scale.
+        val scaledSize = if (size is Dimension.Fixed.Pixels && Verktex.fontScale == 1f) size else (size.toPixels() * Verktex.fontScale).px
         return get(Font.Descriptor(this, scaledSize, weight, style))
     }
 
