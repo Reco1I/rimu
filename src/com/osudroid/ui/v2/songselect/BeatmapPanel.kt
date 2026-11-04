@@ -20,12 +20,17 @@ import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.*
 
 @Suppress("LeakingThis")
-open class BeatmapPanel(private val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: BeatmapInfo) : UIClickableContainer() {
+open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: BeatmapInfo) : UIClickableContainer() {
 
     private var isExpanded = false
 
     private var currentBorderWidth = BORDER_WIDTH.dip.toPixels()
     private var currentExtraWidth = 0f
+
+    /**
+     * The horizontal offset given by the curve of the carrousel.
+     */
+    var curveOffset = 0f
 
 
     init {
@@ -86,7 +91,7 @@ open class BeatmapPanel(private val beatmapSetPanel: BeatmapSetPanel, val beatma
         borderWidth = currentBorderWidth.px
 
         currentExtraWidth = clock.interpolateWithSnap(0.1f, currentExtraWidth, targetExtraWidth, 0.5f)
-        translationX = (-currentExtraWidth).px
+        translationX = (curveOffset + beatmapSetPanel.beatmapCarrousel.panelOverhang - currentExtraWidth).px
 
         super.onUpdate(clock)
     }

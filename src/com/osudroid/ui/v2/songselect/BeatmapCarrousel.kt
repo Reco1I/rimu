@@ -1,10 +1,12 @@
 package com.osudroid.ui.v2.songselect
 
 import com.osudroid.data.*
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.input.InputEvent
@@ -48,6 +50,13 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
      */
     var autoScrollToSelectedPanel = false
 
+    /**
+     * How far the panels go past the right edge of the carrousel, so their end is never seen and
+     * they seem to continue past the screen. It covers the safe area on the right too.
+     */
+    var panelOverhang = 0f
+        private set
+
 
     init {
         scrollAxes = Axis.Y
@@ -57,10 +66,7 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
         origin = Anchor.TopRight
         spacing = (-2f).px
 
-        componentWrapper.apply {
-            padding = Padding(0f.px, 200f.px)
-            translationX = 14f.px
-        }
+        componentWrapper.padding = Padding(0f.px, 200f.px)
 
         onCreateComponent = { BeatmapSetPanel(this) }
     }
@@ -74,16 +80,17 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
 
     override fun onUpdate(clock: FrameClock) {
 
+        panelOverhang = Verktex.graphics.window.insets.safeArea.z + OVERHANG.dip.toPixels()
+
         // The panels follow a curve along the height of the container.
         boundComponents.values.forEach { component ->
             val button = component.button
 
-            button.translationX = (SHEAR * (1f - getPositionPercentage(button.toSceneSpace(0f, 0f).y, button.bounds.height))).px
+            component.curveOffset = SHEAR * (1f - getPositionPercentage(button.toSceneSpace(0f, 0f).y, button.bounds.height))
 
-            if (selectedPanel == component) {
-                component.panelsContainer.forEach { panel ->
-                    panel.translationX = (SHEAR * (1f - getPositionPercentage(panel.toSceneSpace(0f, 0f).y, panel.bounds.height))).px
-                }
+            component.panelsContainer.forEach { panel ->
+                panel as BeatmapPanel
+                panel.curveOffset = SHEAR * (1f - getPositionPercentage(panel.toSceneSpace(0f, 0f).y, panel.bounds.height))
             }
         }
 
@@ -118,5 +125,6 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
 
     companion object {
         private const val SHEAR = 180f
+        private const val OVERHANG = 32f
     }
 }

@@ -10,6 +10,7 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.interpolateColor
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.time.FrameClock
@@ -95,11 +96,17 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
     lateinit var button: UIClickableContainer
 
 
+    /**
+     * The horizontal offset of the button given by the curve of the [beatmapCarrousel].
+     */
+    var curveOffset = 0f
+
+
     private var isTransitioning = false
 
     private var buttonExtraWidth = 0f
     private var buttonBorderWidth = BORDER_WIDTH.dip.toPixels()
-    private var panelsHeight = 0f
+    private var panelsExpansion = 0f
 
     private lateinit var cover: UISprite
     private lateinit var titleText: UIText
@@ -177,7 +184,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
             panelsContainer = linearContainer {
                 orientation = UILinearContainer.Orientation.Vertical
                 width = Dimension.FillAvailable
-                height = 0f.px
+                height = wrap(0f)
                 alpha = 0f
                 spacing = 4f.dip
             }
@@ -216,22 +223,25 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         button.apply {
             borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
             borderWidth = buttonBorderWidth.px
+            translationX = (curveOffset + beatmapCarrousel.panelOverhang - buttonExtraWidth).px
         }
 
-        val targetPanelsHeight = if (isExpanded) panelsContentHeight() else 0f
+        // A fraction of the height of the content, measuring it with a fixed height would limit
+        // the panels to that height.
+        val targetPanelsExpansion = if (isExpanded) 1f else 0f
         val targetPanelsAlpha = if (isExpanded) 1f else 0f
 
-        panelsHeight = clock.interpolateWithSnap(0.1f, panelsHeight, targetPanelsHeight, 0.5f)
+        panelsExpansion = clock.interpolateWithSnap(0.1f, panelsExpansion, targetPanelsExpansion, 0.005f)
 
         panelsContainer.apply {
-            height = panelsHeight.px
+            height = wrap(panelsExpansion)
             alpha = clock.interpolateWithSnap(0.1f, alpha, targetPanelsAlpha, 0.1f)
         }
 
         isTransitioning = buttonExtraWidth != targetExtraWidth
             || buttonBorderWidth != targetBorderWidth
             || button.borderColor != targetBorderColor
-            || panelsHeight != targetPanelsHeight
+            || panelsExpansion != targetPanelsExpansion
             || panelsContainer.alpha != targetPanelsAlpha
 
         if (!isExpanded && !isTransitioning && panelsContainer.childCount > 0) {
@@ -239,12 +249,6 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         }
 
         super.onUpdate(clock)
-    }
-
-    private fun panelsContentHeight(): Float {
-        var height = 0f
-        panelsContainer.forEach { height += it.measuredSize.y }
-        return height + panelsContainer.spacing.toPixels() * (panelsContainer.childCount - 1).coerceAtLeast(0)
     }
 
     fun expand() {

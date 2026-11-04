@@ -21,7 +21,7 @@ import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIBadge
 import com.reco1l.verktex.ui.UILabeledBadge
 import com.reco1l.verktex.ui.badge
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UIEdgeToEdgeContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.labeledBadge
@@ -33,7 +33,7 @@ import java.text.*
 import java.util.*
 import kotlin.math.roundToInt
 
-class BeatmapInfoWedge : UIContainer() {
+class BeatmapInfoWedge : UIEdgeToEdgeContainer() {
 
 
     private lateinit var titleText: UIText
@@ -57,12 +57,11 @@ class BeatmapInfoWedge : UIContainer() {
 
     init {
         width = Dimension.FillAvailable
-        translationX = (-2f).px
-        translationY = (-2f).px
 
-        +UIWedge().apply {
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
+        // Reaches the edges of the window, the outline of those sides is left outside of it.
+        background = UIWedge().apply {
+            translationX = (-2f).px
+            translationY = (-2f).px
             alpha = 0.75f
 
             style = Style { theme ->
