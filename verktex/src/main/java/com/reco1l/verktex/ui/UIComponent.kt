@@ -744,6 +744,8 @@ abstract class UIComponent {
                 width = bounds.width + blur * 2f,
                 height = bounds.height + blur * 2f,
                 color = shadow.color,
+                // A negative border width tells the shader to cut the shape out.
+                borderWidth = if (shadow.cutout) -1f else 0f,
                 radius = radius.toPixels(),
                 softness = blur,
                 inset = blur

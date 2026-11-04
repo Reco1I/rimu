@@ -19,4 +19,11 @@ data class Shadow(
      * How far the shadow fades past the component's edges.
      */
     val blur: Dimension.Fixed = Dimension.Zero,
+
+    /**
+     * Whether the shadow is only drawn outside of the component, starting at full strength from
+     * its edges, like a glow. Otherwise it is below the whole component and shows through a
+     * translucent background. The cut follows the shadow, so it is meant for one without offset.
+     */
+    val cutout: Boolean = false,
 )
