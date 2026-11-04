@@ -189,12 +189,21 @@ render pass, then blit to the swapchain image and present.
    fallback can't catch: a flag is kept from before Vulkan starts until its first frame is presented,
    and finding it on the next launch makes it use OpenGL ES until Vulkan is picked again
    (`resetVulkanCrashGuard`). `DevicePerformanceUtil` only sizes particle effects, so it has no
-   Vulkan check. Still to decide after field testing: enabling Vulkan for `Auto` (e.g. API ≥ 29 with
-   Vulkan 1.1) and dropping the experimental label.
+   Vulkan check. The experimental label goes once the Follow-ups below are all solved; enabling
+   Vulkan for `Auto` (e.g. API ≥ 29 with Vulkan 1.1) is decided after field testing.
 
 ## Follow-ups
 
-Open points found while doing the phases above, to address before Vulkan leaves experimental:
+Open points found while doing the phases above. Vulkan stays experimental until all of them are
+solved, then the label is removed:
+- the "Vulkan (experimental)" entry of `opt_graphics_backend_names_with_vulkan` and the
+  `opt_graphics_backend_vulkan_experimental` warning, shown by `graphicsBackendOption`
+  (`SettingsSections.kt`);
+- "Experimental" in the KDoc of `GraphicsBackend.Vulkan` and "experimental" in the backend log line
+  of `createVulkanRenderer` (`Android.kt`);
+- this document's mentions of it.
+
+The crash guard stays, it protects against driver bugs whatever the state of the backend.
 
 1. **Validation run of phases 5 and 6.** Phase 4 ran clean under `VK_LAYER_KHRONOS_validation`
    1.4.363.1; textures, uploads, quads, instancing, depth, captures, timestamps and video frames
