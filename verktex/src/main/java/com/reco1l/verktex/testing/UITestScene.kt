@@ -8,6 +8,7 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
@@ -47,7 +48,17 @@ class UITestScene(
     private lateinit var stageHost: UIContainer
 
     // Holds the stage and its overlays, scaled down when the tests are shown at the window size.
-    private val viewport = UIContainer().apply {
+    private val viewport = object : UIContainer() {
+
+        // Scaled to fit, it's bigger than the area it's shown in.
+        override fun adjustParentConstraints(constraints: LayoutConstraints): LayoutConstraints {
+            if (!isFittingWindow || virtualWidth <= 0f || virtualHeight <= 0f) {
+                return constraints
+            }
+            return LayoutConstraints(minWidth = virtualWidth, maxWidth = virtualWidth, minHeight = virtualHeight, maxHeight = virtualHeight)
+        }
+    }.apply {
+        backgroundColor = BACKGROUNDS[0]
         anchor = Anchor.Center
         origin = Anchor.Center
         scaleOrigin = Anchor.Center
@@ -56,10 +67,15 @@ class UITestScene(
     }
 
     /**
-     * Whether the stage is laid out at the size of the window and scaled down to fit, so scenes
-     * look as they do in the game. Otherwise it's laid out at the size it has, as components are.
+     * Whether the stage is laid out as wide as the window and scaled down to fit, so scenes look as
+     * they do in the game. Its height fills the area, scaled the same. Otherwise it's laid out at
+     * the size it has, as components are.
      */
     private var isFittingWindow = true
+
+    // The size the viewport is laid out at while fitting the window, before it's scaled.
+    private var virtualWidth = 0f
+    private var virtualHeight = 0f
 
     private val logLines = ArrayDeque<String>()
 
@@ -179,6 +195,8 @@ class UITestScene(
                         variant = UIButton.Variant.Surface
                         onActionUp = {
                             isFittingWindow = !isFittingWindow
+                            // Measured again with the constraints of the new mode.
+                            viewport.invalidateMeasure()
                             icon = viewportIcon()
                             log(if (isFittingWindow) "Laid out at the window size" else "Laid out at the stage size")
                         }
@@ -195,7 +213,7 @@ class UITestScene(
                         variant = UIButton.Variant.Surface
                         onActionUp = {
                             backgroundIndex = (backgroundIndex + 1) % BACKGROUNDS.size
-                            stageHost.backgroundColor = BACKGROUNDS[backgroundIndex]
+                            viewport.backgroundColor = BACKGROUNDS[backgroundIndex]
                         }
                     }
                 }
@@ -232,7 +250,6 @@ class UITestScene(
                         width = fill()
                         height = fill()
                         clipping = ClipMode.Bounds
-                        backgroundColor = BACKGROUNDS[0]
                         +viewport
                     }
 
@@ -377,15 +394,19 @@ class UITestScene(
         }
 
         val windowWidth = Verktex.graphics.window.windowWidth.toFloat()
-        val windowHeight = Verktex.graphics.window.windowHeight.toFloat()
 
         // Before the first layout, a scale of 0 would turn transformations into NaN.
-        if (windowWidth <= 0f || windowHeight <= 0f || hostWidth <= 0f || hostHeight <= 0f) {
+        if (windowWidth <= 0f || hostWidth <= 0f || hostHeight <= 0f) {
             return
         }
 
-        viewport.setSize(windowWidth, windowHeight)
-        viewport.scale = minOf(hostWidth / windowWidth, hostHeight / windowHeight, 1f)
+        // As wide as the window, and as high as the area once scaled, so it fills it.
+        val scale = minOf(hostWidth / windowWidth, 1f)
+        virtualWidth = hostWidth / scale
+        virtualHeight = hostHeight / scale
+
+        viewport.setSize(virtualWidth, virtualHeight)
+        viewport.scale = scale
     }
 
     private fun viewportIcon() = if (isFittingWindow) FAIcon.Mobile else FAIcon.Expand
