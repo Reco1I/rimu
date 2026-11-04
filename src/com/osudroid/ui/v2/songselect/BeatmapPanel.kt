@@ -67,6 +67,8 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
             }
         }
 
+        onActionLongPress = { beatmapSetPanel.showOptions() }
+
         onActionUp = {
             if (SongSelect.selectedBeatmap == beatmapInfo && beatmapSetPanel.selectedPanel == this) {
                 SongSelect.onBeatmapConfirmed(beatmapInfo)

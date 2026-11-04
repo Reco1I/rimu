@@ -51,6 +51,12 @@ object SongSelect : UIScene() {
     val isLeaderboardOnline
         get() = leaderboard.leaderboardType == LeaderboardType.Global
 
+    /**
+     * Whether only the favorite beatmap sets are shown.
+     */
+    val isFilteringFavorites
+        get() = filterBar.filter.favoritesOnly
+
 
     private val beatmapLoadingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -61,6 +67,9 @@ object SongSelect : UIScene() {
     private val backgroundSprite: UISprite
 
     private lateinit var modsIndicator: ModsIndicator
+
+    private var beatmapSets = listOf<BeatmapSetInfo>()
+    private var filterJob: Job? = null
 
     private var currentSongPath: String? = null
     private var currentBackgroundPath: String? = null
@@ -77,6 +86,8 @@ object SongSelect : UIScene() {
             color *= 0.4f
         }
         background = backgroundSprite
+
+        filterBar.onFilterChanged = { applyFilter() }
 
         linearContainer {
             width = Dimension.FillAvailable
@@ -236,9 +247,64 @@ object SongSelect : UIScene() {
     }
 
 
-    @JvmOverloads
-    fun loadBeatmaps(query: String? = null, sort: String = "title") {
-        beatmapCarrousel.data = DatabaseManager.beatmapInfoTable.getBeatmapSetList().map { BeatmapSetModel(it) }
+    /**
+     * Loads the beatmap sets from the database, showing the ones passing the filter.
+     */
+    fun loadBeatmaps() {
+        beatmapSets = DatabaseManager.beatmapInfoTable.getBeatmapSetList()
+        applyFilter()
+    }
+
+    /**
+     * Shows the beatmap sets passing the filter of the filter bar, keeping the selected beatmap if
+     * it's still shown.
+     */
+    fun applyFilter() {
+        val filter = filterBar.filter
+        val beatmapSets = beatmapSets
+
+        filterJob?.cancel()
+        filterJob = beatmapLoadingScope.launch {
+
+            val favorites = if (filter.favoritesOnly) {
+                DatabaseManager.beatmapOptionsTable.getFavoriteDirectories().toSet()
+            } else emptySet()
+
+            val collection = filter.collection?.let { DatabaseManager.beatmapCollectionsTable.getBeatmaps(it)?.toSet() }
+
+            ensureActive()
+            val models = filter.apply(beatmapSets, Config.getDifficultyAlgorithm(), favorites, collection).map {
+                BeatmapSetModel(it, isDifficulty = filter.grouping == BeatmapGrouping.Difficulty)
+            }
+
+            ensureActive()
+            updateThread {
+                beatmapCarrousel.selectedPanel = null
+                beatmapCarrousel.data = models
+                beatmapCarrousel.scrollY = 0f
+                (selectedBeatmap ?: GlobalManager.getInstance().selectedBeatmap)?.let(::showBeatmap)
+            }
+        }
+    }
+
+    /**
+     * Expands the panel of the given beatmap and scrolls to it, if it's shown.
+     */
+    private fun showBeatmap(beatmapInfo: BeatmapInfo) {
+        val model = beatmapCarrousel.data.find { model -> model.beatmapSetInfo.beatmaps.any { it.path == beatmapInfo.path } } ?: return
+        beatmapCarrousel.applyComponent(model) { select(beatmapInfo) }
+    }
+
+    /**
+     * Removes a beatmap set from the list after it was deleted.
+     */
+    fun onBeatmapSetDeleted(directory: String) {
+        beatmapSets = beatmapSets.filter { it.directory != directory }
+
+        if (selectedBeatmap?.setDirectory == directory) {
+            onBeatmapSelected(null)
+        }
+        applyFilter()
     }
 
 
@@ -365,12 +431,8 @@ object SongSelect : UIScene() {
             currentSongPath = currentBeatmapInfo?.audioPath
             currentBackgroundPath = null
 
-            val model = beatmapCarrousel.data.find { it.beatmapSetInfo.directory == currentBeatmapInfo?.setDirectory } ?: return@updateThread
-
-            beatmapCarrousel.applyComponent(model) {
-                val beatmapInfoIndex = model.beatmapSetInfo.beatmaps.indexOfFirst { it.path == currentBeatmapInfo?.path }
-                select(beatmapInfoIndex.coerceAtLeast(0))
-            }
+            filterBar.updateCollections()
+            currentBeatmapInfo?.let(::showBeatmap)
         }
     }
 

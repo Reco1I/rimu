@@ -17,6 +17,11 @@ import kotlin.math.*
 
 class BeatmapSetModel(
     val beatmapSetInfo: BeatmapSetInfo,
+
+    /**
+     * Whether the panel stands for a single difficulty, so it shows its name as well.
+     */
+    val isDifficulty: Boolean = false,
     var coverTexture: GraphicsTexture.Region? = null,
     var isLoadingCover: Boolean = false,
 ) {
