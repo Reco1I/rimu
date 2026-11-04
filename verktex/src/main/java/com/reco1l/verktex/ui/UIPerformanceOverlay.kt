@@ -1,5 +1,7 @@
 package com.reco1l.verktex.ui
 
+import com.reco1l.verktex.Verktex
+
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.PerformanceStats
 import com.reco1l.verktex.data.Anchor
@@ -189,6 +191,9 @@ class UIPerformanceOverlay : UIClickableContainer() {
         if (timeSinceTextUpdate >= TEXT_INTERVAL) {
             timeSinceTextUpdate = 0f
 
+            // The display can switch its refresh rate while running (e.g. 60 and 120 Hz modes).
+            displayFrameTime = 1000f / Verktex.graphics.window.refreshRate
+
             val fps = PerformanceStats.fps
             val fpsColor = colorFor(if (fps > 0f) 1000f / fps else 0f)
 
@@ -291,13 +296,20 @@ class UIPerformanceOverlay : UIClickableContainer() {
         private val OK_COLOR = Color4(0xFFF9E2AF)
         private val BAD_COLOR = Color4(0xFFF38BA8)
 
+        // The time between two refreshes of the display, see UIPerformanceOverlay.onUpdate.
+        private var displayFrameTime = 1000f / 60f
+
         /**
-         * Green up to 120 fps, yellow up to 60 fps, red below.
+         * Green while frames keep up with the display, which can't show more of them, yellow down
+         * to half its refresh rate, red below. A little over the refresh period is still green, as
+         * frame times jitter around it.
          */
         private fun colorFor(frameTime: Float) = when {
-            frameTime <= FRAME_TIME_120 -> GOOD_COLOR
-            frameTime <= FRAME_TIME_60 -> OK_COLOR
+            frameTime <= displayFrameTime * REFRESH_TOLERANCE -> GOOD_COLOR
+            frameTime <= displayFrameTime * 2f * REFRESH_TOLERANCE -> OK_COLOR
             else -> BAD_COLOR
         }
+
+        private const val REFRESH_TOLERANCE = 1.05f
     }
 }

@@ -48,6 +48,22 @@ class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), Su
     }
 
     @Volatile
+    private var cachedRefreshRate = 60f
+    @Volatile
+    private var refreshRateQueryNanos = 0L
+
+    // Read by the performance overlay a few times per second, the display mode rarely changes.
+    override val refreshRate: Float
+        get() {
+            val now = System.nanoTime()
+            if (now - refreshRateQueryNanos >= REFRESH_RATE_QUERY_INTERVAL_NANOS) {
+                refreshRateQueryNanos = now
+                display?.refreshRate?.takeIf { it > 0f }?.let { cachedRefreshRate = it }
+            }
+            return cachedRefreshRate
+        }
+
+    @Volatile
     private var surfaceDestroyed = false
     @Volatile
     private var surfaceCreated = false
@@ -146,5 +162,6 @@ class ESWindow(androidContext: AndroidContext) : SurfaceView(androidContext), Su
 
     private companion object {
         const val IME_QUERY_INTERVAL_NANOS = 50_000_000L
+        const val REFRESH_RATE_QUERY_INTERVAL_NANOS = 500_000_000L
     }
 }
