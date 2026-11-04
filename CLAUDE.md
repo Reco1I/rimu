@@ -72,6 +72,8 @@ SplashScene → LoadingScreen → MainScene (menu hub) → LobbyScene
 
 Verktex handles all rendering. UI is a tree of `UIComponent`s measured and laid out through `LayoutConstraints`, animated with transforms for UI, and with `Choreography` for anything on the gameplay clock, whose state depends only on the time so that seeking works.
 
+A Vulkan backend roadmap lives in `verktex/docs/vulkan-backend.md`.
+
 ### UI Tests
 
 Verktex's abstract `UITestActivity` (`verktex/.../android/`) browses `UITestSuite`s (`verktex/.../testing/`) to try components in isolation; `VerktexUITests` covers the engine components. The app's `OsuUITestActivity` (`com/osudroid/ui/v2/test/`) adds `OsuUITests`. It's enabled only in debug builds and runs in its own `:uitest` process. Open a test directly with:
