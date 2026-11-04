@@ -18,7 +18,7 @@ import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.video.VideoRendererEventListener
 import com.reco1l.verktex.Verktex
-import com.reco1l.verktex.android.gles.ESExternalTexture
+import com.reco1l.verktex.android.AndroidExternalTexture
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.UISprite
@@ -52,14 +52,15 @@ class UIVideo(source: String) : UISprite() {
     private val player: ExoPlayer
 
     // Its region always covers it whole and the decoder sizes the buffers, so its own size is only nominal.
-    private val texture = Verktex.graphics.createExternalTexture(NOMINAL_SIZE, NOMINAL_SIZE) as ESExternalTexture
+    private val texture = Verktex.graphics.createExternalTexture(NOMINAL_SIZE, NOMINAL_SIZE)
+    private val externalTexture = texture as AndroidExternalTexture
 
     private val onReady = AtomicReference<Runnable?>()
     private val isReleased = AtomicBoolean(false)
 
 
     init {
-        textureRegion = texture.region
+        textureRegion = externalTexture.region
         scaleType = ScaleType.Stretch
         scaleOrigin = Anchor.Center
 
@@ -89,8 +90,8 @@ class UIVideo(source: String) : UISprite() {
         }
 
         // The surface is (re)created on the draw thread, on the first load and after a context loss.
-        texture.onSurfaceRecreated = {
-            val surface = texture.surface
+        externalTexture.onSurfaceRecreated = {
+            val surface = externalTexture.surface
 
             mainHandler.post {
                 if (!isReleased.get()) {
@@ -150,7 +151,7 @@ class UIVideo(source: String) : UISprite() {
             return
         }
 
-        texture.onSurfaceRecreated = null
+        externalTexture.onSurfaceRecreated = null
 
         Verktex.scheduleOnUpdate {
             removeSelf()
