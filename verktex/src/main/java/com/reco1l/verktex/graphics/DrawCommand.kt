@@ -74,6 +74,12 @@ data class DrawCommand(
      * left), drawn as two triangles each through a shared index buffer instead of six vertices.
      */
     val isQuads: Boolean = false,
+
+    /**
+     * When set, this command copies what was drawn so far into the texture instead of drawing.
+     * Like a depth clear, it carries no buffer or shader and is never merged with other commands.
+     */
+    val captureTexture: GraphicsTexture? = null,
 ) {
 
     /**
@@ -90,6 +96,7 @@ data class DrawCommand(
         isQuads: Boolean = false,
     ): Boolean {
         return !clearDepth &&
+                captureTexture == null &&
                 this.isQuads == isQuads &&
                 instanceBuffer == null &&
                 this.vertexLayout === vertexLayout &&

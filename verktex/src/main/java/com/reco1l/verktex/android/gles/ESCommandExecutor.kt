@@ -192,6 +192,19 @@ object ESCommandExecutor {
             return
         }
 
+        val captureTexture = command.captureTexture
+        if (captureTexture != null) {
+            // Copies the framebuffer drawn so far, bottom-left origin. The scissor doesn't apply to it.
+            GLES32.glActiveTexture(GLES32.GL_TEXTURE0)
+            captureTexture.bind()
+            GLES32.glCopyTexSubImage2D(
+                GLES32.GL_TEXTURE_2D, 0, 0, 0, 0, 0,
+                minOf(captureTexture.width.toInt(), viewportWidth),
+                minOf(captureTexture.height.toInt(), viewportHeight)
+            )
+            return
+        }
+
         if (command.buffer == null || command.shader == null || command.buffer.isEmpty()) return
 
         // Scissor test, the scissor is in window space (top-left origin) while GL expects bottom-left.

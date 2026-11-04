@@ -240,7 +240,8 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
 
     fun show() {
         val wasExpanded = isExpanded
-        val host = Verktex.overlayHost ?: Verktex.scene
+        // Above the overlay it was opened from, or the scene, which an overlay can stop drawing.
+        val host = Verktex.overlayHost ?: if (Verktex.isInOverlay(trigger)) Verktex.overlays else Verktex.scene
 
         this.host = host
 

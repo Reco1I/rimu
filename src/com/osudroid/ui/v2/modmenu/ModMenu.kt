@@ -43,6 +43,7 @@ import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.badge
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.colorTo
+import com.reco1l.verktex.ui.container.UICaptureContainer
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
@@ -61,7 +62,7 @@ import kotlin.math.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 
-object ModMenu : UIContainer() {
+object ModMenu : UICaptureContainer() {
 
 
     /**
@@ -606,6 +607,9 @@ object ModMenu : UIContainer() {
         selectedModsIndicator.mods = enabledMods
         modPresetsSection.onModsChanged()
         SongSelect.onModsChanged()
+
+        // The song select behind shows the statistics with the mods.
+        invalidateCapture()
     }
 
     fun addMod(mod: Mod) {
