@@ -1,9 +1,8 @@
 package com.reco1l.verktex.android.gles
 
 import android.opengl.GLES20
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.graphics.BlendMode
+import com.reco1l.verktex.graphics.DefaultUniforms
 import com.reco1l.verktex.graphics.DrawCommand
 import com.reco1l.verktex.graphics.GraphicsShader
 import com.reco1l.verktex.graphics.VertexLayout
@@ -16,32 +15,7 @@ import com.reco1l.verktex.graphics.VertexLayout
  */
 abstract class ESCommandExecutor {
 
-    // The defaults every draw starts from, rebuilt only when the viewport size changes.
-    private var defaultUniformsWidth = -1
-    private var defaultUniformsHeight = -1
-    private var defaultUniforms = GraphicsShader.UniformSet()
-
-    private fun defaultUniforms(viewportWidth: Int, viewportHeight: Int): GraphicsShader.UniformSet {
-        if (viewportWidth != defaultUniformsWidth || viewportHeight != defaultUniformsHeight) {
-            defaultUniformsWidth = viewportWidth
-            defaultUniformsHeight = viewportHeight
-
-            val viewportSize = Vec2(viewportWidth.toFloat(), viewportHeight.toFloat())
-
-            defaultUniforms = GraphicsShader.UniformSet().apply {
-                set("uViewportSize", viewportSize)
-                set("uColor", Color4.White)
-                set("uTexture", 0)
-                set("uRadius", 0f)
-                set("uBorderWidth", 0f)
-                set("uBorderColor", Color4.Transparent)
-                set("uSize", viewportSize)
-                set("uTransform", IDENTITY_MAT4)
-            }
-        }
-
-        return defaultUniforms
-    }
+    private val defaultUniforms = DefaultUniforms()
 
     //region State cache
 
@@ -212,7 +186,7 @@ abstract class ESCommandExecutor {
             command.texture.bind()
         }
 
-        applyUniforms(shader, command.uniformSet, defaultUniforms(viewportWidth, viewportHeight))
+        applyUniforms(shader, command.uniformSet, defaultUniforms.forViewport(viewportWidth, viewportHeight))
 
         val vertexCount = command.buffer.position / command.vertexLayout.stride
 
@@ -312,12 +286,5 @@ abstract class ESCommandExecutor {
 
     protected companion object {
         const val MAX_ATTRIBUTES = 16
-
-        val IDENTITY_MAT4 = floatArrayOf(
-            1f, 0f, 0f, 0f,
-            0f, 1f, 0f, 0f,
-            0f, 0f, 1f, 0f,
-            0f, 0f, 0f, 1f
-        )
     }
 }
