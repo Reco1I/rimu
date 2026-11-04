@@ -41,6 +41,11 @@ object BuiltIn {
         lateinit var Video: GraphicsShader
 
         /**
+         * A shader blurring a texture along one axis, see [com.reco1l.verktex.ui.container.UICaptureContainer.blurRadius].
+         */
+        lateinit var Blur: GraphicsShader
+
+        /**
          * A shader for rendering particles, see [com.reco1l.verktex.ui.UIParticleSystem].
          */
         lateinit var Particle: GraphicsShader

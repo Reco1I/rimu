@@ -62,6 +62,14 @@ abstract class ESRenderer(
             ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/video.frag and verktex/main.vert")
         )
 
+        BuiltIn.Shaders.Blur = createShader(
+            Platform.provider.createShaderSource(
+                vertexShaderPath = "verktex/shaders/main.vert",
+                fragmentShaderPath = "verktex/shaders/blur.frag",
+                isExternal = false
+            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/blur.frag and verktex/main.vert")
+        )
+
         BuiltIn.Shaders.Particle = createShader(
             Platform.provider.createShaderSource(
                 vertexShaderPath = "verktex/shaders/particle.vert",
