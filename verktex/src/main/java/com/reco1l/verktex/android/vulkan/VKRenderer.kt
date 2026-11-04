@@ -5,6 +5,7 @@ import com.reco1l.verktex.PerformanceStats
 import com.reco1l.verktex.android.AndroidWindow
 import com.reco1l.verktex.graphics.DefaultUniforms
 import com.reco1l.verktex.graphics.DrawCommand
+import com.reco1l.verktex.graphics.GraphicsBackend
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.graphics.GraphicsResource
 import com.reco1l.verktex.graphics.GraphicsTexture
@@ -26,6 +27,9 @@ class VKRenderer(
 ) : GraphicsRenderer() {
 
     override var version: String = context.version
+
+    override val backend: GraphicsBackend
+        get() = GraphicsBackend.Vulkan
 
     /**
      * The commands of the last frame that were skipped as their features aren't supported yet.

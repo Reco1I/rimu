@@ -2,10 +2,11 @@ package com.reco1l.verktex.android.gles.es2
 
 import android.opengl.GLES20
 import com.reco1l.verktex.Logger
+import com.reco1l.verktex.android.AndroidWindow
 import com.reco1l.verktex.android.gles.ESContext
 import com.reco1l.verktex.android.gles.ESRenderer
-import com.reco1l.verktex.android.AndroidWindow
 import com.reco1l.verktex.android.gles.GLESHelper
+import com.reco1l.verktex.graphics.GraphicsBackend
 
 /**
  * The [ESRenderer] of OpenGL ES 2.0. It has no GPU timer, timer queries are only reachable through
@@ -16,6 +17,9 @@ class ES2Renderer(
     device: ES2Device,
     window: AndroidWindow,
 ) : ESRenderer(context, device, window, ES2CommandExecutor()) {
+
+    override val backend: GraphicsBackend
+        get() = GraphicsBackend.OpenGLES2
 
     override fun onContextReady() {
         // OpenGL ES 2.0 only guarantees 8 attributes, the particle shader uses locations up to 8.

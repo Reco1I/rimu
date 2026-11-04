@@ -4,28 +4,34 @@ package com.reco1l.verktex.graphics
  * The graphics backends the engine can render with, stored by [name] in
  * [com.reco1l.verktex.settings.VerktexSettings.GraphicsBackend].
  */
-enum class GraphicsBackend {
+enum class GraphicsBackend(
+
+    /**
+     * The name shown to users, e.g. in the performance overlay.
+     */
+    val displayName: String,
+) {
 
     /**
      * The most capable backend the device supports.
      */
-    Auto,
+    Auto("Automatic"),
 
     /**
      * OpenGL ES 3.0 and up, falling back to [OpenGLES2] where it's unavailable.
      */
-    OpenGLES3,
+    OpenGLES3("OpenGL ES 3"),
 
     /**
      * OpenGL ES 2.0.
      */
-    OpenGLES2,
+    OpenGLES2("OpenGL ES 2"),
 
     /**
      * Vulkan 1.1 (or 1.0 with VK_KHR_maintenance1), falling back to [OpenGLES3] where it can't be
      * initialized. In development, [Auto] doesn't pick it yet, see `verktex/docs/vulkan-backend.md`.
      */
-    Vulkan;
+    Vulkan("Vulkan");
 
 
     companion object {
