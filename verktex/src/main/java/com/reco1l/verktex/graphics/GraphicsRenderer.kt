@@ -195,15 +195,14 @@ abstract class GraphicsRenderer {
     }
 
     /**
-     * Whether [captureFramebuffer] stores the window upside down, its bottom row at v = 0, as
-     * OpenGL's framebuffer does. Otherwise the capture has the top-left origin of other textures.
+     * Where the framebuffer's rows start, which is also the orientation of [captureFramebuffer].
      */
-    open val capturesBottomUp: Boolean
-        get() = false
+    open val framebufferOrigin: FramebufferOrigin
+        get() = FramebufferOrigin.TopLeft
 
     /**
      * Copies what was drawn so far in this frame into the texture, which must be the size of the
-     * window. Its orientation depends on the backend, see [capturesBottomUp].
+     * window. Its orientation follows the backend's [framebufferOrigin].
      */
     fun captureFramebuffer(texture: GraphicsTexture) {
         commandBatch.addLast(DrawCommand(captureTexture = texture))

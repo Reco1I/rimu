@@ -8,6 +8,7 @@ import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.BlendMode
+import com.reco1l.verktex.graphics.FramebufferOrigin
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.graphics.GraphicsResource
 import com.reco1l.verktex.graphics.GraphicsShader
@@ -234,8 +235,9 @@ open class UICaptureContainer : UIIgnoreParentPaddingContainer() {
         }
     }
 
-    // The v of the capture for a v going down the window, the capture may be stored upside down.
-    private fun GraphicsRenderer.captureV(v: Float) = if (capturesBottomUp) 1f - v else v
+    // The v of the capture for a v going down the window, the capture is upside down when the
+    // framebuffer starts at the bottom.
+    private fun GraphicsRenderer.captureV(v: Float) = if (framebufferOrigin == FramebufferOrigin.BottomLeft) 1f - v else v
 
     override fun onInputEvent(event: InputEvent): Boolean {
         if (super.onInputEvent(event)) {
