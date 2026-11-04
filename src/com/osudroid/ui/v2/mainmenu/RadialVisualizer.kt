@@ -48,7 +48,9 @@ class RadialVisualizer : UICanvas() {
 
 
     private fun initializeBars() {
-        visualizerRadius = min(bounds.width, bounds.height) / 2f
+        // The measured size, this runs from onSizeChanged() while measuring, before the bounds
+        // are laid out with the new size.
+        visualizerRadius = min(measuredSize.x, measuredSize.y) / 2f
 
         // Circumference = 2 * PI * radius
         val circumference = 2f * Math.PI.toFloat() * visualizerRadius
