@@ -81,6 +81,7 @@ open class Theme(
 
     val controlStyle: ControlStyle = ControlStyle(
         minimumHeight = 38f.dip,
+        iconSpacing = gap.xs,
     ),
 
     /**
@@ -169,6 +170,11 @@ open class Theme(
      */
     open class ControlStyle(
         val minimumHeight: Dimension,
+
+        /**
+         * The spacing between the content of a control and its icons, e.g. the ones of a text input.
+         */
+        val iconSpacing: Dimension.Fixed,
     )
 
     /**

@@ -7,6 +7,7 @@ import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.horizontalPadding
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.InputEvent
@@ -16,7 +17,9 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.IFocusable
 import com.reco1l.verktex.ui.ITextInput
 import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.text.UIText
 import kotlin.math.min
@@ -30,6 +33,30 @@ inline fun UIContainer.textInput(builder: UITextInput.() -> Unit): UITextInput {
  * field is focused.
  */
 open class UITextInput(initialValue: String = "") : UIControl<String>(initialValue), IFocusable {
+
+    private val leadingIconComponent = UIIcon().apply {
+        anchor = Anchor.CenterLeft
+        origin = Anchor.CenterLeft
+        isVisible = false
+    }
+
+    private val trailingIconComponent = UIIcon().apply {
+        anchor = Anchor.CenterLeft
+        origin = Anchor.CenterLeft
+        isVisible = false
+    }
+
+    // Text scrolled past the start is hidden here, so it's never drawn below the icons.
+    private val textArea = UIContainer().apply {
+        width = fill()
+        height = fill()
+        clipping = ClipMode.Bounds
+    }
+
+    private val row = UILinearContainer().apply {
+        width = fill()
+        height = fill()
+    }
 
     private val placeholderText = UIText().apply {
         anchor = Anchor.CenterLeft
@@ -55,6 +82,26 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
      * The placeholder text displayed while the field is empty.
      */
     var placeholder by placeholderText::text
+
+    /**
+     * The icon displayed before the text. If set to null, no leading icon is displayed.
+     */
+    var leadingIcon: UIText.IconLookup? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            leadingIconComponent.setIcon(value)
+        }
+
+    /**
+     * The icon displayed after the text. If set to null, no trailing icon is displayed.
+     */
+    var trailingIcon: UIText.IconLookup? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            trailingIconComponent.setIcon(value)
+        }
 
     /**
      * The maximum number of characters allowed in the field. If set to 0, there is no limit.
@@ -126,9 +173,6 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
 
 
     init {
-        // Text scrolled past the start is hidden.
-        clipping = ClipMode.Padding
-
         style = Style { theme ->
             height = theme.controlStyle.minimumHeight
             padding = horizontalPadding(theme.gap.md)
@@ -139,11 +183,19 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
             textComponent.color = Color4.White
             placeholderText.color = Color4.White.copy(alpha = 0.5f)
             caret.backgroundColor = theme.palette.accent
+            leadingIconComponent.color = theme.palette.accent
+            trailingIconComponent.color = theme.palette.accent
+            row.spacing = theme.controlStyle.iconSpacing
         }
 
-        +placeholderText
-        +textComponent
-        +caret
+        textArea += placeholderText
+        textArea += textComponent
+        textArea += caret
+
+        row += leadingIconComponent
+        row += textArea
+        row += trailingIconComponent
+        +row
 
         updateVisuals()
     }
@@ -190,7 +242,7 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
             this.border = border.copy(color = color, colorBottom = color)
         }
 
-        val contentWidth = bounds.width - paddingLeft.toPixels() - paddingRight.toPixels()
+        val contentWidth = textArea.bounds.width
         val textWidth = if (value.isEmpty()) 0f else textComponent.measuredSize.x
         val caretWidth = caret.measuredSize.x
 
@@ -259,6 +311,14 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
     }
 
     //endregion
+
+    private fun UIIcon.setIcon(icon: UIText.IconLookup?) {
+        isVisible = icon != null
+        if (icon != null) {
+            iconCode = icon.code
+            iconFamily = icon.family
+        }
+    }
 
     private fun updateVisuals() {
         textComponent.text = if (isPassword) "•".repeat(value.codePointCount(0, value.length)) else value
