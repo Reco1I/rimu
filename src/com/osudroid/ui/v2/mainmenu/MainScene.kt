@@ -222,6 +222,9 @@ object MainScene : UIScene() {
 
                             GlobalManager.getInstance().mainActivity?.checkNewSkins()
                             GlobalManager.getInstance().mainActivity?.loadBeatmapLibrary()
+
+                            // Song select opens on the beatmap playing in the menu.
+                            MusicManager.currentBeatmap?.let { GlobalManager.getInstance().selectedBeatmap = it }
                             SongSelect.loadBeatmaps()
 
                             if (LibraryManager.getLibrary().isEmpty()) {

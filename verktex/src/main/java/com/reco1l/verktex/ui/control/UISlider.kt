@@ -138,7 +138,8 @@ open class UISlider(initialValue: Float = 0f) : UIControl<Float>(initialValue) {
             result = round(result * factor) / factor
         }
 
-        return result.coerceIn(min, max)
+        // The bounds are set one at a time, so min can briefly be above the previous max.
+        return if (max >= min) result.coerceIn(min, max) else min
     }
 
 
