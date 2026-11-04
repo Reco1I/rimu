@@ -19,7 +19,13 @@ enum class GraphicsBackend {
     /**
      * OpenGL ES 2.0.
      */
-    OpenGLES2;
+    OpenGLES2,
+
+    /**
+     * Vulkan 1.1 (or 1.0 with VK_KHR_maintenance1), falling back to [OpenGLES3] where it can't be
+     * initialized. In development, [Auto] doesn't pick it yet, see `verktex/docs/vulkan-backend.md`.
+     */
+    Vulkan;
 
 
     companion object {

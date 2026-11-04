@@ -10,6 +10,7 @@ output.json
 *.class
 
 # generated files
+.cxx/
 bin/
 gen/
 out/

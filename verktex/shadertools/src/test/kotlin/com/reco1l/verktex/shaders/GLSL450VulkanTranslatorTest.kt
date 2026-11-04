@@ -149,11 +149,11 @@ class GLSL450VulkanTranslatorTest {
     }
 
     @Test
-    fun samplersAreBoundAfterTheBlocks() {
+    fun samplersAreInASetOfTheirOwn() {
         val result = translate(fragment, Stage.Fragment)
 
-        assertEquals(listOf(Sampler("uTexture", GLSL450VulkanTranslator.FIRST_SAMPLER_BINDING, isExternal = false)), result.samplers)
-        assertTrue(result.source.contains("layout(set = 0, binding = 2) uniform sampler2D uTexture;"))
+        assertEquals(listOf(Sampler("uTexture", 0, isExternal = false)), result.samplers)
+        assertTrue(result.source.contains("layout(set = 1, binding = 0) uniform sampler2D uTexture;"))
     }
 
     @Test

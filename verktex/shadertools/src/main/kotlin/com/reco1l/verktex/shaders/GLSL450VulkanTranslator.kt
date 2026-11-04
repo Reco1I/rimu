@@ -9,21 +9,25 @@ package com.reco1l.verktex.shaders
  * - Vertex inputs keep their `layout(location = N)`, which they must have.
  * - Vertex outputs and fragment inputs get a location in declaration order, so the stages of a
  *   program must declare them in the same order, see [checkInterface]. Fragment outputs too.
- * - The uniforms that aren't samplers become the members of one std140 block per stage, the
- *   vertex one at [VERTEX_UNIFORMS_BINDING] and the fragment one at [FRAGMENT_UNIFORMS_BINDING], in
- *   declaration order. Their offsets are in [Result.uniforms], so values can be packed by name.
- * - Samplers become combined image samplers from [FIRST_SAMPLER_BINDING] on, fragment stage only.
+ * - The uniforms that aren't samplers become the members of one std140 block per stage in set
+ *   [UNIFORMS_SET], the vertex one at [VERTEX_UNIFORMS_BINDING] and the fragment one at
+ *   [FRAGMENT_UNIFORMS_BINDING], in declaration order. Their offsets are in [Result.uniforms], so
+ *   values can be packed by name.
+ * - Samplers become combined image samplers in set [SAMPLERS_SET] from binding 0 on, fragment
+ *   stage only. The sets are apart so textures can have descriptor sets of their own.
  *   A `samplerExternalOES` becomes a `sampler2D` (a Vulkan backend samples video frames through a
  *   YCbCr conversion instead) and is reported as [Sampler.isExternal].
  *
- * Everything is set 0. Anything outside this subset (arrays, several uniforms in one declaration,
+ * Anything outside this subset (arrays, several uniforms in one declaration,
  * other sampler types, ...) is rejected rather than translated wrongly.
  */
 object GLSL450VulkanTranslator {
 
+    const val UNIFORMS_SET = 0
     const val VERTEX_UNIFORMS_BINDING = 0
     const val FRAGMENT_UNIFORMS_BINDING = 1
-    const val FIRST_SAMPLER_BINDING = 2
+
+    const val SAMPLERS_SET = 1
 
     enum class Stage(val fileExtension: String, val blockName: String, val uniformsBinding: Int) {
         Vertex("vert", "VertexUniforms", VERTEX_UNIFORMS_BINDING),
@@ -175,11 +179,11 @@ object GLSL450VulkanTranslator {
                     throw TranslationException("Samplers are only supported in fragment shaders: $name")
                 }
 
-                val binding = FIRST_SAMPLER_BINDING + samplers.size
+                val binding = samplers.size
                 samplers += Sampler(name, binding, isExternal = type == "samplerExternalOES")
 
                 return@replace buildString {
-                    append(indent).append("layout(set = 0, binding = ").append(binding).append(") uniform ")
+                    append(indent).append("layout(set = ").append(SAMPLERS_SET).append(", binding = ").append(binding).append(") uniform ")
                     if (precision.isNotEmpty()) append(precision).append(' ')
                     append("sampler2D ").append(name).append(';')
                 }
@@ -213,7 +217,7 @@ object GLSL450VulkanTranslator {
 
         if (uniforms.isNotEmpty()) {
             val block = buildString {
-                append("layout(std140, set = 0, binding = ").append(stage.uniformsBinding).append(") uniform ")
+                append("layout(std140, set = ").append(UNIFORMS_SET).append(", binding = ").append(stage.uniformsBinding).append(") uniform ")
                 append(stage.blockName).append(" {\n")
                 for (uniform in uniforms) {
                     append("    ").append(uniform.type.glsl).append(' ').append(uniform.name).append(";\n")

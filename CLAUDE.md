@@ -82,6 +82,8 @@ Verktex's abstract `UITestActivity` (`verktex/.../android/`) browses `UITestSuit
 adb shell am start -S -n ru.nsu.ccfit.zuev.osuplus.debug/com.osudroid.ui.v2.test.OsuUITestActivity --es test "'osu!/Hit circles'"
 ```
 
+Add `--es backend <name>` (a `GraphicsBackend`: `OpenGLES3`, `OpenGLES2`, `Vulkan`) to open it with another graphics backend.
+
 ### Asset / Resource Loading
 
 `SkinTextures` and `SkinSounds` look up skin assets, preferring the beatmap skin, then the custom skin folder, then the default skin. `Skin` loads the configuration of a skin folder. Other textures and sounds go through Verktex's `Textures` and `Sounds`.

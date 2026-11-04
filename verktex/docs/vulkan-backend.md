@@ -58,7 +58,10 @@ Out of scope: `legacy/storyboard/` (`GLWrapped` etc.) is outside the source set 
 - **Coarse-grained JNI**: per-call JNI overhead is too high for per-draw calls. Kotlin side serializes the frame's `DrawCommand`s into a direct `ByteBuffer` command stream (opcodes + handles + offsets); native side decodes and records one `VkCommandBuffer`. Resource creation/destruction are separate JNI calls returning `Long` handles.
 - Vertex/uniform data: native maps a host-visible, coherent ring buffer per frame in flight and exposes it with `NewDirectByteBuffer`, so `VKBuffer.uploadDataToGPU()` copies `IntArray` words straight into GPU-visible memory (one `IntBuffer.put`), recording `(offset, size)`.
 - Memory: Vulkan Memory Allocator (VMA, header-only) for images; the ring buffers can be hand-allocated.
-- Debug builds enable `VK_LAYER_KHRONOS_validation` when present (pushed via `adb` or bundled in `jniLibs` for debug only).
+- Debuggable builds enable `VK_LAYER_KHRONOS_validation` when it's packaged. The NDK r22 layer
+  (1.2.158) crashes in `vkCreateInstance` on Android 15, so it isn't used: a current
+  `android-binaries-*.zip` from Vulkan-ValidationLayers' releases is packaged in debug builds when
+  `-Pverktex.validationLayers=<extracted dir>` (or the same key in `local.properties`) is set.
 
 ### Binding libraries considered
 - **`technoir-lab/vulkan-kotlin`** (`io.technoirlab.vulkan:vulkan-kotlin`, Apache-2.0) is
@@ -91,7 +94,7 @@ Out of scope: `legacy/storyboard/` (`GLWrapped` etc.) is outside the source set 
   the same code. Each stage translates on its own: `#version 450`, varyings and fragment outputs
   located in declaration order, the non-sampler uniforms of a stage → one std140 block
   (`VertexUniforms` at set 0 binding 0, `FragmentUniforms` at binding 1), samplers (fragment only) →
-  combined image samplers from binding 2, `samplerExternalOES` → `sampler2D` reported as external.
+  combined image samplers in set 1 from binding 0 (a set per texture in phase 5), `samplerExternalOES` → `sampler2D` reported as external.
   `checkInterface` verifies the varyings of a vertex/fragment pair line up.
 - SPIR-V is compiled **at build time** by the app's `compileVulkanShaders` task (NDK `glslc`,
   `--target-env=vulkan1.0`) into generated assets as `<name>.spv`; without the NDK it skips with a
@@ -132,7 +135,17 @@ render pass, then blit to the swapchain image and present.
    violation (`BufferLifetimeTest`). Static buffers (the particle quad) are re-uploaded every frame;
    a `Static` usage that Vulkan keeps device-local is a later optimization.
 3. **Shader tooling.** ✅ Done, see Shaders above. Requires the NDK installed for the `.spv` to be built.
-4. **Vulkan bring-up.** CMake/JNI module, instance/device/swapchain, `VKContext`, `GraphicsBackend.Vulkan`, fallback chain in `Android.kt`, solid-color quads only (`SolidQuad`, `Color`).
+4. **Vulkan bring-up.** ✅ Done: `verktex/src/main/cpp/vulkan` (CMake 3.22.1, `libverktex_vulkan.so`,
+   every ABI) behind `VKNative`; `VKContext`/`VKRenderer`/`VKDevice`/`VKShader` in `android/vulkan/`;
+   2 frames in flight, each with a mapped 4 MB ring for vertices and uniforms (`VKFrameRing`,
+   `VKUniformPacker`) and one int command stream (`VKCommandEncoder`); pipelines cached by
+   `VKPipelineKey`. `GraphicsBackend.Vulkan` falls back to ES3 when initialization fails (`Auto` stays
+   GL, no settings entry yet); `UITestActivity` takes `--es backend <name>`. Draws triangles of
+   shaders without samplers (`SolidQuad`, `Color`), the rest is skipped and logged once. Verified on
+   an Adreno 610 (Vulkan 1.1.128): Shapes test matches ES3 for those draws, background/resume
+   recreates the swapchain. The swapchain doesn't pre-rotate (the compositor rotates, Android then
+   reports `VK_SUBOPTIMAL_KHR`, which is ignored). Not done yet: a validation-layer run, and comparing
+   `PerformanceStats.submitTime` with ES3 (the overlay's text needs phase 5).
 5. **Feature parity.** Textures + uploads, UI shader/`VertexLayout.UI`, quads index buffer, instancing (particles), depth state & clears, scissor, blend modes, capture/blur, timestamps → `PerformanceStats.gpuTime`, capabilities.
 6. **Video.** `VKExternalTexture` via `ImageReader` + AHB + YCbCr sampler (API 26+, extension required); where unsupported, report it through `Capabilities` and let callers degrade (no video background).
 7. **Ship.** Settings entry + `DevicePerfomanceUtils` check, `Auto` stays GL until Vulkan is proven; consider enabling Vulkan for `Auto` only on API ≥ 29 with Vulkan 1.1 after field testing.

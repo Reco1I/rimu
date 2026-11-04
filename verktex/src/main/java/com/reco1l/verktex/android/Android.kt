@@ -1,5 +1,6 @@
 package com.reco1l.verktex.android
 
+import android.content.pm.ApplicationInfo
 import android.graphics.Typeface
 import android.view.KeyEvent
 import com.reco1l.verktex.Logger
@@ -15,7 +16,11 @@ import com.reco1l.verktex.android.gles.es2.ES2Device
 import com.reco1l.verktex.android.gles.es2.ES2Renderer
 import com.reco1l.verktex.android.gles.es3.ES3Device
 import com.reco1l.verktex.android.gles.es3.ES3Renderer
+import com.reco1l.verktex.android.vulkan.VKContext
+import com.reco1l.verktex.android.vulkan.VKDevice
+import com.reco1l.verktex.android.vulkan.VKRenderer
 import com.reco1l.verktex.graphics.GraphicsBackend
+import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.VerktexSettings
 
@@ -31,18 +36,8 @@ fun Verktex.initializeAndroid(
 
     val backend = GraphicsBackend.fromName(Settings[VerktexSettings.GraphicsBackend, GraphicsBackend.Auto.name])
 
-    val preferredVersion = when (backend) {
-        GraphicsBackend.Auto, GraphicsBackend.OpenGLES3 -> ESVersion.ES3
-        GraphicsBackend.OpenGLES2 -> ESVersion.ES2
-    }
-    val context = ESContext(window, preferredVersion)
-
-    Logger.i("Verktex", "Using the OpenGL ${context.esVersion} backend.")
-
-    val renderer = when (context.esVersion) {
-        ESVersion.ES3 -> ES3Renderer(context, ES3Device(), window)
-        ESVersion.ES2 -> ES2Renderer(context, ES2Device(), window)
-    }
+    val renderer = (if (backend == GraphicsBackend.Vulkan) createVulkanRenderer(host, window) else null)
+        ?: createESRenderer(window, if (backend == GraphicsBackend.OpenGLES2) ESVersion.ES2 else ESVersion.ES3)
 
     initialize(
         host = host,
@@ -51,6 +46,35 @@ fun Verktex.initializeAndroid(
     )
 
     return window
+}
+
+// Null when Vulkan can't be used on the device, the caller falls back to OpenGL ES.
+private fun createVulkanRenderer(host: AndroidGameHost, window: AndroidWindow): GraphicsRenderer? {
+    val isDebuggable = host.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+    var context: VKContext? = null
+
+    return try {
+        context = VKContext(window, enableValidation = isDebuggable)
+        VKRenderer(context, VKDevice(context), window).also {
+            Logger.i("Verktex", "Using the Vulkan backend: ${context.version}.")
+        }
+    } catch (e: Throwable) {
+        // UnsatisfiedLinkError included, e.g. an ABI the native library wasn't built for.
+        Logger.e("Verktex", "Couldn't use Vulkan, falling back to OpenGL ES.", e)
+        try { context?.destroy() } catch (_: Throwable) {}
+        null
+    }
+}
+
+private fun createESRenderer(window: AndroidWindow, preferredVersion: ESVersion): GraphicsRenderer {
+    val context = ESContext(window, preferredVersion)
+
+    Logger.i("Verktex", "Using the OpenGL ${context.esVersion} backend.")
+
+    return when (context.esVersion) {
+        ESVersion.ES3 -> ES3Renderer(context, ES3Device(), window)
+        ESVersion.ES2 -> ES2Renderer(context, ES2Device(), window)
+    }
 }
 
 fun KeyEvent.toInputKey(): KeyboardEvent.Key {
