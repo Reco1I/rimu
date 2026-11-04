@@ -2,6 +2,7 @@ package com.osudroid.ui.v2
 
 import com.osudroid.mods.*
 import com.osudroid.ui.v2.modmenu.*
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.container.UILinearContainer
@@ -39,34 +40,44 @@ class ModsIndicator : UILinearContainer() {
                     }
 
                     +ModIcon(mod).apply {
-                        width = iconSize
-                        height = iconSize
+                        width = resolvedIconSize
+                        height = resolvedIconSize
                     }
                 }
             }
         }
 
     /**
-     * The size of the mod icons in this indicator.
+     * The size of the mod icons in this indicator, the size of the theme's body text if null.
      */
-    var iconSize: Dimension.Fixed = Dimension.Zero
+    var iconSize: Dimension.Fixed? = null
         set(value) {
             if (field != value) {
                 field = value
-
-                forEach { icon ->
-                    icon.width = value
-                    icon.height = value
-                }
+                applyIconSize()
             }
         }
+
+    // The style runs after the indicator is set up, so it must not overwrite a size set by its user.
+    private val resolvedIconSize
+        get() = iconSize ?: Verktex.theme.typography.body.size
 
 
     init {
         orientation = Orientation.Horizontal
-        style = Style { theme ->
-            iconSize = theme.typography.body.size
+        style = Style {
             spacing = (-5f).px
+            applyIconSize()
+        }
+    }
+
+
+    private fun applyIconSize() {
+        val size = resolvedIconSize
+
+        forEach { icon ->
+            icon.width = size
+            icon.height = size
         }
     }
 
