@@ -23,7 +23,10 @@ class OsuUITestActivity : UITestActivity() {
         Config.loadConfig(this)
         StringTable.setContext(this)
         Skin.load(Config.getSkinPath())
+
+        // Before any suite is created, the components under test reach the game through it.
+        TestGameContext.install(this)
     }
 
-    override fun createSuites() = listOf(VerktexUITests, OsuUITests)
+    override fun createSuites() = listOf(VerktexUITests, OsuUITests, OsuSceneUITests)
 }
