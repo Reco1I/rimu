@@ -765,6 +765,11 @@ class RoomScene(
             }
         }
 
+        // It may not be shown, e.g. a scene tested on its own in the UI test browser can't open it.
+        if (Verktex.scene !== this) {
+            return
+        }
+
         if (!isWaitingForBeatmapChange.get()) {
             // onRoomBeatmapChange sets engine.scene = this just above, so it will always
             // find the scene active and call invalidateStatus() internally.  Do NOT call

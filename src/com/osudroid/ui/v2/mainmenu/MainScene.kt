@@ -414,6 +414,12 @@ object MainScene : UIScene() {
             return
         }
 
+        // Headless (e.g. in the UI test browser) there's no game to leave, the menu stays usable.
+        if (GlobalManager.getInstance().isHeadless) {
+            ToastLogger.showText("Would exit the game", false)
+            return
+        }
+
         isExiting = true
         isMenuExpanded = false
 
@@ -436,8 +442,7 @@ object MainScene : UIScene() {
             alpha = 0f
 
             fadeIn(3f).after {
-                // Headless (e.g. in the UI test browser) there's no game to finish.
-                GlobalManager.getInstance().mainActivity?.finish() ?: Log.i("MainScene", "Exited")
+                GlobalManager.getInstance().mainActivity.finish()
             }
         }
     }
