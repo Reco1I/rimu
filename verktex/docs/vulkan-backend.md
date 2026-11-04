@@ -110,7 +110,7 @@ render pass, then blit to the swapchain image and present.
 1. **Neutralize resource contracts (GL only, no behavior change).** ✅ Done:
    `Source.writePixels(PixelTarget, x, y)` + `GraphicsTexture.onWritePixels`/`flushUploads`,
    `graphics/DefaultUniforms`, `AndroidWindow` + `GraphicsContext.acquireFrame/present`,
-   `AndroidExternalTexture`, `GraphicsRenderer.capturesBottomUp`. Gaps 1, 2, 7 (API side) and 8
+   `AndroidExternalTexture`, `GraphicsRenderer.framebufferOrigin`. Gaps 1, 2, 7 (API side) and 8
    are closed; for gap 4 only the default uniforms moved, the reflection is phase 3.
    - Replace `Source.uploadToHardware(x, y)` with a pixel-providing API (e.g.
      `writePixels(target: ByteBuffer)` / `pixelFormat`), moving the GL upload into `ESTexture`.

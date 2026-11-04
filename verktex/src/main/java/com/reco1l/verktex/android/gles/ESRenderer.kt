@@ -6,6 +6,7 @@ import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.android.AndroidWindow
 import com.reco1l.verktex.graphics.DrawCommand
+import com.reco1l.verktex.graphics.FramebufferOrigin
 import com.reco1l.verktex.graphics.GraphicsRenderer
 
 /**
@@ -22,8 +23,8 @@ abstract class ESRenderer(
     final override var version: String
 
     // glCopyTexSubImage2D copies the framebuffer, which starts at the bottom.
-    override val capturesBottomUp: Boolean
-        get() = true
+    override val framebufferOrigin: FramebufferOrigin
+        get() = FramebufferOrigin.BottomLeft
 
 
     init {
