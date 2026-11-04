@@ -7,6 +7,7 @@ import com.osudroid.ui.v2.*
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
@@ -31,6 +32,12 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
      * The horizontal offset given by the curve of the carrousel.
      */
     var curveOffset = 0f
+        set(value) {
+            field = value
+            updateTranslation()
+        }
+
+    private var glow = 0f
 
 
     init {
@@ -67,11 +74,11 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
             }
         }
 
-        onActionLongPress = { beatmapSetPanel.showOptions() }
+        onActionLongPress = { beatmapSetPanel.beatmapCarrousel.onBeatmapSetLongPress?.invoke(beatmapSetPanel) }
 
         onActionUp = {
-            if (SongSelect.selectedBeatmap == beatmapInfo && beatmapSetPanel.selectedPanel == this) {
-                SongSelect.onBeatmapConfirmed(beatmapInfo)
+            if (beatmapSetPanel.selectedPanel == this) {
+                beatmapSetPanel.beatmapCarrousel.onBeatmapConfirmed?.invoke(beatmapInfo)
             } else {
                 SkinSounds["menuclick"].play()
             }
@@ -93,9 +100,17 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         borderWidth = currentBorderWidth.px
 
         currentExtraWidth = clock.interpolateWithSnap(0.1f, currentExtraWidth, targetExtraWidth, 0.5f)
-        translationX = (curveOffset + beatmapSetPanel.beatmapCarrousel.panelOverhang - currentExtraWidth).px
+        updateTranslation()
+
+        glow = clock.interpolateWithSnap(0.1f, glow, if (isExpanded) 1f else 0f, 0.01f)
+        shadow = if (glow > 0f) Shadow(accent.copy(alpha = GLOW_ALPHA * glow), blur = GLOW_BLUR.dip) else null
 
         super.onUpdate(clock)
+    }
+
+
+    private fun updateTranslation() {
+        translationX = (curveOffset + beatmapSetPanel.beatmapCarrousel.panelOverhang - currentExtraWidth).px
     }
 
 
@@ -111,6 +126,8 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
     private companion object {
         const val BORDER_WIDTH = 1f
         const val EXPANDED_BORDER_WIDTH = 2f
-        const val EXPANDED_EXTRA_WIDTH = 48f
+        const val EXPANDED_EXTRA_WIDTH = 96f
+        const val GLOW_ALPHA = 0.6f
+        const val GLOW_BLUR = 20f
     }
 }

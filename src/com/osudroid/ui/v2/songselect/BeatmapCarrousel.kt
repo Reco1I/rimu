@@ -3,6 +3,7 @@ package com.osudroid.ui.v2.songselect
 import com.osudroid.data.*
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
@@ -52,16 +53,56 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
         }
 
     /**
+     * Called when a beatmap is selected, or with null when the selection is cleared.
+     */
+    var onBeatmapSelected: ((BeatmapInfo?) -> Unit)? = null
+
+    /**
+     * Called when the selected beatmap is pressed again to play it.
+     */
+    var onBeatmapConfirmed: ((BeatmapInfo) -> Unit)? = null
+
+    /**
+     * Called when a beatmap set or one of its difficulties is long pressed.
+     */
+    var onBeatmapSetLongPress: ((BeatmapSetPanel) -> Unit)? = null
+
+    /**
      * Whether to automatically scroll to the selected panel.
      */
     var autoScrollToSelectedPanel = false
+        set(value) {
+            if (value && !field) {
+                autoScrollVelocity = 0f
+                autoScrollPosition = scrollY
+            }
+            field = value
+        }
+
+    // The auto scroll is a critically damped spring, it speeds up and slows down smoothly instead
+    // of jumping at the start.
+    private var autoScrollVelocity = 0f
+
+    // The scroll position is whole pixels, the spring keeps the fractions or the rounding would make
+    // it oscillate around the target.
+    private var autoScrollPosition = 0f
 
     /**
-     * How far the panels go past the right edge of the carrousel, so their end is never seen and
-     * they seem to continue past the screen. It covers the safe area on the right too.
+     * How far the panels are moved past the right edge of the carrousel, covering the safe area on
+     * the right. They are wider than the carrousel as well, see [BeatmapSetPanel.OVERFLOW], so
+     * their end is never seen and they seem to continue past the screen.
      */
     var panelOverhang = 0f
         private set
+
+
+    // The selected item and its position in the content, panels above it change their size while
+    // collapsing and the scroll follows them so the selected one doesn't move.
+    private var anchorItem: BeatmapSetModel? = null
+    private var anchorPosition = 0f
+
+    // The scroll position is whole pixels, the rest is applied in the next frames.
+    private var anchorRemainder = 0f
 
 
     init {
@@ -79,54 +120,96 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
 
 
     /**
-     * The offset of a panel following the curve, from the middle of the panel in the carrousel.
-     *
-     * The layout position is used rather than the transformed one, which includes the offset
-     * itself. Before the carrousel has a size the offset would be infinite, and once in the
-     * transformations of the panel it would keep it out of sight.
+     * The vertical position of the middle of a component in the carrousel, from its layout. The
+     * transformations aren't used, they include the offset of the curve and are a frame behind.
      */
-    private fun getCurveOffset(panel: UIComponent): Float {
-        val parent = panel.parent ?: return 0f
+    private fun centerYOf(component: UIComponent): Float {
+        var y = component.bounds.y + component.bounds.height / 2f
+        var parent = component.parent
 
+        while (parent != null && parent !== this) {
+            y += parent.bounds.y
+            parent = parent.parent
+        }
+        return y
+    }
+
+    /**
+     * The offset of a component following the tilt: the panels lean to the right towards the top
+     * of the carrousel.
+     */
+    private fun curveOffsetOf(component: UIComponent): Float {
         if (bounds.height <= 0f) {
             return 0f
         }
 
-        val sceneY = parent.toSceneSpace(0f, panel.bounds.y + panel.bounds.height / 2f).y
-        val percentage = (sceneY - toSceneSpace(0f, 0f).y) / bounds.height
+        val offset = TILT * (1f - centerYOf(component) / bounds.height)
 
-        return if (percentage.isFinite()) SHEAR * (1f - percentage) else 0f
+        return if (offset.isFinite()) offset else 0f
+    }
+
+
+    override fun onLayout(bounds: Vec4) {
+        keepSelectedPanelInPlace()
+
+        super.onLayout(bounds)
+
+        // Applied after laying out, so the tilt follows the panels in the same frame while scrolling
+        // instead of lagging a frame behind and shaking sideways.
+        boundComponents.values.forEach { component ->
+            component.curveOffset = curveOffsetOf(component.button)
+
+            component.panelsContainer.forEach { panel ->
+                (panel as BeatmapPanel).curveOffset = curveOffsetOf(panel)
+            }
+        }
+    }
+
+    private fun keepSelectedPanelInPlace() {
+        val item = selectedPanel?.boundData
+        val position = item?.let(::positionOf)
+
+        if (item == null || position == null) {
+            anchorItem = null
+            return
+        }
+
+        if (item === anchorItem) {
+            autoScrollPosition += position - anchorPosition
+
+            val target = scrollY + position - anchorPosition + anchorRemainder
+            scrollY = target
+            anchorRemainder = target - scrollY
+        } else {
+            anchorRemainder = 0f
+        }
+
+        anchorItem = item
+        anchorPosition = position
     }
 
     override fun onUpdate(clock: FrameClock) {
-
-        panelOverhang = Verktex.graphics.window.insets.safeArea.z + OVERHANG.dip.toPixels()
-
-        // The panels follow a curve along the height of the container.
-        boundComponents.values.forEach { component ->
-            component.curveOffset = getCurveOffset(component.button)
-
-            component.panelsContainer.forEach { panel ->
-                (panel as BeatmapPanel).curveOffset = getCurveOffset(panel)
-            }
-        }
+        panelOverhang = Verktex.graphics.window.insets.safeArea.z
 
         val panel = selectedPanel
         if (panel != null && autoScrollToSelectedPanel) {
 
-            val panelY = panel.selectedPanelSceneY - toSceneSpace(0f, 0f).y + scrollY - bounds.height / 2f
-            val difference = panelY - scrollY
+            val targetY = (scrollY + centerYOf(panel.scrollTarget) - bounds.height / 2f).coerceIn(0f, maxScrollY)
+            val difference = targetY - autoScrollPosition
 
-            var targetY = scrollY
+            // Long frames would make the spring overshoot.
+            val deltaTime = clock.elapsedFrameTime.coerceAtMost(1f / 30f)
 
-            if (abs(difference) > 5f) {
-                targetY += difference * 0.2f
+            if (abs(difference) > 0.5f || abs(autoScrollVelocity) > 5f) {
+                val acceleration = AUTO_SCROLL_STIFFNESS * AUTO_SCROLL_STIFFNESS * difference - 2f * AUTO_SCROLL_STIFFNESS * autoScrollVelocity
+                autoScrollVelocity += acceleration * deltaTime
+                autoScrollPosition += autoScrollVelocity * deltaTime
+
+                scrollY = autoScrollPosition
             } else {
-                targetY = panelY
+                scrollY = targetY
                 autoScrollToSelectedPanel = false
             }
-
-            scrollY = targetY.coerceAtLeast(0f).coerceAtMost(maxScrollY)
         }
 
         super.onUpdate(clock)
@@ -141,7 +224,7 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
 
 
     companion object {
-        private const val SHEAR = 180f
-        private const val OVERHANG = 32f
+        private const val TILT = 180f
+        private const val AUTO_SCROLL_STIFFNESS = 10f
     }
 }

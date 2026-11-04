@@ -17,6 +17,11 @@ import com.osudroid.ui.v2.mainmenu.OsuLogo
 import com.osudroid.ui.v2.mainmenu.TrianglesDispenser
 import com.osudroid.ui.v2.modmenu.ModIcon
 import com.osudroid.ui.v2.ModsIndicator
+import com.osudroid.data.BeatmapInfo
+import com.osudroid.data.BeatmapSetInfo
+import com.osudroid.ui.v2.songselect.BeatmapCarrousel
+import com.osudroid.ui.v2.songselect.BeatmapSetModel
+import kotlin.random.Random
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.dip
@@ -220,6 +225,22 @@ object OsuUITests : UITestSuite("osu!") {
             }
         }
 
+        test("Beatmap carrousel") {
+            container {
+                width = fill(0.5f)
+                height = fill()
+                anchor = Anchor.TopRight
+                origin = Anchor.TopRight
+
+                +BeatmapCarrousel().apply {
+                    data = sampleBeatmapSets().map { BeatmapSetModel(it) }
+                    onBeatmapSelected = { log("Selected ${it?.version}") }
+                    onBeatmapConfirmed = { log("Confirmed ${it.version}") }
+                    onBeatmapSetLongPress = { log("Long pressed ${it.boundData?.beatmapSetInfo?.directory}") }
+                }
+            }
+        }
+
         test("Cursor") {
             val cursor = CursorSprite().apply {
                 anchor = Anchor.Center
@@ -238,4 +259,59 @@ object OsuUITests : UITestSuite("osu!") {
             onEachFrame { cursor.update(it.elapsedFrameTime) }
         }
     }
+
+
+    // Beatmap sets with made up metadata, so the carrousel can be tried without a library.
+    private fun sampleBeatmapSets(): List<BeatmapSetInfo> {
+        val random = Random(727)
+        val titles = listOf("Blue Zenith", "Adventure", "Crystallized", "Freedom Dive", "Galaxy Collapse", "Harumachi Clover",
+            "Kimi no Bouken", "Lagtrain", "Night of Knights", "Odoru Mizu", "Padoru", "Quaoar", "Rainbow Tylenol",
+            "Snow Halation", "Teo", "Uta", "Valsinas", "World's End Dancehall", "Xeroa", "Yomi Yori", "Zen Zen Zense")
+        val versions = listOf("Easy", "Normal", "Hard", "Insane", "Expert", "Extra")
+
+        return titles.mapIndexed { index, title ->
+            val count = random.nextInt(1, versions.size + 1)
+            val directory = "$index $title"
+
+            BeatmapSetInfo(index, directory, versions.take(count).mapIndexed { difficulty, version ->
+                sampleBeatmap(directory, title, version, stars = difficulty * 1.3f + random.nextFloat() + 1f)
+            })
+        }
+    }
+
+    private fun sampleBeatmap(directory: String, title: String, version: String, stars: Float) = BeatmapInfo(
+        filename = "$version.osu",
+        md5 = "$directory/$version",
+        id = null,
+        audioFilename = "audio.mp3",
+        backgroundFilename = null,
+        status = null,
+        setDirectory = directory,
+        setId = null,
+        title = title,
+        titleUnicode = title,
+        artist = "Artist",
+        artistUnicode = "Artist",
+        creator = "Mapper",
+        version = version,
+        tags = "",
+        source = "",
+        dateImported = 0,
+        approachRate = 9f,
+        overallDifficulty = 8f,
+        circleSize = 4f,
+        hpDrainRate = 5f,
+        droidStarRating = stars,
+        standardStarRating = stars,
+        bpmMax = 180f,
+        bpmMin = 180f,
+        mostCommonBPM = 180f,
+        length = 120000,
+        previewTime = -1,
+        hitCircleCount = 0,
+        spinnerCount = 0,
+        sliderCount = 0,
+        maxCombo = 0,
+        epilepsyWarning = false
+    )
 }
