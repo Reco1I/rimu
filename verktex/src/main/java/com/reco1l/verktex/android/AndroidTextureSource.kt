@@ -1,7 +1,7 @@
 package com.reco1l.verktex.android
 
 import android.graphics.Bitmap
-import android.opengl.GLES32
+import android.opengl.GLES20
 import android.opengl.GLUtils
 import com.reco1l.verktex.graphics.GraphicsTexture
 import java.nio.ByteBuffer
@@ -28,7 +28,7 @@ class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
             bitmap.config == Bitmap.Config.ARGB_8888
 
         if (!isPremultipliedArgb) {
-            GLUtils.texSubImage2D(GLES32.GL_TEXTURE_2D, 0, x, y, bitmap)
+            GLUtils.texSubImage2D(GLES20.GL_TEXTURE_2D, 0, x, y, bitmap)
             return
         }
 
@@ -45,10 +45,10 @@ class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
 
         buffer.rewind()
 
-        // The padded rows are uploaded as they are, the row length makes GL skip the padding.
-        GLES32.glPixelStorei(GLES32.GL_UNPACK_ROW_LENGTH, rowStride)
-        GLES32.glTexSubImage2D(GLES32.GL_TEXTURE_2D, 0, x, y, bitmap.width, bitmap.height, GLES32.GL_RGBA, GLES32.GL_UNSIGNED_BYTE, buffer)
-        GLES32.glPixelStorei(GLES32.GL_UNPACK_ROW_LENGTH, 0)
+        // OpenGL ES 2.0 has no GL_UNPACK_ROW_LENGTH to skip the padding, so padded rows are packed.
+        val pixels = if (rowStride == bitmap.width) buffer else packRows(buffer, bitmap.width, bitmap.height, rowStride)
+
+        GLES20.glTexSubImage2D(GLES20.GL_TEXTURE_2D, 0, x, y, bitmap.width, bitmap.height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixels)
     }
 
     companion object {
@@ -78,6 +78,27 @@ class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
                 pixels.position(offset)
                 pixels.put(row)
             }
+        }
+
+        /**
+         * Copies [height] rows of [width] pixels, each starting [rowStride] pixels after the previous
+         * one, into a new buffer without the padding.
+         */
+        fun packRows(source: ByteBuffer, width: Int, height: Int, rowStride: Int): ByteBuffer {
+            require(rowStride >= width) { "The row stride $rowStride is smaller than the width $width." }
+
+            val packed = ByteBuffer.allocateDirect(width * height * 4).order(source.order())
+            val sourcePixels = source.duplicate().order(source.order()).asIntBuffer()
+            val packedPixels = packed.asIntBuffer()
+            val row = IntArray(width)
+
+            for (rowIndex in 0 until height) {
+                sourcePixels.position(rowIndex * rowStride)
+                sourcePixels.get(row)
+                packedPixels.put(row)
+            }
+
+            return packed
         }
 
         /**
