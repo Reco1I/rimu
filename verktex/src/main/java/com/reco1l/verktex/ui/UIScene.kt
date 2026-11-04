@@ -40,6 +40,13 @@ open class UIScene : UIContainer() {
      */
     var embeddedSafeArea = Vec4.Zero
 
+    /**
+     * The safe area of the scene, as left, top, right and bottom: the window's for a root scene, or
+     * [embeddedSafeArea] while embedded.
+     */
+    val safeArea
+        get() = if (isEmbedded) embeddedSafeArea else Verktex.graphics.window.insets.safeArea
+
 
     override fun onDraw(renderer: GraphicsRenderer) {
 
@@ -170,4 +177,18 @@ open class UIScene : UIContainer() {
         override fun onDraw(renderer: GraphicsRenderer) {}
         override fun onUpdate(clock: FrameClock) {}
     }
+}
+
+
+/**
+ * The scene this component is in, the closest one if scenes are nested, e.g. a scene embedded in
+ * the stage of the UI test browser.
+ */
+internal fun UIComponent.findScene(): UIScene? {
+    var current = parent
+    while (current != null) {
+        if (current is UIScene) return current
+        current = current.parent
+    }
+    return null
 }
