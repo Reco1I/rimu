@@ -239,7 +239,7 @@ val roomSection = listOf(
                 onClick = {
                     val room = Multiplayer.room
                     if (room != null) {
-                        val context = GlobalManager.getInstance().mainActivity
+                        val context = GlobalManager.getInstance().context
                         context.getSystemService<ClipboardManager>()?.setPrimaryClip(
                             ClipData.newPlainText(room.name, "${LobbyAPI.INVITE_HOST}/${room.id}/")
                         )
@@ -312,7 +312,7 @@ val generalSection = listOf(
                 title = R.string.opt_register_title,
                 summary = R.string.opt_register_summary,
                 onClick = {
-                    val context = GlobalManager.getInstance().mainActivity
+                    val context = GlobalManager.getInstance().context
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(REGISTER_URL)))
                 }
             )
@@ -368,7 +368,7 @@ val generalSection = listOf(
                 title = R.string.opt_config_backup_restore_title,
                 summary = R.string.opt_config_backup_restore_summary,
                 onClick = {
-                    val context = GlobalManager.getInstance().mainActivity
+                    val context = GlobalManager.getInstance().context
                     val success = ConfigBackup.importPreferences()
 
                     if (success) {
@@ -440,7 +440,8 @@ val generalSection = listOf(
                     val locale = LocaleListCompat.forLanguageTags(selected)
                     AppCompatDelegate.setApplicationLocales(locale)
 
-                    val context = GlobalManager.getInstance().mainActivity
+                    // Headless (e.g. in the UI test browser) there's no game to restart.
+                    val context = GlobalManager.getInstance().mainActivity ?: return@OptionInfo
                     val intent = Intent(context, MainActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                     context.startActivity(intent)
@@ -478,7 +479,7 @@ val gameplaySection = listOf(
                 onChange = { value ->
                     @Suppress("UNCHECKED_CAST")
                     val newValue = (value as List<String>).firstOrNull() ?: return@OptionInfo
-                    val context = GlobalManager.getInstance().mainActivity
+                    val context = GlobalManager.getInstance().context
                     Config.setString("skinPath", newValue)
                     loadSkin(context, newValue)
                 }
@@ -494,7 +495,9 @@ val gameplaySection = listOf(
                     val global = GlobalManager.getInstance()
                     val selectedBeatmap = global.selectedBeatmap
 
-                    if (LibraryManager.getSizeOfBeatmaps() == 0 || selectedBeatmap == null) {
+                    if (global.isHeadless) {
+                        ToastLogger.showText("The HUD editor needs the game running", true)
+                    } else if (LibraryManager.getSizeOfBeatmaps() == 0 || selectedBeatmap == null) {
                         ToastLogger.showText("Cannot enter HUD editor with empty beatmap library!", true)
                     } else {
                         val modMap = ModHashMap().apply {
@@ -1198,7 +1201,7 @@ val advancedSection = listOf(
                     val newValue = value as String
 
                     if (newValue.trim { it <= ' ' }.isEmpty()) {
-                        Config.loadConfig(GlobalManager.getInstance().mainActivity)
+                        Config.loadConfig(GlobalManager.getInstance().context)
                         return@OptionInfo
                     }
 
@@ -1209,7 +1212,7 @@ val advancedSection = listOf(
                         return@OptionInfo
                     }
 
-                    Config.loadConfig(GlobalManager.getInstance().mainActivity)
+                    Config.loadConfig(GlobalManager.getInstance().context)
                 }
             ),
             OptionInfo(
@@ -1237,7 +1240,7 @@ val advancedSection = listOf(
                     component.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
                 },
                 onChange = { value ->
-                    GlobalManager.getInstance().mainActivity.applyRefreshRateSetting(value as Boolean)
+                    GlobalManager.getInstance().mainActivity?.applyRefreshRateSetting(value as Boolean)
                 }
             ),
             OptionInfo(
@@ -1272,8 +1275,9 @@ fun loadSkin(context: Context, path: String): Job {
 
         mainThread {
             loading.dismiss()
+            val mainActivity = GlobalManager.getInstance().mainActivity ?: return@mainThread
             Snackbar.make(
-                GlobalManager.getInstance().mainActivity.window.decorView,
+                mainActivity.window.decorView,
                 R.string.message_loaded_skin,
                 1500
             ).show()

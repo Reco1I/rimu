@@ -716,7 +716,7 @@ class RoomScene(
      *
      * **Must be called on the update thread.**
      */
-    private fun teardownSession() {
+    internal fun teardownSession() {
         Multiplayer.cancelReconnection()
         beatmapInfoLayout.cancelCalculation()
         playersContainer.forEach { (it as RoomPlayerCard).cancelJobs() }

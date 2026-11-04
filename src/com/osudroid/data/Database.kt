@@ -117,6 +117,17 @@ object DatabaseManager {
     }
 
     /**
+     * Loads an empty database kept in memory instead of the database file, so the real one is never
+     * touched. Used while the game runs without the main activity, e.g. in the UI test browser.
+     */
+    @JvmStatic
+    fun loadInMemory(context: Context) {
+        database = Room.inMemoryDatabaseBuilder(context, DroidDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+    }
+
+    /**
      * Shows a dialog notifying the user that their local database was reset, if applicable.
      *
      * Must be called after the main scene has finished loading.

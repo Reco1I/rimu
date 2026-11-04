@@ -319,7 +319,7 @@ class SettingsMenu : UIScene() {
     fun back() {
         val global = GlobalManager.getInstance()
 
-        Config.loadConfig(global.mainActivity)
+        Config.loadConfig(global.context)
         onPlayfieldChanged = null
 
         if (Multiplayer.isMultiplayer) {
@@ -331,9 +331,11 @@ class SettingsMenu : UIScene() {
             global.songService.isGaming = false
 
             // The account may have changed (Config.loadConfig above reloads it), the player button
-            // follows the login by itself.
-            OnlineManager.getInstance().init()
-            OnlineScoring.getInstance().login()
+            // follows the login by itself. Headless (e.g. in the UI test browser) it never logs in.
+            if (!global.isHeadless) {
+                OnlineManager.getInstance().init()
+                OnlineScoring.getInstance().login()
+            }
         }
 
         Verktex.withTreeLock { Verktex.popScene() }
@@ -363,7 +365,7 @@ class SettingsMenu : UIScene() {
 
                     category.options.forEach { option ->
                         val title = when (option.title) {
-                            is Int -> GlobalManager.getInstance().mainActivity.getString(option.title)
+                            is Int -> GlobalManager.getInstance().context.getString(option.title)
                             else -> option.title.toString()
                         }
 
@@ -411,7 +413,7 @@ class SettingsMenu : UIScene() {
     private fun UILinearContainer.addSummary(option: OptionInfo) {
         val summary = when (option.summary) {
             null -> return
-            is Int -> GlobalManager.getInstance().mainActivity.getString(option.summary)
+            is Int -> GlobalManager.getInstance().context.getString(option.summary)
             else -> option.summary.toString()
         }
 
@@ -452,7 +454,7 @@ class SettingsMenu : UIScene() {
         }
 
         if (control is FormSelect<*> && option.entries != null && option.entryValues != null) {
-            val resources = GlobalManager.getInstance().mainActivity.resources
+            val resources = GlobalManager.getInstance().context.resources
             val entries = resources.getStringArray(option.entries)
             val values = resources.getStringArray(option.entryValues)
 

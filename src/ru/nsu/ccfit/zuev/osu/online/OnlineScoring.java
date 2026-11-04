@@ -23,9 +23,8 @@ public class OnlineScoring {
     private static OnlineScoring instance = null;
     private final Boolean onlineMutex = Boolean.FALSE;
     private boolean avatarLoaded = false;
-    private final Snackbar snackbar = Snackbar.make(
-            GlobalManager.getInstance().getMainActivity().getWindow().getDecorView(),
-            "", 10000);
+    // Created when first shown, it needs the window of the main activity.
+    private Snackbar snackbar;
 
     private Job loginJob, profileAssetsJob;
 
@@ -72,7 +71,15 @@ public class OnlineScoring {
                     OnlineManager.getInstance().setStayOnline(false);
 
                     if (OnlineManager.getInstance().getFailMessage().equals("Cannot connect to server")) {
+                        var mainActivity = GlobalManager.getInstance().getMainActivity();
+                        if (mainActivity == null) {
+                            return;
+                        }
+
                         Execution.mainThread(() -> {
+                            if (snackbar == null) {
+                                snackbar = Snackbar.make(mainActivity.getWindow().getDecorView(), "", 10000);
+                            }
                             snackbar.dismiss();
                             snackbar.setText("Cannot connect to server. Please check the following article for troubleshooting.");
 

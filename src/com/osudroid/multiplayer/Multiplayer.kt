@@ -131,8 +131,8 @@ object Multiplayer {
             try {
                 LoaderScene().show()
 
-                GlobalManager.getInstance().mainActivity.checkNewSkins()
-                GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
+                GlobalManager.getInstance().mainActivity?.checkNewSkins()
+                GlobalManager.getInstance().mainActivity?.loadBeatmapLibrary()
 
                 val roomID = link.pathSegments[0].toLong()
                 val password = if (link.pathSegments.size > 1) link.pathSegments[1] else null
