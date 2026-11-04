@@ -8,18 +8,21 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.findScene
 
-inline fun UIContainer.edgeToEdgeContainer(builder: UIEdgeToEdgeContainer.() -> Unit): UIEdgeToEdgeContainer {
-    return UIEdgeToEdgeContainer().apply(builder).also(::plusAssign)
+inline fun UIContainer.extendIntoSafeAreaContainer(builder: UIExtendIntoSafeAreaContainer.() -> Unit): UIExtendIntoSafeAreaContainer {
+    return UIExtendIntoSafeAreaContainer().apply(builder).also(::plusAssign)
 }
 
 /**
- * The opposite of [UIFullscreenContainer]: a container laid out as any other, which grows into the
- * safe area of the window on the sides it is placed against, reaching the edges of the window.
+ * A container laid out as any other, which grows into the safe area of its scene on the sides it is
+ * placed against, reaching the edges of the scene (the window, unless the scene is embedded).
+ *
+ * Unlike [UIIgnoreParentPaddingContainer], it only grows into the safe area, not into any padding
+ * of its parent, and only on the sides that touch it.
  *
  * Its children are laid out where they would be without growing, so they stay in the safe area,
  * while the [background] covers the whole container.
  */
-open class UIEdgeToEdgeContainer : UIContainer() {
+open class UIExtendIntoSafeAreaContainer : UIContainer() {
 
     /**
      * Drawn below the children and laid out over the whole container, including the part grown

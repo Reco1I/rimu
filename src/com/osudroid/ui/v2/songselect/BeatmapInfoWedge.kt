@@ -21,7 +21,7 @@ import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIBadge
 import com.reco1l.verktex.ui.UILabeledBadge
 import com.reco1l.verktex.ui.badge
-import com.reco1l.verktex.ui.container.UIEdgeToEdgeContainer
+import com.reco1l.verktex.ui.container.UIExtendIntoSafeAreaContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.labeledBadge
@@ -33,7 +33,7 @@ import java.text.*
 import java.util.*
 import kotlin.math.roundToInt
 
-class BeatmapInfoWedge : UIEdgeToEdgeContainer() {
+class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
 
 
     private lateinit var titleText: UIText

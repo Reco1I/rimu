@@ -4,8 +4,8 @@ import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.data.fill
 
-inline fun UIContainer.fullscreenContainer(builder: UIFullscreenContainer.() -> Unit): UIFullscreenContainer {
-    return UIFullscreenContainer().apply(builder).also(::plusAssign)
+inline fun UIContainer.ignoreParentPaddingContainer(builder: UIIgnoreParentPaddingContainer.() -> Unit): UIIgnoreParentPaddingContainer {
+    return UIIgnoreParentPaddingContainer().apply(builder).also(::plusAssign)
 }
 
 /**
@@ -15,7 +15,7 @@ inline fun UIContainer.fullscreenContainer(builder: UIFullscreenContainer.() -> 
  * Its children keep to the parent's padding by default (see [keepsParentPadding]), so they stay in
  * the safe area and follow it, e.g. while the on-screen keyboard shifts it.
  */
-open class UIFullscreenContainer : UIContainer() {
+open class UIIgnoreParentPaddingContainer : UIContainer() {
 
     /**
      * Whether the children are laid out inside the parent's padding, which is then this container's

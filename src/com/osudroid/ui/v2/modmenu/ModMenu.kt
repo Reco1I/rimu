@@ -48,13 +48,13 @@ import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.colorTo
 import com.reco1l.verktex.ui.container.UICaptureContainer
 import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UIEdgeToEdgeContainer
-import com.reco1l.verktex.ui.container.UIFullscreenContainer
+import com.reco1l.verktex.ui.container.UIExtendIntoSafeAreaContainer
+import com.reco1l.verktex.ui.container.UIIgnoreParentPaddingContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.container.container
-import com.reco1l.verktex.ui.container.edgeToEdgeContainer
+import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.icon
@@ -114,7 +114,7 @@ object ModMenu : UICaptureContainer() {
         width = fill()
         height = fill()
 
-        edgeToEdgeContainer {
+        extendIntoSafeAreaContainer {
             width = fill()
             height = fill()
 
