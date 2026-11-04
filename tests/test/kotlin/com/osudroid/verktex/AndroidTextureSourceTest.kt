@@ -9,6 +9,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.IntBuffer
 
 /**
@@ -98,5 +100,19 @@ class AndroidTextureSourceTest {
         assertEquals(0, result[3])
         assertChannelsNear(0x8000FF00.toInt(), result[4])
         assertEquals(padding, result[5])
+    }
+
+    @Test
+    fun packRowsDropsTheRowPadding() {
+        val padding = 0x40FFFFFF
+        val source = ByteBuffer.allocateDirect(6 * 4).order(ByteOrder.LITTLE_ENDIAN)
+        source.asIntBuffer().put(intArrayOf(1, 2, padding, 3, 4, padding))
+
+        val packed = AndroidTextureSource.packRows(source, 2, 2, 3)
+
+        val result = IntArray(4)
+        packed.asIntBuffer().get(result)
+        assertArrayEquals(intArrayOf(1, 2, 3, 4), result)
+        assertEquals(ByteOrder.LITTLE_ENDIAN, packed.order())
     }
 }
