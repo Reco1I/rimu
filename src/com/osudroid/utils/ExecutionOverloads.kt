@@ -2,11 +2,15 @@
 
 package com.osudroid.utils
 
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import com.reco1l.verktex.Verktex
 
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,7 +32,15 @@ interface CoroutineRunnable {
 /**
  * Scope used for fire-and-forget coroutines launched through [async] and [delayed].
  */
-private val executionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+private val executionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, e ->
+    // Without the main activity (e.g. in the UI test browser) a task may reach something only the
+    // game sets up, which must not take the whole process down.
+    if (GlobalManager.getInstance().isHeadless) {
+        Log.e("Execution", "Uncaught exception in a task while headless", e)
+    } else {
+        Thread.currentThread().let { it.uncaughtExceptionHandler?.uncaughtException(it, e) ?: throw e }
+    }
+})
 
 // Lots of overloads here, but they are necessary for Java interoperability...
 
@@ -85,7 +97,11 @@ fun delayed(time: Long, block: CoroutineRunnable) = executionScope.launch {
 /**
  * Run a task on the main thread.
  */
-fun mainThread(block: Runnable) = GlobalManager.getInstance().mainActivity.runOnUiThread(block)
+fun mainThread(block: Runnable) {
+    if (Looper.myLooper() == Looper.getMainLooper()) block.run() else mainHandler.post(block)
+}
+
+private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
 /**
  * Run a task on the update thread.

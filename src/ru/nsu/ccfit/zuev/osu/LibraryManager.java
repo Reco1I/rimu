@@ -70,6 +70,14 @@ public class LibraryManager {
 
         library = new ArrayList<>();
 
+        // Without the main activity the library is whatever is in the (in-memory) database, there
+        // are no folders to check nor difficulties to calculate.
+        if (GlobalManager.getInstance().isHeadless()) {
+            currentIndex = 0;
+            library = DatabaseManager.getBeatmapInfoTable().getBeatmapSetList();
+            return;
+        }
+
         if (!FileUtils.canUseSD() || !checkDirectory(Config.getScorePath()) && !checkDirectory(Config.getBeatmapPath())) {
             return;
         }
@@ -123,7 +131,10 @@ public class LibraryManager {
     }
 
     public static void deleteBeatmapSet(BeatmapSetInfo beatmapSet) {
-        FilesKt.deleteRecursively(new File(beatmapSet.getPath()));
+        // Headless, the beatmap sets don't come from the beatmap folder, don't touch any file.
+        if (!GlobalManager.getInstance().isHeadless()) {
+            FilesKt.deleteRecursively(new File(beatmapSet.getPath()));
+        }
         DatabaseManager.getBeatmapInfoTable().deleteBeatmapSet(beatmapSet.getDirectory());
         BeatmapCache.invalidate(beatmapSet);
         loadLibrary();

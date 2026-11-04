@@ -84,7 +84,7 @@ object SkinSounds {
      */
     @JvmStatic
     fun preload() {
-        val assets = GlobalManager.getInstance().mainActivity.assets.list("sfx") ?: return
+        val assets = GlobalManager.getInstance().context.assets.list("sfx") ?: return
 
         for (asset in assets) {
             getOrNull(asset.substringBeforeLast('.'))

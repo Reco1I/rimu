@@ -220,8 +220,8 @@ object MainScene : UIScene() {
                         async {
                             LoaderScene().show()
 
-                            GlobalManager.getInstance().mainActivity.checkNewSkins()
-                            GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
+                            GlobalManager.getInstance().mainActivity?.checkNewSkins()
+                            GlobalManager.getInstance().mainActivity?.loadBeatmapLibrary()
                             SongSelect.loadBeatmaps()
 
                             if (LibraryManager.getLibrary().isEmpty()) {
@@ -250,8 +250,8 @@ object MainScene : UIScene() {
                         async {
                             LoaderScene().show()
 
-                            GlobalManager.getInstance().mainActivity.checkNewSkins()
-                            GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
+                            GlobalManager.getInstance().mainActivity?.checkNewSkins()
+                            GlobalManager.getInstance().mainActivity?.loadBeatmapLibrary()
 
                             SongSelect.loadBeatmaps()
 
@@ -367,7 +367,7 @@ object MainScene : UIScene() {
 
         UIConfirmDialog().apply {
             title = "Exit"
-            text = GlobalManager.getInstance().mainActivity.getString(R.string.dialog_exit_message)
+            text = GlobalManager.getInstance().context.getString(R.string.dialog_exit_message)
             onConfirm = { exit() }
         }.show()
     }
@@ -436,7 +436,8 @@ object MainScene : UIScene() {
             alpha = 0f
 
             fadeIn(3f).after {
-                GlobalManager.getInstance().mainActivity.finish()
+                // Headless (e.g. in the UI test browser) there's no game to finish.
+                GlobalManager.getInstance().mainActivity?.finish() ?: Log.i("MainScene", "Exited")
             }
         }
     }
@@ -454,8 +455,8 @@ object MainScene : UIScene() {
             hasEntered = true
 
             (background as? UIContainer)?.let {
-                addSnowfallWithPeriod(it, global.mainActivity)
-                addFireworksWithPeriod(it, global.mainActivity)
+                addSnowfallWithPeriod(it, global.context)
+                addFireworksWithPeriod(it, global.context)
             }
 
             // Only logs in when staying online is enabled.
@@ -727,7 +728,7 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
 
                 fun goToLink(link: String) {
                     hide()
-                    val context = GlobalManager.getInstance().mainActivity
+                    val context = GlobalManager.getInstance().context
                     val intent = Intent(Intent.ACTION_VIEW)
                     intent.data = Uri.parse(link)
                     context.startActivity(intent)
@@ -778,7 +779,7 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                 hide()
 
                 try {
-                    val context = GlobalManager.getInstance().mainActivity
+                    val context = GlobalManager.getInstance().context
                     val changelogFile = File(context.cacheDir, "changelog.html")
 
                     context.assets.open("app/changelog.html").use { inputStream ->

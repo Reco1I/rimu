@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import android.content.Context;
+
 import com.osudroid.data.BeatmapInfo;
 import com.osudroid.data.DatabaseManager;
 import com.osudroid.ui.v2.Skin;
@@ -23,6 +25,7 @@ public class GlobalManager {
     private SongService songService;
     private BeatmapInfo selectedBeatmap;
     private SaveServiceObject saveServiceObject;
+    private Context context;
 
     public static GlobalManager getInstance() {
         if (instance == null) {
@@ -80,6 +83,30 @@ public class GlobalManager {
 
     public void setMainActivity(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
+    }
+
+    /**
+     * The context to reach resources, assets and preferences with. It's the main activity, or the
+     * context set with {@link #setContext(Context)} while the game runs without it.
+     */
+    public Context getContext() {
+        return mainActivity != null ? mainActivity : context;
+    }
+
+    /**
+     * Sets the context used while the game runs without the main activity, see {@link #isHeadless()}.
+     */
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
+    /**
+     * Whether the game runs without the main activity, e.g. scenes shown in the UI test browser.
+     * Anything that needs the activity itself (opening other activities, finishing it, fragments)
+     * must be skipped then.
+     */
+    public boolean isHeadless() {
+        return mainActivity == null;
     }
 
     public int getLoadingProgress() {
