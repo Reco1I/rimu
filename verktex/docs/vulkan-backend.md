@@ -148,7 +148,27 @@ render pass, then blit to the swapchain image and present.
    Shapes, Main menu, Gameplay circles and Mod menu tests and 3 background/resume cycles, only the
    expected pre-rotation performance warning. Comparing `PerformanceStats.submitTime` with ES3 moves
    to the start of phase 5: until then Vulkan skips most of each frame, so the numbers don't compare.
-5. **Feature parity.** Textures + uploads, UI shader/`VertexLayout.UI`, quads index buffer, instancing (particles), depth state & clears, scissor, blend modes, capture/blur, timestamps → `PerformanceStats.gpuTime`, capabilities.
+5. **Feature parity.** ✅ Done, except external (video) textures, which are phase 6 (their draws
+   are skipped). Textures are RGBA8 device-local images with a set-1 descriptor each and one linear
+   clamp sampler; a 1×1 white texture stands in for samplers of draws without a texture (UI boxes).
+   Uploads go through a per-frame staging area and are recorded before the frame's render pass, so a
+   texture repacked mid-frame shows its new layout to the whole frame (OpenGL ES uploads between
+   draws). Images and pipelines are destroyed once every submission that may use them completed,
+   from any thread. Quads draw through a growing `uint32` index buffer, instances from the ring at
+   binding 1, depth state is part of `VKPipelineKey` and clears use `vkCmdClearAttachments`. A
+   capture ends the render pass, copies (or blits, for BGRA windows) the swapchain image into the
+   texture with a top-left origin, and resumes with a pass that loads color and depth; depth is only
+   stored when a later pass loads it. Timestamps around the command buffer give
+   `PerformanceStats.gpuTime`; submit and present are separate calls so `submitTime` leaves out the
+   vsync wait, as `eglSwapBuffers` does on OpenGL ES.
+
+   Verified on the Adreno 610 against ES3 screenshots: Text, Skin sprites, Shapes, Buttons, Main
+   menu (instanced particles), Sliders (depth) and Mod menu (capture + blur) match. Profile build, back
+   to back: CPU submit time is much lower (main menu 0.34 vs 1.63 ms, mod menu ~1.6 vs 5.5–7 ms, draw
+   time 2.1 vs 14.6 ms on the main menu), so JNI and encoding don't erase the gains. GPU time is
+   slightly higher on the main menu (13.6 vs 12.2 ms), worth investigating (render pass ops,
+   pre-rotation); ES3's timer gives impossible values on the mod menu, so it can't be compared there.
+   Not yet rerun under the validation layer.
 6. **Video.** `VKExternalTexture` via `ImageReader` + AHB + YCbCr sampler (API 26+, extension required); where unsupported, report it through `Capabilities` and let callers degrade (no video background).
 7. **Ship.** Settings entry + `DevicePerfomanceUtils` check, `Auto` stays GL until Vulkan is proven; consider enabling Vulkan for `Auto` only on API ≥ 29 with Vulkan 1.1 after field testing.
 

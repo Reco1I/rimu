@@ -26,27 +26,53 @@ class VKCommandEncoder {
     }
 
     /**
-     * Draws [vertexCount] vertices from [vertexOffset] in the ring with [pipeline], within the scissor,
-     * with the uniform blocks at the given ring offsets.
+     * Draws with [pipeline] within the scissor, with the uniform blocks at the given ring offsets.
+     *
+     * The vertices start at [vertexOffset] in the ring. When [indexed], [count] quads of four vertices
+     * are drawn through the quad indices, otherwise [count] vertices, [instanceCount] times when there
+     * is per-instance data at [instanceOffset]. A [texture] of 0 binds a white texture.
      */
     fun draw(
         pipeline: Long,
         scissorX: Int, scissorY: Int, scissorWidth: Int, scissorHeight: Int,
-        vertexOffset: Int, vertexCount: Int,
+        vertexOffset: Int, count: Int,
         vertexUniformsOffset: Int, fragmentUniformsOffset: Int,
+        texture: Long = 0L,
+        instanceOffset: Int = 0, instanceCount: Int = 0,
+        indexed: Boolean = false,
     ) {
-        ensureRemaining(DRAW_INTS)
+        ensureRemaining(1 + DRAW_INTS)
         ints.put(OP_DRAW)
-        ints.put(pipeline.toInt())
-        ints.put((pipeline ushr 32).toInt())
+        putLong(pipeline)
         ints.put(scissorX)
         ints.put(scissorY)
         ints.put(scissorWidth)
         ints.put(scissorHeight)
         ints.put(vertexOffset)
-        ints.put(vertexCount)
+        ints.put(count)
         ints.put(vertexUniformsOffset)
         ints.put(fragmentUniformsOffset)
+        putLong(texture)
+        ints.put(instanceOffset)
+        ints.put(instanceCount)
+        ints.put(if (indexed) 1 else 0)
+    }
+
+    /**
+     * Clears the depth buffer.
+     */
+    fun clearDepth() {
+        ensureRemaining(1)
+        ints.put(OP_CLEAR_DEPTH)
+    }
+
+    /**
+     * Copies what was drawn so far into [texture], top-left origin.
+     */
+    fun capture(texture: Long) {
+        ensureRemaining(1 + CAPTURE_INTS)
+        ints.put(OP_CAPTURE)
+        putLong(texture)
     }
 
     /**
@@ -56,6 +82,11 @@ class VKCommandEncoder {
         val copy = IntArray(size)
         ints.duplicate().apply { flip() }.get(copy)
         return copy
+    }
+
+    private fun putLong(value: Long) {
+        ints.put(value.toInt())
+        ints.put((value ushr 32).toInt())
     }
 
     private fun ensureRemaining(count: Int) {
@@ -69,7 +100,14 @@ class VKCommandEncoder {
 
     companion object {
         const val OP_DRAW = 1
-        const val DRAW_INTS = 11
+        const val OP_CLEAR_DEPTH = 2
+        const val OP_CAPTURE = 3
+
+        /**
+         * The ints following each opcode.
+         */
+        const val DRAW_INTS = 15
+        const val CAPTURE_INTS = 2
 
         private const val INITIAL_INTS = 4096
 

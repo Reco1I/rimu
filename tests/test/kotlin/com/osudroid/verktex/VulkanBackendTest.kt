@@ -7,6 +7,8 @@ import com.reco1l.verktex.android.vulkan.VKUniformPacker
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.graphics.BlendMode
+import com.reco1l.verktex.graphics.CompareFunction
+import com.reco1l.verktex.graphics.DepthState
 import com.reco1l.verktex.graphics.VertexLayout
 import com.reco1l.verktex.shaders.GLSL450VulkanTranslator
 import com.reco1l.verktex.shaders.GLSL450VulkanTranslator.Stage
@@ -103,13 +105,21 @@ class VulkanBackendTest {
         val encoder = VKCommandEncoder()
         val pipeline = 0x1234_5678_9ABC_DEF0L
 
-        encoder.draw(pipeline, 1, 2, 3, 4, 64, 6, 256, 512)
+        val texture = 0x0000_0001_0000_0002L
+
+        encoder.draw(pipeline, 1, 2, 3, 4, 64, 6, 256, 512, texture, 1024, 10, indexed = true)
+        encoder.clearDepth()
+        encoder.capture(texture)
 
         assertArrayEquals(
-            intArrayOf(VKCommandEncoder.OP_DRAW, 0x9ABC_DEF0.toInt(), 0x1234_5678, 1, 2, 3, 4, 64, 6, 256, 512),
+            intArrayOf(
+                VKCommandEncoder.OP_DRAW, 0x9ABC_DEF0.toInt(), 0x1234_5678, 1, 2, 3, 4, 64, 6, 256, 512, 2, 1, 1024, 10, 1,
+                VKCommandEncoder.OP_CLEAR_DEPTH,
+                VKCommandEncoder.OP_CAPTURE, 2, 1,
+            ),
             encoder.toIntArray()
         )
-        assertEquals(VKCommandEncoder.DRAW_INTS, encoder.size)
+        assertEquals(1 + VKCommandEncoder.DRAW_INTS + 1 + 1 + VKCommandEncoder.CAPTURE_INTS, encoder.size)
 
         encoder.reset()
         assertEquals(0, encoder.size)
@@ -121,9 +131,10 @@ class VulkanBackendTest {
         repeat(1000) { encoder.draw(it.toLong(), 0, 0, 0, 0, it, 3, 0, 0) }
 
         val ints = encoder.toIntArray()
-        assertEquals(1000 * VKCommandEncoder.DRAW_INTS, ints.size)
+        val stride = 1 + VKCommandEncoder.DRAW_INTS
+        assertEquals(1000 * stride, ints.size)
         // The last draw survived the copies.
-        assertEquals(999, ints[999 * VKCommandEncoder.DRAW_INTS + 7])
+        assertEquals(999, ints[999 * stride + 7])
     }
 
     @Test
@@ -149,5 +160,13 @@ class VulkanBackendTest {
         // SRC_ALPHA and ONE_MINUS_SRC_ALPHA.
         assertArrayEquals(intArrayOf(6, 7, 6, 7), VKPipelineState.blendFactors(BlendMode.Alpha))
         assertArrayEquals(intArrayOf(1, 0, 1, 0), VKPipelineState.blendFactors(BlendMode.Opaque))
+    }
+
+    @Test
+    fun depthStateMapsToVulkan() {
+        assertArrayEquals(intArrayOf(0, 0, 1), VKPipelineState.depth(DepthState.Default))
+        // VK_COMPARE_OP_LESS_OR_EQUAL is 3, GREATER_OR_EQUAL is 6.
+        assertArrayEquals(intArrayOf(1, 1, 3), VKPipelineState.depth(DepthState(true, true, CompareFunction.LessEqual)))
+        assertEquals(6, VKPipelineState.compareOp(CompareFunction.GreaterEqual))
     }
 }

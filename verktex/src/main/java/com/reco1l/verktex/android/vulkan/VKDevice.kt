@@ -17,7 +17,7 @@ class VKDevice internal constructor(private val context: VKContext) : GraphicsDe
 
     override fun createShader(source: GraphicsShader.Source): GraphicsShader = VKShader(source, context)
 
-    override fun createTexture(width: Float, height: Float): GraphicsTexture = VKTexture(width, height)
+    override fun createTexture(width: Float, height: Float): GraphicsTexture = VKTexture(width, height, context)
 
     override fun createExternalTexture(width: Float, height: Float): GraphicsTexture = VKExternalTexture(width, height)
 }
