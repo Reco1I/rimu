@@ -28,5 +28,5 @@ class OsuUITestActivity : UITestActivity() {
         TestGameContext.install(this)
     }
 
-    override fun createSuites() = listOf(VerktexUITests, OsuUITests, OsuSceneUITests)
+    override fun createSuites() = listOf(VerktexUITests, OsuUITests, OsuSceneUITests, OsuGameplayUITests)
 }
