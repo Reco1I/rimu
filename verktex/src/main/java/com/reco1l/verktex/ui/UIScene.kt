@@ -43,6 +43,9 @@ open class UIScene : UIContainer() {
             return
         }
 
+        // A background left from when the scene was embedded would follow its old transformations.
+        background?.let { if (it.parent === this) it.parent = null }
+
         // Padding will be applied to the scene's content, but not to the background since it is not
         // present on the children list.
         // The safe area is shifted up while the on-screen keyboard would cover the focused input.
@@ -70,13 +73,19 @@ open class UIScene : UIContainer() {
     }
 
     /**
-     * Lays the background out over the scene, which its parent laid out. The background has no
-     * parent so it's placed in scene space, this assumes the scene isn't scaled nor rotated.
+     * Lays the background out over the scene, which its parent laid out. The scene is the parent of
+     * its background meanwhile, so the background follows the transformations of the scene and its
+     * parents (e.g. a scaled down stage). It isn't one of the children, those are laid out with the
+     * padding.
      */
     private fun layoutEmbeddedBackground() {
         val background = background ?: return
         val width = bounds.width
         val height = bounds.height
+
+        if (background.parent !== this) {
+            background.parent = this
+        }
 
         background.measure(LayoutConstraints(
             minWidth = width,
@@ -84,9 +93,10 @@ open class UIScene : UIContainer() {
             minHeight = height,
             maxHeight = height
         ))
+        background.layout(Vec4(x = 0f, y = 0f, z = width, w = height))
 
-        val (x, y) = toSceneSpace(0f, 0f)
-        background.layout(Vec4(x = x, y = y, z = x + width, w = y + height))
+        // The scene doesn't tell its background when it moves, as it does with its children.
+        background.calculateTransformations()
     }
 
     /**

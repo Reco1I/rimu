@@ -46,6 +46,21 @@ class UITestScene(
     private lateinit var logText: UIText
     private lateinit var stageHost: UIContainer
 
+    // Holds the stage and its overlays, scaled down when the tests are shown at the window size.
+    private val viewport = UIContainer().apply {
+        anchor = Anchor.Center
+        origin = Anchor.Center
+        scaleOrigin = Anchor.Center
+        // What goes past the window in the game, e.g. the beatmap carrousel, isn't shown either.
+        clipping = ClipMode.Bounds
+    }
+
+    /**
+     * Whether the stage is laid out at the size of the window and scaled down to fit, so scenes
+     * look as they do in the game. Otherwise it's laid out at the size it has, as components are.
+     */
+    private var isFittingWindow = true
+
     private val logLines = ArrayDeque<String>()
 
     private val stageClock = Verktex.clock.derive()
@@ -160,6 +175,16 @@ class UITestScene(
                     }
 
                     iconButton {
+                        icon = viewportIcon()
+                        variant = UIButton.Variant.Surface
+                        onActionUp = {
+                            isFittingWindow = !isFittingWindow
+                            icon = viewportIcon()
+                            log(if (isFittingWindow) "Laid out at the window size" else "Laid out at the stage size")
+                        }
+                    }
+
+                    iconButton {
                         icon = FAIcon.ArrowRotateRight
                         variant = UIButton.Variant.Surface
                         onActionUp = { reload() }
@@ -193,6 +218,7 @@ class UITestScene(
 
                         override fun onUpdate(clock: FrameClock) {
                             stageClock.processFrame()
+                            updateViewport(bounds.width, bounds.height)
                             try {
                                 super.onUpdate(stageClock)
                             } catch (e: Exception) {
@@ -207,6 +233,7 @@ class UITestScene(
                         height = fill()
                         clipping = ClipMode.Bounds
                         backgroundColor = BACKGROUNDS[0]
+                        +viewport
                     }
 
                     // Over the stage, text doesn't take input so the test below stays usable.
@@ -280,12 +307,12 @@ class UITestScene(
         val test = currentTest ?: return
 
         disposeStage()
-        stageHost.clearChildren()
+        viewport.clearChildren()
         logLines.clear()
         logText.text = " "
 
         val stage = UITestStage(::log)
-        stageHost += stage
+        viewport += stage
         currentStage = stage
 
         // Overlays opened by the test (e.g. modals) are kept inside the stage, above its content,
@@ -294,7 +321,7 @@ class UITestScene(
             width = fill()
             height = fill()
         }
-        stageHost += overlayLayer
+        viewport += overlayLayer
         currentOverlayLayer = overlayLayer
         Verktex.overlayHost = overlayLayer
         // Likewise for scenes, they are shown inside the stage.
@@ -340,6 +367,28 @@ class UITestScene(
             }
         }
     }
+
+    private fun updateViewport(hostWidth: Float, hostHeight: Float) {
+        if (!isFittingWindow) {
+            viewport.width = fill()
+            viewport.height = fill()
+            viewport.scale = 1f
+            return
+        }
+
+        val windowWidth = Verktex.graphics.window.windowWidth.toFloat()
+        val windowHeight = Verktex.graphics.window.windowHeight.toFloat()
+
+        // Before the first layout, a scale of 0 would turn transformations into NaN.
+        if (windowWidth <= 0f || windowHeight <= 0f || hostWidth <= 0f || hostHeight <= 0f) {
+            return
+        }
+
+        viewport.setSize(windowWidth, windowHeight)
+        viewport.scale = minOf(hostWidth / windowWidth, hostHeight / windowHeight, 1f)
+    }
+
+    private fun viewportIcon() = if (isFittingWindow) FAIcon.Mobile else FAIcon.Expand
 
     private fun log(message: String) {
         Logger.i(TAG, message)
