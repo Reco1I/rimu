@@ -108,7 +108,7 @@ class UITestScene(
 
     private var pendingTest: Pair<UITestSuite, UITest>? = null
 
-    private var currentOverlayLayer: UIContainer? = null
+    private var currentOverlayLayer: UIScene? = null
     private var backgroundIndex = 0
 
 
@@ -349,11 +349,8 @@ class UITestScene(
         currentStage = stage
 
         // Overlays opened by the test (e.g. modals) are kept inside the stage, above its content,
-        // instead of covering the whole browser.
-        val overlayLayer = UIContainer().apply {
-            width = fill()
-            height = fill()
-        }
+        // instead of covering the whole browser. A scene, as in the game, so they keep its safe area.
+        val overlayLayer = UIScene()
         viewport += overlayLayer
         currentOverlayLayer = overlayLayer
         Verktex.overlayHost = overlayLayer
@@ -402,7 +399,9 @@ class UITestScene(
     }
 
     private fun updateViewport(hostWidth: Float, hostHeight: Float) {
-        currentStage?.safeArea = if (hasSafeArea) Verktex.graphics.window.insets.safeArea else Vec4.Zero
+        val safeArea = if (hasSafeArea) Verktex.graphics.window.insets.safeArea else Vec4.Zero
+        currentStage?.safeArea = safeArea
+        currentOverlayLayer?.embeddedSafeArea = safeArea
 
         if (!isFittingWindow) {
             viewport.width = fill()

@@ -6,6 +6,7 @@ import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.findScene
 
 inline fun UIContainer.edgeToEdgeContainer(builder: UIEdgeToEdgeContainer.() -> Unit): UIEdgeToEdgeContainer {
     return UIEdgeToEdgeContainer().apply(builder).also(::plusAssign)
@@ -42,16 +43,19 @@ open class UIEdgeToEdgeContainer : UIContainer() {
 
 
     override fun adjustBounds(bounds: Vec4): Vec4 {
-        val safeArea = Verktex.graphics.window.insets.safeArea
-        val windowWidth = Verktex.graphics.window.windowWidth.toFloat()
-        val windowHeight = Verktex.graphics.window.windowHeight.toFloat()
+        // Against the edges of the scene it's in, the window unless the scene is embedded, e.g. in
+        // the stage of the UI test browser.
+        val scene = findScene()
+        val safeArea = scene?.safeArea ?: Verktex.graphics.window.insets.safeArea
+        val sceneWidth = scene?.bounds?.width ?: Verktex.graphics.window.windowWidth.toFloat()
+        val sceneHeight = scene?.bounds?.height ?: Verktex.graphics.window.windowHeight.toFloat()
 
-        // The layout positions of the ancestors, the transformations are only applied when drawing
-        // and aren't up to date yet.
+        // The layout positions of the ancestors up to the scene, the transformations are only
+        // applied when drawing and aren't up to date yet.
         var sceneX = bounds.x
         var sceneY = bounds.y
         var ancestor = parent
-        while (ancestor != null) {
+        while (ancestor != null && ancestor !== scene) {
             sceneX += ancestor.bounds.x
             sceneY += ancestor.bounds.y
             ancestor = ancestor.parent
@@ -60,15 +64,15 @@ open class UIEdgeToEdgeContainer : UIContainer() {
         val sceneRight = sceneX + bounds.width
         val sceneBottom = sceneY + bounds.height
 
-        // A side is placed against the window edge when it reaches the safe area.
+        // A side is placed against the edge of the scene when it reaches the safe area.
         fun extent(inset: Float, distanceToEdge: Float) =
             if (inset > 0f && distanceToEdge <= inset + TOLERANCE) distanceToEdge.coerceAtLeast(0f) else 0f
 
         safeAreaExtent = Vec4(
             x = extent(safeArea.x, sceneX),
             y = extent(safeArea.y, sceneY),
-            z = extent(safeArea.z, windowWidth - sceneRight),
-            w = extent(safeArea.w, windowHeight - sceneBottom)
+            z = extent(safeArea.z, sceneWidth - sceneRight),
+            w = extent(safeArea.w, sceneHeight - sceneBottom)
         )
 
         return Vec4(
