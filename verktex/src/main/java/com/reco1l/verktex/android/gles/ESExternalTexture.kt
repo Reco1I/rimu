@@ -4,6 +4,7 @@ import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.view.Surface
+import com.reco1l.verktex.android.AndroidExternalTexture
 import com.reco1l.verktex.graphics.GraphicsTexture
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -19,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 open class ESExternalTexture(
     override val width: Float,
     override val height: Float,
-) : GraphicsTexture() {
+) : GraphicsTexture(), AndroidExternalTexture {
 
     override val isExternal get() = true
 
@@ -34,34 +35,21 @@ open class ESExternalTexture(
         0f, 0f, 0f, 1f
     )
 
-    /**
-     * The region covering the whole texture.
-     */
-    val region = Region(this, EmptySource, 0f, 0f, width, height)
+    override val region = Region(this, EmptySource, 0f, 0f, width, height)
 
-    /**
-     * The [SurfaceTexture] receiving the frames, null until the texture is loaded.
-     */
+    // The SurfaceTexture receiving the frames, null until the texture is loaded.
     @Volatile
-    var surfaceTexture: SurfaceTexture? = null
+    private var surfaceTexture: SurfaceTexture? = null
+
+    @Volatile
+    final override var surface: Surface? = null
         private set
 
     /**
-     * The [Surface] producers draw into, null until the texture is loaded.
+     * See [AndroidExternalTexture.onSurfaceRecreated], it runs outside the texture's lock. After a
+     * context loss it fires late, see [onContextLost].
      */
-    @Volatile
-    var surface: Surface? = null
-        private set
-
-    /**
-     * Called every time the surface is (re)created, i.e. on the first load and after a context loss,
-     * so the producer can attach to the new [surface]. It runs on the draw thread in the middle of a
-     * draw (outside the texture's lock), so it must stay cheap. A handler that touches the component
-     * tree must hop to the update thread first.
-     *
-     * After a context loss it fires late, see [onContextLost].
-     */
-    var onSurfaceRecreated: (() -> Unit)? = null
+    override var onSurfaceRecreated: (() -> Unit)? = null
 
 
     private var id = 0
@@ -73,7 +61,7 @@ open class ESExternalTexture(
     /**
      * Marks that a new frame is waiting, the next bind latches it.
      */
-    fun markFrameAvailable() {
+    override fun markFrameAvailable() {
         frameAvailable.set(true)
     }
 
