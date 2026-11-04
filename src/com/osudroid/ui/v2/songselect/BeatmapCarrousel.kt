@@ -12,6 +12,7 @@ import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.container.UIRecyclerContainer
 import kotlin.math.*
 
@@ -77,10 +78,24 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
     }
 
 
-    private fun getPositionPercentage(sceneY: Float, componentHeight: Float): Float {
-        val positionInView = sceneY + componentHeight / 2f - toSceneSpace(0f, 0f).y
+    /**
+     * The offset of a panel following the curve, from the middle of the panel in the carrousel.
+     *
+     * The layout position is used rather than the transformed one, which includes the offset
+     * itself. Before the carrousel has a size the offset would be infinite, and once in the
+     * transformations of the panel it would keep it out of sight.
+     */
+    private fun getCurveOffset(panel: UIComponent): Float {
+        val parent = panel.parent ?: return 0f
 
-        return positionInView / bounds.height
+        if (bounds.height <= 0f) {
+            return 0f
+        }
+
+        val sceneY = parent.toSceneSpace(0f, panel.bounds.y + panel.bounds.height / 2f).y
+        val percentage = (sceneY - toSceneSpace(0f, 0f).y) / bounds.height
+
+        return if (percentage.isFinite()) SHEAR * (1f - percentage) else 0f
     }
 
     override fun onUpdate(clock: FrameClock) {
@@ -89,13 +104,10 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
 
         // The panels follow a curve along the height of the container.
         boundComponents.values.forEach { component ->
-            val button = component.button
-
-            component.curveOffset = SHEAR * (1f - getPositionPercentage(button.toSceneSpace(0f, 0f).y, button.bounds.height))
+            component.curveOffset = getCurveOffset(component.button)
 
             component.panelsContainer.forEach { panel ->
-                panel as BeatmapPanel
-                panel.curveOffset = SHEAR * (1f - getPositionPercentage(panel.toSceneSpace(0f, 0f).y, panel.bounds.height))
+                (panel as BeatmapPanel).curveOffset = getCurveOffset(panel)
             }
         }
 
