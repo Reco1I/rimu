@@ -144,8 +144,10 @@ render pass, then blit to the swapchain image and present.
    shaders without samplers (`SolidQuad`, `Color`), the rest is skipped and logged once. Verified on
    an Adreno 610 (Vulkan 1.1.128): Shapes test matches ES3 for those draws, background/resume
    recreates the swapchain. The swapchain doesn't pre-rotate (the compositor rotates, Android then
-   reports `VK_SUBOPTIMAL_KHR`, which is ignored). Not done yet: a validation-layer run, and comparing
-   `PerformanceStats.submitTime` with ES3 (the overlay's text needs phase 5).
+   reports `VK_SUBOPTIMAL_KHR`, which is ignored). With validation layer 1.4.363.1: no errors over the
+   Shapes, Main menu, Gameplay circles and Mod menu tests and 3 background/resume cycles, only the
+   expected pre-rotation performance warning. Comparing `PerformanceStats.submitTime` with ES3 moves
+   to the start of phase 5: until then Vulkan skips most of each frame, so the numbers don't compare.
 5. **Feature parity.** Textures + uploads, UI shader/`VertexLayout.UI`, quads index buffer, instancing (particles), depth state & clears, scissor, blend modes, capture/blur, timestamps → `PerformanceStats.gpuTime`, capabilities.
 6. **Video.** `VKExternalTexture` via `ImageReader` + AHB + YCbCr sampler (API 26+, extension required); where unsupported, report it through `Capabilities` and let callers degrade (no video background).
 7. **Ship.** Settings entry + `DevicePerfomanceUtils` check, `Auto` stays GL until Vulkan is proven; consider enabling Vulkan for `Auto` only on API ≥ 29 with Vulkan 1.1 after field testing.
