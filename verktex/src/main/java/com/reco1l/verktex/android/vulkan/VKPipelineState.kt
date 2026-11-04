@@ -2,6 +2,8 @@ package com.reco1l.verktex.android.vulkan
 
 import com.reco1l.verktex.graphics.BlendFactor
 import com.reco1l.verktex.graphics.BlendMode
+import com.reco1l.verktex.graphics.CompareFunction
+import com.reco1l.verktex.graphics.DepthState
 import com.reco1l.verktex.graphics.VertexLayout
 
 /**
@@ -15,13 +17,15 @@ data class VKPipelineKey(
     val vertexLayout: VertexLayout,
     val instanceLayout: VertexLayout?,
     val blendMode: BlendMode,
+    val depthState: DepthState,
 ) {
     override fun equals(other: Any?): Boolean {
         return other is VKPipelineKey &&
             other.shader === shader &&
             other.vertexLayout === vertexLayout &&
             other.instanceLayout === instanceLayout &&
-            other.blendMode == blendMode
+            other.blendMode == blendMode &&
+            other.depthState == depthState
     }
 
     override fun hashCode(): Int {
@@ -29,6 +33,7 @@ data class VKPipelineKey(
         result = 31 * result + System.identityHashCode(vertexLayout)
         result = 31 * result + System.identityHashCode(instanceLayout)
         result = 31 * result + blendMode.hashCode()
+        result = 31 * result + depthState.hashCode()
         return result
     }
 }
@@ -92,6 +97,26 @@ object VKPipelineState {
         factor(blendMode.sourceAlpha),
         factor(blendMode.destinationAlpha),
     )
+
+    /**
+     * The depth state as `VKNative.createPipeline` takes it: test enabled, writes enabled, VkCompareOp.
+     */
+    fun depth(depthState: DepthState) = intArrayOf(
+        if (depthState.enabled) 1 else 0,
+        if (depthState.writeEnabled) 1 else 0,
+        compareOp(depthState.function),
+    )
+
+    fun compareOp(function: CompareFunction): Int = when (function) {
+        CompareFunction.Never -> 0
+        CompareFunction.Less -> 1
+        CompareFunction.Equal -> 2
+        CompareFunction.LessEqual -> 3
+        CompareFunction.Greater -> 4
+        CompareFunction.NotEqual -> 5
+        CompareFunction.GreaterEqual -> 6
+        CompareFunction.Always -> 7
+    }
 
     fun factor(factor: BlendFactor): Int = when (factor) {
         BlendFactor.Zero -> 0

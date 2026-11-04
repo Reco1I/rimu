@@ -4,25 +4,67 @@ import android.view.Surface
 import com.reco1l.verktex.android.AndroidExternalTexture
 import com.reco1l.verktex.graphics.GraphicsTexture
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
- * A texture of the Vulkan backend. Phase 4 of the roadmap has no images yet: sources are packed as on
- * any backend but nothing is uploaded, and draws sampling a texture are skipped.
+ * An RGBA8 texture of the Vulkan backend. Uploads are staged and copied before the frame's render
+ * pass, see [GraphicsTexture.flushUploads], which the renderer calls for each texture it draws.
+ *
+ * It may be created and released from any thread, the image is only destroyed once the GPU is done
+ * with it.
  */
-class VKTexture(
+class VKTexture internal constructor(
     override val width: Float,
     override val height: Float,
+    private val context: VKContext,
 ) : GraphicsTexture() {
 
-    override fun onCreateTexture() = Unit
+    /**
+     * The native texture, 0 until loaded.
+     */
+    @Volatile
+    var handle = 0L
+        private set
+
+    // Uploads need a direct buffer, sources normally provide one.
+    private var directCopy: ByteBuffer? = null
+
+
+    override fun onCreateTexture() {
+        if (handle == 0L) {
+            handle = VKNative.createTexture(context.handle, width.toInt(), height.toInt())
+            check(handle != 0L) { "Couldn't create a ${width.toInt()}x${height.toInt()} texture." }
+        }
+    }
+
     override fun onBindTexture() = Unit
-    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ByteBuffer) = Unit
-    override fun onUnload() = Unit
+
+    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ByteBuffer) {
+        val size = pixels.remaining()
+
+        if (pixels.isDirect) {
+            VKNative.uploadTexture(context.handle, handle, x, y, width, height, pixels, pixels.position(), size)
+            return
+        }
+
+        val copy = directCopy?.takeIf { it.capacity() >= size }
+            ?: ByteBuffer.allocateDirect(size).order(ByteOrder.nativeOrder()).also { directCopy = it }
+        copy.clear()
+        copy.put(pixels.duplicate())
+        VKNative.uploadTexture(context.handle, handle, x, y, width, height, copy, 0, size)
+    }
+
+    override fun onUnload() {
+        if (handle != 0L) {
+            VKNative.destroyTexture(context.handle, handle)
+            handle = 0L
+        }
+    }
 }
 
 /**
  * An external texture of the Vulkan backend. Until video frames are imported (phase 6) it never has
- * a [surface], so producers don't play into it.
+ * a [surface], so producers don't play into it and its draws are skipped.
  */
 class VKExternalTexture(
     override val width: Float,

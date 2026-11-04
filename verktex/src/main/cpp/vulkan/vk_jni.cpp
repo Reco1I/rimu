@@ -102,6 +102,10 @@ JNIEXPORT void JNICALL VKNATIVE(submit)(JNIEnv *env, jclass, jlong handle, jobje
     context(handle)->submit(data, count);
 }
 
+JNIEXPORT void JNICALL VKNATIVE(present)(JNIEnv *, jclass, jlong handle) {
+    context(handle)->present();
+}
+
 JNIEXPORT jlong JNICALL VKNATIVE(createShaderModule)(JNIEnv *env, jclass, jlong handle, jbyteArray spirv) {
     jsize size = env->GetArrayLength(spirv);
 
@@ -117,22 +121,47 @@ JNIEXPORT void JNICALL VKNATIVE(destroyShaderModule)(JNIEnv *, jclass, jlong han
 }
 
 JNIEXPORT jlong JNICALL VKNATIVE(createPipeline)(JNIEnv *env, jclass, jlong handle, jlong vertex, jlong fragment,
-                                                jintArray vertexInput, jintArray blend) {
+                                                jintArray vertexInput, jintArray blend, jintArray depth) {
     jsize inputCount = env->GetArrayLength(vertexInput);
     jint *input = env->GetIntArrayElements(vertexInput, nullptr);
     jint *factors = env->GetIntArrayElements(blend, nullptr);
+    jint *depthState = env->GetIntArrayElements(depth, nullptr);
 
     VkPipeline pipeline = context(handle)->createPipeline(
             fromHandle<VkShaderModule>(vertex), fromHandle<VkShaderModule>(fragment),
-            input, inputCount, factors);
+            input, inputCount, factors, depthState);
 
     env->ReleaseIntArrayElements(vertexInput, input, JNI_ABORT);
     env->ReleaseIntArrayElements(blend, factors, JNI_ABORT);
+    env->ReleaseIntArrayElements(depth, depthState, JNI_ABORT);
     return toHandle(pipeline);
 }
 
 JNIEXPORT void JNICALL VKNATIVE(destroyPipeline)(JNIEnv *, jclass, jlong handle, jlong pipeline) {
     context(handle)->destroyPipeline(fromHandle<VkPipeline>(pipeline));
+}
+
+JNIEXPORT jlong JNICALL VKNATIVE(createTexture)(JNIEnv *, jclass, jlong handle, jint width, jint height) {
+    return reinterpret_cast<jlong>(context(handle)->createTexture(static_cast<uint32_t>(width), static_cast<uint32_t>(height)));
+}
+
+JNIEXPORT void JNICALL VKNATIVE(uploadTexture)(JNIEnv *env, jclass, jlong handle, jlong texture,
+                                              jint x, jint y, jint width, jint height,
+                                              jobject pixels, jint offset, jint size) {
+    auto *data = static_cast<const uint8_t *>(env->GetDirectBufferAddress(pixels));
+    if (data == nullptr) {
+        return;
+    }
+    context(handle)->uploadTexture(reinterpret_cast<verktex::Texture *>(texture), x, y, width, height,
+                                   data + offset, static_cast<size_t>(size));
+}
+
+JNIEXPORT void JNICALL VKNATIVE(destroyTexture)(JNIEnv *, jclass, jlong handle, jlong texture) {
+    context(handle)->destroyTexture(reinterpret_cast<verktex::Texture *>(texture));
+}
+
+JNIEXPORT jfloat JNICALL VKNATIVE(gpuTime)(JNIEnv *, jclass, jlong handle) {
+    return context(handle)->gpuTime();
 }
 
 } // extern "C"

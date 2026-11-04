@@ -34,7 +34,7 @@ class VKContext(
     val uniformRange = VKNative.uniformRange()
 
     /**
-     * The commands of the frame, submitted by [present].
+     * The commands of the frame, submitted by [submit].
      */
     val encoder = VKCommandEncoder()
 
@@ -44,7 +44,7 @@ class VKContext(
     var onRenderPassRecreated: (() -> Unit)? = null
 
     /**
-     * The ring of the frame being recorded, valid from [acquireFrame] to [present].
+     * The ring of the frame being recorded, valid from [acquireFrame] to [submit].
      */
     lateinit var ring: VKFrameRing
         private set
@@ -86,8 +86,15 @@ class VKContext(
         return true
     }
 
-    override fun present() {
+    /**
+     * Records the frame's commands and submits them to the GPU.
+     */
+    fun submit() {
         VKNative.submit(handle, encoder.buffer, encoder.size)
+    }
+
+    override fun present() {
+        VKNative.present(handle)
     }
 
     override fun destroy() {
