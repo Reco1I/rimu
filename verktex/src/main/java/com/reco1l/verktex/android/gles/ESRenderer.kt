@@ -1,9 +1,7 @@
 package com.reco1l.verktex.android.gles
 
 import android.opengl.GLES20
-import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Logger
-import com.reco1l.verktex.Platform
 import com.reco1l.verktex.android.AndroidWindow
 import com.reco1l.verktex.graphics.DrawCommand
 import com.reco1l.verktex.graphics.FramebufferOrigin
@@ -28,61 +26,7 @@ abstract class ESRenderer(
 
 
     init {
-        BuiltIn.Shaders.SolidQuad = createShader(
-            Platform.provider.createShaderSource(
-                vertexShaderPath = "verktex/shaders/main.vert",
-                fragmentShaderPath = "verktex/shaders/quad.frag",
-                isExternal = false
-            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/quad.frag and verktex/main.vert")
-        )
-
-        BuiltIn.Shaders.Color = createShader(
-            Platform.provider.createShaderSource(
-                vertexShaderPath = "verktex/shaders/main.vert",
-                fragmentShaderPath = "verktex/shaders/color.frag",
-                isExternal = false
-            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/color.frag and verktex/main.vert")
-        )
-
-        BuiltIn.Shaders.UI = createShader(
-            Platform.provider.createShaderSource(
-                vertexShaderPath = "verktex/shaders/ui.vert",
-                fragmentShaderPath = "verktex/shaders/ui.frag",
-                isExternal = false
-            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/ui.frag and verktex/ui.vert")
-        )
-
-        BuiltIn.Shaders.TextureQuad = createShader(
-            Platform.provider.createShaderSource(
-                vertexShaderPath = "verktex/shaders/main.vert",
-                fragmentShaderPath = "verktex/shaders/texture.frag",
-                isExternal = false
-            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/texture.frag and verktex/main.vert")
-        )
-
-        BuiltIn.Shaders.Video = createShader(
-            Platform.provider.createShaderSource(
-                vertexShaderPath = "verktex/shaders/main.vert",
-                fragmentShaderPath = "verktex/shaders/video.frag",
-                isExternal = false
-            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/video.frag and verktex/main.vert")
-        )
-
-        BuiltIn.Shaders.Blur = createShader(
-            Platform.provider.createShaderSource(
-                vertexShaderPath = "verktex/shaders/main.vert",
-                fragmentShaderPath = "verktex/shaders/blur.frag",
-                isExternal = false
-            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/blur.frag and verktex/main.vert")
-        )
-
-        BuiltIn.Shaders.Particle = createShader(
-            Platform.provider.createShaderSource(
-                vertexShaderPath = "verktex/shaders/particle.vert",
-                fragmentShaderPath = "verktex/shaders/particle.frag",
-                isExternal = false
-            ) ?: throw IllegalStateException("Failed to load built-in shader source: verktex/shaders/particle")
-        )
+        createBuiltInShaders()
 
         version = GLES20.glGetString(GLES20.GL_VERSION) ?: run {
             Logger.w("ESRenderer", "Couldn't retrieve OpenGL ES version.")

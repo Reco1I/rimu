@@ -227,6 +227,7 @@ dependencies {
     implementation 'commons-io:commons-io:2.18.0'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.14.1'
+    testImplementation project(':verktex-shadertools')
 
     // Multiplayer
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1'
@@ -246,4 +247,73 @@ dependencies {
     kapt "org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.10"
     implementation "androidx.room:room-ktx:$room_version"
     testImplementation "androidx.room:room-testing:$room_version"
+}
+
+
+// Vulkan shaders: the engine's GLSL ES shaders are translated and compiled to SPIR-V with the NDK's
+// glslc, and packaged next to them as <name>.spv. Without the NDK they are skipped with a warning.
+
+abstract class CompileVulkanShadersTask extends DefaultTask {
+
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract DirectoryProperty getShaderDirectory()
+
+    @Input
+    abstract Property<String> getGlslc()
+
+    @Classpath
+    abstract ConfigurableFileCollection getToolClasspath()
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+
+    @Inject
+    abstract ExecOperations getExecOperations()
+
+    @TaskAction
+    void compile() {
+        // The assets keep their path, the SPIR-V of verktex/shaders/main.vert is verktex/shaders/main.vert.spv.
+        def output = outputDirectory.get().dir('verktex/shaders').asFile
+
+        execOperations.javaexec {
+            it.classpath = toolClasspath
+            it.mainClass.set('com.reco1l.verktex.shaders.CompileVulkanShadersKt')
+            it.args(shaderDirectory.get().asFile.path, output.path, glslc.get())
+        }
+    }
+}
+
+configurations {
+    vulkanShaderTools {
+        canBeConsumed = false
+        canBeResolved = true
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+        }
+    }
+}
+
+dependencies {
+    vulkanShaderTools project(':verktex-shadertools')
+}
+
+def glslcHost = org.gradle.internal.os.OperatingSystem.current().with {
+    windows ? 'windows-x86_64' : macOsX ? 'darwin-x86_64' : 'linux-x86_64'
+}
+def glslcName = org.gradle.internal.os.OperatingSystem.current().windows ? 'glslc.exe' : 'glslc'
+
+def compileVulkanShaders = tasks.register('compileVulkanShaders', CompileVulkanShadersTask) {
+    shaderDirectory.set(layout.projectDirectory.dir('assets/verktex/shaders'))
+    toolClasspath.from(configurations.vulkanShaderTools)
+    outputDirectory.set(layout.buildDirectory.dir('generated/vulkanShaders'))
+    glslc.set(androidComponents.sdkComponents.ndkDirectory
+        .map { it.file("shader-tools/$glslcHost/$glslcName").asFile.path }
+        .orElse(''))
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(compileVulkanShaders) { it.outputDirectory }
+    }
 }

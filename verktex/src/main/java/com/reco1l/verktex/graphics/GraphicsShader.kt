@@ -23,8 +23,12 @@ abstract class GraphicsShader : GraphicsResource() {
 
     /**
      * Represents the source code of a shader program, including the vertex and fragment shader code.
+     *
+     * The sources are GLSL ES 3.00. A backend that can't compile GLSL at runtime (Vulkan) uses the
+     * SPIR-V compiled from them at build time instead, and derives their uniform layout from the GLSL
+     * with `GLSL450VulkanTranslator`, which the SPIR-V was translated with.
      */
-    data class Source(
+    class Source(
         /**
          * The source code of the vertex shader.
          */
@@ -34,6 +38,16 @@ abstract class GraphicsShader : GraphicsResource() {
          * The source code of the fragment shader.
          */
         val fragment: String,
+
+        /**
+         * The SPIR-V of [vertex] for Vulkan, null when it wasn't compiled (e.g. built without the NDK).
+         */
+        val spirvVertex: ByteArray? = null,
+
+        /**
+         * The SPIR-V of [fragment] for Vulkan, null when it wasn't compiled.
+         */
+        val spirvFragment: ByteArray? = null,
     )
 
     /**

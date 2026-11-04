@@ -35,6 +35,9 @@ dependencies {
 
     implementation(project(":LibBASS"))
 
+    // Shader translation and uniform layouts, shared with the build that compiles the Vulkan shaders.
+    implementation(project(":verktex-shadertools"))
+
     //implementation("com.google.android.material:material:1.14.0")
     testImplementation("junit:junit:4.13.2")
     //androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

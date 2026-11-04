@@ -7,6 +7,7 @@ import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.PerformanceStats
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.fonts.Font
 import com.reco1l.verktex.math.toRadians
 import kotlin.math.abs
@@ -435,6 +436,18 @@ abstract class GraphicsRenderer {
         val shader = device.createShader(shaderSource)
         registerResource(shader)
         return shader
+    }
+
+    /**
+     * Creates every shader of [BuiltIn.Shaders.Programs] and stores it in its property.
+     */
+    protected fun createBuiltInShaders() {
+        for (program in BuiltIn.Shaders.Programs) {
+            val source = Platform.provider.createShaderSource(program.vertexPath, program.fragmentPath, isExternal = false)
+                ?: throw IllegalStateException("Failed to load the built-in shader ${program.vertexPath} + ${program.fragmentPath}")
+
+            program.store(createShader(source))
+        }
     }
 
     /**

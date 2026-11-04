@@ -49,6 +49,29 @@ object BuiltIn {
          * A shader for rendering particles, see [com.reco1l.verktex.ui.UIParticleSystem].
          */
         lateinit var Particle: GraphicsShader
+
+
+        /**
+         * The sources of a built-in shader in the assets and the property it's stored in once created.
+         */
+        class Program(
+            val vertexPath: String,
+            val fragmentPath: String,
+            internal val store: (GraphicsShader) -> Unit,
+        )
+
+        /**
+         * Every built-in shader, created by the renderer with `GraphicsRenderer.createBuiltInShaders`.
+         */
+        val Programs = listOf(
+            Program("verktex/shaders/main.vert", "verktex/shaders/quad.frag") { SolidQuad = it },
+            Program("verktex/shaders/main.vert", "verktex/shaders/color.frag") { Color = it },
+            Program("verktex/shaders/ui.vert", "verktex/shaders/ui.frag") { UI = it },
+            Program("verktex/shaders/main.vert", "verktex/shaders/texture.frag") { TextureQuad = it },
+            Program("verktex/shaders/main.vert", "verktex/shaders/video.frag") { Video = it },
+            Program("verktex/shaders/main.vert", "verktex/shaders/blur.frag") { Blur = it },
+            Program("verktex/shaders/particle.vert", "verktex/shaders/particle.frag") { Particle = it },
+        )
     }
 
     /**

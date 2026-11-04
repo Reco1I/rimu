@@ -98,7 +98,12 @@ class AndroidProvider(private val context: android.content.Context) : Provider {
             val fragmentShader = openFile(fragmentShaderPath, isExternal)?.bufferedReader().use { it?.readText() }
 
             if (vertexShader != null && fragmentShader != null) {
-                GraphicsShader.Source(vertexShader, fragmentShader)
+                GraphicsShader.Source(
+                    vertexShader,
+                    fragmentShader,
+                    spirvVertex = readSpirv(vertexShaderPath, isExternal),
+                    spirvFragment = readSpirv(fragmentShaderPath, isExternal)
+                )
             } else {
                 null
             }
@@ -106,6 +111,13 @@ class AndroidProvider(private val context: android.content.Context) : Provider {
             e.printStackTrace()
             null
         }
+    }
+
+    // The SPIR-V the build compiled next to a shader, see GraphicsShader.Source.
+    private fun readSpirv(shaderPath: String, isExternal: Boolean): ByteArray? {
+        val path = "$shaderPath.spv"
+        if (!exists(path, isExternal)) return null
+        return openFile(path, isExternal)?.use { it.readBytes() }
     }
 
     override fun createAudioSampleSource(path: String, isExternal: Boolean): AudioSample.Source {
