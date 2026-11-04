@@ -21,7 +21,9 @@ import com.reco1l.verktex.testing.column
 import com.reco1l.verktex.testing.section
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.textButton
+import com.osudroid.ui.v2.test.GameplayObjectHarness.Play
 import kotlin.reflect.full.createInstance
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
@@ -43,6 +45,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
     init {
         test("Gameplay circles") {
             val harness = GameplayObjectHarness(this)
+            harness.playButton(Play.Autoplay, Play.Miss)
             var index = 0
 
             harness.loop { startTime ->
@@ -57,6 +60,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
 
         test("Sliders") {
             val harness = GameplayObjectHarness(this)
+            harness.playButton(Play.Autoplay, Play.Miss)
             var index = 0
 
             harness.loop { startTime ->
@@ -102,11 +106,14 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                 spinner to gameplaySpinner
             }
 
+            harness.playButton(Play.Autoplay, Play.Spin, Play.Miss)
+
             textButton {
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
                 x = (-16f).dip
-                y = 16f.dip
+                y = 72f.dip
+                variant = UIButton.Variant.Surface
                 text = styleName(isModern)
                 onActionUp = {
                     isModern = !isModern
