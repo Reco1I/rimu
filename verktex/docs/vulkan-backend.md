@@ -19,10 +19,12 @@ often poor), NDK 22.1.7171670 (ships Vulkan headers, `libvulkan.so` and `glslc` 
   `GraphicsShader`, `GraphicsTexture`, `GraphicsResource`, `DrawCommand`, `VertexLayout`,
   `BlendMode`, `DepthState`, `GraphicsBackend` (enum stored in settings).
 - `verktex/.../android/gles/` — `ESRenderer` (+ `es2/ES2Renderer`, `es3/ES3Renderer`),
-  `ESCommandExecutor` (+ ES2/ES3 variants), `ESContext` (EGL), `ESWindow` (the `SurfaceView`),
+  `ESCommandExecutor` (+ ES2/ES3 variants), `ESContext` (EGL),
   `ESDevice`, `ESBuffer`, `ESShader`, `ESTexture`, `ESExternalTexture` (SurfaceTexture/OES),
   `ES3GpuTimer`, `es2/GLSLES100Translator` (GLSL ES 3.00 → 1.00, tested in
   `tests/test/kotlin/com/osudroid/verktex/GLSLES100TranslatorTest.kt`).
+- Shared Android types: `android/AndroidWindow` (the `SurfaceView`), `android/AndroidExternalTexture`
+  (what video producers see of an external texture).
 - Backend selection: `verktex/.../android/Android.kt` (`initializeAndroid`), setting in
   `src/com/osudroid/ui/v2/settings/SettingsSections.kt` and read in
   `src/ru/nsu/ccfit/zuev/osu/MainActivity.java`.
@@ -105,7 +107,11 @@ offset), handles `clearDepth` with `vkCmdClearAttachments` and `captureTexture` 
 render pass, then blit to the swapchain image and present.
 
 ## Roadmap (each phase is a separately mergeable PR; phases 1–3 keep GL as the only backend)
-1. **Neutralize resource contracts (GL only, no behavior change).**
+1. **Neutralize resource contracts (GL only, no behavior change).** ✅ Done:
+   `Source.writePixels(PixelTarget, x, y)` + `GraphicsTexture.onWritePixels`/`flushUploads`,
+   `graphics/DefaultUniforms`, `AndroidWindow` + `GraphicsContext.acquireFrame/present`,
+   `AndroidExternalTexture`, `GraphicsRenderer.capturesBottomUp`. Gaps 1, 2, 7 (API side) and 8
+   are closed; for gap 4 only the default uniforms moved, the reflection is phase 3.
    - Replace `Source.uploadToHardware(x, y)` with a pixel-providing API (e.g.
      `writePixels(target: ByteBuffer)` / `pixelFormat`), moving the GL upload into `ESTexture`.
      Keep the unpremultiply/pack logic of `AndroidTextureSource` (it's backend-neutral) and its tests.
