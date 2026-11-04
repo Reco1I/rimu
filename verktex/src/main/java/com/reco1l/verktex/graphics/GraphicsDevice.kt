@@ -42,7 +42,13 @@ interface GraphicsDevice {
         /**
          * The maximum texture size supported by the device's graphics hardware.
          */
-        val maxTextureSize: Float
+        val maxTextureSize: Float,
+
+        /**
+         * Whether external textures (video frames, see [createExternalTexture]) are shown. When they
+         * aren't, they never get a surface to be fed through and callers should leave videos out.
+         */
+        val supportsExternalTextures: Boolean = true,
     )
 
 }

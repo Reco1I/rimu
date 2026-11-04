@@ -4,6 +4,7 @@
 #include "vk_context.h"
 
 #include <android/native_window_jni.h>
+#include <dlfcn.h>
 #include <jni.h>
 
 #include <string>
@@ -30,6 +31,15 @@ jlong toHandle(T value) {
 template<typename T>
 T fromHandle(jlong value) {
     return (T) static_cast<uint64_t>(value);
+}
+
+// From API 26, the minimum SDK is 24: looked up at runtime.
+using FromHardwareBuffer = AHardwareBuffer *(*)(JNIEnv *, jobject);
+
+FromHardwareBuffer fromHardwareBuffer() {
+    static auto function = reinterpret_cast<FromHardwareBuffer>(
+            dlsym(dlopen("libandroid.so", RTLD_NOW), "AHardwareBuffer_fromHardwareBuffer"));
+    return function;
 }
 
 } // namespace
@@ -121,7 +131,7 @@ JNIEXPORT void JNICALL VKNATIVE(destroyShaderModule)(JNIEnv *, jclass, jlong han
 }
 
 JNIEXPORT jlong JNICALL VKNATIVE(createPipeline)(JNIEnv *env, jclass, jlong handle, jlong vertex, jlong fragment,
-                                                jintArray vertexInput, jintArray blend, jintArray depth) {
+                                                jintArray vertexInput, jintArray blend, jintArray depth, jlong ycbcr) {
     jsize inputCount = env->GetArrayLength(vertexInput);
     jint *input = env->GetIntArrayElements(vertexInput, nullptr);
     jint *factors = env->GetIntArrayElements(blend, nullptr);
@@ -129,7 +139,7 @@ JNIEXPORT jlong JNICALL VKNATIVE(createPipeline)(JNIEnv *env, jclass, jlong hand
 
     VkPipeline pipeline = context(handle)->createPipeline(
             fromHandle<VkShaderModule>(vertex), fromHandle<VkShaderModule>(fragment),
-            input, inputCount, factors, depthState);
+            input, inputCount, factors, depthState, reinterpret_cast<verktex::YcbcrSampler *>(ycbcr));
 
     env->ReleaseIntArrayElements(vertexInput, input, JNI_ABORT);
     env->ReleaseIntArrayElements(blend, factors, JNI_ABORT);
@@ -158,6 +168,31 @@ JNIEXPORT void JNICALL VKNATIVE(uploadTexture)(JNIEnv *env, jclass, jlong handle
 
 JNIEXPORT void JNICALL VKNATIVE(destroyTexture)(JNIEnv *, jclass, jlong handle, jlong texture) {
     context(handle)->destroyTexture(reinterpret_cast<verktex::Texture *>(texture));
+}
+
+JNIEXPORT jboolean JNICALL VKNATIVE(supportsExternalTextures)(JNIEnv *, jclass, jlong handle) {
+    return context(handle)->supportsExternalTextures() && fromHardwareBuffer() != nullptr ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jlong JNICALL VKNATIVE(importHardwareBuffer)(JNIEnv *env, jclass, jlong handle, jobject hardwareBuffer) {
+    auto from = fromHardwareBuffer();
+    if (from == nullptr) {
+        return 0;
+    }
+    // The import takes its own reference, the Java object can be closed afterwards.
+    return reinterpret_cast<jlong>(context(handle)->importHardwareBuffer(from(env, hardwareBuffer)));
+}
+
+JNIEXPORT jlong JNICALL VKNATIVE(textureYcbcrSampler)(JNIEnv *, jclass, jlong, jlong texture) {
+    return reinterpret_cast<jlong>(reinterpret_cast<verktex::Texture *>(texture)->ycbcr);
+}
+
+JNIEXPORT jlong JNICALL VKNATIVE(submissionCount)(JNIEnv *, jclass, jlong handle) {
+    return static_cast<jlong>(context(handle)->submissionCount());
+}
+
+JNIEXPORT jlong JNICALL VKNATIVE(completedSubmissionCount)(JNIEnv *, jclass, jlong handle) {
+    return static_cast<jlong>(context(handle)->completedSubmissionCount());
 }
 
 JNIEXPORT jfloat JNICALL VKNATIVE(gpuTime)(JNIEnv *, jclass, jlong handle) {

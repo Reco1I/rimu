@@ -169,7 +169,20 @@ render pass, then blit to the swapchain image and present.
    slightly higher on the main menu (13.6 vs 12.2 ms), worth investigating (render pass ops,
    pre-rotation); ES3's timer gives impossible values on the mod menu, so it can't be compared there.
    Not yet rerun under the validation layer.
-6. **Video.** `VKExternalTexture` via `ImageReader` + AHB + YCbCr sampler (API 26+, extension required); where unsupported, report it through `Capabilities` and let callers degrade (no video background).
+6. **Video.** ✅ Done. `VKExternalTexture` owns an `ImageReader` (`PRIVATE`, GPU sampled usage,
+   so Android 10+) whose surface the player draws into. Each new frame's `AHardwareBuffer` is
+   imported as an image of its own (dedicated memory, `PREINITIALIZED`, acquired from
+   `VK_QUEUE_FAMILY_FOREIGN_EXT`) and sampled through a `VkSamplerYcbcrConversion` made from the
+   buffer's suggested format. The conversion is an immutable sampler, so it has its own set and
+   pipeline layout, and `VKPipelineKey` includes it. A replaced frame's image is destroyed, and its
+   `Image` closed (returning the buffer to the decoder), once the submissions that sampled it
+   completed. The crop rectangle goes into the texture transform. Needs Vulkan 1.1,
+   `VK_ANDROID_external_memory_android_hardware_buffer`, `VK_EXT_queue_family_foreign` and the
+   `samplerYcbcrConversion` feature; otherwise `Capabilities.supportsExternalTextures` is false and
+   `GameScene` leaves the video out. The UI test `osu!/Video` plays the first beatmap video found.
+   Verified on the Adreno 610 (external format, no drops at 24 fps, matching colors with ES3).
+   Not done: waiting on the producer's acquire fence (`Image.getFence`, API 33), a validation run,
+   and keeping imports of recycled buffers instead of importing every frame.
 7. **Ship.** Settings entry + `DevicePerfomanceUtils` check, `Auto` stays GL until Vulkan is proven; consider enabling Vulkan for `Auto` only on API ≥ 29 with Vulkan 1.1 after field testing.
 
 ## Risks

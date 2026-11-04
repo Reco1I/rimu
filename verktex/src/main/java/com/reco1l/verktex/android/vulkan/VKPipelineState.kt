@@ -18,6 +18,11 @@ data class VKPipelineKey(
     val instanceLayout: VertexLayout?,
     val blendMode: BlendMode,
     val depthState: DepthState,
+
+    /**
+     * The YCbCr sampler of the video frames the pipeline samples, 0 for regular textures.
+     */
+    val ycbcrSampler: Long = 0L,
 ) {
     override fun equals(other: Any?): Boolean {
         return other is VKPipelineKey &&
@@ -25,7 +30,8 @@ data class VKPipelineKey(
             other.vertexLayout === vertexLayout &&
             other.instanceLayout === instanceLayout &&
             other.blendMode == blendMode &&
-            other.depthState == depthState
+            other.depthState == depthState &&
+            other.ycbcrSampler == ycbcrSampler
     }
 
     override fun hashCode(): Int {
@@ -34,6 +40,7 @@ data class VKPipelineKey(
         result = 31 * result + System.identityHashCode(instanceLayout)
         result = 31 * result + blendMode.hashCode()
         result = 31 * result + depthState.hashCode()
+        result = 31 * result + ycbcrSampler.hashCode()
         return result
     }
 }

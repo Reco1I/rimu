@@ -75,9 +75,10 @@ internal object VKNative {
      * Creates a pipeline for the render passes. [vertexInput] is the binding count, the stride and input
      * rate of each, the attribute count and the location, binding, VkFormat and offset of each.
      * [blend] holds the VkBlendFactors of source and destination RGB, then of source and destination
-     * alpha. [depth] holds whether the test and writes are enabled, then the VkCompareOp.
+     * alpha. [depth] holds whether the test and writes are enabled, then the VkCompareOp. [ycbcrSampler]
+     * is the sampler of the video frames the pipeline samples (see [textureYcbcrSampler]), 0 otherwise.
      */
-    @JvmStatic external fun createPipeline(context: Long, vertexModule: Long, fragmentModule: Long, vertexInput: IntArray, blend: IntArray, depth: IntArray): Long
+    @JvmStatic external fun createPipeline(context: Long, vertexModule: Long, fragmentModule: Long, vertexInput: IntArray, blend: IntArray, depth: IntArray, ycbcrSampler: Long): Long
 
     /**
      * Destroys the pipeline once the frames using it are done.
@@ -99,6 +100,28 @@ internal object VKNative {
      * Destroys the texture once the frames using it are done. Any thread.
      */
     @JvmStatic external fun destroyTexture(context: Long, texture: Long)
+
+    /**
+     * Whether video frames can be imported with [importHardwareBuffer].
+     */
+    @JvmStatic external fun supportsExternalTextures(context: Long): Boolean
+
+    /**
+     * Imports a video frame as a texture, acquired from its producer before the next frame draws, 0
+     * when it can't be. It keeps its own reference to the buffer. Destroy it with [destroyTexture].
+     */
+    @JvmStatic external fun importHardwareBuffer(context: Long, hardwareBuffer: android.hardware.HardwareBuffer): Long
+
+    /**
+     * The YCbCr sampler an imported frame is sampled with, 0 for none. Pipelines sampling it are made for it.
+     */
+    @JvmStatic external fun textureYcbcrSampler(context: Long, texture: Long): Long
+
+    /**
+     * The frames submitted so far, and how many of them the GPU completed.
+     */
+    @JvmStatic external fun submissionCount(context: Long): Long
+    @JvmStatic external fun completedSubmissionCount(context: Long): Long
 
     /**
      * Milliseconds the GPU took for the last measured frame, -1 when unknown.
