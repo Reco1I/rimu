@@ -22,8 +22,9 @@ import com.reco1l.verktex.ui.text.spans
 import kotlin.math.min
 
 /**
- * Shows the frame rate and frame time in one line in the bottom right corner, pressing it shows a
- * panel with the draw and update times, their breakdown and a graph of the last frame times.
+ * Shows the frame rate, frame time and graphics backend in one line in the bottom right corner,
+ * pressing it shows a panel with the draw and update times, their breakdown and a graph of the last
+ * frame times.
  * Enabled with the `ShowPerformanceOverlay` setting, drawn above everything else.
  */
 class UIPerformanceOverlay : UIClickableContainer() {
@@ -59,6 +60,10 @@ class UIPerformanceOverlay : UIClickableContainer() {
     private val layoutTimeText = statValue()
     private val recordTimeText = statValue()
     private val submitTimeText = statValue()
+    private val backendText = statValue()
+
+    // Fixed once the engine is initialized.
+    private val backendName by lazy { Verktex.graphics.backend?.displayName ?: "Unknown" }
 
     private val panel = UILinearContainer()
 
@@ -158,6 +163,7 @@ class UIPerformanceOverlay : UIClickableContainer() {
                 spacing = STAT_SPACING.dip
 
                 +stat("DRAW CALLS", drawCallsText)
+                +stat("BACKEND", backendText)
             }
         }
     }
@@ -200,7 +206,7 @@ class UIPerformanceOverlay : UIClickableContainer() {
             if (!isExpanded) {
                 summaryText.spans {
                     color(fpsColor) { bold { +"%.0f FPS".format(fps) } }
-                    color(SECONDARY_TEXT_COLOR) { +"  %.1f ms".format(PerformanceStats.frameTime) }
+                    color(SECONDARY_TEXT_COLOR) { +"  %.1f ms  ·  %s".format(PerformanceStats.frameTime, backendName) }
                 }
                 super.onUpdate(clock)
                 return
@@ -217,6 +223,7 @@ class UIPerformanceOverlay : UIClickableContainer() {
             layoutTimeText.text = "%.2f ms".format(PerformanceStats.layoutTime)
             recordTimeText.text = "%.2f ms".format(PerformanceStats.recordTime)
             submitTimeText.text = "%.2f ms".format(PerformanceStats.submitTime)
+            backendText.text = backendName
         }
 
         super.onUpdate(clock)

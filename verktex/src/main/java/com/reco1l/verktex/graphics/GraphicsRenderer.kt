@@ -40,6 +40,13 @@ abstract class GraphicsRenderer {
 
 
     /**
+     * The backend the renderer draws with, null for one that isn't a [GraphicsBackend] (e.g. in tests).
+     * It's the one actually used: when Vulkan can't be used, the OpenGL ES one it fell back to.
+     */
+    open val backend: GraphicsBackend?
+        get() = null
+
+    /**
      * The version of the graphics API being used by the renderer.
      */
     abstract var version: String
