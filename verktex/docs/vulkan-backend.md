@@ -39,7 +39,7 @@ often poor), NDK 22.1.7171670 (ships Vulkan headers, `libvulkan.so` and `glslc` 
 |---|-----|-------|----------------------|
 | 1 | **Texture uploads are done by the source**, `GraphicsTexture.Source.uploadToHardware(x, y)` | `GraphicsTexture.kt`, `AndroidTextureSource.kt` (calls `GLUtils.texSubImage2D` / `glTexSubImage2D`), `FramedTextureRegion.kt`, `AndroidFont.kt` (glyphs), `UICaptureContainer.CaptureSource` | Vulkan needs a staging buffer copy + image layout transitions recorded in a command buffer. The source must *provide pixels*, the backend texture must upload them. |
 | 2 | **Immediate bind semantics**, `GraphicsResource.bind()` = load + bind + (for textures) flush pending uploads | `GraphicsResource.kt`, `GraphicsTexture.onBind` | Vulkan has no bound state; "bind" becomes "make sure it's resident and pick its descriptor". Uploads must happen before the render pass, not mid-pass. |
-| 3 | **Buffer lifetime across frames** — `GraphicsRenderer.bufferPool` reuses buffers every frame; `uploadDataToGPU()` overwrites in place | `GraphicsRenderer.kt`, `ESBuffer.kt` | GL drivers orphan implicitly; with 2–3 Vulkan frames in flight, overwriting a buffer still read by the GPU corrupts draws. Needs per-frame ring (linear) allocation. |
+| 3 | **Buffer lifetime across frames** (✅ phase 2) — `GraphicsRenderer.bufferPool` reuses buffers every frame; `uploadDataToGPU()` overwrites in place | `GraphicsRenderer.kt`, `ESBuffer.kt` | GL drivers orphan implicitly; with 2–3 Vulkan frames in flight, overwriting a buffer still read by the GPU corrupts draws. Needs per-frame ring (linear) allocation. |
 | 4 | **Name-based loose uniforms** (`UniformSet` of `String → Any`, defaults like `uViewportSize`, `uColor`, `uTransform` injected in `ESCommandExecutor.defaultUniforms`) | `GraphicsShader.kt`, `ESShader.applyUniform`, `ESCommandExecutor` | Vulkan has only UBOs / push constants. Needs reflection (name → offset/type) and packing into a per-draw dynamic UBO slice. The default-uniform logic is backend-agnostic and should move up to common code. |
 | 5 | **Pipeline state is set piecemeal** (blend, depth, attributes) | `ESCommandExecutor.execute` | Vulkan bakes blend, depth, vertex input and topology into a `VkPipeline`. Needs a pipeline cache keyed by (shader, `VertexLayout`, `BlendMode`, `DepthState`, render pass/format). `DrawCommand` already has all the inputs. |
 | 6 | **Framebuffer capture mid-frame** with `glCopyTexSubImage2D` (bottom-left origin) | `DrawCommand.captureTexture`, `ESCommandExecutor`, `UICaptureContainer` | Requires ending the render pass, copying, and resuming. Easiest if Vulkan always renders to an offscreen color image and blits/draws it to the swapchain at the end. The capture's origin convention must be made explicit (GL is bottom-left, Vulkan top-left) so `UICaptureContainer`'s UVs stay correct. |
@@ -121,7 +121,13 @@ render pass, then blit to the swapchain image and present.
    - Make external textures expose only `surface` + frame callback.
    - Make the `captureTexture` origin explicit in `DrawCommand`/`UICaptureContainer`.
    - Verify: `./gradlew test`, `./gradlew :verktex:testDebugUnitTest`, ES2 and ES3 visual checks in `OsuUITestActivity`.
-2. **Buffer lifetime.** Introduce a per-frame "transient" contract for `GraphicsRenderer.bufferPool` buffers (valid until the frame ends) so a ring allocator can implement them; GL keeps its current `ESBuffer`.
+2. **Buffer lifetime.** ✅ Done: the CPU-side storage (`words`/`wordCount`, `put*`) moved from
+   `ESBuffer` into `GraphicsBuffer`, so a `VKBuffer` only copies `words` into its frame's ring in
+   `uploadDataToGPU`. The lifetime is documented on `GraphicsBuffer`: a buffer used by a recorded
+   draw keeps its data until the frame is executed, then may be rewritten at once, and the backend
+   keeps in-flight copies valid. The renderer marks recorded buffers and `clear()` warns on a
+   violation (`BufferLifetimeTest`). Static buffers (the particle quad) are re-uploaded every frame;
+   a `Static` usage that Vulkan keeps device-local is a later optimization.
 3. **Shader tooling.** `GLSL450VulkanTranslator` + JVM unit tests (pattern of `GLSLES100TranslatorTest`), Gradle SPIR-V task, reflection JSON, `GraphicsShader.Source` extension.
 4. **Vulkan bring-up.** CMake/JNI module, instance/device/swapchain, `VKContext`, `GraphicsBackend.Vulkan`, fallback chain in `Android.kt`, solid-color quads only (`SolidQuad`, `Color`).
 5. **Feature parity.** Textures + uploads, UI shader/`VertexLayout.UI`, quads index buffer, instancing (particles), depth state & clears, scissor, blend modes, capture/blur, timestamps → `PerformanceStats.gpuTime`, capabilities.

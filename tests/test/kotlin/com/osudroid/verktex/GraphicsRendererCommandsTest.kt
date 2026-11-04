@@ -27,13 +27,6 @@ import org.junit.Test
 class GraphicsRendererCommandsTest {
 
     private class FakeBuffer : GraphicsBuffer() {
-        override val capacity get() = Int.MAX_VALUE
-        override var position = 0
-        val floats = mutableListOf<Float>()
-        override fun clear() { position = 0; floats.clear() }
-        override fun requireCapacity(requiredBytes: Int) = Unit
-        override fun putFloat(float: Float) { position += 4; floats += float }
-        override fun putByte(byte: Byte) { position += 1 }
         override fun uploadDataToGPU() = Unit
         override fun onBind() = Unit
         override fun onLoad() = Unit
@@ -89,8 +82,10 @@ class GraphicsRendererCommandsTest {
 
     private val solidQuad = FakeShader()
     private val video = FakeShader()
+    private val ui = FakeShader()
     private var previousSolidQuad: GraphicsShader? = null
     private var previousVideo: GraphicsShader? = null
+    private var previousUI: GraphicsShader? = null
 
     @Before
     fun setUp() {
@@ -99,12 +94,15 @@ class GraphicsRendererCommandsTest {
         BuiltIn.Shaders.SolidQuad = solidQuad
         previousVideo = try { BuiltIn.Shaders.Video } catch (_: UninitializedPropertyAccessException) { null }
         BuiltIn.Shaders.Video = video
+        previousUI = try { BuiltIn.Shaders.UI } catch (_: UninitializedPropertyAccessException) { null }
+        BuiltIn.Shaders.UI = ui
     }
 
     @After
     fun tearDown() {
         previousSolidQuad?.let { BuiltIn.Shaders.SolidQuad = it }
         previousVideo?.let { BuiltIn.Shaders.Video = it }
+        previousUI?.let { BuiltIn.Shaders.UI = it }
     }
 
     @Test
@@ -128,8 +126,9 @@ class GraphicsRendererCommandsTest {
 
         // The draw after the clear was not merged back into the first command.
         assertNotSame(commands[0].buffer, commands[2].buffer)
-        assertEquals(VERTICES_PER_RECT * GraphicsRenderer.VERTEX_2D_STRIDE, commands[0].buffer!!.position)
-        assertEquals(VERTICES_PER_RECT * GraphicsRenderer.VERTEX_2D_STRIDE, commands[2].buffer!!.position)
+        // A rect is one quad of the UI layout.
+        assertEquals(4 * GraphicsRenderer.UI_VERTEX_STRIDE, commands[0].buffer!!.position)
+        assertEquals(4 * GraphicsRenderer.UI_VERTEX_STRIDE, commands[2].buffer!!.position)
     }
 
     @Test
@@ -171,13 +170,16 @@ class GraphicsRendererCommandsTest {
 
         assertEquals(1, renderer.commands.size)
 
-        val buffer = renderer.commands[0].buffer as FakeBuffer
+        val buffer = renderer.commands[0].buffer!!
         assertEquals(3 * GraphicsRenderer.VERTEX_2D_STRIDE, buffer.position)
 
-        // Every vertex writes x, y, u and v as floats, the pushed matrix is applied to the positions.
-        val positions = buffer.floats.chunked(4).map { (x, y) -> x to y }
+        // Every vertex writes x, y, u and v as floats and a packed color, the pushed matrix is applied to the positions.
+        val written = buffer.words.copyOf(buffer.wordCount).toList().chunked(5).map { vertex ->
+            vertex.take(4).map(java.lang.Float::intBitsToFloat)
+        }
+        val positions = written.map { (x, y) -> x to y }
         assertEquals(listOf(5f to 7f, 25f to 7f, 5f to 27f), positions)
-        assertTrue(buffer.floats.chunked(4).all { it[2] == 0.5f && it[3] == 0.5f })
+        assertTrue(written.all { it[2] == 0.5f && it[3] == 0.5f })
     }
 
     @Test
