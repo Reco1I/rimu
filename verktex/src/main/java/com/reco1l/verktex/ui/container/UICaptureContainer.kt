@@ -150,12 +150,11 @@ open class UICaptureContainer : UIIgnoreParentPaddingContainer() {
             y = 0f,
             width = bounds.width,
             height = bounds.height,
-            // The framebuffer starts at the bottom.
             uv = Vec4(
                 sceneRect[0] / texture.width,
-                1f - sceneRect[1] / texture.height,
+                renderer.captureV(sceneRect[1] / texture.height),
                 sceneRect[2] / texture.width,
-                1f - sceneRect[3] / texture.height
+                renderer.captureV(sceneRect[3] / texture.height)
             )
         )
         renderer.popBlendMode()
@@ -177,8 +176,7 @@ open class UICaptureContainer : UIIgnoreParentPaddingContainer() {
             y = 0f,
             width = texture.width,
             height = texture.height,
-            // The framebuffer starts at the bottom.
-            uv = Vec4(0f, 1f, 1f, 0f)
+            uv = Vec4(0f, renderer.captureV(0f), 1f, renderer.captureV(1f))
         )
         renderer.popBlendMode()
     }
@@ -221,17 +219,23 @@ open class UICaptureContainer : UIIgnoreParentPaddingContainer() {
         val width = texture.width
         val height = texture.height
 
-        // The window, the framebuffer starts at the bottom.
-        drawGeometry { _, _ ->
-            addVertex(0f, 0f, 0f, 1f, Color4.White)
-            addVertex(width, 0f, 1f, 1f, Color4.White)
-            addVertex(width, height, 1f, 0f, Color4.White)
+        val top = captureV(0f)
+        val bottom = captureV(1f)
 
-            addVertex(0f, 0f, 0f, 1f, Color4.White)
-            addVertex(width, height, 1f, 0f, Color4.White)
-            addVertex(0f, height, 0f, 0f, Color4.White)
+        // The window.
+        drawGeometry { _, _ ->
+            addVertex(0f, 0f, 0f, top, Color4.White)
+            addVertex(width, 0f, 1f, top, Color4.White)
+            addVertex(width, height, 1f, bottom, Color4.White)
+
+            addVertex(0f, 0f, 0f, top, Color4.White)
+            addVertex(width, height, 1f, bottom, Color4.White)
+            addVertex(0f, height, 0f, bottom, Color4.White)
         }
     }
+
+    // The v of the capture for a v going down the window, the capture may be stored upside down.
+    private fun GraphicsRenderer.captureV(v: Float) = if (capturesBottomUp) 1f - v else v
 
     override fun onInputEvent(event: InputEvent): Boolean {
         if (super.onInputEvent(event)) {
