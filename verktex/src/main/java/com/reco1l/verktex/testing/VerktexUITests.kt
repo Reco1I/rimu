@@ -274,6 +274,18 @@ object VerktexUITests : UITestSuite("Verktex") {
                         width = 300f.dip
                         onValueChange = { log("Input: $it") }
                     }
+                    textInput {
+                        width = 300f.dip
+                        placeholder = "Search..."
+                        trailingIcon = faSolidIcon(FAIcon.MagnifyingGlass)
+                        onValueChange = { log("Search: $it") }
+                    }
+                    textInput {
+                        width = 300f.dip
+                        placeholder = "Username"
+                        leadingIcon = faSolidIcon(FAIcon.User)
+                        trailingIcon = faSolidIcon(FAIcon.Xmark)
+                    }
                 }
 
                 section("Select") {
