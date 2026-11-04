@@ -29,6 +29,7 @@ import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.textButton
+import java.io.IOException
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
@@ -436,7 +437,14 @@ object SongSelect : UIScene() {
             currentCalculationJob = beatmapLoadingScope.launch calculationJob@{
 
                 ensureActive()
-                val data = BeatmapParser(beatmapInfo.path, this@calculationJob).parse(true)
+                // A beatmap whose file was removed or can't be read only shows what the database has.
+                val data = try {
+                    BeatmapParser(beatmapInfo.path, this@calculationJob).parse(true)
+                } catch (e: IOException) {
+                    null
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
 
                 if (data == null) {
                     ensureActive()
