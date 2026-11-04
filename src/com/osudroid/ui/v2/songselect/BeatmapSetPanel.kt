@@ -132,14 +132,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
                 onActionLongPress = { beatmapCarrousel.onBeatmapSetLongPress?.invoke(this@BeatmapSetPanel) }
-                onActionUp = {
-                    // This will prevent race condition, during transition panelsContainer might
-                    // get cleared and since the select() method is based on beatmap indices
-                    // it might fail to find the corresponding BeatmapPanel causing a IOOBE.
-                    if (!isTransitioning) {
-                        select()
-                    }
-                }
+                onActionUp = { select() }
                 style = Style { theme ->
                     borderColor = theme.palette.accent.copy(alpha = 0.3f)
                     borderWidth = BORDER_WIDTH.dip
@@ -209,7 +202,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
     fun select(beatmapIndex: Int = 0) {
         beatmapCarrousel.selectedPanel = this
-        selectedPanel = panelsContainer[beatmapIndex] as BeatmapPanel
+        selectedPanel = panelsContainer[beatmapIndex.coerceIn(0, panelsContainer.childCount - 1)] as BeatmapPanel
     }
 
     /**
@@ -242,7 +235,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         button.apply {
             borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
             borderWidth = buttonBorderWidth.px
-            shadow = if (buttonGlow > 0f) Shadow(accent.copy(alpha = GLOW_ALPHA * buttonGlow), blur = GLOW_BLUR.dip) else null
+            shadow = if (buttonGlow > 0f) Shadow(accent.copy(alpha = GLOW_ALPHA * buttonGlow), blur = GLOW_BLUR.dip, cutout = true) else null
         }
         updateTranslation()
 
@@ -282,6 +275,9 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
         if (!isExpanded) {
             isExpanded = true
+
+            // The difficulties of a collapse that didn't finish yet.
+            panelsContainer.clearChildren()
 
             data.beatmapSetInfo.beatmaps.sortedBy { it.getStarRating() }.forEach {
                 panelsContainer += BeatmapPanel(this@BeatmapSetPanel, it)

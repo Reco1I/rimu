@@ -28,7 +28,14 @@ fun FrameClock.interpolateFloat(duration: Float, start: Float, end: Float): Floa
 //region Color
 
 fun FrameClock.interpolateColor(duration: Float, start: Color4, end: Color4): Color4 {
-    return ColorInterpolation.colorAt(smoothingFactor(duration), start, end, 0f, 1f)
+    val value = ColorInterpolation.colorAt(smoothingFactor(duration), start, end, 0f, 1f)
+
+    // Snaps once close enough as the float one does, otherwise comparing it to the end to know if
+    // the transition finished could never be true.
+    return if (abs(end.red - value.red) < 1e-3f
+        && abs(end.green - value.green) < 1e-3f
+        && abs(end.blue - value.blue) < 1e-3f
+        && abs(end.alpha - value.alpha) < 1e-3f) end else value
 }
 
 //endregion

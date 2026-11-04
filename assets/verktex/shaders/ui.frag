@@ -44,6 +44,12 @@ void main() {
         ? 1.0 - smoothstep(-softness, softness, dist)
         : clamp(0.5 - dist / aa, 0.0, 1.0);
 
+    // A negative border width cuts the shape out of a soft edge (a glow): it fades from the edge
+    // outwards and nothing is drawn inside.
+    if (borderWidth < 0.0 && softness > 0.0) {
+        alpha = (1.0 - smoothstep(0.0, softness, dist)) * clamp(0.5 + dist / aa, 0.0, 1.0);
+    }
+
     vec4 fill = uColor * vColor;
 
     if (borderWidth > 0.0) {
