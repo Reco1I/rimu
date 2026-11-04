@@ -150,7 +150,11 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     }
 
                     if (mods.isNotEmpty()) {
-                        +ModsIndicator().also { it.mods = mods.values }
+                        +ModsIndicator().also {
+                            // Next to the headings, the default size of the theme's body text is too small.
+                            it.iconSize = 32f.dip
+                            it.mods = mods.values
+                        }
                     }
                 }
 
@@ -196,8 +200,9 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     }
 
 
-    override fun onAttached() {
-        super.onAttached()
+    // Scenes are never attached to a parent, onAttached doesn't run for them.
+    override fun onEnter() {
+        super.onEnter()
 
         mainContainer.fadeIn(0.2f, Easing.OutCubic)
         mainContainer.scaleTo(1f, 0.2f, Easing.OutCubic)

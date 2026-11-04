@@ -5,7 +5,12 @@ import com.osudroid.debug.MockRoom
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.PlayerStatus
+import com.osudroid.mods.ModDoubleTime
+import com.osudroid.mods.ModHidden
+import com.osudroid.ui.v2.GameLoaderScene
+import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.mainmenu.MainScene
+import com.osudroid.utils.ModHashMap
 import com.osudroid.ui.v2.mainmenu.MusicPlayer
 import com.osudroid.ui.v2.modmenu.ModMenu
 import com.osudroid.ui.v2.multi.LobbyScene
@@ -63,6 +68,18 @@ object OsuSceneUITests : UITestSuite("Scenes") {
             }
 
             MusicPlayer(trigger).show()
+        }
+
+        test("Game loader") {
+            gameLoader(isRestart = false, epilepsyWarning = false)
+        }
+
+        test("Game loader (restart)") {
+            gameLoader(isRestart = true, epilepsyWarning = false)
+        }
+
+        test("Game loader (epilepsy warning)") {
+            gameLoader(isRestart = false, epilepsyWarning = true)
         }
 
         test("Settings") {
@@ -148,6 +165,42 @@ object OsuSceneUITests : UITestSuite("Scenes") {
         }
     }
 
+
+    // The loader waits for the game scene, which never loads here: "Finish loading" marks it ready, as
+    // the end of loading the beatmap does.
+    private fun UITestStage.gameLoader(isRestart: Boolean, epilepsyWarning: Boolean) {
+        useGameContext()
+
+        val beatmap = firstBeatmap()?.copy()?.also { it.epilepsyWarning = epilepsyWarning }
+        if (beatmap == null) {
+            log("No beatmaps in the library")
+            return
+        }
+
+        val gameScene = TestGameContext.gameScene
+        gameScene.isReadyToStart = false
+        // Faded in by the loader once loading is done.
+        gameScene.hud = gameScene.hud ?: GameplayHUD()
+        onDispose { gameScene.isReadyToStart = false }
+
+        val mods = ModHashMap().apply {
+            put(ModHidden::class)
+            put(ModDoubleTime::class)
+        }
+
+        scene(GameLoaderScene(gameScene, beatmap, mods, isRestart))
+
+        textButton {
+            anchor = Anchor.BottomCenter
+            origin = Anchor.BottomCenter
+            y = (-16f).dip
+            text = "Finish loading"
+            onActionUp = {
+                gameScene.isReadyToStart = true
+                log("Game scene ready")
+            }
+        }
+    }
 
     private fun firstBeatmap() = LibraryManager.getLibrary().firstOrNull()?.beatmaps?.firstOrNull()
 

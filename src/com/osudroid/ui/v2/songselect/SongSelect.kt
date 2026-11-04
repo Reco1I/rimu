@@ -493,8 +493,9 @@ object SongSelect : UIScene() {
         GlobalManager.getInstance().songService.setAdjustPitch(adjustPitch)
     }
 
-    override fun onAttached() {
-        super.onAttached()
+    // Scenes are never attached to a parent, onAttached doesn't run for them.
+    override fun onEnter() {
+        super.onEnter()
 
         updateThread {
             val currentBeatmapInfo = GlobalManager.getInstance().selectedBeatmap
