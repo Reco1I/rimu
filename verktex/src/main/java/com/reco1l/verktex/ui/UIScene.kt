@@ -26,7 +26,22 @@ open class UIScene : UIContainer() {
     }
 
 
+    /**
+     * Whether this scene is a child of another component instead of a root of the engine, e.g. a
+     * scene shown inside the stage of the UI test browser. Its parent lays it out then.
+     */
+    val isEmbedded
+        get() = parent != null
+
+
     override fun onDraw(renderer: GraphicsRenderer) {
+
+        if (isEmbedded) {
+            layoutEmbeddedBackground()
+            background?.draw(renderer)
+            super.onDraw(renderer)
+            return
+        }
 
         // Padding will be applied to the scene's content, but not to the background since it is not
         // present on the children list.
@@ -52,6 +67,26 @@ open class UIScene : UIContainer() {
     override fun onUpdate(clock: FrameClock) {
         background?.update(clock)
         super.onUpdate(clock)
+    }
+
+    /**
+     * Lays the background out over the scene, which its parent laid out. The background has no
+     * parent so it's placed in scene space, this assumes the scene isn't scaled nor rotated.
+     */
+    private fun layoutEmbeddedBackground() {
+        val background = background ?: return
+        val width = bounds.width
+        val height = bounds.height
+
+        background.measure(LayoutConstraints(
+            minWidth = width,
+            maxWidth = width,
+            minHeight = height,
+            maxHeight = height
+        ))
+
+        val (x, y) = toSceneSpace(0f, 0f)
+        background.layout(Vec4(x = x, y = y, z = x + width, w = y + height))
     }
 
     /**

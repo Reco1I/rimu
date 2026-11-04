@@ -151,11 +151,28 @@ object Verktex {
         field = SystemBasedFrameClock()
 
     /**
-     * The currently active scene in the engine. This is the topmost scene in the scene stack.
+     * The currently active scene. This is the topmost scene in the scene stack, or the current scene
+     * of the [sceneHost] when one is set.
      */
     @JvmStatic
     val scene
+        get() = sceneHost?.currentScene ?: sceneStack.last()
+
+    /**
+     * The topmost scene of the engine's own stack, the one drawn, updated and receiving input. It
+     * differs from [scene] while a [sceneHost] is set.
+     */
+    private val rootScene
         get() = sceneStack.last()
+
+    /**
+     * When set, [pushScene] and [popScene] go to this host instead of the engine's stack, and
+     * [scene] is its current scene. Used to show scenes inside a part of another scene, like the
+     * stage of the UI test browser. The host must return null from [SceneHost.popScene] when it has
+     * no scenes, which never pops the engine's stack.
+     */
+    @JvmStatic
+    var sceneHost: SceneHost? = null
 
 
     /**
@@ -202,7 +219,7 @@ object Verktex {
             // An overlay showing a capture of what is behind it stands for the scene and the
             // overlays below it, those aren't drawn.
             val capture = topmostCapture()
-            if (capture != null) capture.drawCapture(graphics) else scene.draw(graphics)
+            if (capture != null) capture.drawCapture(graphics) else rootScene.draw(graphics)
 
             PerformanceStats.drawCommands = graphics.commandCount
             overlayContainer.draw(graphics)
@@ -236,7 +253,7 @@ object Verktex {
 
             updateImeShift()
 
-            scene.update(clock)
+            rootScene.update(clock)
             overlayContainer.update(clock)
             diagnosticsContainer.update(clock)
 
@@ -423,7 +440,12 @@ object Verktex {
      * scene and will be drawn and updated in subsequent frames.
      */
     @JvmStatic
-    fun pushScene(scene: UIScene) = treeLock.withLock {
+    fun pushScene(scene: UIScene): Unit = treeLock.withLock {
+        sceneHost?.let {
+            it.pushScene(scene)
+            return
+        }
+
         val previousScene = sceneStack.last()
         sceneStack.addLast(scene)
 
@@ -437,6 +459,8 @@ object Verktex {
      */
     @JvmStatic
     fun popScene(): UIScene? = treeLock.withLock {
+        sceneHost?.let { return it.popScene() }
+
         if (sceneStack.size <= 1) {
             Logger.w(
                 "Verktex",
@@ -591,7 +615,7 @@ object Verktex {
                 clearFocus()
             }
 
-            return diagnosticsContainer.onInputEvent(event) || overlayContainer.onInputEvent(event) || scene.onInputEvent(event)
+            return diagnosticsContainer.onInputEvent(event) || overlayContainer.onInputEvent(event) || rootScene.onInputEvent(event)
         }
     }
 
@@ -603,4 +627,26 @@ object Verktex {
 
     //endregion
 
+}
+
+
+/**
+ * Hosts the scenes pushed to the engine while it's set as [Verktex.sceneHost].
+ */
+interface SceneHost {
+
+    /**
+     * The topmost scene of the host, or null if it has none.
+     */
+    val currentScene: UIScene?
+
+    /**
+     * Shows [scene] on top of the current one.
+     */
+    fun pushScene(scene: UIScene)
+
+    /**
+     * Removes the topmost scene and returns it, or null if the host has no scenes.
+     */
+    fun popScene(): UIScene?
 }
