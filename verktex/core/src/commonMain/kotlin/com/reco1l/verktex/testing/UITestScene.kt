@@ -30,6 +30,8 @@ import com.reco1l.verktex.time.derive
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.data.oklch
+import kotlin.random.Random
 
 /**
  * A scene listing [UITestSuite]s on the left and showing the selected [UITest] on the right.
@@ -263,6 +265,17 @@ class UITestScene(
                             viewport.backgroundColor = BACKGROUNDS[backgroundIndex]
                         }
                     }
+
+                    // Gives the stage a random accent, to see the components follow theme changes.
+                    iconButton {
+                        icon = FAIcon.Dice
+                        variant = UIButton.Variant.Surface
+                        onActionUp = { randomizeAccent() }
+                        onActionLongPress = {
+                            viewport.theme = null
+                            log("Accent reset to the global theme")
+                        }
+                    }
                 }
 
                 container {
@@ -455,6 +468,22 @@ class UITestScene(
 
         viewport.setSize(virtualWidth, virtualHeight)
         viewport.scale = scale
+    }
+
+    private fun randomizeAccent() {
+        val accent = oklch(0.85f, 0.09f, Random.nextFloat() * 360f)
+        val base = Verktex.theme
+        viewport.theme = Theme(
+            palette = Theme.ColorPalette(accent),
+            radius = base.radius,
+            gap = base.gap,
+            typography = base.typography,
+            controlStyle = base.controlStyle,
+            buttonStyle = base.buttonStyle,
+            cardStyle = base.cardStyle,
+            badgeStyle = base.badgeStyle,
+        )
+        log("Accent #${(accent.toHex() and 0xFFFFFF).toString(16).padStart(6, '0').uppercase()}")
     }
 
     private fun viewportIcon() = if (isFittingWindow) FAIcon.Mobile else FAIcon.Expand
