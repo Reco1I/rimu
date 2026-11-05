@@ -404,7 +404,7 @@ object MainScene : UIScene() {
         stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
 
         global.scoring.load(stat, null, global.songService, replayFile, null, beatmap)
-        Verktex.pushScene(global.scoring.scene)
+        Verktex.pushScene(global.scoring.scene!!)
     }
 
     /**
