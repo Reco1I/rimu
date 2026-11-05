@@ -195,10 +195,16 @@ Done since the previous notes:
   still use Java's object serialization through `ReplayInput`/`ReplayOutput`, which only the JVM
   implements so far; `StatisticV2`'s multiplayer and database conversions are app extensions.
 
+- The skin configuration is in `:game`: `OsuSkin`, `SkinJsonReader`, `SkinLayout`, the skin data,
+  the skin.ini reader and its conversion, read with kotlinx.serialization. `com.osudroid.utils.JsonObjects`
+  coerces values as Android's org.json does (use it when moving other org.json code) and `LenientJson`
+  parses as leniently. `HUDSkinData` names element types instead of referencing the HUD's classes.
+
 What's left, roughly in order:
 
-1. **Skins** (`OsuSkin`, `SkinJsonReader`, `SkinLayout`, `com.osudroid.ui.skinning`, `HUDSkinData`):
-   `org.json` to kotlinx.serialization, `File` to Okio.
+1. **Skins, the rest**: the skin configuration is common (see below); `Skin` (reading the skin
+   folder, which reports to the loading screen and checks textures with Android bitmaps),
+   `BeatmapSkinManager`, `SkinTextures` and `SkinSounds` move with `GlobalManager` and the audio.
 2. **Gameplay objects and scenes** (`GameObject`, `GameplayHitCircle`, `GameplaySlider`, the spinners,
    `GameScene`, `ScoringScene`, the slider body): Java to Kotlin, then move; they need the skins, the
    audio (`SongService`, `BassSoundProvider`) and the UI.
