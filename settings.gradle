@@ -5,7 +5,9 @@ pluginManagement  {
     }
 }
 
-include ':LibBASS'
-include ':verktex'
-include ':verktex-shadertools'
-project(':verktex-shadertools').projectDir = file('verktex/shadertools')
+// Verktex, the engine, is meant to become its own project: the game only uses :verktex:android,
+// which brings :verktex:core with it.
+include ':verktex:core'
+include ':verktex:android'
+include ':verktex:bass'
+include ':verktex:shadertools'

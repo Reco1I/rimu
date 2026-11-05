@@ -8,6 +8,7 @@ plugins {
 kotlin {
    compilerOptions {
        freeCompilerArgs.add("-Xexplicit-backing-fields")
+       optIn.add("com.reco1l.verktex.VerktexPlatformApi")
    }
 }
 
@@ -55,10 +56,12 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.core:core-ktx:1.13.1")
 
-    implementation(project(":LibBASS"))
+    api(project(":verktex:core"))
+
+    implementation(project(":verktex:bass"))
 
     // Shader translation and uniform layouts, shared with the build that compiles the Vulkan shaders.
-    implementation(project(":verktex-shadertools"))
+    implementation(project(":verktex:shadertools"))
 
     //implementation("com.google.android.material:material:1.14.0")
     testImplementation("junit:junit:4.13.2")
@@ -143,7 +146,7 @@ val vulkanShaderTools: Configuration by configurations.creating {
 }
 
 dependencies {
-    vulkanShaderTools(project(":verktex-shadertools"))
+    vulkanShaderTools(project(":verktex:shadertools"))
 }
 
 val compileVulkanShaders = tasks.register<CompileVulkanShaders>("compileVulkanShaders") {

@@ -140,7 +140,9 @@ abstract class ESCommandExecutor {
             return
         }
 
-        if (command.buffer == null || command.shader == null || command.buffer.isEmpty()) return
+        val buffer = command.buffer ?: return
+        val shader = command.shader ?: return
+        if (buffer.isEmpty()) return
 
         // Scissor test, the scissor is in window space (top-left origin) while GL expects bottom-left.
         val scissor = command.scissor
@@ -174,21 +176,21 @@ abstract class ESCommandExecutor {
             setDepth(false, depthFunction, false)
         }
 
-        val shader = command.shader
         if (shader !== boundShader) {
             shader.bind()
             boundShader = shader
         }
 
-        if (command.texture != null) {
+        val texture = command.texture
+        if (texture != null) {
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
             // Always bound: binding is also what uploads the texture's pending data.
-            command.texture.bind()
+            texture.bind()
         }
 
         applyUniforms(shader, command.uniformSet, defaultUniforms.forViewport(viewportWidth, viewportHeight))
 
-        val vertexCount = command.buffer.position / command.vertexLayout.stride
+        val vertexCount = buffer.position / command.vertexLayout.stride
 
         if (command.instanceBuffer == null || command.instanceLayout == null) {
             if (command.isQuads) {

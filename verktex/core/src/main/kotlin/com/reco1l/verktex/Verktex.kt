@@ -596,7 +596,8 @@ object Verktex {
      * Styles every component again, e.g. after the theme or the size of a density independent
      * pixel changed.
      */
-    internal fun onThemeChange() = treeLock.withLock {
+    @VerktexPlatformApi
+    fun onThemeChange() = treeLock.withLock {
         for (root in sceneStack + listOf(overlayContainer, diagnosticsContainer)) {
             // Containers apply the style to their children themselves.
             root.style()
