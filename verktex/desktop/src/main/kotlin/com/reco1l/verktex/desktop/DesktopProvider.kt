@@ -45,6 +45,43 @@ class DesktopProvider : Provider {
         return DesktopProvider::class.java.getResource("/" + path.removePrefix("/")) != null
     }
 
+    override fun list(path: String, isExternal: Boolean): List<String>? {
+        if (isExternal) {
+            return File(path).list()?.toList()
+        }
+
+        val folder = path.trim('/')
+        val url = DesktopProvider::class.java.getResource("/$folder") ?: return null
+
+        return try {
+            when (url.protocol) {
+                "file" -> File(url.toURI()).list()?.toList()
+
+                "jar" -> {
+                    val connection = url.openConnection() as java.net.JarURLConnection
+                    // A cached jar is shared with the class loader, closing it would break it.
+                    connection.useCaches = false
+                    val prefix = "$folder/"
+
+                    connection.jarFile.use { jar ->
+                        jar.entries().asSequence()
+                            .map { it.name }
+                            .filter { it.startsWith(prefix) && it.length > prefix.length }
+                            .map { it.substring(prefix.length).trimEnd('/') }
+                            .filter { '/' !in it }
+                            .distinct()
+                            .toList()
+                    }
+                }
+
+                else -> null
+            }
+        } catch (e: Exception) {
+            Logger.e("DesktopProvider", "Couldn't list $path", e)
+            null
+        }
+    }
+
     override fun createFontFamilySource(path: String, isExternal: Boolean): FontFamily.Source? {
         val data = read(path, isExternal) ?: return null
         return try {

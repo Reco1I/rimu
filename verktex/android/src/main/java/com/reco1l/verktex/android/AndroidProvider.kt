@@ -47,6 +47,18 @@ class AndroidProvider(private val context: android.content.Context) : Provider {
         }
     }
 
+    override fun list(path: String, isExternal: Boolean): List<String>? {
+        return try {
+            if (isExternal) {
+                java.io.File(path).list()?.toList()
+            } else {
+                context.assets.list(path)?.toList()
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     //endregion
 
     //region Source creation

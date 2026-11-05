@@ -1,9 +1,9 @@
 package com.osudroid.ui.v2
 
+import com.reco1l.verktex.Platform
 import java.io.File
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider
 import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 
 /**
@@ -84,7 +84,7 @@ object SkinSounds {
      */
     @JvmStatic
     fun preload() {
-        val assets = GlobalManager.getInstance().context.assets.list("sfx") ?: return
+        val assets = Platform.provider.list("sfx", false) ?: return
 
         for (asset in assets) {
             getOrNull(asset.substringBeforeLast('.'))
