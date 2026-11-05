@@ -157,14 +157,21 @@ open class Color4 @JvmOverloads constructor(
     }
 
     /**
-     * Multiplies the RGB channels by the given scalar, keeping the alpha.
+     * Darkens the color toward black keeping its hue and saturation, where [factor] is the fraction of
+     * its perceived lightness (Oklab L) kept: 1 keeps the color and 0 makes it black, e.g.
+     * `palette.accent.shade(0.2f)` for a dark tint of the accent. Alpha is kept.
      */
-    operator fun times(scalar: Float) = Color4(
-        red = red * scalar,
-        green = green * scalar,
-        blue = blue * scalar,
-        alpha = alpha
-    )
+    fun shade(factor: Float): Color4 {
+        val f = factor.coerceIn(0f, 1f)
+        // Mixing toward black in Oklab scales L, a and b by f, which are linear in the cube roots
+        // of LMS, itself linear in linear RGB. So it's the same as scaling linear RGB by f³.
+        val k = f * f * f
+        val linear = toLinear()
+        return Color4(linear.red * k, linear.green * k, linear.blue * k, alpha).toSRGB()
+    }
+
+    @Deprecated("Unclear at call sites, use shade().", ReplaceWith("shade(scalar)"))
+    operator fun times(scalar: Float) = shade(scalar)
 
     /**
      * Darkens the color by the given factor.
