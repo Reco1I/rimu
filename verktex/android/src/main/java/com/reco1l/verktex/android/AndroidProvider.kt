@@ -66,6 +66,12 @@ class AndroidProvider(private val context: android.content.Context) : Provider {
         }
     }
 
+    override fun createSystemFontFamilySource(family: String?): FontFamily.Source? {
+        // Typeface.create returns the default font for a family it doesn't know.
+        val typeface = if (family == null) Typeface.DEFAULT else Typeface.create(family, Typeface.NORMAL)
+        return AndroidFontSource(typeface)
+    }
+
     override fun createTextureSource(path: String, isExternal: Boolean): GraphicsTexture.Source? {
         return try {
             if (isExternal) {

@@ -55,6 +55,15 @@ class DesktopProvider : Provider {
         }
     }
 
+    override fun createSystemFontFamilySource(family: String?): FontFamily.Source? {
+        return try {
+            DesktopSystemFontSource.create(family)
+        } catch (e: Exception) {
+            Logger.e("DesktopProvider", "Couldn't load the system font ${family ?: "default"}", e)
+            null
+        }
+    }
+
     override fun createTextureSource(path: String, isExternal: Boolean): GraphicsTexture.Source? {
         val data = read(path, isExternal) ?: return null
         return PixelsTextureSource.decode(data).also {

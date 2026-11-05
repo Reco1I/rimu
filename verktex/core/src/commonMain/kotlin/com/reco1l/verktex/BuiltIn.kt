@@ -87,6 +87,12 @@ object BuiltIn {
         lateinit var Torus: FontFamily
 
         /**
+         * The platform's own UI font, e.g. Roboto on Android. It looks different on every platform,
+         * and is [Default] when the platform couldn't provide one.
+         */
+        lateinit var System: FontFamily
+
+        /**
          * [Font Awesome](https://fontawesome.com/) icon font family for regular icons.
          */
         lateinit var FontAwesomeIconRegular: FontFamily

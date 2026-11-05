@@ -32,6 +32,15 @@ interface Provider {
     fun createFontFamilySource(path: String, isExternal: Boolean): FontFamily.Source?
 
     /**
+     * Creates a FontFamilySource from a font installed on the system, rather than from a file.
+     *
+     * @param family The name of the system font family, or null for the platform's default UI font.
+     * Platforms may fall back to the default font for a name they don't know.
+     * @return The source, or null when the platform has no system fonts or the font couldn't be found.
+     */
+    fun createSystemFontFamilySource(family: String?): FontFamily.Source? = null
+
+    /**
      * Creates a TextureSource from the given path.
      *
      * @param path The path to the texture source.

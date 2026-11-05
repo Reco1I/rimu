@@ -86,6 +86,11 @@ Found while checking, in the core and so on every platform:
        would otherwise read the neighbouring glyph's edge.
      - There's no kerning, as on Android.
      - stb can't synthesise weights or italics. Oblique is a skew, as on Android.
+     - Collections (`.ttc`) load their first font.
+     - System fonts (`DesktopSystemFontSource`, behind `Fonts.loadSystem` and `BuiltIn.Fonts.System`)
+       look up a file per weight and italic, since stb can't synthesise them: `fc-match` on Linux,
+       the Segoe UI files on Windows, and `SFNS.ttf` or `Helvetica.ttc` (regular only) on macOS.
+       Without a file for a weight, the regular one is used.
 6. **The OpenGL backend** (`desktop/gl/`), ported from the OpenGL ES 3 one:
    - `GLContext` owns the GLFW window, created on the main thread and made current on the draw
      thread, where LWJGL gets its capabilities. It binds one VAO, which the core profile requires.
@@ -132,7 +137,8 @@ Found while checking, in the core and so on every platform:
 ## What's left
 
 - Video (external textures) and the GPU timer.
-- Font weights and italics, which would need FreeType or separate font files.
+- Font weights and italics of bundled fonts, which would need FreeType or separate font files.
+  System fonts already use a file per weight.
 - Sharing the GL logic with the Android OpenGL ES backends.
 - Running the game itself on desktop.
 - **Native Wayland with window decorations**, so the window no longer goes through XWayland (see
