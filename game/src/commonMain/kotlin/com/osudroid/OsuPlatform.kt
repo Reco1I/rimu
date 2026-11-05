@@ -72,5 +72,10 @@ object OsuPlatform {
          * Handles an exception that a task running in the background didn't catch.
          */
         fun handleUncaughtException(throwable: Throwable)
+
+        /**
+         * Whether the game is in the foreground, visible to the player.
+         */
+        val isInForeground: Boolean
     }
 }

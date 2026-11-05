@@ -194,7 +194,7 @@ object SongSelect : UIScene() {
         }
 
         GlobalManager.getInstance().songService.apply {
-            setSpeed(1f)
+            speed = 1f
             setAdjustPitch(false)
         }
     }
@@ -487,7 +487,7 @@ object SongSelect : UIScene() {
         val speed = ModMenu.enabledMods.values.calculateRate(Double.POSITIVE_INFINITY)
         val adjustPitch = ModNightCore::class in ModMenu.enabledMods
 
-        GlobalManager.getInstance().songService.setSpeed(speed)
+        GlobalManager.getInstance().songService.speed = speed
         GlobalManager.getInstance().songService.setAdjustPitch(adjustPitch)
     }
 

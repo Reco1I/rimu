@@ -10,6 +10,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Logger
 import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.MainActivity
 import com.russhwolf.settings.SharedPreferencesSettings
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig
 
@@ -66,4 +67,7 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
             Thread.currentThread().let { it.uncaughtExceptionHandler?.uncaughtException(it, throwable) ?: throw throwable }
         }
     }
+
+    override val isInForeground: Boolean
+        get() = MainActivity.isActivityVisible()
 }

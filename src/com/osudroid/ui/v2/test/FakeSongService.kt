@@ -13,10 +13,7 @@ import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
  */
 class FakeSongService : SongService() {
 
-    private var status = Status.STOPPED
-    private var isGaming = false
-    private var speed = 1f
-    private var volume = 1f
+    private var currentStatus = Status.STOPPED
 
     // Position in milliseconds at the last change, and the time it was taken at.
     private var basePosition = 0.0
@@ -24,7 +21,7 @@ class FakeSongService : SongService() {
 
 
     override fun preLoad(filePath: String?, speed: Float, adjustPitch: Boolean, isLoop: Boolean): Boolean {
-        status = Status.STOPPED
+        currentStatus = Status.STOPPED
         this.speed = speed
         setPosition(0.0)
         return true
@@ -32,59 +29,51 @@ class FakeSongService : SongService() {
 
     override fun play() {
         setPosition(positionPrecise)
-        status = Status.PLAYING
+        currentStatus = Status.PLAYING
     }
 
     override fun pause() {
-        if (status == Status.PLAYING) {
+        if (currentStatus == Status.PLAYING) {
             setPosition(positionPrecise)
-            status = Status.PAUSED
+            currentStatus = Status.PAUSED
         }
     }
 
     override fun stop(): Boolean {
-        status = Status.STOPPED
+        currentStatus = Status.STOPPED
         setPosition(0.0)
         return true
     }
 
     override fun seekTo(time: Int) = setPosition(time.toDouble())
 
-    override fun getStatus(): Status {
-        // Stops at the end, as a song would.
-        if (status == Status.PLAYING && elapsedPosition() >= SONG_LENGTH) {
-            stop()
+    override val status: Status
+        get() {
+            // Stops at the end, as a song would.
+            if (currentStatus == Status.PLAYING && elapsedPosition() >= SONG_LENGTH) {
+                stop()
+            }
+            return currentStatus
         }
-        return status
-    }
 
-    override fun getPositionPrecise(): Double =
-        if (status == Status.PLAYING) elapsedPosition().coerceAtMost(SONG_LENGTH.toDouble()) else basePosition
+    override val positionPrecise: Double
+        get() = if (currentStatus == Status.PLAYING) elapsedPosition().coerceAtMost(SONG_LENGTH.toDouble()) else basePosition
 
-    override fun getLength() = SONG_LENGTH
+    override val length get() = SONG_LENGTH
 
-    override fun getSpectrum() = FloatArray(512) { level(it, 512) }
+    override val spectrum get() = FloatArray(512) { level(it, 512) }
 
     override fun getAudioFFT(resolution: Int) = FloatArray(resolution) { level(it, resolution) }
 
-    override fun isGaming() = isGaming
+    override var isGaming = false
 
-    override fun setGaming(isGaming: Boolean) {
-        this.isGaming = isGaming
-    }
+    override var volume = 1f
 
-    override fun getVolume() = volume
-
-    override fun setVolume(volume: Float) {
-        this.volume = volume
-    }
-
-    override fun getSpeed() = speed
-
-    override fun setSpeed(speed: Float) {
-        setPosition(positionPrecise)
-        this.speed = speed
-    }
+    override var speed = 1f
+        set(speed) {
+            setPosition(positionPrecise)
+            field = speed
+        }
 
     override fun setAdjustPitch(adjustPitch: Boolean) = Unit
 
@@ -92,11 +81,11 @@ class FakeSongService : SongService() {
 
     override fun setFrequencyForcefully(frequency: Float) = Unit
 
-    override fun getFrequency() = DEFAULT_FREQUENCY
+    override val frequency get() = DEFAULT_FREQUENCY
 
     override fun checkFileExist(path: String?) = true
 
-    override fun isRunningForeground() = true
+    override val isRunningForeground get() = true
 
     override fun exit(): Boolean {
         stop()
@@ -113,7 +102,7 @@ class FakeSongService : SongService() {
 
     // A made up spectrum moving with the position, louder in the bass as music usually is.
     private fun level(index: Int, count: Int): Float {
-        if (status != Status.PLAYING) {
+        if (currentStatus != Status.PLAYING) {
             return 0f
         }
         val time = positionPrecise / 1000.0
