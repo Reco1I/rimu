@@ -9,7 +9,6 @@ import com.osudroid.resources.R
 import com.osudroid.ui.v2.settings.FloatPreferenceSlider
 import com.osudroid.ui.v2.settings.PreferenceCheckbox
 import com.osudroid.utils.ModHashMap
-import com.reco1l.framework.*
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
@@ -139,7 +138,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         wrapText = true
                         text = "by ${beatmapInfo.artistText}"
                         fontSize = themed { typography.h3.size }
-                        color = themed { palette.accent * 0.9f }
+                        color = themed { palette.accent.shade(0.9f) }
                     }
 
                     if (mods.isNotEmpty()) {

@@ -76,7 +76,7 @@ class BeatmapInfoLayout : UILinearContainer() {
                 artistText = text {
                     text = "Unknown"
                     fontSize = themed { typography.smallBody.size }
-                    color = themed { palette.accent * 0.9f }
+                    color = themed { palette.accent.shade(0.9f) }
                     clipping = ClipMode.Bounds
                 }
 
@@ -91,14 +91,14 @@ class BeatmapInfoLayout : UILinearContainer() {
                 versionText = text {
                     text = "Unknown"
                     fontSize = themed { typography.smallBody.size }
-                    color = themed { palette.accent * 0.8f }
+                    color = themed { palette.accent.shade(0.8f) }
                     clipping = ClipMode.Bounds
                 }
 
                 creatorText = text {
                     text = "Unknown"
                     fontSize = themed { typography.smallBody.size }
-                    color = themed { palette.accent * 0.8f }
+                    color = themed { palette.accent.shade(0.8f) }
                 }
             }
 

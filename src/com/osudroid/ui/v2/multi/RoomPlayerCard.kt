@@ -71,9 +71,9 @@ class RoomPlayerCard : UILinearContainer() {
             }
 
             teamColorBar.backgroundColor = when (player.team) {
-                Blue -> Color4(0xFF60A5FA) * 0.8f
-                Red -> Color4(0xFFF87171) * 0.8f
-                null -> Verktex.theme.palette.accent * 0.6f
+                Blue -> Color4(0xFF60A5FA).shade(0.8f)
+                Red -> Color4(0xFFF87171).shade(0.8f)
+                null -> Verktex.theme.palette.accent.shade(0.6f)
             }
 
             if (player.id == OnlineManager.getInstance().userId) {
@@ -155,7 +155,7 @@ class RoomPlayerCard : UILinearContainer() {
             alpha = if (isEnabled) 1f else 0.5f
             borderWidth = 2f.px
             padding = Padding(8f.dip)
-            backgroundColor = themed { palette.accent * 0.1f }
+            backgroundColor = themed { palette.accent.shade(0.1f) }
 
             avatarSprite = UISprite().apply {
                 anchor = Anchor.CenterLeft
@@ -194,7 +194,7 @@ class RoomPlayerCard : UILinearContainer() {
                     rankText = text {
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
-                        color = themed { palette.accent * 0.8f }
+                        color = themed { palette.accent.shade(0.8f) }
                         fontSize = themed { typography.smallBody.size }
                     }
                 }
@@ -233,7 +233,7 @@ class RoomPlayerCard : UILinearContainer() {
                     modDisplay = UIText().apply {
                         minHeight = 24f.px // Force to take space even if no mods are enabled
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent * 0.8f }
+                        color = themed { palette.accent.shade(0.8f) }
                     }
 
                     innerContainer += modDisplay!!

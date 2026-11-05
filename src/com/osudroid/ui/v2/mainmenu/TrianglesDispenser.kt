@@ -35,9 +35,9 @@ class TrianglesDispenser : UICanvas() {
      * The color palette of the triangles.
      */
     var colorPalette = arrayOf(
-        Color4.White * 0.1f,
-        Color4.White * 0.125f,
-        Color4.White * 0.15f,
+        Color4.White.shade(0.1f),
+        Color4.White.shade(0.125f),
+        Color4.White.shade(0.15f),
     )
 
     /**

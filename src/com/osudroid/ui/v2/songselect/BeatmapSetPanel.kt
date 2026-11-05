@@ -145,7 +145,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                     width = fill()
                     height = fill()
                     scaleType = UISprite.ScaleType.Crop
-                    backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.5f) }
+                    backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.5f) }
                     radius = themed { radius.xl }
                 }
 
@@ -172,7 +172,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                         text = "Unknown"
                         fontSettings = themed { typography.caption }
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent * 0.8f }
+                        color = themed { palette.accent.shade(0.8f) }
                     }
 
                     difficultyIndicators = linearContainer {

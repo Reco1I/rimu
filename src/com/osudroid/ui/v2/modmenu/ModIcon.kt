@@ -38,7 +38,7 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
                 height = fill()
             }
         } else {
-            backgroundColor = Verktex.theme.palette.accent * 0.1f
+            backgroundColor = Verktex.theme.palette.accent.shade(0.1f)
 
             +UIText().apply {
                 anchor = Anchor.Center

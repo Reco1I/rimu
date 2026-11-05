@@ -33,7 +33,6 @@ import com.osudroid.utils.async
 import com.osudroid.utils.mainThread
 import com.osudroid.utils.runSafe
 import com.osudroid.utils.updateThread
-import com.reco1l.osu.ui.MessageDialog
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
@@ -178,7 +177,7 @@ class RoomScene(
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 alpha = 0.9f
-                backgroundColor = Verktex.theme.palette.accent * 0.1f
+                backgroundColor = Verktex.theme.palette.accent.shade(0.1f)
             }
         }
 
@@ -269,7 +268,7 @@ class RoomScene(
 
                             text {
                                 text = StringTable.get(title).uppercase()
-                                color = themed { palette.accent * 0.7f }
+                                color = themed { palette.accent.shade(0.7f) }
                             }
 
                             block()
@@ -299,7 +298,7 @@ class RoomScene(
                         +BeatmapInfoLayout().apply {
                             padding = Padding(12f.dip)
                             radius = themed { radius.md }
-                            backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.5f) }
+                            backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.5f) }
                             isVisible = false
 
                             beatmapInfoLayout = this
@@ -310,7 +309,7 @@ class RoomScene(
                             alignment = Anchor.Center
                             padding = Padding(12f.dip)
                             radius = themed { radius.md }
-                            backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.5f) }
+                            backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.5f) }
                         }
 
                         linearContainer {

@@ -5,7 +5,6 @@ import com.osudroid.beatmaps.*
 import com.osudroid.beatmaps.DroidHitWindow.Companion.hitWindow300ToOverallDifficulty
 import com.osudroid.data.*
 import com.osudroid.mods.*
-import com.osudroid.ui.*
 import com.osudroid.ui.v2.StarRatingBadge
 import com.osudroid.ui.v2.modmenu.*
 import com.osudroid.utils.applyMods
@@ -65,10 +64,10 @@ class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
             translationY = (-2f).px
             alpha = 0.75f
 
-            color = themed { (palette.accent * 0.1f).copy(alpha = 0.75f) }
+            color = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.75f) }
             radius = 12f.dip
             strokeWidth = 2f.px
-            strokeColor = themed { palette.accent * 0.2f }
+            strokeColor = themed { palette.accent.shade(0.2f) }
         }
 
         linearContainer {
@@ -90,7 +89,7 @@ class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
                         text = "Unknown"
                         fontSettings = themed { typography.h3 }
                         fontSize = themed { typography.body.size }
-                        color = themed { palette.accent * 0.8f }
+                        color = themed { palette.accent.shade(0.8f) }
                     }
 
                     titleText = text {
@@ -104,7 +103,7 @@ class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
 
                     versionText = text {
                         text = "Unknown"
-                        color = themed { palette.accent * 0.8f }
+                        color = themed { palette.accent.shade(0.8f) }
                     }
                 }
                 starsText = StarRatingBadge()

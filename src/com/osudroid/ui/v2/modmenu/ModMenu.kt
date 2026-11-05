@@ -118,7 +118,7 @@ object ModMenu : UICaptureContainer() {
             width = fill()
             height = fill()
             padding = horizontalPadding(8f.dip)
-            backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.75f) }
+            backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.75f) }
 
             linearContainer {
                 width = fill()
@@ -579,7 +579,7 @@ object ModMenu : UICaptureContainer() {
             colorTo(if (isRanked) Color4(0xFF161622) else Verktex.theme.palette.accent, 0.1f)
 
             backgroundColor =
-                if (isRanked) Color4(0xFF83DF6B) else Verktex.theme.palette.accent * 0.15f
+                if (isRanked) Color4(0xFF83DF6B) else Verktex.theme.palette.accent.shade(0.15f)
         }
 
         modToggles.forEach {

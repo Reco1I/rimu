@@ -83,7 +83,7 @@ object SongSelect : UIScene() {
             height = Dimension.FillAvailable
             textureRegion = SkinTextures["menu-background"]
             scaleType = UISprite.ScaleType.Crop
-            color *= 0.4f
+            color = color.shade(0.4f)
         }
         background = backgroundSprite
 

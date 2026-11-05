@@ -34,7 +34,7 @@ class LoaderScene : UIScene() {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 alpha = 0.9f
-                backgroundColor = Verktex.theme.palette.accent * 0.1f
+                backgroundColor = Verktex.theme.palette.accent.shade(0.1f)
             }
         }
 
