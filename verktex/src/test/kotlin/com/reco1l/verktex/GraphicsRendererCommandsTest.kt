@@ -1,4 +1,4 @@
-package com.osudroid.verktex
+package com.reco1l.verktex
 
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.data.Color4

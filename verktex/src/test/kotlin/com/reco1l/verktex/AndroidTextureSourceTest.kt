@@ -1,4 +1,4 @@
-package com.osudroid.verktex
+package com.reco1l.verktex
 
 import android.graphics.Bitmap
 import com.reco1l.verktex.android.AndroidTextureSource

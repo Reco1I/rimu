@@ -1,4 +1,4 @@
-package com.osudroid.verktex
+package com.reco1l.verktex
 
 import com.reco1l.verktex.data.Mat2
 import kotlin.random.Random

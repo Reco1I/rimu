@@ -64,13 +64,13 @@ object BuiltIn {
          * Every built-in shader, created by the renderer with `GraphicsRenderer.createBuiltInShaders`.
          */
         val Programs = listOf(
-            Program("verktex/shaders/main.vert", "verktex/shaders/quad.frag") { SolidQuad = it },
-            Program("verktex/shaders/main.vert", "verktex/shaders/color.frag") { Color = it },
-            Program("verktex/shaders/ui.vert", "verktex/shaders/ui.frag") { UI = it },
-            Program("verktex/shaders/main.vert", "verktex/shaders/texture.frag") { TextureQuad = it },
-            Program("verktex/shaders/main.vert", "verktex/shaders/video.frag") { Video = it },
-            Program("verktex/shaders/main.vert", "verktex/shaders/blur.frag") { Blur = it },
-            Program("verktex/shaders/particle.vert", "verktex/shaders/particle.frag") { Particle = it },
+            Program("shaders/main.vert", "shaders/quad.frag") { SolidQuad = it },
+            Program("shaders/main.vert", "shaders/color.frag") { Color = it },
+            Program("shaders/ui.vert", "shaders/ui.frag") { UI = it },
+            Program("shaders/main.vert", "shaders/texture.frag") { TextureQuad = it },
+            Program("shaders/main.vert", "shaders/video.frag") { Video = it },
+            Program("shaders/main.vert", "shaders/blur.frag") { Blur = it },
+            Program("shaders/particle.vert", "shaders/particle.frag") { Particle = it },
         )
     }
 

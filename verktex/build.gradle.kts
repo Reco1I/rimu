@@ -42,6 +42,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 dependencies {
@@ -58,6 +62,7 @@ dependencies {
 
     //implementation("com.google.android.material:material:1.14.0")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
     //androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     //androidTestImplementation("androidx.test.ext:junit:1.1.5")
 
@@ -95,6 +100,74 @@ val validationLayers: String? = providers.gradleProperty("verktex.validationLaye
     ?: rootProject.file("local.properties").takeIf { it.isFile }?.let { file ->
         Properties().apply { file.inputStream().use(::load) }.getProperty("verktex.validationLayers")
     }
+
+// Vulkan shaders: the built-in GLSL ES shaders are translated and compiled to SPIR-V with the NDK's
+// glslc, and packaged next to them as <name>.spv. Without the NDK they are skipped with a warning.
+abstract class CompileVulkanShaders : DefaultTask() {
+
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val shaderDirectory: DirectoryProperty
+
+    @get:Input
+    abstract val glslc: Property<String>
+
+    @get:Classpath
+    abstract val toolClasspath: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @get:Inject
+    abstract val exec: ExecOperations
+
+    @TaskAction
+    fun compile() {
+        // The assets keep their path, the SPIR-V of shaders/main.vert is shaders/main.vert.spv.
+        val output = outputDirectory.get().dir("shaders").asFile
+
+        exec.javaexec {
+            classpath = toolClasspath
+            mainClass.set("com.reco1l.verktex.shaders.CompileVulkanShadersKt")
+            args(shaderDirectory.get().asFile.path, output.path, glslc.get())
+        }
+    }
+}
+
+val vulkanShaderTools: Configuration by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+    }
+}
+
+dependencies {
+    vulkanShaderTools(project(":verktex-shadertools"))
+}
+
+val compileVulkanShaders = tasks.register<CompileVulkanShaders>("compileVulkanShaders") {
+    val os = System.getProperty("os.name").lowercase()
+    val host = when {
+        "windows" in os -> "windows-x86_64"
+        "mac" in os -> "darwin-x86_64"
+        else -> "linux-x86_64"
+    }
+    val name = if ("windows" in os) "glslc.exe" else "glslc"
+
+    shaderDirectory.set(layout.projectDirectory.dir("src/main/assets/shaders"))
+    toolClasspath.from(vulkanShaderTools)
+    outputDirectory.set(layout.buildDirectory.dir("generated/vulkanShaders"))
+    glslc.set(androidComponents.sdkComponents.ndkDirectory
+        .map { it.file("shader-tools/$host/$name").asFile.path }
+        .orElse(""))
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(compileVulkanShaders, CompileVulkanShaders::outputDirectory)
+    }
+}
 
 if (validationLayers != null) {
     val copyValidationLayers = tasks.register<CopyValidationLayers>("copyValidationLayers") {

@@ -1,4 +1,4 @@
-package com.osudroid.verktex
+package com.reco1l.verktex
 
 import android.opengl.GLES32
 import com.reco1l.verktex.android.gles.toGLES
