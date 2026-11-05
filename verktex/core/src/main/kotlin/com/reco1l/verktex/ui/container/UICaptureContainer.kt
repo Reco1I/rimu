@@ -1,5 +1,6 @@
 package com.reco1l.verktex.ui.container
 
+import kotlin.concurrent.Volatile
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Color4

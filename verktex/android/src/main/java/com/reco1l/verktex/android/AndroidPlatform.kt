@@ -1,5 +1,6 @@
 package com.reco1l.verktex.android
 
+import kotlin.time.Duration
 import com.reco1l.verktex.android.bass.BASSAudioDriver
 import com.reco1l.verktex.worker.LoopWorker
 import com.reco1l.verktex.Platform
@@ -23,8 +24,8 @@ class AndroidPlatform(context: android.content.Context) : Platform.Implementatio
     }
 
 
-    override fun createLoopWorker(name: String, onLoop: () -> Unit): LoopWorker {
-        return object : AndroidLoopWorker(name) {
+    override fun createLoopWorker(name: String, minimumInterval: Duration, onLoop: () -> Unit): LoopWorker {
+        return object : AndroidLoopWorker(name, minimumInterval) {
             override fun onLoop() = onLoop()
         }
     }

@@ -1,5 +1,7 @@
 package com.reco1l.verktex.worker
 
+import kotlin.concurrent.Volatile
+
 interface LoopWorker {
 
     /**

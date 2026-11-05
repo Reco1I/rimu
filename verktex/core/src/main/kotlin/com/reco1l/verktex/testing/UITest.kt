@@ -124,7 +124,7 @@ class UITestStage internal constructor(private val logger: (String) -> Unit) : U
         val previous = scenes.lastOrNull()
 
         if (previous != null && !allowsNavigation) {
-            log("Blocked opening ${scene.javaClass.simpleName}")
+            log("Blocked opening ${scene::class.simpleName}")
             return
         }
 

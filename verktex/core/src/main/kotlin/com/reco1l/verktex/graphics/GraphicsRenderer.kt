@@ -1,5 +1,8 @@
 package com.reco1l.verktex.graphics
 
+import com.reco1l.verktex.time.monotonicNanos
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.atomicfu.locks.SynchronizedObject
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Mat2
 import com.reco1l.verktex.data.Vec2
@@ -66,6 +69,7 @@ abstract class GraphicsRenderer {
     val commandCount
         get() = commandBatch.size
     private val gpuResources = ArrayDeque<GraphicsResource>()
+    private val gpuResourcesLock = SynchronizedObject()
 
 
     //region Stacks
@@ -413,14 +417,14 @@ abstract class GraphicsRenderer {
      * Registers a GPU resource with the renderer. This allows the renderer to manage the resource's
      * lifecycle and handle context loss events.
      */
-    fun registerResource(resource: GraphicsResource) = synchronized(gpuResources) {
+    fun registerResource(resource: GraphicsResource) = synchronized(gpuResourcesLock) {
         gpuResources.addLast(resource)
     }
 
     /**
      * Unregisters a GPU resource from the renderer.
      */
-    fun unregisterResource(resource: GraphicsResource) = synchronized(gpuResources) {
+    fun unregisterResource(resource: GraphicsResource) = synchronized(gpuResourcesLock) {
         gpuResources.remove(resource)
     }
 
@@ -430,7 +434,7 @@ abstract class GraphicsRenderer {
      * Resources are registered from the update worker while the GL thread marks them, so the list is
      * locked while it is iterated.
      */
-    fun markContextLoss() = synchronized(gpuResources) {
+    fun markContextLoss() = synchronized(gpuResourcesLock) {
         for (resource in gpuResources) {
             resource.markContextLost()
         }
@@ -1166,13 +1170,13 @@ abstract class GraphicsRenderer {
     }
 
     open fun end() {
-        val submitStartNanos = System.nanoTime()
+        val submitStartNanos = monotonicNanos()
         while (commandBatch.isNotEmpty()) {
             val command = commandBatch.removeFirst()
             drawCommand(command)
             releaseBuffers(command)
         }
-        PerformanceStats.submitTime = (System.nanoTime() - submitStartNanos) / 1_000_000f
+        PerformanceStats.submitTime = (monotonicNanos() - submitStartNanos) / 1_000_000f
         buffersUsed = 0
         PerformanceStats.onFrameDrawn()
     }

@@ -1,9 +1,16 @@
 package com.reco1l.verktex.android
 
+import kotlin.time.Duration
 import com.reco1l.verktex.worker.LoopWorker
 import java.util.concurrent.ConcurrentLinkedQueue
 
-abstract class AndroidLoopWorker(override val name: String) : LoopWorker {
+abstract class AndroidLoopWorker(
+    override val name: String,
+    minimumInterval: Duration = Duration.ZERO
+) : LoopWorker {
+
+    private val minimumIntervalNanos = minimumInterval.inWholeNanoseconds
+    private var lastLoopNanos = 0L
 
     @Volatile private var running = true
     @Volatile private var paused = false
@@ -32,10 +39,21 @@ abstract class AndroidLoopWorker(override val name: String) : LoopWorker {
                     task.isCompleted = true
                 }
 
+                waitForInterval()
                 onLoop()
                 isLooping = false
             }
         }
+    }
+
+    private fun waitForInterval() {
+        if (minimumIntervalNanos <= 0) return
+
+        val remainingNanos = minimumIntervalNanos - (System.nanoTime() - lastLoopNanos)
+        if (remainingNanos > 0) {
+            Thread.sleep(remainingNanos / 1_000_000, (remainingNanos % 1_000_000).toInt())
+        }
+        lastLoopNanos = System.nanoTime()
     }
 
     override fun start() {

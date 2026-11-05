@@ -1,5 +1,8 @@
 package com.reco1l.verktex
 
+import com.reco1l.verktex.time.monotonicNanos
+import kotlin.concurrent.Volatile
+
 /**
  * Timings of the engine workers for the last frames, shown by [com.reco1l.verktex.ui.UIPerformanceOverlay].
  *
@@ -108,7 +111,7 @@ object PerformanceStats {
     fun frameTimeAt(index: Int) = frameTimes[(nextIndex + index) % HISTORY_SIZE]
 
     fun onFrameStart() {
-        val now = System.nanoTime()
+        val now = monotonicNanos()
 
         if (lastFrameNanos != 0L) {
             frameTimes[nextIndex] = (now - lastFrameNanos) / 1_000_000f
@@ -123,6 +126,6 @@ object PerformanceStats {
     }
 
     fun onFrameDrawn() {
-        drawTime = (System.nanoTime() - frameStartNanos) / 1_000_000f
+        drawTime = (monotonicNanos() - frameStartNanos) / 1_000_000f
     }
 }

@@ -1,5 +1,7 @@
 package com.reco1l.verktex
 
+import kotlin.time.Duration
+import kotlin.concurrent.Volatile
 import com.reco1l.verktex.audio.AudioDriver
 import com.reco1l.verktex.worker.LoopWorker
 
@@ -57,11 +59,11 @@ object Platform {
 
 
     /**
-     * Creates a new instance of a loop worker.
+     * Creates a new instance of a loop worker, see [Implementation.createLoopWorker].
      */
-    fun createLoopWorker(name: String, onLoop: () -> Unit): LoopWorker {
+    fun createLoopWorker(name: String, minimumInterval: Duration = Duration.ZERO, onLoop: () -> Unit): LoopWorker {
         checkImplementation()
-        return implementation.createLoopWorker(name, onLoop)
+        return implementation.createLoopWorker(name, minimumInterval, onLoop)
     }
 
 
@@ -95,9 +97,11 @@ object Platform {
 
 
         /**
-         * Creates a new instance of a loop worker.
+         * Creates a new instance of a loop worker, calling [onLoop] on its thread in a loop. The
+         * worker waits before calling it if the previous call started less than [minimumInterval]
+         * ago, so a zero interval loops as fast as it can.
          */
-        fun createLoopWorker(name: String, onLoop: () -> Unit): LoopWorker
+        fun createLoopWorker(name: String, minimumInterval: Duration, onLoop: () -> Unit): LoopWorker
 
     }
 

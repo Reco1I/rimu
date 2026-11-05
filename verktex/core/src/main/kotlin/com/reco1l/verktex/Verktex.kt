@@ -1,9 +1,10 @@
 package com.reco1l.verktex
 
+import kotlin.time.Duration.Companion.seconds
+import com.reco1l.verktex.time.monotonicNanos
 import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.container.UICaptureContainer
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import kotlinx.atomicfu.locks.withLock
 import com.reco1l.verktex.audio.AudioDriver
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.math.interpolateFloat
@@ -215,7 +216,7 @@ object Verktex {
         PerformanceStats.onFrameStart()
         graphics.begin()
         treeLock.withLock {
-            val recordStartNanos = System.nanoTime()
+            val recordStartNanos = monotonicNanos()
             // An overlay showing a capture of what is behind it stands for the scene and the
             // overlays below it, those aren't drawn.
             val capture = topmostCapture()
@@ -224,7 +225,7 @@ object Verktex {
             PerformanceStats.drawCommands = graphics.commandCount
             overlayContainer.draw(graphics)
             diagnosticsContainer.draw(graphics)
-            PerformanceStats.recordTime = (System.nanoTime() - recordStartNanos) / 1_000_000f
+            PerformanceStats.recordTime = (monotonicNanos() - recordStartNanos) / 1_000_000f
         }
         graphics.end()
 
@@ -234,18 +235,10 @@ object Verktex {
     private fun update() {
         updateWorker.check()
 
-        // Without a cap the update worker spins as fast as it can, which wastes a CPU core and makes
-        // each frame so short that eased interpolations barely move.
-        val remainingNanos = UPDATE_INTERVAL_NANOS - (System.nanoTime() - lastUpdateNanos)
-        if (remainingNanos > 0) {
-            Thread.sleep(remainingNanos / 1_000_000, (remainingNanos % 1_000_000).toInt())
-        }
-        lastUpdateNanos = System.nanoTime()
-
         clock.processFrame()
         treeLock.withLock {
             // Measured inside the lock, so waiting for the draw worker does not count.
-            val updateStartNanos = System.nanoTime()
+            val updateStartNanos = monotonicNanos()
 
             if (showPerformanceOverlay != (performanceOverlay.parent != null)) {
                 if (showPerformanceOverlay) diagnosticsContainer += performanceOverlay else diagnosticsContainer -= performanceOverlay
@@ -257,7 +250,7 @@ object Verktex {
             overlayContainer.update(clock)
             diagnosticsContainer.update(clock)
 
-            PerformanceStats.updateTime = (System.nanoTime() - updateStartNanos) / 1_000_000f
+            PerformanceStats.updateTime = (monotonicNanos() - updateStartNanos) / 1_000_000f
         }
     }
 
@@ -297,7 +290,7 @@ object Verktex {
      * input events coming from the platform's UI thread. It is fair, otherwise the draw worker
      * re-acquires it in a loop and starves the update worker.
      */
-    private val treeLock = ReentrantLock(true)
+    private val treeLock = fairReentrantLock()
 
     /**
      * Runs [block] while holding the component tree lock, for code modifying components from outside
@@ -309,9 +302,9 @@ object Verktex {
     @JvmStatic
     fun <T> withTreeLock(block: () -> T): T = treeLock.withLock(block)
 
-    private var lastUpdateNanos = 0L
-
-    private const val UPDATE_INTERVAL_NANOS = 1_000_000_000L / 240
+    // Without a cap the update worker spins as fast as it can, which wastes a CPU core and makes each
+    // frame so short that eased interpolations barely move.
+    private val UPDATE_INTERVAL = 1.seconds / 240
 
     // Space left between the focused text input and the on-screen keyboard.
     private val IME_MARGIN = 16f.dip
@@ -336,7 +329,7 @@ object Verktex {
         started = true
 
         drawWorker = Platform.createLoopWorker("draw_worker") { draw() }
-        updateWorker = Platform.createLoopWorker("update_worker") { update() }
+        updateWorker = Platform.createLoopWorker("update_worker", UPDATE_INTERVAL) { update() }
 
         drawWorker.start()
         updateWorker.start()

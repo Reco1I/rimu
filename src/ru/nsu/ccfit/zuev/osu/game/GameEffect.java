@@ -10,14 +10,13 @@ import com.reco1l.verktex.ui.ChoreographyKt;
 import com.reco1l.verktex.ui.TransformsKt;
 import com.osudroid.ui.v2.SkinTextures;
 import com.reco1l.verktex.graphics.BlendMode;
-import com.reco1l.verktex.ui.Choreography;
+import com.reco1l.verktex.ui.ChoreographyBlock;
 import com.reco1l.verktex.ui.UIAnimatedSprite;
 import com.reco1l.verktex.ui.UISprite;
 import com.reco1l.verktex.data.Color4;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
@@ -56,9 +55,8 @@ public class GameEffect extends GameObject {
         }
     }
 
-    @SafeVarargs
     public final void init(final UIContainer scene, final PointF pos, final float scale,
-                           final Consumer<Choreography>... sequenceConsumers) {
+                           final ChoreographyBlock... sequenceConsumers) {
         if (hit instanceof UIAnimatedSprite animatedHit) {
             animatedHit.stop();
             animatedHit.play();

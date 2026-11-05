@@ -1,5 +1,6 @@
 package com.reco1l.verktex.ui
 
+import com.reco1l.verktex.math.toFixed
 import com.reco1l.verktex.Verktex
 
 import com.reco1l.verktex.BuiltIn
@@ -205,24 +206,24 @@ class UIPerformanceOverlay : UIClickableContainer() {
 
             if (!isExpanded) {
                 summaryText.spans {
-                    color(fpsColor) { bold { +"%.0f FPS".format(fps) } }
-                    color(SECONDARY_TEXT_COLOR) { +"  %.1f ms  ·  %s".format(PerformanceStats.frameTime, backendName) }
+                    color(fpsColor) { bold { +"${fps.toFixed(0)} FPS" } }
+                    color(SECONDARY_TEXT_COLOR) { +"  ${PerformanceStats.frameTime.toFixed(1)} ms  ·  $backendName" }
                 }
                 super.onUpdate(clock)
                 return
             }
 
-            fpsText.text = "%.0f FPS".format(fps)
+            fpsText.text = "${fps.toFixed(0)} FPS"
             fpsText.color = fpsColor
-            frameTimeText.text = "%.1f ms · max %.1f ms".format(PerformanceStats.frameTime, PerformanceStats.maxFrameTime)
-            drawTimeText.text = "%.1f ms".format(PerformanceStats.drawTime)
+            frameTimeText.text = "${PerformanceStats.frameTime.toFixed(1)} ms · max ${PerformanceStats.maxFrameTime.toFixed(1)} ms"
+            drawTimeText.text = "${PerformanceStats.drawTime.toFixed(1)} ms"
             // The time the GPU spent on a frame, shown when the device can measure it.
-            gpuTimeText.text = if (PerformanceStats.gpuTime >= 0f) "%.1f ms".format(PerformanceStats.gpuTime) else "n/a"
-            updateTimeText.text = "%.2f ms".format(PerformanceStats.updateTime)
+            gpuTimeText.text = if (PerformanceStats.gpuTime >= 0f) "${PerformanceStats.gpuTime.toFixed(1)} ms" else "n/a"
+            updateTimeText.text = "${PerformanceStats.updateTime.toFixed(2)} ms"
             drawCallsText.text = PerformanceStats.drawCommands.toString()
-            layoutTimeText.text = "%.2f ms".format(PerformanceStats.layoutTime)
-            recordTimeText.text = "%.2f ms".format(PerformanceStats.recordTime)
-            submitTimeText.text = "%.2f ms".format(PerformanceStats.submitTime)
+            layoutTimeText.text = "${PerformanceStats.layoutTime.toFixed(2)} ms"
+            recordTimeText.text = "${PerformanceStats.recordTime.toFixed(2)} ms"
+            submitTimeText.text = "${PerformanceStats.submitTime.toFixed(2)} ms"
             backendText.text = backendName
         }
 

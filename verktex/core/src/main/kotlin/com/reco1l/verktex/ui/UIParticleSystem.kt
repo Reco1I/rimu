@@ -1,5 +1,6 @@
 package com.reco1l.verktex.ui
 
+import com.reco1l.verktex.math.toRadians
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Color4
@@ -81,8 +82,8 @@ open class UIParticleSystem(val maxParticles: Int = 256) : UICanvas() {
         particles[i++] = endScale
         particles[i++] = startAlpha
         particles[i++] = endAlpha
-        particles[i++] = Math.toRadians(rotation.toDouble()).toFloat()
-        particles[i] = Math.toRadians(angularVelocity.toDouble()).toFloat()
+        particles[i++] = rotation.toRadians()
+        particles[i] = angularVelocity.toRadians()
 
         colors[nextParticle] = color
 

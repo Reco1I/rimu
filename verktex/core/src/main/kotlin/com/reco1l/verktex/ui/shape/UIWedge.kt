@@ -1,5 +1,6 @@
 package com.reco1l.verktex.ui.shape
 
+import kotlin.math.PI
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.dip
@@ -49,7 +50,7 @@ open class UIWedge : UICanvas() {
 
         // The rounded corner goes from the direction the slanted side faces to the bottom of the box.
         val startAngle = atan2(shear, height)
-        val endAngle = Math.PI.toFloat() / 2f
+        val endAngle = PI.toFloat() / 2f
         val segments = if (radius > 0f) max(1, CORNER_SEGMENTS) else 0
 
         val pointCount = 3 + segments + 1
