@@ -28,6 +28,7 @@ import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.fonts.Fonts
 import com.reco1l.verktex.BuiltIn
+import com.reco1l.verktex.Logger
 import com.reco1l.verktex.input.Input
 import com.reco1l.verktex.ui.ITextInput
 
@@ -278,6 +279,10 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
 
         BuiltIn.Fonts.Default = load("nunito", "nunito-medium.ttf")
         BuiltIn.Fonts.Torus = load("torus", "torus-bold.otf")
+        BuiltIn.Fonts.System = Fonts.loadSystem("system") ?: run {
+            Logger.w("Verktex", "The system font isn't available, using the default font instead.")
+            BuiltIn.Fonts.Default
+        }
         BuiltIn.Fonts.FontAwesomeIconRegular = load("fa-regular", "fa-regular.otf")
         BuiltIn.Fonts.FontAwesomeIconSolid = load("fa-solid", "fa-solid.otf")
         BuiltIn.Fonts.FontAwesomeIconBrands = load("fa-brands", "fa-brands.otf")

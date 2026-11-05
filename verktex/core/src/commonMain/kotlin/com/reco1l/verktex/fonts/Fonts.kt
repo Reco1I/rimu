@@ -32,6 +32,35 @@ object Fonts {
      * @return A [FontFamily] representing the loaded font family.
      */
     fun load(key: String, path: String, isInternal: Boolean = false): FontFamily? {
+        return register(key) {
+            Platform.provider.createFontFamilySource(path, !isInternal)
+                ?: run {
+                    Logger.w("FontManager", "Failed to create font source for path: $path")
+                    null
+                }
+        }
+    }
+
+    /**
+     * This function will load a font family installed on the system. How the font looks depends on
+     * the platform, and the same family may not exist on every one of them.
+     *
+     * @param key A unique key to associate with the loaded font family.
+     * @param family The name of the system font family, or null for the platform's default UI font.
+     * @return A [FontFamily] representing the loaded font family, or null when the platform couldn't
+     * provide it.
+     */
+    fun loadSystem(key: String, family: String? = null): FontFamily? {
+        return register(key) {
+            Platform.provider.createSystemFontFamilySource(family)
+                ?: run {
+                    Logger.w("FontManager", "Failed to create font source for the system font: ${family ?: "default"}")
+                    null
+                }
+        }
+    }
+
+    private inline fun register(key: String, createSource: () -> FontFamily.Source?): FontFamily? {
 
         val existingFontFamily = fontFamilies[key]
         if (existingFontFamily != null) {
@@ -39,11 +68,7 @@ object Fonts {
             return existingFontFamily
         }
 
-        val fontSource = Platform.provider.createFontFamilySource(path, !isInternal)
-            ?: run {
-                Logger.w("FontManager", "Failed to create font source for path: $path")
-                return null
-            }
+        val fontSource = createSource() ?: return null
 
         val fontFamily = FontFamily(key, fontSource)
         fontFamilies[key] = fontFamily
