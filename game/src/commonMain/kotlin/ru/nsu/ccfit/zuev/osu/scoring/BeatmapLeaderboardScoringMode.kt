@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
+import kotlin.jvm.JvmStatic
+
 /**
  * Represents the scoring mode used in online beatmap leaderboard.
  */

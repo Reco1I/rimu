@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu
 
 import com.osudroid.OsuPlatform
+import kotlin.jvm.JvmStatic
 
 object BuildType {
     @JvmStatic
