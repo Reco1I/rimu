@@ -30,8 +30,9 @@ Requires **Java 17**, **Android NDK 22.1.7171670** and the **android-36.1** SDK 
 - `:verktex:android`: the Android platform, with its graphics backends, the built-in shaders and fonts, and the task that compiles the shaders to SPIR-V. The app depends only on this module, which brings in core.
 - `:verktex:bass`: the BASS native audio library.
 - `:verktex:shadertools`: the shader translator, used by the Vulkan backend and by the build.
+- `:verktex:desktop`: the desktop platform (OpenGL 3.3 through LWJGL, BASS through JNA), which runs Verktex's UI tests, see `verktex/docs/desktop-platform.md`. The app never depends on it.
 
-Engine tests live in `verktex/core/src/jvmTest/` and in the other modules' `src/test/`, and run with `./gradlew :verktex:core:jvmTest :verktex:android:testDebugUnitTest :verktex:shadertools:test`. The app's tests live under `tests/test/kotlin/` (not the standard `src/test/`).
+Engine tests live in `verktex/core/src/jvmTest/` and in the other modules' `src/test/`, and run with `./gradlew :verktex:core:jvmTest :verktex:android:testDebugUnitTest :verktex:shadertools:test :verktex:desktop:test`. The app's tests live under `tests/test/kotlin/` (not the standard `src/test/`).
 
 ## Architecture Overview
 
@@ -90,6 +91,12 @@ adb shell am start -S -n ru.nsu.ccfit.zuev.osuplus.debug/com.osudroid.ui.v2.test
 ```
 
 Add `--es backend <name>` (a `GraphicsBackend`: `OpenGLES3`, `OpenGLES2`, `Vulkan`) to open it with another graphics backend.
+
+Verktex's own tests also run on desktop, without a device (the "UI Tests (Desktop)" run configuration). `--screenshot <file.png>` saves a frame and exits:
+
+```bash
+./gradlew :verktex:desktop:run --args="--test 'Verktex/Text' --screenshot build/text.png"
+```
 
 ### Asset / Resource Loading
 

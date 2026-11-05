@@ -5,6 +5,34 @@ and GLFW) and BASS for audio (through JNA). It proves the split of `Platform.Imp
 and makes it quick to try components without a phone. For now it only runs Verktex's own UI tests
 (`UITestScene` with `VerktexUITests`), not the game.
 
+## Status
+
+Every step below is done. The UI tests run on Windows with OpenGL and BASS:
+
+```bash
+./gradlew :verktex:desktop:run --args="--test 'Verktex/Text'"
+```
+
+In Android Studio, the shared run configuration "UI Tests (Desktop)" runs the same thing. Add
+`--args="…"` to its script parameters to pass the options.
+
+- `--test <suite/test>` opens a test first, `suite/test` or just its name. Without it, the last
+  opened test is shown again.
+- `--screenshot <file.png>` saves the frame shown 1.5 seconds after starting and exits.
+
+Checked by unit tests and by screenshots of the Text, Buttons, Controls, Shapes, Dialogs,
+Transforms, Scrollable and Loading indicators tests. Not checked yet:
+- Interactive input, typing into text inputs, and hearing audio.
+- The instanced draws (particles), which no UI test uses.
+- Linux and macOS.
+
+Found while checking, in the core and so on every platform:
+- `UIBox` fills with `drawRect`'s transparent default. Its fill comes from `backgroundColor`, but
+  the Shapes test sets `color`, so the test's two boxes are invisible.
+- The medium "Soft" button of the Buttons test wraps its label ("Sof" / "t"). Text is measured and
+  then laid out in the measured width, and the two passes disagree by a fraction of a pixel with
+  fractional glyph advances.
+
 ## Decisions
 
 - **A separate OpenGL backend.** The desktop backend is a GL 3.3 core port of the OpenGL ES 3 one,
@@ -37,7 +65,9 @@ and makes it quick to try components without a phone. For now it only runs Verkt
      are decoded with stb_image.
    - Fonts are rasterised with stb_truetype, the same way `AndroidFont` does with `Paint`:
      - Sizes scale by em, and the metrics come from hhea.
-     - Glyphs are white with their coverage as alpha.
+     - Glyphs are white with their coverage as alpha, inside a transparent 1-pixel border. Glyphs
+       are packed edge to edge in the atlas, and drawn at fractional positions, linear filtering
+       would otherwise read the neighbouring glyph's edge.
      - There's no kerning, as on Android.
      - stb can't synthesise weights or italics. Oblique is a skew, as on Android.
 6. **The OpenGL backend** (`desktop/gl/`), ported from the OpenGL ES 3 one:
@@ -48,7 +78,10 @@ and makes it quick to try components without a phone. For now it only runs Verkt
    - `GLSL330Translator` rewrites the shaders.
    - There are no external textures (video) and no GPU timer yet.
 7. **BASS** (`desktop/bass/`):
-   - JNA direct-mapped bindings for the functions the Android driver uses, plus `BASS_FX_TempoCreate`.
+   - JNA direct-mapped bindings for the functions the Android driver uses, plus `BASS_FX_TempoCreate`
+     (`BassNative`, imported as `BASS` so the code reads like the Android one).
+   - The libraries are copied out of the classpath under their own names before they're loaded
+     (`BassLibraries`). JNA's own extraction renames them, and bass_fx then can't find bass.
    - The driver, device, sample and stream are adapted from the Android ones.
    - Internal audio is loaded from memory.
    - The sync callbacks are kept referenced, so JNA doesn't drop them.
