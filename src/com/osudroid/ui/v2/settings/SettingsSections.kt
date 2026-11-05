@@ -470,7 +470,7 @@ val gameplaySection = listOf(
                 initialValue = { Config.getSkinPath() },
                 onAttach = {
                     val skinMain = File(Config.getSkinTopPath())
-                    val skins = Config.getSkins().map { skin ->
+                    val skins = Config.getSkins()!!.map { skin ->
                         UISelect.Option(skin.value.withTrailingSlash(), skin.key)
                     }.sortedBy { it.text }.toMutableList()
                     skins.add(0, UISelect.Option(skinMain.path.withTrailingSlash(), skinMain.name + " (Default)"))
@@ -1217,7 +1217,7 @@ val advancedSection = listOf(
                     val newValue = value as String
 
                     if (newValue.trim { it <= ' ' }.isEmpty()) {
-                        Config.loadConfig(GlobalManager.getInstance().context)
+                        Config.loadConfig()
                         return@OptionInfo
                     }
 
@@ -1228,7 +1228,7 @@ val advancedSection = listOf(
                         return@OptionInfo
                     }
 
-                    Config.loadConfig(GlobalManager.getInstance().context)
+                    Config.loadConfig()
                 }
             ),
             OptionInfo(

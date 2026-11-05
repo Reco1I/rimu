@@ -1,13 +1,11 @@
 package com.osudroid
 
-import ru.nsu.ccfit.zuev.osuplus.BuildConfig
-
 object BuildSettings {
 
     /**
      * Whether to use fake multiplayer mode or not.
      */
-    val MOCK_MULTIPLAYER = BuildConfig.DEBUG
+    val MOCK_MULTIPLAYER = OsuPlatform.implementation.isDebug
 
     /**
      * Whether to use the debug playground scene or not.

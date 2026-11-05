@@ -27,6 +27,7 @@ kotlin {
 
     compilerOptions {
         freeCompilerArgs.add("-Xexplicit-backing-fields")
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
     }
 
     sourceSets {
@@ -34,6 +35,18 @@ kotlin {
             api(project(":verktex:core"))
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
             api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+
+            // Files, streams and hashing.
+            api("com.squareup.okio:okio:3.9.1")
+
+            // Key-value preferences, over SharedPreferences on Android.
+            api("com.russhwolf:multiplatform-settings:1.3.0")
+        }
+
+        if (providers.gradleProperty("game.checkCommon").isPresent) {
+            jsMain.dependencies {
+                implementation("com.squareup.okio:okio-nodefilesystem:3.9.1")
+            }
         }
 
         jvmTest.dependencies {

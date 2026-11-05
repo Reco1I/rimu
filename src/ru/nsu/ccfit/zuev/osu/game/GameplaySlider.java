@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
+import com.osudroid.multiplayer.Multiplayer;
+
 import android.graphics.PointF;
 
 import com.reco1l.verktex.math.Easing;
@@ -1025,7 +1027,7 @@ public class GameplaySlider extends GameObject {
 
     @Override
     public boolean isJudged() {
-        return Config.isRemoveSliderLock() ? startHit : isOver;
+        return Multiplayer.isRemoveSliderLock() ? startHit : isOver;
     }
 
     private float getTrackingDistanceThresholdSquared(boolean isTracking) {

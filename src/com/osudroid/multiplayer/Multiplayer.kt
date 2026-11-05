@@ -1,5 +1,6 @@
 package com.osudroid.multiplayer
 
+import ru.nsu.ccfit.zuev.osu.Config
 import com.reco1l.verktex.Verktex
 import com.osudroid.ui.v2.songselect.SongSelect
 import android.net.*
@@ -84,6 +85,16 @@ object Multiplayer {
     @JvmStatic
     val isConnected
         get() = room != null
+
+    /**
+     * Whether the slider lock is removed, as the room's gameplay settings say while connected to a room
+     * and as the player's settings say otherwise.
+     */
+    @JvmStatic
+    fun isRemoveSliderLock(): Boolean {
+        //noinspection DataFlowIssue
+        return if (isConnected) room!!.gameplaySettings.isRemoveSliderLock else Config.isRemoveSliderLock()
+    }
 
     private val logger = MultiplayerLogger()
 
