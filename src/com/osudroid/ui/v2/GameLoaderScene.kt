@@ -48,6 +48,7 @@ import kotlin.math.*
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
+import com.reco1l.verktex.ui.themed
 
 class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : UIScene() {
 
@@ -91,12 +92,10 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             scaleX = 0.9f
             scaleY = 0.9f
             scaleOrigin = Anchor.Center
-            style = Style {
-                padding = com.reco1l.verktex.data.Padding(
-                    top = 16f.dip,
-                    bottom = (16f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
-                )
-            }
+            padding = com.reco1l.verktex.data.Padding(
+                top = 16f.dip,
+                bottom = (16f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
+            )
 
             container {
                 width = 0.67f.pct
@@ -123,30 +122,24 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         width = Dimension.FillAvailable
                         wrapText = true
                         text = beatmapInfo.titleText
-                        style = Style { theme ->
-                            fontSize = theme.typography.h2.size
-                            color = theme.palette.accent
-                        }
+                        fontSize = themed { typography.h2.size }
+                        color = themed { palette.accent }
                     }
 
                     text {
                         width = Dimension.FillAvailable
                         wrapText = true
                         text = beatmapInfo.version
-                        style = Style { theme ->
-                            fontSize = theme.typography.h2.size
-                            color = theme.palette.accent
-                        }
+                        fontSize = themed { typography.h2.size }
+                        color = themed { palette.accent }
                     }
 
                     text {
                         width = Dimension.FillAvailable
                         wrapText = true
                         text = "by ${beatmapInfo.artistText}"
-                        style = Style { theme ->
-                            fontSize = theme.typography.h3.size
-                            color = theme.palette.accent * 0.9f
-                        }
+                        fontSize = themed { typography.h3.size }
+                        color = themed { palette.accent * 0.9f }
                     }
 
                     if (mods.isNotEmpty()) {

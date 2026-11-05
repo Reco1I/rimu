@@ -50,6 +50,7 @@ import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
+import com.reco1l.verktex.ui.themed
 
 object CalibrationScene : UIScene() {
     internal var OFFSET_MIN = -500
@@ -139,7 +140,7 @@ object CalibrationScene : UIScene() {
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                style = Style { theme -> color = theme.palette.accent * 0.35f }
+                color = themed { palette.accent * 0.35f }
                 hitCircleFill = this
             }
 
@@ -150,7 +151,7 @@ object CalibrationScene : UIScene() {
                 origin = Anchor.Center
                 radius = (CIRCLE_DIAMETER / 2f).px
                 borderWidth = 8f.px
-                style = Style { theme -> borderColor = theme.palette.accent }
+                borderColor = themed { palette.accent }
             }
 
             box {
@@ -162,7 +163,7 @@ object CalibrationScene : UIScene() {
                 borderWidth = 6f.px
                 scaleOrigin = Anchor.Center
                 scale = APPROACH_SCALE_START
-                style = Style { theme -> borderColor = theme.palette.accent * 0.85f }
+                borderColor = themed { palette.accent * 0.85f }
                 approachCircle = this
             }
 
@@ -175,7 +176,7 @@ object CalibrationScene : UIScene() {
                 borderWidth = 6f.px
                 scaleOrigin = Anchor.Center
                 alpha = 0f
-                style = Style { theme -> borderColor = theme.palette.accent }
+                borderColor = themed { palette.accent }
                 rippleCircle = this
             }
         }
@@ -219,7 +220,7 @@ object CalibrationScene : UIScene() {
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
             translationY = (-28f).px
-            style = Style { theme -> color = theme.palette.accent * 0.45f }
+            color = themed { palette.accent * 0.45f }
         }
 
         linearContainer {
@@ -231,9 +232,7 @@ object CalibrationScene : UIScene() {
             padding = Padding(24f.px)
             radius = 16f.px
 
-            style = Style { theme ->
-                backgroundColor = theme.palette.accent * 0.15f
-            }
+            backgroundColor = themed { palette.accent * 0.15f }
 
             text {
                 setText(string.opt_offset_calibration_calibration)
@@ -241,13 +240,13 @@ object CalibrationScene : UIScene() {
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = Style { theme -> color = theme.palette.accent }
+                color = themed { palette.accent }
             }
 
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                style = Style { theme -> backgroundColor = theme.palette.accent * 0.2f }
+                backgroundColor = themed { palette.accent * 0.2f }
             }
 
             text {
@@ -256,7 +255,7 @@ object CalibrationScene : UIScene() {
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = Style { theme -> color = theme.palette.accent * 0.6f }
+                color = themed { palette.accent * 0.6f }
             }
 
             linearContainer {
@@ -276,11 +275,9 @@ object CalibrationScene : UIScene() {
                     alignment = Anchor.Center
                     width = 110f.px
                     tintChildren = true
-                    style += Style { theme ->
-                        radius = 8f.px
-                        backgroundColor = theme.palette.accent * 0.12f
-                        color = theme.palette.accent
-                    }
+                    radius = 8f.px
+                    backgroundColor = themed { palette.accent * 0.12f }
+                    color = themed { palette.accent }
                     onActionUp = { showBpmInputDialog() }
                     bpmValueText = this
                 }
@@ -295,7 +292,7 @@ object CalibrationScene : UIScene() {
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                style = Style { theme -> backgroundColor = theme.palette.accent * 0.2f }
+                backgroundColor = themed { palette.accent * 0.2f }
             }
 
             text {
@@ -304,7 +301,7 @@ object CalibrationScene : UIScene() {
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = Style { theme -> color = theme.palette.accent * 0.6f }
+                color = themed { palette.accent * 0.6f }
             }
 
             linearContainer {
@@ -324,11 +321,9 @@ object CalibrationScene : UIScene() {
                     alignment = Anchor.Center
                     width = 110f.px
                     tintChildren = true
-                    style += Style { theme ->
-                        radius = 8f.px
-                        backgroundColor = theme.palette.accent * 0.12f
-                        color = theme.palette.accent
-                    }
+                    radius = 8f.px
+                    backgroundColor = themed { palette.accent * 0.12f }
+                    color = themed { palette.accent }
                     onActionUp = { showOffsetInputDialog() }
                     offsetValueText = this
                 }
@@ -357,10 +352,8 @@ object CalibrationScene : UIScene() {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
                 tintChildren = true
-                style += Style {
-                    color = Color4(0xFFFFBFBF)
-                    backgroundColor = Color4(0xFF342121)
-                }
+                color = Color4(0xFFFFBFBF)
+                backgroundColor = Color4(0xFF342121)
                 onActionUp = {
                     playShortClickSound()
                     pendingOffset = 0
@@ -384,9 +377,7 @@ object CalibrationScene : UIScene() {
             orientation = UILinearContainer.Orientation.Vertical
             padding = Padding(14f.px)
             radius = 16f.px
-            style = Style { theme ->
-                backgroundColor = theme.palette.accent * 0.15f
-            }
+            backgroundColor = themed { palette.accent * 0.15f }
 
             // Header
             text {
@@ -395,14 +386,14 @@ object CalibrationScene : UIScene() {
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = Style { theme -> color = theme.palette.accent }
+                color = themed { palette.accent }
             }
 
             // Divider
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                style = Style { theme -> backgroundColor = theme.palette.accent * 0.2f }
+                backgroundColor = themed { palette.accent * 0.2f }
             }
 
             // Setting row: label (left) + ON/OFF toggle (right)
@@ -419,7 +410,7 @@ object CalibrationScene : UIScene() {
                     alignment = Anchor.CenterLeft
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    style = Style { theme -> color = theme.palette.accent * 0.9f }
+                    color = themed { palette.accent * 0.9f }
                 }
 
                 highPrecisionToggle = UICheckbox(Config.isHighPrecisionInput()).apply {
@@ -439,7 +430,7 @@ object CalibrationScene : UIScene() {
                 alignment = Anchor.TopLeft
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
-                style = Style { theme -> color = theme.palette.accent * 0.5f }
+                color = themed { palette.accent * 0.5f }
             }
         }
     }

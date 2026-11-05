@@ -19,6 +19,7 @@ import com.reco1l.verktex.ui.control.UISlider
 import com.reco1l.verktex.ui.iconButton
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.themed
 
 class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
@@ -54,17 +55,13 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
                     titleText = text {
                         width = Dimension.FillAvailable
-                        style = Style { theme ->
-                            color = theme.palette.accent
-                        }
+                        color = themed { palette.accent }
                     }
 
                     artistText = text {
                         width = Dimension.FillAvailable
-                        style = Style { theme ->
-                            fontSize = theme.typography.smallCaption.size
-                            color = theme.palette.accent * 0.9f
-                        }
+                        fontSize = themed { typography.smallCaption.size }
+                        color = themed { palette.accent * 0.9f }
                     }
                 }
 
@@ -74,19 +71,15 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     currentTime = text {
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
-                        style = Style { theme ->
-                            fontSize = theme.typography.smallCaption.size
-                            color = theme.palette.accent * 0.8f
-                        }
+                        fontSize = themed { typography.smallCaption.size }
+                        color = themed { palette.accent * 0.8f }
                     }
 
                     totalTime = text {
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
-                        style = Style { theme ->
-                            fontSize = theme.typography.smallCaption.size
-                            color = theme.palette.accent * 0.8f
-                        }
+                        fontSize = themed { typography.smallCaption.size }
+                        color = themed { palette.accent * 0.8f }
                     }
                 }
 
@@ -121,9 +114,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         icon = FAIcon.Play
                         density = UIButton.Density.Large
                         variant = UIButton.Variant.Solid
-                        style += Style {
-                            radius = FULL_RADIUS
-                        }
+                        radius = FULL_RADIUS
 
                         onActionUp = {
                             if (MusicManager.isPlaying) {

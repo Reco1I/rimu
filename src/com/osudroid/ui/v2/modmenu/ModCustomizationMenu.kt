@@ -22,6 +22,7 @@ import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.text.UIText
 import kotlin.reflect.KClass
+import com.reco1l.verktex.ui.themed
 
 class ModCustomizationMenu(private val trigger: UIButton) : UIModal(
 
@@ -32,10 +33,8 @@ class ModCustomizationMenu(private val trigger: UIButton) : UIModal(
         scaleOrigin = Anchor.TopCenter
         clipping = ClipMode.Bounds
         scrollPadding = Vec2(0f, 64f.dip.toPixels())
-        style = Style { theme ->
-            backgroundColor = theme.palette.accent * 0.15f
-            radius = theme.radius.lg
-        }
+        backgroundColor = themed { palette.accent * 0.15f }
+        radius = themed { radius.lg }
 
         +UILinearContainer().apply {
             width = Dimension.FillAvailable
@@ -159,9 +158,7 @@ class ModCustomizationMenu(private val trigger: UIButton) : UIModal(
                 padding = Padding(12f.dip)
                 spacing = 8f.dip
                 backgroundColor = Color4.Black.copy(alpha = 0.05f)
-                style = Style { theme ->
-                    radius = theme.radius.lg
-                }
+                radius = themed { radius.lg }
 
                 +ModIcon(mod).apply {
                     anchor = Anchor.CenterLeft
@@ -174,11 +171,9 @@ class ModCustomizationMenu(private val trigger: UIButton) : UIModal(
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
                     text = mod.name.uppercase()
-                    style = Style { theme ->
-                        fontSize = theme.typography.smallBody.size
-                        color = theme.palette.accent
-                        alpha = 0.9f
-                    }
+                    fontSize = themed { typography.smallBody.size }
+                    color = themed { palette.accent }
+                    alpha = 0.9f
                 }
             }
 

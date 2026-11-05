@@ -71,6 +71,7 @@ import java.util.concurrent.CancellationException
 import kotlin.math.roundToInt
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
+import com.reco1l.verktex.ui.themed
 
 object ModMenu : UICaptureContainer() {
 
@@ -117,9 +118,7 @@ object ModMenu : UICaptureContainer() {
             width = fill()
             height = fill()
             padding = horizontalPadding(8f.dip)
-            style = Style { theme ->
-                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.75f)
-            }
+            backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.75f) }
 
             linearContainer {
                 width = fill()
@@ -169,10 +168,8 @@ object ModMenu : UICaptureContainer() {
                         textButton {
                             text = "Clear"
                             tintChildren = true
-                            style += Style {
-                                color = Color4(0xFFFFBFBF)
-                                backgroundColor = Color4(0xFF342121)
-                            }
+                            color = Color4(0xFFFFBFBF)
+                            backgroundColor = Color4(0xFF342121)
                             leadingIcon = faSolidIcon(FAIcon.DeleteLeft)
                             onActionUp = {
                                 SkinSounds["click-short-confirm"].play()
@@ -298,7 +295,6 @@ object ModMenu : UICaptureContainer() {
 
                         rankedBadge = badge {
                             text = "Ranked"
-                            style = Style {}
                             backgroundColor = Color4(0xFF342121)
                             color = Color4(0xFF161622)
                         }

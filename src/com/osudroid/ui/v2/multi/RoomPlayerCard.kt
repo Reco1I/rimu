@@ -41,6 +41,7 @@ import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
+import com.reco1l.verktex.ui.themed
 
 class RoomPlayerCard : UILinearContainer() {
     private val teamColorBar: UIButton
@@ -52,11 +53,9 @@ class RoomPlayerCard : UILinearContainer() {
         spacing = 16f.dip
 
         teamColorBar = UIButton().apply {
-            style += Style {
-                width = 0.025f.pct
-                height = Dimension.FillAvailable
-                radius = 32f.dip
-            }
+            width = 0.025f.pct
+            height = Dimension.FillAvailable
+            radius = 32f.dip
         }
 
         playerButton = RoomPlayerButton()
@@ -133,7 +132,7 @@ class RoomPlayerCard : UILinearContainer() {
         private val hostIcon = UIIcon(FAIcon.Crown).apply {
             width = 24f.px
             height = 24f.px
-            style = Style { theme -> color = theme.palette.accent }
+            color = themed { palette.accent }
         }
 
         private val mutedIcon = UIIcon(FAIcon.MicrophoneSlash).apply {
@@ -151,14 +150,12 @@ class RoomPlayerCard : UILinearContainer() {
         init {
             width = fill()
 
-            style += Style { theme ->
-                height = Dimension.WrapContent
-                color = theme.palette.accent
-                alpha = if (isEnabled) 1f else 0.5f
-                borderWidth = 2f.px
-                padding = Padding(8f.dip)
-                backgroundColor = theme.palette.accent * 0.1f
-            }
+            height = Dimension.WrapContent
+            color = themed { palette.accent }
+            alpha = if (isEnabled) 1f else 0.5f
+            borderWidth = 2f.px
+            padding = Padding(8f.dip)
+            backgroundColor = themed { palette.accent * 0.1f }
 
             avatarSprite = UISprite().apply {
                 anchor = Anchor.CenterLeft
@@ -185,7 +182,7 @@ class RoomPlayerCard : UILinearContainer() {
                         spacing = 8f.dip
 
                         nameText = text {
-                            style = Style { theme -> color = theme.palette.accent }
+                            color = themed { palette.accent }
                         }
 
                         iconContainer = linearContainer {
@@ -197,10 +194,8 @@ class RoomPlayerCard : UILinearContainer() {
                     rankText = text {
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
-                        style = Style { theme ->
-                            color = theme.palette.accent * 0.8f
-                            fontSize = theme.typography.smallBody.size
-                        }
+                        color = themed { palette.accent * 0.8f }
+                        fontSize = themed { typography.smallBody.size }
                     }
                 }
             }
@@ -237,10 +232,8 @@ class RoomPlayerCard : UILinearContainer() {
 
                     modDisplay = UIText().apply {
                         minHeight = 24f.px // Force to take space even if no mods are enabled
-                        style = Style { theme ->
-                            fontSize = theme.typography.smallCaption.size
-                            color = theme.palette.accent * 0.8f
-                        }
+                        fontSize = themed { typography.smallCaption.size }
+                        color = themed { palette.accent * 0.8f }
                     }
 
                     innerContainer += modDisplay!!
@@ -253,10 +246,8 @@ class RoomPlayerCard : UILinearContainer() {
 
                     modDisplay = ModsIndicator().apply {
                         minHeight = 24f.px // Force to take space even if no mods are enabled
-                        style = Style {
-                            iconSize = 24f.px
-                            spacing = (-5f).px
-                        }
+                        iconSize = 24f.px
+                        spacing = (-5f).px
                     }
 
                     innerContainer += modDisplay!!
@@ -309,9 +300,7 @@ class RoomPlayerCard : UILinearContainer() {
                             addButton {
                                 setText(R.string.multiplayer_room_player_menu_kick)
                                 tintChildren = true
-                                style += Style {
-                                    color = Color4("#FFBFBF")
-                                }
+                                color = Color4("#FFBFBF")
                                 onActionUp = {
                                     UIConfirmDialog().apply {
                                         title = StringTable.format(R.string.multiplayer_room_player_kick_dialog_title, player.name)

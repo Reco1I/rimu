@@ -42,10 +42,8 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
 
     init {
         width = fill()
-        style += Style {
-            height = wrap()
-            padding = Padding(14f.dip)
-        }
+        height = wrap()
+        padding = Padding(14f.dip)
 
         linearContainer {
             width = fill()

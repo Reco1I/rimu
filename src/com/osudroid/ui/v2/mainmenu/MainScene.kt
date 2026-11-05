@@ -74,6 +74,7 @@ import ru.nsu.ccfit.zuev.osu.online.*
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig
 import java.io.*
 import kotlin.math.*
+import com.reco1l.verktex.ui.themed
 
 
 object MainScene : UIScene() {
@@ -321,12 +322,10 @@ object MainScene : UIScene() {
 
             text {
                 text = "osu!droid ${BuildConfig.VERSION_NAME}"
-                style = Style { theme ->
-                    backgroundColor = Color4.Black.copy(alpha = 0.5f)
-                    padding = Padding(8f.dip, 4f.dip)
-                    radius = theme.radius.md
-                    fontSize = theme.typography.smallBody.size
-                }
+                backgroundColor = Color4.Black.copy(alpha = 0.5f)
+                padding = Padding(8f.dip, 4f.dip)
+                radius = themed { radius.md }
+                fontSize = themed { typography.smallBody.size }
             }
 
             onActionUp = {
@@ -640,13 +639,11 @@ private fun Random.nextFloat(from: Float, until: Float) = from + nextFloat() * (
 class MenuButton(icon: Int, title: String) : UIButton() {
 
     init {
-        style += Style {
-            width = 256f.dip
-            height = Dimension.WrapContent
-            radius = 10.4f.dip
-            backgroundColor = backgroundColor.copy(alpha = 0.6f)
-            padding = Padding(24f.dip)
-        }
+        width = 256f.dip
+        height = Dimension.WrapContent
+        radius = 10.4f.dip
+        backgroundColor = themed { palette.buttonBackgroundSurface.copy(alpha = 0.6f) }
+        padding = Padding(24f.dip)
 
         text {
             width = Dimension.FillAvailable
@@ -714,9 +711,7 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                     text = "osu!droid"
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
-                    style = Style { theme ->
-                        fontSettings = theme.typography.h2
-                    }
+                    fontSettings = themed { typography.h2 }
                 }
 
                 text {

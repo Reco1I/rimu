@@ -19,6 +19,7 @@ import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.*
+import com.reco1l.verktex.ui.themed
 
 @Suppress("LeakingThis")
 open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: BeatmapInfo) : UIClickableContainer() {
@@ -43,12 +44,10 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         width = Dimension.FillAvailable
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
-        style = Style { theme ->
-            radius = theme.radius.xl
-            backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.6f)
-            borderColor = theme.palette.accent.copy(alpha = 0.3f)
-            borderWidth = 1f.dip
-        }
+        radius = themed { radius.xl }
+        backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.6f) }
+        borderColor = themed { palette.accent.copy(alpha = 0.3f) }
+        borderWidth = 1f.dip
 
         linearContainer {
             orientation = UILinearContainer.Orientation.Horizontal
@@ -65,11 +64,9 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
                 text = beatmapInfo.version
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                style = Style { theme ->
-                    fontSettings = theme.typography.h3
-                    fontSize = theme.typography.body.size
-                    color = theme.palette.accent
-                }
+                fontSettings = themed { typography.h3 }
+                fontSize = themed { typography.body.size }
+                color = themed { palette.accent }
             }
         }
 

@@ -32,6 +32,7 @@ import com.reco1l.verktex.ui.text.text
 import java.text.*
 import java.util.*
 import kotlin.math.roundToInt
+import com.reco1l.verktex.ui.themed
 
 class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
 
@@ -64,12 +65,10 @@ class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
             translationY = (-2f).px
             alpha = 0.75f
 
-            style = Style { theme ->
-                color = (theme.palette.accent * 0.1f).copy(alpha = 0.75f)
-                radius = 12f.dip
-                strokeWidth = 2f.px
-                strokeColor = theme.palette.accent * 0.2f
-            }
+            color = themed { (palette.accent * 0.1f).copy(alpha = 0.75f) }
+            radius = 12f.dip
+            strokeWidth = 2f.px
+            strokeColor = themed { palette.accent * 0.2f }
         }
 
         linearContainer {
@@ -89,27 +88,23 @@ class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
 
                     artistText = text {
                         text = "Unknown"
-                        style = Style { theme ->
-                            fontSettings = theme.typography.h3
-                            fontSize = theme.typography.body.size
-                            color = theme.palette.accent * 0.8f
-                        }
+                        fontSettings = themed { typography.h3 }
+                        fontSize = themed { typography.body.size }
+                        color = themed { palette.accent * 0.8f }
                     }
 
                     titleText = text {
                         width = Dimension.FillAvailable
                         text = "No selected beatmap"
-                        style = Style { theme ->
-                            fontSettings = theme.typography.h3
-                            fontSize = theme.typography.body.size
-                            color = theme.palette.accent
-                        }
+                        fontSettings = themed { typography.h3 }
+                        fontSize = themed { typography.body.size }
+                        color = themed { palette.accent }
                         clipping = ClipMode.Bounds
                     }
 
                     versionText = text {
                         text = "Unknown"
-                        style = Style { theme -> color = theme.palette.accent * 0.8f }
+                        color = themed { palette.accent * 0.8f }
                     }
                 }
                 starsText = StarRatingBadge()
@@ -123,10 +118,8 @@ class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
                 fun StatisticBadge(iconCode: Int) = badge {
                     leadingIcon = faSolidIcon(iconCode)
                     density = UIBadge.Density.Small
-                    style += Style { theme ->
-                        backgroundColor = Color4.Transparent
-                        color = theme.palette.accent
-                    }
+                    backgroundColor = Color4.Transparent
+                    color = themed { palette.accent }
                 }
 
                 lengthText = StatisticBadge(FAIcon.Clock).apply { text = "00:00" }
