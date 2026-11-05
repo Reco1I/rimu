@@ -2,7 +2,7 @@ package com.osudroid.ui.v2.multi
 
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
-import com.edlplan.ui.fragment.WebViewFragment
+import com.reco1l.verktex.Platform
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.*
@@ -263,9 +263,7 @@ class RoomPlayerCard : UILinearContainer() {
                     addButton {
                         setText(Res.string.multiplayer_room_player_menu_view_profile)
                         onActionUp = {
-                            WebViewFragment()
-                                .setURL(WebViewFragment.PROFILE_URL + player.id)
-                                .show()
+                            Platform.openWebPage(OnlineManager.profileEndpoint + player.id, OnlineManager.profileUserAgent)
                             this@dropdown.hide()
                         }
                     }

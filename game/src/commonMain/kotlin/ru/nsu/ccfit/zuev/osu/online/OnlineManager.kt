@@ -380,6 +380,12 @@ class OnlineManager {
         @JvmField
         val defaultAvatarURL = getAvatarURL(0)
         const val profileBannerEndpoint = "https://$hostname/user/banner/"
+        const val profileEndpoint = "https://$hostname/game/profile.php?uid="
+
+        /**
+         * The user agent the profile pages are opened with, which shows them in the game's layout.
+         */
+        const val profileUserAgent = "osudroid"
         private const val onlineVersion = "65"
 
         private var instance: OnlineManager? = null

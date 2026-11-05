@@ -6,7 +6,7 @@ import com.reco1l.verktex.worker.LoopWorker
 import com.reco1l.verktex.worker.ThreadLoopWorker
 import com.reco1l.verktex.Platform
 
-class AndroidPlatform(context: android.content.Context) : Platform.Implementation {
+class AndroidPlatform(private val context: android.content.Context) : Platform.Implementation {
 
     override val provider = AndroidProvider(context)
     override val audioDriver by lazy { BASSAudioDriver() }
@@ -32,6 +32,10 @@ class AndroidPlatform(context: android.content.Context) : Platform.Implementatio
         return object : ThreadLoopWorker(name, minimumInterval) {
             override fun onLoop() = onLoop()
         }
+    }
+
+    override fun openWebPage(url: String, userAgent: String?) {
+        WebPageActivity.open(context, url, userAgent)
     }
 
 }

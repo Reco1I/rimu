@@ -32,4 +32,24 @@ class DesktopPlatform(density: Float, width: Int, height: Int) : Platform.Implem
             override fun onLoop() = onLoop()
         }
     }
+
+    // A desktop has no web view of its own, the page opens in the browser.
+    override fun openWebPage(url: String, userAgent: String?) {
+        try {
+            if (java.awt.Desktop.isDesktopSupported() && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
+                java.awt.Desktop.getDesktop().browse(java.net.URI(url))
+                return
+            }
+
+            val os = System.getProperty("os.name").lowercase()
+            val command = when {
+                "win" in os -> listOf("rundll32", "url.dll,FileProtocolHandler", url)
+                "mac" in os -> listOf("open", url)
+                else -> listOf("xdg-open", url)
+            }
+            ProcessBuilder(command).start()
+        } catch (e: Exception) {
+            com.reco1l.verktex.Logger.e("DesktopPlatform", "Couldn't open $url", e)
+        }
+    }
 }
