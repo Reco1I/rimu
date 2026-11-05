@@ -48,6 +48,8 @@ internal class TestMod : Mod() {
     override val description = "This is a test mod"
     override val type = ModType.Automation
 
+    override fun newInstance() = TestMod()
+
     var testSetting1 by BooleanModSetting(name = "Test 1", key = "test1", defaultValue = false)
     var testSetting2 by BooleanModSetting(name = "Test 2", key = "test2", defaultValue = false)
     var testSetting3 by BooleanModSetting(name = "Test 3", defaultValue = false)

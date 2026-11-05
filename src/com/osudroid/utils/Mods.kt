@@ -15,41 +15,55 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 /**
+ * Creates a new instance of each available [Mod] type.
+ */
+val modFactories: Map<KClass<out Mod>, () -> Mod> = linkedMapOf(
+    ModApproachDifferent::class to { ModApproachDifferent() },
+    ModAutoplay::class to { ModAutoplay() },
+    ModAutopilot::class to { ModAutopilot() },
+    ModCustomSpeed::class to { ModCustomSpeed() },
+    ModDifficultyAdjust::class to { ModDifficultyAdjust() },
+    ModDoubleTime::class to { ModDoubleTime() },
+    ModEasy::class to { ModEasy() },
+    ModFlashlight::class to { ModFlashlight() },
+    ModFreezeFrame::class to { ModFreezeFrame() },
+    ModHalfTime::class to { ModHalfTime() },
+    ModHardRock::class to { ModHardRock() },
+    ModHidden::class to { ModHidden() },
+    ModMirror::class to { ModMirror() },
+    ModMuted::class to { ModMuted() },
+    ModNightCore::class to { ModNightCore() },
+    ModNoFail::class to { ModNoFail() },
+    ModPerfect::class to { ModPerfect() },
+    ModPrecise::class to { ModPrecise() },
+    ModRandom::class to { ModRandom() },
+    ModReallyEasy::class to { ModReallyEasy() },
+    ModRelax::class to { ModRelax() },
+    ModReplayV6::class to { ModReplayV6() },
+    ModScoreV2::class to { ModScoreV2() },
+    ModSmallCircle::class to { ModSmallCircle() },
+    ModSuddenDeath::class to { ModSuddenDeath() },
+    ModSynesthesia::class to { ModSynesthesia() },
+    ModTraceable::class to { ModTraceable() },
+    ModWindDown::class to { ModWindDown() },
+    ModWindUp::class to { ModWindUp() }
+)
+
+/**
  * All available [Mod]s.
  */
 val allModsInstances by lazy {
-    arrayOf(
-        ModApproachDifferent(),
-        ModAutoplay(),
-        ModAutopilot(),
-        ModCustomSpeed(),
-        ModDifficultyAdjust(),
-        ModDoubleTime(),
-        ModEasy(),
-        ModFlashlight(),
-        ModFreezeFrame(),
-        ModHalfTime(),
-        ModHardRock(),
-        ModHidden(),
-        ModMirror(),
-        ModMuted(),
-        ModNightCore(),
-        ModNoFail(),
-        ModPerfect(),
-        ModPrecise(),
-        ModRandom(),
-        ModReallyEasy(),
-        ModRelax(),
-        ModReplayV6(),
-        ModScoreV2(),
-        ModSmallCircle(),
-        ModSuddenDeath(),
-        ModSynesthesia(),
-        ModTraceable(),
-        ModWindDown(),
-        ModWindUp()
-    )
+    modFactories.values.map { it() }.toTypedArray()
 }
+
+/**
+ * Creates a new instance of this [Mod] type.
+ *
+ * @throws IllegalArgumentException If this type isn't one of the [modFactories].
+ */
+@Suppress("UNCHECKED_CAST")
+fun <T : Mod> KClass<out T>.createModInstance(): T =
+    requireNotNull(modFactories[this]) { "No factory for the mod type $simpleName." }() as T
 
 /**
  * All [Mod] classes by their acronym.

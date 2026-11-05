@@ -1,17 +1,16 @@
 package com.osudroid.mods
 
 import com.osudroid.mods.settings.*
+import com.osudroid.utils.createModInstance
 import kotlin.reflect.*
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 
 /**
  * Represents a mod.
  *
- * All [Mod]s must have a parameterless constructor or one with default parameters to allow for reflection-based
- * instantiation.
+ * All [Mod]s must have a parameterless constructor or one with default parameters, and be listed in
+ * [com.osudroid.utils.modFactories] so new instances of them can be created.
  */
 abstract class Mod {
     /**
@@ -89,15 +88,26 @@ abstract class Mod {
     private var settingsBacking: List<ModSetting<Any?>>? = null
 
     /**
+     * The [ModSetting]s the properties of this [Mod] delegate to, by the names of the properties, in the
+     * order they were declared.
+     */
+    private val declaredSettings = mutableListOf<Pair<String, ModSetting<Any?>>>()
+
+    /**
      * The mod specific settings.
      */
-    @Suppress("UNCHECKED_CAST")
     val settings: List<ModSetting<Any?>>
-        get() = settingsBacking ?: this::class.memberProperties.mapNotNull { property ->
-            property as KProperty1<Mod, Any?>
-            property.isAccessible = true
-            property.getDelegate(this) as? ModSetting<Any?>
-        }.sorted().also { settingsBacking = it }
+        get() = settingsBacking ?: declaredSettings.map { it.second }.sorted().also { settingsBacking = it }
+
+    /**
+     * Registers a [ModSetting] a property of this [Mod] delegates to. [ModSetting]s do it themselves
+     * when the property is declared.
+     */
+    @Suppress("UNCHECKED_CAST")
+    internal fun registerSetting(propertyName: String, setting: ModSetting<*>) {
+        declaredSettings += propertyName to setting as ModSetting<Any?>
+        settingsBacking = null
+    }
 
     /**
      * Whether all [ModSetting]s in this [Mod] are set to their default values.
@@ -125,7 +135,7 @@ abstract class Mod {
     @Throws(IllegalArgumentException::class)
     fun copyFrom(other: Mod) {
         if (this::class != other::class) {
-            throw IllegalArgumentException("Expected mod of type ${this::class.java.simpleName}, got ${other::class.java.simpleName}.")
+            throw IllegalArgumentException("Expected mod of type ${this::class.simpleName}, got ${other::class.simpleName}.")
         }
 
         // Because settings are stably sorted, we can safely assume that the settings at the same index correspond to each other.
@@ -158,10 +168,8 @@ abstract class Mod {
      */
     @Throws(ClassCastException::class)
     fun <T : ModSetting<*>> getModSettingDelegate(setting: KProperty0<*>): T {
-        setting.isAccessible = true
-
         @Suppress("UNCHECKED_CAST")
-        return setting.getDelegate() as T
+        return declaredSettings.last { it.first == setting.name }.second as T
     }
 
     /**
@@ -232,5 +240,10 @@ abstract class Mod {
      *
      * @return A deep copy of this [Mod].
      */
-    fun deepCopy() = this::class.createInstance().also { it.copyFrom(this) }
+    fun deepCopy() = newInstance().also { it.copyFrom(this) }
+
+    /**
+     * Creates a new instance of the type of this [Mod], by default from [com.osudroid.utils.modFactories].
+     */
+    protected open fun newInstance(): Mod = this::class.createModInstance()
 }

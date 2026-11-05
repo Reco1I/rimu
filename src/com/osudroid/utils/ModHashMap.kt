@@ -1,25 +1,122 @@
 package com.osudroid.utils
 
 import com.osudroid.mods.*
-import java.util.concurrent.ConcurrentHashMap
+import com.reco1l.verktex.math.toFixed
 import kotlin.collections.iterator
+import kotlin.concurrent.Volatile
+import kotlin.jvm.JvmOverloads
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createInstance
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.serialization.SerializationException
 
 /**
- * A [ConcurrentHashMap] of [Mod]s with additional functionalities.
+ * A map of [Mod]s by their type with additional functionalities.
+ *
+ * Like a concurrent map, it can be read and iterated while other threads change it: every change
+ * replaces the underlying map, so reads see either the old or the new one, and iterations see the
+ * [Mod]s there were when they started.
  */
-open class ModHashMap : ConcurrentHashMap<Class<out Mod>, Mod> {
-    constructor() : super()
-    constructor(map: Map<out Class<out Mod>, Mod>) : super(map)
-    constructor(mods: Collection<Mod>) : this(mods as Iterable<Mod>)
-    constructor(initialCapacity: Int) : super(initialCapacity)
-    constructor(initialCapacity: Int, loadFactor: Float) : super(initialCapacity, loadFactor)
+open class ModHashMap() : MutableMap<KClass<out Mod>, Mod> {
 
-    constructor(mods: Iterable<Mod>?) : super() {
-        mods?.forEach { put(it::class.java, it) }
+    private val lock = SynchronizedObject()
+
+    @Volatile
+    private var map: Map<KClass<out Mod>, Mod> = emptyMap()
+
+    constructor(map: Map<out KClass<out Mod>, Mod>) : this() {
+        putAll(map)
     }
+
+    constructor(mods: Collection<Mod>) : this(mods as Iterable<Mod>)
+
+    constructor(mods: Iterable<Mod>?) : this() {
+        mods?.forEach { put(it::class, it) }
+    }
+
+    //region Map
+
+    override val size get() = map.size
+
+    override fun isEmpty() = map.isEmpty()
+
+    override fun containsKey(key: KClass<out Mod>) = map.containsKey(key)
+
+    override fun containsValue(value: Mod) = map.containsValue(value)
+
+    override fun get(key: KClass<out Mod>) = map[key]
+
+    override val entries: MutableSet<MutableMap.MutableEntry<KClass<out Mod>, Mod>>
+        get() = object : AbstractMutableSet<MutableMap.MutableEntry<KClass<out Mod>, Mod>>() {
+            override val size get() = this@ModHashMap.size
+
+            override fun add(element: MutableMap.MutableEntry<KClass<out Mod>, Mod>) =
+                throw UnsupportedOperationException("Mods are added with put.")
+
+            override fun iterator() = SnapshotIterator { key, value -> Entry(key, value) }
+        }
+
+    override val keys: MutableSet<KClass<out Mod>>
+        get() = object : AbstractMutableSet<KClass<out Mod>>() {
+            override val size get() = this@ModHashMap.size
+
+            override fun add(element: KClass<out Mod>) = throw UnsupportedOperationException("Mods are added with put.")
+
+            override fun iterator() = SnapshotIterator { key, _ -> key }
+        }
+
+    override val values: MutableCollection<Mod>
+        get() = object : AbstractMutableCollection<Mod>() {
+            override val size get() = this@ModHashMap.size
+
+            override fun add(element: Mod) = throw UnsupportedOperationException("Mods are added with put.")
+
+            override fun iterator() = SnapshotIterator { _, value -> value }
+        }
+
+    override fun putAll(from: Map<out KClass<out Mod>, Mod>) {
+        for ((key, value) in from) {
+            put(key, value)
+        }
+    }
+
+    override fun remove(key: KClass<out Mod>): Mod? = synchronized(lock) {
+        val previous = map[key] ?: return null
+        map = LinkedHashMap(map).apply { remove(key) }
+        previous
+    }
+
+    override fun clear() = synchronized(lock) {
+        map = emptyMap()
+    }
+
+    /**
+     * Iterates the [Mod]s there were when it was created, removing them from the [ModHashMap].
+     */
+    private inner class SnapshotIterator<T>(private val transform: (KClass<out Mod>, Mod) -> T) : MutableIterator<T> {
+        private val iterator = map.entries.iterator()
+        private var last: KClass<out Mod>? = null
+
+        override fun hasNext() = iterator.hasNext()
+
+        override fun next(): T {
+            val (key, value) = iterator.next()
+            last = key
+            return transform(key, value)
+        }
+
+        override fun remove() {
+            val key = checkNotNull(last) { "next has not been called." }
+            this@ModHashMap.remove(key)
+            last = null
+        }
+    }
+
+    private inner class Entry(override val key: KClass<out Mod>, override val value: Mod) : MutableMap.MutableEntry<KClass<out Mod>, Mod> {
+        override fun setValue(newValue: Mod) = put(key, newValue)!!
+    }
+
+    //endregion
 
     /**
      * Inserts the specified [Mod] into this [ModHashMap].
@@ -30,7 +127,7 @@ open class ModHashMap : ConcurrentHashMap<Class<out Mod>, Mod> {
      * @return The [Mod] instance that was previously in this [ModHashMap], or `null` if there was no such [Mod].
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T : Mod> put(mod: T) = put(mod::class.java, mod) as? T
+    fun <T : Mod> put(mod: T) = put(mod::class, mod) as? T
 
     /**
      * Inserts a new instance of the specified [Mod] type into this [ModHashMap].
@@ -41,28 +138,19 @@ open class ModHashMap : ConcurrentHashMap<Class<out Mod>, Mod> {
      * @return The [Mod] instance that was previously in this [ModHashMap], or `null` if there was no such [Mod].
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T : Mod> put(mod: KClass<out T>) = put(mod.java, mod.createInstance()) as? T
+    fun <T : Mod> put(mod: KClass<out T>) = put(mod, mod.createModInstance()) as? T
 
-    /**
-     * Inserts a new instance of the specified [Mod] type into this [ModHashMap].
-     *
-     * Do note that this method will remove any [Mod]s that are incompatible with the specified [Mod].
-     *
-     * @param mod The [Mod] type to insert.
-     * @return The [Mod] instance that was previously in this [ModHashMap], or `null` if there was no such [Mod].
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun <T : Mod> put(mod: Class<out T>) = put(mod, mod.getDeclaredConstructor().newInstance()) as? T
-
-    override fun put(key: Class<out Mod>, value: Mod): Mod? {
+    override fun put(key: KClass<out Mod>, value: Mod): Mod? = synchronized(lock) {
         // Ensure the mod class corresponds to the mod itself.
-        if (key != value::class.java) {
+        if (key != value::class) {
             throw IllegalArgumentException("The key class must correspond to the value class.")
         }
 
+        val newMap = LinkedHashMap(map)
+
         // Check if there are any mods that are incompatible with the new mod. Both directions are checked since
         // isCompatibleWith is not guaranteed to be symmetric between two mods.
-        val iterator = iterator()
+        val iterator = newMap.iterator()
         while (iterator.hasNext()) {
             val (_, mod) = iterator.next()
 
@@ -71,7 +159,9 @@ open class ModHashMap : ConcurrentHashMap<Class<out Mod>, Mod> {
             }
         }
 
-        return super.put(key, value)
+        val previous = newMap.put(key, value)
+        map = newMap
+        previous
     }
 
     /**
@@ -80,15 +170,7 @@ open class ModHashMap : ConcurrentHashMap<Class<out Mod>, Mod> {
      * @param key The [Mod] type to check for.
      * @return `true` if this [ModHashMap] contains a [Mod] of the specified type, `false` otherwise.
      */
-    operator fun contains(key: KClass<out Mod>) = containsKey(key.java)
-
-    /**
-     * Checks if this [ModHashMap] contains a [Mod] of the specified type.
-     *
-     * @param key The [Mod] type to check for.
-     * @return `true` if this [ModHashMap] contains a [Mod] of the specified type, `false` otherwise.
-     */
-    operator fun contains(key: Class<out Mod>) = containsKey(key)
+    operator fun contains(key: KClass<out Mod>) = containsKey(key)
 
     /**
      * Checks if this [ModHashMap] contains a [Mod].
@@ -106,26 +188,15 @@ open class ModHashMap : ConcurrentHashMap<Class<out Mod>, Mod> {
      * @param key The [Mod] type to get.
      * @return The [Mod] of the specified type, or `null` if no such [Mod] exists.
      */
-    @JvmName("ofType")
     @Suppress("UNCHECKED_CAST")
-    operator fun <T : Mod> get(key: KClass<out T>) = get(key.java) as? T
-
-    /**
-     * Gets a [Mod] of the specified type from this [ModHashMap].
-     *
-     * @param key The [Mod] type to get.
-     * @return The [Mod] of the specified type, or `null` if no such [Mod] exists.
-     */
-    @JvmName("ofType")
-    @Suppress("UNCHECKED_CAST")
-    operator fun <T : Mod> get(key: Class<out T>) = get(key) as? T
+    fun <T : Mod> ofType(key: KClass<out T>) = get(key) as? T
 
     /**
      * Gets a [Mod] of the specified type from this [ModHashMap].
      *
      * @return The [Mod] of the specified type, or `null` if no such [Mod] exists.
      */
-    inline fun <reified T : Mod> ofType() = get(T::class)
+    inline fun <reified T : Mod> ofType() = ofType(T::class)
 
     /**
      * Removes a [Mod] from this [ModHashMap].
@@ -134,7 +205,7 @@ open class ModHashMap : ConcurrentHashMap<Class<out Mod>, Mod> {
      * @return The removed [Mod] instance, or `null` if the [Mod] does not exist in this [ModHashMap].
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T : Mod> remove(mod: T) = if (this[mod::class] == mod) remove(mod::class.java) as? T else null
+    fun <T : Mod> remove(mod: T) = if (this[mod::class] == mod) remove(mod::class) as? T else null
 
     /**
      * Removes a [Mod] of the specified type from this [ModHashMap].
@@ -143,17 +214,7 @@ open class ModHashMap : ConcurrentHashMap<Class<out Mod>, Mod> {
      * @return The removed [Mod] instance, or `null` if the [Mod] does not exist in this [ModHashMap].
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T : Mod> remove(key: KClass<out T>) = remove(key.java) as? T
-
-    /**
-     * Removes a [Mod] of the specified type from this [ModHashMap].
-     *
-     * @param key The [Mod] type to remove.
-     * @return The removed [Mod] instance, or `null` if the [Mod] does not exist in this [ModHashMap].
-     */
-    @JvmName("removeOfType")
-    @Suppress("UNCHECKED_CAST")
-    fun <T : Mod> remove(key: Class<out T>) = remove(key) as? T
+    fun <T : Mod> removeOfType(key: KClass<out T>) = remove(key) as? T
 
     /**
      * Serializes all [Mod]s in this [ModHashMap] into a list of [APIMod]s, contained within a JSON string.
@@ -183,29 +244,29 @@ open class ModHashMap : ConcurrentHashMap<Class<out Mod>, Mod> {
         }
 
         if (customSpeed != null) {
-            append("x%.2f|".format(customSpeed.trackRateMultiplier))
+            append("x" + customSpeed.trackRateMultiplier.toFixed(2) + "|")
         }
 
         difficultyAdjust?.let {
             if (it.ar != null) {
-                append("AR%.1f|".format(it.ar))
+                append("AR" + it.ar!!.toFixed(1) + "|")
             }
 
             if (it.od != null) {
-                append("OD%.1f|".format(it.od))
+                append("OD" + it.od!!.toFixed(1) + "|")
             }
 
             if (it.cs != null) {
-                append("CS%.1f|".format(it.cs))
+                append("CS" + it.cs!!.toFixed(1) + "|")
             }
 
             if (it.hp != null) {
-                append("HP%.1f|".format(it.hp))
+                append("HP" + it.hp!!.toFixed(1) + "|")
             }
         }
 
         if (flashlight != null && flashlight.followDelay != ModFlashlight.DEFAULT_FOLLOW_DELAY) {
-            append("FLD%.2f|".format(flashlight.followDelay))
+            append("FLD" + flashlight.followDelay.toFixed(2) + "|")
         }
     }.substringBeforeLast('|')
 

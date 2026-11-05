@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.scoring;
 
+import kotlin.jvm.JvmClassMappingKt;
+
 import androidx.annotation.Nullable;
 
 import ru.nsu.ccfit.zuev.osu.SecurityUtils;
@@ -291,7 +293,7 @@ public class StatisticV2 implements Serializable {
         if (mark != null)
             return mark;
 
-        boolean isH = mod.contains(ModHidden.class) || mod.contains(ModFlashlight.class);
+        boolean isH = mod.contains(JvmClassMappingKt.getKotlinClass(ModHidden.class)) || mod.contains(JvmClassMappingKt.getKotlinClass(ModFlashlight.class));
 
         int notesHit = getNotesHit();
 
