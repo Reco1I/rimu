@@ -48,6 +48,13 @@ Found while checking, in the core and so on every platform:
   `samplerExternalOES` becomes `sampler2D`, so `video.frag` compiles, though desktop has no video yet.
 - **BASS natives committed**, as the Android ones are: Windows, Linux and macOS, from un4seen
   (bass24 and bass_fx24), laid out the way JNA extracts them from the classpath.
+- **X11 on Wayland sessions.** When XWayland is available, GLFW uses X11. On Wayland, GLFW draws
+  the window's title bar and buttons through libdecor, whose GTK plugin only runs on the process's
+  first thread (it compares `getpid()` and `gettid()`). Java's `main` never runs on it, and GNOME
+  doesn't draw decorations for Wayland apps, so the window had none. Through XWayland the
+  compositor draws them. The cost is that XWayland only knows integer scales: at GNOME's 125%, the
+  window gets a scale of 2 (`Xft.dpi` 192) instead of 1.25, so the UI is larger, though still sharp
+  with Mutter's `xwayland-native-scaling`.
 
 ## Steps
 
