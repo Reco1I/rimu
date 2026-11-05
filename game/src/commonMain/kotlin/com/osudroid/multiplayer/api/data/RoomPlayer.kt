@@ -36,12 +36,6 @@ data class RoomPlayer(
 
 ) {
 
-    /**
-     * Whether this player is the host of the room.
-     */
-    val isHost
-        get() = Multiplayer.room?.host == id
-
 
     /**
      * Locally used to indicate the player is muted.
