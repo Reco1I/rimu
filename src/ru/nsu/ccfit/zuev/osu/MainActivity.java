@@ -3,6 +3,7 @@ package ru.nsu.ccfit.zuev.osu;
 import com.osudroid.OsuPlatform;
 import com.osudroid.android.AndroidOsuPlatform;
 import com.osudroid.android.AndroidStringTable;
+import com.osudroid.android.AndroidToasts;
 
 import com.osudroid.ui.v2.settings.SettingsSectionsKt;
 import android.Manifest;
@@ -131,7 +132,7 @@ public class MainActivity extends AndroidGameHost {
         OsuPlatform.INSTANCE.setImplementation(new AndroidOsuPlatform(this));
         Config.loadConfig();
         StringTable.INSTANCE.setImplementation(new AndroidStringTable(this));
-        ToastLogger.init(this);
+        ToastLogger.init(new AndroidToasts(this));
         initialGameDirectory();
         Multiplayer.initLog();
         //Debug.setDebugLevel(Debug.DebugLevel.NONE);
