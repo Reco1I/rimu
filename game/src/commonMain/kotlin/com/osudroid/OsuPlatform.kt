@@ -13,6 +13,12 @@ object OsuPlatform {
      */
     lateinit var implementation: Implementation
 
+    /**
+     * Whether a platform has set the [implementation], which unit tests don't.
+     */
+    val isInitialized
+        get() = ::implementation.isInitialized
+
 
     interface Implementation {
 
@@ -56,5 +62,15 @@ object OsuPlatform {
          * Subscribes to or unsubscribes from the announcements the game receives as notifications.
          */
         fun setAnnouncementsSubscribed(subscribed: Boolean)
+
+        /**
+         * Runs [block] on the platform's main thread, right away if called from it.
+         */
+        fun runOnMainThread(block: () -> Unit)
+
+        /**
+         * Handles an exception that a task running in the background didn't catch.
+         */
+        fun handleUncaughtException(throwable: Throwable)
     }
 }
