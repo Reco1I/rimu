@@ -369,6 +369,10 @@ public class GameScene implements GameObjectListener {
         root.plusAssign(backgroundLayer);
         root.plusAssign(playfield);
 
+        // The background of a scene isn't one of its children, so it doesn't inherit the scene's clock. The
+        // timelines of the hit objects and the HUD are on the gameplay clock.
+        root.setClock(gameplayClock);
+
         scene = new GameUIScene();
         scene.setBackground(root);
     }
