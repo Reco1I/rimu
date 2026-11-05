@@ -13,6 +13,8 @@ verktex/
                                       SPIR-V compilation of the built-in shaders.
   bass/         :verktex:bass         The BASS audio library, used by the Android audio driver.
   shadertools/  :verktex:shadertools  The shader translator, used by the Vulkan backend and by the build.
+  desktop/      :verktex:desktop      The desktop platform: OpenGL 3.3 (LWJGL, GLFW), BASS through JNA. Runs
+                                      the UI tests, see desktop-platform.md.
   docs/
 ```
 
@@ -45,7 +47,8 @@ The game depends only on `:verktex:android`, which exposes `:verktex:core` as an
    `local.properties` will then need a fallback to the game's.
 2. **More targets.** Adding a target to `:verktex:core` only takes the actual declarations of
    `jvmMain` (for now `fairReentrantLock()`), and a platform module implementing
-   `Platform.Implementation`, like `:verktex:android` does.
+   `Platform.Implementation`, like `:verktex:android` and `:verktex:desktop` do. Both JVM platforms
+   share the core's `jvmMain`, e.g. `ThreadLoopWorker`.
 3. **Shared shaders.** Done: the built-in shaders and fonts are in `verktex/core/assets/`, a plain
    folder rather than the core's resources, so they aren't packaged twice in the APK (as assets and
    as jar resources). Each platform packages it itself, see `desktop-platform.md`.
