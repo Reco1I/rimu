@@ -18,7 +18,6 @@ import com.reco1l.verktex.ui.container.UIClickableContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.text.text
-import ru.nsu.ccfit.zuev.osu.*
 import com.reco1l.verktex.ui.themed
 
 @Suppress("LeakingThis")
@@ -45,7 +44,7 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
         radius = themed { radius.xl }
-        backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.6f) }
+        backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.6f) }
         borderColor = themed { palette.accent.copy(alpha = 0.3f) }
         borderWidth = 1f.dip
 

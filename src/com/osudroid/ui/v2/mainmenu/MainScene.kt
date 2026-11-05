@@ -63,7 +63,6 @@ import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.rotateTo
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.box
-import com.reco1l.verktex.ui.sprite
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
@@ -168,8 +167,8 @@ object MainScene : UIScene() {
                 height = Dimension.FillAvailable
                 gradientAngle = 270f
                 alpha = 0f
-                colorStart = Verktex.theme.palette.accent * 0.1f
-                colorEnd = (Verktex.theme.palette.accent * 0.1f).copy(alpha = 0.5f)
+                colorStart = Verktex.theme.palette.accent.shade(0.1f)
+                colorEnd = (Verktex.theme.palette.accent.shade(0.1f)).copy(alpha = 0.5f)
                 menuGradientBox = this
             }
 

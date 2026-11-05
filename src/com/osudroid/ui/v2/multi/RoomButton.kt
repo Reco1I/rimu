@@ -34,7 +34,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
     init {
         width = fill()
         height = Dimension.WrapContent
-        backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.8f) }
+        backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.8f) }
         padding = Padding(12f.dip)
 
         linearContainer {

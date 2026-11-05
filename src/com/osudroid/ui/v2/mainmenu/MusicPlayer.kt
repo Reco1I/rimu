@@ -61,7 +61,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     artistText = text {
                         width = Dimension.FillAvailable
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent * 0.9f }
+                        color = themed { palette.accent.shade(0.9f) }
                     }
                 }
 
@@ -72,14 +72,14 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent * 0.8f }
+                        color = themed { palette.accent.shade(0.8f) }
                     }
 
                     totalTime = text {
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent * 0.8f }
+                        color = themed { palette.accent.shade(0.8f) }
                     }
                 }
 

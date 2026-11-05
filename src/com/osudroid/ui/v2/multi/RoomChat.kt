@@ -96,7 +96,7 @@ class RoomChat : UILinearContainer() {
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
             translationY = BODY_HEIGHT.dip
-            backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.9f) }
+            backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.9f) }
 
             +button
 
@@ -291,7 +291,7 @@ class RoomChat : UILinearContainer() {
         init {
             width = Dimension.FillAvailable
             height = 45.6f.dip
-            backgroundColor = themed { (palette.accent * 0.15f).copy(alpha = 0.5f) }
+            backgroundColor = themed { (palette.accent.shade(0.15f)).copy(alpha = 0.5f) }
             padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 0f.dip, bottom = 0f.dip)
 
             onActionUp = {
@@ -355,7 +355,7 @@ class RoomChat : UILinearContainer() {
             width = Dimension.FillAvailable
             orientation = Orientation.Horizontal
             spacing = 8f.dip
-            backgroundColor = themed { (palette.accent * 0.09f).copy(alpha = 0f) }
+            backgroundColor = themed { (palette.accent.shade(0.09f)).copy(alpha = 0f) }
             padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 0f.dip, bottom = 0f.dip)
         }
 
@@ -397,7 +397,7 @@ class RoomChat : UILinearContainer() {
                         text {
                             anchor = Anchor.CenterLeft
                             origin = Anchor.CenterLeft
-                            color = themed { palette.accent * 0.5f }
+                            color = themed { palette.accent.shade(0.5f) }
                             text = timestampFormat.format(message.time)
                         }
 

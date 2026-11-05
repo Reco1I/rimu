@@ -170,9 +170,6 @@ open class Color4 @JvmOverloads constructor(
         return Color4(linear.red * k, linear.green * k, linear.blue * k, alpha).toSRGB()
     }
 
-    @Deprecated("Unclear at call sites, use shade().", ReplaceWith("shade(scalar)"))
-    operator fun times(scalar: Float) = shade(scalar)
-
     /**
      * Darkens the color by the given factor.
      */
