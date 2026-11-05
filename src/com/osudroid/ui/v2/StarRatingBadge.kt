@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2
 
+import com.reco1l.verktex.math.toFixed
 import com.osudroid.ui.OsuColors
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.ui.Theme
@@ -55,7 +56,7 @@ class StarRatingBadge : UIBadge() {
 
 
     private fun applyRating(value: Double) {
-        text = "%.2f".format(value)
+        text = value.toFixed(2)
         backgroundColor = OsuColors.getStarRatingColor(value)
 
         if (value >= 6.5) {

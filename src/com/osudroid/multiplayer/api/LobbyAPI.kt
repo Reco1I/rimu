@@ -72,7 +72,7 @@ object LobbyAPI {
                         name = json.getString("name"),
                         isLocked = json.getBoolean("isLocked"),
                         maxPlayers = json.getInt("maxPlayers"),
-                        mods = RoomMods(json.getJSONArray("mods")),
+                        mods = RoomMods(json.getJSONArray("mods").toString()),
                         gameplaySettings = parseGameplaySettings(json.getJSONObject("gameplaySettings")),
                         teamMode = TeamMode.fromWire(json.getString("teamMode")) ?: TeamMode.HeadToHead,
                         winCondition = WinCondition.fromWire(json.getString("winCondition")) ?: WinCondition.ScoreV1,

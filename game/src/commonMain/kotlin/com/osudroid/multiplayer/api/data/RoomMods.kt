@@ -2,11 +2,9 @@ package com.osudroid.multiplayer.api.data
 
 import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.deserializeMods
-import org.json.JSONArray
+import kotlin.jvm.JvmOverloads
 
 class RoomMods @JvmOverloads constructor(val json: String = "") : ModHashMap(deserializeMods(json)) {
-
-    constructor(array: JSONArray) : this(array.toString())
 
     /**
      * Compares two [RoomMods] instances taking the free-mod setting into account.
