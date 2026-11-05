@@ -6,8 +6,9 @@ pluginManagement  {
 }
 
 // Verktex, the engine, is meant to become its own project: the game only uses :verktex:android,
-// which brings :verktex:core with it.
+// which brings :verktex:core with it. :verktex:desktop is the desktop platform, used on its own.
 include ':verktex:core'
 include ':verktex:android'
 include ':verktex:bass'
 include ':verktex:shadertools'
+include ':verktex:desktop'
