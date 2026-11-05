@@ -7,10 +7,7 @@ import com.osudroid.mods.ModFlashlight
 import com.osudroid.mods.ModNoFail
 import org.junit.Assert
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class StandardDifficultyCalculatorTest {
     private val calculator = StandardDifficultyCalculator()
 
@@ -28,10 +25,9 @@ class StandardDifficultyCalculatorTest {
     @Test
     fun `Test difficulty calculation sample beatmap`() {
         val beatmap =
-            BeatmapParser(
-                TestResourceManager.getBeatmapFile(
+            BeatmapParser(TestResourceManager.getBeatmapFile(
                     "YOASOBI - Love Letter (ohm002) [Please accept my overflowing emotions.]"
-                )!!
+                )!!.path
             ).parse(true, GameMode.Standard)
 
         calculator.calculate(beatmap).apply {
