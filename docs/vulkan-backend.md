@@ -22,15 +22,15 @@ often poor), NDK 22.1.7171670 (ships Vulkan headers, `libvulkan.so` and `glslc` 
   `ESCommandExecutor` (+ ES2/ES3 variants), `ESContext` (EGL),
   `ESDevice`, `ESBuffer`, `ESShader`, `ESTexture`, `ESExternalTexture` (SurfaceTexture/OES),
   `ES3GpuTimer`, `es2/GLSLES100Translator` (GLSL ES 3.00 → 1.00, tested in
-  `verktex/android/src/test/kotlin/com/reco1l/verktex/GLSLES100TranslatorTest.kt`).
+  `../verktex/android/src/test/kotlin/com/reco1l/verktex/GLSLES100TranslatorTest.kt`).
 - Shared Android types: `android/AndroidWindow` (the `SurfaceView`), `android/AndroidExternalTexture`
   (what video producers see of an external texture).
 - Backend selection: `verktex/.../android/Android.kt` (`initializeAndroid`), setting in
-  `src/com/osudroid/ui/v2/settings/SettingsSections.kt` and read in
-  `src/ru/nsu/ccfit/zuev/osu/MainActivity.java`.
+  `../src/com/osudroid/ui/v2/settings/SettingsSections.kt` and read in
+  `../src/ru/nsu/ccfit/zuev/osu/MainActivity.java`.
 - Frame loop: `Verktex.draw()` (`verktex/.../Verktex.kt`) on the draw worker:
   `prepareFrame() → begin() → tree records → end()`.
-- Shaders: GLSL ES 3.00 in `verktex/core/assets/shaders/` (`main.vert`, `ui.vert/frag`, `quad`,
+- Shaders: GLSL ES 3.00 in `../verktex/core/assets/shaders` (`main.vert`, `ui.vert/frag`, `quad`,
   `color`, `texture`, `video` (samplerExternalOES), `blur`, `particle.vert/frag`). Loaded as
   strings by `AndroidProvider.createShaderSource`. The app creates no shaders of its own today.
 
@@ -48,20 +48,20 @@ often poor), NDK 22.1.7171670 (ships Vulkan headers, `libvulkan.so` and `glslc` 
 | 9 | **Clip-space / NDC conventions** | `main.vert`, `ui.vert`, `particle.vert` | Vulkan Y is flipped and depth is 0..1. Use a negative-height viewport (core in 1.1 / `VK_KHR_maintenance1`) instead of touching shaders. |
 | 10 | **GPU timing** | `es3/ES3GpuTimer.kt`, `PerformanceStats.gpuTime` | Replace with `vkCmdWriteTimestamp` queries. |
 | 11 | **Capabilities** only `maxTextureSize` from `GL_MAX_TEXTURE_SIZE` | `GraphicsDevice.Capabilities`, `ESDevice.refreshCapabilities` | Fill from `VkPhysicalDeviceLimits.maxImageDimension2D`; consider adding `supportsExternalTextures`, `maxVertexAttributes`. |
-| 12 | **Backend selection is GL-only** | `GraphicsBackend.kt`, `Android.kt`, `SettingsSections.kt`, `MainActivity.java`, `src/com/acivev/utils/DevicePerfomanceUtils.kt` (GLES3 check) | Add `Vulkan` entry, fallback chain Vulkan → ES3 → ES2 on init failure. |
+| 12 | **Backend selection is GL-only** | `GraphicsBackend.kt`, `Android.kt`, `SettingsSections.kt`, `MainActivity.java`, `../src/com/acivev/utils/DevicePerfomanceUtils.kt` (GLES3 check) | Add `Vulkan` entry, fallback chain Vulkan → ES3 → ES2 on init failure. |
 
-Out of scope: `legacy/storyboard/` (`GLWrapped` etc.) is outside the source set and pending a rewrite on Verktex.
+Out of scope: `../legacy/storyboard` (`GLWrapped` etc.) is outside the source set and pending a rewrite on Verktex.
 
 ## Recommended design
 ### Native layer
-- New CMake target inside `:verktex:android` (`verktex/android/src/main/cpp/vulkan/`, `externalNativeBuild`), linking `vulkan`, `android`, `log`.
+- New CMake target inside `:verktex:android` (`../verktex/android/src/main/cpp/vulkan`, `externalNativeBuild`), linking `vulkan`, `android`, `log`.
 - **Coarse-grained JNI**: per-call JNI overhead is too high for per-draw calls. Kotlin side serializes the frame's `DrawCommand`s into a direct `ByteBuffer` command stream (opcodes + handles + offsets); native side decodes and records one `VkCommandBuffer`. Resource creation/destruction are separate JNI calls returning `Long` handles.
 - Vertex/uniform data: native maps a host-visible, coherent ring buffer per frame in flight and exposes it with `NewDirectByteBuffer`, so `VKBuffer.uploadDataToGPU()` copies `IntArray` words straight into GPU-visible memory (one `IntBuffer.put`), recording `(offset, size)`.
 - Memory: Vulkan Memory Allocator (VMA, header-only) for images; the ring buffers can be hand-allocated.
 - Debuggable builds enable `VK_LAYER_KHRONOS_validation` when it's packaged. The NDK r22 layer
   (1.2.158) crashes in `vkCreateInstance` on Android 15, so it isn't used: a current
   `android-binaries-*.zip` from Vulkan-ValidationLayers' releases is packaged in debug builds when
-  `-Pverktex.validationLayers=<extracted dir>` (or the same key in `local.properties`) is set.
+  `-Pverktex.validationLayers=<extracted dir>` (or the same key in `../local.properties`) is set.
 
 ### Binding libraries considered
 - **`technoir-lab/vulkan-kotlin`** (`io.technoirlab.vulkan:vulkan-kotlin`, Apache-2.0) is
@@ -82,7 +82,7 @@ Out of scope: `legacy/storyboard/` (`GLWrapped` etc.) is outside the source set 
 - **Decision:** a hand-written C++ layer on the NDK's Vulkan headers, behind a small JNI surface.
   It supports Vulkan 1.0/1.1 and every ABI and adds no new toolchain.
 
-### Kotlin layer — `verktex/android/src/main/java/com/reco1l/verktex/android/vulkan/`
+### Kotlin layer — `../verktex/android/src/main/java/com/reco1l/verktex/android/vulkan`
 `VKRenderer : GraphicsRenderer`, `VKDevice : GraphicsDevice`, `VKContext : GraphicsContext`
 (instance, device, swapchain, frames-in-flight sync), `VKBuffer`, `VKShader`, `VKTexture`,
 `VKExternalTexture`, `VKCommandEncoder` (the `DrawCommand` → stream serializer, mirroring
@@ -90,7 +90,7 @@ Out of scope: `legacy/storyboard/` (`GLWrapped` etc.) is outside the source set 
 
 ### Shaders (implemented in phase 3)
 - GLSL ES 3.00 stays the single source of truth. `GLSL450VulkanTranslator` lives in the plain JVM
-  module `:verktex:shadertools` (`verktex/shadertools/`), so the build and the engine at runtime use
+  module `:verktex:shadertools` (`../verktex/shadertools`), so the build and the engine at runtime use
   the same code. Each stage translates on its own: `#version 450`, varyings and fragment outputs
   located in declaration order, the non-sampler uniforms of a stage → one std140 block
   (`VertexUniforms` at set 0 binding 0, `FragmentUniforms` at binding 1), samplers (fragment only) →
@@ -135,7 +135,7 @@ render pass, then blit to the swapchain image and present.
    violation (`BufferLifetimeTest`). Static buffers (the particle quad) are re-uploaded every frame;
    a `Static` usage that Vulkan keeps device-local is a later optimization.
 3. **Shader tooling.** ✅ Done, see Shaders above. Requires the NDK installed for the `.spv` to be built.
-4. **Vulkan bring-up.** ✅ Done: `verktex/android/src/main/cpp/vulkan` (CMake 3.22.1, `libverktex_vulkan.so`,
+4. **Vulkan bring-up.** ✅ Done: `../verktex/android/src/main/cpp/vulkan` (CMake 3.22.1, `libverktex_vulkan.so`,
    every ABI) behind `VKNative`; `VKContext`/`VKRenderer`/`VKDevice`/`VKShader` in `android/vulkan/`;
    2 frames in flight, each with a mapped 4 MB ring for vertices and uniforms (`VKFrameRing`,
    `VKUniformPacker`) and one int command stream (`VKCommandEncoder`); pipelines cached by
