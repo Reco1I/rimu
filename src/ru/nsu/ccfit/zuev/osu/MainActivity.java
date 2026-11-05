@@ -82,6 +82,7 @@ import java.util.concurrent.TimeUnit;
 import okio.Okio;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;
+import ru.nsu.ccfit.zuev.audio.serviceAudio.AndroidSongService;
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils;
 import ru.nsu.ccfit.zuev.osu.helper.StringTable;
 import ru.nsu.ccfit.zuev.osu.helper.Debug;
@@ -537,7 +538,7 @@ public class MainActivity extends AndroidGameHost {
             connection = new ServiceConnection() {
                 @Override
                 public void onServiceConnected(ComponentName name, IBinder service) {
-                    songService = ((SongService.ReturnBindObject) service).getObject();
+                    songService = ((AndroidSongService.ReturnBindObject) service).getObject();
                     saveServiceObject = (SaveServiceObject) getApplication();
                     saveServiceObject.setSongService(songService);
                     GlobalManager.getInstance().setSongService(songService);
@@ -550,7 +551,7 @@ public class MainActivity extends AndroidGameHost {
 
             };
 
-            bindService(new Intent(MainActivity.this, SongService.class), connection, BIND_AUTO_CREATE);
+            bindService(new Intent(MainActivity.this, AndroidSongService.class), connection, BIND_AUTO_CREATE);
         }
         GlobalManager.getInstance().setSongService(songService);
         GlobalManager.getInstance().setSaveServiceObject(saveServiceObject);

@@ -1382,7 +1382,7 @@ open class GameScene : GameObjectListener {
         gameplayClock.seek(min(gameplayClock.time, firstObjectStartTime - firstObjectTimePreempt))
         initialStartTimeValue = gameplayClock.time
 
-        songService?.setVolume(Config.getBgmVolume())
+        songService?.volume = Config.getBgmVolume()
 
         gameplayClock.start()
 
@@ -1473,7 +1473,7 @@ open class GameScene : GameObjectListener {
                 }
 
                 val songService = GlobalManager.getInstance().songService
-                songService.setSpeed(modRate)
+                songService.speed = modRate
                 songService.setPitchRate(replaySettingsRate)
             }
         }
@@ -1901,9 +1901,8 @@ open class GameScene : GameObjectListener {
         }
 
         if (gameplayClock.time >= 0 && mutedMod != null) {
-            GlobalManager.getInstance().songService.setVolume(
+            GlobalManager.getInstance().songService.volume =
                 Config.getBgmVolume() * mutedMod.volumeAt(stat.combo)
-            )
         }
 
         if (shouldBePunished || (!isGameOver && objectIndex >= objects.size && activeObjects.isEmpty() && leadOut > 2)) {
@@ -1968,7 +1967,7 @@ open class GameScene : GameObjectListener {
                     }
                     scoringScene.load(stat, lastBeatmapInfo, GlobalManager.getInstance().songService, replayPath, parsedBeatmap!!.md5, null)
                 }
-                GlobalManager.getInstance().songService.setVolume(0.2f)
+                GlobalManager.getInstance().songService.volume = 0.2f
                 replaceCurrentScene(scoringScene.scene!!)
             } else {
                 returnToPreviousScene()

@@ -10,12 +10,12 @@ import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 class SongServiceClock(private val songService: SongService) : AdjustableClock() {
 
     override val time
-        get() = (songService.getPositionPrecise() / 1000.0).toFloat()
+        get() = (songService.positionPrecise / 1000.0).toFloat()
 
     override var rate by songService::speed
 
     override val isRunning
-        get() = songService.getStatus() == Status.PLAYING
+        get() = songService.status == Status.PLAYING
 
     override fun reset() {
         songService.seekTo(0)
@@ -31,7 +31,7 @@ class SongServiceClock(private val songService: SongService) : AdjustableClock()
     }
 
     override fun seek(to: Float): Boolean {
-        val trackLength = songService.getLength() / 1000f
+        val trackLength = songService.length / 1000f
 
         // Avoid allocation
         @Suppress("ConvertTwoComparisonsToRangeCheck")
