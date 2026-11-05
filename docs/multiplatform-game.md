@@ -214,8 +214,9 @@ What's left, roughly in order:
    (asset lookup), `BassSoundProvider` and `SongService` (audio; the spinner only needs
    `SongService.defaultFrequency`), `GlobalManager`, `Multiplayer.isRemoveSliderLock()` and
    `GameplayHUD`/`GameScene` from the effects and menus.
-3. **Scenes**: `GameScene` is Kotlin; `ScoringScene` and the rest of the Java (`MainActivity`, `LibraryManager`,
-   `OnlineManager`, `GlobalManager`…) still to convert.
+3. **Scenes**: `GameScene` and `ScoringScene` are Kotlin (`ScoringScene` still formats with
+   `java.lang.String.format` and `SimpleDateFormat`); the rest of the Java (`MainActivity`, `LibraryManager`,
+   `OnlineManager`, `GlobalManager`…) is still to convert.
 4. **Database**: Room KMP with KSP, `SQLiteConnection` migrations.
 5. **Networking**: Ktor for `WebRequest`/`JsonRequest`/`OnlineManager`, Socket.IO over Ktor WebSockets.
 6. **Android views**: rewrite on Verktex (beatmap listing, collections, block area editor, dialogs,
