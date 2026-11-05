@@ -175,7 +175,7 @@ data class ScoreInfo @JvmOverloads constructor(
     fun toStatisticV2(difficulty: BeatmapDifficulty? = null) = StatisticV2().also {
 
         it.playerName = playerName
-        it.setBeatmapMD5(beatmapMD5)
+        it.beatmapMD5 = beatmapMD5
         it.replayFilename = replayFilename
         it.mod = deserializeMods(mods)
 
@@ -304,3 +304,27 @@ interface IScoreInfoDAO {
         }
     }
 }
+
+/**
+ * Converts the statistic to a [ScoreInfo].
+ */
+fun StatisticV2.toScoreInfo() = ScoreInfo(
+    beatmapMD5 = beatmapMD5,
+    playerName = playerName,
+    replayFilename = replayFilename,
+    mods = mod.serializeMods(false),
+    score = totalScore,
+    maxCombo = lastScoreMaxCombo,
+    mark = mark,
+    hit300k = hit300k,
+    hit300 = hit300,
+    hit100k = hit100k,
+    hit100 = hit100,
+    hit50 = hit50,
+    misses = misses,
+    time = time,
+    sliderHeadHits = if (sliderHeadHits >= 0) sliderHeadHits else null,
+    sliderTickHits = if (sliderTickHits >= 0) sliderTickHits else null,
+    sliderRepeatHits = if (sliderRepeatHits >= 0) sliderRepeatHits else null,
+    sliderEndHits = if (sliderEndHits >= 0) sliderEndHits else null
+)

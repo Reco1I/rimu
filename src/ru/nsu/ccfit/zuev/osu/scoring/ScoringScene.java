@@ -1,5 +1,9 @@
 package ru.nsu.ccfit.zuev.osu.scoring;
 
+import com.osudroid.data.Scores;
+
+import com.osudroid.multiplayer.MultiplayerConverter;
+
 import kotlin.jvm.JvmClassMappingKt;
 
 import com.reco1l.verktex.Logger;
@@ -383,7 +387,7 @@ public class ScoringScene {
         infoContainer.plusAssign(createText(mapperStr, 21));
         infoContainer.plusAssign(createText(playerStr, 21));
 
-        if (Config.isDisplayScoreStatistics() && !currentStatistic.isTeamStatistic()) {
+        if (Config.isDisplayScoreStatistics() && !MultiplayerConverter.isTeamStatistic(currentStatistic)) {
 
             StringBuilder ppinfo = new StringBuilder();
             Beatmap beatmapData;
@@ -545,7 +549,7 @@ public class ScoringScene {
             stat.setBeatmapMD5(beatmap.getMD5());
 
             try {
-                DatabaseManager.getScoreInfoTable().insertScore(stat.toScoreInfo());
+                DatabaseManager.getScoreInfoTable().insertScore(Scores.toScoreInfo(stat));
             } catch (Exception e) {
                 Logger.e("GameScene", "Failed to save score to database", e);
             }

@@ -70,7 +70,7 @@ public class GameplayHitCircle extends GameObject {
         passedTime = -timePreempt;
         startHit = false;
         successfulHit = false;
-        kiai = GameHelper.isKiai();
+        kiai = (GameHelper.isKiai() && !OsuSkin.get().isDisableKiai());
         this.comboColor = comboColor;
 
         float initialModifierTime = hitTime - timePreempt;
@@ -249,7 +249,7 @@ public class GameplayHitCircle extends GameObject {
         }
 
         if (circlePiece.isVisible()) {
-            if (GameHelper.isKiai()) {
+            if ((GameHelper.isKiai() && !OsuSkin.get().isDisableKiai())) {
                 var kiaiModifier = (float) Math.max(0, 1 - GameHelper.getCurrentBeatTime() / GameHelper.getBeatLength()) * 0.5f;
                 var r = Math.min(1, comboColor.getRed() + (1 - comboColor.getRed()) * kiaiModifier);
                 var g = Math.min(1, comboColor.getGreen() + (1 - comboColor.getGreen()) * kiaiModifier);

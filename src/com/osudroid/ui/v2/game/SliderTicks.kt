@@ -114,7 +114,7 @@ class SliderTickSprite : UISprite(), IPoolable {
             scaleTo(1f, ANIM_DURATION * 4, Easing.OutElasticHalf)
             fadeIn(ANIM_DURATION)
 
-            if (GameHelper.isHidden() && !GameHelper.getHidden().onlyFadeApproachCircles) {
+            if (GameHelper.isHidden() && !GameHelper.getHidden()!!.onlyFadeApproachCircles) {
                 val fadeOutDuration = min(timePreempt - ANIM_DURATION, 1f)
 
                 at(startTime - fadeOutDuration)

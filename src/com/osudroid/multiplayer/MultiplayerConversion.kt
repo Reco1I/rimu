@@ -2,6 +2,8 @@
 
 package com.osudroid.multiplayer
 
+import com.osudroid.multiplayer.api.data.RoomTeam
+import com.osudroid.multiplayer.api.data.WinCondition
 import com.osudroid.utils.deserializeMods
 import org.json.JSONObject
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
@@ -41,3 +43,18 @@ fun jsonToStatistic(json: JSONObject) = StatisticV2().apply {
     misses = json.optInt("miss")
     isAlive = json.getBoolean("isAlive")
 }
+
+/**
+ * Converts the statistic to a [ScoreBoardItem], used specifically for Multiplayer.
+ */
+fun StatisticV2.toBoardItem(): ScoreBoardItem {
+    //noinspection DataFlowIssue
+    val combo = if (!Multiplayer.isConnected || Multiplayer.room!!.winCondition != WinCondition.MaxCombo) combo else lastScoreMaxCombo
+    return ScoreBoardItem(playerName, totalScoreWithMultiplier, combo, accuracy, isAlive)
+}
+
+/**
+ * Whether the statistic corresponds to a team.
+ */
+fun StatisticV2.isTeamStatistic() =
+    Multiplayer.isConnected && (playerName == RoomTeam.Red.toString() || playerName == RoomTeam.Blue.toString())

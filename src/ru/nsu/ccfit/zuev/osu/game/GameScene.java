@@ -1,5 +1,9 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
+import com.osudroid.data.Scores;
+
+import com.osudroid.multiplayer.MultiplayerConverter;
+
 import kotlin.jvm.JvmClassMappingKt;
 
 import static kotlinx.coroutines.JobKt.ensureActive;
@@ -109,6 +113,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import com.osudroid.utils.BitSet;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -141,7 +146,7 @@ import ru.nsu.ccfit.zuev.skins.OsuSkin;
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager;
 
 public class GameScene implements GameObjectListener {
-    public static final int CursorCount = 10;
+    public static final int CursorCount = Replay.CursorCount;
     private final int maximumActiveCursorCount = 3;
     private Cursor[] cursors = new Cursor[CursorCount];
     public String audioFilePath = null;
@@ -906,7 +911,7 @@ public class GameScene implements GameObjectListener {
             // Checking for mod existence (not equality) is enough for this case since affected mods do not have
             // customizations.
             for (var mod : mods.values()) {
-                if (!replay.getStat().getMod().containsKey(mod.getClass())) {
+                if (!replay.getStat().getMod().containsKey(JvmClassMappingKt.getKotlinClass(mod.getClass()))) {
                     ToastLogger.showText(com.osudroid.resources.R.string.replay_invalid, true);
                     return false;
                 }
@@ -1464,7 +1469,7 @@ public class GameScene implements GameObjectListener {
 
                 if (Multiplayer.isConnected())
                 {
-                    var liveScore = stat.toBoardItem();
+                    var liveScore = MultiplayerConverter.toBoardItem(stat);
 
                     if (!Objects.equals(liveScore, lastScoreSent))
                     {
@@ -2988,7 +2993,7 @@ public class GameScene implements GameObjectListener {
         }
         if (replay != null && !replaying) {
             short acc = (short) (accuracy);
-            replay.addObjectResult(id, acc, (BitSet) tickSet.clone());
+            replay.addObjectResult(id, acc, tickSet.copy());
         }
     }
 
@@ -3178,7 +3183,7 @@ public class GameScene implements GameObjectListener {
                 stat.setBeatmapMD5(lastBeatmapInfo.getMD5());
 
                 try {
-                    DatabaseManager.getScoreInfoTable().insertScore(stat.toScoreInfo());
+                    DatabaseManager.getScoreInfoTable().insertScore(Scores.toScoreInfo(stat));
                 } catch (Exception e) {
                     Logger.e("GameScene", "Failed to save score to database", e);
                 }

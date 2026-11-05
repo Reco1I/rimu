@@ -1,5 +1,7 @@
 package com.edlplan.replay;
 
+import okio.Okio;
+
 import static com.osudroid.data.Scores.ScoreInfo;
 
 import com.osudroid.data.BeatmapInfo;
@@ -138,7 +140,7 @@ public class OsuDroidReplayPack {
             try (var byteArrayInputStream = new ByteArrayInputStream(replayFile)) {
                 var replay = new Replay(false);
 
-                if (!replay.load(byteArrayInputStream, replayFilename, false)) {
+                if (!replay.load(Okio.source(byteArrayInputStream), replayFilename, false)) {
                     throw new IOException("Failed to load replay");
                 }
 

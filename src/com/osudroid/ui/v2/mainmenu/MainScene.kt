@@ -399,7 +399,7 @@ object MainScene : UIScene() {
 
         setBeatmap(beatmap)
 
-        val stat = replay.stat
+        val stat = replay.stat!!
         stat.migrateLegacyMods(beatmap.getBeatmapDifficulty())
         stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
 

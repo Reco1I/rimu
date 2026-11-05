@@ -7,7 +7,7 @@ import com.reco1l.verktex.data.Color4;
 import com.osudroid.beatmaps.constants.HitObjectType;
 import com.osudroid.game.GameplayHitSampleInfo;
 
-import java.util.BitSet;
+import com.osudroid.utils.BitSet;
 import java.util.List;
 
 public interface GameObjectListener {

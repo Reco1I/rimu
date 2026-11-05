@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.helper;
 
+import com.osudroid.utils.FileChecksums;
+
 import android.os.Build;
 import android.os.Environment;
 
@@ -159,7 +161,7 @@ public class FileUtils {
     }
 
     public static String getMD5Checksum(File file) {
-        return getFileChecksum("MD5", file);
+        return FileChecksums.md5Checksum(file.getPath());
     }
 
     public static String getSHA256Checksum(File file) {
