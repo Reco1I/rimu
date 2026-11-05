@@ -419,17 +419,6 @@ abstract class UIComponent {
 
     //region Cosmetic
 
-    /**
-     * The style of this component.
-     */
-    var style = Style {}
-        set(value) {
-            if (field != value) {
-                field = value
-                style()
-            }
-        }
-
     private val colorProperty = themeable(Color4.White)
 
     /**
@@ -520,8 +509,8 @@ abstract class UIComponent {
         }
 
     /**
-     * The theme this component is styled with: its own [theme], the one of the closest parent
-     * with one, or [Verktex.theme].
+     * The theme the [themed] values of this component resolve with: its own [theme], the one of
+     * the closest parent with one, or [Verktex.theme].
      */
     val resolvedTheme: Theme
         get() = theme ?: parent?.resolvedTheme ?: Verktex.theme
@@ -572,7 +561,6 @@ abstract class UIComponent {
     private fun applyThemeBindings() {
         val theme = resolvedTheme
         boundTheme = theme
-        onStyle(theme)
         // Bindings may assign themeable properties, which register or remove bindings.
         themeBindings?.values?.toList()?.forEach { it.apply(theme) }
     }
@@ -597,29 +585,12 @@ abstract class UIComponent {
         if (this is UIContainer) propagate(apply) else apply(this)
     }
 
-
-    /**
-     * Applies the current style to the component.
-     */
-    fun style() {
-        onStyle(resolvedTheme)
-    }
-
     /**
      * Called when the theme or the font scale changed, after the [themed] values were resolved
      * again. Cached values depending on them must be invalidated here.
      */
     open fun onThemeChanged() {
         invalidateMeasure()
-    }
-
-    /**
-     * Called when the style of the component needs to be applied.
-     *
-     * Usually this calls the [style] lambda with the current theme.
-     */
-    open fun onStyle(theme: Theme) {
-        style.apply(theme)
     }
 
     //endregion
@@ -1195,32 +1166,6 @@ abstract class UIComponent {
 
 
     //endregion
-
-    /**
-     * A style is a complementary interface that allows to apply a theme to a component.
-     * It is a functional interface that can be implemented using a lambda expression.
-     *
-     * The [apply] method is called with the current theme when the style needs to be applied due to
-     * a theme change or when the component is attached to a parent.
-     */
-    fun interface Style {
-
-        /**
-         * Applies the style to the component using the given theme.
-         */
-        fun apply(theme: Theme)
-
-
-        /**
-         * Combines two styles into one. The resulting style will apply both styles in order.
-         */
-        operator fun plus(other: Style): Style {
-            return Style { theme ->
-                this.apply(theme)
-                other.apply(theme)
-            }
-        }
-    }
 
 
     companion object {

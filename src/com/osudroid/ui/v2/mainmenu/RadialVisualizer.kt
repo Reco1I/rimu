@@ -68,8 +68,8 @@ class RadialVisualizer : UICanvas() {
         initializeBars()
     }
 
-    override fun onStyle(theme: Theme) {
-        super.onStyle(theme)
+    override fun onThemeChanged() {
+        super.onThemeChanged()
         initializeBars()
     }
 
