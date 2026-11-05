@@ -1,6 +1,7 @@
 package com.osudroid.math
 
 import kotlin.math.pow
+import kotlin.jvm.JvmStatic
 
 /**
  * Holds interpolation methods for numbers.

@@ -1,5 +1,6 @@
 package com.osudroid.math
 
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.ln
@@ -554,7 +555,7 @@ object ErrorFunction {
             val absZ = abs(z)
 
             val ln = ln(1 - absZ * absZ)
-            val t1 = 2 / (Math.PI * a) + ln / 2
+            val t1 = 2 / (PI * a) + ln / 2
             val t2 = ln / a
             val baseApprox = sqrt(t1 * t1 - t2) - t1
 

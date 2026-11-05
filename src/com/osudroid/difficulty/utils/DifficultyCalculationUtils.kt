@@ -1,6 +1,5 @@
 package com.osudroid.difficulty.utils
 
-import androidx.annotation.IntRange
 import com.osudroid.math.Interpolation
 import kotlin.math.exp
 import kotlin.math.pow
@@ -18,7 +17,7 @@ object DifficultyCalculationUtils {
      */
     @JvmStatic
     @JvmOverloads
-    fun bpmToMilliseconds(bpm: Double, @IntRange(from = 1, to = 4) delimiter: Int = 4) =
+    fun bpmToMilliseconds(bpm: Double, delimiter: Int = 4) =
         60000 / bpm / delimiter
 
     /**
@@ -30,7 +29,7 @@ object DifficultyCalculationUtils {
      */
     @JvmStatic
     @JvmOverloads
-    fun millisecondsToBPM(milliseconds: Double, @IntRange(from = 1, to = 4) delimiter: Int = 4) =
+    fun millisecondsToBPM(milliseconds: Double, delimiter: Int = 4) =
         60000 / (milliseconds * delimiter)
 
     /**

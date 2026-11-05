@@ -2,6 +2,7 @@ package com.osudroid.math
 
 import kotlin.math.abs
 import kotlin.random.Random
+import kotlin.jvm.JvmStatic
 
 /**
  * A pseudo-random number generator that shares the same implementation with

@@ -1,5 +1,7 @@
 package com.osudroid.math
 
+import kotlin.jvm.JvmField
+
 /**
  * Represents a four-dimensional vector.
  */
