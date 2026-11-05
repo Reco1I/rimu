@@ -186,7 +186,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
 
     // As the game scene picks it for a beatmap without colors of its own.
     private fun sliderBorderColor() =
-        if (OsuSkin.get().isForceOverrideSliderBorderColor) OsuSkin.get().sliderBorderColor
+        if (OsuSkin.get().isForceOverrideSliderBorderColor) OsuSkin.get().sliderBorderColor!!
         else BeatmapSkinManager.getInstance().sliderColor
 
     private fun styleName(isModern: Boolean) = if (isModern) "Modern style" else "Classic style"
