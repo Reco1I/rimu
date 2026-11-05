@@ -13,7 +13,7 @@ import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.data.Vec2
 
 import com.osudroid.math.Vector2
-import com.osudroid.resources.R.string
+import com.osudroid.resources.Res.string
 import com.osudroid.ui.v2.hud.elements.HUDAccuracyCounter
 import com.osudroid.ui.v2.hud.elements.HUDPieSongProgress
 import com.osudroid.ui.v2.hud.elements.HUDScoreCounter

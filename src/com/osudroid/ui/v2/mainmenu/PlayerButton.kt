@@ -16,7 +16,7 @@ import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
 import com.edlplan.ui.fragment.WebViewFragment
-import com.osudroid.resources.R
+import com.osudroid.resources.Res
 import com.osudroid.utils.mainThread
 import com.reco1l.verktex.ui.dialog.UIConfirmDialog
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
@@ -43,7 +43,7 @@ class PlayerButton : UIClickableContainer() {
             if (onlineManager.isStayOnline) {
                 UIConfirmDialog().apply {
                     title = onlineManager.username
-                    text = StringTable.get(R.string.dialog_visit_osudroid_profile_page)
+                    text = StringTable.get(Res.string.dialog_visit_osudroid_profile_page)
                     onConfirm = {
                         mainThread {
                             WebViewFragment().setURL(WebViewFragment.PROFILE_URL + onlineManager.userId).show()

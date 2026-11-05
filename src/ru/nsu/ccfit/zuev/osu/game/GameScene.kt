@@ -48,7 +48,7 @@ import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.isTeamStatistic
 import com.osudroid.multiplayer.toBoardItem
-import com.osudroid.resources.R
+import com.osudroid.resources.Res
 import com.osudroid.ui.v2.GameLoaderScene
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
@@ -590,7 +590,7 @@ open class GameScene : GameObjectListener {
 
     private fun loadGame(beatmapInfo: BeatmapInfo, rFile: String?, mods: ModHashMap, scope: CoroutineScope?): Boolean {
         if (!SecurityUtils.verifyFileIntegrity(GlobalManager.getInstance().mainActivity)) {
-            ToastLogger.showText(R.string.file_integrity_tampered, true)
+            ToastLogger.showText(Res.string.file_integrity_tampered, true)
             return false
         }
 
@@ -601,7 +601,7 @@ open class GameScene : GameObjectListener {
                 MD5Calculator.getStringMD5(rFile) + ".odr"
             Logger.i("GameScene", "ReplayFile = $replayFilePath")
             if (!OnlineFileOperator.downloadFile(rFile, this.replayFilePath)) {
-                ToastLogger.showText(R.string.replay_cantdownload, true)
+                ToastLogger.showText(Res.string.replay_cantdownload, true)
                 return false
             }
         } else
@@ -628,7 +628,7 @@ open class GameScene : GameObjectListener {
         val parsedBeatmap = parsedBeatmap ?: return false
 
         if (parsedBeatmap.md5 != beatmapInfo.md5) {
-            ToastLogger.showText(R.string.file_integrity_tampered, true)
+            ToastLogger.showText(Res.string.file_integrity_tampered, true)
             return false
         }
 
@@ -889,7 +889,7 @@ open class GameScene : GameObjectListener {
             replaying = replay.load(replayFilePath!!, true)
 
             if (!replaying) {
-                ToastLogger.showText(R.string.replay_invalid, true)
+                ToastLogger.showText(Res.string.replay_invalid, true)
                 return false
             }
 
@@ -902,7 +902,7 @@ open class GameScene : GameObjectListener {
             // customizations.
             for (mod in mods.values) {
                 if (!replay.getStat()!!.mod.containsKey(mod::class)) {
-                    ToastLogger.showText(R.string.replay_invalid, true)
+                    ToastLogger.showText(Res.string.replay_invalid, true)
                     return false
                 }
             }
@@ -1418,7 +1418,7 @@ open class GameScene : GameObjectListener {
         replaceCurrentScene(gameUIScene)
 
         if (isHUDEditorMode) {
-            ToastLogger.showText(R.string.hudEditor_back_for_menu, false)
+            ToastLogger.showText(Res.string.hudEditor_back_for_menu, false)
         }
     }
 
@@ -3106,11 +3106,11 @@ open class GameScene : GameObjectListener {
                 }
             }
 
-            ToastLogger.showText(StringTable.get(R.string.message_save_replay_successful), true)
+            ToastLogger.showText(StringTable.get(Res.string.message_save_replay_successful), true)
             replayFilePath = null
             return true
         } else {
-            ToastLogger.showText(StringTable.get(R.string.message_save_replay_failed), true)
+            ToastLogger.showText(StringTable.get(Res.string.message_save_replay_failed), true)
             return false
         }
     }

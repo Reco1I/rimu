@@ -1,7 +1,7 @@
 package com.osudroid.ui.v2.multi
 
 import com.reco1l.verktex.ui.text.spans
-import com.osudroid.resources.R.string
+import com.osudroid.resources.Res.string
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*

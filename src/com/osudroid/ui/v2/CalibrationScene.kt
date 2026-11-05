@@ -3,10 +3,10 @@ package com.osudroid.ui.v2
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
 import android.text.InputType
-import androidx.annotation.IdRes
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.math.Interpolation
-import com.osudroid.resources.R.string
+import com.osudroid.resources.Res.string
+import com.osudroid.resources.StringResource
 import com.osudroid.utils.mainThread
 import com.osudroid.utils.median
 import com.osudroid.utils.standardDeviation
@@ -538,7 +538,7 @@ object CalibrationScene : UIScene() {
         punchCircle()
     }
 
-    private enum class Judgement(@field:IdRes val label: Int, val color: Color4) {
+    private enum class Judgement(val label: StringResource, val color: Color4) {
         PERFECT(string.opt_offset_calibration_judgement_perfect, Color4(0xFF6ECFFF)),
         GOOD(string.opt_offset_calibration_judgement_good, Color4(0xFF64DC28)),
         MEH(string.opt_offset_calibration_judgement_meh, Color4(0xFFc8b46e)),
@@ -662,8 +662,8 @@ object CalibrationScene : UIScene() {
     private fun showOffsetInputDialog() {
         mainThread {
             PromptDialog().apply {
-                setTitle(StringTable.get(com.osudroid.resources.R.string.opt_offset_title))
-                setMessage(StringTable.get(com.osudroid.resources.R.string.opt_offset_summary))
+                setTitle(StringTable.get(com.osudroid.resources.Res.string.opt_offset_title))
+                setMessage(StringTable.get(com.osudroid.resources.Res.string.opt_offset_summary))
                 setInput(pendingOffset.toString())
                 setInputType(InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED)
 

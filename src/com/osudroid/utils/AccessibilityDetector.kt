@@ -1,5 +1,6 @@
 package com.osudroid.utils
 
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
@@ -8,7 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
-import com.osudroid.resources.R
+import com.osudroid.resources.Res
 import com.reco1l.osu.ui.MessageDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -108,7 +109,7 @@ object AccessibilityDetector {
 
         val message = buildString {
 
-            append(context.getString(R.string.accessibility_detector_message))
+            append(StringTable.get(Res.string.accessibility_detector_message))
             appendLine()
 
             for (service in services) service.resolveInfo.serviceInfo.let {
@@ -117,20 +118,20 @@ object AccessibilityDetector {
             }
         }
 
-        setTitle(context.getString(R.string.accessibility_detector_title))
+        setTitle(StringTable.get(Res.string.accessibility_detector_title))
         setMessage(message)
         setAllowDismiss(false)
 
         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
 
         if (intent.resolveActivity(context.packageManager) != null) {
-            addButton(context.getString(R.string.accessibility_detector_settings)) {
+            addButton(StringTable.get(Res.string.accessibility_detector_settings)) {
                 context.startActivity(intent)
                 alert = null
             }
         }
 
-        addButton(context.getString(R.string.accessibility_detector_exit)) {
+        addButton(StringTable.get(Res.string.accessibility_detector_exit)) {
             context.forcedExit()
             it.dismiss()
         }

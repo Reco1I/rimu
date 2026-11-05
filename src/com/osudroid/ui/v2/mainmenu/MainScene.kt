@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.data.LayoutConstraints
 import com.acivev.ui.addSnowfallWithPeriod
@@ -15,7 +16,7 @@ import androidx.core.content.*
 import com.osudroid.*
 import com.osudroid.beatmaplisting.*
 import com.osudroid.multiplayer.*
-import com.osudroid.resources.R
+import com.osudroid.resources.Res
 import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.multi.*
@@ -244,7 +245,7 @@ object MainScene : UIScene() {
 
                     +menuButton(FAIcon.UserGroup, "Multi") action@{
                         if (!OnlineManager.getInstance().isStayOnline && !BuildSettings.MOCK_MULTIPLAYER) {
-                            ToastLogger.showText(StringTable.format(R.string.multiplayer_not_online), true)
+                            ToastLogger.showText(StringTable.format(Res.string.multiplayer_not_online), true)
                             return@action
                         }
 
@@ -368,7 +369,7 @@ object MainScene : UIScene() {
 
         UIConfirmDialog().apply {
             title = "Exit"
-            text = GlobalManager.getInstance().context.getString(R.string.dialog_exit_message)
+            text = StringTable.get(Res.string.dialog_exit_message)
             onConfirm = { exit() }
         }.show()
     }

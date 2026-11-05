@@ -38,8 +38,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.osudroid.UpdateManager
 import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
-import com.osudroid.resources.R
-import ru.nsu.ccfit.zuev.osuplus.R as AppR
+import com.osudroid.resources.Res
 import com.osudroid.ui.v2.CalibrationScene
 import com.osudroid.ui.v2.Skin
 import com.osudroid.ui.v2.SkinTextures
@@ -70,15 +69,15 @@ internal var onPlayfieldChanged: (() -> Unit)? = null
 
 val playerSection = listOf(
     CategoryInfo(
-        title = StringTable.get(R.string.mp_room_category_lobby),
+        title = StringTable.get(Res.string.mp_room_category_lobby),
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
                 key = "player_team",
-                title = R.string.mp_room_category_teams_title,
-                summary = R.string.mp_room_category_teams_summary,
-                entries = R.array.mp_team_names,
-                entryValues = R.array.mp_team_values,
+                title = Res.string.mp_room_category_teams_title,
+                summary = Res.string.mp_room_category_teams_summary,
+                entries = Res.array.mp_team_names,
+                entryValues = Res.array.mp_team_values,
                 initialValue = { Multiplayer.player?.team?.ordinal?.toString() ?: "" },
                 onAttach = { (it as FormControl<*, *>).isEnabled = Multiplayer.room?.teamMode == TeamMode.TeamVS },
                 onChange = { value ->
@@ -92,28 +91,28 @@ val playerSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "player_preferModAcronym",
-                title = R.string.mp_room_prefer_mod_acronym_title,
-                summary = R.string.mp_room_prefer_mod_acronym_summary,
+                title = Res.string.mp_room_prefer_mod_acronym_title,
+                summary = Res.string.mp_room_prefer_mod_acronym_summary,
                 defaultValue = false
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.mp_room_category_in_game),
+        title = StringTable.get(Res.string.mp_room_category_in_game),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "player_submitScore",
-                title = R.string.mp_room_enable_score_submission_title,
-                summary = R.string.mp_room_enable_score_submission_summary,
+                title = Res.string.mp_room_enable_score_submission_title,
+                summary = Res.string.mp_room_enable_score_submission_summary,
                 defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "player_nightcore",
-                title = R.string.mp_room_nightcore_title,
-                summary = R.string.mp_room_nightcore_summary,
+                title = Res.string.mp_room_nightcore_title,
+                summary = Res.string.mp_room_nightcore_summary,
                 defaultValue = false,
                 onChange = { value ->
                     Config.setUseNightcoreOnMultiplayer(value as Boolean)
@@ -127,13 +126,13 @@ val playerSection = listOf(
 // Settings of the room, only for its host. They're the room's current values, not preferences.
 val roomSection = listOf(
     CategoryInfo(
-        title = StringTable.get(R.string.mp_room_category_details),
+        title = StringTable.get(Res.string.mp_room_category_details),
         options = listOf(
             OptionInfo(
                 type = OptionType.Input,
                 key = "room_name",
-                title = R.string.mp_room_name_title,
-                summary = R.string.mp_room_name_summary,
+                title = Res.string.mp_room_name_title,
+                summary = Res.string.mp_room_name_summary,
                 initialValue = { Multiplayer.room?.name ?: "" },
                 // Applied once confirmed with the keyboard, not on every typed character.
                 onAttach = {
@@ -148,8 +147,8 @@ val roomSection = listOf(
             OptionInfo(
                 type = OptionType.Input,
                 key = "room_password",
-                title = R.string.mp_room_password_title,
-                summary = R.string.mp_room_password_summary,
+                title = Res.string.mp_room_password_title,
+                summary = Res.string.mp_room_password_summary,
                 // The current password isn't known, only whether there's one.
                 initialValue = { "" },
                 // Applied once confirmed with the keyboard, not on every typed character.
@@ -162,8 +161,8 @@ val roomSection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "room_max_players",
-                title = R.string.mp_room_max_players_title,
-                summary = R.string.mp_room_max_players_summary,
+                title = Res.string.mp_room_max_players_title,
+                summary = Res.string.mp_room_max_players_summary,
                 max = 16f,
                 step = 1f,
                 initialValue = { Multiplayer.room?.maxPlayers ?: 2 },
@@ -177,23 +176,23 @@ val roomSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.mp_room_category_variables),
+        title = StringTable.get(Res.string.mp_room_category_variables),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "room_free_mods",
-                title = R.string.mp_room_free_mods_title,
-                summary = R.string.mp_room_free_mods_summary,
+                title = Res.string.mp_room_free_mods_title,
+                summary = Res.string.mp_room_free_mods_summary,
                 initialValue = { Multiplayer.room?.gameplaySettings?.isFreeMod ?: false },
                 onChange = { value -> RoomAPI.setRoomFreeMods(value as Boolean) }
             ),
             OptionInfo(
                 type = OptionType.Select,
                 key = "room_versus_mode",
-                title = R.string.mp_room_versus_mode_title,
-                summary = R.string.mp_room_versus_mode_summary,
-                entries = R.array.mp_team_versus_names,
-                entryValues = R.array.mp_team_versus_values,
+                title = Res.string.mp_room_versus_mode_title,
+                summary = Res.string.mp_room_versus_mode_summary,
+                entries = Res.array.mp_team_versus_names,
+                entryValues = Res.array.mp_team_versus_values,
                 initialValue = { Multiplayer.room?.teamMode?.ordinal?.toString() ?: "" },
                 onChange = { value ->
                     @Suppress("UNCHECKED_CAST")
@@ -206,10 +205,10 @@ val roomSection = listOf(
             OptionInfo(
                 type = OptionType.Select,
                 key = "room_win_condition",
-                title = R.string.mp_room_win_condition_title,
-                summary = R.string.mp_room_win_condition_summary,
-                entries = R.array.mp_win_condition_names,
-                entryValues = R.array.mp_win_condition_values,
+                title = Res.string.mp_room_win_condition_title,
+                summary = Res.string.mp_room_win_condition_summary,
+                entries = Res.array.mp_win_condition_names,
+                entryValues = Res.array.mp_win_condition_values,
                 initialValue = { Multiplayer.room?.winCondition?.ordinal?.toString() ?: "" },
                 onChange = { value ->
                     @Suppress("UNCHECKED_CAST")
@@ -222,8 +221,8 @@ val roomSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "room_removeSliderLock",
-                title = R.string.opt_remove_sliderlock_spinnerlock_title,
-                summary = R.string.opt_remove_sliderlock_spinnerlock_summary,
+                title = Res.string.opt_remove_sliderlock_spinnerlock_title,
+                summary = Res.string.opt_remove_sliderlock_spinnerlock_summary,
                 initialValue = { Multiplayer.room?.gameplaySettings?.isRemoveSliderLock ?: false },
                 onChange = { value -> RoomAPI.setRoomRemoveSliderLock(value as Boolean) }
             )
@@ -231,13 +230,13 @@ val roomSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.mp_room_category_share),
+        title = StringTable.get(Res.string.mp_room_category_share),
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
                 key = "room_link",
-                title = R.string.mp_room_link_title,
-                summary = R.string.mp_room_link_summary,
+                title = Res.string.mp_room_link_title,
+                summary = Res.string.mp_room_link_summary,
                 onClick = {
                     val room = Multiplayer.room
                     if (room != null) {
@@ -255,29 +254,29 @@ val roomSection = listOf(
 
 val generalSection = listOf(
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_online),
+        title = StringTable.get(Res.string.opt_category_online),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "stayOnline",
-                title = R.string.opt_stayonline_title,
-                summary = R.string.opt_stayonline_summary
+                title = Res.string.opt_stayonline_title,
+                summary = Res.string.opt_stayonline_summary
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "loadAvatar",
-                title = R.string.opt_loadavatar_title,
-                summary = R.string.opt_loadavatar_summary
+                title = Res.string.opt_loadavatar_title,
+                summary = Res.string.opt_loadavatar_summary
             ),
             OptionInfo(
                 type = OptionType.Select,
                 key = "difficultyAlgorithm",
-                title = R.string.difficulty_algorithm_title,
-                summary = R.string.difficulty_algorithm_summary,
+                title = Res.string.difficulty_algorithm_title,
+                summary = Res.string.difficulty_algorithm_summary,
                 // The default of Config.getDifficultyAlgorithm, shown while it was never changed.
                 defaultValue = "0",
-                entries = R.array.difficulty_algorithm_names,
-                entryValues = R.array.difficulty_algorithm_values,
+                entries = Res.array.difficulty_algorithm_names,
+                entryValues = Res.array.difficulty_algorithm_values,
                 onChange = { value ->
                     if (Multiplayer.isMultiplayer) {
                         @Suppress("UNCHECKED_CAST")
@@ -291,19 +290,19 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_account),
+        title = StringTable.get(Res.string.opt_category_account),
         options = listOf(
             OptionInfo(
                 type = OptionType.Input,
                 key = "onlineUsername",
-                title = R.string.opt_login_title,
-                summary = R.string.opt_login_summary
+                title = Res.string.opt_login_title,
+                summary = Res.string.opt_login_summary
             ),
             OptionInfo(
                 type = OptionType.Input,
                 key = "onlinePassword",
-                title = R.string.opt_password_title,
-                summary = R.string.opt_password_summary,
+                title = Res.string.opt_password_title,
+                summary = Res.string.opt_password_summary,
                 onAttach = {
                     (it as PreferenceInput).control.isPassword = true
                 }
@@ -311,8 +310,8 @@ val generalSection = listOf(
             OptionInfo(
                 type = OptionType.Button,
                 key = "registerAcc",
-                title = R.string.opt_register_title,
-                summary = R.string.opt_register_summary,
+                title = Res.string.opt_register_title,
+                summary = Res.string.opt_register_summary,
                 onClick = {
                     val context = GlobalManager.getInstance().context
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(REGISTER_URL)))
@@ -322,25 +321,25 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_community),
+        title = StringTable.get(Res.string.opt_category_community),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "receiveAnnouncements",
-                title = R.string.opt_receive_announcements_title,
-                summary = R.string.opt_receive_announcements_summary
+                title = Res.string.opt_receive_announcements_title,
+                summary = Res.string.opt_receive_announcements_summary
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_updates),
+        title = StringTable.get(Res.string.opt_category_updates),
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
                 key = "update",
-                title = R.string.opt_update_title,
-                summary = R.string.opt_update_summary,
+                title = Res.string.opt_update_title,
+                summary = Res.string.opt_update_summary,
                 onClick = {
                     UpdateManager.checkNewUpdates(false)
                 }
@@ -349,17 +348,17 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_config_backup),
+        title = StringTable.get(Res.string.opt_category_config_backup),
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
                 key = "backup",
-                title = R.string.opt_config_backup_title,
-                summary = R.string.opt_config_backup_summary,
+                title = Res.string.opt_config_backup_title,
+                summary = Res.string.opt_config_backup_summary,
                 onClick = {
                     val success = ConfigBackup.exportPreferences()
                     ToastLogger.showText(
-                        if (success) R.string.config_backup_info_success else R.string.config_backup_info_fail,
+                        if (success) Res.string.config_backup_info_success else Res.string.config_backup_info_fail,
                         true
                     )
                 }
@@ -367,8 +366,8 @@ val generalSection = listOf(
             OptionInfo(
                 type = OptionType.Button,
                 key = "restore",
-                title = R.string.opt_config_backup_restore_title,
-                summary = R.string.opt_config_backup_restore_summary,
+                title = Res.string.opt_config_backup_restore_title,
+                summary = Res.string.opt_config_backup_restore_summary,
                 onClick = {
                     val context = GlobalManager.getInstance().context
                     val success = ConfigBackup.importPreferences()
@@ -379,11 +378,11 @@ val generalSection = listOf(
 
                         loadSkin(context, prefs.getString("skinPath", "")!!).invokeOnCompletion {
                             mainThread {
-                                ToastLogger.showText(R.string.config_backup_restore_info_success, true)
+                                ToastLogger.showText(Res.string.config_backup_restore_info_success, true)
                             }
                         }
                     } else {
-                        ToastLogger.showText(R.string.config_backup_restore_info_fail, true)
+                        ToastLogger.showText(Res.string.config_backup_restore_info_fail, true)
                     }
                 }
             )
@@ -391,15 +390,15 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_localization),
+        title = StringTable.get(Res.string.opt_category_localization),
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
                 key = "appLanguage",
-                title = R.string.opt_language_title,
-                summary = R.string.opt_language_summary,
-                entries = R.array.placeholder_array,
-                entryValues = R.array.placeholder_array,
+                title = Res.string.opt_language_title,
+                summary = Res.string.opt_language_summary,
+                entries = Res.array.placeholder_array,
+                entryValues = Res.array.placeholder_array,
                 onAttach = {
                     // Changing it restarts the game, which would leave the room.
                     (it as PreferenceSelect).isEnabled = !Multiplayer.isMultiplayer
@@ -456,15 +455,15 @@ val generalSection = listOf(
 
 val gameplaySection = listOf(
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_skin),
+        title = StringTable.get(Res.string.opt_category_skin),
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
                 key = "skinPath",
-                title = R.string.opt_skinpath_title,
-                summary = R.string.opt_skinpath_summary,
-                entries = R.array.placeholder_array,
-                entryValues = R.array.placeholder_array,
+                title = Res.string.opt_skinpath_title,
+                summary = Res.string.opt_skinpath_summary,
+                entries = Res.array.placeholder_array,
+                entryValues = Res.array.placeholder_array,
                 // Config ends the path with a slash, which the folders don't, so it's shown and stored
                 // as Config has it rather than through the preference.
                 initialValue = { Config.getSkinPath() },
@@ -489,8 +488,8 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Button,
                 key = "hud_editor",
-                title = R.string.opt_hudEditor_title,
-                summary = R.string.opt_hudEditor_summary,
+                title = Res.string.opt_hudEditor_title,
+                summary = Res.string.opt_hudEditor_summary,
                 // It plays the beatmap, which can't be done from a multiplayer room.
                 onAttach = { (it as UIButton).isEnabled = !Multiplayer.isMultiplayer },
                 onClick = {
@@ -517,43 +516,43 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Select,
                 key = "spinnerstyle",
-                title = R.string.opt_spinner_style_title,
-                summary = R.string.opt_spinner_style_summary,
+                title = Res.string.opt_spinner_style_title,
+                summary = Res.string.opt_spinner_style_summary,
                 defaultValue = "1",
-                entries = R.array.spinner_style_names,
-                entryValues = R.array.spinner_style_values
+                entries = Res.array.spinner_style_names,
+                entryValues = Res.array.spinner_style_values
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "skin",
-                title = R.string.opt_skin_title,
-                summary = R.string.opt_skin_summary,
+                title = Res.string.opt_skin_title,
+                summary = Res.string.opt_skin_summary,
                 defaultValue = false
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_hit_objects),
+        title = StringTable.get(Res.string.opt_category_hit_objects),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "showfirstapproachcircle",
-                title = R.string.opt_show_first_approach_circle_title,
-                summary = R.string.opt_show_first_approach_circle_summary,
+                title = Res.string.opt_show_first_approach_circle_title,
+                summary = Res.string.opt_show_first_approach_circle_summary,
                 defaultValue = false
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_background),
+        title = StringTable.get(Res.string.opt_category_background),
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "bgbrightness",
-                title = R.string.opt_bgbrightness_title,
-                summary = R.string.opt_bgbrightness_summary,
+                title = Res.string.opt_bgbrightness_title,
+                summary = Res.string.opt_bgbrightness_summary,
                 defaultValue = 25,
                 min = 0f,
                 max = 100f,
@@ -564,34 +563,34 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "keepBackgroundAspectRatio",
-                title = R.string.opt_keep_background_aspect_ratio_title,
-                summary = R.string.opt_keep_background_aspect_ratio_summary,
+                title = Res.string.opt_keep_background_aspect_ratio_title,
+                summary = Res.string.opt_keep_background_aspect_ratio_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "enableStoryboard",
-                title = R.string.opt_enableStoryboard_title,
+                title = Res.string.opt_enableStoryboard_title,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "enableVideo",
-                title = R.string.opt_video_title,
-                summary = R.string.opt_video_summary,
+                title = Res.string.opt_video_title,
+                summary = Res.string.opt_video_summary,
                 defaultValue = false
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_playfield),
+        title = StringTable.get(Res.string.opt_category_playfield),
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "playfieldSize",
-                title = R.string.opt_setplayfield_title,
-                summary = R.string.opt_setplayfield_summary,
+                title = Res.string.opt_setplayfield_title,
+                summary = Res.string.opt_setplayfield_summary,
                 defaultValue = 100,
                 min = 50f,
                 max = 100f,
@@ -605,8 +604,8 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "playfieldHorizontalPosition",
-                title = R.string.opt_playfieldHorizontalPosition_title,
-                summary = R.string.opt_playfieldHorizontalPosition_summary,
+                title = Res.string.opt_playfieldHorizontalPosition_title,
+                summary = Res.string.opt_playfieldHorizontalPosition_summary,
                 defaultValue = 50,
                 min = 0f,
                 max = 100f,
@@ -620,8 +619,8 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "playfieldVerticalPosition",
-                title = R.string.opt_playfieldVerticalPosition_title,
-                summary = R.string.opt_playfieldVerticalPosition_summary,
+                title = Res.string.opt_playfieldVerticalPosition_title,
+                summary = Res.string.opt_playfieldVerticalPosition_summary,
                 defaultValue = 50,
                 min = 0f,
                 max = 100f,
@@ -635,35 +634,35 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "displayPlayfieldBorder",
-                title = R.string.opt_display_playfield_border_title,
-                summary = R.string.opt_display_playfield_border_summary,
+                title = Res.string.opt_display_playfield_border_title,
+                summary = Res.string.opt_display_playfield_border_summary,
                 defaultValue = false
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_hud),
+        title = StringTable.get(Res.string.opt_category_hud),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "hideInGameUI",
-                title = R.string.opt_hide_ingame_ui_title,
-                summary = R.string.opt_hide_ingame_ui_summary,
+                title = Res.string.opt_hide_ingame_ui_title,
+                summary = Res.string.opt_hide_ingame_ui_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "hideReplayMarquee",
-                title = R.string.opt_hide_replay_marquee_title,
-                summary = R.string.opt_hide_replay_marquee_summary,
+                title = Res.string.opt_hide_replay_marquee_title,
+                summary = Res.string.opt_hide_replay_marquee_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "fps",
-                title = R.string.opt_fps_title,
-                summary = R.string.opt_fps_summary,
+                title = Res.string.opt_fps_title,
+                summary = Res.string.opt_fps_summary,
                 defaultValue = true,
                 // Shows the engine's performance overlay.
                 onChange = { value -> Settings[VerktexSettings.ShowPerformanceOverlay] = value as Boolean }
@@ -671,8 +670,8 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "displayScoreStatistics",
-                title = R.string.opt_display_score_statistics_title,
-                summary = R.string.opt_display_score_statistics_summary,
+                title = Res.string.opt_display_score_statistics_title,
+                summary = Res.string.opt_display_score_statistics_summary,
                 defaultValue = true
             )
         )
@@ -707,8 +706,8 @@ private fun resolutionScaleOption(): OptionInfo? {
     return OptionInfo(
         type = OptionType.Slider,
         key = RESOLUTION_SCALE_KEY,
-        title = AppR.string.opt_resolution_scale_title,
-        summary = AppR.string.opt_resolution_scale_summary,
+        title = Res.string.opt_resolution_scale_title,
+        summary = Res.string.opt_resolution_scale_summary,
         defaultValue = 100,
         min = minPercentage,
         max = 100f,
@@ -749,10 +748,10 @@ private fun graphicsBackendOption(): OptionInfo {
     return OptionInfo(
         type = OptionType.Select,
         key = GRAPHICS_BACKEND_KEY,
-        title = AppR.string.opt_graphics_backend_title,
-        summary = AppR.string.opt_graphics_backend_summary,
-        entries = if (withVulkan) AppR.array.opt_graphics_backend_names_with_vulkan else AppR.array.opt_graphics_backend_names,
-        entryValues = if (withVulkan) AppR.array.opt_graphics_backend_values_with_vulkan else AppR.array.opt_graphics_backend_values,
+        title = Res.string.opt_graphics_backend_title,
+        summary = Res.string.opt_graphics_backend_summary,
+        entries = if (withVulkan) Res.array.opt_graphics_backend_names_with_vulkan else Res.array.opt_graphics_backend_names,
+        entryValues = if (withVulkan) Res.array.opt_graphics_backend_values_with_vulkan else Res.array.opt_graphics_backend_values,
         defaultValue = GraphicsBackend.Auto.name,
         onChange = { value ->
             val selected = (value as? List<*>)?.firstOrNull() ?: value
@@ -761,9 +760,9 @@ private fun graphicsBackendOption(): OptionInfo {
             if (selected == GraphicsBackend.Vulkan.name) {
                 // Picking it again retries it, even if it crashed while starting the last time.
                 resetVulkanCrashGuard(context)
-                ToastLogger.showText(AppR.string.opt_graphics_backend_vulkan_experimental, true)
+                ToastLogger.showText(Res.string.opt_graphics_backend_vulkan_experimental, true)
             } else {
-                ToastLogger.showText(AppR.string.opt_graphics_backend_restart, true)
+                ToastLogger.showText(Res.string.opt_graphics_backend_restart, true)
             }
         }
     )
@@ -771,25 +770,25 @@ private fun graphicsBackendOption(): OptionInfo {
 
 val graphicsSection = listOfNotNull(
     CategoryInfo(
-        title = StringTable.get(AppR.string.opt_category_rendering),
+        title = StringTable.get(Res.string.opt_category_rendering),
         options = listOfNotNull(graphicsBackendOption(), resolutionScaleOption())
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_cursor),
+        title = StringTable.get(Res.string.opt_category_cursor),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "showcursor",
-                title = R.string.opt_showcursor_title,
-                summary = R.string.opt_showcursor_summary,
+                title = Res.string.opt_showcursor_title,
+                summary = Res.string.opt_showcursor_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Slider,
                 key = "cursorSize",
-                title = R.string.opt_cursor_size,
-                summary = R.string.opt_cursor_size_summary,
+                title = Res.string.opt_cursor_size,
+                summary = Res.string.opt_cursor_size_summary,
                 defaultValue = 50,
                 min = 25f,
                 max = 300f,
@@ -799,84 +798,84 @@ val graphicsSection = listOfNotNull(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "particles",
-                title = R.string.opt_particles_title,
-                summary = R.string.opt_particles_summary,
+                title = Res.string.opt_particles_title,
+                summary = Res.string.opt_particles_summary,
                 defaultValue = false
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_animations),
+        title = StringTable.get(Res.string.opt_category_animations),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "dimHitObjects",
-                title = R.string.opt_dim_hit_objects_title,
-                summary = R.string.opt_dim_hit_objects_summary,
+                title = Res.string.opt_dim_hit_objects_title,
+                summary = Res.string.opt_dim_hit_objects_summary,
                 defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "comboburst",
-                title = R.string.opt_combo_burst_title,
-                summary = R.string.opt_combo_burst_summary,
+                title = Res.string.opt_combo_burst_title,
+                summary = Res.string.opt_combo_burst_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "images",
-                title = R.string.opt_largeimages_title,
-                summary = R.string.opt_largeimages_summary,
+                title = Res.string.opt_largeimages_title,
+                summary = Res.string.opt_largeimages_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "animateFollowCircle",
-                title = R.string.opt_animate_follow_circle_title,
-                summary = R.string.opt_animate_follow_circle_summary,
+                title = Res.string.opt_animate_follow_circle_title,
+                summary = Res.string.opt_animate_follow_circle_summary,
                 defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "animateComboText",
-                title = R.string.opt_animate_combo_text_title,
-                summary = R.string.opt_animate_combo_text_summary,
+                title = Res.string.opt_animate_combo_text_title,
+                summary = Res.string.opt_animate_combo_text_summary,
                 defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "snakingInSliders",
-                title = R.string.opt_snakingInSliders_title,
-                summary = R.string.opt_snakingInSliders_summary,
+                title = Res.string.opt_snakingInSliders_title,
+                summary = Res.string.opt_snakingInSliders_summary,
                 defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "snakingOutSliders",
-                title = R.string.opt_snakingOutSliders_title,
-                summary = R.string.opt_snakingOutSliders_summary,
+                title = Res.string.opt_snakingOutSliders_title,
+                summary = Res.string.opt_snakingOutSliders_summary,
                 defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "noChangeDimInBreaks",
-                title = R.string.opt_noChangeDimInBreaks_title,
-                summary = R.string.opt_noChangeDimInBreaks_summary,
+                title = Res.string.opt_noChangeDimInBreaks_title,
+                summary = Res.string.opt_noChangeDimInBreaks_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "bursts",
-                title = R.string.opt_bursts_title,
-                summary = R.string.opt_bursts_summary,
+                title = Res.string.opt_bursts_title,
+                summary = Res.string.opt_bursts_summary,
                 defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "hitlighting",
-                title = R.string.opt_hitlighting_title,
-                summary = R.string.opt_hitlighting_summary,
+                title = Res.string.opt_hitlighting_title,
+                summary = Res.string.opt_hitlighting_summary,
                 defaultValue = false
             )
         )
@@ -885,13 +884,13 @@ val graphicsSection = listOfNotNull(
 
 val audioSection = listOf(
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_volume),
+        title = StringTable.get(Res.string.opt_category_volume),
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "bgmvolume",
-                title = R.string.opt_bgm_volume_title,
-                summary = R.string.opt_bgm_volume_summary,
+                title = Res.string.opt_bgm_volume_title,
+                summary = Res.string.opt_bgm_volume_summary,
                 defaultValue = 100,
                 min = 0f,
                 max = 100f,
@@ -905,8 +904,8 @@ val audioSection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "soundvolume",
-                title = R.string.opt_sound_volume_title,
-                summary = R.string.opt_sound_volume_summary,
+                title = Res.string.opt_sound_volume_title,
+                summary = Res.string.opt_sound_volume_summary,
                 defaultValue = 100,
                 min = 0f,
                 max = 100f,
@@ -927,13 +926,13 @@ val audioSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_offset),
+        title = StringTable.get(Res.string.opt_category_offset),
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "offset",
-                title = R.string.opt_offset_title,
-                summary = R.string.opt_offset_summary,
+                title = Res.string.opt_offset_title,
+                summary = Res.string.opt_offset_summary,
                 defaultValue = 0,
                 min = -750f,
                 max = 750f,
@@ -943,8 +942,8 @@ val audioSection = listOf(
             OptionInfo(
                 type = OptionType.Button,
                 key = "offset_calibration",
-                title = R.string.opt_offset_calibration_title,
-                summary = R.string.opt_offset_calibration_summary,
+                title = Res.string.opt_offset_calibration_title,
+                summary = Res.string.opt_offset_calibration_summary,
                 onClick = {
                     CalibrationScene.OFFSET_MIN = -750
                     CalibrationScene.OFFSET_MAX = 750
@@ -954,8 +953,8 @@ val audioSection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "gameAudioSynchronizationThreshold",
-                title = R.string.opt_gameAudioSynchronizationThreshold_title,
-                summary = R.string.opt_gameAudioSynchronizationThreshold_summary,
+                title = Res.string.opt_gameAudioSynchronizationThreshold_title,
+                summary = Res.string.opt_gameAudioSynchronizationThreshold_summary,
                 defaultValue = 20,
                 min = 0f,
                 max = 100f,
@@ -966,42 +965,42 @@ val audioSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_effect),
+        title = StringTable.get(Res.string.opt_category_effect),
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
                 key = "metronomeswitch",
-                title = R.string.opt_metronome_switch_title,
-                summary = R.string.opt_metronome_switch_summary,
+                title = Res.string.opt_metronome_switch_title,
+                summary = Res.string.opt_metronome_switch_summary,
                 defaultValue = "1",
-                entries = R.array.metronome_switch_names,
-                entryValues = R.array.metronome_switch_values
+                entries = Res.array.metronome_switch_names,
+                entryValues = Res.array.metronome_switch_values
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "shiftPitchInRateChange",
-                title = R.string.opt_shiftPitchInRateChange_title,
-                summary = R.string.opt_shiftPitchInRateChange_summary,
+                title = Res.string.opt_shiftPitchInRateChange_title,
+                summary = Res.string.opt_shiftPitchInRateChange_summary,
                 defaultValue = false
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_miscellaneous),
+        title = StringTable.get(Res.string.opt_category_miscellaneous),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "beatmapSounds",
-                title = R.string.opt_sound_title,
-                summary = R.string.opt_sound_summary,
+                title = Res.string.opt_sound_title,
+                summary = Res.string.opt_sound_summary,
                 defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "musicpreview",
-                title = R.string.opt_musicpreview_title,
-                summary = R.string.opt_musicpreview_summary,
+                title = Res.string.opt_musicpreview_title,
+                summary = Res.string.opt_musicpreview_summary,
                 defaultValue = true
             )
         )
@@ -1010,84 +1009,84 @@ val audioSection = listOf(
 
 val librarySection = listOf(
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_import),
+        title = StringTable.get(Res.string.opt_category_import),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "preferNoVideoDownloads",
-                title = R.string.opt_prefer_no_video_downloads_title,
-                summary = R.string.opt_prefer_no_video_downloads_summary,
+                title = Res.string.opt_prefer_no_video_downloads_title,
+                summary = Res.string.opt_prefer_no_video_downloads_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "deleteosz",
-                title = R.string.opt_deleteosz_title,
-                summary = R.string.opt_deleteosz_summary,
+                title = Res.string.opt_deleteosz_title,
+                summary = Res.string.opt_deleteosz_summary,
                 defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "scandownload",
-                title = R.string.opt_scandownload_title,
-                summary = R.string.opt_scandownload_summary,
+                title = Res.string.opt_scandownload_title,
+                summary = Res.string.opt_scandownload_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "deleteUnimportedBeatmaps",
-                title = R.string.opt_deleteUnimportedBeatmaps_title,
-                summary = R.string.opt_deleteUnimportedBeatmaps_summary,
+                title = Res.string.opt_deleteUnimportedBeatmaps_title,
+                summary = Res.string.opt_deleteUnimportedBeatmaps_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "deleteUnsupportedVideos",
-                title = R.string.opt_delete_unsupported_videos_title,
-                summary = R.string.opt_delete_unsupported_videos_summary,
+                title = Res.string.opt_delete_unsupported_videos_title,
+                summary = Res.string.opt_delete_unsupported_videos_summary,
                 defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Button,
                 key = "importReplay",
-                title = R.string.opt_import_replay_title,
-                summary = R.string.opt_import_replay_summary,
+                title = Res.string.opt_import_replay_title,
+                summary = Res.string.opt_import_replay_summary,
                 onClick = { pickAndImportReplays() }
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_metadata),
+        title = StringTable.get(Res.string.opt_category_metadata),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "forceromanized",
-                title = R.string.force_romanized,
-                summary = R.string.force_romanized_summary,
+                title = Res.string.force_romanized,
+                summary = Res.string.force_romanized_summary,
                 defaultValue = false
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_storage),
+        title = StringTable.get(Res.string.opt_category_storage),
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
                 key = "clear_beatmap_cache",
-                title = R.string.opt_clear_title,
-                summary = R.string.opt_clear_summary,
+                title = Res.string.opt_clear_title,
+                summary = Res.string.opt_clear_summary,
                 onClick = {
                     LibraryManager.clearDatabase()
-                    ToastLogger.showText(StringTable.get(R.string.library_cleared), true)
+                    ToastLogger.showText(StringTable.get(Res.string.library_cleared), true)
                 }
             ),
             OptionInfo(
                 type = OptionType.Button,
                 key = "clear_properties",
-                title = R.string.opt_clearprops_title,
-                summary = R.string.opt_clearprops_summary,
+                title = Res.string.opt_clearprops_title,
+                summary = Res.string.opt_clearprops_summary,
                 onClick = {
                     DatabaseManager.beatmapOptionsTable.deleteAll()
                 }
@@ -1098,13 +1097,13 @@ val librarySection = listOf(
 
 val inputSection = listOf(
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_gameplay),
+        title = StringTable.get(Res.string.opt_category_gameplay),
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
                 key = "block_areas",
-                title = R.string.block_area_preference_title,
-                summary = R.string.block_area_preference_summary,
+                title = Res.string.block_area_preference_title,
+                summary = Res.string.block_area_preference_summary,
                 onClick = {
                     com.osudroid.ui.v1.BlockAreaEditorFragment().show()
                 }
@@ -1112,15 +1111,15 @@ val inputSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "highPrecisionInput",
-                title = R.string.opt_highPrecisionInput_title,
-                summary = R.string.opt_highPrecisionInput_summary,
+                title = Res.string.opt_highPrecisionInput_title,
+                summary = Res.string.opt_highPrecisionInput_summary,
                 defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Slider,
                 key = "back_button_press_time",
-                title = R.string.opt_backButtonPressTime_title,
-                summary = R.string.opt_backButtonPressTime_summary,
+                title = Res.string.opt_backButtonPressTime_title,
+                summary = Res.string.opt_backButtonPressTime_summary,
                 defaultValue = 300,
                 min = 0f,
                 max = 300f,
@@ -1170,8 +1169,8 @@ val inputSection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "seekBarVibrateIntensity",
-                title = R.string.opt_seekBarVibrateIntensity_title,
-                summary = R.string.opt_seekBarVibrateIntensity_summary,
+                title = Res.string.opt_seekBarVibrateIntensity_title,
+                summary = Res.string.opt_seekBarVibrateIntensity_summary,
                 defaultValue = 127,
                 min = 1f,
                 max = 255f,
@@ -1185,13 +1184,13 @@ val inputSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_synchronization),
+        title = StringTable.get(Res.string.opt_category_synchronization),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "fixFrameOffset",
-                title = R.string.opt_fix_frame_offset_title,
-                summary = R.string.opt_fix_frame_offset_summary,
+                title = Res.string.opt_fix_frame_offset_title,
+                summary = Res.string.opt_fix_frame_offset_summary,
                 defaultValue = true
             )
         )
@@ -1200,19 +1199,19 @@ val inputSection = listOf(
 
 val advancedSection = listOf(
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_directories),
+        title = StringTable.get(Res.string.opt_category_directories),
         options = listOf(
             OptionInfo(
                 type = OptionType.Input,
                 key = "corePath",
-                title = R.string.opt_corepath_title,
-                summary = R.string.opt_corepath_summary
+                title = Res.string.opt_corepath_title,
+                summary = Res.string.opt_corepath_summary
             ),
             OptionInfo(
                 type = OptionType.Input,
                 key = "skinTopPath",
-                title = R.string.opt_skin_top_path_title,
-                summary = R.string.opt_skin_top_path_summary,
+                title = Res.string.opt_skin_top_path_title,
+                summary = Res.string.opt_skin_top_path_summary,
                 onChange = { value ->
                     val newValue = value as String
 
@@ -1224,7 +1223,7 @@ val advancedSection = listOf(
                     val file = File(newValue)
 
                     if (!file.exists() && !file.mkdirs()) {
-                        ToastLogger.showText(StringTable.get(R.string.message_error_dir_not_found), true)
+                        ToastLogger.showText(StringTable.get(Res.string.message_error_dir_not_found), true)
                         return@OptionInfo
                     }
 
@@ -1234,21 +1233,21 @@ val advancedSection = listOf(
             OptionInfo(
                 type = OptionType.Input,
                 key = "directory",
-                title = R.string.opt_directory_title,
-                summary = R.string.opt_directory_summary,
+                title = Res.string.opt_directory_title,
+                summary = Res.string.opt_directory_summary,
                 defaultValue = "/sdcard/osu!droid/Songs"
             )
         )
     ),
 
     CategoryInfo(
-        title = StringTable.get(R.string.opt_category_miscellaneous),
+        title = StringTable.get(Res.string.opt_category_miscellaneous),
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "forceMaxRefreshRate",
-                title = R.string.opt_force_max_refresh_rate_title,
-                summary = R.string.opt_force_max_refresh_rate_summary,
+                title = Res.string.opt_force_max_refresh_rate_title,
+                summary = Res.string.opt_force_max_refresh_rate_summary,
                 defaultValue = false,
                 onAttach = { component ->
                     // Obtaining supported refresh rates is only available on Android 12 and above.
@@ -1262,8 +1261,8 @@ val advancedSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "safebeatmapbg",
-                title = R.string.opt_safe_beatmap_bg_title,
-                summary = R.string.opt_safe_beatmap_bg_summary,
+                title = Res.string.opt_safe_beatmap_bg_title,
+                summary = Res.string.opt_safe_beatmap_bg_summary,
                 defaultValue = false
             )
         )
@@ -1294,7 +1293,7 @@ fun loadSkin(context: Context, path: String): Job {
             val mainActivity = GlobalManager.getInstance().mainActivity ?: return@mainThread
             Snackbar.make(
                 mainActivity.window.decorView,
-                R.string.message_loaded_skin,
+                StringTable.get(Res.string.message_loaded_skin),
                 1500
             ).show()
         }

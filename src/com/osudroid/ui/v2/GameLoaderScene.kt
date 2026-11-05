@@ -5,7 +5,7 @@ import com.osudroid.data.*
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.PlayerStatus
-import com.osudroid.resources.R
+import com.osudroid.resources.Res
 import com.osudroid.ui.v2.settings.FloatPreferenceSlider
 import com.osudroid.ui.v2.settings.PreferenceCheckbox
 import com.osudroid.utils.ModHashMap
@@ -105,7 +105,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         spans {
                             icon(FAIcon.TriangleExclamation)
                             space(8f.dip)
-                            +StringTable.get(R.string.epilepsy_warning)
+                            +StringTable.get(Res.string.epilepsy_warning)
                         }
                     }
                 }
@@ -278,7 +278,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
                     content.apply {
                         val offsetSlider = FormSlider().apply {
-                            label = StringTable.get(R.string.opt_category_offset)
+                            label = StringTable.get(Res.string.opt_category_offset)
                             control.min = -250f
                             control.max = 250f
                             value = beatmapOptions.offset.toFloat()
@@ -330,7 +330,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     content.apply {
 
                         +FloatPreferenceSlider("bgbrightness", 25f).apply {
-                            label = StringTable.get(R.string.opt_bgbrightness_title)
+                            label = StringTable.get(Res.string.opt_bgbrightness_title)
                             control.min = 0f
                             control.max = 100f
                             control.step = 0.1f
@@ -355,20 +355,20 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         }
 
                         +PreferenceCheckbox("enableStoryboard").apply {
-                            label = StringTable.get(R.string.opt_enableStoryboard_title)
+                            label = StringTable.get(Res.string.opt_enableStoryboard_title)
                             onValueChanged = {
                             }
                         }
 
                         +PreferenceCheckbox("enableVideo").apply {
-                            label = StringTable.get(R.string.opt_video_title)
+                            label = StringTable.get(Res.string.opt_video_title)
                             onValueChanged = {
                                 gameScene.loadVideo(beatmapInfo)
                             }
                         }
 
                         +PreferenceCheckbox("showscoreboard").apply {
-                            label = StringTable.get(R.string.opt_show_scoreboard_title)
+                            label = StringTable.get(Res.string.opt_show_scoreboard_title)
                         }
                     }
 

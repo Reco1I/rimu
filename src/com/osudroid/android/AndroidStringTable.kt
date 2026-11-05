@@ -24,9 +24,14 @@ class AndroidStringTable(private val context: Context) : StringTable.Implementat
     override fun format(format: String, vararg args: Any?): String = String.format(format, *args)
 
 
+    // The language pack's resources, then the app's own, which has strings not in the language pack yet.
     private fun identifier(type: String, name: String) = synchronized(identifiers) {
         identifiers.getOrPut("$type/$name") {
-            Class.forName("com.osudroid.resources.R$$type").getField(name).getInt(null)
+            try {
+                Class.forName("com.osudroid.resources.R$$type").getField(name).getInt(null)
+            } catch (_: NoSuchFieldException) {
+                Class.forName("ru.nsu.ccfit.zuev.osuplus.R$$type").getField(name).getInt(null)
+            }
         }
     }
 }

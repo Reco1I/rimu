@@ -2,7 +2,8 @@ package com.osudroid.ui.v2.settings
 
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
-import androidx.annotation.ArrayRes
+import com.osudroid.resources.StringArrayResource
+import com.osudroid.resources.StringResource
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
@@ -41,6 +42,7 @@ import kotlin.math.ceil
 import kotlin.math.log10
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.themed
 
 
@@ -128,14 +130,14 @@ data class OptionInfo(
      *
      * This property is only used in [OptionType.Select] preferences.
      */
-    @param:ArrayRes val entries: Int? = null,
+    val entries: StringArrayResource? = null,
 
     /**
      * The entry values of the select.
      *
      * This property is only used in [OptionType.Select] preferences.
      */
-    @param:ArrayRes val entryValues: Int? = null,
+    val entryValues: StringArrayResource? = null,
 
     // FormSlider props
 
@@ -358,6 +360,7 @@ class SettingsMenu : UIScene() {
 
                     category.options.forEach { option ->
                         val title = when (option.title) {
+                            is StringResource -> StringTable.get(option.title)
                             is Int -> GlobalManager.getInstance().context.getString(option.title)
                             else -> option.title.toString()
                         }
@@ -406,6 +409,7 @@ class SettingsMenu : UIScene() {
     private fun UILinearContainer.addSummary(option: OptionInfo) {
         val summary = when (option.summary) {
             null -> return
+            is StringResource -> StringTable.get(option.summary)
             is Int -> GlobalManager.getInstance().context.getString(option.summary)
             else -> option.summary.toString()
         }
@@ -445,9 +449,8 @@ class SettingsMenu : UIScene() {
         }
 
         if (control is FormSelect<*> && option.entries != null && option.entryValues != null) {
-            val resources = GlobalManager.getInstance().context.resources
-            val entries = resources.getStringArray(option.entries)
-            val values = resources.getStringArray(option.entryValues)
+            val entries = StringTable.getArray(option.entries)
+            val values = StringTable.getArray(option.entryValues)
 
             if (entries.size == values.size) {
                 @Suppress("UNCHECKED_CAST")
