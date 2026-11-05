@@ -204,16 +204,22 @@ Done since the previous notes:
   `GameEffect`, `GameObjectPool`, `GameplayEffects`, the listeners, `SliderBody`, `DrawLinePath` and
   `TriangleBuilder`. Their protected fields stay `@JvmField` while Java (`GameScene`) uses them.
 
+- The skin assets and the audio are in `:game`: `SkinTextures`, `SkinSounds`, `BeatmapSkinManager`,
+  `ISkinnable`, `MD5Calculator`, `BassSoundProvider`, `Metronome`, `Status`, `SongPlayer`,
+  `SongServiceClock` and `SongService`. `SongService` is a plain class now; on Android
+  `AndroidSongService` (the bound service) creates it and stops itself through `SongService.onExit`.
+  Verktex's `Provider.list` lists bundled assets, so `SkinSounds` no longer needs Android's `AssetManager`.
+
 What's left, roughly in order:
 
-1. **Skins, the rest**: the skin configuration is common (see below); `Skin` (reading the skin
-   folder, which reports to the loading screen and checks textures with Android bitmaps),
-   `BeatmapSkinManager`, `SkinTextures` and `SkinSounds` move with `GlobalManager` and the audio.
+1. **Skins, the rest**: `Skin` (reading the skin folder, which reports to the loading screen and
+   checks textures with Android bitmaps).
 2. **Gameplay objects**: converted to Kotlin, still in the app. To move them with the gameplay UI
-   (`com.osudroid.ui.v2.game`) and `com.osudroid.game`, cut or move: `SkinTextures`/`SkinSounds`/`SpriteFont`
-   (asset lookup), `BassSoundProvider` and `SongService` (audio; the spinner only needs
-   `SongService.defaultFrequency`), `GlobalManager`, `Multiplayer.isRemoveSliderLock()` and
-   `GameplayHUD`/`GameScene` from the effects and menus.
+   (`com.osudroid.ui.v2.game`) and `com.osudroid.game`, cut or move: `GlobalManager` (a hub of Android
+   state: the activity, its context, the `Application`, the database; it can only move after the
+   scenes and the database), `Multiplayer.isRemoveSliderLock()`, `GameplayHUD`/`GameScene` from the
+   effects and menus, `SystemClock` in the cursors, `DecimalFormat` in the replay controls, and
+   `R.string` in the menus.
 3. **Scenes**: `GameScene` and `ScoringScene` are Kotlin (`ScoringScene` still formats with
    `java.lang.String.format` and `SimpleDateFormat`); the rest of the Java (`MainActivity`, `LibraryManager`,
    `OnlineManager`, `GlobalManager`…) is still to convert.
