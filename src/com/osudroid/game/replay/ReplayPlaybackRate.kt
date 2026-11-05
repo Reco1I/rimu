@@ -9,7 +9,7 @@ import com.reco1l.verktex.ui.form.FormSlider
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
-import java.text.DecimalFormat
+import com.reco1l.verktex.math.toFixed
 
 class ReplayPlaybackRate : UILinearContainer() {
     /**
@@ -18,7 +18,6 @@ class ReplayPlaybackRate : UILinearContainer() {
     var rate = 1f
         private set
 
-    private val rateFormatter = DecimalFormat("0.00x")
 
     init {
         orientation = Orientation.Vertical
@@ -28,7 +27,7 @@ class ReplayPlaybackRate : UILinearContainer() {
             label = "Playback speed"
             control.min = 0.05f
             control.max = 2f
-            valueFormatter = { rateFormatter.format(it) }
+            valueFormatter = { it.toFixed(2) + "x" }
             onValueChanged = { rate = it }
         }
 

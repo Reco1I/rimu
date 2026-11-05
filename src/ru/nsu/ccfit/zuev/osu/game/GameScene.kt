@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game
 
-import android.os.SystemClock
+import com.reco1l.verktex.Platform
 import com.acivev.VibratorManager
 import com.edlplan.osu.support.slider.SliderBody
 import com.osudroid.GameMode
@@ -288,7 +288,7 @@ open class GameScene : GameObjectListener {
     // Timing
 
     /**
-     * The time at which the last frame was rendered with respect to [SystemClock.uptimeMillis].
+     * The time at which the last frame was rendered with respect to [Platform.uptimeMillis].
      *
      * If 0, a frame has not been rendered yet.
      */
@@ -1430,7 +1430,7 @@ open class GameScene : GameObjectListener {
             return
         }
 
-        previousFrameTime = SystemClock.uptimeMillis()
+        previousFrameTime = Platform.uptimeMillis
 
         val playableBeatmap = this.playableBeatmap ?: return
         val hud = hud!!
@@ -2661,7 +2661,7 @@ open class GameScene : GameObjectListener {
     }
 
     private fun removeAllCursors() {
-        val currentTime = SystemClock.uptimeMillis()
+        val currentTime = Platform.uptimeMillis
         val offset = if (previousFrameTime > 0)
             (currentTime - previousFrameTime) * GameHelper.getSpeedMultiplier()
         else
@@ -3314,7 +3314,7 @@ open class GameScene : GameObjectListener {
             val cursor = cursors[i]
 
             if (cursor != null) {
-                cursor.reset(SystemClock.uptimeMillis(), 0f)
+                cursor.reset(Platform.uptimeMillis, 0f)
                 cursor.latestProcessedDownEventIndex = 0
                 cursor.latestProcessedEventIndex = 0
             }

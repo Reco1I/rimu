@@ -13,6 +13,9 @@ class AndroidPlatform(context: android.content.Context) : Platform.Implementatio
     override val currentDisplay: Platform.Display
     override val usesVirtualKeyboard = true
 
+    override val uptimeMillis: Long
+        get() = android.os.SystemClock.uptimeMillis()
+
 
     init {
         val metrics = context.resources.displayMetrics

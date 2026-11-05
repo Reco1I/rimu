@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.game
 
-import com.osudroid.resources.R
+import com.osudroid.resources.Res
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.Verktex
@@ -151,7 +151,7 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : UICo
 
     private fun saveReplay() {
         if (isFail && !isReplaySaved && !game.replaying && game.saveFailedReplay()) {
-            ToastLogger.showText(R.string.message_save_replay_successful, true)
+            ToastLogger.showText(Res.string.message_save_replay_successful, true)
             isReplaySaved = true
         }
     }

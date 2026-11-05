@@ -1,7 +1,7 @@
 package com.osudroid.game
 
+import com.reco1l.verktex.Platform
 import com.osudroid.math.Vector2
-import android.os.SystemClock
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import com.reco1l.verktex.input.PointerEvent
@@ -18,7 +18,7 @@ class CursorEvent : IPoolable {
     override var isRecycled = false
 
     /**
-     * The time at which the [CursorEvent] occurred, in the [SystemClock.uptimeMillis] time base.
+     * The time at which the [CursorEvent] occurred, in the [Platform.uptimeMillis] time base.
      */
     @JvmField
     var systemTime = 0L

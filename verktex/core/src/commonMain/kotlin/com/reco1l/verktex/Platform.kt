@@ -23,6 +23,16 @@ object Platform {
         }
 
     /**
+     * The milliseconds of the host's uptime clock, the time base of [com.reco1l.verktex.input.PointerEvent.time]
+     * (e.g. Android's `SystemClock.uptimeMillis`).
+     */
+    val uptimeMillis: Long
+        get() {
+            checkImplementation()
+            return implementation.uptimeMillis
+        }
+
+    /**
      * The driver used to access the audio devices of the platform.
      */
     val audioDriver: AudioDriver
@@ -94,6 +104,11 @@ object Platform {
          * Indicates whether the platform uses a virtual keyboard.
          */
         val usesVirtualKeyboard: Boolean
+
+        /**
+         * The milliseconds of the host's uptime clock, the time base of the input events.
+         */
+        val uptimeMillis: Long
 
 
         /**
