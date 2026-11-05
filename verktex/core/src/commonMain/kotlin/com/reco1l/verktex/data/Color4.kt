@@ -188,7 +188,7 @@ open class Color4 @JvmOverloads constructor(
             red = red,
             green = green,
             blue = blue,
-            alpha = (alpha * factor).coerceIn(0f, 1f)
+            alpha = factor.coerceIn(0f, 1f)
         )
     }
 
