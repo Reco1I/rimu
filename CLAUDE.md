@@ -24,14 +24,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew lint
 ```
 
-Requires **Java 17** and **Android NDK 22.1.7171670**. The main app depends on Verktex, the engine, which is meant to become its own project (see `verktex/docs/extraction.md`). Verktex's modules are:
+Requires **Java 17**, **Android NDK 22.1.7171670** and the **android-36.1** SDK platform (`compileSdk`, `targetSdk` stays 29). The main app depends on Verktex, the engine, which is meant to become its own project (see `verktex/docs/extraction.md`). Verktex's modules are:
 
-- `:verktex:core`: everything platform independent. Plain Kotlin/JVM, and it must not depend on Android.
+- `:verktex:core`: everything platform independent. Kotlin Multiplatform with only the JVM as a target for now. Its code lives in `src/commonMain/`, must not depend on Android or the JVM, and is checked with `./gradlew -Pverktex.checkCommon :verktex:core:compileKotlinJs`.
 - `:verktex:android`: the Android platform, with its graphics backends, the built-in shaders and fonts, and the task that compiles the shaders to SPIR-V. The app depends only on this module, which brings in core.
 - `:verktex:bass`: the BASS native audio library.
 - `:verktex:shadertools`: the shader translator, used by the Vulkan backend and by the build.
 
-Engine tests live in each module's `src/test/` and run with `./gradlew :verktex:core:test :verktex:android:testDebugUnitTest :verktex:shadertools:test`. The app's tests live under `tests/test/kotlin/` (not the standard `src/test/`).
+Engine tests live in `verktex/core/src/jvmTest/` and in the other modules' `src/test/`, and run with `./gradlew :verktex:core:jvmTest :verktex:android:testDebugUnitTest :verktex:shadertools:test`. The app's tests live under `tests/test/kotlin/` (not the standard `src/test/`).
 
 ## Architecture Overview
 
@@ -119,7 +119,7 @@ Socket.IO for real-time lobby/room events. REST calls use OkHttp3. Firebase Mess
 
 - New gameplay/beatmap/difficulty code goes in `com/osudroid/` (Kotlin).
 - Generic UI components belong in `verktex/core/`, and game-specific ones in `com/osudroid/ui/v2/` (Kotlin).
-- Verktex never depends on the game, and `:verktex:core` never depends on Android, including `org.json`, which ships with the Android SDK.
+- Verktex never depends on the game, and `:verktex:core` never depends on Android or the JVM (including `org.json`, which ships with the Android SDK). What it needs from a platform goes through `Platform.Implementation`, everything else through multiplatform libraries; see `verktex/docs/extraction.md`.
 - Legacy Java files in `ru/nsu/ccfit/zuev/osu/` are modified in-place; avoid moving them.
 
 @CLAUDE.local.md
