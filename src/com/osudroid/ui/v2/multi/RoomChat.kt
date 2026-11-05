@@ -6,7 +6,7 @@ import android.icu.text.SimpleDateFormat
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*
-import com.osudroid.resources.R
+import com.osudroid.resources.Res
 import com.osudroid.ui.v2.setText
 import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
@@ -139,7 +139,7 @@ class RoomChat : UILinearContainer() {
                     textButton {
                         trailingIcon = faSolidIcon(FAIcon.PaperPlane)
                         variant = UIButton.Variant.Solid
-                        setText(R.string.multiplayer_room_chat_send)
+                        setText(Res.string.multiplayer_room_chat_send)
                         onActionUp = { sendMessage() }
                     }
                 }
@@ -163,7 +163,7 @@ class RoomChat : UILinearContainer() {
             } catch (e: Exception) {
                 onSystemChatMessage(
                     StringTable.format(
-                        R.string.multiplayer_room_chat_error,
+                        Res.string.multiplayer_room_chat_error,
                         e.message
                     ), "#FFBFBF"
                 )
@@ -323,12 +323,12 @@ class RoomChat : UILinearContainer() {
                 space(8f.dip)
 
                 if (isExpanded || lastMessage == null) {
-                    +StringTable.get(R.string.multiplayer_room_chat)
+                    +StringTable.get(Res.string.multiplayer_room_chat)
                 } else if (lastMessage is PlayerMessage) {
                     color(getPlayerTagColor(lastMessage.player)) { +"${lastMessage.player.name}: " }
                     +lastMessage.content.substringBefore('\n')
                 } else {
-                    +"${StringTable.get(R.string.multiplayer_room_chat_system)}: "
+                    +"${StringTable.get(Res.string.multiplayer_room_chat_system)}: "
                     +lastMessage.content.substringBefore('\n')
                 }
             }

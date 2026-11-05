@@ -5,7 +5,7 @@ import com.reco1l.verktex.Logger
 import androidx.activity.result.contract.ActivityResultContracts
 import com.edlplan.ui.fragment.LoadingFragment
 import com.google.android.material.snackbar.Snackbar
-import com.osudroid.resources.R
+import com.osudroid.resources.Res
 import com.osudroid.utils.async
 import com.osudroid.utils.mainThread
 import com.osudroid.replay.ReplayImporter
@@ -57,7 +57,7 @@ private fun importReplays(uris: List<Uri>) {
                     Snackbar.make(
                         decorView,
                         StringTable.format(
-                            R.string.replay_import_error,
+                            Res.string.replay_import_error,
                             uri.path ?: uri.toString(),
                             e.message ?: "Unknown error"
                         ),
@@ -75,7 +75,7 @@ private fun importReplays(uris: List<Uri>) {
 
             Snackbar.make(
                 decorView,
-                StringTable.format(R.string.replay_import_result, importedCount, uris.size),
+                StringTable.format(Res.string.replay_import_result, importedCount, uris.size),
                 5000
             ).show()
         }

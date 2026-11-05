@@ -9,7 +9,7 @@ import com.osudroid.multiplayer.api.data.*
 import com.osudroid.multiplayer.api.data.PlayerStatus.*
 import com.osudroid.multiplayer.api.data.RoomTeam.Blue
 import com.osudroid.multiplayer.api.data.RoomTeam.Red
-import com.osudroid.resources.R
+import com.osudroid.resources.Res
 import com.osudroid.ui.OsuColors
 import com.osudroid.ui.v2.*
 import com.osudroid.utils.async
@@ -261,7 +261,7 @@ class RoomPlayerCard : UILinearContainer() {
                     maxWidth = 384f.dip
 
                     addButton {
-                        setText(R.string.multiplayer_room_player_menu_view_profile)
+                        setText(Res.string.multiplayer_room_player_menu_view_profile)
                         onActionUp = {
                             WebViewFragment()
                                 .setURL(WebViewFragment.PROFILE_URL + player.id)
@@ -272,7 +272,7 @@ class RoomPlayerCard : UILinearContainer() {
 
                     if (player.id != Multiplayer.player!!.id) {
                         addButton {
-                            setText(if (player.isMuted) R.string.multiplayer_room_player_menu_unmute else R.string.multiplayer_room_player_menu_mute)
+                            setText(if (player.isMuted) Res.string.multiplayer_room_player_menu_unmute else Res.string.multiplayer_room_player_menu_mute)
                             onActionUp = {
                                 player.isMuted = !player.isMuted
                                 updatePlayerIcons(room, player)
@@ -282,11 +282,11 @@ class RoomPlayerCard : UILinearContainer() {
 
                         if (Multiplayer.isRoomHost) {
                             addButton {
-                                setText(R.string.multiplayer_room_player_menu_transfer_host)
+                                setText(Res.string.multiplayer_room_player_menu_transfer_host)
                                 onActionUp = {
                                     UIConfirmDialog().apply {
-                                        title = StringTable.format(R.string.multiplayer_room_player_transfer_dialog_title, player.name)
-                                        text = StringTable.get(R.string.multiplayer_room_player_transfer_dialog_message)
+                                        title = StringTable.format(Res.string.multiplayer_room_player_transfer_dialog_title, player.name)
+                                        text = StringTable.get(Res.string.multiplayer_room_player_transfer_dialog_message)
                                         onConfirm = {
                                             if (Multiplayer.isConnected) {
                                                 RoomAPI.setRoomHost(player.id)
@@ -298,12 +298,12 @@ class RoomPlayerCard : UILinearContainer() {
                             }
 
                             addButton {
-                                setText(R.string.multiplayer_room_player_menu_kick)
+                                setText(Res.string.multiplayer_room_player_menu_kick)
                                 color = Color4("#FFBFBF")
                                 onActionUp = {
                                     UIConfirmDialog().apply {
-                                        title = StringTable.format(R.string.multiplayer_room_player_kick_dialog_title, player.name)
-                                        text = StringTable.get(R.string.multiplayer_room_player_kick_dialog_message)
+                                        title = StringTable.format(Res.string.multiplayer_room_player_kick_dialog_title, player.name)
+                                        text = StringTable.get(Res.string.multiplayer_room_player_kick_dialog_message)
                                         onConfirm = {
                                             if (Multiplayer.isConnected) {
                                                 RoomAPI.kickPlayer(player.id)

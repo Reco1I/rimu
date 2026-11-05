@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.multi
 import com.reco1l.verktex.Logger
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.LobbyAPI
-import com.osudroid.resources.R.string
+import com.osudroid.resources.Res.string
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.setText
 import com.osudroid.utils.updateThread

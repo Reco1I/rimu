@@ -4,7 +4,7 @@ import android.content.*
 import android.net.*
 import android.util.*
 import androidx.core.content.*
-import com.osudroid.resources.R
+import com.osudroid.resources.Res
 import com.osudroid.utils.*
 import com.reco1l.framework.net.*
 import com.reco1l.osu.ui.*
@@ -36,7 +36,7 @@ object UpdateManager: IFileRequestObserver
         if (!BuildConfig.DEBUG && version != -1L && version < activity.versionCode) {
 
             MessageDialog()
-                .setTitle(StringTable.get(R.string.update_info_updated))
+                .setTitle(StringTable.get(Res.string.update_info_updated))
                 .setMessage("Game was updated to a newer version.\nDo you want to see the changelog?")
                 .addButton("Yes") {
                     it.dismiss()
@@ -61,7 +61,7 @@ object UpdateManager: IFileRequestObserver
     fun checkNewUpdates(silently: Boolean) {
 
         if (!silently) {
-            ToastLogger.showText(R.string.update_info_checking, false)
+            ToastLogger.showText(Res.string.update_info_checking, false)
         }
 
         async {
@@ -82,15 +82,15 @@ object UpdateManager: IFileRequestObserver
 
                     if (newVersion <= GlobalManager.getInstance().mainActivity.versionCode) {
                         if (!silently) {
-                            ToastLogger.showText(R.string.update_info_latest, false)
+                            ToastLogger.showText(Res.string.update_info_latest, false)
                         }
                         return@use
                     }
 
                     MessageDialog()
                         .setTitle("New update available!")
-                        .setMessage(StringTable.get(R.string.update_dialog_message))
-                        .addButton(StringTable.get(R.string.update_dialog_button_update)) { dialog ->
+                        .setMessage(StringTable.get(Res.string.update_dialog_message))
+                        .addButton(StringTable.get(Res.string.update_dialog_button_update)) { dialog ->
                             dialog.dismiss()
 
                             progressDialog = ProgressDialog().apply {
@@ -98,7 +98,7 @@ object UpdateManager: IFileRequestObserver
                                 setAllowDismiss(false)
                                 max = 100
                                 title = "Downloading update"
-                                message = StringTable.format(R.string.update_info_downloading, 0)
+                                message = StringTable.format(Res.string.update_info_downloading, 0)
                                 show()
                             }
 
@@ -122,7 +122,7 @@ object UpdateManager: IFileRequestObserver
                 Log.e("UpdateManager", "Failed to check for updates.", e)
 
                 if (!silently) {
-                    ToastLogger.showText(R.string.update_info_check_failed, false)
+                    ToastLogger.showText(Res.string.update_info_check_failed, false)
                 }
             }
         }
@@ -134,7 +134,7 @@ object UpdateManager: IFileRequestObserver
 
         progressDialog?.indeterminate = false
         progressDialog?.progress = progress
-        progressDialog?.setMessage(StringTable.format(R.string.update_info_downloading, progress))
+        progressDialog?.setMessage(StringTable.format(Res.string.update_info_downloading, progress))
     }
 
     override fun onDownloadEnd(request: FileRequest) {
@@ -152,14 +152,14 @@ object UpdateManager: IFileRequestObserver
 
     override fun onDownloadFail(request: FileRequest, exception: Exception) {
         Log.e("UpdateManager", "Failed to download update.", exception)
-        ToastLogger.showText(R.string.update_info_download_failed, false)
+        ToastLogger.showText(Res.string.update_info_download_failed, false)
 
         mainThread { progressDialog?.dismiss() }
         request.file.delete()
     }
 
     override fun onDownloadCancel(request: FileRequest) {
-        ToastLogger.showText(R.string.update_info_download_canceled, false)
+        ToastLogger.showText(Res.string.update_info_download_canceled, false)
 
         mainThread { progressDialog?.dismiss() }
         request.file.delete()

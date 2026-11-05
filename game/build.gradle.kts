@@ -31,6 +31,12 @@ abstract class GenerateStringResources : DefaultTask() {
     @get:InputFiles
     abstract val languagePack: ConfigurableFileCollection
 
+    /**
+     * Resource files with strings that aren't in the language pack yet.
+     */
+    @get:InputFiles
+    abstract val extraStrings: ConfigurableFileCollection
+
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
 
@@ -39,9 +45,8 @@ abstract class GenerateStringResources : DefaultTask() {
         val strings = sortedSetOf<String>()
         val arrays = sortedSetOf<String>()
 
-        ZipFile(languagePack.singleFile).use { zip ->
-            val entry = zip.getEntry("res/values/values.xml")
-            val document = zip.getInputStream(entry).use { DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(it) }
+        fun read(input: java.io.InputStream) {
+            val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(input)
             val resources = document.documentElement.childNodes
 
             for (i in 0 until resources.length) {
@@ -52,6 +57,12 @@ abstract class GenerateStringResources : DefaultTask() {
                 }
             }
         }
+
+        ZipFile(languagePack.singleFile).use { zip ->
+            zip.getInputStream(zip.getEntry("res/values/values.xml")).use(::read)
+        }
+
+        extraStrings.forEach { file -> file.inputStream().use(::read) }
 
         val file = outputDirectory.get().file("com/osudroid/resources/Res.kt").asFile
         file.parentFile.mkdirs()
@@ -75,6 +86,7 @@ abstract class GenerateStringResources : DefaultTask() {
 
 val generateStringResources by tasks.registering(GenerateStringResources::class) {
     languagePack.from(configurations.named("languagePack"))
+    extraStrings.from(rootProject.layout.projectDirectory.file("res/values/strings_temporary_for_locals.xml"))
     outputDirectory.set(layout.buildDirectory.dir("generated/resources/commonMain/kotlin"))
 }
 
