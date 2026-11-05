@@ -47,7 +47,8 @@ class FakeGameScene : GameScene() {
     override val elapsedTime
         get() = time
 
-    override fun getInitialStartTime() = 0f
+    override val initialStartTime
+        get() = 0f
 
     override fun startGame(beatmapInfo: BeatmapInfo?, replayFile: String?, mods: ModHashMap?, isHUDEditor: Boolean) {
         onStartGame(beatmapInfo)
