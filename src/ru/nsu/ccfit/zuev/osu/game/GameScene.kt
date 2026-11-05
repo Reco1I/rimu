@@ -1285,7 +1285,7 @@ open class GameScene : GameObjectListener {
 
         if (GameHelper.isAutoplay() || replaying) {
             val metadata = playableBeatmap.metadata
-            playname = if (replaying) GlobalManager.getInstance().scoring.replayStat.playerName else "osu!"
+            playname = if (replaying) GlobalManager.getInstance().scoring.replayStat!!.playerName else "osu!"
 
             if (!Config.isHideReplayMarquee()) {
                 val replayText = UIText()
@@ -1952,7 +1952,7 @@ open class GameScene : GameObjectListener {
             val scoringScene = scoringScene
             if (scoringScene != null && !startedFromHUDEditor) {
                 if (replaying)
-                    scoringScene.load(scoringScene.replayStat, null, GlobalManager.getInstance().songService, replayPath, null, lastBeatmapInfo)
+                    scoringScene.load(scoringScene.replayStat!!, null, GlobalManager.getInstance().songService, replayPath, null, lastBeatmapInfo)
                 else {
                     if (ModAutoplay::class in stat.mod) {
                         stat.playerName = "osu!"
@@ -1969,7 +1969,7 @@ open class GameScene : GameObjectListener {
                     scoringScene.load(stat, lastBeatmapInfo, GlobalManager.getInstance().songService, replayPath, parsedBeatmap!!.md5, null)
                 }
                 GlobalManager.getInstance().songService.setVolume(0.2f)
-                replaceCurrentScene(scoringScene.scene)
+                replaceCurrentScene(scoringScene.scene!!)
             } else {
                 returnToPreviousScene()
             }
@@ -2909,7 +2909,7 @@ open class GameScene : GameObjectListener {
             }
 
             if (replaying) {
-                scoringScene!!.replayStat.addHitOffset(acc)
+                scoringScene!!.replayStat!!.addHitOffset(acc)
             }
         }
 
