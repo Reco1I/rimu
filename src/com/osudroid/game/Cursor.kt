@@ -1,7 +1,7 @@
 package com.osudroid.game
 
-import android.os.SystemClock
 
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.input.PointerEvent
 
 /**
@@ -109,7 +109,7 @@ class Cursor {
     /**
      * Obtains the closest [CursorEvent] before the specified system time.
      *
-     * @param systemTime The system time to search for, in the [SystemClock.uptimeMillis] time base.
+     * @param systemTime The system time to search for, in the [Platform.uptimeMillis] time base.
      * @return The closest [CursorEvent] before [systemTime], or [latestEvent] if there are no events.
      */
     fun getClosestEventBefore(systemTime: Long): CursorEvent? {
@@ -141,7 +141,7 @@ class Cursor {
     /**
      * Resets this [Cursor] for the next update tick.
      *
-     * @param frameTime The time of the current frame, in the [SystemClock.uptimeMillis] time base.
+     * @param frameTime The time of the current frame, in the [Platform.uptimeMillis] time base.
      * @param trackElapsedTimeMs The elapsed time of the track in milliseconds.
      */
     fun reset(frameTime: Long, trackElapsedTimeMs: Float) {

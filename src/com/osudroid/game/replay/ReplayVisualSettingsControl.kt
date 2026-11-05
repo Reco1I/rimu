@@ -26,7 +26,7 @@ class ReplayVisualSettingsControl : UICard() {
         }
 
     private val brightnessSlider = FormSlider(defaultBackgroundBrightness * 100).apply {
-        label = StringTable.get(com.osudroid.resources.R.string.opt_bgbrightness_title)
+        label = StringTable.get(com.osudroid.resources.Res.string.opt_bgbrightness_title)
         control.min = 0f
         control.max = 100f
         valueFormatter = { "${it.roundToInt()}%"}

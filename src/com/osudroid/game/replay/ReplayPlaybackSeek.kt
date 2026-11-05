@@ -12,7 +12,6 @@ import com.reco1l.verktex.ui.form.FormSlider
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
-import java.text.DecimalFormat
 import kotlin.math.abs
 
 class ReplayPlaybackSeek : UILinearContainer() {
@@ -37,7 +36,6 @@ class ReplayPlaybackSeek : UILinearContainer() {
     private var rawCurrentSeconds = 0f
     private var isUserDragging = false
 
-    private val secondsFormatter = DecimalFormat("00")
 
     private val seekBar = FormSlider().apply {
         label = "Seek"
@@ -52,7 +50,7 @@ class ReplayPlaybackSeek : UILinearContainer() {
             val sAbs = abs(seconds)
             val sign = if (seconds < 0) "-" else ""
 
-            "$sign${sAbs / 60}:${secondsFormatter.format(sAbs % 60)} / ${duration / 60}:${secondsFormatter.format(duration % 60)}"
+            "$sign${sAbs / 60}:${(sAbs % 60).toString().padStart(2, '0')} / ${duration / 60}:${(duration % 60).toString().padStart(2, '0')}"
         }
 
         onValueChanged = {

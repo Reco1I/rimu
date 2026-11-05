@@ -1,7 +1,7 @@
 package com.osudroid.ui.v2.test
 
+import com.reco1l.verktex.Platform
 import com.osudroid.math.Vector2
-import android.os.SystemClock
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
@@ -220,7 +220,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         }
 
         // As the game scene does once the objects of the frame were updated.
-        cursor.reset(SystemClock.uptimeMillis(), clock.time * 1000)
+        cursor.reset(Platform.uptimeMillis, clock.time * 1000)
 
         // A pause between objects.
         if (clock.time >= lifetimeEnd + 0.5f) {
@@ -234,7 +234,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
         val event = CursorEvent.obtain()
         event.action = if (cursor.latestEvent == null) PointerEvent.Action.Down else PointerEvent.Action.Move
-        event.systemTime = SystemClock.uptimeMillis()
+        event.systemTime = Platform.uptimeMillis
         event.trackTime = clock.time * 1000
         event.position.set(
             Config.getRES_WIDTH() / 2f + SPIN_RADIUS * cos(spinAngle).toFloat(),

@@ -5,6 +5,7 @@ import com.reco1l.verktex.Platform
 import com.reco1l.verktex.desktop.bass.BASSAudioDriver
 import com.reco1l.verktex.worker.LoopWorker
 import com.reco1l.verktex.worker.ThreadLoopWorker
+import org.lwjgl.glfw.GLFW.glfwGetTime
 
 /**
  * The desktop implementation of [Platform.Implementation].
@@ -20,6 +21,10 @@ class DesktopPlatform(density: Float, width: Int, height: Int) : Platform.Implem
 
     // A physical keyboard, text is typed into the focused input directly.
     override val usesVirtualKeyboard = false
+
+    // The same clock as the time of the input events.
+    override val uptimeMillis: Long
+        get() = (glfwGetTime() * 1000).toLong()
 
 
     override fun createLoopWorker(name: String, minimumInterval: Duration, onLoop: () -> Unit): LoopWorker {
