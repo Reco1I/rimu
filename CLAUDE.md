@@ -24,7 +24,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew lint
 ```
 
-Requires **Java 17** and **Android NDK 22.1.7171670**. The project has three Gradle modules: the main app, `:verktex` (the engine), and `:LibBASS` (native audio). Engine tests live under `verktex/src/test/`, run with `./gradlew :verktex:testDebugUnitTest`. Tests live under `tests/test/kotlin/` (not the standard `src/test/`).
+Requires **Java 17** and **Android NDK 22.1.7171670**. The main app depends on Verktex, the engine, which is meant to become its own project (see `verktex/docs/extraction.md`). Verktex's modules are:
+
+- `:verktex:core`: everything platform independent. Plain Kotlin/JVM, and it must not depend on Android.
+- `:verktex:android`: the Android platform, with its graphics backends, the built-in shaders and fonts, and the task that compiles the shaders to SPIR-V. The app depends only on this module, which brings in core.
+- `:verktex:bass`: the BASS native audio library.
+- `:verktex:shadertools`: the shader translator, used by the Vulkan backend and by the build.
+
+Engine tests live in each module's `src/test/` and run with `./gradlew :verktex:core:test :verktex:android:testDebugUnitTest :verktex:shadertools:test`. The app's tests live under `tests/test/kotlin/` (not the standard `src/test/`).
 
 ## Architecture Overview
 
@@ -41,7 +48,7 @@ The codebase is split across multiple main package roots:
 - **`com/edlplan/replay/`** — Replay imports and exports.
 - **`com/edlplan/ui/`** — Fragments and utilities to manage their lifecycle (`ActivityOverlay`, `BaseFragment`, `BeatmapPropertiesFragment`, etc.).
 - **`com/osudroid/`** — Modern Kotlin code. Contains beatmap parsing, difficulty calculation, the mod system, multiplayer, Room database, and newer UI scenes.
-- **`verktex/`** — The engine: rendering, audio, input, clocks (`time/`), and the UI components (`UIComponent`, `UIContainer`, `UIScene`, `UISprite`, etc.).
+- **`verktex/`** — The engine. `core/` holds rendering, audio, input, clocks (`time/`) and the UI components (`UIComponent`, `UIContainer`, `UIScene`, `UISprite`, etc.). `android/` holds the Android implementation (`com/reco1l/verktex/android/`), and its `src/main/assets/` holds the built-in shaders (`shaders/`) and fonts (`fonts/`).
 - **`com/reco1l/framework/`** — Kotlin extensions for some Android classes and existing classes, such as bitmaps and easing. 
 - **`com/reco1l/osu/ui`** — New UI components, primarily dialogs and settings preferences.
 - **`com/rian/framework/`** — A couple of utility classes such as `RollingNumber`.
@@ -90,7 +97,7 @@ Add `--es backend <name>` (a `GraphicsBackend`: `OpenGLES3`, `OpenGLES2`, `Vulka
 
 ### Audio
 
-BASS native library, wrapped in `LibBASS` and reached through Verktex's audio API. `SongService` plays songs, and `BassSoundProvider` plays sound effects.
+BASS native library, wrapped in `:verktex:bass` and reached through Verktex's audio API. `SongService` plays songs, and `BassSoundProvider` plays sound effects.
 
 ### Beatmaps & Difficulty
 
@@ -111,7 +118,8 @@ Socket.IO for real-time lobby/room events. REST calls use OkHttp3. Firebase Mess
 ## Key Conventions
 
 - New gameplay/beatmap/difficulty code goes in `com/osudroid/` (Kotlin).
-- Generic UI components belong in `verktex/`, and game-specific ones in `com/osudroid/ui/v2/` (Kotlin).
+- Generic UI components belong in `verktex/core/`, and game-specific ones in `com/osudroid/ui/v2/` (Kotlin).
+- Verktex never depends on the game, and `:verktex:core` never depends on Android, including `org.json`, which ships with the Android SDK.
 - Legacy Java files in `ru/nsu/ccfit/zuev/osu/` are modified in-place; avoid moving them.
 
 @CLAUDE.local.md
