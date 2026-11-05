@@ -569,13 +569,20 @@ abstract class UIComponent {
     }
 
     // Applies the bindings of this component again with its current theme.
-    private fun rebindTheme() {
+    private fun applyThemeBindings() {
         val theme = resolvedTheme
         boundTheme = theme
         onStyle(theme)
         // Bindings may assign themeable properties, which register or remove bindings.
         themeBindings?.values?.toList()?.forEach { it.apply(theme) }
-        onThemeChanged()
+    }
+
+    /**
+     * Resolves the [themed] values of this component and its children again, for when they depend
+     * on a state that changed, e.g. the variant of a button.
+     */
+    fun restyle() {
+        if (this is UIContainer) propagate { it.applyThemeBindings() } else applyThemeBindings()
     }
 
     /**
@@ -583,7 +590,11 @@ abstract class UIComponent {
      * changed.
      */
     internal fun applyTheme() {
-        if (this is UIContainer) propagate { it.rebindTheme() } else rebindTheme()
+        val apply = { component: UIComponent ->
+            component.applyThemeBindings()
+            component.onThemeChanged()
+        }
+        if (this is UIContainer) propagate(apply) else apply(this)
     }
 
 

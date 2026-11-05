@@ -27,6 +27,7 @@ import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.time.FrameClock
 import kotlin.math.*
+import com.reco1l.verktex.ui.themed
 
 class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
 
@@ -120,10 +121,8 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
         scrollAxes = Axis.Y
         clipping = ClipMode.Bounds
 
-        style = Style { theme ->
-            radius = theme.radius.md
-            backgroundColor = theme.palette.surface
-        }
+        radius = themed { radius.md }
+        backgroundColor = themed { palette.surface }
 
         scaleOrigin = Anchor.TopCenter
         alpha = 0f
@@ -132,10 +131,8 @@ class UIDropdown(var trigger: UIComponent) : UIScrollableContainer() {
         optionsContainer = linearContainer {
             width = fill()
             orientation = Orientation.Vertical
-            style = Style { theme ->
-                spacing = 4f.dip
-                padding = Padding(4f.dip)
-            }
+            spacing = 4f.dip
+            padding = Padding(4f.dip)
         }
 
         wrapper += this

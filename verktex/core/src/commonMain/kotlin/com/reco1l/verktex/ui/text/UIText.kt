@@ -10,6 +10,8 @@ import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.isThemed
+import com.reco1l.verktex.ui.themed
 import com.reco1l.verktex.ui.UICanvas
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.data.px
@@ -54,9 +56,7 @@ open class UIText : UICanvas() {
 
 
     init {
-        style = Style {
-            color = it.palette.accent
-        }
+        color = themed { palette.accent }
     }
 
 
@@ -82,12 +82,7 @@ open class UIText : UICanvas() {
             invalidateMeasure()
         }
 
-    var iconSpacing: Dimension.Fixed = 0f.px
-        set(value) {
-            if (field == value) return
-            field = value
-            invalidateMeasure()
-        }
+    var iconSpacing: Dimension.Fixed by themeable(0f.px) { invalidateMeasure() }
 
     //endregion
 
@@ -106,12 +101,7 @@ open class UIText : UICanvas() {
     /**
      * The font size to use for this text.
      */
-    var fontSize: Dimension.Fixed = Verktex.theme.typography.body.size
-        set(value) {
-            if (field == value) return
-            field = value
-            invalidateMeasure()
-        }
+    var fontSize: Dimension.Fixed by themeable(themed { typography.body.size }) { invalidateMeasure() }
 
     /**
      * The font weight to use for this text.
@@ -144,11 +134,24 @@ open class UIText : UICanvas() {
             style = fontStyle
         )
         set(value) {
-            fontFamily = Fonts[value.family]
-            fontSize = value.size
-            fontWeight = value.weight
-            fontStyle = value.style
+            if (value.isThemed) {
+                // The size is themed on its own, so it can be themed differently after.
+                fontSize = themed { value.resolve(this).size }
+                bindTheme(FontSettingsBinding, { value.resolve(this) }) { applyFontSettings(it) }
+            } else {
+                unbindTheme(FontSettingsBinding)
+                fontSize = value.size
+                applyFontSettings(value)
+            }
         }
+
+    private fun applyFontSettings(value: Theme.FontSettings) {
+        fontFamily = Fonts[value.family]
+        fontWeight = value.weight
+        fontStyle = value.style
+    }
+
+    private object FontSettingsBinding
 
 
     //endregion

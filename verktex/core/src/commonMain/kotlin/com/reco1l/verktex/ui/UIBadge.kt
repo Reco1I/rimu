@@ -25,7 +25,8 @@ open class UIBadge : UIText() {
         set(value) {
             if (field == value) return
             field = value
-            style()
+            updateBorder()
+            restyle()
         }
 
     /**
@@ -35,30 +36,32 @@ open class UIBadge : UIText() {
         set(value) {
             if (field == value) return
             field = value
-            style()
+            restyle()
         }
 
 
     init {
-        style = Style { theme ->
-            color = if (variant == Variant.Solid) theme.palette.contentOnSolid else Color4.White
+        color = themed { if (variant == Variant.Solid) palette.contentOnSolid else Color4.White }
 
-            backgroundColor = when (variant) {
-                Variant.Solid -> theme.palette.badgeBackgroundSolid
-                Variant.Soft -> theme.palette.badgeBackgroundSoft
-                Variant.Surface -> theme.palette.badgeBackgroundSurface
+        backgroundColor = themed {
+            when (variant) {
+                Variant.Solid -> palette.badgeBackgroundSolid
+                Variant.Soft -> palette.badgeBackgroundSoft
+                Variant.Surface -> palette.badgeBackgroundSurface
                 Variant.Outline -> Color4.Transparent
             }
-
-            border = if (variant == Variant.Outline) Border(1.5f.dip, theme.palette.badgeBackgroundSolid) else null
-
-            val size = theme.badgeStyle[density]
-            fontSize = size.fontSize
-            padding = size.padding
-            iconSpacing = size.iconSpacing
-            radius = size.radius
-
         }
+
+        fontSize = themed { badgeStyle[density].fontSize }
+        padding = themed { badgeStyle[density].padding }
+        iconSpacing = themed { badgeStyle[density].iconSpacing }
+        radius = themed { badgeStyle[density].radius }
+
+        updateBorder()
+    }
+
+    private fun updateBorder() {
+        border = if (variant == Variant.Outline) Border(1.5f.dip, themed { palette.badgeBackgroundSolid }) else null
     }
 
 
@@ -99,7 +102,7 @@ open class UILabeledBadge : UILinearContainer() {
         set(value) {
             if (field == value) return
             field = value
-            style()
+            restyle()
         }
 
     /**
@@ -109,7 +112,7 @@ open class UILabeledBadge : UILinearContainer() {
         set(value) {
             if (field == value) return
             field = value
-            style()
+            restyle()
         }
 
 
@@ -142,25 +145,17 @@ open class UILabeledBadge : UILinearContainer() {
         +labelComponent
         +valueComponent
 
-        style = Style { theme ->
-            val isSolid = variant == UIBadge.Variant.Solid
-            val textColor = if (isSolid) theme.palette.contentOnSolid else Color4.White
-
-            backgroundColor = if (isSolid) theme.palette.badgeBackgroundSolid else theme.palette.badgeBackgroundSoft
-            labelComponent.color = textColor
-            valueComponent.color = textColor
-
-            val size = theme.badgeStyle[density]
-            val componentPadding = size.padding
-            val fontSize = size.fontSize
-            radius = size.radius
-
-            labelComponent.radius = radius
-            labelComponent.padding = componentPadding
-            valueComponent.padding = componentPadding
-            labelComponent.fontSize = fontSize
-            valueComponent.fontSize = fontSize
+        backgroundColor = themed {
+            if (variant == UIBadge.Variant.Solid) palette.badgeBackgroundSolid else palette.badgeBackgroundSoft
         }
+        radius = themed { badgeStyle[density].radius }
+
+        for (component in listOf(labelComponent, valueComponent)) {
+            component.color = themed { if (variant == UIBadge.Variant.Solid) palette.contentOnSolid else Color4.White }
+            component.padding = themed { badgeStyle[density].padding }
+            component.fontSize = themed { badgeStyle[density].fontSize }
+        }
+        labelComponent.radius = themed { badgeStyle[density].radius }
     }
 }
 

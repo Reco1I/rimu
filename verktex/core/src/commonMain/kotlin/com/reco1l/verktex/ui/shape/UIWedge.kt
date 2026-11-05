@@ -36,7 +36,7 @@ open class UIWedge : UICanvas() {
     /**
      * The color of the outline.
      */
-    var strokeColor = Color4.Transparent
+    var strokeColor: Color4 by themeable(Color4.Transparent)
 
 
     private var points = FloatArray(0)

@@ -30,14 +30,10 @@ open class UITextButton : UIButton() {
         anchor = Anchor.Center
         origin = Anchor.Center
 
-        style = Style { theme ->
-            color = if (variant == Variant.Solid) theme.palette.contentOnSolid else Color4.White
-
-            val size = theme.buttonStyle[density]
-            fontSettings = theme.typography.body
-            fontSize = size.fontSize
-            iconSpacing = size.iconSpacing
-        }
+        color = themed { if (variant == Variant.Solid) palette.contentOnSolid else Color4.White }
+        fontSettings = themed { typography.body }
+        fontSize = themed { buttonStyle[density].fontSize }
+        iconSpacing = themed { buttonStyle[density].iconSpacing }
         alignment = Anchor.Center
     }
 

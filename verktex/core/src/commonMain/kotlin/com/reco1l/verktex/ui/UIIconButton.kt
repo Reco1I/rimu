@@ -21,11 +21,8 @@ open class UIIconButton : UIButton() {
         anchor = Anchor.Center
         origin = Anchor.Center
 
-        style = Style { theme ->
-            color = if (variant == Variant.Solid) theme.palette.contentOnSolid else Color4.White
-
-            iconSize = theme.buttonStyle[density].iconSize
-        }
+        color = themed { if (variant == Variant.Solid) palette.contentOnSolid else Color4.White }
+        iconSize = themed { buttonStyle[density].iconSize }
     }
 
 

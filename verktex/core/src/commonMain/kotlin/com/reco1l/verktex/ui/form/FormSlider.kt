@@ -6,6 +6,7 @@ import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.ui.control.UISlider
 import com.reco1l.verktex.ui.text.UIText
 import kotlin.math.abs
+import com.reco1l.verktex.ui.themed
 
 /**
  * A form control with a slider below its label and its formatted value on the right.
@@ -24,12 +25,10 @@ open class FormSlider(initialValue: Float = 0f) : FormControl<Float, UISlider>(i
         anchor = Anchor.CenterRight
         origin = Anchor.CenterRight
         text = initialValue.toString()
-        style = Style { theme ->
-            fontSettings = theme.typography.caption
-            padding = Padding(theme.gap.sm, theme.gap.xs)
-            backgroundColor = theme.palette.controlInactiveBackground
-            radius = theme.radius.md
-        }
+        fontSettings = themed { typography.caption }
+        padding = themed { Padding(gap.sm, gap.xs) }
+        backgroundColor = themed { palette.controlInactiveBackground }
+        radius = themed { radius.md }
     }
 
 

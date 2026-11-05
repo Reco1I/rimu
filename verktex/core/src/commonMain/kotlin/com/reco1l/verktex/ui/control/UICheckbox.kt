@@ -11,15 +11,14 @@ import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIIcon
 import com.reco1l.verktex.time.FrameClock
+import com.reco1l.verktex.ui.themed
 
 class UICheckbox(initialValue: Boolean = false) : UIControl<Boolean>(initialValue) {
 
     private val checkIcon = UIIcon(FAIcon.Check).apply {
         anchor = Anchor.Center
         origin = Anchor.Center
-        style = Style {
-            color = it.palette.accent
-        }
+        color = themed { palette.accent }
 
         if (!initialValue) {
             scale = 0f
@@ -35,12 +34,10 @@ class UICheckbox(initialValue: Boolean = false) : UIControl<Boolean>(initialValu
 
 
     init {
-        style = Style { theme ->
-            width = theme.controlStyle.minimumHeight
-            height = theme.controlStyle.minimumHeight
-            backgroundColor = if (value) theme.palette.controlActiveBackground else theme.palette.controlInactiveBackground
-            radius = theme.radius.lg
-        }
+        width = themed { controlStyle.minimumHeight }
+        height = themed { controlStyle.minimumHeight }
+        backgroundColor = themed { if (value) palette.controlActiveBackground else palette.controlInactiveBackground }
+        radius = themed { radius.lg }
         +checkIcon
     }
 

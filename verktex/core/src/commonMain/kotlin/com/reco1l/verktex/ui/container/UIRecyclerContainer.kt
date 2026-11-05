@@ -70,12 +70,7 @@ open class UIRecyclerContainer<T : Any, C : RecyclableComponent<T>>(private val 
     /**
      * The spacing between items.
      */
-    var spacing: Dimension.Fixed = Dimension.Zero
-        set(value) {
-            if (field == value) return
-            field = value
-            componentWrapper.invalidateMeasure()
-        }
+    var spacing: Dimension.Fixed by themeable(Dimension.Zero) { componentWrapper.invalidateMeasure() }
 
 
     private val componentPool = ArrayDeque<C>()

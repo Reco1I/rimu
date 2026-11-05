@@ -14,6 +14,7 @@ import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.shape.box
+import com.reco1l.verktex.ui.themed
 
 /**
  * A row of buttons where only one is selected, marked by an indicator moving between them.
@@ -40,26 +41,20 @@ class UITabSelector : UIContainer() {
 
 
     init {
-        style = Style { theme ->
-            padding = Padding(theme.gap.xs)
-            backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.25f)
-            radius = theme.radius.lg
-        }
+        padding = themed { Padding(gap.xs) }
+        backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.25f) }
+        radius = themed { radius.lg }
 
         selectionIndicator = box {
             alpha = 0f
             height = Dimension.FillAvailable
-            style = Style { theme ->
-                backgroundColor = theme.palette.accent * 0.2f
-                radius = theme.radius.lg
-            }
+            backgroundColor = themed { palette.accent * 0.2f }
+            radius = themed { radius.lg }
         }
 
         buttonsContainer = linearContainer {
             width = Dimension.FillAvailable
-            style = Style { theme ->
-                spacing = theme.gap.xs
-            }
+            spacing = themed { gap.xs }
         }
     }
 
