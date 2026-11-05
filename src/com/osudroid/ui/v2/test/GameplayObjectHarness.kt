@@ -360,7 +360,8 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     override fun playHitSamples(samples: MutableList<GameplayHitSampleInfo>?) = Unit
 
-    override fun getElapsedTime() = clock.time
+    override val elapsedTime
+        get() = clock.time
 
     override fun isAfterSeek() = false
 
