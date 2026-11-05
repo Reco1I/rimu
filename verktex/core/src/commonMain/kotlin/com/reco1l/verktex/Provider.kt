@@ -23,6 +23,16 @@ interface Provider {
     fun exists(path: String, isExternal: Boolean): Boolean
 
     /**
+     * Lists the names of the files in a folder.
+     *
+     * @param path The path to the folder.
+     * @param isExternal Whether the path is external or internal, as specified in the [exists] method.
+     * @return The names of the files, without the folder, or null when the folder doesn't exist or
+     * the platform can't list it.
+     */
+    fun list(path: String, isExternal: Boolean): List<String>? = null
+
+    /**
      * Creates a FontFamilySource from the given path.
      *
      * @param path The path to the font family source.
