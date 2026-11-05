@@ -1,22 +1,20 @@
 package com.osudroid.ui.skinning
 
 import com.reco1l.verktex.Logger
-import okhttp3.internal.toImmutableMap
+import com.osudroid.OsuPlatform
+import com.osudroid.utils.SystemFileSystem
+import okio.IOException
+import okio.Path.Companion.toPath
 import okio.buffer
-import okio.source
-import ru.nsu.ccfit.zuev.osuplus.BuildConfig
-import java.io.Closeable
-import java.io.File
-import java.io.IOException
 
 /**
  * Basic INI reader meant only for osu! skin.ini format.
  */
-class IniReader(file: File) : Closeable {
+class IniReader(path: String) : AutoCloseable {
 
     val map = HashMap<String, HashMap<String, Any>>()
 
-    private val buffer = file.source().buffer()
+    private val buffer = SystemFileSystem.source(path.toPath()).buffer()
 
     private var currentLine: String? = null
 
@@ -24,7 +22,7 @@ class IniReader(file: File) : Closeable {
 
 
     init {
-        if (file.extension.lowercase() != "ini") {
+        if (path.toPath().name.substringAfterLast('.', "").lowercase() != "ini") {
             throw IniException("Not an INI file.")
         }
 
@@ -103,7 +101,7 @@ class IniReader(file: File) : Closeable {
             val o = parseObject(value)
             currentSection?.put(command, o)
 
-            if (BuildConfig.DEBUG) {
+            if (OsuPlatform.isInitialized && OsuPlatform.implementation.isDebug) {
                 Logger.i("IniReader", "$command: ${if (o is IntArray) o.contentToString() else o}")
             }
         }
@@ -114,7 +112,7 @@ class IniReader(file: File) : Closeable {
     /**
      * Returns the desired section map.
      */
-    operator fun get(section: String): Map<String, Any>? = map[section]?.toImmutableMap()
+    operator fun get(section: String): Map<String, Any>? = map[section]?.toMap()
 
     /**
      * Returns the value from the desired command and section cast as the inferred type or `null`.

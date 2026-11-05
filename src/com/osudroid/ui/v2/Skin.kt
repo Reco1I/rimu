@@ -5,11 +5,10 @@ import com.osudroid.ui.skinning.convertToJson
 import com.osudroid.ui.skinning.ensureOptionalTexture
 import com.osudroid.ui.skinning.ensureTexture
 import com.osudroid.ui.skinning.mergeMissing
-import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.Verktex
-import com.reco1l.verktex.ui.Theme
 import java.io.File
-import org.json.JSONObject
+import com.osudroid.utils.LenientJson
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import ru.nsu.ccfit.zuev.skins.SkinJsonReader
@@ -19,14 +18,6 @@ import ru.nsu.ccfit.zuev.skins.SkinJsonReader
  * [SkinSounds].
  */
 object Skin {
-
-    /**
-     * Applies the accent color of a skin to the theme of the UI.
-     */
-    @JvmStatic
-    fun applyAccentColor(color: Color4) {
-        Verktex.theme = Theme(palette = Theme.ColorPalette(color))
-    }
 
     /**
      * Loads the configuration of the skin in the given folder.
@@ -39,20 +30,20 @@ object Skin {
             return
         }
 
-        SkinJsonReader.getReader().supplyJson(readConfiguration(skinFolder) ?: JSONObject())
+        SkinJsonReader.getReader().supplyJson(readConfiguration(skinFolder) ?: JsonObject(emptyMap()))
     }
 
-    private fun readConfiguration(folder: File): JSONObject? {
+    private fun readConfiguration(folder: File): JsonObject? {
         val jsonFile = File(folder, "skin.json")
         val iniFile = File(folder, "skin.ini")
 
         if (jsonFile.exists()) {
             try {
-                val json = JSONObject(OsuSkin.readFull(jsonFile))
+                val json = LenientJson.parseToJsonElement(OsuSkin.readFull(jsonFile.path)).jsonObject
 
                 // Backfill any skin.ini derived keys missing
                 if (iniFile.exists()) {
-                    IniReader(iniFile).use { mergeMissing(json, convertToJson(it)) }
+                    return IniReader(iniFile.path).use { mergeMissing(json, convertToJson(it)) }
                 }
 
                 return json
@@ -69,7 +60,7 @@ object Skin {
         GlobalManager.getInstance().setInfo("Reading skin.ini...")
 
         val json = try {
-            IniReader(iniFile).use { convertToJson(it) }
+            IniReader(iniFile.path).use { convertToJson(it) }
         } catch (e: Exception) {
             e.printStackTrace()
             null

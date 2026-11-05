@@ -3,6 +3,7 @@ package com.osudroid.ui.v2.hud.editor
 import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.hud.HUDElementSkinData
+import com.osudroid.ui.v2.hud.HUDElements
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
@@ -44,7 +45,7 @@ class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): 
 
         element.setSkinData(
             HUDElementSkinData(
-                type = element::class,
+                type = HUDElements[element::class].name,
                 anchor = Anchor.TopLeft,
                 origin = Anchor.TopLeft,
             )
@@ -97,7 +98,7 @@ class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): 
                     then()
                     scaleTo(1f, 0.1f)
                 }
-                hud.addElement(HUDElementSkinData(element::class))
+                hud.addElement(HUDElementSkinData(HUDElements[element::class].name))
                 hud.elementSelector?.collapse()
             }
         }

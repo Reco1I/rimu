@@ -1,5 +1,10 @@
 package com.osudroid.ui.v2.hud
 
+import com.osudroid.utils.LenientJson
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
@@ -20,7 +25,6 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.framework.forEachTolerant
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
-import org.json.JSONObject
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.ToastLogger
@@ -106,7 +110,9 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
      * Adds an element to the HUD.
      */
     fun addElement(data: HUDElementSkinData, inEditMode: Boolean = isInEditMode) {
-        val element = data.type.primaryConstructor!!.call()
+        // Skins may name element types this version doesn't have.
+        val type = HUDElements[data.type]?.type ?: return
+        val element = type.primaryConstructor!!.call()
 
         // In edit mode, all elements should be shown.
         if (!inEditMode && !element.shouldBeShown) {
@@ -169,10 +175,10 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
         val data = getSkinData()
 
         val jsonFile = File(Config.getSkinPath(), "skin.json")
-        val json: JSONObject
+        var json: JsonObject
 
         if (jsonFile.exists()) {
-            json = JSONObject(jsonFile.reader().readText())
+            json = LenientJson.parseToJsonElement(jsonFile.reader().readText()).jsonObject
         } else {
             jsonFile.createNewFile()
 
@@ -180,8 +186,8 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
             json = SkinJsonReader.getReader().currentData
         }
 
-        json.put("HUD", HUDSkinData.writeToJSON(data))
-        jsonFile.writeText(json.toString(4))
+        json = JsonObject(json + ("HUD" to HUDSkinData.writeToJSON(data)))
+        jsonFile.writeText(prettyJson.encodeToString(JsonObject.serializer(), json))
 
         SkinJsonReader.getReader().currentData = json
         OsuSkin.get().hudSkinData = data
@@ -360,4 +366,11 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
     }
 }
 
-
+/**
+ * Writes skin JSON indented by four spaces, as it always was.
+ */
+@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+private val prettyJson = Json {
+    prettyPrint = true
+    prettyPrintIndent = "    "
+}

@@ -1,7 +1,13 @@
 package com.osudroid.ui.skinning
 
 import com.reco1l.verktex.data.Color4
-import org.json.JSONObject
+import com.osudroid.utils.isNull
+import com.osudroid.utils.optBoolean
+import com.osudroid.utils.optDouble
+import com.osudroid.utils.optInt
+import com.osudroid.utils.optString
+import kotlin.jvm.JvmOverloads
+import kotlinx.serialization.json.JsonObject
 
 sealed class SkinData<T>(val tag: String, val defaultValue: T) {
     var currentValue = defaultValue
@@ -9,35 +15,35 @@ sealed class SkinData<T>(val tag: String, val defaultValue: T) {
     open val isDefault
         get() = currentValue == defaultValue
 
-    abstract fun setFromJson(data: JSONObject)
+    abstract fun setFromJson(data: JsonObject)
 }
 
 class IntegerSkinData @JvmOverloads constructor(tag: String, default: Int = 0) : SkinData<Int>(tag, default) {
-    override fun setFromJson(data: JSONObject) {
+    override fun setFromJson(data: JsonObject) {
         currentValue = data.optInt(tag, defaultValue)
     }
 }
 
 class FloatSkinData @JvmOverloads constructor(tag: String, default: Float = 0f) : SkinData<Float>(tag, default) {
-    override fun setFromJson(data: JSONObject) {
+    override fun setFromJson(data: JsonObject) {
         currentValue = data.optDouble(tag, defaultValue.toDouble()).toFloat()
     }
 }
 
 class BooleanSkinData @JvmOverloads constructor(tag: String, default: Boolean = false) : SkinData<Boolean>(tag, default) {
-    override fun setFromJson(data: JSONObject) {
+    override fun setFromJson(data: JsonObject) {
         currentValue = data.optBoolean(tag, defaultValue)
     }
 }
 
 class StringSkinData @JvmOverloads constructor(tag: String, default: String = "") : SkinData<String>(tag, default) {
-    override fun setFromJson(data: JSONObject) {
+    override fun setFromJson(data: JsonObject) {
         currentValue = data.optString(tag, defaultValue)
     }
 }
 
 class ColorSkinData @JvmOverloads constructor(tag: String, default: Color4? = null) : SkinData<Color4?>(tag, default) {
-    override fun setFromJson(data: JSONObject) {
+    override fun setFromJson(data: JsonObject) {
         val hex = if (data.isNull(tag)) "" else data.optString(tag)
 
         currentValue = if (hex.isEmpty()) {

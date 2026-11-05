@@ -148,7 +148,7 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
      * Creates a [HUDElementSkinData] object with the current element's skin data.
      */
     open fun getSkinData() = HUDElementSkinData(
-        type = this::class,
+        type = HUDElements[this::class].name,
         anchor = anchor,
         origin = origin,
         scale = scale,

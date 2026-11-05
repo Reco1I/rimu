@@ -1,13 +1,13 @@
 package com.osudroid.ui.skinning
 
 import com.reco1l.verktex.data.Color4
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assert.*
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class IntegerSkinDataTest {
     @Test
     fun `Test default value`() {
@@ -28,10 +28,10 @@ class IntegerSkinDataTest {
     @Test
     fun `Test setFromJson with valid value`() {
         val skinData = IntegerSkinData("testTag", 10)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", 100)
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals(100, skinData.currentValue)
         assertFalse(skinData.isDefault)
@@ -40,9 +40,9 @@ class IntegerSkinDataTest {
     @Test
     fun `Test setFromJson with missing value`() {
         val skinData = IntegerSkinData("testTag", 10)
-        val json = JSONObject()
+        val json = TestJson()
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals(10, skinData.currentValue)
         assertTrue(skinData.isDefault)
@@ -51,10 +51,10 @@ class IntegerSkinDataTest {
     @Test
     fun `Test setFromJson with negative value`() {
         val skinData = IntegerSkinData("testTag")
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", -50)
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals(-50, skinData.currentValue)
         assertFalse(skinData.isDefault)
@@ -65,19 +65,18 @@ class IntegerSkinDataTest {
         val skinData = IntegerSkinData("testTag", 5)
         assertEquals(5, skinData.currentValue)
 
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", 15)
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
         assertEquals(15, skinData.currentValue)
 
-        val newJson = JSONObject()
+        val newJson = TestJson()
         newJson.put("testTag", 25)
-        skinData.setFromJson(newJson)
+        skinData.setFromJson(newJson.toJson())
         assertEquals(25, skinData.currentValue)
     }
 }
 
-@RunWith(RobolectricTestRunner::class)
 class FloatSkinDataTest {
     @Test
     fun `Test default value`() {
@@ -98,10 +97,10 @@ class FloatSkinDataTest {
     @Test
     fun `Test setFromJson with float value`() {
         val skinData = FloatSkinData("testTag", 1.0f)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", 2.5)
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals(2.5f, skinData.currentValue)
         assertFalse(skinData.isDefault)
@@ -110,10 +109,10 @@ class FloatSkinDataTest {
     @Test
     fun `Test setFromJson with integer value converts to float`() {
         val skinData = FloatSkinData("testTag", 1.0f)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", 5)
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals(5.0f, skinData.currentValue)
         assertFalse(skinData.isDefault)
@@ -122,9 +121,9 @@ class FloatSkinDataTest {
     @Test
     fun `Test setFromJson with missing value`() {
         val skinData = FloatSkinData("testTag", 1.5f)
-        val json = JSONObject()
+        val json = TestJson()
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals(1.5f, skinData.currentValue)
         assertTrue(skinData.isDefault)
@@ -133,10 +132,10 @@ class FloatSkinDataTest {
     @Test
     fun `Test setFromJson with negative float value`() {
         val skinData = FloatSkinData("testTag")
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", -3.14)
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals(-3.14f, skinData.currentValue, 0.001f)
         assertFalse(skinData.isDefault)
@@ -145,17 +144,16 @@ class FloatSkinDataTest {
     @Test
     fun `Test setFromJson with zero value`() {
         val skinData = FloatSkinData("testTag", 1.0f)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", 0.0)
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals(0f, skinData.currentValue)
         assertFalse(skinData.isDefault)
     }
 }
 
-@RunWith(RobolectricTestRunner::class)
 class BooleanSkinDataTest {
     @Test
     fun `Test default true value`() {
@@ -184,10 +182,10 @@ class BooleanSkinDataTest {
     @Test
     fun `Test setFromJson with true value`() {
         val skinData = BooleanSkinData("testTag")
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", true)
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertTrue(skinData.currentValue)
         assertFalse(skinData.isDefault)
@@ -196,10 +194,10 @@ class BooleanSkinDataTest {
     @Test
     fun `Test setFromJson with false value`() {
         val skinData = BooleanSkinData("testTag", true)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", false)
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertFalse(skinData.currentValue)
         assertFalse(skinData.isDefault)
@@ -208,9 +206,9 @@ class BooleanSkinDataTest {
     @Test
     fun `Test setFromJson with missing value`() {
         val skinData = BooleanSkinData("testTag", true)
-        val json = JSONObject()
+        val json = TestJson()
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertTrue(skinData.currentValue)
         assertTrue(skinData.isDefault)
@@ -220,21 +218,20 @@ class BooleanSkinDataTest {
     fun `Test setFromJson toggles boolean value`() {
         val skinData = BooleanSkinData("testTag")
 
-        val jsonTrue = JSONObject()
+        val jsonTrue = TestJson()
         jsonTrue.put("testTag", true)
-        skinData.setFromJson(jsonTrue)
+        skinData.setFromJson(jsonTrue.toJson())
         assertTrue(skinData.currentValue)
         assertFalse(skinData.isDefault)
 
-        val jsonFalse = JSONObject()
+        val jsonFalse = TestJson()
         jsonFalse.put("testTag", false)
-        skinData.setFromJson(jsonFalse)
+        skinData.setFromJson(jsonFalse.toJson())
         assertFalse(skinData.currentValue)
         assertTrue(skinData.isDefault)
     }
 }
 
-@RunWith(RobolectricTestRunner::class)
 class StringSkinDataTest {
     @Test
     fun `Test default empty string`() {
@@ -255,10 +252,10 @@ class StringSkinDataTest {
     @Test
     fun `Test setFromJson with string value`() {
         val skinData = StringSkinData("testTag", "default")
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "custom")
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals("custom", skinData.currentValue)
         assertFalse(skinData.isDefault)
@@ -267,10 +264,10 @@ class StringSkinDataTest {
     @Test
     fun `Test setFromJson with empty string`() {
         val skinData = StringSkinData("testTag", "default")
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "")
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals("", skinData.currentValue)
         assertFalse(skinData.isDefault)
@@ -279,9 +276,9 @@ class StringSkinDataTest {
     @Test
     fun `Test setFromJson with missing value`() {
         val skinData = StringSkinData("testTag", "default")
-        val json = JSONObject()
+        val json = TestJson()
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals("default", skinData.currentValue)
         assertTrue(skinData.isDefault)
@@ -290,10 +287,10 @@ class StringSkinDataTest {
     @Test
     fun `Test setFromJson with special characters`() {
         val skinData = StringSkinData("testTag")
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "hello@#$%^&*()")
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals("hello@#$%^&*()", skinData.currentValue)
         assertFalse(skinData.isDefault)
@@ -302,10 +299,10 @@ class StringSkinDataTest {
     @Test
     fun `Test setFromJson with unicode characters`() {
         val skinData = StringSkinData("testTag")
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "こんにちは世界")
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals("こんにちは世界", skinData.currentValue)
         assertFalse(skinData.isDefault)
@@ -314,17 +311,16 @@ class StringSkinDataTest {
     @Test
     fun `Test setFromJson with whitespace`() {
         val skinData = StringSkinData("testTag")
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "   spaces   ")
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals("   spaces   ", skinData.currentValue)
         assertFalse(skinData.isDefault)
     }
 }
 
-@RunWith(RobolectricTestRunner::class)
 class ColorSkinDataTest {
     @Test
     fun `Test default null color`() {
@@ -347,10 +343,10 @@ class ColorSkinDataTest {
     fun `Test setFromJson with valid RRGGBB hex`() {
         val defaultColor = Color4(0, 0, 0)
         val skinData = ColorSkinData("testTag", defaultColor)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "FF0000")
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertNotNull(skinData.currentValue)
         assertEquals(255, skinData.currentValue!!.red8)
@@ -363,10 +359,10 @@ class ColorSkinDataTest {
     fun `Test setFromJson with hashtagged hex`() {
         val defaultColor = Color4(0, 0, 0)
         val skinData = ColorSkinData("testTag", defaultColor)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "#00FF00")
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertNotNull(skinData.currentValue)
         assertEquals(0, skinData.currentValue!!.red8)
@@ -379,16 +375,16 @@ class ColorSkinDataTest {
     fun `Test setFromJson with empty string reverts to default`() {
         val defaultColor = Color4(100, 100, 100)
         val skinData = ColorSkinData("testTag", defaultColor)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "FF0000")
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
         assertNotNull(skinData.currentValue)
         assertFalse(skinData.isDefault)
 
         // Now revert to default
-        val emptyJson = JSONObject()
+        val emptyJson = TestJson()
         emptyJson.put("testTag", "")
-        skinData.setFromJson(emptyJson)
+        skinData.setFromJson(emptyJson.toJson())
 
         assertEquals(defaultColor, skinData.currentValue)
         assertTrue(skinData.isDefault)
@@ -398,14 +394,14 @@ class ColorSkinDataTest {
     fun `Test setFromJson with missing value reverts to default`() {
         val defaultColor = Color4(50, 50, 50)
         val skinData = ColorSkinData("testTag", defaultColor)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "0000FF")
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
         assertFalse(skinData.isDefault)
 
         // Now revert to default by having no value in JSON
-        val emptyJson = JSONObject()
-        skinData.setFromJson(emptyJson)
+        val emptyJson = TestJson()
+        skinData.setFromJson(emptyJson.toJson())
 
         assertEquals(defaultColor, skinData.currentValue)
         assertTrue(skinData.isDefault)
@@ -415,15 +411,15 @@ class ColorSkinDataTest {
     fun `Test setFromJson with null value reverts to default`() {
         val defaultColor = Color4(75, 75, 75)
         val skinData = ColorSkinData("testTag", defaultColor)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "FFFFFF")
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
         assertFalse(skinData.isDefault)
 
         // Now set null value
-        val nullJson = JSONObject()
-        nullJson.put("testTag", JSONObject.NULL)
-        skinData.setFromJson(nullJson)
+        val nullJson = TestJson()
+        nullJson.put("testTag", TestJson.NULL)
+        skinData.setFromJson(nullJson.toJson())
 
         assertEquals(defaultColor, skinData.currentValue)
         assertTrue(skinData.isDefault)
@@ -433,10 +429,10 @@ class ColorSkinDataTest {
     fun `Test setFromJson with invalid hex format falls back to default`() {
         val defaultColor = Color4(200, 200, 200)
         val skinData = ColorSkinData("testTag", defaultColor)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "INVALIDHEX")
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertEquals(defaultColor, skinData.currentValue)
         assertTrue(skinData.isDefault)
@@ -460,10 +456,10 @@ class ColorSkinDataTest {
 
         for ((hex, expectedRed, expectedGreen, expectedBlue) in testCases) {
             val skinData = ColorSkinData("testTag", defaultColor)
-            val json = JSONObject()
+            val json = TestJson()
             json.put("testTag", hex)
 
-            skinData.setFromJson(json)
+            skinData.setFromJson(json.toJson())
 
             assertNotNull("Color should not be null for hex: $hex", skinData.currentValue)
             assertEquals("Red mismatch for hex: $hex", expectedRed, skinData.currentValue!!.red8)
@@ -476,10 +472,10 @@ class ColorSkinDataTest {
     fun `Test setFromJson with lowercase hex`() {
         val defaultColor = Color4(0, 0, 0)
         val skinData = ColorSkinData("testTag", defaultColor)
-        val json = JSONObject()
+        val json = TestJson()
 
         json.put("testTag", "ff00ff")
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertNotNull(skinData.currentValue)
         assertEquals(255, skinData.currentValue!!.red8)
@@ -492,10 +488,10 @@ class ColorSkinDataTest {
     fun `Test setFromJson with mixed case hex`() {
         val defaultColor = Color4(0, 0, 0)
         val skinData = ColorSkinData("testTag", defaultColor)
-        val json = JSONObject()
+        val json = TestJson()
         json.put("testTag", "#FfAaBb")
 
-        skinData.setFromJson(json)
+        skinData.setFromJson(json.toJson())
 
         assertNotNull(skinData.currentValue)
         assertEquals(255, skinData.currentValue!!.red8)
@@ -505,7 +501,6 @@ class ColorSkinDataTest {
     }
 }
 
-@RunWith(RobolectricTestRunner::class)
 class SkinDataGeneralTest {
     @Test
     fun `Test tag is preserved in all SkinData types`() {
@@ -539,21 +534,43 @@ class SkinDataGeneralTest {
         val intData = IntegerSkinData("test", Int.MIN_VALUE)
         assertEquals(Int.MIN_VALUE, intData.currentValue)
 
-        val json = JSONObject()
+        val json = TestJson()
         json.put("test", Int.MAX_VALUE)
-        intData.setFromJson(json)
+        intData.setFromJson(json.toJson())
         assertEquals(Int.MAX_VALUE, intData.currentValue)
     }
 
     @Test
     fun `Test string data with numeric values stays as string`() {
         val stringData = StringSkinData("test")
-        val json = JSONObject()
+        val json = TestJson()
         json.put("test", "12345")
 
-        stringData.setFromJson(json)
+        stringData.setFromJson(json.toJson())
 
         assertEquals("12345", stringData.currentValue)
     }
 }
 
+/**
+ * Builds the JSON the skin data reads, with the values the tests put.
+ */
+private class TestJson {
+    private val values = LinkedHashMap<String, JsonElement>()
+
+    fun put(key: String, value: Any?) {
+        values[key] = when (value) {
+            null, NULL -> JsonNull
+            is String -> JsonPrimitive(value)
+            is Number -> JsonPrimitive(value)
+            is Boolean -> JsonPrimitive(value)
+            else -> throw IllegalArgumentException("Unsupported value $value")
+        }
+    }
+
+    fun toJson() = JsonObject(values)
+
+    companion object {
+        val NULL = Any()
+    }
+}
