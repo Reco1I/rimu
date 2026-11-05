@@ -223,16 +223,16 @@ class AutoCursor : CursorEntity(), ISliderListener {
      * @param secPassed The amount of seconds that have passed since the game has started.
      */
     fun moveToObject(gameObject: GameObject?, secPassed: Float, listener: GameObjectListener) {
-        if (gameObject == null || currentObjectId == gameObject.id) {
+        if (gameObject == null || currentObjectId == gameObject.getId()) {
             return
         }
 
         val isSpinner = gameObject is GameplaySpinner
-        val moveX = gameObject.position.x
-        val moveY = gameObject.position.y + if (isSpinner) 50f else 0f
-        var deltaTime = gameObject.hitTime - secPassed
+        val moveX = gameObject.getPosition().x
+        val moveY = gameObject.getPosition().y + if (isSpinner) 50f else 0f
+        var deltaTime = gameObject.getHitTime() - secPassed
 
-        currentObjectId = gameObject.id
+        currentObjectId = gameObject.getId()
 
         if (deltaTime < 0.085f && !isSpinner) {
             deltaTime = 0.085f

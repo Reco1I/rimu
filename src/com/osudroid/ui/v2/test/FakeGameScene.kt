@@ -44,7 +44,8 @@ class FakeGameScene : GameScene() {
     }
 
 
-    override fun getElapsedTime() = time
+    override val elapsedTime
+        get() = time
 
     override fun getInitialStartTime() = 0f
 
