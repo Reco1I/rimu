@@ -178,7 +178,7 @@ object BeatmapCache {
 
     @Throws(IOException::class, IllegalArgumentException::class, NumberFormatException::class)
     private fun cacheBeatmap(file: File, md5: String, mode: GameMode, withHitObjects: Boolean, scope: CoroutineScope?): CachedBeatmap {
-        val beatmap = BeatmapParser(file, scope, md5).parse(withHitObjects, mode)
+        val beatmap = BeatmapParser(file.path, scope, md5).parse(withHitObjects, mode)
 
         return cacheBeatmap(beatmap, mode, withHitObjects, scope)
     }

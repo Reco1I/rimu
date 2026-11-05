@@ -20,7 +20,7 @@ import com.reco1l.verktex.time.ManualClock
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.textButton
-import java.util.BitSet
+import com.osudroid.utils.BitSet
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos

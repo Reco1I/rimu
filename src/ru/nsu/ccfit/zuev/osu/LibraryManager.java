@@ -155,7 +155,7 @@ public class LibraryManager {
 
         for (var osuFile : osuFiles) {
             try {
-                var data = new BeatmapParser(osuFile).parse(false);
+                var data = new BeatmapParser(osuFile.getPath()).parse(false);
                 var beatmapInfo = BeatmapInfo(data, directory.lastModified(), false);
 
                 pendingBeatmaps.add(beatmapInfo);

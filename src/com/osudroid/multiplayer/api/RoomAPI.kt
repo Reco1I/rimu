@@ -1,5 +1,6 @@
 package com.osudroid.multiplayer.api
 
+import kotlinx.serialization.json.JsonObject
 import com.osudroid.BuildSettings
 import com.osudroid.debug.MockSocket
 import com.osudroid.multiplayer.*
@@ -675,6 +676,9 @@ object RoomAPI {
      * Submit the match score at the end of the game.
      */
     @JvmStatic
+    fun submitFinalScore(json: JsonObject) = submitFinalScore(JSONObject(json.toString()))
+
+    @JvmStatic
     fun submitFinalScore(json: JSONObject?) {
         socket?.emit("scoreSubmission", json) ?: run {
             Multiplayer.log("WARNING: Tried to emit event 'scoreSubmission' while socket is null.")
@@ -686,6 +690,9 @@ object RoomAPI {
     /**
      * Submit the match score at the end of the game.
      */
+    @JvmStatic
+    fun submitLiveScore(json: JsonObject) = submitLiveScore(JSONObject(json.toString()))
+
     @JvmStatic
     fun submitLiveScore(json: JSONObject?) {
         socket?.emit("liveScoreData", json) ?: run {

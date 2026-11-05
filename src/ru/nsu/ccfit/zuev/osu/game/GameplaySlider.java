@@ -45,7 +45,7 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
 import ru.nsu.ccfit.zuev.skins.OsuSkin;
 
 import java.util.ArrayList;
-import java.util.BitSet;
+import com.osudroid.utils.BitSet;
 
 public class GameplaySlider extends GameObject {
     private static final String sliderStartCircleTexture = "sliderstartcircle";
@@ -227,7 +227,7 @@ public class GameplaySlider extends GameObject {
         replayTickIndex = 0;
         firstHitAccuracy = 0;
         tickSet.clear();
-        kiai = GameHelper.isKiai();
+        kiai = (GameHelper.isKiai() && !OsuSkin.get().isDisableKiai());
         preStageFinish = false;
         superPathMaxLength = 0;
         lastSnakeInLength = Float.NaN;
@@ -895,7 +895,7 @@ public class GameplaySlider extends GameObject {
         }
 
         if (headCirclePiece.isVisible()) {
-            if (GameHelper.isKiai()) {
+            if ((GameHelper.isKiai() && !OsuSkin.get().isDisableKiai())) {
                 var kiaiModifier = (float) Math.max(0, 1 - GameHelper.getCurrentBeatTime() / GameHelper.getBeatLength()) * 0.5f;
                 var r = Math.min(1, circleColor.getRed() + (1 - circleColor.getRed()) * kiaiModifier);
                 var g = Math.min(1, circleColor.getGreen() + (1 - circleColor.getGreen()) * kiaiModifier);

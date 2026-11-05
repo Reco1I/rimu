@@ -1,5 +1,6 @@
 package com.osudroid.replay
 
+import com.osudroid.data.toScoreInfo
 import com.edlplan.replay.OsuDroidReplayPack
 import com.osudroid.data.DatabaseManager.scoreInfoTable
 import com.osudroid.mods.ModDifficultyAdjust
@@ -92,10 +93,10 @@ object ReplayImporter {
             throw Exception("Replay is too old. Must be a replay from osu!droid version 1.6.7 onwards")
         }
 
-        val scoreInfo = replay.stat.toScoreInfo().let { info ->
+        val scoreInfo = replay.stat!!.toScoreInfo().let { info ->
             val adjusted = if (replay.replayVersion < 8) {
                 // Replays before version 8 store total score with mod multipliers; divide back to raw total score.
-                val mods = replay.stat.mod
+                val mods = replay.stat!!.mod
 
                 if (mods.values.any { it is ModDifficultyAdjust }) {
                     info.copy(needsScoreMigration = true)
