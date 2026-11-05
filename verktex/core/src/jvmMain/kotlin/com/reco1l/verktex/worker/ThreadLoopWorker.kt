@@ -53,11 +53,23 @@ abstract class ThreadLoopWorker(
     private fun waitForInterval() {
         if (minimumIntervalNanos <= 0) return
 
-        val remainingNanos = minimumIntervalNanos - (monotonicNanos() - lastLoopNanos)
-        if (remainingNanos > 0) {
-            Thread.sleep(remainingNanos / 1_000_000, (remainingNanos % 1_000_000).toInt())
+        // Loops are scheduled from the previous deadline rather than from when the previous loop
+        // actually started: sleeping overshoots by a fraction of a millisecond, which would otherwise
+        // add up (a 1 ms interval would run at about 900 Hz). The next loop makes up for it.
+        val deadline = lastLoopNanos + minimumIntervalNanos
+        val remainingNanos = deadline - monotonicNanos()
+
+        lastLoopNanos = when {
+            remainingNanos > 0 -> {
+                Thread.sleep(remainingNanos / 1_000_000, (remainingNanos % 1_000_000).toInt())
+                deadline
+            }
+            // Late by less than an interval: catch up, without waiting.
+            -remainingNanos < minimumIntervalNanos -> deadline
+            // Further behind (a slow loop, a pause, the first loop): start over from now, rather than
+            // running a burst of loops to catch up.
+            else -> monotonicNanos()
         }
-        lastLoopNanos = monotonicNanos()
     }
 
     override fun start() {

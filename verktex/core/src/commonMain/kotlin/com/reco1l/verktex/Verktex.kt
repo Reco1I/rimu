@@ -307,6 +307,10 @@ object Verktex {
     // frame so short that eased interpolations barely move.
     private val UPDATE_INTERVAL = 1.seconds / 240
 
+    // Frames are drawn at most this often. With vsync the display's refresh rate is the limit, but
+    // without it the draw worker would otherwise render thousands of frames a second for nothing.
+    private val DRAW_INTERVAL = 1.seconds / 1000
+
     // Space left between the focused text input and the on-screen keyboard.
     private val IME_MARGIN = 16f.dip
 
@@ -329,7 +333,7 @@ object Verktex {
 
         started = true
 
-        drawWorker = Platform.createLoopWorker("draw_worker") { draw() }
+        drawWorker = Platform.createLoopWorker("draw_worker", DRAW_INTERVAL) { draw() }
         updateWorker = Platform.createLoopWorker("update_worker", UPDATE_INTERVAL) { update() }
 
         drawWorker.start()
