@@ -273,7 +273,7 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
 
     private fun loadBuiltInFonts() {
         fun load(key: String, file: String) =
-            Fonts.load(key, "verktex/fonts/$file", isInternal = true)
+            Fonts.load(key, "fonts/$file", isInternal = true)
                 ?: throw IllegalStateException("Failed to load built-in font: $file")
 
         BuiltIn.Fonts.Default = load("nunito", "nunito-medium.ttf")

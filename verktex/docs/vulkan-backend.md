@@ -22,7 +22,7 @@ often poor), NDK 22.1.7171670 (ships Vulkan headers, `libvulkan.so` and `glslc` 
   `ESCommandExecutor` (+ ES2/ES3 variants), `ESContext` (EGL),
   `ESDevice`, `ESBuffer`, `ESShader`, `ESTexture`, `ESExternalTexture` (SurfaceTexture/OES),
   `ES3GpuTimer`, `es2/GLSLES100Translator` (GLSL ES 3.00 → 1.00, tested in
-  `tests/test/kotlin/com/osudroid/verktex/GLSLES100TranslatorTest.kt`).
+  `verktex/src/test/kotlin/com/reco1l/verktex/GLSLES100TranslatorTest.kt`).
 - Shared Android types: `android/AndroidWindow` (the `SurfaceView`), `android/AndroidExternalTexture`
   (what video producers see of an external texture).
 - Backend selection: `verktex/.../android/Android.kt` (`initializeAndroid`), setting in

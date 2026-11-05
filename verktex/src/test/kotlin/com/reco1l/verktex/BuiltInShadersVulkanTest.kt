@@ -1,4 +1,4 @@
-package com.osudroid.verktex
+package com.reco1l.verktex
 
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.shaders.GLSL450VulkanTranslator
@@ -15,7 +15,7 @@ import java.io.File
 class BuiltInShadersVulkanTest {
 
     private fun translate(path: String, stage: Stage) =
-        GLSL450VulkanTranslator.translate(File("assets", path).readText(), stage)
+        GLSL450VulkanTranslator.translate(File("src/main/assets", path).readText(), stage)
 
     @Test
     fun everyProgramTranslatesAndLinks() {
@@ -35,6 +35,6 @@ class BuiltInShadersVulkanTest {
             .filter { program -> translate(program.fragmentPath, Stage.Fragment).samplers.any { it.isExternal } }
             .map { it.fragmentPath }
 
-        assertEquals(listOf("verktex/shaders/video.frag"), external)
+        assertEquals(listOf("shaders/video.frag"), external)
     }
 }

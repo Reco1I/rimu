@@ -1,4 +1,4 @@
-package com.osudroid.verktex
+package com.reco1l.verktex
 
 import com.reco1l.verktex.graphics.GraphicsResource
 import com.reco1l.verktex.graphics.GraphicsTexture

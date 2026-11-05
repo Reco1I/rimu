@@ -1,4 +1,4 @@
-package com.osudroid.verktex
+package com.reco1l.verktex
 
 import com.reco1l.verktex.android.vulkan.VKCommandEncoder
 import com.reco1l.verktex.android.vulkan.VKFrameRing
@@ -56,7 +56,7 @@ class VulkanBackendTest {
     @Test
     fun uniformsArePackedAtTheTranslatorsOffsets() {
         // The fragment block of the solid shader: uColor, uBorderColor, uBorderWidth, uRadius, uSize.
-        val stage = GLSL450VulkanTranslator.translate(File("assets/verktex/shaders/quad.frag").readText(), Stage.Fragment)
+        val stage = GLSL450VulkanTranslator.translate(File("src/main/assets/shaders/quad.frag").readText(), Stage.Fragment)
         val target = ByteBuffer.allocate(256).order(java.nio.ByteOrder.nativeOrder())
 
         // Garbage from a previous frame must not leak into members left unset.
@@ -90,7 +90,7 @@ class VulkanBackendTest {
 
     @Test
     fun matricesArePackedColumnMajor() {
-        val stage = GLSL450VulkanTranslator.translate(File("assets/verktex/shaders/particle.vert").readText(), Stage.Vertex)
+        val stage = GLSL450VulkanTranslator.translate(File("src/main/assets/shaders/particle.vert").readText(), Stage.Vertex)
         val target = ByteBuffer.allocate(256).order(java.nio.ByteOrder.nativeOrder())
         val matrix = FloatArray(16) { it.toFloat() }
 

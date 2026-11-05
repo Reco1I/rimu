@@ -1,4 +1,4 @@
-package com.osudroid.verktex
+package com.reco1l.verktex
 
 import com.reco1l.verktex.android.gles.es2.ES2CommandExecutor
 import com.reco1l.verktex.android.gles.es2.GLSLES100Translator
@@ -15,7 +15,7 @@ import java.io.File
  */
 class GLSLES100TranslatorTest {
 
-    private val shaderDirectory = File("assets/verktex/shaders")
+    private val shaderDirectory = File("src/main/assets/shaders")
 
     private fun translate(name: String): GLSLES100Translator.Result {
         val stage = if (name.endsWith(".vert")) Stage.Vertex else Stage.Fragment
