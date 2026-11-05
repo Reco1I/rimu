@@ -11,7 +11,6 @@ import com.osudroid.ui.v2.*
 import com.osudroid.ui.v2.modmenu.*
 import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
-import com.edlplan.ui.fragment.CollectionsManagerFragment
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.ui.control.UIDropdown
@@ -331,7 +330,15 @@ object SongSelect : UIScene() {
                 text = "Manage collections"
                 leadingIcon = faSolidIcon(FAIcon.FolderOpen)
                 onActionUp = {
-                    CollectionsManagerFragment().showToAddToFolder(directory)
+                    BeatmapCollectionsDialog(directory).apply {
+                        onCollectionsChanged = {
+                            filterBar.updateCollections()
+
+                            if (filterBar.filter.collection != null) {
+                                applyFilter()
+                            }
+                        }
+                    }.show()
                     this@dropdown.hide()
                 }
             }

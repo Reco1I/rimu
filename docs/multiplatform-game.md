@@ -97,7 +97,7 @@ dependencies easypermissions, appcompat, material and legacy-support also stay.
 |---|---|
 | `MessageDialog` (11 usages), `PromptDialog` (4), `Dialog.kt`, `ListDialog` (unused) | `UIDialog`, `UIMessageDialog`, plus `UIDialog` + `UITextInput` for prompts. Delete `ListDialog`. |
 | `BeatmapListing` (888 lines), `DownloadFragment`, `LoadingBadgeFragment` | A new beatmap listing scene with download progress |
-| `CollectionsManagerFragment` | A collections dialog |
+| `CollectionsManagerFragment` | Done: `BeatmapCollectionsDialog` |
 | `BlockAreaEditorFragment` | A block area editor scene/overlay |
 | `LoadingFragment`, `ActivityOverlay`, `BaseFragment`, `BaseAnimationListener`, `EasingHelper`, `com/reco1l/framework/android/*` | Deleted once nothing uses them |
 | `WebViewFragment` | `Platform.openWebPage` |
@@ -240,7 +240,9 @@ Done since the previous notes:
 - Android views, started: Verktex has `UIPromptDialog`, and the calibration inputs and the HUD editor's
   exit dialog use Verktex dialogs. `Platform.openWebPage` replaced `WebViewFragment` (Verktex's
   `WebPageActivity` on Android, the browser on desktop). The unused preference views and settings fragment
-  are deleted.
+  are deleted. Song select's "Manage collections" opens `BeatmapCollectionsDialog` (add the set to or remove
+  it from collections, create and delete them) instead of `CollectionsManagerFragment`, whose unused
+  folder picker went with it.
 
 What's left, roughly in order:
 
@@ -255,7 +257,7 @@ What's left, roughly in order:
 4. **Database**: done as above; a desktop `GameDatabase` when there's a desktop launcher.
 5. **Networking**: done as above, except `OnlineScoring` (Java, shows an Android Snackbar). Ktor later.
 6. **Android views**: rewrite on Verktex the beatmap listing (with its download and loading fragments),
-   the collections manager, the block area editor, the replay import's loading fragment, the difficulty
-   calculation badge, and the remaining `MessageDialog`s (`CollectionsManagerFragment`, `BlockAreaEditorFragment`;
+   the block area editor, the replay import's loading fragment, the difficulty calculation badge, and
+   the remaining `MessageDialog`s (`BlockAreaEditorFragment`;
    the ones in `UpdateManager`, `AndroidDatabase`, `AccessibilityDetector` and `MainActivity` are Android only).
 7. A Java serialization reader/writer in common code, if replays must load outside the JVM.
