@@ -1,5 +1,8 @@
 package com.reco1l.verktex.data
 
+import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.ThemeDependent
+
 /**
  * A shadow drawn below a component, following its shape.
  */
@@ -26,4 +29,13 @@ data class Shadow(
      * translucent background. The cut follows the shadow, so it is meant for one without offset.
      */
     val cutout: Boolean = false,
-)
+) : ThemeDependent<Shadow> {
+
+    override val isThemed: Boolean
+        get() = color.isThemed || offsetY.isThemed || blur.isThemed
+
+    override fun resolve(theme: Theme): Shadow {
+        if (!isThemed) return this
+        return copy(color = color.resolve(theme), offsetY = offsetY.resolve(theme), blur = blur.resolve(theme))
+    }
+}

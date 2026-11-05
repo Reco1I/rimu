@@ -3,16 +3,21 @@ package com.reco1l.verktex.data
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmField
 import kotlin.math.*
+import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.ThemeDependent
+import com.reco1l.verktex.ui.themed
 
 /**
  * Represents a color with red, green, blue, and alpha components.
+ *
+ * It's open only for colors taken from the theme, see [themed].
  */
-data class Color4 @JvmOverloads constructor(
+open class Color4 @JvmOverloads constructor(
     val red: Float = 0f,
     val green: Float = 0f,
     val blue: Float = 0f,
     val alpha: Float = 1f
-) {
+) : ThemeDependent<Color4> {
 
     /**
      * Constructs a Color4 instance from a hexadecimal color value of the form 0xAARRGGBB.
@@ -56,6 +61,43 @@ data class Color4 @JvmOverloads constructor(
         }
     })
 
+
+    override val isThemed: Boolean
+        get() = false
+
+    override fun resolve(theme: Theme): Color4 = this
+
+
+    /**
+     * Returns a copy of this color with the given channels changed.
+     */
+    open fun copy(
+        red: Float = this.red,
+        green: Float = this.green,
+        blue: Float = this.blue,
+        alpha: Float = this.alpha
+    ): Color4 = Color4(red, green, blue, alpha)
+
+    operator fun component1() = red
+    operator fun component2() = green
+    operator fun component3() = blue
+    operator fun component4() = alpha
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Color4 || other.isThemed) return false
+        return red == other.red && green == other.green && blue == other.blue && alpha == other.alpha
+    }
+
+    override fun hashCode(): Int {
+        var result = red.hashCode()
+        result = 31 * result + green.hashCode()
+        result = 31 * result + blue.hashCode()
+        result = 31 * result + alpha.hashCode()
+        return result
+    }
+
+    override fun toString() = "Color4(red=$red, green=$green, blue=$blue, alpha=$alpha)"
 
     /**
      * Returns the alpha channel in 8 bits representation (0..255)
