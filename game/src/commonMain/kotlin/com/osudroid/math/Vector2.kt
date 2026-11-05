@@ -1,8 +1,9 @@
 package com.osudroid.math
 
-import android.graphics.PointF
 import kotlin.math.hypot
 import kotlin.math.sqrt
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmStatic
 
 /**
  * Represents a two-dimensional vector.
@@ -23,7 +24,6 @@ data class Vector2(
     constructor(value: Int): this(value, value)
     constructor(x: Int, y: Int): this(x.toFloat(), y.toFloat())
     constructor(value: Float) : this(value, value)
-    constructor(pointF: PointF) : this(pointF.x, pointF.y)
 
     /**
      * The length of this vector.
@@ -100,13 +100,6 @@ data class Vector2(
         x *= inverseLength
         y *= inverseLength
     }
-
-    /**
-     * Converts this vector to a [PointF].
-     *
-     * @return The converted [PointF].
-     */
-    fun toPointF() = PointF(x, y)
 
     /**
      * Multiplies this vector with another vector.

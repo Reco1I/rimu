@@ -2,6 +2,8 @@
 
 package com.osudroid.math
 
+import kotlin.jvm.JvmName
+
 /**
  * Multiplies this integer to a [Vector2].
  *

@@ -1,6 +1,8 @@
 package com.osudroid.math
 
 import kotlin.math.abs
+import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmStatic
 
 /**
  * Precision utilities.
