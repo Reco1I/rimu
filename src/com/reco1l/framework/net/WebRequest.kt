@@ -1,6 +1,6 @@
 package com.reco1l.framework.net
 
-import android.util.Log
+import com.reco1l.verktex.Logger
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -139,7 +139,7 @@ open class WebRequest(private var url: HttpUrl) : AutoCloseable {
             call = client.newCall(request)
 
             if (BuildConfig.DEBUG) {
-                Log.i("WebRequest", "Request to: " + request.url)
+                Logger.i("WebRequest", "Request to: " + request.url)
             }
 
             response = call.execute()

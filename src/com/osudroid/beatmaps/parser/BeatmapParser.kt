@@ -1,6 +1,6 @@
 package com.osudroid.beatmaps.parser
 
-import android.util.Log
+import com.reco1l.verktex.Logger
 import com.osudroid.beatmaps.Beatmap
 import com.osudroid.beatmaps.BeatmapProcessor
 import com.osudroid.GameMode
@@ -161,7 +161,7 @@ class BeatmapParser {
                     throw e
                 }
 
-                Log.e("BeatmapParser.parse", "Unable to parse line", e)
+                Logger.e("BeatmapParser.parse", "Unable to parse line", e)
             }
         }
 

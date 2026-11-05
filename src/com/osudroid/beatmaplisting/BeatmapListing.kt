@@ -3,7 +3,7 @@ package com.osudroid.beatmaplisting
 import com.osudroid.MusicManager
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.util.Log
+import com.reco1l.verktex.Logger
 import android.view.Choreographer
 import android.view.Choreographer.FrameCallback
 import android.view.ContextThemeWrapper
@@ -227,7 +227,7 @@ class BeatmapListing : BaseFragment(),
 
             ToastLogger.showText("Failed to connect to server, please check your internet connection.", false)
 
-            Log.e("BeatmapListing", "Failed to connect to beatmap mirror.", throwable)
+            Logger.e("BeatmapListing", "Failed to connect to beatmap mirror.", throwable)
 
             mainThread {
                 indicator.visibility = GONE
@@ -654,7 +654,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
                         throw e
                     }
 
-                    Log.e("BeatmapDownloader", "Failed to load cover.", e)
+                    Logger.e("BeatmapDownloader", "Failed to load cover.", e)
                 }
 
                 coverJob = null
@@ -753,7 +753,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
                     throw e
                 }
 
-                Log.e("BeatmapListing", "Failed to load preview", e)
+                Logger.e("BeatmapListing", "Failed to load preview", e)
             }
 
             previewJob = null
@@ -770,7 +770,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
             previewStream = null
 
         } catch (e: Exception) {
-            Log.e("BeatmapListing", "Failed to stop preview", e)
+            Logger.e("BeatmapListing", "Failed to stop preview", e)
         }
 
         mainThread {

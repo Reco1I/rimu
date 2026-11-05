@@ -13,7 +13,7 @@ import android.os.Environment;
 import android.os.Looper;
 import android.text.format.DateFormat;
 import android.util.DisplayMetrics;
-import android.util.Log;
+import com.reco1l.verktex.Logger;
 import android.util.TypedValue;
 import android.widget.TextView;
 
@@ -197,7 +197,7 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
             pw.close();
             fw.close();
         } catch (Exception e) {
-            Log.e("AppException", "[Exception]" + e.getLocalizedMessage());
+            Logger.e("AppException", "[Exception]" + e.getLocalizedMessage());
         } finally {
             if (pw != null) {
                 pw.close();
@@ -250,7 +250,7 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
 
                 AlertDialog alert = new AlertDialog.Builder(context)
                     .setTitle(com.osudroid.resources.R.string.crash)
-                    .setMessage(Log.getStackTraceString(ex))
+                    .setMessage(android.util.Log.getStackTraceString(ex))
                     .setPositiveButton("Restart game", (dialog, which) -> {
                         Intent intent = new Intent(context, MainActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -321,9 +321,9 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
                 activePackageJson.put("versionCode", versionCode);
             }
         } catch (NameNotFoundException e) {
-            Log.e("AppException", "an error occured when collect package info", e);
+            Logger.e("AppException", "an error occured when collect package info", e);
         } catch (JSONException e) {
-            Log.e("AppException", "jsonException", e);
+            Logger.e("AppException", "jsonException", e);
         }
         sb.append("[active Package]");
         sb.append(activePackageJson.toString());
@@ -345,9 +345,9 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
             try {
                 field.setAccessible(true);
                 osJson.put(field.getName(), field.get(null).toString());
-                Log.d("AppException", field.getName() + " : " + field.get(null));
+                Logger.i("AppException", field.getName() + " : " + field.get(null));
             } catch (Exception e) {
-                Log.e("AppException", "an error occured when collect crash info", e);
+                Logger.e("AppException", "an error occured when collect crash info", e);
             }
         }
 
@@ -368,9 +368,9 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
             try {
                 field.setAccessible(true);
                 osJson.put(field.getName(), field.get(displaymetrics).toString());
-                Log.d("AppException", field.getName() + " : " + field.get(displaymetrics));
+                Logger.i("AppException", field.getName() + " : " + field.get(displaymetrics));
             } catch (Exception e) {
-                Log.e("AppException", "an error occured when collect crash info", e);
+                Logger.e("AppException", "an error occured when collect crash info", e);
             }
         }
 

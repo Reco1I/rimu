@@ -4,7 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
+import com.reco1l.verktex.Logger;
 
 import androidx.annotation.Nullable;
 
@@ -91,7 +91,7 @@ public class SongService extends Service {
     }
 
     public boolean exit() {
-        Log.w("SongService", "Hei Service is on EXIT()");
+        Logger.w("SongService", "Hei Service is on EXIT()");
         if (audioFunc == null) return false;
         audioFunc.stop();
         Platform.INSTANCE.getAudioDriver().dispose();
@@ -101,7 +101,7 @@ public class SongService extends Service {
 
     public void seekTo(int time) {
         if (audioFunc == null) return;
-        Log.i("SongService", "Seeking to " + time + " ms: " + (audioFunc.jump(time) ? "Success" : "Failed"));
+        Logger.i("SongService", "Seeking to " + time + " ms: " + (audioFunc.jump(time) ? "Success" : "Failed"));
     }
 
     public boolean isGaming() {
@@ -110,7 +110,7 @@ public class SongService extends Service {
 
     public void setGaming(boolean isGaming) {
         audioFunc.setGaming(isGaming);
-        Log.w("Gaming Mode", "In Gamming mode :" + isGaming);
+        Logger.w("Gaming Mode", "In Gamming mode :" + isGaming);
         this.isGaming = isGaming;
     }
 

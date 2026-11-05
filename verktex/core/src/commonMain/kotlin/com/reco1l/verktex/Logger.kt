@@ -2,27 +2,18 @@ package com.reco1l.verktex
 
 /**
  * A singleton object that provides logging functionality for the engine. It allows logging messages
- * at different levels (info, warning, error) and requires a platform-specific implementation to be
- * set before use.
+ * at different levels (info, warning, error) through a platform-specific implementation, printing to
+ * the standard output until one is set.
  */
 object Logger {
 
     /**
      * Sets the logger implementation to be used for logging messages. This usually should be set once
      * during the application initialization phase.
-     * If not set, any logging attempts will throw an [IllegalStateException].
-     *
-     * An implementation of this must be provided by the platform or application using this engine,
-     * as the engine itself does not provide a default logging mechanism.
+     * Until then messages are printed to the standard output, see [Implementation.Console], which
+     * lets code that logs run without a platform, as unit tests do.
      */
-    lateinit var implementation: Implementation
-
-
-    private fun checkImplementation() {
-        if (!::implementation.isInitialized) {
-            throw IllegalStateException("Logger implementation is not initialized. Please set the implementation before using the Logger.")
-        }
-    }
+    var implementation: Implementation = Implementation.Console
 
 
     /**
@@ -32,8 +23,8 @@ object Logger {
      * **Note: These messages are only dispatched to the console if the engine is running in debug
      * mode, to avoid cluttering the output in production environments.**
      */
+    @JvmStatic
     fun i(tag: String, message: String) {
-        checkImplementation()
         implementation.i(tag, message)
     }
 
@@ -44,8 +35,8 @@ object Logger {
      * **Note: These messages are only dispatched to the console if the engine is running in debug
      * mode, to avoid cluttering the output in production environments.**
      */
+    @JvmStatic
     fun w(tag: String, message: String) {
-        checkImplementation()
         implementation.w(tag, message)
     }
 
@@ -55,8 +46,9 @@ object Logger {
      *
      * An optional [throwable] can be provided to include stack trace information.
      */
+    @JvmStatic
+    @JvmOverloads
     fun e(tag: String, message: String, throwable: Throwable? = null) {
-        checkImplementation()
         implementation.e(tag, message, throwable)
     }
 
@@ -65,5 +57,18 @@ object Logger {
         fun i(tag: String, message: String)
         fun w(tag: String, message: String)
         fun e(tag: String, message: String, throwable: Throwable? = null)
+
+        /**
+         * Prints the messages to the standard output.
+         */
+        object Console : Implementation {
+            override fun i(tag: String, message: String) = println("I/$tag: $message")
+            override fun w(tag: String, message: String) = println("W/$tag: $message")
+
+            override fun e(tag: String, message: String, throwable: Throwable?) {
+                println("E/$tag: $message")
+                throwable?.let { println(it.stackTraceToString()) }
+            }
+        }
     }
 }

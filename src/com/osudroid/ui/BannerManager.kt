@@ -2,7 +2,7 @@ package com.osudroid.ui
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
+import com.reco1l.verktex.Logger
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.framework.net.JsonArrayRequest
 import com.reco1l.framework.net.WebRequest
@@ -64,13 +64,13 @@ object BannerManager {
                         }
 
                     } catch (e: Exception) {
-                        Log.e("BannerManager", "Failed to get banner at index ${i}.", e)
+                        Logger.e("BannerManager", "Failed to get banner at index ${i}.", e)
                     }
                 }
             }
 
         } catch (e: Exception) {
-            Log.e("BannerManager", "Failed to get banners from server.", e)
+            Logger.e("BannerManager", "Failed to get banners from server.", e)
         }
 
         if (banners.isEmpty()) {

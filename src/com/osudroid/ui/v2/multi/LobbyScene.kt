@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.multi
 
-import android.util.Log
+import com.reco1l.verktex.Logger
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.resources.R.string
@@ -219,13 +219,13 @@ class LobbyScene : UIScene() {
     private fun fetchRooms() {
 
         if (isFetching) {
-            Log.w("LobbyScene", "Already fetching room list, skipping request.")
+            Logger.w("LobbyScene", "Already fetching room list, skipping request.")
             return
         }
         isFetching = true
 
         fetchScope.launch(CoroutineExceptionHandler { _, throwable ->
-            Log.e("LobbyScene", "Error fetching multiplayer rooms", throwable)
+            Logger.e("LobbyScene", "Error fetching multiplayer rooms", throwable)
 
             ToastLogger.showText(
                 StringTable.format(string.multiplayer_lobby_fetch_error_toast, throwable.message),

@@ -1,7 +1,7 @@
 package com.osudroid.debug
 
 import android.content.Intent
-import android.util.Log
+import com.reco1l.verktex.Logger
 import com.osudroid.mods.ModAutoplay
 import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.ModHashMap
@@ -60,7 +60,7 @@ object QuickPlay {
         }
 
         if (beatmap == null) {
-            Log.w(TAG, "No beatmap matches \"$query\"")
+            Logger.w(TAG, "No beatmap matches \"$query\"")
             return false
         }
 
@@ -69,7 +69,7 @@ object QuickPlay {
             mods.put(ModAutoplay::class)
         }
 
-        Log.i(TAG, "Playing ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] with ${mods.values}")
+        Logger.i(TAG, "Playing ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] with ${mods.values}")
 
         global.selectedBeatmap = beatmap
         // Song select loads it otherwise, the game scene expects it.

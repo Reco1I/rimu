@@ -1,6 +1,6 @@
 package com.osudroid.data
 
-import android.util.Log
+import com.reco1l.verktex.Logger
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -45,7 +45,7 @@ abstract class BackedUpMigration(startVersion: Int, endVersion: Int) : Migration
             val message = "Failed to perform database migration from version $startVersion to $endVersion"
 
             ToastLogger.showText("$message, exiting", true)
-            Log.e("Migration", message, e)
+            Logger.e("Migration", message, e)
             FirebaseCrashlytics.getInstance().recordException(e)
 
             exitProcess(1)

@@ -1,7 +1,7 @@
 package com.osudroid.ui.v2.settings
 
 import android.net.Uri
-import android.util.Log
+import com.reco1l.verktex.Logger
 import androidx.activity.result.contract.ActivityResultContracts
 import com.edlplan.ui.fragment.LoadingFragment
 import com.google.android.material.snackbar.Snackbar
@@ -51,7 +51,7 @@ private fun importReplays(uris: List<Uri>) {
                 ReplayImporter.import(tempFile)
                 importedCount++
             } catch (e: Exception) {
-                Log.e("ReplayImport", "Failed to import replay from $uri", e)
+                Logger.e("ReplayImport", "Failed to import replay from $uri", e)
 
                 mainThread {
                     Snackbar.make(

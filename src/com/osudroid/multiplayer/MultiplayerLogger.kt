@@ -1,7 +1,7 @@
 package com.osudroid.multiplayer
 
 import android.text.format.DateFormat
-import android.util.Log
+import com.reco1l.verktex.Logger
 import java.io.BufferedWriter
 import java.io.File
 import java.text.SimpleDateFormat
@@ -57,7 +57,7 @@ class MultiplayerLogger : AutoCloseable {
 
         val timestamp = timestampFormat.format(System.currentTimeMillis())
 
-        Log.i("Multiplayer", text)
+        Logger.i("Multiplayer", text)
         write("\n[$timestamp] $text")
     }
 
@@ -72,9 +72,9 @@ class MultiplayerLogger : AutoCloseable {
         }
 
         val time = timestampFormat.format(System.currentTimeMillis())
-        val stacktrace = Log.getStackTraceString(e)
+        val stacktrace = e.stackTraceToString()
 
-        Log.e("Multiplayer", "An exception has been thrown.", e)
+        Logger.e("Multiplayer", "An exception has been thrown.", e)
         write("\n[$time] EXCEPTION: ${e.javaClass.simpleName}\n$stacktrace")
     }
 

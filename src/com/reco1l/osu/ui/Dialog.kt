@@ -2,7 +2,7 @@ package com.reco1l.osu.ui
 
 import android.graphics.Color
 import android.text.method.LinkMovementMethod
-import android.util.Log
+import com.reco1l.verktex.Logger
 import android.view.ContextThemeWrapper
 import android.view.Gravity.*
 import android.view.View
@@ -107,7 +107,7 @@ open class MessageDialog : BaseFragment() {
 
                 val layout = findViewById<LinearLayout>(R.id.button_layout)
                 if (layout == null) {
-                    Log.e("MessageDialog", "Buttons layout not found.")
+                    Logger.e("MessageDialog", "Buttons layout not found.")
                     return
                 }
 

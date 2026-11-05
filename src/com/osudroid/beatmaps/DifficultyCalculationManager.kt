@@ -2,7 +2,7 @@ package com.osudroid.beatmaps
 
 import com.osudroid.ui.v2.songselect.SongSelect
 
-import android.util.Log
+import com.reco1l.verktex.Logger
 import androidx.preference.PreferenceManager
 import com.osudroid.ui.v1.LoadingBadgeFragment
 import com.osudroid.utils.async
@@ -126,7 +126,7 @@ object DifficultyCalculationManager {
                                     DatabaseManager.beatmapInfoTable.update(beatmapInfo)
 
                                     if (BuildConfig.DEBUG) {
-                                        Log.i(
+                                        Logger.i(
                                             "DifficultyCalculation",
                                             "Calculated difficulty for ${beatmapInfo.path}, took ${System.currentTimeMillis() - msStartTime}ms."
                                         )
@@ -148,7 +148,7 @@ object DifficultyCalculationManager {
                                     throw e
                                 }
 
-                                Log.e(
+                                Logger.e(
                                     "DifficultyCalculation",
                                     "Error while calculating difficulty.",
                                     e
@@ -170,7 +170,7 @@ object DifficultyCalculationManager {
                 SongSelect.loadBeatmaps()
 
             } catch (e: InterruptedException) {
-                Log.e("DifficultyCalculation", "Failed while waiting for executor termination.", e)
+                Logger.e("DifficultyCalculation", "Failed while waiting for executor termination.", e)
             }
 
             job = null

@@ -3,7 +3,7 @@ package com.osudroid.multiplayer
 import com.reco1l.verktex.Verktex
 import com.osudroid.ui.v2.songselect.SongSelect
 import android.net.*
-import android.util.Log
+import com.reco1l.verktex.Logger
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.Room
 import com.osudroid.multiplayer.api.data.RoomPlayer
@@ -146,7 +146,7 @@ object Multiplayer {
 
             } catch (e: Exception) {
                 ToastLogger.showText("Failed to connect to the room: ${e.javaClass} - ${e.message}", true)
-                Log.e("LobbyScene", "Failed to connect to room.", e)
+                Logger.e("LobbyScene", "Failed to connect to room.", e)
 
                 updateThread { Verktex.pushScene(LobbyScene()) }
             }

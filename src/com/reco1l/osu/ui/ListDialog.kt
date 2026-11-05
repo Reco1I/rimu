@@ -2,7 +2,7 @@ package com.reco1l.osu.ui
 
 import android.graphics.Color
 import android.graphics.drawable.Drawable
-import android.util.Log
+import com.reco1l.verktex.Logger
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -231,7 +231,7 @@ open class SelectDropdown(private val caller: View) : SelectDialog() {
 
 
     override fun addButton(text: String, tint: Int, clickListener: (MessageDialog) -> Unit): SelectDropdown {
-        Log.e("SelectDropdown", "This dialog does not support buttons, ignoring.")
+        Logger.e("SelectDropdown", "This dialog does not support buttons, ignoring.")
         return this
     }
 

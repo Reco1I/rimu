@@ -3,7 +3,7 @@ package com.osudroid.ui.v2
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import com.reco1l.verktex.Logger
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -82,7 +82,7 @@ class UIVideo(source: String) : UISprite() {
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
-                    Log.e("UIVideo", "Failed to play the video", error)
+                    Logger.e("UIVideo", "Failed to play the video", error)
                 }
             })
             player.setMediaItem(MediaItem.fromUri(Uri.fromFile(File(source))))
