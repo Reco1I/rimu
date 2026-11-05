@@ -148,7 +148,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                     }
 
                     onSubmit = {
-                        connectToRoom(it.getString("password"))
+                        connectToRoom(it["password"]?.toString().orEmpty())
                     }
                 }) {
                     init {
