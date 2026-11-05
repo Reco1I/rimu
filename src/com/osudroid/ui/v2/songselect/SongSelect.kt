@@ -339,7 +339,6 @@ object SongSelect : UIScene() {
             addButton {
                 text = "Delete"
                 leadingIcon = faSolidIcon(FAIcon.Trash)
-                tintChildren = true
                 color = Color4("#FFBFBF")
                 onActionUp = {
                     UIConfirmDialog().apply {

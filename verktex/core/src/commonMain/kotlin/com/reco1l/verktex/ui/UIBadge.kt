@@ -41,7 +41,7 @@ open class UIBadge : UIText() {
 
 
     init {
-        color = themed { if (variant == Variant.Solid) palette.contentOnSolid else Color4.White }
+        color = themed { if (variant == Variant.Solid) palette.contentOnSolid else palette.accent }
 
         backgroundColor = themed {
             when (variant) {

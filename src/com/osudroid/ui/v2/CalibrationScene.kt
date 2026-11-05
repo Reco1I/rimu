@@ -274,7 +274,6 @@ object CalibrationScene : UIScene() {
                     text = currentBpm.toString()
                     alignment = Anchor.Center
                     width = 110f.px
-                    tintChildren = true
                     radius = 8f.px
                     backgroundColor = themed { palette.accent.shade(0.12f) }
                     color = themed { palette.accent }
@@ -320,7 +319,6 @@ object CalibrationScene : UIScene() {
                     text = formatOffset(pendingOffset)
                     alignment = Anchor.Center
                     width = 110f.px
-                    tintChildren = true
                     radius = 8f.px
                     backgroundColor = themed { palette.accent.shade(0.12f) }
                     color = themed { palette.accent }
@@ -351,7 +349,6 @@ object CalibrationScene : UIScene() {
                 setText(string.opt_offset_calibration_reset)
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                tintChildren = true
                 color = Color4(0xFFFFBFBF)
                 backgroundColor = Color4(0xFF342121)
                 onActionUp = {

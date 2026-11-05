@@ -358,7 +358,6 @@ class RoomScene(
                         textButton {
                             leadingIcon = faSolidIcon(FAIcon.ArrowRightFromBracket)
                             setText(R.string.multiplayer_room_leave)
-                            tintChildren = true
                             color = Color4(0xFFFFBFBF)
                             backgroundColor = Color4(0xFF342121)
                             onActionUp = { leaveDialog.show() }
