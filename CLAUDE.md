@@ -79,7 +79,7 @@ SplashScene → LoadingScreen → MainScene (menu hub) → LobbyScene
 
 Verktex handles all rendering. UI is a tree of `UIComponent`s measured and laid out through `LayoutConstraints`, animated with transforms for UI, and with `Choreography` for anything on the gameplay clock, whose state depends only on the time so that seeking works.
 
-A Vulkan backend roadmap lives in `verktex/docs/vulkan-backend.md`.
+A Vulkan backend roadmap lives in `verktex/docs/vulkan-backend.md`. How the frame rate is capped on each platform, and the pending work on it, is in `verktex/docs/frame-rate.md`.
 
 ### UI Tests
 
