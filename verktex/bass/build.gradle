@@ -1,7 +1,9 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdk 34
+    compileSdk {
+        version = release(36) { minorApiLevel = 1 }
+    }
     ndkVersion '22.1.7171670'
 
     defaultConfig {

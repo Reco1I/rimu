@@ -44,7 +44,7 @@ class GraphicsRendererCommandsTest {
     private class FakeTexture(override val width: Float, override val height: Float) : GraphicsTexture() {
         override fun onCreateTexture() = Unit
         override fun onBindTexture() = Unit
-        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: java.nio.ByteBuffer) = Unit
+        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: com.ditchoom.buffer.ReadBuffer) = Unit
         override fun onUnload() = Unit
     }
 
@@ -55,7 +55,7 @@ class GraphicsRendererCommandsTest {
         override val transform = FloatArray(16) { if (it % 5 == 0) 1f else 0f }
         override fun onCreateTexture() = Unit
         override fun onBindTexture() = Unit
-        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: java.nio.ByteBuffer) = Unit
+        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: com.ditchoom.buffer.ReadBuffer) = Unit
         override fun onUnload() = Unit
     }
 

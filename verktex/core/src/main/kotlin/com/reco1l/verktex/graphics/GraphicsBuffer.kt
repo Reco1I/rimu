@@ -1,7 +1,6 @@
 package com.reco1l.verktex.graphics
 
 import com.reco1l.verktex.Logger
-import java.nio.ByteOrder
 import kotlin.math.max
 
 /**
@@ -18,7 +17,8 @@ abstract class GraphicsBuffer : GraphicsResource() {
 
     // Written as ints into a plain array, which is much cheaper per value than a direct buffer, and
     // copied by the backend in one go when uploaded. Every vertex layout is made of 4-byte floats and
-    // groups of 4 bytes, so the data is always whole ints.
+    // groups of 4 bytes, so the data is always whole ints. The words are little-endian, the byte order
+    // of every CPU Verktex runs on (ARM and x86 in their usual mode, and WebAssembly).
     private var _words = IntArray(INITIAL_WORDS)
     private var _wordCount = 0
 
@@ -28,7 +28,7 @@ abstract class GraphicsBuffer : GraphicsResource() {
 
 
     /**
-     * The data written so far in native byte order, valid up to [wordCount]. Backends upload it, or
+     * The data written so far in native (little-endian) byte order, valid up to [wordCount]. Backends upload it, or
      * read it to rearrange it on the CPU. It must not be modified.
      */
     val words: IntArray
@@ -76,8 +76,7 @@ abstract class GraphicsBuffer : GraphicsResource() {
     }
 
     fun putByte(byte: Byte) {
-        val shift = if (IS_LITTLE_ENDIAN) pendingByteCount * 8 else (3 - pendingByteCount) * 8
-        pendingBytes = pendingBytes or ((byte.toInt() and 0xFF) shl shift)
+        pendingBytes = pendingBytes or ((byte.toInt() and 0xFF) shl (pendingByteCount * 8))
 
         if (++pendingByteCount == 4) {
             requireCapacity(0)
@@ -89,7 +88,7 @@ abstract class GraphicsBuffer : GraphicsResource() {
 
     fun putFloat(float: Float) {
         requireCapacity(4)
-        _words[_wordCount++] = java.lang.Float.floatToRawIntBits(float)
+        _words[_wordCount++] = float.toRawBits()
     }
 
     /**
@@ -98,7 +97,7 @@ abstract class GraphicsBuffer : GraphicsResource() {
      */
     fun putPackedBytes(value: Int) {
         requireCapacity(4)
-        _words[_wordCount++] = if (IS_LITTLE_ENDIAN) value else Integer.reverseBytes(value)
+        _words[_wordCount++] = value
     }
 
     /**
@@ -111,11 +110,11 @@ abstract class GraphicsBuffer : GraphicsResource() {
 
         val words = _words
         var i = _wordCount
-        words[i++] = java.lang.Float.floatToRawIntBits(x)
-        words[i++] = java.lang.Float.floatToRawIntBits(y)
-        words[i++] = java.lang.Float.floatToRawIntBits(u)
-        words[i++] = java.lang.Float.floatToRawIntBits(v)
-        words[i++] = if (IS_LITTLE_ENDIAN) packedRGBA else Integer.reverseBytes(packedRGBA)
+        words[i++] = x.toRawBits()
+        words[i++] = y.toRawBits()
+        words[i++] = u.toRawBits()
+        words[i++] = v.toRawBits()
+        words[i++] = packedRGBA
         _wordCount = i
     }
 
@@ -133,7 +132,5 @@ abstract class GraphicsBuffer : GraphicsResource() {
         const val VERTEX_STRIDE = 20
 
         private const val INITIAL_WORDS = 256
-
-        private val IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
     }
 }

@@ -20,5 +20,9 @@ kotlin {
 }
 
 dependencies {
+    // Multiplatform byte buffers, over direct java.nio buffers on the JVM and Android, for the pixels
+    // the textures upload.
+    api("com.ditchoom:buffer:6.30.8")
+
     testImplementation("junit:junit:4.13.2")
 }
