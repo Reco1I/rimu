@@ -1,17 +1,16 @@
 package com.osudroid.ui.v2
 
+import com.reco1l.verktex.ui.control.IntegerTextInput
+import com.reco1l.verktex.ui.dialog.UIPromptDialog
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
-import android.text.InputType
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.math.Interpolation
 import com.osudroid.resources.Res.string
 import com.osudroid.resources.StringResource
-import com.osudroid.utils.mainThread
 import com.osudroid.utils.median
 import com.osudroid.utils.standardDeviation
 import com.osudroid.utils.updateThread
-import com.reco1l.osu.ui.PromptDialog
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.ClipMode
@@ -660,30 +659,28 @@ object CalibrationScene : UIScene() {
     }
 
     private fun showOffsetInputDialog() {
-        mainThread {
-            PromptDialog().apply {
-                setTitle(StringTable.get(com.osudroid.resources.Res.string.opt_offset_title))
-                setMessage(StringTable.get(com.osudroid.resources.Res.string.opt_offset_summary))
-                setInput(pendingOffset.toString())
-                setInputType(InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED)
+        updateThread {
+            UIPromptDialog(IntegerTextInput(pendingOffset)).apply {
+                title = StringTable.get(com.osudroid.resources.Res.string.opt_offset_title)
+                text = StringTable.get(com.osudroid.resources.Res.string.opt_offset_summary)
 
-                addButton("OK") { dialog ->
-                    dialog as PromptDialog
+                addButton {
+                    text = "OK"
+                    onActionUp = {
+                        val newValue = value.toIntOrNull() ?: pendingOffset
+                        pendingOffset = newValue.coerceIn(OFFSET_MIN, OFFSET_MAX)
 
-                    val newValue = dialog.input?.toIntOrNull() ?: pendingOffset
-                    pendingOffset = newValue.coerceIn(OFFSET_MIN, OFFSET_MAX)
-
-                    updateThread {
                         tapOffsets.clear()
                         updateOffsetDisplay()
                         updateTapFeedback()
-                    }
 
-                    dismiss()
+                        hide()
+                    }
                 }
 
-                addButton("Cancel") { dialog ->
-                    dialog.dismiss()
+                addButton {
+                    text = "Cancel"
+                    onActionUp = { hide() }
                 }
 
                 show()
@@ -692,26 +689,24 @@ object CalibrationScene : UIScene() {
     }
 
     private fun showBpmInputDialog() {
-        mainThread {
-            PromptDialog().apply {
-                setTitle("BPM")
-                setInput(currentBpm.toString())
-                setInputType(InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED)
+        updateThread {
+            UIPromptDialog(IntegerTextInput(currentBpm)).apply {
+                title = "BPM"
 
-                addButton("OK") { dialog ->
-                    dialog as PromptDialog
+                addButton {
+                    text = "OK"
+                    onActionUp = {
+                        val newValue = value.toIntOrNull() ?: currentBpm
 
-                    val newValue = dialog.input?.toIntOrNull() ?: currentBpm
-
-                    updateThread {
                         changeBpm(newValue - currentBpm)
-                    }
 
-                    dismiss()
+                        hide()
+                    }
                 }
 
-                addButton("Cancel") { dialog ->
-                    dialog.dismiss()
+                addButton {
+                    text = "Cancel"
+                    onActionUp = { hide() }
                 }
 
                 show()
