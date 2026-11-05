@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.ui.text.spans
 import com.osudroid.ui.v2.SkinSounds
 import android.icu.text.SimpleDateFormat
@@ -276,7 +277,7 @@ class RoomChat : UILinearContainer() {
         return Color4(
             when {
                 player.id in DEVELOPERS -> "#F280FF"
-                player.isHost -> "#00FFEA"
+                Multiplayer.room?.host == player.id -> "#00FFEA"
                 else -> "#8282A8"
             }
         )

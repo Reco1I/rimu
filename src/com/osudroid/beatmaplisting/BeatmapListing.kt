@@ -1,5 +1,6 @@
 package com.osudroid.beatmaplisting
 
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.osudroid.MusicManager
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -601,7 +602,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
 
     fun bind(beatmapSet: BeatmapSetModel) {
 
-        status.text = itemView.context.getText(beatmapSet.status.stringId)
+        status.text = StringTable.get(beatmapSet.status.stringId)
         creator.text = "Mapped by ${beatmapSet.creator}"
 
 
@@ -844,13 +845,13 @@ class BeatmapListingFiltersFragment(private val beatmapListing: BeatmapListing) 
             if (rankedStatus == null) {
                 statusButton.text = "All"
             } else {
-                statusButton.setText(rankedStatus!!.stringId)
+                statusButton.text = StringTable.get(rankedStatus!!.stringId)
             }
 
             statusButton.setOnClickListener {
 
                 val options = RankedStatus.entries.map { status ->
-                    Option(requireContext().getString(status.stringId), status)
+                    Option(StringTable.get(status.stringId), status)
                 }.toMutableList()
                 options.add(0, Option("All", null))
 
@@ -865,7 +866,7 @@ class BeatmapListingFiltersFragment(private val beatmapListing: BeatmapListing) 
                             if (it == null) {
                                 statusButton.text = "All"
                             } else {
-                                statusButton.setText(it.stringId)
+                                statusButton.text = StringTable.get(it.stringId)
                             }
 
                             beatmapListing.search(false)
