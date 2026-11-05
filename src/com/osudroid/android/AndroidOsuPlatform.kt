@@ -70,4 +70,10 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
 
     override val isInForeground: Boolean
         get() = MainActivity.isActivityVisible()
+
+    override fun logAnalyticsEvent(name: String, parameters: Map<String, String>) {
+        val bundle = android.os.Bundle()
+        parameters.forEach { (key, value) -> bundle.putString(key, value) }
+        com.google.firebase.analytics.FirebaseAnalytics.getInstance(activity).logEvent(name, bundle)
+    }
 }

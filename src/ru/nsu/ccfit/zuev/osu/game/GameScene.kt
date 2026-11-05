@@ -126,7 +126,7 @@ import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.SecurityUtils
+import ru.nsu.ccfit.zuev.osu.AndroidSecurityUtils
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameHelper.SliderPath
@@ -589,7 +589,7 @@ open class GameScene : GameObjectListener {
     }
 
     private fun loadGame(beatmapInfo: BeatmapInfo, rFile: String?, mods: ModHashMap, scope: CoroutineScope?): Boolean {
-        if (!SecurityUtils.verifyFileIntegrity(GlobalManager.getInstance().mainActivity)) {
+        if (!AndroidSecurityUtils.verifyFileIntegrity(GlobalManager.getInstance().mainActivity)) {
             ToastLogger.showText(Res.string.file_integrity_tampered, true)
             return false
         }
@@ -600,7 +600,7 @@ open class GameScene : GameObjectListener {
             this.replayFilePath = Config.getCachePath() + "/" +
                 MD5Calculator.getStringMD5(rFile) + ".odr"
             Logger.i("GameScene", "ReplayFile = $replayFilePath")
-            if (!OnlineFileOperator.downloadFile(rFile, this.replayFilePath)) {
+            if (!OnlineFileOperator.downloadFile(rFile, this.replayFilePath!!)) {
                 ToastLogger.showText(Res.string.replay_cantdownload, true)
                 return false
             }

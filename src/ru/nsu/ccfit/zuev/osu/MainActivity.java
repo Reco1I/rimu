@@ -133,7 +133,7 @@ public class MainActivity extends AndroidGameHost {
         reportGlesVersion();
 
         OsuPlatform.INSTANCE.setImplementation(new AndroidOsuPlatform(this));
-        Http.INSTANCE.setImplementation(new OkHttpClientImplementation(OnlineManager.client));
+        Http.INSTANCE.setImplementation(new OkHttpClientImplementation());
         Config.loadConfig();
         StringTable.INSTANCE.setImplementation(new AndroidStringTable(this));
         ToastLogger.init(new AndroidToasts(this));

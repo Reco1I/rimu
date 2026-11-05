@@ -74,6 +74,11 @@ object OsuPlatform {
         fun handleUncaughtException(throwable: Throwable)
 
         /**
+         * Logs an analytics event, such as `login`, with its parameters.
+         */
+        fun logAnalyticsEvent(name: String, parameters: Map<String, String>)
+
+        /**
          * Whether the game is in the foreground, visible to the player.
          */
         val isInForeground: Boolean
