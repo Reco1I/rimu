@@ -1,6 +1,5 @@
 package com.reco1l.verktex.ui.container
 
-import androidx.annotation.*
 import com.reco1l.verktex.*
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.ui.UIComponent
@@ -283,7 +282,10 @@ open class UIScrollableContainer : UIContainer() {
 
     //region Callbacks
 
-    @CallSuper
+    /**
+     * Called when the content scrolls on the given axes. Overrides must call `super`, it shows the
+     * scroll indicators.
+     */
     open fun onScroll(axes: Axis) {
 
         if (axes.isVertical) {
