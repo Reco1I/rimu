@@ -1,6 +1,5 @@
 package com.osudroid.ui
 
-import android.graphics.Color
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.math.ColorInterpolation
 import com.reco1l.framework.math.roundBy
@@ -25,7 +24,7 @@ object OsuColors {
             5.8f to Color4(0xFFc645b8.toInt()),
             6.7f to Color4(0xFF6563de.toInt()),
             7.7f to Color4(0xFF18158e.toInt()),
-            9.0f to Color4(Color.BLACK)
+            9.0f to Color4(0xFF000000.toInt())
         )
     )
 

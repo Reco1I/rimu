@@ -95,7 +95,7 @@ object RoomAPI {
             return@Listener
         }
 
-        playerEventListener?.onPlayerModsChange(id, RoomMods(mods))
+        playerEventListener?.onPlayerModsChange(id, RoomMods(mods.toString()))
     }
 
     private val roomModsChanged = Listener {
@@ -105,7 +105,7 @@ object RoomAPI {
             Multiplayer.log("WARNING: roomModsChanged — unexpected payload type: ${it.contentToString()}")
             return@Listener
         }
-        roomEventListener?.onRoomModsChange(RoomMods(mods))
+        roomEventListener?.onRoomModsChange(RoomMods(mods.toString()))
     }
 
     private val roomGameplaySettingsChanged = Listener {
@@ -258,7 +258,7 @@ object RoomAPI {
                 name = json.getString("name"),
                 isLocked = json.getBoolean("isLocked"),
                 maxPlayers = json.getInt("maxPlayers"),
-                mods = RoomMods(json.getJSONArray("mods")),
+                mods = RoomMods(json.getJSONArray("mods").toString()),
                 gameplaySettings = parseGameplaySettings(json.getJSONObject("gameplaySettings")),
                 teamMode = TeamMode.fromWire(json.getString("teamMode")) ?: TeamMode.HeadToHead,
                 winCondition = WinCondition.fromWire(json.getString("winCondition")) ?: WinCondition.ScoreV1,
