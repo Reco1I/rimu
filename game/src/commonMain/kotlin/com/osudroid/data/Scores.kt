@@ -16,10 +16,10 @@ import com.osudroid.scoring.LegacyScoreMultiplierCalculator
 import com.osudroid.scoring.ScoreMultiplierCalculator
 import com.osudroid.utils.deserializeMods
 import kotlin.math.roundToLong
-import org.apache.commons.io.FilenameUtils
-import org.json.JSONObject
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
+import kotlin.jvm.JvmName
+import kotlin.jvm.JvmOverloads
 
 
 @Entity(
@@ -210,32 +210,6 @@ data class ScoreInfo @JvmOverloads constructor(
 
 
 }
-
-fun ScoreInfo(json: JSONObject) =
-    ScoreInfo(
-
-        beatmapMD5 = json.getString("beatmapMD5"),
-        replayFilename = FilenameUtils.getName(json.getString("replayfile")),
-
-        // The keys don't correspond to the table columns in order to keep compatibility with the old replays.
-        id = json.optLong("id", 0),
-        playerName = json.getString("playername"),
-        mods = json.getString("mods"),
-        score = json.getLong("score"),
-        maxCombo = json.getInt("combo"),
-        mark = json.getString("mark"),
-        hit300k = json.getInt("h300k"),
-        hit300 = json.getInt("h300"),
-        hit100k = json.getInt("h100k"),
-        hit100 = json.getInt("h100"),
-        hit50 = json.getInt("h50"),
-        misses = json.getInt("misses"),
-        time = json.getLong("time"),
-        sliderHeadHits = json.optInt("sliderHeadHits", -1).takeIf { it >= 0 },
-        sliderTickHits = json.optInt("sliderTickHits", -1).takeIf { it >= 0 },
-        sliderRepeatHits = json.optInt("sliderRepeatHits", -1).takeIf { it >= 0 },
-        sliderEndHits = json.optInt("sliderEndHits", -1).takeIf { it >= 0 }
-    )
 
 /**
  * A [ScoreInfo] paired with its precomputed effective score, as returned by [IScoreInfoDAO.getBeatmapLeaderboard].

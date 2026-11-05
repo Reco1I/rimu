@@ -3,6 +3,7 @@ package com.osudroid.data
 import androidx.room.ColumnInfo
 import androidx.room.Relation
 import ru.nsu.ccfit.zuev.osu.Config
+import kotlin.jvm.JvmName
 
 /**
  * Defines a beatmap set, they're virtually created by the database using DISTINCT operation. This means it doesn't have

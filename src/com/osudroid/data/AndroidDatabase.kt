@@ -24,86 +24,30 @@ import kotlin.math.roundToLong
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 
 
-// Ported from rimu! project
-
 /**
- * The current schema version of [DroidDatabase].
+ * Opens the database on Android, with Room.
  */
-const val DATABASE_VERSION = 5
+object AndroidDatabase {
 
-/**
- * The osu!droid database manager.
- */
-object DatabaseManager {
+    private val databasePath
+        get() = DatabaseManager.databasePath
 
-    /**
-     * Get the beatmaps table DAO.
-     */
-    @JvmStatic
-    val beatmapInfoTable
-        get() = database.getBeatmapInfoTable()
+    private val beatmapOptionsTable
+        get() = DatabaseManager.beatmapOptionsTable
 
-    /**
-     * Get the beatmap options table DAO.
-     */
-    @JvmStatic
-    val beatmapOptionsTable
-        get() = database.getBeatmapOptionsTable()
+    private val beatmapCollectionsTable
+        get() = DatabaseManager.beatmapCollectionsTable
 
-    /**
-     * Get the beatmap collections table DAO.
-     */
-    @JvmStatic
-    val beatmapCollectionsTable
-        get() = database.getBeatmapCollectionsTable()
-
-    /**
-     * Get the score table DAO.
-     */
-    @JvmStatic
-    val scoreInfoTable
-        get() = database.getScoreInfoTable()
-
-    /**
-     * Get the block area table DAO.
-     */
-    @JvmStatic
-    val blockAreaTable
-        get() = database.getBlockAreaTable()
-
-    /**
-     * Get the mod preset table DAO.
-     */
-    @JvmStatic
-    val modPresetTable
-        get() = database.getModPresetTable()
-
-    /**
-     * The path to the database file.
-     */
-    @JvmStatic
-    val databasePath: String
-        get() = "${Config.getCorePath()}databases/room-${BuildConfig.BUILD_TYPE}.db"
-
-    private lateinit var database: DroidDatabase
-
-    /**
-     * `true` if the database was created by a newer, incompatible version of the app and had to be reset.
-     *
-     * When this happens, the previous database file is kept as a backup alongside the new one.
-     */
-    @JvmStatic
-    var wasResetDueToDowngrade = false
-        private set
-
+    private val scoreInfoTable
+        get() = DatabaseManager.scoreInfoTable
 
     @JvmStatic
     fun load(context: Context) {
 
-        wasResetDueToDowngrade = backUpDatabaseIfDowngraded()
+        DatabaseManager.wasResetDueToDowngrade = backUpDatabaseIfDowngraded()
 
         // Be careful when changing the database name, it may cause data loss.
-        database = Room.databaseBuilder(context, DroidDatabase::class.java, databasePath)
+        DatabaseManager.database = Room.databaseBuilder(context, DroidDatabase::class.java, databasePath)
             .addMigrations(*ALL_MIGRATIONS)
             // No downgrade path is maintained for the database, so if it was created by a newer version of
             // the game, it will be reset. backUpDatabaseIfDowngraded() keeps a copy of it beforehand.
@@ -122,7 +66,7 @@ object DatabaseManager {
      */
     @JvmStatic
     fun loadInMemory(context: Context) {
-        database = Room.inMemoryDatabaseBuilder(context, DroidDatabase::class.java)
+        DatabaseManager.database = Room.inMemoryDatabaseBuilder(context, DroidDatabase::class.java)
             .allowMainThreadQueries()
             .build()
     }
@@ -134,7 +78,7 @@ object DatabaseManager {
      */
     @JvmStatic
     fun notifyIfResetDueToDowngrade() {
-        if (!wasResetDueToDowngrade) {
+        if (!DatabaseManager.wasResetDueToDowngrade) {
             return
         }
 
@@ -373,17 +317,17 @@ object DatabaseManager {
         ModPreset::class
     ]
 )
-abstract class DroidDatabase : RoomDatabase() {
+abstract class DroidDatabase : RoomDatabase(), GameDatabase {
 
-    abstract fun getBeatmapInfoTable(): IBeatmapInfoDAO
+    abstract override fun getBeatmapInfoTable(): IBeatmapInfoDAO
 
-    abstract fun getBeatmapOptionsTable(): IBeatmapOptionsDAO
+    abstract override fun getBeatmapOptionsTable(): IBeatmapOptionsDAO
 
-    abstract fun getBeatmapCollectionsTable(): IBeatmapCollectionsDAO
+    abstract override fun getBeatmapCollectionsTable(): IBeatmapCollectionsDAO
 
-    abstract fun getScoreInfoTable(): IScoreInfoDAO
+    abstract override fun getScoreInfoTable(): IScoreInfoDAO
 
-    abstract fun getBlockAreaTable(): IBlockAreaDAO
+    abstract override fun getBlockAreaTable(): IBlockAreaDAO
 
-    abstract fun getModPresetTable(): IModPresetDAO
+    abstract override fun getModPresetTable(): IModPresetDAO
 }

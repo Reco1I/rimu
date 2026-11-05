@@ -2,6 +2,7 @@ package com.osudroid.data
 
 import androidx.room.*
 import com.osudroid.utils.ModHashMap
+import kotlin.jvm.JvmField
 
 /**
  * Represents a mod preset.

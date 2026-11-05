@@ -3,6 +3,7 @@ package com.osudroid.ui.v2.test
 import com.osudroid.android.AndroidToasts
 import android.app.Activity
 import com.osudroid.MusicManager
+import com.osudroid.data.AndroidDatabase
 import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.testing.UITestStage
@@ -50,7 +51,7 @@ object TestGameContext {
         // The skins of the skin folder, for the settings.
         Config.loadSkins()
 
-        DatabaseManager.loadInMemory(activity)
+        AndroidDatabase.loadInMemory(activity)
         seedDatabase()
         LibraryManager.loadLibrary()
 
