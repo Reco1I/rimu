@@ -30,7 +30,7 @@ often poor), NDK 22.1.7171670 (ships Vulkan headers, `libvulkan.so` and `glslc` 
   `src/ru/nsu/ccfit/zuev/osu/MainActivity.java`.
 - Frame loop: `Verktex.draw()` (`verktex/.../Verktex.kt`) on the draw worker:
   `prepareFrame() → begin() → tree records → end()`.
-- Shaders: GLSL ES 3.00 in `verktex/android/src/main/assets/shaders/` (`main.vert`, `ui.vert/frag`, `quad`,
+- Shaders: GLSL ES 3.00 in `verktex/core/assets/shaders/` (`main.vert`, `ui.vert/frag`, `quad`,
   `color`, `texture`, `video` (samplerExternalOES), `blur`, `particle.vert/frag`). Loaded as
   strings by `AndroidProvider.createShaderSource`. The app creates no shaders of its own today.
 
