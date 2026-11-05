@@ -7,6 +7,7 @@ as that project:
 ```
 verktex/
   core/         :verktex:core         Platform independent: scenes, UI, graphics abstractions, audio, input, clocks.
+                                      Kotlin Multiplatform, its code is in src/commonMain.
   android/      :verktex:android      The Android platform: graphics backends (GLES, Vulkan), windowing, input,
                                       the built-in shaders and fonts (src/main/assets), SPIR-V compilation.
   bass/         :verktex:bass         The BASS audio library, used by the Android audio driver.
@@ -19,8 +20,17 @@ The game depends only on `:verktex:android`, which exposes `:verktex:core` as an
 ## Rules
 
 - Verktex never depends on the game.
-- `:verktex:core` never depends on Android, including `org.json`, which ships with the Android SDK.
-  It's a plain Kotlin/JVM module, so the compiler enforces this.
+- `:verktex:core` never depends on Android or the JVM. Its code is common Kotlin, in `commonMain`,
+  and the few platform specific declarations are expected there and actual in `jvmMain`, e.g.
+  `fairReentrantLock()`. The JVM is its only target for now, which also lets common code use the
+  JVM's API, so check it with `./gradlew -Pverktex.checkCommon :verktex:core:compileKotlinJs`, which
+  compiles it for JavaScript as well.
+- What the core needs from a platform goes through `Platform.Implementation`: resources (`Provider`),
+  audio (`AudioDriver`), the display, the keyboard, logging and threads (`LoopWorker`, which also
+  paces its loop). Everything else comes from multiplatform libraries: DitchOoM's `buffer` for the
+  pixels textures upload (`ReadBuffer`, `asReadBuffer()`/`asByteBuffer()` on Android), atomicfu for
+  locks, `kotlin.time` for time, and small helpers in the core (`toFixed`, the code points in
+  `ui/text/CodePoints.kt`).
 - Everything the engine needs at runtime, such as shaders and fonts, ships in its own modules, and so
   do the tasks that build it, such as `compileVulkanShaders` in `:verktex:android`.
 - The core keeps the API only the platforms should use public under `@VerktexPlatformApi`, which
@@ -32,12 +42,8 @@ The game depends only on `:verktex:android`, which exposes `:verktex:core` as an
    have the game consume it with `includeBuild("verktex")` and dependency substitution, which is how
    it'll look once it's a separate repository. The lookup of `verktex.validationLayers` in
    `local.properties` will then need a fallback to the game's.
-2. **Kotlin Multiplatform.** Turn `:verktex:core` into a `kotlin("multiplatform")` module, with
-   `commonMain` and the `jvm`/`androidTarget` targets. Its JVM-only APIs have to move to expected
-   declarations or multiplatform libraries first:
-   - `java.nio` buffers (`ByteBuffer`, `FloatBuffer`, …), used throughout `graphics/`.
-   - `java.util.concurrent` locks and atomics, `@Synchronized` and `Thread` (`Verktex.kt`,
-     `GraphicsRenderer.kt`, `GraphicsTexture.kt`).
-   - `java.util.function`.
+2. **More targets.** Adding a target to `:verktex:core` only takes the actual declarations of
+   `jvmMain` (for now `fairReentrantLock()`), and a platform module implementing
+   `Platform.Implementation`, like `:verktex:android` does.
 3. **Shared shaders.** The shaders only ship with the Android platform, since it's the only one
    loading them. Once there's a second platform, they move to the core's resources.
