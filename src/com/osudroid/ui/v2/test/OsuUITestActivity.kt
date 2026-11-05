@@ -2,6 +2,7 @@ package com.osudroid.ui.v2.test
 
 import com.osudroid.OsuPlatform
 import com.osudroid.android.AndroidOsuPlatform
+import com.osudroid.android.AndroidStringTable
 import com.google.firebase.FirebaseApp
 import com.osudroid.ui.v2.Skin
 import com.reco1l.verktex.android.UITestActivity
@@ -24,7 +25,7 @@ class OsuUITestActivity : UITestActivity() {
 
         OsuPlatform.implementation = AndroidOsuPlatform(this)
         Config.loadConfig()
-        StringTable.setContext(this)
+        StringTable.implementation = AndroidStringTable(this)
         Skin.load(Config.getSkinPath())
 
         // Before any suite is created, the components under test reach the game through it.

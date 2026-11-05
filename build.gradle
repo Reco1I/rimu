@@ -223,7 +223,7 @@ dependencies {
     implementation 'com.github.EdrowsLuo.EdlGameFramework:EdlOsbSupport:d91c53fcff'
 
     // Localizations
-    implementation 'com.github.osudroid:language-pack:2026.0606.2'
+    implementation "com.github.osudroid:language-pack:$languagePackVersion"
 
     // Tools
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0"
