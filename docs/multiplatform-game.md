@@ -237,6 +237,11 @@ Done since the previous notes:
   - Calls stay blocking, so callers didn't change. **Later:** move to Ktor (suspend calls) and a Socket.IO
     client over Ktor WebSockets, which would drop OkHttp and socket.io-client.
 
+- Android views, started: Verktex has `UIPromptDialog`, and the calibration inputs and the HUD editor's
+  exit dialog use Verktex dialogs. `Platform.openWebPage` replaced `WebViewFragment` (Verktex's
+  `WebPageActivity` on Android, the browser on desktop). The unused preference views and settings fragment
+  are deleted.
+
 What's left, roughly in order:
 
 1. **Skins, the rest**: `Skin` (reading the skin folder, which reports to the loading screen and
@@ -249,6 +254,8 @@ What's left, roughly in order:
    `OnlineManager`, `GlobalManager`…) is still to convert.
 4. **Database**: done as above; a desktop `GameDatabase` when there's a desktop launcher.
 5. **Networking**: done as above, except `OnlineScoring` (Java, shows an Android Snackbar). Ktor later.
-6. **Android views**: rewrite on Verktex (beatmap listing, collections, block area editor, dialogs,
-   toasts) and `Platform.openWebPage` instead of the WebView.
+6. **Android views**: rewrite on Verktex the beatmap listing (with its download and loading fragments),
+   the collections manager, the block area editor, the replay import's loading fragment, the difficulty
+   calculation badge, and the remaining `MessageDialog`s (`CollectionsManagerFragment`, `BlockAreaEditorFragment`;
+   the ones in `UpdateManager`, `AndroidDatabase`, `AccessibilityDetector` and `MainActivity` are Android only).
 7. A Java serialization reader/writer in common code, if replays must load outside the JVM.
