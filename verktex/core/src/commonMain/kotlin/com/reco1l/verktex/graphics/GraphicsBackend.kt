@@ -32,7 +32,12 @@ enum class GraphicsBackend(
      * initialized or crashed while starting the last time. Experimental: users opt in, [Auto] doesn't
      * pick it, see `verktex/docs/vulkan-backend.md`.
      */
-    Vulkan("Vulkan");
+    Vulkan("Vulkan"),
+
+    /**
+     * Desktop OpenGL 3.3 (core profile), the backend of the desktop platform.
+     */
+    OpenGL("OpenGL");
 
 
     companion object {
