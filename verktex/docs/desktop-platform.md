@@ -52,9 +52,16 @@ Found while checking, in the core and so on every platform:
   the window's title bar and buttons through libdecor, whose GTK plugin only runs on the process's
   first thread (it compares `getpid()` and `gettid()`). Java's `main` never runs on it, and GNOME
   doesn't draw decorations for Wayland apps, so the window had none. Through XWayland the
-  compositor draws them. The cost is that XWayland only knows integer scales: at GNOME's 125%, the
-  window gets a scale of 2 (`Xft.dpi` 192) instead of 1.25, so the UI is larger, though still sharp
-  with Mutter's `xwayland-native-scaling`.
+  compositor draws them. It costs, measured on GNOME at 125% with two 4096x2304 displays:
+  - **Scale.** XWayland only knows integer scales, so the window gets a scale of 2 (`Xft.dpi` 192)
+    instead of 1.25. The window opens at 2560x1440 rather than 1600x900, and the UI is 60% larger.
+    It's still sharp, thanks to Mutter's `xwayland-native-scaling`.
+  - **Frame rate.** The Text UI test draws at about 344 frames per second (2.9 ms a frame), where
+    native Wayland reached the 1000 cap (and 1646 uncapped, 0.6 ms). Part of it is the 2.5 times as
+    many pixels, part likely XWayland's extra copy of each frame. Far above the display's refresh
+    rate, but it's headroom lost.
+
+  See "What's left" for the alternatives.
 
 ## Steps
 
@@ -128,3 +135,15 @@ Found while checking, in the core and so on every platform:
 - Font weights and italics, which would need FreeType or separate font files.
 - Sharing the GL logic with the Android OpenGL ES backends.
 - Running the game itself on desktop.
+- **Native Wayland with window decorations**, so the window no longer goes through XWayland (see
+  "X11 on Wayland sessions" in Decisions for why it does and what it costs). The options:
+  - **An opt-out**, a `--wayland` flag or an environment variable, keeping native Wayland with its
+    right scale and frame rate, but no title bar or buttons. Cheap, a stopgap.
+  - **Drawing the decorations ourselves.** Disable libdecor (`GLFW_WAYLAND_LIBDECOR` set to
+    `GLFW_WAYLAND_DISABLE_LIBDECOR`) and draw a title bar with close, maximise and minimise buttons
+    as Verktex UI, moving and resizing the window through GLFW. The clean fix, but real work, and it
+    has to follow the system's look somewhat.
+  - **GLFW on the process's first thread**, where libdecor's GTK plugin agrees to run. Java can't do
+    it on Linux (there's no `-XstartOnFirstThread`), so it needs a small native launcher that starts
+    the JVM through JNI on a second thread and gives the first one to GLFW. It changes how the app is
+    packaged and started.
