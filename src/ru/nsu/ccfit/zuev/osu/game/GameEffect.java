@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
-import android.graphics.PointF;
+import com.osudroid.math.Vector2;
 
 
 import com.osudroid.utils.Execution;
@@ -55,7 +55,7 @@ public class GameEffect extends GameObject {
         }
     }
 
-    public final void init(final UIContainer scene, final PointF pos, final float scale,
+    public final void init(final UIContainer scene, final Vector2 pos, final float scale,
                            final ChoreographyBlock... sequenceConsumers) {
         if (hit instanceof UIAnimatedSprite animatedHit) {
             animatedHit.stop();

@@ -1,7 +1,7 @@
 package ru.nsu.ccfit.zuev.osu;
 
 import android.content.Context;
-import android.graphics.PointF;
+import com.osudroid.math.Vector2;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
@@ -31,17 +31,17 @@ public class Utils {
         return (x * x);
     }
 
-    public static PointF inter(final PointF v1, final PointF v2,
+    public static Vector2 inter(final Vector2 v1, final Vector2 v2,
                                final float percent) {
-        return new PointF(v1.x * (1 - percent) + v2.x * percent, v1.y
+        return new Vector2(v1.x * (1 - percent) + v2.x * percent, v1.y
                 * (1 - percent) + v2.y * percent);
     }
 
-    public static PointF trackToRealCoords(final PointF coords) {
+    public static Vector2 trackToRealCoords(final Vector2 coords) {
         return trackToRealCoords(coords, false);
     }
 
-    public static PointF trackToRealCoords(final PointF pos, final boolean flipVertically) {
+    public static Vector2 trackToRealCoords(final Vector2 pos, final boolean flipVertically) {
         pos.x *= Constants.MAP_ACTUAL_WIDTH / (float) Constants.MAP_WIDTH;
         pos.y *= Constants.MAP_ACTUAL_HEIGHT / (float) Constants.MAP_HEIGHT;
 
@@ -54,14 +54,14 @@ public class Utils {
         return pos;
     }
 
-    public static void flipRealCoordsVertically(final PointF coords) {
+    public static void flipRealCoordsVertically(final Vector2 coords) {
         coords.y -= Config.getRES_HEIGHT() / 2f;
         coords.y *= -1;
         coords.y += Config.getRES_HEIGHT() / 2f;
     }
 
-    public static void changeTrackToRealCoords(final PointF coords) {
-        final PointF pos = scaleToRealC(coords);
+    public static void changeTrackToRealCoords(final Vector2 coords) {
+        final Vector2 pos = scaleToRealC(coords);
         pos.y += (Config.getRES_HEIGHT() - toRes(Constants.MAP_ACTUAL_HEIGHT)) / 2f;
         pos.x += (Config.getRES_WIDTH() - toRes(Constants.MAP_ACTUAL_WIDTH)) / 2f;
         if (GameHelper.isHardRock()) {
@@ -71,12 +71,12 @@ public class Utils {
         }
     }
 
-    public static PointF realToTrackCoords(final PointF coords) {
+    public static Vector2 realToTrackCoords(final Vector2 coords) {
         return realToTrackCoords(coords, Config.getRES_WIDTH(), Config.getRES_HEIGHT(), false);
     }
 
-    public static PointF realToTrackCoords(final PointF coords, float width, float height, boolean isOld) {
-        final PointF pos = new PointF(coords.x, coords.y);
+    public static Vector2 realToTrackCoords(final Vector2 coords, float width, float height, boolean isOld) {
+        final Vector2 pos = new Vector2(coords.x, coords.y);
         if (GameHelper.isHardRock()) {
             pos.y -= height / 2;
             pos.y *= -1;
@@ -92,15 +92,15 @@ public class Utils {
         return (short) (((y - height) * -1) + height);
     }
 
-    public static PointF scaleToRealC(final PointF v) {
+    public static Vector2 scaleToRealC(final Vector2 v) {
         v.x *= toRes(Constants.MAP_ACTUAL_WIDTH) / (float) Constants.MAP_WIDTH;
         v.y *= toRes(Constants.MAP_ACTUAL_HEIGHT)
                 / (float) Constants.MAP_HEIGHT;
         return v;
     }
 
-    public static PointF scaleToTrack(final PointF v, boolean isOld) {
-        final PointF pos = new PointF(v.x, v.y);
+    public static Vector2 scaleToTrack(final Vector2 v, boolean isOld) {
+        final Vector2 pos = new Vector2(v.x, v.y);
         pos.x *= Constants.MAP_WIDTH
                 / toRes((float) (isOld ? Constants.MAP_ACTUAL_WIDTH_OLD : Constants.MAP_ACTUAL_WIDTH));
         pos.y *= Constants.MAP_HEIGHT
@@ -116,7 +116,7 @@ public class Utils {
         return (float) Math.atan2(y, x);
     }
 
-    public static float direction(final PointF vector) {
+    public static float direction(final Vector2 vector) {
         return direction(vector.x, vector.y);
     }
 
@@ -124,23 +124,23 @@ public class Utils {
         return direction(x2 - x1, y2 - y1);
     }
 
-    public static float length(final PointF vector) {
+    public static float length(final Vector2 vector) {
         return (float) Math.sqrt(vector.x * vector.x + vector.y * vector.y);
     }
 
-    public static PointF normalize(final PointF vector) {
+    public static Vector2 normalize(final Vector2 vector) {
         final float len = length(vector);
         if (Math.abs(len) < 0.0001f) {
-            return new PointF(0, 0);
+            return new Vector2(0, 0);
         }
-        return new PointF(vector.x / len, vector.y / len);
+        return new Vector2(vector.x / len, vector.y / len);
     }
 
-    public static float distance(final PointF v1, final PointF v2) {
+    public static float distance(final Vector2 v1, final Vector2 v2) {
         return (float) Math.hypot(v1.x - v2.x, v1.y - v2.y);
     }
 
-    public static float squaredDistance(final PointF v1, final PointF v2) {
+    public static float squaredDistance(final Vector2 v1, final Vector2 v2) {
         return ((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y));
     }
 

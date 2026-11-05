@@ -2,7 +2,7 @@ package ru.nsu.ccfit.zuev.osu.game;
 
 import com.osudroid.multiplayer.Multiplayer;
 
-import android.graphics.PointF;
+import com.osudroid.math.Vector2;
 
 import com.reco1l.verktex.ui.container.UIContainer;
 import com.reco1l.verktex.ui.ChoreographyKt;
@@ -38,7 +38,7 @@ public class GameplaySpinner extends GameObject {
     private final ScoreNumber bonusScore;
 
     protected Spinner beatmapSpinner;
-    protected PointF oldMouse;
+    protected Vector2 oldMouse;
     protected GameObjectListener listener;
     protected UIContainer scene;
     protected int fullRotations = 0;
@@ -55,7 +55,7 @@ public class GameplaySpinner extends GameObject {
     protected final GameplaySequenceHitSampleInfo spinnerSpinSample;
     protected final GameplaySequenceHitSampleInfo spinnerBonusSample;
 
-    protected final PointF currMouse = new PointF();
+    protected final Vector2 currMouse = new Vector2(0f);
 
     public GameplaySpinner() {
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f);
@@ -295,7 +295,7 @@ public class GameplaySpinner extends GameObject {
         }
 
         updateSamples(dt);
-        PointF mouse = null;
+        Vector2 mouse = null;
 
         for (int i = 0, count = listener.getCursorsCount(); i < count; ++i) {
             var cursor = listener.getCursor(i);
@@ -316,7 +316,7 @@ public class GameplaySpinner extends GameObject {
 
             if (oldMouse == null || (!autoPlay && latestEvent != null && latestEvent.isActionDown())) {
                 if (oldMouse == null) {
-                    oldMouse = new PointF();
+                    oldMouse = new Vector2(0f);
                 }
                 oldMouse.set(currMouse);
                 return;

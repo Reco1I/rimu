@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
-import android.graphics.PointF;
+import com.osudroid.math.Vector2;
 
 import androidx.annotation.Nullable;
 
@@ -21,7 +21,7 @@ public abstract class GameObject {
     protected int id = -1;
     protected Replay.ReplayObjectData replayObjectData = null;
     protected boolean startHit = false;
-    protected PointF position = new PointF();
+    protected Vector2 position = new Vector2(0f);
     private float lifetimeEnd;
 
     public Replay.ReplayObjectData getReplayData() {
@@ -50,7 +50,7 @@ public abstract class GameObject {
         this.id = id;
     }
 
-    public PointF getPosition() {
+    public Vector2 getPosition() {
         return position;
     }
 

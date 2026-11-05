@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.test
 
-import android.graphics.PointF
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitCircle
 import com.osudroid.math.Vector2
@@ -79,8 +78,8 @@ class FakeGameplayDriver(stage: UITestStage, private val listeners: List<IGamepl
             stat.addHitOffset(offset.toDouble())
             listeners.forEach { it.onAccuracyRegister(HitObjectType.Normal, offset) }
 
-            val objectPosition = PointF(256f, 192f)
-            val cursorPosition = PointF(256f + random.nextFloat() * 40f - 20f, 192f + random.nextFloat() * 40f - 20f)
+            val objectPosition = Vector2(256f, 192f)
+            val cursorPosition = Vector2(256f + random.nextFloat() * 40f - 20f, 192f + random.nextFloat() * 40f - 20f)
             listeners.forEach { it.onAimJudgement(objectPosition, cursorPosition, OBJECT_RADIUS) }
         }
 

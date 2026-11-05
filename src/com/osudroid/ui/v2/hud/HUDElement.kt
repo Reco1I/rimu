@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.hud
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeTo
 
-import android.graphics.PointF
+import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.hud.elements.*
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.data.Color4
@@ -223,7 +223,7 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
 
     override fun onAccuracyRegister(type: HitObjectType, accuracy: Float) {}
 
-    override fun onAimJudgement(objectPosition: PointF, cursorPosition: PointF, objectRadius: Float) {}
+    override fun onAimJudgement(objectPosition: Vector2, cursorPosition: Vector2, objectRadius: Float) {}
 
     override fun onSeek() {}
 

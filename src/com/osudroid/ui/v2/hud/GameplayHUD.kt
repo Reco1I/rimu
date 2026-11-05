@@ -7,7 +7,7 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.data.Vec2
 
-import android.graphics.PointF
+import com.osudroid.math.Vector2
 import com.osudroid.resources.R.string
 import com.osudroid.ui.v2.hud.elements.HUDAccuracyCounter
 import com.osudroid.ui.v2.hud.elements.HUDPieSongProgress
@@ -327,7 +327,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
         elementSelector?.onAccuracyRegister(type, accuracy)
     }
 
-    override fun onAimJudgement(objectPosition: PointF, cursorPosition: PointF, objectRadius: Float) {
+    override fun onAimJudgement(objectPosition: Vector2, cursorPosition: Vector2, objectRadius: Float) {
         forEachElement { it.onAimJudgement(objectPosition, cursorPosition, objectRadius) }
         elementSelector?.onAimJudgement(objectPosition, cursorPosition, objectRadius)
     }

@@ -2,7 +2,7 @@ package ru.nsu.ccfit.zuev.osu.scoring;
 
 import kotlin.jvm.JvmClassMappingKt;
 
-import android.graphics.PointF;
+import com.osudroid.math.Vector2;
 
 import androidx.annotation.NonNull;
 
@@ -111,12 +111,12 @@ public class Replay {
         objectData[id].result = score.getId();
     }
 
-    public void addPress(final int timeMs, final PointF pos, final int pid) {
+    public void addPress(final int timeMs, final Vector2 pos, final int pid) {
         if (pid > cursorMoves.size() || isSaving) return;
         cursorMoves.get(pid).pushBack(this, timeMs, pos.x, pos.y, TouchType.DOWN);
     }
 
-    public void addMove(final int timeMs, final PointF pos, final int pid) {
+    public void addMove(final int timeMs, final Vector2 pos, final int pid) {
         if (pid > cursorMoves.size() || isSaving) return;
         cursorMoves.get(pid).pushBack(this, timeMs, pos.x, pos.y, TouchType.MOVE);
     }
@@ -531,11 +531,11 @@ public class Replay {
                 if (movement.touchType != TouchType.UP) {
                     float baseX = readTouchPoint(is, replay);
                     float baseY = readTouchPoint(is, replay);
-                    PointF gamePoint = new PointF(
+                    Vector2 gamePoint = new Vector2(
                             baseX / Config.getTextureQuality(),
                             baseY / Config.getTextureQuality()
                     );
-                    PointF realPoint = replay.replayVersion > 1 ?
+                    Vector2 realPoint = replay.replayVersion > 1 ?
                         Utils.trackToRealCoords(gamePoint, isHardRock) :
                         Utils.trackToRealCoords(
                             Utils.realToTrackCoords(gamePoint, 1024, 600, true),

@@ -18,7 +18,7 @@ import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.UIBox
-import android.graphics.PointF
+import com.osudroid.math.Vector2
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -473,7 +473,7 @@ class Countdown(
 
     private var timePassed = -time + COUNTDOWN_LENGTH * speed
 
-    private val center = Utils.trackToRealCoords(PointF(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f))
+    private val center = Utils.trackToRealCoords(Vector2(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f))
 
     private val ready = createSprite("ready", center.x)
     private val count3 = createSprite("count3", (SkinTextures["count3"]?.width ?: 0f) / 2f)

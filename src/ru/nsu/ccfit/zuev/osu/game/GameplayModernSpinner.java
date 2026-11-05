@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
-import android.graphics.PointF;
+import com.osudroid.math.Vector2;
 
 import com.reco1l.verktex.ui.container.UIContainer;
 import com.reco1l.verktex.ui.ChoreographyKt;
@@ -164,7 +164,7 @@ public class GameplayModernSpinner extends GameplaySpinner {
         }
 
         updateSamples(dt);
-        PointF mouse = null;
+        Vector2 mouse = null;
 
         for (int i = 0, count = listener.getCursorsCount(); i < count; ++i) {
             var cursor = listener.getCursor(i);
@@ -185,7 +185,7 @@ public class GameplayModernSpinner extends GameplaySpinner {
 
             if (oldMouse == null || (!autoPlay && latestEvent != null && latestEvent.isActionDown())) {
                 if (oldMouse == null) {
-                    oldMouse = new PointF();
+                    oldMouse = new Vector2(0f);
                 }
                 oldMouse.set(currMouse);
                 return;

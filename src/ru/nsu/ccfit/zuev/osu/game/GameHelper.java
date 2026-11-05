@@ -2,7 +2,6 @@ package ru.nsu.ccfit.zuev.osu.game;
 
 import static kotlinx.coroutines.JobKt.ensureActive;
 
-import android.graphics.PointF;
 
 import androidx.annotation.Nullable;
 
@@ -488,7 +487,7 @@ public class GameHelper {
             return getData(index, offsetLength);
         }
 
-        public int positionAt(PointF out, float percentage) {
+        public int positionAt(Vector2 out, float percentage) {
             if (anchorCount == 0) {
                 out.set(0, 0);
                 return 0;
@@ -502,7 +501,7 @@ public class GameHelper {
             return index;
         }
 
-        private void interpolate(PointF out, int index, float distance) {
+        private void interpolate(Vector2 out, int index, float distance) {
             if (index <= 0) {
                 out.set(getX(0), getY(0));
                 return;
