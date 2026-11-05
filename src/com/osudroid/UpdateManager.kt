@@ -1,5 +1,7 @@
 package com.osudroid
 
+import com.osudroid.utils.getLong
+import com.osudroid.utils.getString
 import android.content.*
 import android.net.*
 import android.util.*
@@ -109,7 +111,7 @@ object UpdateManager: IFileRequestObserver
                                 }
                                 file.createNewFile()
 
-                                val fileRequest = FileRequest(file, link)
+                                val fileRequest = FileRequest(file.path, link)
                                 fileRequest.observer = this@UpdateManager
                                 fileRequest.execute()
                             }
@@ -141,7 +143,7 @@ object UpdateManager: IFileRequestObserver
         mainThread { progressDialog?.dismiss() }
 
         val activity = GlobalManager.getInstance().mainActivity
-        val uri = FileProvider.getUriForFile(activity, "${BuildConfig.APPLICATION_ID}.fileProvider", request.file)
+        val uri = FileProvider.getUriForFile(activity, "${BuildConfig.APPLICATION_ID}.fileProvider", File(request.path))
 
         val intent = Intent(Intent.ACTION_VIEW)
         intent.setDataAndType(uri, "application/vnd.android.package-archive")
@@ -155,13 +157,13 @@ object UpdateManager: IFileRequestObserver
         ToastLogger.showText(Res.string.update_info_download_failed, false)
 
         mainThread { progressDialog?.dismiss() }
-        request.file.delete()
+        File(request.path).delete()
     }
 
     override fun onDownloadCancel(request: FileRequest) {
         ToastLogger.showText(Res.string.update_info_download_canceled, false)
 
         mainThread { progressDialog?.dismiss() }
-        request.file.delete()
+        File(request.path).delete()
     }
 }

@@ -1,57 +1,45 @@
 package com.reco1l.framework.net
 
+import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Logger
-import okhttp3.*
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
-import ru.nsu.ccfit.zuev.osuplus.BuildConfig
-import java.io.IOException
+import kotlin.jvm.JvmField
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.buildJsonObject
+import okio.BufferedSource
+import okio.IOException
 
-open class WebRequest(private var url: HttpUrl) : AutoCloseable {
-
-    constructor(url: String): this(url.toHttpUrl())
+open class WebRequest(private var url: String) : AutoCloseable {
 
 
     /**
      * The response got upon request, this will not be initialized until [execute] has been
      * successfully called.
      */
-    lateinit var response: Response
+    lateinit var response: HttpResponse
         protected set
 
     /**
      * The response body got upon request, this will not be initialized until [execute] has been
      * successfully called.
      */
-    lateinit var responseBody: ResponseBody
+    lateinit var responseBody: BufferedSource
         protected set
 
     /**
      * The call object used to execute the request.
      * It will be initialized upon [execute] call.
      */
-    lateinit var call: Call
+    lateinit var call: HttpCall
         protected set
 
 
-    /**
-     * The client to be used for this request.
-     *
-     * By default the [global client][globalClient] is used with default settings, if you want to
-     * change specific settings is better to build a new one upon it using [OkHttpClient.newBuilder].
-     */
-    var client = globalClient
-
-
-    private var request = Request.Builder().url(url).build()
+    private var request = HttpRequestBuilder(url).build()
 
 
     /**
      * Builds a new request upon the current one.
      */
-    fun buildRequest(block: Request.Builder.() -> Unit) {
+    fun buildRequest(block: HttpRequestBuilder.() -> Unit) {
 
         request = request.newBuilder().apply(block).build()
     }
@@ -59,22 +47,21 @@ open class WebRequest(private var url: HttpUrl) : AutoCloseable {
     /**
      * Builds a JSON request body with data to be sent to server.
      */
-    fun buildRequestBody(block: JSONObject.() -> Unit) {
+    fun buildRequestBody(block: JsonObjectBuilder.() -> Unit) {
 
-        val json = JSONObject()
-        json.block()
+        val json = buildJsonObject(block)
 
         buildRequest {
-            post(json.toString().toRequestBody(JSON_UTF_8))
+            post(HttpBody.Bytes(HttpBody.JSON_UTF_8, json.toString().encodeToByteArray()))
         }
     }
 
     /**
      * Builds an HTTP URL upon the current one.
      */
-    fun buildUrl(block: HttpUrl.Builder.() -> Unit) {
+    fun buildUrl(block: HttpUrlBuilder.() -> Unit) {
 
-        url = url.newBuilder().apply(block).build()
+        url = HttpUrlBuilder(url).apply(block).build()
 
         // Rebuild the request to apply the URL change.
         buildRequest {
@@ -86,7 +73,7 @@ open class WebRequest(private var url: HttpUrl) : AutoCloseable {
     /**
      * Called as soon the response and response body is created.
      */
-    protected open fun onResponse(response: Response) = Unit
+    protected open fun onResponse(response: HttpResponse) = Unit
 
     /**
      * Called when response code isn't 200-299, this can also be called from inherited
@@ -97,7 +84,7 @@ open class WebRequest(private var url: HttpUrl) : AutoCloseable {
     /**
      * Called when response code is 200-299.
      */
-    protected open fun onResponseSuccess(response: Response) = Unit
+    protected open fun onResponseSuccess(response: HttpResponse) = Unit
 
 
     override fun close() {
@@ -106,9 +93,6 @@ open class WebRequest(private var url: HttpUrl) : AutoCloseable {
             response.close()
         }
 
-        if (::responseBody.isInitialized) {
-            responseBody.close()
-        }
 
         if (::call.isInitialized) {
             call.cancel()
@@ -136,14 +120,14 @@ open class WebRequest(private var url: HttpUrl) : AutoCloseable {
     open fun execute(): WebRequest {
 
         try {
-            call = client.newCall(request)
+            call = Http.newCall(request)
 
-            if (BuildConfig.DEBUG) {
+            if (OsuPlatform.isInitialized && OsuPlatform.implementation.isDebug) {
                 Logger.i("WebRequest", "Request to: " + request.url)
             }
 
             response = call.execute()
-            responseBody = response.body!!
+            responseBody = response.body
 
             onResponse(response)
 
@@ -166,14 +150,7 @@ open class WebRequest(private var url: HttpUrl) : AutoCloseable {
         /**
          * The Json UTF-8 media type specification.
          */
-        val JSON_UTF_8 = "application/json; charset=utf-8".toMediaTypeOrNull()
-
-        /**
-         * The global Okio HTTP client.
-         *
-         * This client uses by default a 10 seconds timeout configuration.
-         */
-        val globalClient = OkHttpClient()
+        const val JSON_UTF_8 = HttpBody.JSON_UTF_8
 
     }
 }
@@ -182,11 +159,12 @@ open class WebRequest(private var url: HttpUrl) : AutoCloseable {
 /**
  * Denotes a response that is not successful.
  */
-class UnsuccessfulResponseException(response: Response) : IOException(response.message) {
+class UnsuccessfulResponseException(response: HttpResponse) : IOException(response.message) {
 
     /**
      * The response code.
      */
+    @JvmField
     val code: Int = response.code
 
 }

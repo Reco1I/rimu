@@ -1,5 +1,10 @@
 package com.osudroid.beatmaplisting.mirrors
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import com.reco1l.framework.net.HttpUrlBuilder
+
 import com.osudroid.beatmaplisting.BeatmapMirrorDownloadRequestModel
 import com.osudroid.beatmaplisting.BeatmapMirrorPreviewRequestModel
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel
@@ -9,9 +14,6 @@ import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel.SortType.*
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchResponseModel
 import com.osudroid.beatmaplisting.BeatmapModel
 import com.osudroid.beatmaplisting.BeatmapSetModel
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.json.JSONArray
 import ru.nsu.ccfit.zuev.osu.RankedStatus
 
 
@@ -37,10 +39,9 @@ class OsuDirectSearchRequestModel : BeatmapMirrorSearchRequestModel {
         Descending -> "desc"
     }
 
-    override fun invoke(query: String, offset: Int, limit: Int, sort: SortType, order: OrderType, status: RankedStatus?): HttpUrl {
+    override fun invoke(query: String, offset: Int, limit: Int, sort: SortType, order: OrderType, status: RankedStatus?): String {
 
-        return "https://osu.direct/api/v2/search".toHttpUrl()
-            .newBuilder()
+        return HttpUrlBuilder("https://osu.direct/api/v2/search")
             .addQueryParameter("sort", "${sort.parseToApi()}:${order.parseToApi()}")
             .apply {
                 if (status != null) {
@@ -57,10 +58,10 @@ class OsuDirectSearchRequestModel : BeatmapMirrorSearchRequestModel {
 
 class OsuDirectSearchResponseModel : BeatmapMirrorSearchResponseModel {
     override fun invoke(response: Any): MutableList<BeatmapSetModel> {
-        response as JSONArray
+        response as JsonArray
 
-        return MutableList(response.length()) { index ->
-            val json = response.getJSONObject(index)
+        return MutableList(response.size) { index ->
+            val json = response.getJsonObject(index)
 
             BeatmapSetModel(
                 id = json.getLong("id"),
@@ -70,13 +71,13 @@ class OsuDirectSearchResponseModel : BeatmapMirrorSearchResponseModel {
                 artistUnicode = json.getString("artist_unicode"),
                 status = RankedStatus.valueOf(json.getInt("ranked")),
                 creator = json.getString("creator"),
-                thumbnail = json.optJSONObject("covers")?.optString("card"),
+                thumbnail = json.optJsonObject("covers")?.optString("card"),
                 hasVideo = json.getBoolean("video"),
-                beatmaps = json.getJSONArray("beatmaps").let {
+                beatmaps = json.getJsonArray("beatmaps").let {
 
-                    MutableList(it.length()) { i ->
+                    MutableList(it.size) { i ->
 
-                        val obj = it.getJSONObject(i)
+                        val obj = it.getJsonObject(i)
 
                         BeatmapModel(
                             id = obj.getLong("id"),
@@ -101,15 +102,15 @@ class OsuDirectSearchResponseModel : BeatmapMirrorSearchResponseModel {
 }
 
 class OsuDirectDownloadRequestModel : BeatmapMirrorDownloadRequestModel {
-    override fun invoke(beatmapSetId: Long, withVideo: Boolean): HttpUrl {
-        val url = "https://osu.direct/api/d/$beatmapSetId".toHttpUrl()
+    override fun invoke(beatmapSetId: Long, withVideo: Boolean): String {
+        val url = "https://osu.direct/api/d/$beatmapSetId"
 
-        return if (!withVideo) url.newBuilder().addQueryParameter("noVideo", "1").build() else url
+        return if (!withVideo) HttpUrlBuilder(url).addQueryParameter("noVideo", "1").build() else url
     }
 }
 
 class OsuDirectPreviewRequestModel : BeatmapMirrorPreviewRequestModel {
-    override fun invoke(beatmapId: Long): HttpUrl {
-        return "https://osu.direct/api/media/preview/$beatmapId".toHttpUrl()
+    override fun invoke(beatmapId: Long): String {
+        return "https://osu.direct/api/media/preview/$beatmapId"
     }
 }

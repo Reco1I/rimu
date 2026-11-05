@@ -24,12 +24,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew lint
 ```
 
-Requires **Java 17**, **Android NDK 22.1.7171670** and the **android-36.1** SDK platform (`compileSdk`, `targetSdk` stays 29). The main app depends on Verktex, the engine, which is meant to become its own project (see `verktex/docs/extraction.md`). Verktex's modules are:
+Requires **Java 17**, **Android NDK 22.1.7171670** and the **android-36.1** SDK platform (`compileSdk`, `targetSdk` stays 29). The main app depends on Verktex, the engine, which is meant to become its own project (see `docs/extraction.md`). Verktex's modules are:
 
 - `:verktex:core`: everything platform independent. Kotlin Multiplatform with only the JVM as a target for now. Its code lives in `src/commonMain/`, must not depend on Android or the JVM, and is checked with `./gradlew -Pverktex.checkCommon :verktex:core:compileKotlinJs`.
 - `:verktex:android`: the Android platform, with its graphics backends, the BASS audio library (`com.un4seen.bass` and its natives), the built-in shaders and fonts, and the task that compiles the shaders to SPIR-V. The app depends only on this module, which brings in core.
 - `:verktex:shadertools`: the shader translator, used by the Vulkan backend and by the build.
-- `:verktex:desktop`: the desktop platform (OpenGL 3.3 through LWJGL, BASS through JNA), which runs Verktex's UI tests, see `verktex/docs/desktop-platform.md`. The app never depends on it.
+- `:verktex:desktop`: the desktop platform (OpenGL 3.3 through LWJGL, BASS through JNA), which runs Verktex's UI tests, see `docs/desktop-platform.md`. The app never depends on it.
 
 Engine tests live in `verktex/core/src/jvmTest/` and in the other modules' `src/test/`, and run with `./gradlew :verktex:core:jvmTest :verktex:android:testDebugUnitTest :verktex:shadertools:test :verktex:desktop:test`. The app's tests live under `tests/test/kotlin/` (not the standard `src/test/`).
 
@@ -79,7 +79,7 @@ SplashScene → LoadingScreen → MainScene (menu hub) → LobbyScene
 
 Verktex handles all rendering. UI is a tree of `UIComponent`s measured and laid out through `LayoutConstraints`, animated with transforms for UI, and with `Choreography` for anything on the gameplay clock, whose state depends only on the time so that seeking works.
 
-A Vulkan backend roadmap lives in `verktex/docs/vulkan-backend.md`. How the frame rate is capped on each platform, and the pending work on it, is in `verktex/docs/frame-rate.md`.
+A Vulkan backend roadmap lives in `docs/vulkan-backend.md`. How the frame rate is capped on each platform, and the pending work on it, is in `docs/frame-rate.md`.
 
 ### UI Tests
 
@@ -125,7 +125,7 @@ Socket.IO for real-time lobby/room events. REST calls use OkHttp3. Firebase Mess
 
 - New gameplay/beatmap/difficulty code goes in `com/osudroid/` (Kotlin).
 - Generic UI components belong in `verktex/core/`, and game-specific ones in `com/osudroid/ui/v2/` (Kotlin).
-- Verktex never depends on the game, and `:verktex:core` never depends on Android or the JVM (including `org.json`, which ships with the Android SDK). What it needs from a platform goes through `Platform.Implementation`, everything else through multiplatform libraries; see `verktex/docs/extraction.md`.
+- Verktex never depends on the game, and `:verktex:core` never depends on Android or the JVM (including `org.json`, which ships with the Android SDK). What it needs from a platform goes through `Platform.Implementation`, everything else through multiplatform libraries; see `docs/extraction.md`.
 - Legacy Java files in `ru/nsu/ccfit/zuev/osu/` are modified in-place; avoid moving them.
 
 @CLAUDE.local.md

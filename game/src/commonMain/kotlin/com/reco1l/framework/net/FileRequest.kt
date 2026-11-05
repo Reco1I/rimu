@@ -1,13 +1,12 @@
 package com.reco1l.framework.net
 
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Response
-import java.io.File
+import com.osudroid.utils.SystemFileSystem
+import kotlin.time.TimeSource
+import okio.Path.Companion.toPath
+import okio.buffer
+import okio.use
 
-class FileRequest(val file: File, url: HttpUrl): WebRequest(url) {
-
-    constructor(file: File, url: String): this(file, url.toHttpUrl())
+class FileRequest(val path: String, url: String): WebRequest(url) {
 
 
     /**
@@ -40,35 +39,35 @@ class FileRequest(val file: File, url: HttpUrl): WebRequest(url) {
         private set
 
     /**
-     * The download buffer size, by default [DEFAULT_BUFFER_SIZE].
+     * The download buffer size, by default 8 KiB.
      */
-    var bufferSize = DEFAULT_BUFFER_SIZE
+    var bufferSize = 8192
 
 
 
-    override fun onResponseSuccess(response: Response) {
+    override fun onResponseSuccess(response: HttpResponse) {
 
-        val length = response.body!!.contentLength() * 1.0
-        val stream = response.body!!.byteStream()
+        val length = response.contentLength * 1.0
+        val file = path.toPath()
 
         val bytes = ByteArray(bufferSize)
 
         var totalBytes = 0L
         var bytesRead = 0
 
-        stream.buffered(bufferSize).use { buffer ->
+        response.body.use { buffer ->
 
-            file.outputStream().use { out ->
+            SystemFileSystem.sink(file).buffer().use { out ->
 
                 isDownloading = true
-                val startTime = System.currentTimeMillis()
+                val startTime = TimeSource.Monotonic.markNow()
 
                 while (isDownloading && buffer.read(bytes).also { bytesRead = it } != -1) {
 
                     out.write(bytes, 0, bytesRead)
                     totalBytes += bytesRead.toLong()
 
-                    val elapsedMilliseconds = (System.currentTimeMillis() - startTime).toFloat()
+                    val elapsedMilliseconds = startTime.elapsedNow().inWholeMilliseconds.toFloat()
 
                     progress = totalBytes / length * 100
                     speedKbps = totalBytes / elapsedMilliseconds / 1024f * 1000f
@@ -83,8 +82,8 @@ class FileRequest(val file: File, url: HttpUrl): WebRequest(url) {
                 }
 
                 // This mean the file wasn't fully downloaded.
-                if (file.exists()) {
-                    file.delete()
+                if (SystemFileSystem.exists(file)) {
+                    SystemFileSystem.delete(file)
                 }
                 observer?.onDownloadCancel(this)
             }

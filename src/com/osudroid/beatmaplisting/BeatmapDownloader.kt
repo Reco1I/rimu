@@ -1,5 +1,6 @@
 package com.osudroid.beatmaplisting
 
+import java.io.File
 import android.os.Environment.DIRECTORY_DOWNLOADS
 import android.view.View
 import com.osudroid.resources.R.*
@@ -44,7 +45,7 @@ object BeatmapDownloader : IFileRequestObserver {
 
         val file = context.getExternalFilesDir(DIRECTORY_DOWNLOADS)!!.resolve("$currentFilename.osz")
 
-        val downloader = FileRequest(file, url)
+        val downloader = FileRequest(file.path, url)
         downloader.buildRequest { header("User-Agent", "Chrome/Android") }
 
         fragment = DownloadFragment()
@@ -84,7 +85,7 @@ object BeatmapDownloader : IFileRequestObserver {
             fragment.button.visibility = View.GONE
         }
 
-        val file = downloader.file
+        val file = File(downloader.path)
 
         try {
             ZipFile(file).use {

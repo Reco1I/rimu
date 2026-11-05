@@ -1,5 +1,9 @@
 package com.osudroid.ui
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+
 import android.content.Intent
 import android.net.Uri
 import com.reco1l.verktex.Logger
@@ -40,10 +44,10 @@ object BannerManager {
             JsonArrayRequest(OnlineManager.endpoint + "game/banner.php").use { request ->
                 request.execute()
 
-                for (i in 0 until request.json.length()) {
+                for (i in 0 until request.json.size) {
 
                     try {
-                        val banner = request.json.getJSONObject(i)
+                        val banner = request.json.getJsonObject(i)
 
                         val url = banner.getString("Url")
                         val imageLink = banner.getString("ImageLink")
@@ -54,7 +58,7 @@ object BannerManager {
                             bannerFile.createNewFile()
 
                             imageRequest.execute()
-                            imageRequest.responseBody.byteStream().use { input ->
+                            imageRequest.responseBody.inputStream().use { input ->
                                 bannerFile.outputStream().use { output ->
                                     input.copyTo(output)
                                 }

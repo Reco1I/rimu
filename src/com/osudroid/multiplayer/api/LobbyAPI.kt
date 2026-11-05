@@ -1,5 +1,11 @@
 package com.osudroid.multiplayer.api
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+
 import com.osudroid.BuildSettings
 import com.osudroid.debug.MockRoom
 import com.osudroid.multiplayer.api.data.Room
@@ -11,7 +17,6 @@ import com.osudroid.multiplayer.api.data.WinCondition
 import com.osudroid.multiplayer.api.data.parseGameplaySettings
 import com.reco1l.framework.net.JsonArrayRequest
 import com.reco1l.framework.net.JsonObjectRequest
-import org.json.JSONObject
 
 object LobbyAPI {
 
@@ -61,9 +66,9 @@ object LobbyAPI {
                 }
             }
 
-            return List(it.execute().json.length()) { i ->
+            return List(it.execute().json.size) { i ->
 
-                val json = it.json.optJSONObject(i)
+                val json = it.json.optJsonObject(i) ?: return@List null
 
                 return@List try {
 
@@ -72,8 +77,8 @@ object LobbyAPI {
                         name = json.getString("name"),
                         isLocked = json.getBoolean("isLocked"),
                         maxPlayers = json.getInt("maxPlayers"),
-                        mods = RoomMods(json.getJSONArray("mods").toString()),
-                        gameplaySettings = parseGameplaySettings(json.getJSONObject("gameplaySettings")),
+                        mods = RoomMods(json.getJsonArray("mods").toString()),
+                        gameplaySettings = parseGameplaySettings(org.json.JSONObject(json.getJsonObject("gameplaySettings").toString())),
                         teamMode = TeamMode.fromWire(json.getString("teamMode")) ?: TeamMode.HeadToHead,
                         winCondition = WinCondition.fromWire(json.getString("winCondition")) ?: WinCondition.ScoreV1,
                         playerCount = json.getInt("playerCount"),
@@ -107,12 +112,12 @@ object LobbyAPI {
                 put("maxPlayers", maxPlayers)
 
                 if (beatmap != null) {
-                    put("beatmap", JSONObject().apply {
-                        put("md5", beatmap.md5)
-                        put("title", beatmap.title)
-                        put("artist", beatmap.artist)
-                        put("creator", beatmap.creator)
-                        put("version", beatmap.version)
+                    put("beatmap", buildJsonObject {
+                        putIfNotNull("md5", beatmap.md5)
+                        putIfNotNull("title", beatmap.title)
+                        putIfNotNull("artist", beatmap.artist)
+                        putIfNotNull("creator", beatmap.creator)
+                        putIfNotNull("version", beatmap.version)
                     })
                 }
 
@@ -122,7 +127,7 @@ object LobbyAPI {
 
                 put("version", RoomAPI.API_VERSION)
                 put("sessionId", sessionId)
-                put("sign", sign)
+                putIfNotNull("sign", sign)
             }
 
             return request.execute().json.getString("id").toLong()
