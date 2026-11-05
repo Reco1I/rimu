@@ -182,21 +182,28 @@ The app's tests (`tests/test/kotlin/`) move to `game/src/jvmTest` (JUnit as toda
 
 ## Next steps
 
-The core logic (beatmaps, difficulty, mods, scoring, replay checkers) moves together with `Replay` and
-`StatisticV2`, which it depends on. Before that:
+Done since the previous notes:
 
-1. **EdlJavaExt.** `GameHelper`, the slider body (`SliderBody`, `DrawLinePath`, `TriangleBuilder`) and
-   the gameplay objects use its `Vec2`, `LinePath`, `AbstractPath`, `FMath`, `FloatArraySlice` and
-   `SmartIterator` (22 classes with what they need). They are either ported to Kotlin (if its
-   license allows copying) or replaced with `Vector2` and new path code. Its `Easing` is only used
-   by the Android View UI and can stay there until that is rewritten.
-2. **`StatisticV2`'s links**: `toJson()`/`toBoardItem()`/`isTeamStatistic()` become multiplayer
-   extensions, `toScoreInfo()` goes with `ScoreInfo`, and the `GameHelper` state it reads
-   (`healthDrain`, `scoreV2`) comes with `GameHelper` once it is converted (it also needs `OsuSkin`).
-3. **`Replay`**: Java serialization and zips go behind an expect/actual (`java.io` on the JVM), so
-   existing replays keep loading byte for byte; `BitSet` needs a small common replacement;
-   `GameScene.CursorCount` and `Utils`' coordinate conversions move with it.
-4. **Files**: `FileUtils.getMD5Checksum` and `java.io.File` in the beatmap parser go to Okio
-   (`SystemFileSystem`, `ByteString.md5()`).
-5. `ModType`'s `R.string` uses become `Res.string`, and `DifficultyCalculationManager` and
-   `BeatmapCache` (database and UI) stay in the app until the database moves.
+- EdlJavaExt's `Vec2`, `LinePath`, `FMath`, `FloatArraySlice`, `SmartIterator` and `Consumer` were
+  replaced by common code (`Vector2`, `com.osudroid.math.LinePath`, `MathUtils`,
+  `com.osudroid.utils.FloatArraySlice`) and the JDK's. The jar stays only for the easings of the
+  Android views. EdlOsbSupport was dropped.
+- `android.graphics.PointF` was replaced by `Vector2` everywhere.
+- The execution helpers are common; the main thread and uncaught exceptions go through `OsuPlatform`.
+- The core logic is in `:game`: beatmaps, difficulty, mods, scoring, the replay checks, `Replay`,
+  `StatisticV2`, `GameHelper` and `Utils`, with their 377 tests running as plain JVM tests. Replays
+  still use Java's object serialization through `ReplayInput`/`ReplayOutput`, which only the JVM
+  implements so far; `StatisticV2`'s multiplayer and database conversions are app extensions.
+
+What's left, roughly in order:
+
+1. **Skins** (`OsuSkin`, `SkinJsonReader`, `SkinLayout`, `com.osudroid.ui.skinning`, `HUDSkinData`):
+   `org.json` to kotlinx.serialization, `File` to Okio.
+2. **Gameplay objects and scenes** (`GameObject`, `GameplayHitCircle`, `GameplaySlider`, the spinners,
+   `GameScene`, `ScoringScene`, the slider body): Java to Kotlin, then move; they need the skins, the
+   audio (`SongService`, `BassSoundProvider`) and the UI.
+3. **Database**: Room KMP with KSP, `SQLiteConnection` migrations.
+4. **Networking**: Ktor for `WebRequest`/`JsonRequest`/`OnlineManager`, Socket.IO over Ktor WebSockets.
+5. **Android views**: rewrite on Verktex (beatmap listing, collections, block area editor, dialogs,
+   toasts) and `Platform.openWebPage` instead of the WebView.
+6. A Java serialization reader/writer in common code, if replays must load outside the JVM.
