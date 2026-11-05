@@ -10,8 +10,8 @@ verktex/
                                       Kotlin Multiplatform, its code is in src/commonMain. Its assets/ folder
                                       holds the built-in shaders and fonts, which each platform packages.
   android/      :verktex:android      The Android platform: graphics backends (GLES, Vulkan), windowing, input,
+                                      the BASS audio library (com.un4seen.bass and its natives),
                                       SPIR-V compilation of the built-in shaders.
-  bass/         :verktex:bass         The BASS audio library, used by the Android audio driver.
   shadertools/  :verktex:shadertools  The shader translator, used by the Vulkan backend and by the build.
   desktop/      :verktex:desktop      The desktop platform: OpenGL 3.3 (LWJGL, GLFW), BASS through JNA. Runs
                                       the UI tests, see desktop-platform.md.

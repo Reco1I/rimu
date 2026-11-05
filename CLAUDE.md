@@ -27,8 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Requires **Java 17**, **Android NDK 22.1.7171670** and the **android-36.1** SDK platform (`compileSdk`, `targetSdk` stays 29). The main app depends on Verktex, the engine, which is meant to become its own project (see `verktex/docs/extraction.md`). Verktex's modules are:
 
 - `:verktex:core`: everything platform independent. Kotlin Multiplatform with only the JVM as a target for now. Its code lives in `src/commonMain/`, must not depend on Android or the JVM, and is checked with `./gradlew -Pverktex.checkCommon :verktex:core:compileKotlinJs`.
-- `:verktex:android`: the Android platform, with its graphics backends, the built-in shaders and fonts, and the task that compiles the shaders to SPIR-V. The app depends only on this module, which brings in core.
-- `:verktex:bass`: the BASS native audio library.
+- `:verktex:android`: the Android platform, with its graphics backends, the BASS audio library (`com.un4seen.bass` and its natives), the built-in shaders and fonts, and the task that compiles the shaders to SPIR-V. The app depends only on this module, which brings in core.
 - `:verktex:shadertools`: the shader translator, used by the Vulkan backend and by the build.
 - `:verktex:desktop`: the desktop platform (OpenGL 3.3 through LWJGL, BASS through JNA), which runs Verktex's UI tests, see `verktex/docs/desktop-platform.md`. The app never depends on it.
 
@@ -104,7 +103,7 @@ Verktex's own tests also run on desktop, without a device (the "UI Tests (Deskto
 
 ### Audio
 
-BASS native library, wrapped in `:verktex:bass` and reached through Verktex's audio API. `SongService` plays songs, and `BassSoundProvider` plays sound effects.
+BASS native library, bundled in `:verktex:android` and reached through Verktex's audio API. `SongService` plays songs, and `BassSoundProvider` plays sound effects.
 
 ### Beatmaps & Difficulty
 

@@ -58,8 +58,6 @@ dependencies {
 
     api(project(":verktex:core"))
 
-    implementation(project(":verktex:bass"))
-
     // Shader translation and uniform layouts, shared with the build that compiles the Vulkan shaders.
     implementation(project(":verktex:shadertools"))
 
