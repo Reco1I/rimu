@@ -11,3 +11,6 @@ include ':verktex:core'
 include ':verktex:android'
 include ':verktex:shadertools'
 include ':verktex:desktop'
+
+// The platform independent part of the game, see docs/multiplatform-game.md.
+include ':game'
