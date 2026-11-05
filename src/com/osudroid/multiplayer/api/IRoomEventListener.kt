@@ -1,12 +1,15 @@
 package com.osudroid.multiplayer.api
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+
 import com.osudroid.multiplayer.api.data.Room
 import com.osudroid.multiplayer.api.data.RoomBeatmap
 import com.osudroid.multiplayer.api.data.RoomGameplaySettings
 import com.osudroid.multiplayer.api.data.RoomMods
 import com.osudroid.multiplayer.api.data.TeamMode
 import com.osudroid.multiplayer.api.data.WinCondition
-import org.json.JSONArray
 
 interface IRoomEventListener {
 
@@ -113,10 +116,10 @@ interface IRoomEventListener {
     /**
      * Emit when the player sends a live score data for real-time leaderboard.
      */
-    fun onRoomLiveLeaderboard(leaderboard: JSONArray)
+    fun onRoomLiveLeaderboard(leaderboard: JsonArray)
 
     /**
      * Emitted when all players have submitted their score.
      */
-    fun onRoomFinalLeaderboard(leaderboard: JSONArray)
+    fun onRoomFinalLeaderboard(leaderboard: JsonArray)
 }

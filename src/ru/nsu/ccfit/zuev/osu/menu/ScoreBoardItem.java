@@ -4,10 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.osudroid.multiplayer.api.data.WinCondition;
 import com.osudroid.multiplayer.Multiplayer;
-import org.json.JSONObject;
+import kotlinx.serialization.json.JsonElement;
+import kotlinx.serialization.json.JsonElementKt;
+import kotlinx.serialization.json.JsonObject;
 
 import java.text.NumberFormat;
 import java.util.Formatter;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -80,19 +83,15 @@ public class ScoreBoardItem implements Cloneable {
     }
 
     /**
-     * Converts the item into a JSONObject, it is used specifically for Multiplayer.
+     * Converts the item into a JsonObject, it is used specifically for Multiplayer.
      */
-    public JSONObject toJson() {
-        return new JSONObject() {{
-            try {
-                put("accuracy", accuracy);
-                put("score", playScore);
-                put("combo", maxCombo);
-                put("isAlive", isAlive);
-            } catch (Exception e) {
-                Multiplayer.log(e);
-            }
-        }};
+    public JsonObject toJson() {
+        var map = new LinkedHashMap<String, JsonElement>();
+        map.put("accuracy", JsonElementKt.JsonPrimitive(accuracy));
+        map.put("score", JsonElementKt.JsonPrimitive(playScore));
+        map.put("combo", JsonElementKt.JsonPrimitive(maxCombo));
+        map.put("isAlive", JsonElementKt.JsonPrimitive(isAlive));
+        return new JsonObject(map);
     }
 
 

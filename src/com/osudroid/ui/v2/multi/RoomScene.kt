@@ -1,5 +1,9 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.BuildSettings
 import java.util.concurrent.atomic.AtomicBoolean
@@ -65,7 +69,6 @@ import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
-import org.json.JSONArray
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -1138,11 +1141,11 @@ class RoomScene(
 
     // Leaderboard
 
-    override fun onRoomLiveLeaderboard(leaderboard: JSONArray) {
+    override fun onRoomLiveLeaderboard(leaderboard: JsonArray) {
         Multiplayer.onLiveLeaderboard(leaderboard)
     }
 
-    override fun onRoomFinalLeaderboard(leaderboard: JSONArray) {
+    override fun onRoomFinalLeaderboard(leaderboard: JsonArray) {
         Multiplayer.onFinalLeaderboard(leaderboard)
     }
 

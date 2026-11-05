@@ -2,10 +2,13 @@
 
 package com.osudroid.multiplayer
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+
 import com.osudroid.multiplayer.api.data.RoomTeam
 import com.osudroid.multiplayer.api.data.WinCondition
 import com.osudroid.utils.deserializeMods
-import org.json.JSONObject
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
@@ -15,7 +18,7 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 /**
  * Specifically made to handle `liveScoreData` event.
  */
-fun jsonToScoreboardItem(json: JSONObject) = ScoreBoardItem().apply {
+fun jsonToScoreboardItem(json: JsonObject) = ScoreBoardItem().apply {
 
     userName = json.getString("username")
     playScore = json.getLong("score")
@@ -27,13 +30,13 @@ fun jsonToScoreboardItem(json: JSONObject) = ScoreBoardItem().apply {
 /**
  * Specifically made to handle `scoreSubmission` event.
  */
-fun jsonToStatistic(json: JSONObject) = StatisticV2().apply {
+fun jsonToStatistic(json: JsonObject) = StatisticV2().apply {
 
     uid = json.optLong("uid", -1L)
     playerName = json.getString("username")
     setForcedScore(json.getLong("score"))
     time = System.currentTimeMillis()
-    mod = deserializeMods(json.optJSONArray("mods")?.toString() ?: "")
+    mod = deserializeMods(json.optJsonArray("mods")?.toString() ?: "")
     scoreMaxCombo = json.optInt("maxCombo")
     hit300k = json.optInt("geki")
     hit300 = json.optInt("perfect")

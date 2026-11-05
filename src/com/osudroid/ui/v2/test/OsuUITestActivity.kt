@@ -1,6 +1,8 @@
 package com.osudroid.ui.v2.test
 
 import com.osudroid.android.OkHttpClientImplementation
+import com.osudroid.android.SocketIORoomSocket
+import com.osudroid.multiplayer.api.RoomSocket
 import com.reco1l.framework.net.Http
 import com.osudroid.OsuPlatform
 import com.osudroid.android.AndroidOsuPlatform
@@ -27,6 +29,7 @@ class OsuUITestActivity : UITestActivity() {
 
         OsuPlatform.implementation = AndroidOsuPlatform(this)
         Http.implementation = OkHttpClientImplementation()
+        RoomSocket.factory = SocketIORoomSocket.factory
         Config.loadConfig()
         StringTable.implementation = AndroidStringTable(this)
         Skin.load(Config.getSkinPath())
