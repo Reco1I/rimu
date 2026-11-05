@@ -1,15 +1,13 @@
 package com.edlplan.osu.support.slider;
 
 import com.edlplan.andengine.TriangleBuilder;
-import com.edlplan.framework.math.FMath;
-import com.edlplan.framework.math.Vec2;
-import com.edlplan.framework.math.line.AbstractPath;
-import com.edlplan.framework.math.line.LinePath;
+import com.osudroid.math.MathUtils;
+import com.osudroid.math.Vector2;
+import com.osudroid.math.LinePath;
 import com.osudroid.ui.v2.game.UITriangleMesh;
 import com.reco1l.verktex.data.Color4;
 import com.reco1l.verktex.time.FrameClock;
 import com.reco1l.verktex.ui.container.UIContainer;
-import com.osudroid.math.Vector2;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -42,14 +40,14 @@ public class SliderBody extends UIContainer {
     private boolean shouldRebuildVertices = true;
 
     // Reused temporary vectors for the end-only hybrid fast path.
-    private final Vec2 tmpOthExpand = new Vec2();
-    private final Vec2 tmpStartL = new Vec2();
-    private final Vec2 tmpStartR = new Vec2();
-    private final Vec2 tmpEndL = new Vec2();
-    private final Vec2 tmpEndR = new Vec2();
-    private final Vec2 tmpCapCurrent = new Vec2();
-    private final Vec2 tmpCapCurrent2 = new Vec2();
-    private final Vec2 tmpCutPoint = new Vec2();
+    private final Vector2 tmpOthExpand = new Vector2(0f);
+    private final Vector2 tmpStartL = new Vector2(0f);
+    private final Vector2 tmpStartR = new Vector2(0f);
+    private final Vector2 tmpEndL = new Vector2(0f);
+    private final Vector2 tmpEndR = new Vector2(0f);
+    private final Vector2 tmpCapCurrent = new Vector2(0f);
+    private final Vector2 tmpCapCurrent2 = new Vector2(0f);
+    private final Vector2 tmpCutPoint = new Vector2(0f);
 
     // Tracks monotonic boundary movement during snaking to reduce segment lookups.
     private int lastFastEndSegmentIndex = -1;
@@ -103,7 +101,7 @@ public class SliderBody extends UIContainer {
             return;
         }
 
-        maxPathLength = cache.sourcePath.getMeasurer().maxLength();
+        maxPathLength = cache.sourcePath.getLength();
         startLength = 0;
 
         if (beginEmpty) {
@@ -172,16 +170,16 @@ public class SliderBody extends UIContainer {
         border.setColor(color);
     }
 
-    private LinePath fitToCachedPath(AbstractPath source, LinePath cache) {
+    private LinePath fitToCachedPath(LinePath source, LinePath cache) {
         cache.clear();
 
         int sourceSize = source.size();
-        Vec2 previousPoint = null;
+        Vector2 previousPoint = null;
 
         for (int i = 0; i < sourceSize; i++) {
-            Vec2 currentPoint = source.get(i);
+            Vector2 currentPoint = source.get(i);
 
-            if (previousPoint == null || i == sourceSize - 1 || Vec2.length(previousPoint, currentPoint) > pointMergeDistance) {
+            if (previousPoint == null || i == sourceSize - 1 || LinePath.distance(previousPoint, currentPoint) > pointMergeDistance) {
                 cache.add(currentPoint);
                 previousPoint = currentPoint;
             }
@@ -195,11 +193,11 @@ public class SliderBody extends UIContainer {
     }
 
     private float getPlayableWidth() {
-        return getClampedBackgroundWidth() - FMath.clamp(borderWidth, 0, getClampedBackgroundWidth());
+        return getClampedBackgroundWidth() - MathUtils.clamp(borderWidth, 0, getClampedBackgroundWidth());
     }
 
     private float getClampedHintWidth() {
-        return FMath.clamp(hintWidth, 0, getPlayableWidth());
+        return MathUtils.clamp(hintWidth, 0, getPlayableWidth());
     }
 
     private void buildVertices(LinePath subPath) {
@@ -231,8 +229,8 @@ public class SliderBody extends UIContainer {
         if (cache != null && shouldRebuildVertices) {
             shouldRebuildVertices = false;
 
-            float clampedStartLength = FMath.clamp(startLength, 0, maxPathLength);
-            float clampedEndLength = FMath.clamp(endLength, clampedStartLength, maxPathLength);
+            float clampedStartLength = MathUtils.clamp(startLength, 0, maxPathLength);
+            float clampedEndLength = MathUtils.clamp(endLength, clampedStartLength, maxPathLength);
 
             // Full-length path can be built directly without slicing/allocating an intermediate path.
             if (clampedStartLength <= lengthUpdateEpsilon &&
@@ -246,7 +244,7 @@ public class SliderBody extends UIContainer {
                     (Math.abs(clampedEndLength - maxPathLength) <= lengthUpdateEpsilon && tryBuildFastStartLength(clampedStartLength));
 
                 if (!isBuiltByFastPath) {
-                    var cutPath = cache.sourcePath.cutPath(clampedStartLength, clampedEndLength);
+                    var cutPath = cache.sourcePath.cut(clampedStartLength, clampedEndLength);
                     buildVertices(fitToCachedPath(cutPath, cache.path));
                 }
             }
@@ -273,7 +271,7 @@ public class SliderBody extends UIContainer {
     }
 
     public void setEndLength(float length) {
-        float clampedLength = FMath.clamp(length, 0, maxPathLength);
+        float clampedLength = MathUtils.clamp(length, 0, maxPathLength);
 
         if (Math.abs(clampedLength - endLength) <= lengthUpdateEpsilon) {
             return;
@@ -297,9 +295,9 @@ public class SliderBody extends UIContainer {
         }
 
         float clampedBackgroundWidth = Math.max(0, backgroundWidth);
-        float clampedBorderWidth = FMath.clamp(borderWidth, 0, clampedBackgroundWidth);
+        float clampedBorderWidth = MathUtils.clamp(borderWidth, 0, clampedBackgroundWidth);
         float playableWidth = clampedBackgroundWidth - clampedBorderWidth;
-        float clampedHintWidth = FMath.clamp(hintWidth, 0, playableWidth);
+        float clampedHintWidth = MathUtils.clamp(hintWidth, 0, playableWidth);
 
         buildPointLengthCache(renderPath, cache);
         buildSegmentThetaCache(renderPath, cache);
@@ -355,7 +353,7 @@ public class SliderBody extends UIContainer {
         cache.pointLengths[0] = 0;
 
         for (int i = 1; i < size; i++) {
-            length += Vec2.length(path.get(i - 1), path.get(i));
+            length += LinePath.distance(path.get(i - 1), path.get(i));
             cache.pointLengths[i] = length;
         }
 
@@ -370,7 +368,7 @@ public class SliderBody extends UIContainer {
         }
 
         for (int i = 0; i < segmentCount; i++) {
-            cache.segmentThetas[i] = Vec2.calTheta(path.get(i), path.get(i + 1));
+            cache.segmentThetas[i] = LinePath.angle(path.get(i), path.get(i + 1));
         }
     }
 
@@ -382,7 +380,7 @@ public class SliderBody extends UIContainer {
             return false;
         }
 
-        float clampedEnd = FMath.clamp(endLength, 0, maxPathLength);
+        float clampedEnd = MathUtils.clamp(endLength, 0, maxPathLength);
 
         if (clampedEnd <= lengthUpdateEpsilon || clampedEnd >= maxPathLength - lengthUpdateEpsilon) {
             return false;
@@ -394,8 +392,8 @@ public class SliderBody extends UIContainer {
             return false;
         }
 
-        Vec2 segmentStart = cache.sourcePath.get(segmentIndex);
-        Vec2 cutPoint = interpolatePointAtLength(clampedEnd, segmentIndex, tmpCutPoint);
+        Vector2 segmentStart = cache.sourcePath.get(segmentIndex);
+        Vector2 cutPoint = interpolatePointAtLength(clampedEnd, segmentIndex, tmpCutPoint);
         float segmentTheta = cache.segmentThetas[segmentIndex];
 
         if (hint != null && hint.isVisible()) {
@@ -426,7 +424,7 @@ public class SliderBody extends UIContainer {
             return false;
         }
 
-        float clampedStart = FMath.clamp(startLength, 0, maxPathLength);
+        float clampedStart = MathUtils.clamp(startLength, 0, maxPathLength);
 
         if (clampedStart <= lengthUpdateEpsilon || clampedStart >= maxPathLength - lengthUpdateEpsilon) {
             return false;
@@ -438,8 +436,8 @@ public class SliderBody extends UIContainer {
             return false;
         }
 
-        Vec2 segmentEnd = cache.sourcePath.get(segmentIndex + 1);
-        Vec2 cutPoint = interpolatePointAtLength(clampedStart, segmentIndex, tmpCutPoint);
+        Vector2 segmentEnd = cache.sourcePath.get(segmentIndex + 1);
+        Vector2 cutPoint = interpolatePointAtLength(clampedStart, segmentIndex, tmpCutPoint);
         float segmentTheta = cache.segmentThetas[segmentIndex];
 
         if (hint != null && hint.isVisible()) {
@@ -466,8 +464,8 @@ public class SliderBody extends UIContainer {
                                    RenderPathCache.ComponentCache cache,
                                    float width,
                                    int segmentIndex,
-                                   Vec2 segmentStart,
-                                   Vec2 cutPoint,
+                                   Vector2 segmentStart,
+                                   Vector2 cutPoint,
                                    float segmentTheta) {
         // Prefix reuse layout: [cached triangles before boundary] + [rebuilt boundary].
         if (width <= 0 || !cache.hasCache || cache.vertexLength <= 0 || segmentIndex >= this.cache.segmentCount) {
@@ -486,9 +484,9 @@ public class SliderBody extends UIContainer {
         builder.maxX = cache.maxX;
         builder.maxY = cache.maxY;
 
-        if (Vec2.length(segmentStart, cutPoint) > lengthUpdateEpsilon) {
+        if (LinePath.distance(segmentStart, cutPoint) > lengthUpdateEpsilon) {
             addLineQuad(builder, segmentStart, cutPoint, width);
-            addEndCap(builder, cutPoint, segmentTheta - FMath.PiHalf, width);
+            addEndCap(builder, cutPoint, segmentTheta - MathUtils.HALF_PI_F, width);
         }
 
         builder.applyVertices(target.getVertices());
@@ -499,8 +497,8 @@ public class SliderBody extends UIContainer {
                                             RenderPathCache.ComponentCache cache,
                                             float width,
                                             int segmentIndex,
-                                            Vec2 segmentEnd,
-                                            Vec2 cutPoint,
+                                            Vector2 segmentEnd,
+                                            Vector2 cutPoint,
                                             float segmentTheta) {
         // Suffix reuse layout: [rebuilt boundary at start] + [cached triangles after boundary].
         if (width <= 0 || !cache.hasCache || cache.vertexLength <= 0 || segmentIndex >= this.cache.segmentCount) {
@@ -517,15 +515,15 @@ public class SliderBody extends UIContainer {
         builder.maxX = cache.maxX;
         builder.maxY = cache.maxY;
 
-        addStartCap(builder, cutPoint, segmentTheta + FMath.PiHalf, width);
+        addStartCap(builder, cutPoint, segmentTheta + MathUtils.HALF_PI_F, width);
 
-        if (Vec2.length(cutPoint, segmentEnd) > lengthUpdateEpsilon) {
+        if (LinePath.distance(cutPoint, segmentEnd) > lengthUpdateEpsilon) {
             addLineQuad(builder, cutPoint, segmentEnd, width);
         }
 
         if (segmentIndex < this.cache.segmentCount - 1) {
             float nextTheta = this.cache.segmentThetas[segmentIndex + 1];
-            addLineCap(builder, segmentEnd, segmentTheta - FMath.PiHalf, nextTheta - segmentTheta, width);
+            addLineCap(builder, segmentEnd, segmentTheta - MathUtils.HALF_PI_F, nextTheta - segmentTheta, width);
 
             int suffixOffset = this.cache.segmentQuadStartOffsets[segmentIndex + 1];
             int suffixLength = cache.vertexLength - suffixOffset;
@@ -535,7 +533,7 @@ public class SliderBody extends UIContainer {
                 builder.length += suffixLength;
             }
         } else {
-            addEndCap(builder, segmentEnd, segmentTheta - FMath.PiHalf, width);
+            addEndCap(builder, segmentEnd, segmentTheta - MathUtils.HALF_PI_F, width);
         }
 
         builder.applyVertices(target.getVertices());
@@ -626,20 +624,20 @@ public class SliderBody extends UIContainer {
         return Math.max(0, Math.min(segmentIndex, cache.segmentCount - 1));
     }
 
-    private Vec2 interpolatePointAtLength(float length, int segmentIndex, Vec2 out) {
+    private Vector2 interpolatePointAtLength(float length, int segmentIndex, Vector2 out) {
         float startLength = cache.pointLengths[segmentIndex];
         float endLength = cache.pointLengths[segmentIndex + 1];
         float segmentLength = endLength - startLength;
 
-        Vec2 startPoint = cache.sourcePath.get(segmentIndex);
+        Vector2 startPoint = cache.sourcePath.get(segmentIndex);
 
         if (segmentLength <= lengthUpdateEpsilon) {
             out.set(startPoint);
             return out;
         }
 
-        float t = FMath.clamp((length - startLength) / segmentLength, 0, 1);
-        Vec2 endPoint = cache.sourcePath.get(segmentIndex + 1);
+        float t = MathUtils.clamp((length - startLength) / segmentLength, 0, 1);
+        Vector2 endPoint = cache.sourcePath.get(segmentIndex + 1);
 
         out.set(
             startPoint.x + (endPoint.x - startPoint.x) * t,
@@ -649,21 +647,21 @@ public class SliderBody extends UIContainer {
         return out;
     }
 
-    private void addLineQuad(TriangleBuilder builder, Vec2 pointStart, Vec2 pointEnd, float width) {
-        tmpOthExpand.set(Vec2.lineOthNormal(pointStart, pointEnd, tmpOthExpand));
-        tmpOthExpand.zoom(width);
+    private void addLineQuad(TriangleBuilder builder, Vector2 pointStart, Vector2 pointEnd, float width) {
+        tmpOthExpand.set(LinePath.perpendicular(pointStart, pointEnd, tmpOthExpand));
+        tmpOthExpand.scale(width);
 
         tmpStartL.set(pointStart);
         tmpStartL.add(tmpOthExpand);
 
         tmpStartR.set(pointStart);
-        tmpStartR.minus(tmpOthExpand);
+        tmpStartR.subtract(tmpOthExpand);
 
         tmpEndL.set(pointEnd);
         tmpEndL.add(tmpOthExpand);
 
         tmpEndR.set(pointEnd);
-        tmpEndR.minus(tmpOthExpand);
+        tmpEndR.subtract(tmpOthExpand);
 
         builder.add(pointStart, pointEnd, tmpEndL);
         builder.add(pointStart, tmpEndL, tmpStartL);
@@ -671,32 +669,32 @@ public class SliderBody extends UIContainer {
         builder.add(pointStart, tmpStartR, tmpEndR);
     }
 
-    private void addEndCap(TriangleBuilder builder, Vec2 origin, float theta, float width) {
-        addLineCap(builder, origin, theta, FMath.Pi, width);
+    private void addEndCap(TriangleBuilder builder, Vector2 origin, float theta, float width) {
+        addLineCap(builder, origin, theta, MathUtils.PI_F, width);
     }
 
-    private void addStartCap(TriangleBuilder builder, Vec2 origin, float theta, float width) {
-        addLineCap(builder, origin, theta, FMath.Pi, width);
+    private void addStartCap(TriangleBuilder builder, Vector2 origin, float theta, float width) {
+        addLineCap(builder, origin, theta, MathUtils.PI_F, width);
     }
 
-    private void addLineCap(TriangleBuilder builder, Vec2 origin, float theta, float thetaDiff, float width) {
-        final float step = FMath.Pi / 24;
+    private void addLineCap(TriangleBuilder builder, Vector2 origin, float theta, float thetaDiff, float width) {
+        final float step = MathUtils.PI_F / 24;
 
         float dir = Math.signum(thetaDiff);
         thetaDiff *= dir;
         int amountPoints = (int) Math.ceil(thetaDiff / step);
 
         if (dir < 0) {
-            theta += FMath.Pi;
+            theta += MathUtils.PI_F;
         }
 
-        tmpCapCurrent.set(Vec2.atCircle(theta, tmpCapCurrent));
-        tmpCapCurrent.zoom(width);
+        tmpCapCurrent.set(LinePath.pointOnCircle(theta, tmpCapCurrent));
+        tmpCapCurrent.scale(width);
         tmpCapCurrent.add(origin);
 
         for (int i = 1; i <= amountPoints; i++) {
-            tmpCapCurrent2.set(Vec2.atCircle(theta + dir * Math.min(i * step, thetaDiff), tmpCapCurrent2));
-            tmpCapCurrent2.zoom(width);
+            tmpCapCurrent2.set(LinePath.pointOnCircle(theta + dir * Math.min(i * step, thetaDiff), tmpCapCurrent2));
+            tmpCapCurrent2.scale(width);
             tmpCapCurrent2.add(origin);
 
             builder.add(origin, tmpCapCurrent, tmpCapCurrent2);

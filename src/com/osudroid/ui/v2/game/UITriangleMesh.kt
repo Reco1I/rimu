@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.game
 
-import com.edlplan.framework.utils.FloatArraySlice
+import com.osudroid.utils.FloatArraySlice
 import com.reco1l.verktex.graphics.CompareFunction
 import com.reco1l.verktex.graphics.DepthState
 import com.reco1l.verktex.graphics.GraphicsRenderer

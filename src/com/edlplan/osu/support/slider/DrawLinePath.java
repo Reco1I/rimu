@@ -1,30 +1,30 @@
 package com.edlplan.osu.support.slider;
 
 import com.edlplan.andengine.TriangleBuilder;
-import com.edlplan.framework.math.FMath;
-import com.edlplan.framework.math.Vec2;
-import com.edlplan.framework.math.line.AbstractPath;
+import com.osudroid.math.MathUtils;
+import com.osudroid.math.LinePath;
+import com.osudroid.math.Vector2;
 
 public class DrawLinePath {
     private static final int MAXRES = 24;
 
     public float alpha;
     public float width;
-    Vec2 current, current2;
-    Vec2 startL = new Vec2();
-    Vec2 startR = new Vec2();
-    Vec2 endL = new Vec2();
-    Vec2 endR = new Vec2();
-    Vec2 start = new Vec2();
-    Vec2 end = new Vec2();
-    Vec2 oth_expand = new Vec2();
+    Vector2 current, current2;
+    Vector2 startL = new Vector2(0f);
+    Vector2 startR = new Vector2(0f);
+    Vector2 endL = new Vector2(0f);
+    Vector2 endR = new Vector2(0f);
+    Vector2 start = new Vector2(0f);
+    Vector2 end = new Vector2(0f);
+    Vector2 oth_expand = new Vector2(0f);
     private TriangleBuilder triangles;
-    private AbstractPath path;
+    private LinePath path;
 
     private float[] segmentThetas = new float[0];
     private int[] segmentQuadStartOffsets = new int[0];
     private int segmentQuadStartCount;
-    private AbstractPath cachedThetaPath;
+    private LinePath cachedThetaPath;
     private int cachedThetaPathSize;
     private float cachedFirstX;
     private float cachedFirstY;
@@ -35,7 +35,7 @@ public class DrawLinePath {
         alpha = 1;
     }
 
-    public DrawLinePath reset(AbstractPath p, float width) {
+    public DrawLinePath reset(LinePath p, float width) {
         alpha = 1;
         path = p;
         this.width = width;
@@ -72,22 +72,22 @@ public class DrawLinePath {
     }
 
 
-    private void addLineCap(Vec2 org, float theta, float thetaDiff) {
-        final float step = FMath.Pi / MAXRES;
+    private void addLineCap(Vector2 org, float theta, float thetaDiff) {
+        final float step = MathUtils.PI_F / MAXRES;
 
         float dir = Math.signum(thetaDiff);
         thetaDiff *= dir;
         int amountPoints = (int) Math.ceil(thetaDiff / step);
 
         if (dir < 0)
-            theta += FMath.Pi;
+            theta += MathUtils.PI_F;
 
         /* current = org + atCircle(...)*width */
-        current = Vec2.atCircle(theta, current).zoom(width).add(org);
+        current = LinePath.pointOnCircle(theta, current).scale(width).add(org);
 
         for (int i = 1; i <= amountPoints; i++) {
-            current2 = Vec2.atCircle(theta + dir * Math.min(i * step, thetaDiff), current2)
-                    .zoom(width)
+            current2 = LinePath.pointOnCircle(theta + dir * Math.min(i * step, thetaDiff), current2)
+                    .scale(width)
                     .add(org);
             triangles.add(
                     org,
@@ -98,17 +98,17 @@ public class DrawLinePath {
         }
     }
 
-    private void addLineQuads(Vec2 ps, Vec2 pe) {
-        oth_expand = Vec2.lineOthNormal(ps, pe, oth_expand).zoom(width);
+    private void addLineQuads(Vector2 ps, Vector2 pe) {
+        oth_expand = LinePath.perpendicular(ps, pe, oth_expand).scale(width);
 
         startL.set(ps);
         startL.add(oth_expand);
         startR.set(ps);
-        startR.minus(oth_expand);
+        startR.subtract(oth_expand);
         endL.set(pe);
         endL.add(oth_expand);
         endR.set(pe);
-        endR.minus(oth_expand);
+        endR.subtract(oth_expand);
         start = ps;
         end = pe;
 
@@ -146,8 +146,8 @@ public class DrawLinePath {
             return;
         }
 
-        Vec2 first = path.get(0);
-        Vec2 last = path.get(size - 1);
+        Vector2 first = path.get(0);
+        Vector2 last = path.get(size - 1);
 
         if (cachedThetaPath == path &&
             cachedThetaPathSize == size &&
@@ -163,7 +163,7 @@ public class DrawLinePath {
         }
 
         for (int i = 0; i < segmentCount; i++) {
-            segmentThetas[i] = Vec2.calTheta(path.get(i), path.get(i + 1));
+            segmentThetas[i] = LinePath.angle(path.get(i), path.get(i + 1));
         }
 
         cachedThetaPath = path;
@@ -178,8 +178,8 @@ public class DrawLinePath {
         if (path.size() < 2) {
             segmentQuadStartCount = 0;
             if (path.size() == 1) {
-                addLineCap(path.get(0), FMath.Pi, FMath.Pi);
-                addLineCap(path.get(0), 0, FMath.Pi);
+                addLineCap(path.get(0), MathUtils.PI_F, MathUtils.PI_F);
+                addLineCap(path.get(0), 0, MathUtils.PI_F);
             }
             return;
         }
@@ -193,28 +193,28 @@ public class DrawLinePath {
         segmentQuadStartCount = segmentCount;
 
         float theta = segmentThetas[0];
-        addLineCap(path.get(0), theta + FMath.PiHalf, FMath.Pi);
+        addLineCap(path.get(0), theta + MathUtils.HALF_PI_F, MathUtils.PI_F);
         segmentQuadStartOffsets[0] = triangles.length;
         addLineQuads(path.get(0), path.get(1));
         if (path.size() == 2) {
-            addLineCap(path.get(1), theta - FMath.PiHalf, FMath.Pi);
+            addLineCap(path.get(1), theta - MathUtils.HALF_PI_F, MathUtils.PI_F);
             return;
         }
-        Vec2 nowPoint = path.get(1);
-        Vec2 nextPoint;
+        Vector2 nowPoint = path.get(1);
+        Vector2 nextPoint;
         float preTheta = theta;
         float nextTheta;
         int max_i = path.size();
         for (int i = 2; i < max_i; i++) {
             nextPoint = path.get(i);
             nextTheta = segmentThetas[i - 1];
-            addLineCap(nowPoint, preTheta - FMath.PiHalf, nextTheta - preTheta);
+            addLineCap(nowPoint, preTheta - MathUtils.HALF_PI_F, nextTheta - preTheta);
             segmentQuadStartOffsets[i - 1] = triangles.length;
             addLineQuads(nowPoint, nextPoint);
             nowPoint = nextPoint;
             preTheta = nextTheta;
         }
-        addLineCap(path.get(max_i - 1), preTheta - FMath.PiHalf, FMath.Pi);
+        addLineCap(path.get(max_i - 1), preTheta - MathUtils.HALF_PI_F, MathUtils.PI_F);
     }
 
 

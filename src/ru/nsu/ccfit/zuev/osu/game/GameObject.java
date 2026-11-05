@@ -4,7 +4,7 @@ import android.graphics.PointF;
 
 import androidx.annotation.Nullable;
 
-import com.edlplan.framework.math.FMath;
+import com.osudroid.math.MathUtils;
 import com.osudroid.beatmaps.HitWindow;
 import com.osudroid.beatmaps.hitobjects.HitObject;
 import com.osudroid.game.CursorEvent;
@@ -194,7 +194,7 @@ public abstract class GameObject {
         }
 
         float hittableRange = GameHelper.isAutopilot()
-            ? (float) FMath.clamp(hitWindow.getMehWindow() + 100, 200, HitWindow.MISS_WINDOW) / 1000
+            ? (float) MathUtils.clamp(hitWindow.getMehWindow() + 100, 200, HitWindow.MISS_WINDOW) / 1000
             : (float) HitWindow.MISS_WINDOW / 1000;
 
         return cursorEvent.getHitTime() / 1000 >= hitTime - hittableRange;

@@ -102,6 +102,45 @@ data class Vector2(
     }
 
     /**
+     * Sets this vector to [x] and [y].
+     *
+     * @return This vector.
+     */
+    fun set(x: Float, y: Float): Vector2 {
+        this.x = x
+        this.y = y
+        return this
+    }
+
+    /**
+     * Sets this vector to [vec].
+     *
+     * @return This vector.
+     */
+    fun set(vec: Vector2) = set(vec.x, vec.y)
+
+    /**
+     * Adds [vec] to this vector, unlike [plus] which creates a new one.
+     *
+     * @return This vector.
+     */
+    fun add(vec: Vector2) = set(x + vec.x, y + vec.y)
+
+    /**
+     * Subtracts [vec] from this vector, unlike [minus] which creates a new one.
+     *
+     * @return This vector.
+     */
+    fun subtract(vec: Vector2) = set(x - vec.x, y - vec.y)
+
+    /**
+     * Scales this vector by [factor], unlike [times] which creates a new one.
+     *
+     * @return This vector.
+     */
+    fun scale(factor: Float) = set(x * factor, y * factor)
+
+    /**
      * Multiplies this vector with another vector.
      *
      * @param vec The other vector.

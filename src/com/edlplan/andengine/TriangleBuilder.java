@@ -1,7 +1,7 @@
 package com.edlplan.andengine;
 
-import com.edlplan.framework.math.Vec2;
-import com.edlplan.framework.utils.FloatArraySlice;
+import com.osudroid.math.Vector2;
+import com.osudroid.utils.FloatArraySlice;
 
 import java.util.Arrays;
 
@@ -22,7 +22,7 @@ public class TriangleBuilder extends FloatArraySlice {
     }
 
 
-    public void add(Vec2 p1, Vec2 p2, Vec2 p3) {
+    public void add(Vector2 p1, Vector2 p2, Vector2 p3) {
         if (length + 6 > ary.length) {
             ary = Arrays.copyOf(ary, ary.length * 3 / 2 + 6);
         }

@@ -22,9 +22,8 @@ import com.reco1l.verktex.time.FrameStableClock;
 import ru.nsu.ccfit.zuev.osu.SecurityUtils;
 
 import com.acivev.VibratorManager;
-import com.edlplan.framework.math.FMath;
+import com.osudroid.math.MathUtils;
 import com.edlplan.osu.support.slider.SliderBody;
-import com.edlplan.framework.utils.functionality.SmartIterator;
 import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.game.Cursor;
 import com.osudroid.game.CursorEvent;
@@ -1206,7 +1205,7 @@ public class GameScene implements GameObjectListener {
             position.x -= 25f;
         }
 
-        boolean hasUnrankedMod = SmartIterator.wrap(lastMods.values().iterator()).applyFilter(m -> !m.isRanked()).hasNext();
+        boolean hasUnrankedMod = lastMods.values().stream().anyMatch(m -> !m.isRanked());
         if (hasUnrankedMod || Multiplayer.isRemoveSliderLock()) {
             unrankedSprite = new UISprite(SkinTextures.get("play-unranked"));
             unrankedSprite.setAnchor(Anchor.TopCenter);
@@ -2870,11 +2869,11 @@ public class GameScene implements GameObjectListener {
                 entity.setPosition(entity.getX().resolve(0f), y < 0f ? y * 0.6f : y * 1.01f);
 
                 if (entity.getRotationZ() == 0) {
-                    entity.setRotationZ(entity.getRotationZ() + (float) Random.Default.nextDouble(-0.02, 0.02) * 180 / FMath.Pi);
+                    entity.setRotationZ(entity.getRotationZ() + (float) Random.Default.nextDouble(-0.02, 0.02) * 180 / MathUtils.PI_F);
                 } else if (entity.getRotationZ() > 0) {
-                    entity.setRotationZ(entity.getRotationZ() + 0.01f * 180 / FMath.Pi);
+                    entity.setRotationZ(entity.getRotationZ() + 0.01f * 180 / MathUtils.PI_F);
                 } else {
-                    entity.setRotationZ(entity.getRotationZ() - 0.01f * 180 / FMath.Pi);
+                    entity.setRotationZ(entity.getRotationZ() - 0.01f * 180 / MathUtils.PI_F);
                 }
             }
         }
@@ -3324,7 +3323,7 @@ public class GameScene implements GameObjectListener {
             return;
         }
 
-        float clampedTime = FMath.clamp(
+        float clampedTime = MathUtils.clamp(
             targetTimeSeconds,
             (float) (objects[0].startTime / 1000),
             (float) (objects[objects.length - 1].getEndTime() / 1000)

@@ -6,8 +6,8 @@ import android.graphics.PointF;
 
 import androidx.annotation.Nullable;
 
-import com.edlplan.framework.math.Vec2;
-import com.edlplan.framework.math.line.LinePath;
+import com.osudroid.math.Vector2;
+import com.osudroid.math.LinePath;
 import com.osudroid.beatmaps.hitobjects.Slider;
 import com.osudroid.beatmaps.hitobjects.SliderPathType;
 import com.osudroid.math.Interpolation;
@@ -102,7 +102,7 @@ public class GameHelper {
         float distanceThresholdSquared = distanceThreshold * distanceThreshold;
 
         // Invert the scale to convert from screen pixels to osu!pixels.
-        var invertedScale = new Vec2(
+        var invertedScale = new Vector2(
             (float) Constants.MAP_WIDTH / Constants.MAP_ACTUAL_WIDTH,
             (float) Constants.MAP_HEIGHT / Constants.MAP_ACTUAL_HEIGHT
         );
@@ -118,7 +118,7 @@ public class GameHelper {
 
             var x = sliderPath.getX(i);
             var y = sliderPath.getY(i);
-            var vec = new Vec2(x, y);
+            var vec = new Vector2(x, y);
 
             if (renderPath.size() == 0) {
                 renderPath.add(vec);

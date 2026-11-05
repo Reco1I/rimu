@@ -1,7 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
 import com.reco1l.verktex.math.Easing;
-import com.edlplan.framework.math.FMath;
+import com.osudroid.math.MathUtils;
 import com.osudroid.utils.Execution;
 import com.reco1l.verktex.ui.container.UIContainer;
 import com.reco1l.verktex.ui.ChoreographyKt;
@@ -280,7 +280,7 @@ public class GameplayHitCircle extends GameObject {
             removeFromScene();
         } else {
             approachCircle.clearAnimations();
-            approachCircle.setAlpha(1 - FMath.clamp(passedTime / 0.05f, 0, 1));
+            approachCircle.setAlpha(1 - MathUtils.clamp(passedTime / 0.05f, 0, 1));
 
             // If passed too much time, counting it as miss
             if (passedTime > mehWindow) {
