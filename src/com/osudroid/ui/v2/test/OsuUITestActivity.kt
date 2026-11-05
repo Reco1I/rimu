@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.OsuPlatform
+import com.osudroid.android.AndroidOsuPlatform
 import com.google.firebase.FirebaseApp
 import com.osudroid.ui.v2.Skin
 import com.reco1l.verktex.android.UITestActivity
@@ -20,7 +22,8 @@ class OsuUITestActivity : UITestActivity() {
         // Firebase only initializes itself in the main process, the configuration subscribes to topics.
         FirebaseApp.initializeApp(this)
 
-        Config.loadConfig(this)
+        OsuPlatform.implementation = AndroidOsuPlatform(this)
+        Config.loadConfig()
         StringTable.setContext(this)
         Skin.load(Config.getSkinPath())
 

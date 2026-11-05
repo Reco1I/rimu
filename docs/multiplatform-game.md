@@ -32,7 +32,7 @@ Decisions already made with the user:
 | `io.socket:socket.io-client` | `multiplayer/api/RoomAPI.kt`, `LobbyAPI`, `MockMultiplayer` | A small **Socket.IO v4 client over Ktor WebSockets**. Only connect with auth/query, `emit` and `on` are used, so it's a few hundred lines. |
 | `java.io.File` (32 files), commons-io, `FileUtils.java`, `MD5Calculator.java`, `MessageDigest` | library, skins, replays, DB, downloads | **Okio** (`FileSystem.SYSTEM`, `Path`, `BufferedSource`, `ByteString.md5()`). It's a mature multiplatform FS and also covers hashing. |
 | zip4j, `java.util.zip` | `OsuDroidReplayPack`, `.osz` import (`LibraryManager`, `BeatmapDownloader`) | A small `Archives` expect/actual in the game, with zip4j as the JVM actual. Okio reads zips but can't write them. |
-| `SharedPreferences`/`PreferenceManager` (`Config.java`, `ConfigBackup`, `DifficultyCalculationManager`, `SettingsSections`…) | settings | Verktex's **`Settings`**. Its Android `Implementation` is backed by the same SharedPreferences keys (add it if missing) so users lose nothing; desktop uses a JSON file. |
+| `SharedPreferences`/`PreferenceManager` (`Config.java`, `ConfigBackup`, `DifficultyCalculationManager`, `SettingsSections`…) | settings | **multiplatform-settings** (`com.russhwolf:multiplatform-settings`), reached through `OsuPlatform.preferences`: `SharedPreferencesSettings` over the same preferences on Android, so users lose nothing. Verktex's `Settings` is only an in-memory map without typed storage, so it doesn't fit. |
 | Room 2.7 (kapt) + `SupportSQLiteDatabase` migrations | `com/osudroid/data/` | **Room KMP** (same 2.7+ artifacts) with **KSP** instead of kapt and `BundledSQLiteDriver`. Port `Migrations.kt` to `Migration.migrate(SQLiteConnection)`. The `getDatabaseBuilder()` stays expect/actual. |
 | `android.util.Log` (33 files), `Debug.java` | everywhere | Verktex **`Logger`**. |
 | `SystemClock`, `java.util.Date/Calendar/TimeZone`, `SimpleDateFormat`, `android.text.format`, `android.icu.text` | cursor, replays, scores, chat, logger | **`kotlin.time`** (`TimeSource.Monotonic`) and **kotlinx-datetime** with its format DSL. |
@@ -129,8 +129,7 @@ The app's tests (`tests/test/kotlin/`) move to `game/src/jvmTest` (JUnit as toda
    org.json, `BeatmapParser`'s `File` → Okio. Move their tests. This proves the setup works.
 3. **Foundations.** Logger, Okio, kotlinx.serialization JSON, Ktor-backed `WebRequest`, atomicfu
    and coroutines in `ExecutionOverloads`, kotlinx-datetime, number/string formatting, the string
-   generation task and `StringTable`, and `Config` on Verktex `Settings` (with a SharedPreferences
-   implementation).
+   generation task and `StringTable`, and `Config` on multiplatform-settings.
 4. **Platform services.** Add the Verktex `Platform.Implementation` additions (Android and desktop
    implementations) and `OsuPlatform` (Android implementation). Point callers at them.
 5. **Database.** Room KMP with KSP, `SQLiteConnection` migrations, and the expect builder. Verify
@@ -159,3 +158,15 @@ The app's tests (`tests/test/kotlin/`) move to `game/src/jvmTest` (JUnit as toda
 - Settings: existing SharedPreferences values are still read after the move.
 - Optional end check: a throwaway desktop launcher that opens `OsuUITests` scenes through
   `:verktex:desktop`.
+
+## Progress
+
+- `:game` exists (JVM target, `-Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs`
+  checks the common code).
+- Logging goes through Verktex's `Logger`, which prints to the standard output until a platform sets it.
+- `Config`, `Debug`, `BuildType`, `BuildSettings`, `DifficultyAlgorithm`,
+  `BeatmapLeaderboardScoringMode` and `GameMode` are Kotlin and live in `:game`. What they need from
+  Android goes through `OsuPlatform` (`com.osudroid.android.AndroidOsuPlatform` on Android).
+- `Config.isRemoveSliderLock()` no longer looks at the room: `Multiplayer.isRemoveSliderLock()` does.
+- The app's Robolectric tests need Java 17 (Robolectric can't read Java 25 class files), and some
+  assume an English locale. Tests that move to `:game` run as plain JVM tests.

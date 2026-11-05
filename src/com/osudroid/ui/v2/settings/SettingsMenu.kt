@@ -314,7 +314,7 @@ class SettingsMenu : UIScene() {
     fun back() {
         val global = GlobalManager.getInstance()
 
-        Config.loadConfig(global.context)
+        Config.loadConfig()
         onPlayfieldChanged = null
 
         if (Multiplayer.isMultiplayer) {

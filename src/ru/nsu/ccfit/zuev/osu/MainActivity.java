@@ -1,5 +1,8 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.osudroid.OsuPlatform;
+import com.osudroid.android.AndroidOsuPlatform;
+
 import com.osudroid.ui.v2.settings.SettingsSectionsKt;
 import android.Manifest;
 import android.app.ActivityManager;
@@ -124,7 +127,8 @@ public class MainActivity extends AndroidGameHost {
         // so we can see the GLES capability distribution across users.
         reportGlesVersion();
 
-        Config.loadConfig(this);
+        OsuPlatform.INSTANCE.setImplementation(new AndroidOsuPlatform(this));
+        Config.loadConfig();
         StringTable.setContext(this);
         ToastLogger.init(this);
         initialGameDirectory();

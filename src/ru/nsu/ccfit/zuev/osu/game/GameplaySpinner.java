@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
+import com.osudroid.multiplayer.Multiplayer;
+
 import android.graphics.PointF;
 
 import com.reco1l.verktex.ui.container.UIContainer;
@@ -425,7 +427,7 @@ public class GameplaySpinner extends GameObject {
     public boolean isJudged() {
         // In remove spinner lock mode, the spinner is assumed to be judged to allow other objects to be judged while
         // the spinner is still active.
-        return Config.isRemoveSliderLock() || passedTime >= duration;
+        return Multiplayer.isRemoveSliderLock() || passedTime >= duration;
     }
 
     protected void applySeekRotations() {

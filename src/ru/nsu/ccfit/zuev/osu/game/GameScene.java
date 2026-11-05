@@ -1205,7 +1205,7 @@ public class GameScene implements GameObjectListener {
         }
 
         boolean hasUnrankedMod = SmartIterator.wrap(lastMods.values().iterator()).applyFilter(m -> !m.isRanked()).hasNext();
-        if (hasUnrankedMod || Config.isRemoveSliderLock()) {
+        if (hasUnrankedMod || Multiplayer.isRemoveSliderLock()) {
             unrankedSprite = new UISprite(SkinTextures.get("play-unranked"));
             unrankedSprite.setAnchor(Anchor.TopCenter);
             unrankedSprite.setOrigin(Anchor.Center);
@@ -2044,7 +2044,7 @@ public class GameScene implements GameObjectListener {
 
             // Advance to the next judgeable object if the current judgeable object is judged.
             // In remove slider lock mode, do this as soon as the current judgeable object is hit instead.
-            if (isObjectHittable(obj) && (obj.isJudged() || (Config.isRemoveSliderLock() && obj.isStartHit()))) {
+            if (isObjectHittable(obj) && (obj.isJudged() || (Multiplayer.isRemoveSliderLock() && obj.isStartHit()))) {
                 judgeableObject = searchJudgeableObject(i + 1);
             }
 
