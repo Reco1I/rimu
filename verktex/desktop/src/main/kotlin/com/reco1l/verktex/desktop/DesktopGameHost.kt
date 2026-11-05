@@ -60,6 +60,15 @@ abstract class DesktopGameHost(
         Logger.implementation = DesktopLogger()
         GLFWErrorCallback.createPrint(System.err).set()
 
+        // On Wayland, GLFW draws the window's decorations (title bar, buttons) through libdecor,
+        // whose GTK plugin refuses to run off the process's first thread, which Java's main never
+        // is. GNOME doesn't draw them for the app either, so the window had none. Through XWayland,
+        // the compositor draws them.
+        if (System.getenv("WAYLAND_DISPLAY") != null && System.getenv("DISPLAY") != null &&
+            glfwPlatformSupported(GLFW_PLATFORM_X11)) {
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11)
+        }
+
         if (!glfwInit()) {
             throw IllegalStateException("Couldn't initialise GLFW.")
         }
