@@ -200,16 +200,23 @@ Done since the previous notes:
   coerces values as Android's org.json does (use it when moving other org.json code) and `LenientJson`
   parses as leniently. `HUDSkinData` names element types instead of referencing the HUD's classes.
 
+- The gameplay objects are Kotlin: `GameObject`, `GameplayHitCircle`, `GameplaySlider`, both spinners,
+  `GameEffect`, `GameObjectPool`, `GameplayEffects`, the listeners, `SliderBody`, `DrawLinePath` and
+  `TriangleBuilder`. Their protected fields stay `@JvmField` while Java (`GameScene`) uses them.
+
 What's left, roughly in order:
 
 1. **Skins, the rest**: the skin configuration is common (see below); `Skin` (reading the skin
    folder, which reports to the loading screen and checks textures with Android bitmaps),
    `BeatmapSkinManager`, `SkinTextures` and `SkinSounds` move with `GlobalManager` and the audio.
-2. **Gameplay objects and scenes** (`GameObject`, `GameplayHitCircle`, `GameplaySlider`, the spinners,
-   `GameScene`, `ScoringScene`, the slider body): Java to Kotlin, then move; they need the skins, the
-   audio (`SongService`, `BassSoundProvider`) and the UI.
-3. **Database**: Room KMP with KSP, `SQLiteConnection` migrations.
-4. **Networking**: Ktor for `WebRequest`/`JsonRequest`/`OnlineManager`, Socket.IO over Ktor WebSockets.
-5. **Android views**: rewrite on Verktex (beatmap listing, collections, block area editor, dialogs,
+2. **Gameplay objects**: converted to Kotlin, still in the app. To move them with the gameplay UI
+   (`com.osudroid.ui.v2.game`) and `com.osudroid.game`, cut or move: `SkinTextures`/`SkinSounds`/`SpriteFont`
+   (asset lookup), `BassSoundProvider` and `SongService` (audio; the spinner only needs
+   `SongService.defaultFrequency`), `GlobalManager`, `Multiplayer.isRemoveSliderLock()` and
+   `GameplayHUD`/`GameScene` from the effects and menus.
+3. **Scenes**: `GameScene` (≈4000 lines) and `ScoringScene`, Java to Kotlin.
+4. **Database**: Room KMP with KSP, `SQLiteConnection` migrations.
+5. **Networking**: Ktor for `WebRequest`/`JsonRequest`/`OnlineManager`, Socket.IO over Ktor WebSockets.
+6. **Android views**: rewrite on Verktex (beatmap listing, collections, block area editor, dialogs,
    toasts) and `Platform.openWebPage` instead of the WebView.
-6. A Java serialization reader/writer in common code, if replays must load outside the JVM.
+7. A Java serialization reader/writer in common code, if replays must load outside the JVM.
