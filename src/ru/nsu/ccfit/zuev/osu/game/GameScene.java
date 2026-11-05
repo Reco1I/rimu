@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
+import com.osudroid.ui.v2.hud.HUDElements;
+
 import com.osudroid.data.Scores;
 
 import com.osudroid.multiplayer.MultiplayerConverter;
@@ -648,7 +650,7 @@ public class GameScene implements GameObjectListener {
 
         this.playableBeatmap = playableBeatmap;
 
-        if (isHUDEditorMode || OsuSkin.get().getHUDSkinData().hasElement(HUDPPCounter.class)) {
+        if (isHUDEditorMode || OsuSkin.get().getHUDSkinData().hasElement(HUDElements.pp_counter.name())) {
             final var finalParsedBeatmap = parsedBeatmap;
 
             // Calculate timed difficulty attributes
@@ -3200,7 +3202,7 @@ public class GameScene implements GameObjectListener {
     }
 
     private void updatePPValue(int objectId) {
-        if (Config.isHideInGameUI() || !isHUDEditorMode && !OsuSkin.get().getHUDSkinData().hasElement(HUDPPCounter.class)) {
+        if (Config.isHideInGameUI() || !isHUDEditorMode && !OsuSkin.get().getHUDSkinData().hasElement(HUDElements.pp_counter.name())) {
             return;
         }
 

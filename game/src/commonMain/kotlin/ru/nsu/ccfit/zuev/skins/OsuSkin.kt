@@ -1,0 +1,177 @@
+package ru.nsu.ccfit.zuev.skins
+
+import com.osudroid.ui.skinning.BooleanSkinData
+import com.osudroid.ui.skinning.ColorSkinData
+import com.osudroid.ui.skinning.FloatSkinData
+import com.osudroid.ui.skinning.StringSkinData
+import com.osudroid.ui.v2.hud.HUDSkinData
+import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.data.Color4
+import kotlin.jvm.JvmName
+import kotlin.jvm.JvmStatic
+import okio.IOException
+import okio.Path.Companion.toPath
+import okio.buffer
+import okio.use
+
+class OsuSkin {
+    // The values as the skin sets them, which SkinJsonReader loads.
+    internal val animationFramerateData = FloatSkinData("animationFramerate", -1f)
+    internal val comboTextScaleData = FloatSkinData("comboTextScale", 1f)
+    internal val sliderHintWidthData = FloatSkinData("sliderHintWidth", 3f)
+    internal val sliderBodyWidthData = FloatSkinData("sliderBodyWidth", 61f)
+    internal val sliderBorderWidthData = FloatSkinData("sliderBorderWidth", 5.2f)
+    internal val sliderBodyBaseAlphaData = FloatSkinData("sliderBodyBaseAlpha", 0.7f)
+    internal val sliderHintAlphaData = FloatSkinData("sliderHintAlpha", 0.3f)
+    internal val sliderHintShowMinLengthData = FloatSkinData("sliderHintShowMinLength", 300f)
+    internal val hitCircleOverlapData = FloatSkinData("hitCircleOverlap", -2f)
+
+    internal val limitComboTextLengthData = BooleanSkinData("limitComboTextLength")
+    internal val disableKiaiData = BooleanSkinData("disableKiai")
+    internal val sliderHintEnableData = BooleanSkinData("sliderHintEnable")
+    internal val sliderFollowComboColorData = BooleanSkinData("sliderFollowComboColor", true)
+    internal val useNewLayoutData = BooleanSkinData("useNewLayout")
+    internal val forceOverrideComboColorData = BooleanSkinData("forceOverride")
+    internal val rotateCursorData = BooleanSkinData("rotateCursor", true)
+    internal val rotateCursorTrailData = BooleanSkinData("rotateCursorTrail", true)
+    internal val layeredHitSoundsData = BooleanSkinData("layeredHitSounds", true)
+    internal val sliderBallFlipData = BooleanSkinData("sliderBallFlip", true)
+    internal val spinnerFrequencyModulateData = BooleanSkinData("spinnerFrequencyModulate", true)
+
+    internal val DEFAULT_COLOR_HEX = "#FFFFFF"
+    internal val comboColorList = ArrayList<Color4>()
+
+    internal val sliderBorderColorData = ColorSkinData("sliderBorderColor", null)
+    internal val sliderBodyColorData = ColorSkinData("sliderBodyColor", null)
+    internal val sliderHintColorData = ColorSkinData("sliderHintColor", Color4(DEFAULT_COLOR_HEX))
+
+    val hitCirclePrefix = StringSkinData("hitCirclePrefix", "default")
+    val scorePrefix = StringSkinData("scorePrefix", "score")
+    internal val scoreOverlapData = FloatSkinData("scoreOverlap", 0f)
+    val comboPrefix = StringSkinData("comboPrefix", "score")
+    internal val comboOverlapData = FloatSkinData("comboOverlap", 0f)
+
+    internal val layoutData = HashMap<String, SkinLayout>()
+    internal val colorData = HashMap<String, Color4>()
+
+    @get:JvmName("getHUDSkinData")
+    @set:JvmName("setHUDSkinData")
+    var hudSkinData = HUDSkinData.Default
+
+
+    val isRotateCursor: Boolean
+        get() = rotateCursorData.currentValue
+
+    val isRotateCursorTrail: Boolean
+        get() = rotateCursorTrailData.currentValue
+
+    val comboTextScale: Float
+        get() = comboTextScaleData.currentValue
+
+    val isUseNewLayout: Boolean
+        get() = useNewLayoutData.currentValue
+
+    val isSliderHintEnable: Boolean
+        get() = sliderHintEnableData.currentValue
+
+    val sliderHintAlpha: Float
+        get() = sliderHintAlphaData.currentValue
+
+    val sliderHintWidth: Float
+        get() = sliderHintWidthData.currentValue
+
+    val sliderHintColor: Color4?
+        get() = sliderHintColorData.currentValue
+
+    val sliderHintShowMinLength: Float
+        get() = sliderHintShowMinLengthData.currentValue
+
+    val sliderBodyWidth: Float
+        get() = sliderBodyWidthData.currentValue
+
+    val sliderBorderWidth: Float
+        get() = sliderBorderWidthData.currentValue
+
+    val isDisableKiai: Boolean
+        get() = disableKiaiData.currentValue
+
+    val isLimitComboTextLength: Boolean
+        get() = limitComboTextLengthData.currentValue
+
+    val sliderBodyBaseAlpha: Float
+        get() = sliderBodyBaseAlphaData.currentValue
+
+    val isForceOverrideComboColor: Boolean
+        get() = forceOverrideComboColorData.currentValue
+
+    val comboColor: ArrayList<Color4>
+        get() {
+            if (comboColorList.isEmpty()) {
+                comboColorList.add(Color4(DEFAULT_COLOR_HEX))
+            }
+            return comboColorList
+        }
+
+    val isForceOverrideSliderBorderColor: Boolean
+        get() = !sliderBorderColorData.isDefault
+
+    val sliderBorderColor: Color4?
+        get() = sliderBorderColorData.currentValue
+
+    val isSliderFollowComboColor: Boolean
+        get() = sliderFollowComboColorData.currentValue
+
+    val sliderBodyColor: Color4?
+        get() = sliderBodyColorData.currentValue
+
+    fun getLayout(name: String): SkinLayout? {
+        return layoutData[name]
+    }
+
+    fun getColor(name: String, fallback: Color4): Color4 {
+        val color = colorData[name]
+        return color ?: fallback
+    }
+
+    val scoreOverlap: Float
+        get() = scoreOverlapData.currentValue
+
+    val comboOverlap: Float
+        get() = comboOverlapData.currentValue
+
+    val hitCircleOverlap: Float
+        get() = hitCircleOverlapData.currentValue
+
+    val animationFramerate: Float
+        get() = animationFramerateData.currentValue
+
+    val isLayeredHitSounds: Boolean
+        get() = layeredHitSoundsData.currentValue
+
+    val isSliderBallFlip: Boolean
+        get() = sliderBallFlipData.currentValue
+
+    val isSpinnerFrequencyModulate: Boolean
+        get() = spinnerFrequencyModulateData.currentValue
+
+    fun reset() {
+        layoutData.clear()
+        colorData.clear()
+        hudSkinData = HUDSkinData.Default
+    }
+
+    companion object {
+        private val skinJson = OsuSkin()
+
+        @JvmStatic
+        fun get(): OsuSkin {
+            return skinJson
+        }
+
+        @JvmStatic
+        @Throws(IOException::class)
+        fun readFull(path: String): String {
+            return SystemFileSystem.source(path.toPath()).buffer().use { it.readUtf8() }
+        }
+    }
+}

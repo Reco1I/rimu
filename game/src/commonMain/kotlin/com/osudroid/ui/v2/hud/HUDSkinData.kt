@@ -1,25 +1,26 @@
 package com.osudroid.ui.v2.hud
 
-import com.osudroid.ui.v2.hud.elements.HUDAccuracyCounter
-import com.osudroid.ui.v2.hud.elements.HUDAverageOffsetCounter
-import com.osudroid.ui.v2.hud.elements.HUDBackButton
-import com.osudroid.ui.v2.hud.elements.HUDBarHitErrorMeter
-import com.osudroid.ui.v2.hud.elements.HUDComboCounter
-import com.osudroid.ui.v2.hud.elements.HUDHealthBar
-import com.osudroid.ui.v2.hud.elements.HUDPieSongProgress
-import com.osudroid.ui.v2.hud.elements.HUDScoreCounter
-import com.osudroid.ui.v2.hud.elements.HUDUnstableRateCounter
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Vec2
-import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
-import org.json.JSONArray
-import org.json.JSONObject
-import kotlin.reflect.KClass
+import com.osudroid.utils.optDouble
+import com.osudroid.utils.optJsonObject
+import com.osudroid.utils.optString
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmStatic
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 data class HUDSkinData(val elements: List<HUDElementSkinData>) {
 
 
-    fun hasElement(type: Class<out HUDElement>) = elements.any { it.type.java == type }
+    /**
+     * Whether the layout has an element of the type named [type], see [HUDElementSkinData.type].
+     */
+    fun hasElement(type: String) = elements.any { it.type == type }
 
 
     companion object {
@@ -33,62 +34,62 @@ data class HUDSkinData(val elements: List<HUDElementSkinData>) {
         val Default = HUDSkinData(
             listOf(
                 HUDElementSkinData(
-                    type = HUDAccuracyCounter::class,
+                    type = "accuracy_counter",
                     anchor = Anchor.TopRight,
                     origin = Anchor.TopRight,
                     scale = 0.6f * 0.96f,
                     position = Vec2(-17f, 9f)
                 ),
                 HUDElementSkinData(
-                    type = HUDLeaderboard::class,
+                    type = "leaderboard",
                     anchor = Anchor.TopLeft,
                     origin = Anchor.TopLeft,
                     position = Vec2(0f, 83f)
                 ),
                 HUDElementSkinData(
-                    type = HUDComboCounter::class,
+                    type = "combo_counter",
                     anchor = Anchor.BottomLeft,
                     origin = Anchor.BottomLeft,
                     position = Vec2(10f, -10f),
                     scale = 1.28f
                 ),
                 HUDElementSkinData(
-                    type = HUDPieSongProgress::class,
+                    type = "pie_song_progress",
                     anchor = Anchor.TopRight,
                     origin = Anchor.CenterRight
                 ),
                 HUDElementSkinData(
-                    type = HUDHealthBar::class,
+                    type = "health_bar",
                     anchor = Anchor.TopLeft,
                     origin = Anchor.TopLeft
                 ),
                 HUDElementSkinData(
-                    type = HUDScoreCounter::class,
+                    type = "score_counter",
                     anchor = Anchor.TopRight,
                     origin = Anchor.TopRight,
                     scale = 0.96f,
                     position = Vec2(-10f, 0f)
                 ),
                 HUDElementSkinData(
-                    type = HUDBackButton::class,
+                    type = "back_button",
                     anchor = Anchor.CenterRight,
                     origin = Anchor.CenterRight,
                     position = Vec2(-20f, 0f)
                 ),
                 HUDElementSkinData(
-                    type = HUDUnstableRateCounter::class,
+                    type = "ur_counter",
                     anchor = Anchor.BottomRight,
                     origin = Anchor.BottomRight,
                     position = Vec2(-10f, -32f)
                 ),
                 HUDElementSkinData(
-                    type = HUDAverageOffsetCounter::class,
+                    type = "avg_offset_counter",
                     anchor = Anchor.BottomRight,
                     origin = Anchor.BottomRight,
                     position = Vec2(-10f, -59f)
                 ),
                 HUDElementSkinData(
-                    type = HUDBarHitErrorMeter::class,
+                    type = "hit_error_meter",
                     anchor = Anchor.BottomCenter,
                     origin = Anchor.BottomCenter
                 )
@@ -97,10 +98,10 @@ data class HUDSkinData(val elements: List<HUDElementSkinData>) {
 
 
         @JvmStatic
-        fun writeToJSON(data: HUDSkinData) = JSONArray().apply {
+        fun writeToJSON(data: HUDSkinData) = buildJsonArray {
             data.elements.forEach {
-                put(JSONObject().apply {
-                    put("type", HUDElements[it.type].name)
+                add(buildJsonObject {
+                    put("type", it.type)
                     put("x", it.position.x)
                     put("y", it.position.y)
                     put("anchor", Anchor.getName(it.anchor))
@@ -110,14 +111,18 @@ data class HUDSkinData(val elements: List<HUDElementSkinData>) {
             }
         }
 
+        /**
+         * Reads a layout. Elements of types the HUD doesn't know are kept, the HUD skips them.
+         */
         @JvmStatic
-        fun readFromJSON(json: JSONArray) = HUDSkinData(
-            elements = MutableList(json.length()) { i ->
+        fun readFromJSON(json: JsonArray) = HUDSkinData(
+            elements = List(json.size) { i ->
 
-                val element = json.getJSONObject(i)
+                val element = json[i] as? JsonObject ?: throw IllegalArgumentException("HUD element $i is not an object.")
+                val type = element["type"]?.let { (it as? JsonPrimitive)?.content } ?: throw IllegalArgumentException("HUD element $i has no type.")
 
                 HUDElementSkinData(
-                    type = HUDElements[element.getString("type")]?.type ?: return@MutableList null,
+                    type = type,
                     position = Vec2(
                         element.optDouble("x", 0.0).toFloat(),
                         element.optDouble("y", 0.0).toFloat(),
@@ -126,7 +131,7 @@ data class HUDSkinData(val elements: List<HUDElementSkinData>) {
                     origin = Anchor.getFromName(element.optString("origin", "Center")),
                     scale = element.optDouble("scale", 1.0).toFloat(),
                 )
-            }.filterNotNull()
+            }
         )
 
 
@@ -137,9 +142,9 @@ data class HUDSkinData(val elements: List<HUDElementSkinData>) {
 data class HUDElementSkinData(
 
     /**
-     * The type of the element.
+     * The type of the element, by the name it has in skins (see `HUDElements`).
      */
-    val type: KClass<out HUDElement>,
+    val type: String,
 
     /**
      * The offset of the element from the constraint.

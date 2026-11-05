@@ -153,7 +153,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                                 return@container
                             }
 
-                            element.setSkinData(HUDElementSkinData(type = entry.type))
+                            element.setSkinData(HUDElementSkinData(type = entry.name))
                             +element
                             elements += element
 
