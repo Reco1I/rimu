@@ -2,10 +2,14 @@ package com.osudroid.android
 
 import android.app.Activity
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.util.DisplayMetrics
 import androidx.preference.PreferenceManager
 import com.google.firebase.messaging.FirebaseMessaging
 import com.osudroid.OsuPlatform
+import com.reco1l.verktex.Logger
+import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.russhwolf.settings.SharedPreferencesSettings
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig
 
@@ -44,6 +48,22 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
             FirebaseMessaging.getInstance().subscribeToTopic("announcements")
         } else {
             FirebaseMessaging.getInstance().unsubscribeFromTopic("announcements")
+        }
+    }
+
+    private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
+
+    override fun runOnMainThread(block: () -> Unit) {
+        if (Looper.myLooper() == Looper.getMainLooper()) block() else mainHandler.post(block)
+    }
+
+    override fun handleUncaughtException(throwable: Throwable) {
+        // Without the main activity (e.g. in the UI test browser) a task may reach something only the
+        // game sets up, which must not take the whole process down.
+        if (GlobalManager.getInstance().isHeadless) {
+            Logger.e("Execution", "Uncaught exception in a task while headless", throwable)
+        } else {
+            Thread.currentThread().let { it.uncaughtExceptionHandler?.uncaughtException(it, throwable) ?: throw throwable }
         }
     }
 }

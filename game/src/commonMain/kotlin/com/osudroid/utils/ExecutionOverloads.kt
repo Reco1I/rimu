@@ -1,14 +1,12 @@
 @file:JvmName("Execution")
+@file:JvmMultifileClass
 
 package com.osudroid.utils
 
-import android.os.Handler
-import android.os.Looper
-import com.reco1l.verktex.Logger
+import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Verktex
-
-import java.util.concurrent.CompletableFuture
-import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.jvm.JvmMultifileClass
+import kotlin.jvm.JvmName
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -16,11 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 
 /**
  * A [Runnable] intended specifically for Java interoperability with Kotlin coroutines.
@@ -33,12 +28,10 @@ interface CoroutineRunnable {
  * Scope used for fire-and-forget coroutines launched through [async] and [delayed].
  */
 private val executionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, e ->
-    // Without the main activity (e.g. in the UI test browser) a task may reach something only the
-    // game sets up, which must not take the whole process down.
-    if (GlobalManager.getInstance().isHeadless) {
-        Logger.e("Execution", "Uncaught exception in a task while headless", e)
+    if (OsuPlatform.isInitialized) {
+        OsuPlatform.implementation.handleUncaughtException(e)
     } else {
-        Thread.currentThread().let { it.uncaughtExceptionHandler?.uncaughtException(it, e) ?: throw e }
+        throw e
     }
 })
 
@@ -98,10 +91,8 @@ fun delayed(time: Long, block: CoroutineRunnable) = executionScope.launch {
  * Run a task on the main thread.
  */
 fun mainThread(block: Runnable) {
-    if (Looper.myLooper() == Looper.getMainLooper()) block.run() else mainHandler.post(block)
+    OsuPlatform.implementation.runOnMainThread { block.run() }
 }
-
-private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
 /**
  * Run a task on the update thread.
@@ -109,13 +100,3 @@ private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 fun updateThread(block: Runnable) {
     Verktex.scheduleOnUpdate { block.run() }
 }
-
-/**
- * Wraps a [Job.cancelAndJoin] call inside a coroutine. Useful for asynchronously canceling and joining a [Job] with
- * Java interoperability in mind.
- *
- * Returns a [CompletableFuture] that completes when the job is canceled and joined.
- */
-fun Job?.stopAsync(): CompletableFuture<Unit> =
-    if (this?.isCompleted == false) CoroutineScope(EmptyCoroutineContext).future { this@stopAsync.cancelAndJoin() }
-    else CompletableFuture.completedFuture(Unit)
