@@ -1,5 +1,7 @@
 package com.reco1l.verktex.graphics
 
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.atomicfu.locks.SynchronizedObject
 import com.reco1l.verktex.data.Vec4
 import com.ditchoom.buffer.ReadBuffer
 
@@ -47,7 +49,7 @@ abstract class GraphicsTexture : GraphicsResource() {
     private var freeRegionsInitialized = false
 
     // Textures are loaded and unloaded from any thread while the draw worker binds the texture.
-    private val lock = Any()
+    private val lock = SynchronizedObject()
 
 
     //region Source allocation

@@ -1,5 +1,6 @@
 package com.reco1l.verktex.ui.control
 
+import kotlin.concurrent.Volatile
 import com.reco1l.verktex.*
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.UIComponent

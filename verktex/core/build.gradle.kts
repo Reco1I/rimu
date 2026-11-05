@@ -24,5 +24,8 @@ dependencies {
     // the textures upload.
     api("com.ditchoom:buffer:6.30.8")
 
+    // Multiplatform locks.
+    implementation("org.jetbrains.kotlinx:atomicfu:0.33.0")
+
     testImplementation("junit:junit:4.13.2")
 }

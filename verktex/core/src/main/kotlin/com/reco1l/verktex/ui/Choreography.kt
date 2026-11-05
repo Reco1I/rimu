@@ -4,7 +4,6 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.ColorInterpolation
 import com.reco1l.verktex.math.Easing
-import java.util.function.Consumer
 
 /**
  * A timeline of changes to the properties of a component with a defined lifetime, such as a hit object.
@@ -342,6 +341,13 @@ class Choreography internal constructor(private val target: UIComponent) {
 
 
 /**
+ * Adds steps to a [Choreography], see [choreographAt]. A Java lambda converts to it.
+ */
+fun interface ChoreographyBlock {
+    fun build(choreography: Choreography)
+}
+
+/**
  * Gets the choreography of this component, creating it if needed.
  */
 fun UIComponent.choreography(): Choreography = choreography ?: Choreography(this).also { choreography = it }
@@ -349,14 +355,14 @@ fun UIComponent.choreography(): Choreography = choreography ?: Choreography(this
 /**
  * Adds steps to the choreography of this component starting at the given time.
  */
-fun UIComponent.choreographAt(time: Float, block: Consumer<Choreography>) {
-    block.accept(choreography().at(time))
+fun UIComponent.choreographAt(time: Float, block: ChoreographyBlock) {
+    block.build(choreography().at(time))
 }
 
 /**
  * Adds steps to the choreography of this component starting at the current time.
  */
-fun UIComponent.choreographNow(block: Consumer<Choreography>) = choreographAt(currentClockTime, block)
+fun UIComponent.choreographNow(block: ChoreographyBlock) = choreographAt(currentClockTime, block)
 
 /**
  * Adds steps to the choreography of this component.

@@ -1,5 +1,6 @@
 package com.reco1l.verktex.testing
 
+import com.reco1l.verktex.math.toFixed
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
@@ -454,9 +455,8 @@ fun UITestSuite.addContainerTests() {
         }
 
         onEachFrame {
-            positionText.text = "Vertical %.0f  ·  Horizontal %.0f  ·  Both %.0f, %.0f".format(
-                vertical.scrollY, horizontal.scrollX, both.scrollX, both.scrollY
-            )
+            positionText.text = "Vertical ${vertical.scrollY.toFixed(0)}  ·  Horizontal ${horizontal.scrollX.toFixed(0)}  ·  " +
+                "Both ${both.scrollX.toFixed(0)}, ${both.scrollY.toFixed(0)}"
         }
     }
 
