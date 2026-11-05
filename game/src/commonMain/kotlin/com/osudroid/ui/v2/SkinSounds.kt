@@ -1,7 +1,11 @@
 package com.osudroid.ui.v2
 
 import com.reco1l.verktex.Platform
-import java.io.File
+import com.osudroid.utils.SystemFileSystem
+import kotlin.jvm.JvmStatic
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import okio.Path.Companion.toPath
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
@@ -21,6 +25,8 @@ object SkinSounds {
 
     private val beatmapFrameRegex = Regex("[^\\d.]+")
 
+    private val lock = SynchronizedObject()
+
 
     /**
      * Gets a skin sound by name, a silent one if it doesn't exist.
@@ -32,45 +38,48 @@ object SkinSounds {
      * Gets a skin sound by name, null if it doesn't exist.
      */
     @JvmStatic
-    @Synchronized
     fun getOrNull(name: String): BassSoundProvider? {
-        sounds[name]?.let { return it }
+        return synchronized(lock) {
+            sounds[name]?.let { return it }
 
-        if (name in missingSounds) {
-            return null
+            if (name in missingSounds) {
+                return null
+            }
+
+            val sound = loadFromSkin(name) ?: loadFromAssets(name)
+
+            if (sound == null) {
+                missingSounds += name
+            } else {
+                sounds[name] = sound
+            }
+
+            return sound
         }
-
-        val sound = loadFromSkin(name) ?: loadFromAssets(name)
-
-        if (sound == null) {
-            missingSounds += name
-        } else {
-            sounds[name] = sound
-        }
-
-        return sound
     }
 
     /**
      * Gets a sound of the default skin, which a custom skin can't replace or silence.
      */
     @JvmStatic
-    @Synchronized
     fun getDefault(name: String): BassSoundProvider {
-        return defaultSounds.getOrPut(name) { loadFromAssets(name) ?: BassSoundProvider.EMPTY }
+        return synchronized(lock) {
+            return defaultSounds.getOrPut(name) { loadFromAssets(name) ?: BassSoundProvider.EMPTY }
+        }
     }
 
     /**
      * Gets a sound preferring the one of the beatmap skin, null if it doesn't exist.
      */
     @JvmStatic
-    @Synchronized
     fun getBeatmapOrNull(name: String): BassSoundProvider? {
-        if (BeatmapSkinManager.isSkinEnabled()) {
-            beatmapSounds[name]?.let { return it }
-        }
+        return synchronized(lock) {
+            if (BeatmapSkinManager.isSkinEnabled()) {
+                beatmapSounds[name]?.let { return it }
+            }
 
-        return getOrNull(name)
+            return getOrNull(name)
+        }
     }
 
     /**
@@ -103,7 +112,7 @@ object SkinSounds {
      */
     @JvmStatic
     fun onSkinChanged() {
-        synchronized(this) {
+        synchronized(lock) {
             sounds.values.forEach { it.free() }
             sounds.clear()
             missingSounds.clear()
@@ -116,24 +125,25 @@ object SkinSounds {
      * Loads a sound of the beatmap skin. Files that aren't a variation of a known sound are ignored.
      */
     @JvmStatic
-    @Synchronized
-    fun loadBeatmapSound(file: File) {
-        val name = file.name.substringBeforeLast('.')
+    fun loadBeatmapSound(path: String) {
+        synchronized(lock) {
+            val name = path.toPath().name.substringBeforeLast('.')
 
-        if (name.isEmpty()) {
-            return
-        }
+            if (name.isEmpty()) {
+                return
+            }
 
-        val baseName = beatmapFrameRegex.find(name)?.value
+            val baseName = beatmapFrameRegex.find(name)?.value
 
-        if (baseName != null && getOrNull(baseName) == null) {
-            return
-        }
+            if (baseName != null && getOrNull(baseName) == null) {
+                return
+            }
 
-        val sound = BassSoundProvider()
+            val sound = BassSoundProvider()
 
-        if (sound.prepare(file.path)) {
-            beatmapSounds[name] = sound
+            if (sound.prepare(path)) {
+                beatmapSounds[name] = sound
+            }
         }
     }
 
@@ -141,21 +151,23 @@ object SkinSounds {
      * Releases the sounds of the beatmap skin.
      */
     @JvmStatic
-    @Synchronized
     fun clearBeatmapSounds() {
-        beatmapSounds.values.forEach { it.free() }
-        beatmapSounds.clear()
+        synchronized(lock) {
+            beatmapSounds.values.forEach { it.free() }
+            beatmapSounds.clear()
+        }
     }
 
 
     private fun loadFromSkin(name: String): BassSoundProvider? {
         for (extension in extensions) {
-            val file = File(Config.getSkinPath(), "$name.$extension")
+            val file = Config.getSkinPath().toPath() / "$name.$extension"
+            val metadata = SystemFileSystem.metadataOrNull(file)
 
-            if (file.isFile && file.length() > 0) {
+            if (metadata != null && metadata.isRegularFile && (metadata.size ?: 0L) > 0) {
                 val sound = BassSoundProvider()
 
-                if (sound.prepare(file.path)) {
+                if (sound.prepare(file.toString())) {
                     return sound
                 }
             }

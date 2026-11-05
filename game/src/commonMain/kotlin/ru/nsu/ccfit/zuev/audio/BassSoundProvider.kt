@@ -4,6 +4,8 @@ import com.reco1l.verktex.Platform
 import com.reco1l.verktex.audio.AudioPlayback
 import com.reco1l.verktex.audio.AudioSample
 import ru.nsu.ccfit.zuev.osu.Config
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmOverloads
 
 /**
  * A sound effect. Playing it again restarts it instead of overlapping with the previous playback.
