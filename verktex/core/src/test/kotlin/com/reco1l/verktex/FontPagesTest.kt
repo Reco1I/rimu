@@ -24,7 +24,7 @@ class FontPagesTest {
         var disposed = false
         override fun onCreateTexture() = Unit
         override fun onBindTexture() = Unit
-        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: java.nio.ByteBuffer) = Unit
+        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: com.ditchoom.buffer.ReadBuffer) = Unit
         override fun onUnload() = Unit
         override fun dispose() {
             disposed = true

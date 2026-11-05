@@ -1,5 +1,7 @@
 package com.reco1l.verktex.android.vulkan
 
+import com.reco1l.verktex.android.asByteBuffer
+import com.ditchoom.buffer.ReadBuffer
 import android.graphics.ImageFormat
 import android.hardware.HardwareBuffer
 import android.media.Image
@@ -48,18 +50,19 @@ class VKTexture internal constructor(
 
     override fun onBindTexture() = Unit
 
-    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ByteBuffer) {
-        val size = pixels.remaining()
+    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ReadBuffer) {
+        val bytes = pixels.asByteBuffer()
+        val size = bytes.remaining()
 
-        if (pixels.isDirect) {
-            VKNative.uploadTexture(context.handle, handle, x, y, width, height, pixels, pixels.position(), size)
+        if (bytes.isDirect) {
+            VKNative.uploadTexture(context.handle, handle, x, y, width, height, bytes, bytes.position(), size)
             return
         }
 
         val copy = directCopy?.takeIf { it.capacity() >= size }
             ?: ByteBuffer.allocateDirect(size).order(ByteOrder.nativeOrder()).also { directCopy = it }
         copy.clear()
-        copy.put(pixels.duplicate())
+        copy.put(bytes.duplicate())
         VKNative.uploadTexture(context.handle, handle, x, y, width, height, copy, 0, size)
     }
 
@@ -242,7 +245,7 @@ class VKExternalTexture internal constructor(
     override fun addSource(source: Source): Region? = null
 
     override fun onBindTexture() = Unit
-    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ByteBuffer) = Unit
+    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ReadBuffer) = Unit
 
     override fun onUnload() {
         retireCurrentFrame()

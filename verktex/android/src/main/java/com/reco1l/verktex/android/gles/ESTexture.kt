@@ -1,8 +1,9 @@
 package com.reco1l.verktex.android.gles
 
+import com.reco1l.verktex.android.asByteBuffer
+import com.ditchoom.buffer.ReadBuffer
 import android.opengl.GLES20
 import com.reco1l.verktex.graphics.GraphicsTexture
-import java.nio.ByteBuffer
 
 /**
  * OpenGL ES implementation of the [GraphicsTexture] class.
@@ -19,10 +20,10 @@ class ESTexture(
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, id)
     }
 
-    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ByteBuffer) {
+    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ReadBuffer) {
         // Already bound when the pixels are written while binding, not by flushUploads.
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, id)
-        GLES20.glTexSubImage2D(GLES20.GL_TEXTURE_2D, 0, x, y, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixels)
+        GLES20.glTexSubImage2D(GLES20.GL_TEXTURE_2D, 0, x, y, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixels.asByteBuffer())
     }
 
     override fun onCreateTexture() {

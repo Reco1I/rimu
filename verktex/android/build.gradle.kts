@@ -15,7 +15,7 @@ kotlin {
 android {
     namespace = "com.reco1l.verktex"
     compileSdk {
-        version = release(34)
+        version = release(36) { minorApiLevel = 1 }
     }
 
     ndkVersion = "22.1.7171670"
