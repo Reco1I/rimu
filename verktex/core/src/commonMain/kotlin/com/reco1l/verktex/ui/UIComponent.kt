@@ -431,7 +431,7 @@ abstract class UIComponent {
      * The component's own content, background and border are never tinted by its own RGB. Only
      * containers have descendants, so it has no effect on other components. Default false.
      */
-    var tintChildren: Boolean = false
+    var tintChildren: Boolean = true
 
     /**
      * The [color] without its alpha, used to draw the component's own content. The alpha is

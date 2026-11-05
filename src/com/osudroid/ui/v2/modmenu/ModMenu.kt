@@ -167,7 +167,6 @@ object ModMenu : UICaptureContainer() {
 
                         textButton {
                             text = "Clear"
-                            tintChildren = true
                             color = Color4(0xFFFFBFBF)
                             backgroundColor = Color4(0xFF342121)
                             leadingIcon = faSolidIcon(FAIcon.DeleteLeft)

@@ -299,7 +299,6 @@ class RoomPlayerCard : UILinearContainer() {
 
                             addButton {
                                 setText(R.string.multiplayer_room_player_menu_kick)
-                                tintChildren = true
                                 color = Color4("#FFBFBF")
                                 onActionUp = {
                                     UIConfirmDialog().apply {

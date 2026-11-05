@@ -12,7 +12,7 @@
     <option name="ALLOW_ASSUME_VERIFIED" value="false" />
     <option name="CLEAR_APP_STORAGE" value="false" />
     <option name="DYNAMIC_FEATURES_DISABLED_LIST" value="" />
-    <option name="ACTIVITY_EXTRA_FLAGS" value="" />
+    <option name="ACTIVITY_EXTRA_FLAGS" value="--es &quot;backend&quot; &quot;Vulkan&quot;" />
     <option name="MODE" value="specific_activity" />
     <option name="RESTORE_ENABLED" value="false" />
     <option name="RESTORE_FILE" value="" />

@@ -77,6 +77,7 @@ open class UIButton : UIClickableContainer() {
         height = themed { buttonStyle[density].height }
         padding = horizontalPadding(themed { buttonStyle[density].horizontalPadding })
         radius = themed { buttonStyle[density].radius }
+        color = themed { if (variant == Variant.Solid) palette.contentOnSolid else Color4.White }
 
         updateBorder()
     }
