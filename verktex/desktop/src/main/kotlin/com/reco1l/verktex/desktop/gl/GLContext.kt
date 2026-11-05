@@ -33,12 +33,21 @@ class GLContext private constructor(val window: GLWindow) : GraphicsContext {
     override var version = "OpenGL"
         private set
 
+    /**
+     * Whether presenting waits for the display's refresh, which caps the frame rate to it. Off, the
+     * engine draws as fast as it can. Can be changed at any time, it applies from the next frame.
+     */
+    @Volatile
+    var vsync = false
+
+    // The swap interval set on the context, -1 until it's current.
+    private var swapInterval = -1
+
 
     override fun acquireFrame(): Boolean {
         if (!isCurrent) {
             glfwMakeContextCurrent(window.handle)
             GL.createCapabilities()
-            glfwSwapInterval(1)
 
             // The core profile draws nothing without a vertex array bound. One is enough, the
             // attribute pointers are set for every draw anyway, as with OpenGL ES.
@@ -48,6 +57,12 @@ class GLContext private constructor(val window: GLWindow) : GraphicsContext {
             version = if (glVersion != null) "OpenGL $glVersion" else "OpenGL"
             isCurrent = true
             onCurrent?.invoke()
+        }
+
+        val interval = if (vsync) 1 else 0
+        if (interval != swapInterval) {
+            glfwSwapInterval(interval)
+            swapInterval = interval
         }
 
         // Minimised, there's nothing to draw to.

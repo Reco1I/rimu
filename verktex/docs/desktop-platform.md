@@ -19,6 +19,8 @@ In Android Studio, the shared run configuration "UI Tests (Desktop)" runs the sa
 - `--test <suite/test>` opens a test first, `suite/test` or just its name. Without it, the last
   opened test is shown again.
 - `--screenshot <file.png>` saves the frame shown 1.5 seconds after starting and exits.
+- `--vsync` caps the frame rate to the display's refresh rate. Without it, frames are drawn as
+  fast as possible.
 
 Checked by unit tests and by screenshots of the Text, Buttons, Controls, Shapes, Dialogs,
 Transforms, Scrollable and Loading indicators tests. Not checked yet:

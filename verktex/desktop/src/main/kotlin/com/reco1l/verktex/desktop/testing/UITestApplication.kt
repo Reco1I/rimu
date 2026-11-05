@@ -26,11 +26,13 @@ import org.lwjgl.stb.STBImageWrite
  * the last opened test is shown again.
  * @param screenshot When set, the frame shown [SCREENSHOT_DELAY_SECONDS] after starting is saved
  * to this PNG and the window closes, e.g. for smoke checks.
+ * @param vsync Whether frames wait for the display's refresh, see [DesktopGameHost].
  */
 abstract class UITestApplication(
     private val initialTest: String? = null,
     private val screenshot: File? = null,
-) : DesktopGameHost(title = "Verktex UI tests") {
+    vsync: Boolean = false,
+) : DesktopGameHost(title = "Verktex UI tests", vsync = vsync) {
 
     private val preferences = Preferences.userRoot().node("com/reco1l/verktex/uitests")
 

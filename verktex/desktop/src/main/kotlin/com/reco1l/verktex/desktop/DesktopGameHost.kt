@@ -22,11 +22,15 @@ import org.lwjgl.glfw.GLFWErrorCallback
  *
  * [run] must be called from the main thread (the first one on macOS, see `-XstartOnFirstThread`)
  * and returns once the window is closed.
+ *
+ * @param vsync Whether frames wait for the display's refresh, see [GLContext.vsync]. Off by
+ * default, so the frame rate isn't capped to the display's.
  */
 abstract class DesktopGameHost(
     private val title: String = "Verktex",
     private val initialWidth: Int = 1280,
     private val initialHeight: Int = 720,
+    private val vsync: Boolean = false,
 ) : GameHost {
 
     /**
@@ -62,6 +66,7 @@ abstract class DesktopGameHost(
 
         try {
             context = GLContext.create(title, initialWidth, initialHeight)
+            context.vsync = vsync
 
             val scaleX = FloatArray(1)
             val scaleY = FloatArray(1)
