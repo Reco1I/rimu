@@ -22,8 +22,10 @@ import com.reco1l.verktex.ui.control.UISelect
 import com.reco1l.verktex.ui.control.UITabSelector
 import com.reco1l.verktex.ui.control.slider
 import com.reco1l.verktex.ui.control.textInput
+import com.reco1l.verktex.ui.control.IntegerTextInput
 import com.reco1l.verktex.ui.dialog.UIConfirmDialog
 import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.reco1l.verktex.ui.dialog.UIPromptDialog
 import com.reco1l.verktex.ui.form.FormCheckbox
 import com.reco1l.verktex.ui.form.FormContainer
 import com.reco1l.verktex.ui.form.FormInput
@@ -374,6 +376,17 @@ object VerktexUITests : UITestSuite("Verktex") {
                                 text = "Do you want to continue?"
                                 onConfirm = { log("Confirmed") }
                                 onCancel = { log("Cancelled") }
+                            }.show()
+                        }
+                    }
+                    textButton {
+                        text = "Prompt"
+                        onActionUp = {
+                            UIPromptDialog(IntegerTextInput(120, 30, 300)).apply {
+                                title = "BPM"
+                                text = "A prompt dialog asking for a number."
+                                addButton { text = "OK"; onActionUp = { log("Entered: $value"); hide() } }
+                                addButton { text = "Cancel"; onActionUp = { hide() } }
                             }.show()
                         }
                     }

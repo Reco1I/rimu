@@ -19,7 +19,7 @@ import com.osudroid.ui.v2.hud.elements.HUDPieSongProgress
 import com.osudroid.ui.v2.hud.elements.HUDScoreCounter
 import com.reco1l.verktex.ui.container.UIContainer
 import com.osudroid.ui.v2.hud.editor.HUDElementSelector
-import com.reco1l.osu.ui.MessageDialog
+import com.reco1l.verktex.ui.dialog.UIMessageDialog
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.framework.forEachTolerant
@@ -135,33 +135,40 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
             return
         }
 
-        MessageDialog()
-            .setTitle(StringTable.get(string.hudEditor_modal_title))
-            .addButton(StringTable.get(string.hudEditor_modal_save)) {
-                it.dismiss()
-                updateThread {
+        UIMessageDialog().apply {
+            title = StringTable.get(string.hudEditor_modal_title)
+
+            addButton {
+                text = StringTable.get(string.hudEditor_modal_save)
+                onActionUp = {
+                    hide()
                     ToastLogger.showText(string.hudEditor_saving, true)
                     setEditMode(false)
                     saveToSkinJSON()
                     ToastLogger.showText(string.hudEditor_saved, true)
                 }
             }
-            .addButton(StringTable.get(string.hudEditor_modal_discard)) {
-                it.dismiss()
-                updateThread {
+            addButton {
+                text = StringTable.get(string.hudEditor_modal_discard)
+                onActionUp = {
+                    hide()
                     setSkinData(OsuSkin.get().hudSkinData)
                     ToastLogger.showText(string.hudEditor_discarded, true)
                 }
             }
-            .addButton(StringTable.get(string.hudEditor_modal_reset)) {
-                it.dismiss()
-                updateThread {
+            addButton {
+                text = StringTable.get(string.hudEditor_modal_reset)
+                onActionUp = {
+                    hide()
                     setSkinData(HUDSkinData.Default)
                     ToastLogger.showText(string.hudEditor_reset, true)
                 }
             }
-            .addButton(StringTable.get(string.hudEditor_modal_cancel)) { it.dismiss() }
-            .show()
+            addButton {
+                text = StringTable.get(string.hudEditor_modal_cancel)
+                onActionUp = { hide() }
+            }
+        }.show()
     }
 
 
