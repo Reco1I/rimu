@@ -9,6 +9,5 @@ pluginManagement  {
 // which brings :verktex:core with it. :verktex:desktop is the desktop platform, used on its own.
 include ':verktex:core'
 include ':verktex:android'
-include ':verktex:bass'
 include ':verktex:shadertools'
 include ':verktex:desktop'
