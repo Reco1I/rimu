@@ -2,10 +2,7 @@ package com.osudroid.mods
 
 import org.junit.Assert
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class ModSynesthesiaTest {
     @Test
     fun `Test beat divisor combo color`() {

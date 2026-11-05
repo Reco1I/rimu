@@ -3,15 +3,12 @@ package com.osudroid.beatmaps
 import com.osudroid.beatmaps.parser.BeatmapParser
 import org.junit.Assert
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class StackingTest {
     @Test
     fun `Test stacking edge case one`() {
         val beatmapFile = TestResourceManager.getBeatmapFile("stacking-edge-case-one")!!
-        val beatmap = BeatmapParser(beatmapFile).parse(true)
+        val beatmap = BeatmapParser(beatmapFile.path).parse(true)
 
         val objects = beatmap.hitObjects.objects
 
@@ -25,7 +22,7 @@ class StackingTest {
     @Test
     fun `Test stacking edge case two`() {
         val beatmapFile = TestResourceManager.getBeatmapFile("stacking-edge-case-two")!!
-        val beatmap = BeatmapParser(beatmapFile).parse(true)
+        val beatmap = BeatmapParser(beatmapFile.path).parse(true)
 
         val objects = beatmap.hitObjects.objects
 

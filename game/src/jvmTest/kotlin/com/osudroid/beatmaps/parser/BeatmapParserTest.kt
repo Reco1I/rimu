@@ -11,10 +11,7 @@ import com.reco1l.verktex.data.Color4
 import org.junit.Assert
 import org.junit.BeforeClass
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class BeatmapParserTest {
     @Test
     fun `Test format version header`() {
@@ -341,22 +338,20 @@ class BeatmapParserTest {
         @BeforeClass
         @JvmStatic
         fun setup() {
-            v3Beatmap = BeatmapParser(
-                TestResourceManager.getBeatmapFile("Kenji Ninuma - DISCOPRINCE (peppy) [Normal]")!!
+            v3Beatmap = BeatmapParser(TestResourceManager.getBeatmapFile("Kenji Ninuma - DISCOPRINCE (peppy) [Normal]")!!.path
             ).parse(true)
 
             v14Beatmap =
-                BeatmapParser(
-                    TestResourceManager.getBeatmapFile(
+                BeatmapParser(TestResourceManager.getBeatmapFile(
                         "YOASOBI - Love Letter (ohm002) [Please accept my overflowing emotions.]"
-                    )!!
+                    )!!.path
                 ).parse(true)
 
             nanBeatmap =
-                BeatmapParser(TestResourceManager.getBeatmapFile("nan-control-points")!!).parse(true)
+                BeatmapParser(TestResourceManager.getBeatmapFile("nan-control-points")!!.path).parse(true)
 
             outOfRangeDifficultyBeatmap =
-                BeatmapParser(TestResourceManager.getBeatmapFile("out-of-range-difficulty")!!).parse(true)
+                BeatmapParser(TestResourceManager.getBeatmapFile("out-of-range-difficulty")!!.path).parse(true)
         }
     }
 }

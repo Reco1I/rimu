@@ -8,10 +8,7 @@ import com.osudroid.mods.ModNoFail
 import com.osudroid.mods.ModPrecise
 import org.junit.Assert
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class DroidDifficultyCalculatorTest {
     private val calculator = DroidDifficultyCalculator()
 
@@ -29,10 +26,9 @@ class DroidDifficultyCalculatorTest {
     @Test
     fun `Test difficulty calculation sample beatmap`() {
         val beatmap =
-            BeatmapParser(
-                TestResourceManager.getBeatmapFile(
+            BeatmapParser(TestResourceManager.getBeatmapFile(
                     "YOASOBI - Love Letter (ohm002) [Please accept my overflowing emotions.]"
-                )!!
+                )!!.path
             ).parse(true, GameMode.Droid)
 
         calculator.calculate(beatmap).apply {
