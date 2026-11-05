@@ -15,9 +15,8 @@ import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
-import com.edlplan.ui.fragment.WebViewFragment
+import com.reco1l.verktex.Platform
 import com.osudroid.resources.Res
-import com.osudroid.utils.mainThread
 import com.reco1l.verktex.ui.dialog.UIConfirmDialog
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import java.util.Locale
@@ -45,9 +44,7 @@ class PlayerButton : UIClickableContainer() {
                     title = onlineManager.username
                     text = StringTable.get(Res.string.dialog_visit_osudroid_profile_page)
                     onConfirm = {
-                        mainThread {
-                            WebViewFragment().setURL(WebViewFragment.PROFILE_URL + onlineManager.userId).show()
-                        }
+                        Platform.openWebPage(OnlineManager.profileEndpoint + onlineManager.userId, OnlineManager.profileUserAgent)
                     }
                 }.show()
             }

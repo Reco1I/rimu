@@ -69,6 +69,18 @@ object Platform {
 
 
     /**
+     * Opens a web page, in a web view inside the app where the platform has one (Android) or in the
+     * system's browser otherwise.
+     *
+     * @param userAgent The user agent the page is requested with, the platform's default if null. Only
+     * the in-app web view can change it.
+     */
+    fun openWebPage(url: String, userAgent: String? = null) {
+        checkImplementation()
+        implementation.openWebPage(url, userAgent)
+    }
+
+    /**
      * Creates a new instance of a loop worker, see [Implementation.createLoopWorker].
      */
     fun createLoopWorker(name: String, minimumInterval: Duration = Duration.ZERO, onLoop: () -> Unit): LoopWorker {
@@ -117,6 +129,11 @@ object Platform {
          * ago, so a zero interval loops as fast as it can.
          */
         fun createLoopWorker(name: String, minimumInterval: Duration, onLoop: () -> Unit): LoopWorker
+
+        /**
+         * Opens a web page, see [Platform.openWebPage].
+         */
+        fun openWebPage(url: String, userAgent: String?)
 
     }
 
