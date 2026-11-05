@@ -1,30 +1,32 @@
 package com.osudroid.multiplayer.api.data
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+
 import com.reco1l.verktex.Logger
-import org.json.JSONArray
-import org.json.JSONObject
 
 
 /**
- * Parse a [JSONObject] of player to [RoomPlayer].
+ * Parse a [JsonObject] of player to [RoomPlayer].
  */
-fun parsePlayer(o: JSONObject) = RoomPlayer(
+fun parsePlayer(o: JsonObject) = RoomPlayer(
     id = o.getString("id").toLong(),
     name = o.getString("username"),
     rank = o.getInt("rank"),
     status = PlayerStatus.fromWire(o.getString("status")) ?: PlayerStatus.NotReady,
     team = if (o.isNull("team")) null else RoomTeam.fromWire(o.getString("team")),
-    mods = RoomMods(o.getJSONArray("mods").toString())
+    mods = RoomMods(o.getJsonArray("mods").toString())
 )
 
 /**
- * Parse a [JSONArray] of players to an array of [RoomPlayer]s of exactly [size] elements.
+ * Parse a [JsonArray] of players to an array of [RoomPlayer]s of exactly [size] elements.
  *
  * `null` elements represent empty room slots.
  */
-fun parsePlayers(array: JSONArray?, size: Int): Array<RoomPlayer?> {
+fun parsePlayers(array: JsonArray?, size: Int): Array<RoomPlayer?> {
     if (array != null) {
-        val actual = array.length()
+        val actual = array.size
 
         when {
             actual > size -> Logger.w(
@@ -41,16 +43,16 @@ fun parsePlayers(array: JSONArray?, size: Int): Array<RoomPlayer?> {
     }
 
     return Array(size) { i ->
-        parsePlayer(array?.optJSONObject(i) ?: return@Array null)
+        parsePlayer(array?.optJsonObject(i) ?: return@Array null)
     }
 }
 
 /**
- * Parse a [JSONObject] of `beatmap` to [RoomBeatmap]
+ * Parse a [JsonObject] of `beatmap` to [RoomBeatmap]
  */
-fun parseBeatmap(o: JSONObject?): RoomBeatmap? {
+fun parseBeatmap(o: JsonObject?): RoomBeatmap? {
 
-    if (o == null || !o.has("md5")) {
+    if (o == null || !o.containsKey("md5")) {
         return null
     }
 
@@ -70,9 +72,9 @@ fun parseBeatmap(o: JSONObject?): RoomBeatmap? {
 }
 
 /**
- * Parse a [JSONObject] of gameplay settings to [RoomGameplaySettings].
+ * Parse a [JsonObject] of gameplay settings to [RoomGameplaySettings].
  */
-fun parseGameplaySettings(o: JSONObject) = RoomGameplaySettings(
+fun parseGameplaySettings(o: JsonObject) = RoomGameplaySettings(
     isRemoveSliderLock = o.getBoolean("isRemoveSliderLock"),
     isFreeMod = o.getBoolean("isFreeMod")
 )

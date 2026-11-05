@@ -8,9 +8,16 @@ import com.osudroid.multiplayer.api.data.RoomStatus
 import com.osudroid.multiplayer.api.data.TeamMode
 import com.osudroid.multiplayer.api.data.WinCondition
 import com.osudroid.multiplayer.Multiplayer
-import io.socket.client.*
-import io.socket.emitter.*
-import org.json.*
+import com.osudroid.multiplayer.api.RoomSocket
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import ru.nsu.ccfit.zuev.osu.Config
 
 /**
@@ -33,19 +40,30 @@ fun MockRoom() = Room(
 /**
  * Creates a mock multiplayer socket.
  */
-class MockSocket(private val uid: Long) : Socket(null, null, null) {
+class MockSocket(private val uid: Long) : RoomSocket {
 
-    override fun emit(event: String?, vararg args: Any?): Emitter {
+    private val listeners = mutableMapOf<String, MutableList<(Array<out Any?>) -> Unit>>()
+
+
+    override fun on(event: String, listener: (Array<out Any?>) -> Unit) {
+        listeners.getOrPut(event) { mutableListOf() } += listener
+    }
+
+    override fun off() {
+        listeners.clear()
+    }
+
+    override fun emit(event: String, vararg args: Any?) {
 
         // Emulating the server response to the client's events.
-        val responseEvent = when (event) {
+        val responseEvent: Pair<String, Array<out Any?>> = when (event) {
 
             // In these events the client expects a JSONArray as a response.
-            "scoreSubmission" -> "allPlayersScoreSubmitted" to arrayOf(JSONArray().apply { put(args[0]) })
-            "liveScoreData" -> "liveScoreData" to arrayOf(JSONArray().apply {
+            "scoreSubmission" -> "allPlayersScoreSubmitted" to arrayOf(JsonArray(listOf(args[0] as JsonElement)))
+            "liveScoreData" -> "liveScoreData" to arrayOf(JsonArray(listOf(
                 // The username is expected to be added by the server.
-                put((args[0] as JSONObject).put("username", Config.getOnlineUsername()))
-            })
+                JsonObject((args[0] as JsonObject) + ("username" to JsonPrimitive(Config.getOnlineUsername())))
+            )))
 
             // Simulating the server response when all players emit these events.
             "beatmapLoadComplete" -> "allPlayersBeatmapLoadComplete" to arrayOf()
@@ -61,10 +79,13 @@ class MockSocket(private val uid: Long) : Socket(null, null, null) {
             "maxPlayersChanged" -> "maxPlayersChanged" to arrayOf(args[0].toString())
 
             // These events require special handling
-            "roomGameplaySettingsChanged" -> "roomGameplaySettingsChanged" to arrayOf((args[0] as JSONObject).apply {
-                Multiplayer.room!!.gameplaySettings.also {
-                    if (!has("isFreeMod")) put("isFreeMod", it.isFreeMod)
-                    if (!has("isRemoveSliderLock")) put("isRemoveSliderLock", it.isRemoveSliderLock)
+            "roomGameplaySettingsChanged" -> "roomGameplaySettingsChanged" to arrayOf((args[0] as JsonObject).let { json ->
+                Multiplayer.room!!.gameplaySettings.let {
+                    buildJsonObject {
+                        put("isFreeMod", it.isFreeMod)
+                        put("isRemoveSliderLock", it.isRemoveSliderLock)
+                        json.forEach { (key, value) -> put(key, value) }
+                    }
                 }
             })
 
@@ -74,19 +95,17 @@ class MockSocket(private val uid: Long) : Socket(null, null, null) {
 
         val (key, arguments) = responseEvent
 
-        listeners(key).forEach {
-            it.call(*arguments)
+        listeners[key]?.toList()?.forEach {
+            it(arguments)
         }
-
-        return this
     }
 
 
-    override fun connect(): Socket {
-        emit(EVENT_CONNECT)
+    override fun connect() {
+        emit(RoomSocket.EVENT_CONNECT)
 
         // This event is emitted by the server when the client connects.
-        emit("initialConnection", JSONObject().apply {
+        emit("initialConnection", buildJsonObject {
 
             put("id", 1)
             put("name", "Test room")
@@ -98,38 +117,35 @@ class MockSocket(private val uid: Long) : Socket(null, null, null) {
             put("playerNames", Config.getOnlineUsername())
             put("sessionId", "")
             put("status", RoomStatus.Idle.ordinal)
-            put("beatmap", null)
+            put("beatmap", JsonNull)
 
-            put("host", JSONObject().apply {
+            put("host", buildJsonObject {
                 put("id", uid)
             })
 
-            put("mods", JSONArray())
+            put("mods", JsonArray(emptyList()))
 
-            put("gameplaySettings", JSONObject().apply {
+            put("gameplaySettings", buildJsonObject {
                 put("isFreeMod", true)
                 put("isRemoveSliderLock", false)
             })
 
-            put("players", JSONArray().apply {
-                put(JSONObject().apply {
+            put("players", buildJsonArray {
+                add(buildJsonObject {
                     put("id", uid)
                     put("username", Config.getOnlineUsername())
                     put("rank", 1)
                     put("status", PlayerStatus.NotReady.ordinal)
-                    put("team", null)
-                    put("mods", JSONArray())
+                    put("team", JsonNull)
+                    put("mods", JsonArray(emptyList()))
                 })
             })
 
         })
-
-        return this
     }
 
-    override fun disconnect(): Socket {
-        emit(EVENT_DISCONNECT, "io server disconnect")
-        return this
+    override fun disconnect() {
+        emit(RoomSocket.EVENT_DISCONNECT, "io server disconnect")
     }
 
 }

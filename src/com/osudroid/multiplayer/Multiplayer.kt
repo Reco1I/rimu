@@ -1,5 +1,9 @@
 package com.osudroid.multiplayer
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+
 import ru.nsu.ccfit.zuev.osu.Config
 import com.reco1l.verktex.Verktex
 import com.osudroid.ui.v2.songselect.SongSelect
@@ -22,7 +26,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -170,7 +173,7 @@ object Multiplayer {
 
     // Leaderboard
 
-    fun onLiveLeaderboard(array: JSONArray) {
+    fun onLiveLeaderboard(array: JsonArray) {
 
         if (Verktex.scene != GlobalManager.getInstance().gameScene.scene) {
             return
@@ -180,8 +183,8 @@ object Multiplayer {
 
         if (hud.hasElement(HUDLeaderboard::class)) {
 
-            val itemsList = MutableList(array.length()) { i ->
-                jsonToScoreboardItem(array.getJSONObject(i)).apply { rank = i + 1 }
+            val itemsList = MutableList(array.size) { i ->
+                jsonToScoreboardItem(array.getJsonObject(i)).apply { rank = i + 1 }
             }
 
             hud.forEachElement { element ->
@@ -192,7 +195,7 @@ object Multiplayer {
         }
     }
 
-    fun onFinalLeaderboard(array: JSONArray) {
+    fun onFinalLeaderboard(array: JsonArray) {
 
         finalData = null
 
@@ -201,15 +204,15 @@ object Multiplayer {
             return
         }
 
-        if (array.length() == 0) {
+        if (array.size == 0) {
             log("WARNING: Server provided empty final leaderboard.")
             return
         }
 
         val list = mutableListOf<StatisticV2>()
 
-        for (i in 0 until array.length()) {
-            val json = array.optJSONObject(i) ?: continue
+        for (i in 0 until array.size) {
+            val json = array.optJsonObject(i) ?: continue
             list.add(jsonToStatistic(json))
         }
 

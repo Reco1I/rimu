@@ -3,6 +3,8 @@ package ru.nsu.ccfit.zuev.osu;
 import com.osudroid.OsuPlatform;
 import com.osudroid.android.AndroidOsuPlatform;
 import com.osudroid.android.OkHttpClientImplementation;
+import com.osudroid.android.SocketIORoomSocket;
+import com.osudroid.multiplayer.api.RoomSocket;
 import com.reco1l.framework.net.Http;
 import com.osudroid.android.AndroidStringTable;
 import com.osudroid.android.AndroidToasts;
@@ -134,6 +136,7 @@ public class MainActivity extends AndroidGameHost {
 
         OsuPlatform.INSTANCE.setImplementation(new AndroidOsuPlatform(this));
         Http.INSTANCE.setImplementation(new OkHttpClientImplementation());
+        RoomSocket.Companion.setFactory(SocketIORoomSocket.factory);
         Config.loadConfig();
         StringTable.INSTANCE.setImplementation(new AndroidStringTable(this));
         ToastLogger.init(new AndroidToasts(this));
