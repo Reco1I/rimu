@@ -1,9 +1,7 @@
-package ru.nsu.ccfit.zuev.osu.game.mods;
-
-import kotlin.Deprecated;
+package ru.nsu.ccfit.zuev.osu.game.mods
 
 @Deprecated(message = "This class is only kept for compatibility with the old mods system. Use com.osudroid.mods.Mod instead")
-public enum GameMod {
+enum class GameMod {
     MOD_NOFAIL,
     MOD_AUTO,
     MOD_EASY,
