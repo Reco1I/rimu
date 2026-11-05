@@ -1,6 +1,6 @@
 package com.osudroid.data
 
-import android.util.*
+import com.reco1l.verktex.Logger
 import androidx.room.*
 import com.osudroid.difficulty.BeatmapDifficultyCalculator
 import ru.nsu.ccfit.zuev.osu.Config
@@ -14,6 +14,8 @@ import com.osudroid.beatmaps.sections.BeatmapDifficulty
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
+import kotlin.jvm.JvmName
+import kotlin.jvm.JvmOverloads
 
 
 /// Ported from rimu! project
@@ -439,7 +441,7 @@ fun BeatmapInfo(data: Beatmap, lastModified: Long, calculateDifficulty: Boolean,
                 throw e
             }
 
-            Log.e("BeatmapInfo", "Error while calculating difficulty.", e)
+            Logger.e("BeatmapInfo", "Error while calculating difficulty.", e)
 
             droidStarRating = 0f
             standardStarRating = 0f

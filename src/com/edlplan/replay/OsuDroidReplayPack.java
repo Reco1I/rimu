@@ -2,7 +2,7 @@ package com.edlplan.replay;
 
 import okio.Okio;
 
-import static com.osudroid.data.Scores.ScoreInfo;
+import static com.osudroid.data.ScoreJson.ScoreInfo;
 
 import com.osudroid.data.BeatmapInfo;
 import com.osudroid.data.ScoreInfo;

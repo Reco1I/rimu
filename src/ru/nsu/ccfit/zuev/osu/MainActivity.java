@@ -42,7 +42,7 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.osudroid.BuildSettings;
 import com.osudroid.beatmaps.BeatmapCache;
-import com.osudroid.data.DatabaseManager;
+import com.osudroid.data.AndroidDatabase;
 import com.osudroid.resources.R;
 import com.reco1l.verktex.graphics.GraphicsBackend;
 import com.reco1l.verktex.settings.Settings;
@@ -192,7 +192,7 @@ public class MainActivity extends AndroidGameHost {
             Execution.delayed(2500, () -> {
 
                 UpdateManager.onActivityStart();
-                DatabaseManager.notifyIfResetDueToDowngrade();
+                AndroidDatabase.notifyIfResetDueToDowngrade();
                 GlobalManager.getInstance().setInfo("");
                 GlobalManager.getInstance().setLoadingProgress(100);
                 Verktex.pushScene(MainScene.INSTANCE);

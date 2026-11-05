@@ -118,6 +118,10 @@ kotlin {
 
             // Multiplatform locks and atomics.
             api("org.jetbrains.kotlinx:atomicfu:0.33.0")
+
+            // Room's annotations, so the entities and DAOs can be declared in common code. The
+            // database itself, which Room generates, is built by each platform that has one.
+            api("androidx.room:room-common:2.7.2")
         }
 
         if (providers.gradleProperty("game.checkCommon").isPresent) {

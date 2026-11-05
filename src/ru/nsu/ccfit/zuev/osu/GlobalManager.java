@@ -3,7 +3,7 @@ package ru.nsu.ccfit.zuev.osu;
 import android.content.Context;
 
 import com.osudroid.data.BeatmapInfo;
-import com.osudroid.data.DatabaseManager;
+import com.osudroid.data.AndroidDatabase;
 import com.osudroid.ui.v2.Skin;
 import com.osudroid.ui.v2.SkinSounds;
 
@@ -43,7 +43,7 @@ public class GlobalManager {
     }
 
     public void init() {
-        DatabaseManager.load(mainActivity);
+        AndroidDatabase.load(mainActivity);
         saveServiceObject = (SaveServiceObject) mainActivity.getApplication();
         songService = saveServiceObject.getSongService();
         SongService.initAudio();
