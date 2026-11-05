@@ -5,6 +5,9 @@ package com.reco1l.verktex.data
 import kotlin.jvm.JvmField
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.ThemeDependent
+import com.reco1l.verktex.ui.themed
 
 /**
  * Represents a dimension that can be used to define the size of a UI component.
@@ -34,7 +37,7 @@ sealed class Dimension {
     /**
      * Represents a fixed dimension that can be defined in pixels or density-independent pixels (dp).
      */
-    sealed class Fixed : ConstraintDriven() {
+    sealed class Fixed : ConstraintDriven(), ThemeDependent<Fixed> {
 
         /**
          * The raw value of the dimension.
@@ -45,6 +48,12 @@ sealed class Dimension {
          * Converts this dimension to pixels based on its type and the current display density.
          */
         abstract fun toPixels(): Float
+
+
+        override val isThemed: Boolean
+            get() = false
+
+        override fun resolve(theme: Theme): Fixed = this
 
 
         /**
@@ -61,6 +70,25 @@ sealed class Dimension {
             override fun toPixels(): Float {
                 return value * Platform.currentDisplay.density * Platform.resolutionScale
             }
+        }
+
+        /**
+         * Represents a fixed dimension taken from the theme, see [themed]. Themeable properties
+         * resolve it with the theme of their component, elsewhere it's resolved with [Verktex.theme].
+         */
+        class Themed(val block: Theme.() -> Fixed) : Fixed() {
+
+            override val value: Float
+                get() = Verktex.theme.block().value
+
+            override val isThemed: Boolean
+                get() = true
+
+            override fun toPixels(): Float = Verktex.theme.block().toPixels()
+
+            override fun resolve(theme: Theme): Fixed = theme.block().resolve(theme)
+
+            override fun toString() = "Themed(${Verktex.theme.block()})"
         }
     }
 

@@ -341,7 +341,13 @@ open class Theme(
         val color: Color4 = Color4.White,
         val weight: Font.Weight = Font.Weight.Normal,
         val style: Font.Style = Font.Style.Normal
-    )
+    ) : ThemeDependent<FontSettings> {
+
+        override val isThemed: Boolean
+            get() = false
+
+        override fun resolve(theme: Theme): FontSettings = this
+    }
 
 
     companion object {
@@ -359,6 +365,21 @@ open class Theme(
  * its shadow. A null elevation only removes the shadow, leaving the border as it is.
  */
 fun UIComponent.applyElevation(elevation: Theme.Elevation?) {
+    unbindTheme(ElevationBinding)
+    setElevation(elevation)
+}
+
+/**
+ * Makes this component look raised with the elevation taken from its theme, see the other overload.
+ * Inside the block, `this` is the theme of the component, and it's applied again when it changes.
+ */
+fun UIComponent.applyElevation(block: Theme.() -> Theme.Elevation?) {
+    bindTheme(ElevationBinding, block) { setElevation(it) }
+}
+
+private fun UIComponent.setElevation(elevation: Theme.Elevation?) {
     elevation?.bezel?.let { border = it }
     shadow = elevation?.shadow
 }
+
+private object ElevationBinding

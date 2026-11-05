@@ -1,5 +1,8 @@
 package com.reco1l.verktex.data
 
+import com.reco1l.verktex.ui.Theme
+import com.reco1l.verktex.ui.ThemeDependent
+
 /**
  * Represents the padding of a UI component, which defines the space between the component's
  * content and its boundaries.
@@ -11,10 +14,19 @@ data class Padding(
     val top: Dimension.Fixed = Dimension.Zero,
     val right: Dimension.Fixed = Dimension.Zero,
     val bottom: Dimension.Fixed = Dimension.Zero
-) {
+) : ThemeDependent<Padding> {
 
     constructor(all: Dimension.Fixed) : this(all, all, all, all)
     constructor(horizontal: Dimension.Fixed, vertical: Dimension.Fixed) : this(horizontal, vertical, horizontal, vertical)
+
+
+    override val isThemed: Boolean
+        get() = left.isThemed || top.isThemed || right.isThemed || bottom.isThemed
+
+    override fun resolve(theme: Theme): Padding {
+        if (!isThemed) return this
+        return Padding(left.resolve(theme), top.resolve(theme), right.resolve(theme), bottom.resolve(theme))
+    }
 
 
     /**

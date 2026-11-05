@@ -37,6 +37,10 @@ import kotlin.math.max
  */
 abstract class UIComponent {
 
+    // The theme bindings of this component, see setThemeBinding(). Declared first since themeable
+    // properties register themselves while the component is constructed.
+    private var themeBindings: LinkedHashMap<Any, ThemeBinding>? = null
+
     //region Size
 
     /**
@@ -47,12 +51,7 @@ abstract class UIComponent {
      *
      * @see Dimension
      */
-    var width: Dimension = Dimension.WrapContent
-        set(value) {
-            if (field == value) return
-            field = value
-            invalidateMeasure()
-        }
+    var width: Dimension by themeable(Dimension.WrapContent) { invalidateMeasure() }
 
     /**
      * The height specification of the component.
@@ -62,12 +61,7 @@ abstract class UIComponent {
      *
      * @see Dimension
      */
-    var height: Dimension = Dimension.WrapContent
-        set(value) {
-            if (field == value) return
-            field = value
-            invalidateMeasure()
-        }
+    var height: Dimension by themeable(Dimension.WrapContent) { invalidateMeasure() }
 
     /**
      * The minimum width of the component, either fixed or relative to the available width. It wins over [maxWidth].
@@ -436,10 +430,12 @@ abstract class UIComponent {
             }
         }
 
+    private val colorProperty = themeable(Color4.White)
+
     /**
      * The color of the component boxed in a [Color4] object.
      */
-    var color = Color4.White
+    var color: Color4 by colorProperty
 
     /**
      * When true, this component's RGB is multiplied into its descendants' colours (the alpha always is).
@@ -460,28 +456,28 @@ abstract class UIComponent {
      */
     var alpha
         get() = color.alpha
-        set(value) { color = color.copy(alpha = value) }
+        set(value) { color = colorProperty.raw.copy(alpha = value) }
 
     /**
      * The red component of the compoent's color.
      */
     var red
         get() = color.red
-        set(value) { color = color.copy(red = value) }
+        set(value) { color = colorProperty.raw.copy(red = value) }
 
     /**
      * The green component of the compoent's color.
      */
     var green
         get() = color.green
-        set(value) { color = color.copy(green = value) }
+        set(value) { color = colorProperty.raw.copy(green = value) }
 
     /**
      * The blue component of the compoent's color.
      */
     var blue
         get() = color.blue
-        set(value) { color = color.copy(blue = value) }
+        set(value) { color = colorProperty.raw.copy(blue = value) }
 
     /**
      * Determines how the component should be clipped.
@@ -491,29 +487,29 @@ abstract class UIComponent {
     /**
      * The background color of this component.
      */
-    var backgroundColor = Color4.Transparent
+    var backgroundColor: Color4 by themeable(Color4.Transparent)
 
     /**
      * The border drawn along the inner edge of this component. Null for none.
      */
-    var border: Border? = null
+    var border: Border? by themeable(null)
 
     /**
      * The shadow drawn below this component, following its shape.
      */
-    var shadow: Shadow? = null
+    var shadow: Shadow? by themeable(null)
 
     /**
      * The radius of the corners of this component. If the radius is greater than 0, the component will be drawn with rounded corners.
      */
-    var radius: Dimension.Fixed = Dimension.Zero
+    var radius: Dimension.Fixed by themeable(Dimension.Zero)
 
 
     /**
      * The theme of this component and its children, or null to use the one of its parent.
      *
-     * Components are styled when constructed, so changing it styles them again, overriding the
-     * values set after construction on themed properties, as a change of [Verktex.theme] does.
+     * Changing it resolves the [themed] values of the component and its children again, as a change
+     * of [Verktex.theme] does. Values assigned without [themed] stay as they are.
      */
     var theme: Theme? = null
         set(value) {
@@ -530,28 +526,77 @@ abstract class UIComponent {
     val resolvedTheme: Theme
         get() = theme ?: parent?.resolvedTheme ?: Verktex.theme
 
-    // The theme the style was last applied with.
-    private var styledTheme: Theme? = null
+    // The theme the bindings were last applied with, null for the global theme, which values
+    // assigned while constructing resolve with since the component has no parent yet. It's not read
+    // here since components are also constructed while Verktex is.
+    private var boundTheme: Theme? = null
+
+
+    /**
+     * Creates a property that can be assigned [themed] values, which are resolved with the theme of
+     * this component and again whenever it changes. [onChanged] is called when the resolved value
+     * changes, except for the initial one.
+     */
+    protected fun <T> themeable(initial: T, onChanged: (T) -> Unit = {}): ThemeableProperty<T> {
+        return ThemeableProperty(this, initial, onChanged)
+    }
+
+    /**
+     * Calls [apply] with the value [resolve] returns for the theme of this component, now and
+     * whenever the theme changes, for values without a [themed] form. Binding with the same [key]
+     * again replaces the previous binding.
+     */
+    fun <T> bindTheme(key: Any, resolve: Theme.() -> T, apply: (T) -> Unit) {
+        val binding = ThemeBinding { theme -> apply(theme.resolve()) }
+        setThemeBinding(key, binding)
+        binding.apply(resolvedTheme)
+    }
+
+    /**
+     * Removes the binding added with [bindTheme] with the given [key], keeping its last value.
+     */
+    fun unbindTheme(key: Any) {
+        setThemeBinding(key, null)
+    }
+
+    internal fun setThemeBinding(key: Any, binding: ThemeBinding?) {
+        if (binding == null) {
+            themeBindings?.remove(key)
+            return
+        }
+        val bindings = themeBindings ?: LinkedHashMap<Any, ThemeBinding>().also { themeBindings = it }
+        bindings[key] = binding
+    }
+
+    // Applies the bindings of this component again with its current theme.
+    private fun rebindTheme() {
+        val theme = resolvedTheme
+        boundTheme = theme
+        onStyle(theme)
+        // Bindings may assign themeable properties, which register or remove bindings.
+        themeBindings?.values?.toList()?.forEach { it.apply(theme) }
+        onThemeChanged()
+    }
+
+    /**
+     * Resolves the [themed] values of this component and its children again, after their theme
+     * changed.
+     */
+    internal fun applyTheme() {
+        if (this is UIContainer) propagate { it.rebindTheme() } else rebindTheme()
+    }
 
 
     /**
      * Applies the current style to the component.
      */
     fun style() {
-        val theme = resolvedTheme
-        styledTheme = theme
-        onStyle(theme)
-    }
-
-    // Styles the component and its children again after the resolved theme changed.
-    private fun applyTheme() {
-        style()
-        if (this is UIContainer) propagate { it.onThemeChanged() } else onThemeChanged()
+        onStyle(resolvedTheme)
     }
 
     /**
-     * Called when the theme or the font scale changed, after the style was applied again.
-     * Cached values depending on them must be invalidated here.
+     * Called when the theme or the font scale changed, after the [themed] values were resolved
+     * again. Cached values depending on them must be invalidated here.
      */
     open fun onThemeChanged() {
         invalidateMeasure()
@@ -640,9 +685,9 @@ abstract class UIComponent {
             field = value
             field?.onChildAttached(this)
 
-            // The style is applied on construction, before the component has a parent. If it's
-            // attached under a different theme it must be styled again with it.
-            if (value != null && styledTheme !== resolvedTheme) {
+            // Themed values are resolved on construction, before the component has a parent. If
+            // it's attached under a different theme they must be resolved again with it.
+            if (value != null && (boundTheme ?: Verktex.theme) !== resolvedTheme) {
                 applyTheme()
             }
         }
@@ -652,10 +697,7 @@ abstract class UIComponent {
      * Called when the component is attached to a parent.
      * This is usually called when the component is added to a container.
      */
-    open fun onAttached() {
-        // The style is already applied when assigned, applying it again here would override the
-        // values set by the builder after construction.
-    }
+    open fun onAttached() {}
 
     /**
      * Called when the component is detached from a parent.
@@ -938,15 +980,12 @@ abstract class UIComponent {
 
     //region Layout
 
+    private val paddingProperty = themeable(Padding.Zero) { invalidateMeasure() }
+
     /**
      * The padding of the component.
      */
-    var padding = Padding.Zero
-        set(value) {
-            if (field == value) return
-            field = value
-            invalidateMeasure()
-        }
+    var padding: Padding by paddingProperty
 
     /**
      * The padding of the component on the left side.
@@ -955,7 +994,7 @@ abstract class UIComponent {
         get() = padding.left
         set(value) {
             if (padding.left != value) {
-                padding = padding.copy(left = value)
+                padding = paddingProperty.raw.copy(left = value)
             }
         }
 
@@ -966,7 +1005,7 @@ abstract class UIComponent {
         get() = padding.top
         set(value) {
             if (padding.top != value) {
-                padding = padding.copy(top = value)
+                padding = paddingProperty.raw.copy(top = value)
             }
         }
 
@@ -977,7 +1016,7 @@ abstract class UIComponent {
         get() = padding.right
         set(value) {
             if (padding.right != value) {
-                padding = padding.copy(right = value)
+                padding = paddingProperty.raw.copy(right = value)
             }
         }
 
@@ -988,7 +1027,7 @@ abstract class UIComponent {
         get() = padding.bottom
         set(value) {
             if (padding.bottom != value) {
-                padding = padding.copy(bottom = value)
+                padding = paddingProperty.raw.copy(bottom = value)
             }
         }
 
