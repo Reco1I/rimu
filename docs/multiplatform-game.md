@@ -167,6 +167,9 @@ The app's tests (`tests/test/kotlin/`) move to `game/src/jvmTest` (JUnit as toda
 - `Config`, `Debug`, `BuildType`, `BuildSettings`, `DifficultyAlgorithm`,
   `BeatmapLeaderboardScoringMode` and `GameMode` are Kotlin and live in `:game`. What they need from
   Android goes through `OsuPlatform` (`com.osudroid.android.AndroidOsuPlatform` on Android).
+- `com.osudroid.math` and its tests are in `:game`; `Vector2`'s `PointF` conversions stay in the app
+  (`com/osudroid/math/PointFVectors.kt`) until `PointF` is gone.
+- `Constants`, `GameMod`, `TouchType` and `ResultType` are Kotlin and in `:game`.
 - `Config.isRemoveSliderLock()` no longer looks at the room: `Multiplayer.isRemoveSliderLock()` does.
 - The app's Robolectric tests need Java 17 (Robolectric can't read Java 25 class files), and some
   assume an English locale. Tests that move to `:game` run as plain JVM tests.
