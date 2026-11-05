@@ -2,7 +2,7 @@ package ru.nsu.ccfit.zuev.skins;
 
 import androidx.annotation.NonNull;
 
-import com.edlplan.framework.utils.interfaces.Consumer;
+import java.util.function.Consumer;
 import com.osudroid.ui.v2.hud.HUDSkinData;
 import com.osudroid.ui.v2.Skin;
 import com.reco1l.verktex.data.Color4;
@@ -198,11 +198,11 @@ public class SkinJsonReader extends SkinReader {
         if (object == null) {
             object = new JSONObject();
         }
-        consumer.consume(object);
+        consumer.accept(object);
     }
 
     public void loadArray(String tag, @NonNull JSONObject data, Consumer<@Nullable JSONArray> consumer) {
-        consumer.consume(data.optJSONArray(tag));
+        consumer.accept(data.optJSONArray(tag));
     }
 
     public JSONObject getCurrentData() {

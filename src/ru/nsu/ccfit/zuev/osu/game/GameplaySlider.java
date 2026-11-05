@@ -5,8 +5,8 @@ import com.osudroid.multiplayer.Multiplayer;
 import android.graphics.PointF;
 
 import com.reco1l.verktex.math.Easing;
-import com.edlplan.framework.math.FMath;
-import com.edlplan.framework.math.line.LinePath;
+import com.osudroid.math.MathUtils;
+import com.osudroid.math.LinePath;
 import com.edlplan.osu.support.slider.SliderBody;
 import com.osudroid.game.CursorEvent;
 import com.osudroid.utils.Execution;
@@ -378,7 +378,7 @@ public class GameplaySlider extends GameObject {
 
         // Slider track
         superPath = buildCache.sourcePath;
-        superPathMaxLength = superPath.getMeasurer().maxLength();
+        superPathMaxLength = superPath.getLength();
 
         float sliderBodyWidth = OsuSkin.get().getSliderBodyWidth() * scale;
         float sliderBorderWidth = OsuSkin.get().getSliderBorderWidth() * scale;
@@ -917,7 +917,7 @@ public class GameplaySlider extends GameObject {
             }
 
             if (Config.isSnakingInSliders()) {
-                float percentage = FMath.clamp((float) (timePreempt + elapsedSpanTime) / (timePreempt / 3), 0, 1);
+                float percentage = MathUtils.clamp((float) (timePreempt + elapsedSpanTime) / (timePreempt / 3), 0, 1);
 
                 if (percentage < 1) {
                     if (superPath != null && sliderBody != null) {
@@ -989,10 +989,10 @@ public class GameplaySlider extends GameObject {
         if (startHit) {
             approachCircle.setAlpha(0);
         } else {
-            approachCircle.setAlpha(1 - FMath.clamp((float) elapsedTime / 0.05f, 0, 1));
+            approachCircle.setAlpha(1 - MathUtils.clamp((float) elapsedTime / 0.05f, 0, 1));
         }
 
-        final float percentage = FMath.clamp((float) (elapsedSpanTime / spanDuration), 0, 1);
+        final float percentage = MathUtils.clamp((float) (elapsedSpanTime / spanDuration), 0, 1);
         final float bodyProgress = reverse ? 1 - percentage : percentage;
 
         if (shouldSnakeOut && Config.isSnakingOutSliders() && completedSpanCount == beatmapSlider.getSpanCount() - 1) {
@@ -1094,7 +1094,7 @@ public class GameplaySlider extends GameObject {
         // - If the cursor has at some point left the expanded follow area, miss those nested objects instead.
 
         // Get current ball position.
-        float progress = (float) FMath.clamp(elapsedSpanTime / spanDuration, 0, 1);
+        float progress = (float) MathUtils.clamp(elapsedSpanTime / spanDuration, 0, 1);
         var ballPos = getPositionAt(reverse ? 1 - progress : progress, false, false);
 
         float distanceTrackingThresholdSquared = getTrackingDistanceThresholdSquared(true);

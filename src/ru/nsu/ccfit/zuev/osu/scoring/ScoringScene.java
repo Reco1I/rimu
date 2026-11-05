@@ -4,7 +4,6 @@ import kotlin.jvm.JvmClassMappingKt;
 
 import com.reco1l.verktex.Logger;
 
-import com.edlplan.framework.utils.functionality.SmartIterator;
 import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.data.DatabaseManager;
 import com.osudroid.multiplayer.Multiplayer;
@@ -557,7 +556,7 @@ public class ScoringScene {
                 return;
             }
 
-            boolean hasUnrankedMod = SmartIterator.wrap(mods.values().iterator()).applyFilter(m -> !m.isRanked()).hasNext();
+            boolean hasUnrankedMod = mods.values().stream().anyMatch(m -> !m.isRanked());
 
             if (hasUnrankedMod || Multiplayer.isRemoveSliderLock()) {
                 return;

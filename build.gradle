@@ -219,8 +219,8 @@ dependencies {
     implementation 'pub.devrel:easypermissions:3.0.0'
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
 
+    // Only its easings, used by the Android views until they're rewritten on Verktex.
     implementation 'com.github.EdrowsLuo.EdlGameFramework:EdlJavaExt:d91c53fcff'
-    implementation 'com.github.EdrowsLuo.EdlGameFramework:EdlOsbSupport:d91c53fcff'
 
     // Localizations
     implementation "com.github.osudroid:language-pack:$languagePackVersion"
