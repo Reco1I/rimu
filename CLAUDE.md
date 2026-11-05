@@ -48,7 +48,7 @@ The codebase is split across multiple main package roots:
 - **`com/edlplan/replay/`** — Replay imports and exports.
 - **`com/edlplan/ui/`** — Fragments and utilities to manage their lifecycle (`ActivityOverlay`, `BaseFragment`, `BeatmapPropertiesFragment`, etc.).
 - **`com/osudroid/`** — Modern Kotlin code. Contains beatmap parsing, difficulty calculation, the mod system, multiplayer, Room database, and newer UI scenes.
-- **`verktex/`** — The engine. `core/` holds rendering, audio, input, clocks (`time/`) and the UI components (`UIComponent`, `UIContainer`, `UIScene`, `UISprite`, etc.). `android/` holds the Android implementation (`com/reco1l/verktex/android/`), and its `src/main/assets/` holds the built-in shaders (`shaders/`) and fonts (`fonts/`).
+- **`verktex/`** — The engine. `core/` holds rendering, audio, input, clocks (`time/`) and the UI components (`UIComponent`, `UIContainer`, `UIScene`, `UISprite`, etc.). `android/` holds the Android implementation (`com/reco1l/verktex/android/`). The built-in shaders (`shaders/`) and fonts (`fonts/`) are in `core/assets/`, which each platform packages.
 - **`com/reco1l/framework/`** — Kotlin extensions for some Android classes and existing classes, such as bitmaps and easing. 
 - **`com/reco1l/osu/ui`** — New UI components, primarily dialogs and settings preferences.
 - **`com/rian/framework/`** — A couple of utility classes such as `RollingNumber`.

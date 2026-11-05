@@ -15,7 +15,7 @@ import java.io.File
 class BuiltInShadersVulkanTest {
 
     private fun translate(path: String, stage: Stage) =
-        GLSL450VulkanTranslator.translate(File("src/main/assets", path).readText(), stage)
+        GLSL450VulkanTranslator.translate(File("../core/assets", path).readText(), stage)
 
     @Test
     fun everyProgramTranslatesAndLinks() {

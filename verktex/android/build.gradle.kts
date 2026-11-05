@@ -149,6 +149,10 @@ dependencies {
     vulkanShaderTools(project(":verktex:shadertools"))
 }
 
+// The engine's built-in shaders and fonts, shared by every platform: a plain folder of the core, so
+// they aren't packaged twice (as assets and as the core's jar resources).
+val sharedAssets: Directory = rootProject.layout.projectDirectory.dir("verktex/core/assets")
+
 val compileVulkanShaders = tasks.register<CompileVulkanShaders>("compileVulkanShaders") {
     val os = System.getProperty("os.name").lowercase()
     val host = when {
@@ -158,7 +162,7 @@ val compileVulkanShaders = tasks.register<CompileVulkanShaders>("compileVulkanSh
     }
     val name = if ("windows" in os) "glslc.exe" else "glslc"
 
-    shaderDirectory.set(layout.projectDirectory.dir("src/main/assets/shaders"))
+    shaderDirectory.set(sharedAssets.dir("shaders"))
     toolClasspath.from(vulkanShaderTools)
     outputDirectory.set(layout.buildDirectory.dir("generated/vulkanShaders"))
     glslc.set(androidComponents.sdkComponents.ndkDirectory
@@ -168,6 +172,7 @@ val compileVulkanShaders = tasks.register<CompileVulkanShaders>("compileVulkanSh
 
 androidComponents {
     onVariants(selector().all()) { variant ->
+        variant.sources.assets?.addStaticSourceDirectory(sharedAssets.asFile.path)
         variant.sources.assets?.addGeneratedSourceDirectory(compileVulkanShaders, CompileVulkanShaders::outputDirectory)
     }
 }

@@ -15,7 +15,7 @@ import java.io.File
  */
 class GLSLES100TranslatorTest {
 
-    private val shaderDirectory = File("src/main/assets/shaders")
+    private val shaderDirectory = File("../core/assets/shaders")
 
     private fun translate(name: String): GLSLES100Translator.Result {
         val stage = if (name.endsWith(".vert")) Stage.Vertex else Stage.Fragment
