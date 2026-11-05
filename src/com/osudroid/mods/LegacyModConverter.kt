@@ -7,7 +7,7 @@ import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.toFloatWithCommaSeparator
 import kotlin.collections.forEach
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createInstance
+import com.osudroid.utils.createModInstance
 import ru.nsu.ccfit.zuev.osu.game.mods.GameMod
 
 /**
@@ -76,7 +76,7 @@ object LegacyModConverter {
     fun convert(mods: Iterable<GameMod>, extraModString: String, difficulty: BeatmapDifficulty? = null) =
         ModHashMap().apply {
             mods.forEach {
-                val mod = gameModMap[it]?.createInstance() ?:
+                val mod = gameModMap[it]?.createModInstance() ?:
                 throw IllegalArgumentException("Cannot find respective Mod class for $it.")
 
                 if (mod is IMigratableMod && difficulty != null) {
@@ -105,7 +105,7 @@ object LegacyModConverter {
         val data = str.split('|', limit = 2)
 
         for (c in data.getOrNull(0) ?: return@also) {
-            val mod = legacyStorableMods[c]?.createInstance() ?: continue
+            val mod = legacyStorableMods[c]?.createModInstance() ?: continue
 
             if (mod is IMigratableMod && difficulty != null) {
                 it.put(mod.migrate(difficulty))

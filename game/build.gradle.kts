@@ -115,6 +115,9 @@ kotlin {
 
             // Key-value preferences, over SharedPreferences on Android.
             api("com.russhwolf:multiplatform-settings:1.3.0")
+
+            // Multiplatform locks and atomics.
+            api("org.jetbrains.kotlinx:atomicfu:0.33.0")
         }
 
         if (providers.gradleProperty("game.checkCommon").isPresent) {

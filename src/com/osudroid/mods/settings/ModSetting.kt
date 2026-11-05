@@ -6,7 +6,6 @@ import com.osudroid.mods.Mod
 import kotlin.properties.*
 import kotlin.reflect.*
 import kotlinx.serialization.json.*
-import org.json.JSONObject
 
 /**
  * Represents a [Mod] specific setting.
@@ -19,7 +18,7 @@ abstract class ModSetting<T>(
     val name: String,
 
     /**
-     * The key used to load and save this [ModSetting] from a [JSONObject].
+     * The key used to load and save this [ModSetting] from a [JsonObject].
      *
      * If set to `null`, this [ModSetting] will not be loaded or saved.
      */
@@ -90,6 +89,14 @@ abstract class ModSetting<T>(
     open fun copyFrom(other: ModSetting<T>) {
         defaultValue = other.defaultValue
         value = other.value
+    }
+
+    /**
+     * Registers this [ModSetting] in the [Mod] whose property delegates to it, see [Mod.settings].
+     */
+    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>): ModSetting<T> {
+        (thisRef as? Mod)?.registerSetting(property.name, this)
+        return this
     }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {

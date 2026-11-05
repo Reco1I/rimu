@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.scoring;
 
+import kotlin.jvm.JvmClassMappingKt;
+
 import android.graphics.PointF;
 
 import androidx.annotation.NonNull;
@@ -354,7 +356,7 @@ public class Replay {
         var difficulty = beatmap.getDifficulty().clone();
         ModUtils.applyModsToBeatmapDifficulty(difficulty, GameMode.Droid, stat.getMod().values());
 
-        var hitWindow = stat.getMod().contains(ModPrecise.class)
+        var hitWindow = stat.getMod().contains(JvmClassMappingKt.getKotlinClass(ModPrecise.class))
             ? new PreciseDroidHitWindow(difficulty.od)
             : new DroidHitWindow(difficulty.od);
         double mehWindow = hitWindow.getMehWindow();
@@ -516,7 +518,7 @@ public class Replay {
 
         @NonNull
         public static MoveArray readFrom(@NonNull ObjectInputStream is, Replay replay, ModHashMap mods) throws IOException {
-            boolean isHardRock = mods.contains(ModHardRock.class);
+            boolean isHardRock = mods.contains(JvmClassMappingKt.getKotlinClass(ModHardRock.class));
             int size = is.readInt();
             MoveArray array = new MoveArray(size);
             array.size = size;

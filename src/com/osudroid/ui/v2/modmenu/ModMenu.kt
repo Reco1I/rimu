@@ -70,7 +70,7 @@ import java.util.LinkedList
 import java.util.concurrent.CancellationException
 import kotlin.math.roundToInt
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createInstance
+import com.osudroid.utils.createModInstance
 import com.reco1l.verktex.ui.themed
 
 object ModMenu : UICaptureContainer() {
@@ -634,7 +634,7 @@ object ModMenu : UICaptureContainer() {
             // Handle incompatible mods with the selected mod.
             if (wasSelected && !button.isSelected) {
                 customizationMenu.onModRemoved(button.mod)
-                button.mod = button.mod::class.createInstance()
+                button.mod = button.mod::class.createModInstance()
             }
         }
 
@@ -659,7 +659,7 @@ object ModMenu : UICaptureContainer() {
         customizationMenu.onModRemoved(toggle.mod)
         queueModChange(toggle.mod)
 
-        toggle.mod = modClass.createInstance()
+        toggle.mod = modClass.createModInstance()
     }
 
     //endregion

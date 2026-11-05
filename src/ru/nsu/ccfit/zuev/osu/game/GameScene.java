@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
+import kotlin.jvm.JvmClassMappingKt;
+
 import static kotlinx.coroutines.JobKt.ensureActive;
 
 import android.graphics.PointF;
@@ -749,7 +751,7 @@ public class GameScene implements GameObjectListener {
 
         GlobalManager.getInstance().getSongService().preLoad(audioFilePath, GameHelper.getSpeedMultiplier(),
             GameHelper.getSpeedMultiplier() != 1f &&
-                (Config.isShiftPitchInRateChange() || mods.contains(ModNightCore.class) || mods.contains(ModOldNightCore.class)));
+                (Config.isShiftPitchInRateChange() || mods.contains(JvmClassMappingKt.getKotlinClass(ModNightCore.class)) || mods.contains(JvmClassMappingKt.getKotlinClass(ModOldNightCore.class))));
 
         gameplayClock.setRate(GameHelper.getSpeedMultiplier());
 
@@ -912,7 +914,7 @@ public class GameScene implements GameObjectListener {
             }
 
             GameHelper.setReplayVersion(replay.replayVersion);
-        } else if (mods.contains(ModAutoplay.class)) {
+        } else if (mods.contains(JvmClassMappingKt.getKotlinClass(ModAutoplay.class))) {
             replay = null;
         }
 
@@ -981,7 +983,7 @@ public class GameScene implements GameObjectListener {
 
         if (isHUDEditor) {
             modsToUse = new ModHashMap();
-            modsToUse.put(ModAutoplay.class);
+            modsToUse.put(JvmClassMappingKt.getKotlinClass(ModAutoplay.class));
         } else {
             modsToUse = mods != null ? mods.deepCopy() : lastMods;
         }
@@ -1100,10 +1102,10 @@ public class GameScene implements GameObjectListener {
         stat.setMod(lastMods);
         stat.migrateLegacyMods(parsedBeatmap.getDifficulty());
         stat.calculateModScoreMultiplier(parsedBeatmap.getDifficulty());
-        stat.canFail = !stat.getMod().contains(ModNoFail.class)
-                && !stat.getMod().contains(ModRelax.class)
-                && !stat.getMod().contains(ModAutopilot.class)
-                && !stat.getMod().contains(ModAutoplay.class);
+        stat.canFail = !stat.getMod().contains(JvmClassMappingKt.getKotlinClass(ModNoFail.class))
+                && !stat.getMod().contains(JvmClassMappingKt.getKotlinClass(ModRelax.class))
+                && !stat.getMod().contains(JvmClassMappingKt.getKotlinClass(ModAutopilot.class))
+                && !stat.getMod().contains(JvmClassMappingKt.getKotlinClass(ModAutoplay.class));
 
         float difficultyScoreMultiplier = 1 + Math.min(parsedBeatmap.getDifficulty().od, 10) / 10f +
                 Math.min(parsedBeatmap.getDifficulty().hp, 10) / 10f;
@@ -1115,24 +1117,24 @@ public class GameScene implements GameObjectListener {
         stat.setBeatmapNoteCount(objects.length);
         stat.setBeatmapMaxCombo(parsedBeatmap.getMaxCombo());
 
-        GameHelper.setHardRock(lastMods.ofType(ModHardRock.class));
-        GameHelper.setDoubleTime(lastMods.ofType(ModDoubleTime.class));
-        GameHelper.setNightCore(lastMods.contains(ModNightCore.class) ? lastMods.ofType(ModNightCore.class) : lastMods.ofType(ModOldNightCore.class));
-        GameHelper.setHalfTime(lastMods.ofType(ModHalfTime.class));
-        GameHelper.setHidden(lastMods.ofType(ModHidden.class));
-        GameHelper.setTraceable(lastMods.ofType(ModTraceable.class));
-        GameHelper.setFlashlight(lastMods.ofType(ModFlashlight.class));
-        GameHelper.setRelax(lastMods.ofType(ModRelax.class));
-        GameHelper.setAutopilot(lastMods.ofType(ModAutopilot.class));
-        GameHelper.setAutoplay(lastMods.ofType(ModAutoplay.class));
-        GameHelper.setSuddenDeath(lastMods.ofType(ModSuddenDeath.class));
-        GameHelper.setPerfect(lastMods.ofType(ModPerfect.class));
-        GameHelper.setSynesthesia(lastMods.ofType(ModSynesthesia.class));
-        GameHelper.setScoreV2(lastMods.ofType(ModScoreV2.class));
-        GameHelper.setEasy(lastMods.ofType(ModEasy.class));
-        GameHelper.setMuted(lastMods.ofType(ModMuted.class));
-        GameHelper.setFreezeFrame(lastMods.ofType(ModFreezeFrame.class));
-        GameHelper.setApproachDifferent(lastMods.ofType(ModApproachDifferent.class));
+        GameHelper.setHardRock(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModHardRock.class)));
+        GameHelper.setDoubleTime(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModDoubleTime.class)));
+        GameHelper.setNightCore(lastMods.contains(JvmClassMappingKt.getKotlinClass(ModNightCore.class)) ? lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModNightCore.class)) : lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModOldNightCore.class)));
+        GameHelper.setHalfTime(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModHalfTime.class)));
+        GameHelper.setHidden(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModHidden.class)));
+        GameHelper.setTraceable(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModTraceable.class)));
+        GameHelper.setFlashlight(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModFlashlight.class)));
+        GameHelper.setRelax(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModRelax.class)));
+        GameHelper.setAutopilot(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModAutopilot.class)));
+        GameHelper.setAutoplay(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModAutoplay.class)));
+        GameHelper.setSuddenDeath(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModSuddenDeath.class)));
+        GameHelper.setPerfect(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModPerfect.class)));
+        GameHelper.setSynesthesia(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModSynesthesia.class)));
+        GameHelper.setScoreV2(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModScoreV2.class)));
+        GameHelper.setEasy(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModEasy.class)));
+        GameHelper.setMuted(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModMuted.class)));
+        GameHelper.setFreezeFrame(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModFreezeFrame.class)));
+        GameHelper.setApproachDifferent(lastMods.ofType(JvmClassMappingKt.getKotlinClass(ModApproachDifferent.class)));
 
         int cursorCount = replaying && replay != null ? replay.cursorMoves.size() : CursorCount;
 
@@ -1960,7 +1962,7 @@ public class GameScene implements GameObjectListener {
                 if (replaying)
                     scoringScene.load(scoringScene.getReplayStat(), null, GlobalManager.getInstance().getSongService(), replayPath, null, lastBeatmapInfo);
                 else {
-                    if (stat.getMod().contains(ModAutoplay.class)) {
+                    if (stat.getMod().contains(JvmClassMappingKt.getKotlinClass(ModAutoplay.class))) {
                         stat.setPlayerName("osu!");
                     }
 
@@ -3172,7 +3174,7 @@ public class GameScene implements GameObjectListener {
             replay.setStat(stat);
             replay.save(replayFilePath);
 
-            if (stat.getTotalScoreWithMultiplier() > 0 && !stat.getMod().contains(ModAutoplay.class)) {
+            if (stat.getTotalScoreWithMultiplier() > 0 && !stat.getMod().contains(JvmClassMappingKt.getKotlinClass(ModAutoplay.class))) {
                 stat.setReplayFilename(odrFilename);
                 stat.setBeatmapMD5(lastBeatmapInfo.getMD5());
 

@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.scoring;
 
+import kotlin.jvm.JvmClassMappingKt;
+
 import com.reco1l.verktex.Logger;
 
 import com.edlplan.framework.utils.functionality.SmartIterator;
@@ -328,13 +330,13 @@ public class ScoringScene {
         String playerStr = "Played by " + stat.getPlayerName() + " on " +
                 new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault()).format(new Date(stat.getTime()));
         playerStr += String.format("  %s(%s)", BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE);
-        if (mods.contains(ModCustomSpeed.class) ||
-            mods.contains(ModDifficultyAdjust.class) ||
-            (mods.contains(ModFlashlight.class) && !mods.ofType(ModFlashlight.class).getUsesDefaultSettings())) {
+        if (mods.contains(JvmClassMappingKt.getKotlinClass(ModCustomSpeed.class)) ||
+            mods.contains(JvmClassMappingKt.getKotlinClass(ModDifficultyAdjust.class)) ||
+            (mods.contains(JvmClassMappingKt.getKotlinClass(ModFlashlight.class)) && !mods.ofType(JvmClassMappingKt.getKotlinClass(ModFlashlight.class)).getUsesDefaultSettings())) {
 
-            var customSpeed = mods.ofType(ModCustomSpeed.class);
-            var difficultyAdjust = mods.ofType(ModDifficultyAdjust.class);
-            var flashlight = mods.ofType(ModFlashlight.class);
+            var customSpeed = mods.ofType(JvmClassMappingKt.getKotlinClass(ModCustomSpeed.class));
+            var difficultyAdjust = mods.ofType(JvmClassMappingKt.getKotlinClass(ModDifficultyAdjust.class));
+            var flashlight = mods.ofType(JvmClassMappingKt.getKotlinClass(ModFlashlight.class));
 
             mapperStr += " [";
             if (customSpeed != null && customSpeed.getTrackRateMultiplier() != 1f) {
@@ -424,10 +426,10 @@ public class ScoringScene {
 
                         var copiedMods = mods;
 
-                        if (mods.contains(ModNightCore.class) && replay.replayVersion <= 3) {
+                        if (mods.contains(JvmClassMappingKt.getKotlinClass(ModNightCore.class)) && replay.replayVersion <= 3) {
                             copiedMods = mods.deepCopy();
-                            copiedMods.removeOfType(ModNightCore.class);
-                            copiedMods.put(ModOldNightCore.class);
+                            copiedMods.removeOfType(JvmClassMappingKt.getKotlinClass(ModNightCore.class));
+                            copiedMods.put(JvmClassMappingKt.getKotlinClass(ModOldNightCore.class));
                         }
 
                         switch (Config.getDifficultyAlgorithm()) {
@@ -525,7 +527,7 @@ public class ScoringScene {
             SkinSounds.get("applause").play();
 
             // Save score
-            if (stat.getTotalScoreWithMultiplier() <= 0 || mods.contains(ModAutoplay.class) ||
+            if (stat.getTotalScoreWithMultiplier() <= 0 || mods.contains(JvmClassMappingKt.getKotlinClass(ModAutoplay.class)) ||
                     (Multiplayer.isMultiplayer &&
                         ((Multiplayer.room != null && Multiplayer.room.isTeamVersus()) || game.hasFailed))) {
                 return;
