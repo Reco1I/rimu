@@ -23,7 +23,7 @@ open class UIButton : UIClickableContainer() {
         set(value) {
             if (field != value) {
                 field = value
-                style()
+                restyle()
             }
         }
 
@@ -31,7 +31,8 @@ open class UIButton : UIClickableContainer() {
         set(value) {
             if (field != value) {
                 field = value
-                style()
+                updateBorder()
+                restyle()
             }
         }
 
@@ -52,7 +53,7 @@ open class UIButton : UIClickableContainer() {
         set(value) {
             if (field != value) {
                 field = value
-                style()
+                restyle()
             }
         }
 
@@ -63,30 +64,30 @@ open class UIButton : UIClickableContainer() {
     init {
         scaleOrigin = Anchor.Center
 
-        style = Style { theme ->
-            backgroundColor = when (variant) {
-                Variant.Solid -> theme.palette.buttonBackgroundSolid
-                Variant.Soft -> theme.palette.buttonBackgroundSoft
-                Variant.Surface -> theme.palette.buttonBackgroundSurface
-                Variant.Outline, Variant.Ghost -> Color4.Transparent
+        backgroundColor = themed {
+            when {
+                isSelected -> palette.controlActiveBackground
+                variant == Variant.Solid -> palette.buttonBackgroundSolid
+                variant == Variant.Soft -> palette.buttonBackgroundSoft
+                variant == Variant.Surface -> palette.buttonBackgroundSurface
+                else -> Color4.Transparent
             }
+        }
 
-            border = if (variant == Variant.Outline) Border(1.5f.dip, theme.palette.buttonBackgroundSolid) else null
+        height = themed { buttonStyle[density].height }
+        padding = horizontalPadding(themed { buttonStyle[density].horizontalPadding })
+        radius = themed { buttonStyle[density].radius }
 
-            if (isSelected) {
-                backgroundColor = theme.palette.controlActiveBackground
-            }
+        updateBorder()
+    }
 
-            // Only filled buttons look raised, a shadow would show through transparent ones.
-            val isFilled = variant == Variant.Solid || variant == Variant.Soft || variant == Variant.Surface
-            applyElevation(if (isFilled) theme.buttonStyle.elevation else null)
-
-            val size = theme.buttonStyle[density]
-            height = size.height
-            padding = horizontalPadding(size.horizontalPadding)
-            radius = size.radius
-
-            alpha = if (isEnabled) 1f else 0.5f
+    private fun updateBorder() {
+        // Only filled buttons look raised, a shadow would show through transparent ones.
+        if (variant == Variant.Solid || variant == Variant.Soft || variant == Variant.Surface) {
+            applyElevation { buttonStyle.elevation }
+        } else {
+            applyElevation(null)
+            border = if (variant == Variant.Outline) Border(1.5f.dip, themed { palette.buttonBackgroundSolid }) else null
         }
     }
 

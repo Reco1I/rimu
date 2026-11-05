@@ -4,7 +4,10 @@ package com.reco1l.verktex.ui
 
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.Shadow
 import kotlin.experimental.ExperimentalTypeInference
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -62,6 +65,41 @@ fun themed(block: Theme.() -> Color4): Color4 = ThemedColor4(block)
  */
 @OverloadResolutionByLambdaReturnType
 fun themed(block: Theme.() -> Theme.FontSettings): Theme.FontSettings = ThemedFontSettings(block)
+
+
+/**
+ * A padding taken from the theme, e.g. `padding = themed { badgeStyle.medium.padding }`, made of
+ * [themed] dimensions.
+ */
+@OverloadResolutionByLambdaReturnType
+fun themed(block: Theme.() -> Padding): Padding = Padding(
+    left = themed { block().left },
+    top = themed { block().top },
+    right = themed { block().right },
+    bottom = themed { block().bottom },
+)
+
+/**
+ * A border taken from the theme, made of [themed] dimensions and colors.
+ */
+@OverloadResolutionByLambdaReturnType
+fun themed(block: Theme.() -> Border): Border = Border(
+    width = themed { block().width },
+    color = themed { block().color },
+    colorBottom = themed { block().colorBottom },
+)
+
+/**
+ * A shadow taken from the theme, made of [themed] dimensions and colors. Whether it's a cutout is
+ * taken from [Verktex.theme] when created.
+ */
+@OverloadResolutionByLambdaReturnType
+fun themed(block: Theme.() -> Shadow): Shadow = Shadow(
+    color = themed { block().color },
+    offsetY = themed { block().offsetY },
+    blur = themed { block().blur },
+    cutout = Verktex.theme.block().cutout,
+)
 
 
 /**
@@ -199,8 +237,19 @@ class ThemeableProperty<T> internal constructor(
     /**
      * The value resolved with the theme of the component.
      */
-    var value: T = if (initial.isThemed) resolveThemed(initial, Verktex.theme) else initial
+    var value: T = initial
+        get() {
+            // A themed initial value is resolved when first read rather than while the component is
+            // constructed, which can happen while Verktex is.
+            if (!isResolved) {
+                isResolved = true
+                field = resolveThemed(raw, owner.resolvedTheme)
+            }
+            return field
+        }
         private set
+
+    private var isResolved = !initial.isThemed
 
 
     init {
@@ -229,7 +278,8 @@ class ThemeableProperty<T> internal constructor(
     }
 
     private fun update(resolved: T) {
-        if (value == resolved) return
+        if (isResolved && value == resolved) return
+        isResolved = true
         value = resolved
         onChanged(resolved)
     }

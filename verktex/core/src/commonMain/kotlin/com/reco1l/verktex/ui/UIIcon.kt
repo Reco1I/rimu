@@ -42,13 +42,10 @@ open class UIIcon(iconCode: Int = FAIcon.Question) : UICanvas() {
     /**
      * The font size to use for this text.
      */
-    var iconSize = Verktex.theme.typography.body.size
-        set(value) {
-            if (field == value) return
-            field = value
-            fontSettingsChanged = true
-            invalidateMeasure()
-        }
+    var iconSize: Dimension.Fixed by themeable(themed { typography.body.size }) {
+        fontSettingsChanged = true
+        invalidateMeasure()
+    }
 
 
     private var font = iconFamily[iconSize]

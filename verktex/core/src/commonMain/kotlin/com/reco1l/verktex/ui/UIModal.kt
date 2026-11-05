@@ -29,11 +29,9 @@ open class UIModal(
         anchor = Anchor.Center
         origin = Anchor.Center
         clipping = ClipMode.Bounds
-        style = Style { theme ->
-            backgroundColor = theme.palette.surface
-            radius = theme.radius.lg
-            applyElevation(theme.cardStyle.elevation)
-        }
+        backgroundColor = themed { palette.surface }
+        radius = themed { radius.lg }
+        applyElevation { cardStyle.elevation }
     }
 
 ) : UIIgnoreParentPaddingContainer() {

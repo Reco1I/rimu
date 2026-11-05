@@ -11,6 +11,7 @@ import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.themed
 
 /**
  * A modal with a title, a content and a row of buttons below it.
@@ -20,29 +21,23 @@ abstract class UIDialog<T : UIComponent>(val innerContent: T) : UIModal(card = U
     width = fill(0.5f)
     anchor = Anchor.Center
     origin = Anchor.Center
-    style = Style { theme ->
-        backgroundColor = theme.palette.surface
-        radius = theme.radius.xl
-    }
+    backgroundColor = themed { palette.surface }
+    radius = themed { radius.xl }
 }) {
 
     private val titleText = UIText().apply {
         width = fill()
         alignment = Anchor.Center
-        style = Style { theme ->
-            fontSettings = theme.typography.caption
-            color = theme.palette.accent
-            padding = Padding(theme.gap.md)
-        }
+        fontSettings = themed { typography.caption }
+        color = themed { palette.accent }
+        padding = themed { Padding(gap.md) }
     }
 
     private val buttonLayout = UILinearContainer().apply {
         orientation = UILinearContainer.Orientation.Horizontal
         width = fill()
-        style = Style { theme ->
-            padding = Padding(theme.gap.md)
-            spacing = theme.gap.sm
-        }
+        padding = themed { Padding(gap.md) }
+        spacing = themed { gap.sm }
     }
 
     /**
@@ -81,6 +76,6 @@ abstract class UIDialog<T : UIComponent>(val innerContent: T) : UIModal(card = U
     private fun divider() = UIBox().apply {
         width = fill()
         height = 2f.px
-        style = Style { theme -> backgroundColor = theme.palette.divider }
+        backgroundColor = themed { palette.divider }
     }
 }

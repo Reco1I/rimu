@@ -29,7 +29,7 @@ open class UILoadingIndicator : UICanvas() {
     /**
      * The color of the arc, or `null` to use the accent color of the current theme.
      */
-    var arcColor: Color4? = null
+    var arcColor: Color4? by themeable(null)
 
 
     private var angle = 0f

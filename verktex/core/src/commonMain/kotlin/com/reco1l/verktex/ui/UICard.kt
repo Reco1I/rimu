@@ -46,7 +46,7 @@ open class UICard : UILinearContainer() {
 
             // No animation for now, just hide the title bar if the card is not collapsible.
             if (value) {
-                titleBar.height = resolvedTheme.controlStyle.minimumHeight
+                titleBar.height = themed { controlStyle.minimumHeight }
                 titleBar.isVisible = true
             } else {
                 titleBar.height = 0f.px
@@ -81,10 +81,8 @@ open class UICard : UILinearContainer() {
     private val titleBar = clickableContainer {
         width = fill()
 
-        style = Style { theme ->
-            height = theme.controlStyle.minimumHeight
-            padding = horizontalPadding(theme.gap.md)
-        }
+        height = themed { controlStyle.minimumHeight }
+        padding = themed { horizontalPadding(gap.md) }
 
         onActionUp = {
             if (isCollapsible) {
@@ -97,9 +95,7 @@ open class UICard : UILinearContainer() {
         anchor = Anchor.CenterLeft
         origin = Anchor.CenterLeft
 
-        style = Style { theme ->
-            fontSettings = theme.typography.caption
-        }
+        fontSettings = themed { typography.caption }
     }
 
     private val chevron = UIIcon(FAIcon.ChevronDown).apply {
@@ -107,10 +103,8 @@ open class UICard : UILinearContainer() {
         origin = Anchor.CenterRight
         rotationOrigin = Anchor.Center
 
-        style = Style { theme ->
-            iconSize = theme.typography.caption.size
-            color = theme.typography.caption.color
-        }
+        iconSize = themed { typography.caption.size }
+        color = themed { typography.caption.color }
     }
 
     val content = linearContainer {
@@ -119,9 +113,7 @@ open class UICard : UILinearContainer() {
         // Hides the overflowing children while collapsing.
         clipping = ClipMode.Bounds
 
-        style = Style { theme ->
-            padding = Padding(theme.gap.md)
-        }
+        padding = themed { Padding(gap.md) }
         orientation = Orientation.Vertical
     }
 
@@ -130,11 +122,9 @@ open class UICard : UILinearContainer() {
 
     init {
         orientation = Orientation.Vertical
-        style = Style { theme ->
-            backgroundColor = theme.palette.surface
-            radius = theme.radius.md
-            applyElevation(theme.cardStyle.elevation)
-        }
+        backgroundColor = themed { palette.surface }
+        radius = themed { radius.md }
+        applyElevation { cardStyle.elevation }
 
         titleBar += titleText
         titleBar += chevron
@@ -145,9 +135,7 @@ open class UICard : UILinearContainer() {
             height = 2f.px
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
-            style = Style { theme ->
-                backgroundColor = theme.palette.divider
-            }
+            backgroundColor = themed { palette.divider }
         }
     }
 

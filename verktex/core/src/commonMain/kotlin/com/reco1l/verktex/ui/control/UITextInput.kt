@@ -23,6 +23,7 @@ import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.text.UIText
 import kotlin.math.min
+import com.reco1l.verktex.ui.themed
 
 inline fun UIContainer.textInput(builder: UITextInput.() -> Unit): UITextInput {
     return UITextInput().apply(builder).also(::plusAssign)
@@ -173,20 +174,19 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
 
 
     init {
-        style = Style { theme ->
-            height = theme.controlStyle.minimumHeight
-            padding = horizontalPadding(theme.gap.md)
-            radius = theme.radius.md
-            backgroundColor = theme.palette.controlInactiveBackground
-            border = Border(1.5f.dip, borderTargetColor(theme))
+        height = themed { controlStyle.minimumHeight }
+        padding = themed { horizontalPadding(gap.md) }
+        radius = themed { radius.md }
+        backgroundColor = themed { palette.controlInactiveBackground }
+        // Its color is animated towards the target one on update.
+        border = Border(1.5f.dip, borderTargetColor(resolvedTheme))
 
-            textComponent.color = Color4.White
-            placeholderText.color = Color4.White.copy(alpha = 0.5f)
-            caret.backgroundColor = theme.palette.accent
-            leadingIconComponent.color = theme.palette.accent
-            trailingIconComponent.color = theme.palette.accent
-            row.spacing = theme.controlStyle.iconSpacing
-        }
+        textComponent.color = Color4.White
+        placeholderText.color = Color4.White.copy(alpha = 0.5f)
+        caret.backgroundColor = themed { palette.accent }
+        leadingIconComponent.color = themed { palette.accent }
+        trailingIconComponent.color = themed { palette.accent }
+        row.spacing = themed { controlStyle.iconSpacing }
 
         textArea += placeholderText
         textArea += textComponent

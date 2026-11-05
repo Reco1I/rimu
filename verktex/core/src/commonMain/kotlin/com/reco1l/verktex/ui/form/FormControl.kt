@@ -16,6 +16,7 @@ import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.control.UIControl
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.faSolidIcon
+import com.reco1l.verktex.ui.themed
 
 /**
  * A labeled row around a [control] used to change the value of a property, with a button to reset
@@ -41,9 +42,7 @@ abstract class FormControl<V : Any, C : UIControl<V>>(initialValue: V) : UILinea
         // Stretched to the header row so the label is centered next to the reset button.
         height = fill()
         alignment = Anchor.CenterLeft
-        style = Style { theme ->
-            fontSettings = theme.typography.caption
-        }
+        fontSettings = themed { typography.caption }
     }
 
     /**
@@ -125,10 +124,8 @@ abstract class FormControl<V : Any, C : UIControl<V>>(initialValue: V) : UILinea
 
     init {
         width = fill()
-        style = Style { theme ->
-            padding = Padding(theme.gap.sm)
-            spacing = theme.gap.sm
-        }
+        padding = themed { Padding(gap.sm) }
+        spacing = themed { gap.sm }
     }
 
 
@@ -142,7 +139,7 @@ abstract class FormControl<V : Any, C : UIControl<V>>(initialValue: V) : UILinea
         +UILinearContainer().apply {
             anchor = Anchor.CenterLeft
             origin = Anchor.CenterLeft
-            style = Style { theme -> spacing = theme.gap.sm }
+            spacing = themed { gap.sm }
 
             +labelText
             +resetButtonHolder

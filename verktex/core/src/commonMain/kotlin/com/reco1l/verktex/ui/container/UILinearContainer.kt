@@ -26,12 +26,7 @@ open class UILinearContainer : UIContainer() {
     /**
      * The spacing between children.
      */
-    var spacing: Dimension.Fixed = Dimension.Zero
-        set(value) {
-            if (field == value) return
-            field = value
-            invalidateMeasure()
-        }
+    var spacing: Dimension.Fixed by themeable(Dimension.Zero) { invalidateMeasure() }
 
 
     override fun onMeasure(

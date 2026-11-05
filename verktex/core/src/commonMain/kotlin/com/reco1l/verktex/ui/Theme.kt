@@ -169,7 +169,7 @@ open class Theme(
      * A class that holds control style information.
      */
     open class ControlStyle(
-        val minimumHeight: Dimension,
+        val minimumHeight: Dimension.Fixed,
 
         /**
          * The spacing between the content of a control and its icons, e.g. the ones of a text input.

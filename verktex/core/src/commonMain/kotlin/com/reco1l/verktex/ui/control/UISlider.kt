@@ -16,6 +16,7 @@ import com.reco1l.verktex.ui.shape.UIBox
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.round
+import com.reco1l.verktex.ui.themed
 
 inline fun UIContainer.slider(builder: UISlider.() -> Unit): UISlider {
     return UISlider().apply(builder).also(::plusAssign)
@@ -107,18 +108,16 @@ open class UISlider(initialValue: Float = 0f) : UIControl<Float>(initialValue) {
     init {
         width = fill()
 
-        style = Style { theme ->
-            height = theme.controlStyle.minimumHeight
-            radius = theme.radius.lg
-            backgroundColor = theme.palette.controlInactiveBackground
+        height = themed { controlStyle.minimumHeight }
+        radius = themed { radius.lg }
+        backgroundColor = themed { palette.controlInactiveBackground }
 
-            progressBar.radius = theme.radius.lg
-            progressBar.backgroundColor = theme.palette.controlActiveBackground
+        progressBar.radius = themed { radius.lg }
+        progressBar.backgroundColor = themed { palette.controlActiveBackground }
 
-            thumb.width = 16f.dip
-            thumb.radius = theme.radius.lg
-            thumb.backgroundColor = theme.palette.accent
-        }
+        thumb.width = 16f.dip
+        thumb.radius = themed { radius.lg }
+        thumb.backgroundColor = themed { palette.accent }
 
         +progressBar
         +thumb
