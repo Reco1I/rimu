@@ -80,7 +80,7 @@ class ReplayPlaybackSeek : UILinearContainer() {
             origin = Anchor.TopCenter
 
             fun addSeekButton(delta: Float) = textButton {
-                text = "%+d s".format(delta.toInt())
+                text = delta.toInt().let { (if (it >= 0) "+" else "") + "$it s" }
                 height = 42f.dip
                 padding = Padding(12f.dip, 0f.dip)
                 onActionUp = { onSeek?.invoke((seekBar.value + delta).coerceIn(minDuration, totalDuration)) }

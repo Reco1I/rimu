@@ -5,6 +5,7 @@ import com.reco1l.verktex.graphics.CompareFunction
 import com.reco1l.verktex.graphics.DepthState
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.ui.UICanvas
+import kotlin.jvm.JvmField
 
 /**
  * Draws a list of triangles in a single color, which is how slider bodies are drawn.

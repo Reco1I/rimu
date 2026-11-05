@@ -14,6 +14,7 @@ import com.reco1l.verktex.ui.choreographNow
 import com.reco1l.verktex.ui.choreography
 import com.reco1l.verktex.ui.container.UIContainer
 import ru.nsu.ccfit.zuev.skins.OsuSkin
+import kotlin.jvm.JvmField
 
 class GameEffect(texname: String) : GameObject() {
     @JvmField

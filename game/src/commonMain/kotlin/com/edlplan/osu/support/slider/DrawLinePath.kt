@@ -7,6 +7,7 @@ import com.osudroid.math.Vector2
 import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.sign
+import kotlin.jvm.JvmField
 
 class DrawLinePath {
 

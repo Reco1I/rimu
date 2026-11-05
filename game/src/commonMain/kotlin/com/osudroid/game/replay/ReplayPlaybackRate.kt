@@ -40,7 +40,7 @@ class ReplayPlaybackRate : UILinearContainer() {
             origin = Anchor.TopCenter
 
             fun addStepButton(step: Float) = textButton {
-                text = "%+.2f".format(step)
+                text = (if (step >= 0) "+" else "") + step.toFixed(2)
                 height = 42f.dip
                 padding = Padding(12f.dip, 0f.dip)
                 onActionUp = { slider.value += step }

@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.game
 
+import kotlin.math.PI
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.utils.IPoolable
@@ -18,6 +19,7 @@ import com.reco1l.verktex.ui.container.UIContainer
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.math.*
+import kotlin.jvm.JvmStatic
 
 object FollowPointConnection {
 
@@ -105,7 +107,7 @@ object FollowPointConnection {
 
         val distanceX = endPosition.x - startPosition.x
         val distanceY = endPosition.y - startPosition.y
-        val rotation = atan2(distanceY, distanceX) * (180f / Math.PI).toFloat()
+        val rotation = atan2(distanceY, distanceX) * (180f / PI).toFloat()
 
         // HitObject.timeFadeIn may be modified by mods, but reference uses the unmodified version (which is 400ms).
         val endFadeInTime = 0.4f

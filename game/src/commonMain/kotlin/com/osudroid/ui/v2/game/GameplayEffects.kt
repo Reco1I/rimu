@@ -1,10 +1,8 @@
 package com.osudroid.ui.v2.game
 
 import com.osudroid.mods.ModFlashlight
-import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
-import com.osudroid.ui.v2.hud.GameplayHUD
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.px
@@ -21,11 +19,11 @@ import com.reco1l.verktex.ui.shape.UIBox
 import com.osudroid.math.Vector2
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
+import kotlin.jvm.JvmOverloads
 
 //region Flashlight
 
@@ -156,8 +154,13 @@ class FlashLightEntity(flashlight: ModFlashlight) : UIContainer() {
 class BreakAnimator(
     private val layer: UIContainer,
     private val stat: StatisticV2,
-    private val hud: GameplayHUD
+    private val hud: UIContainer
 ) : GameObject() {
+
+    /**
+     * Called when the warning arrows show up, a second before the break ends.
+     */
+    var onEnding: (() -> Unit)? = null
 
     private val arrows = Array(4) { i ->
         UISprite(SkinTextures["play-warningarrow"]).also { it.flippedHorizontal = i > 1 }
@@ -320,9 +323,7 @@ class BreakAnimator(
         if (length - time <= 1 && length - time + dt > 1) {
             arrows.forEach { it.isVisible = true }
 
-            if (Multiplayer.isMultiplayer) {
-                Multiplayer.roomScene?.chat?.hide()
-            }
+            onEnding?.invoke()
         }
 
         if (arrows[0].isVisible) {
@@ -471,6 +472,11 @@ class Countdown(
     time: Float
 ) : GameObject() {
 
+    /**
+     * Called when the countdown finishes.
+     */
+    var onFinish: (() -> Unit)? = null
+
     private var timePassed = -time + COUNTDOWN_LENGTH * speed
 
     private val center = Utils.trackToRealCoords(Vector2(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f))
@@ -568,7 +574,7 @@ class Countdown(
 
         if (crossed(1f, dt)) {
             layer = null
-            GlobalManager.getInstance().gameScene.countdownAnimator = null
+            onFinish?.invoke()
 
             ready.removeSelf()
             go.removeSelf()

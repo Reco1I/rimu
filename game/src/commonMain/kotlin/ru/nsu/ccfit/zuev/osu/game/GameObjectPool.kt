@@ -1,24 +1,25 @@
 package ru.nsu.ccfit.zuev.osu.game
 
-import java.util.LinkedList
 import ru.nsu.ccfit.zuev.osu.Config
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmStatic
 
 class GameObjectPool private constructor() {
     @JvmField
-    var circles = LinkedList<GameplayHitCircle>()
+    var circles = ArrayDeque<GameplayHitCircle>()
     @JvmField
-    var effects: MutableMap<String, LinkedList<GameEffect>> = HashMap()
+    var effects: MutableMap<String, ArrayDeque<GameEffect>> = HashMap()
     @JvmField
-    var sliders = LinkedList<GameplaySlider>()
+    var sliders = ArrayDeque<GameplaySlider>()
     @JvmField
-    var spinners = LinkedList<GameplaySpinner>()
+    var spinners = ArrayDeque<GameplaySpinner>()
     var objectsCreated = 0
         private set
 
     val circle: GameplayHitCircle
         get() {
             if (!circles.isEmpty()) {
-                return circles.poll()
+                return circles.removeFirst()
             }
 
             objectsCreated++
@@ -32,7 +33,7 @@ class GameObjectPool private constructor() {
     val spinner: GameplaySpinner
         get() {
             if (!spinners.isEmpty()) {
-                return spinners.poll()
+                return spinners.removeFirst()
             }
 
             objectsCreated++
@@ -46,7 +47,7 @@ class GameObjectPool private constructor() {
 
     fun getEffect(texname: String): GameEffect {
         if (effects.containsKey(texname) && !effects[texname]!!.isEmpty()) {
-            return effects[texname]!!.poll()
+            return effects[texname]!!.removeFirst()
         }
 
         objectsCreated++
@@ -55,7 +56,7 @@ class GameObjectPool private constructor() {
 
     fun putEffect(effect: GameEffect) {
         if (!effects.containsKey(effect.texname)) {
-            effects[effect.texname] = LinkedList()
+            effects[effect.texname] = ArrayDeque()
         }
 
         effects[effect.texname]!!.add(effect)
@@ -64,7 +65,7 @@ class GameObjectPool private constructor() {
     val slider: GameplaySlider
         get() {
             if (!sliders.isEmpty()) {
-                return sliders.poll()
+                return sliders.removeFirst()
             }
 
             objectsCreated++

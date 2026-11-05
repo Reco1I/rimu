@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.game
 
 import com.osudroid.ui.v2.SkinTextures
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.UIParticleSystem
@@ -10,7 +11,6 @@ import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.rotateTo
 import com.reco1l.verktex.ui.scaleTo
 import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
 import ru.nsu.ccfit.zuev.osu.game.GameplaySpinner
@@ -126,7 +126,7 @@ open class CursorEntity : UIContainer() {
  */
 private class CursorTrail(private val cursor: CursorSprite) : UIParticleSystem(MAX_PARTICLES) {
 
-    private val spawnInterval = 1f / (GlobalManager.getInstance().mainActivity.refreshRate * 2)
+    private val spawnInterval = 1f / (Verktex.graphics.window.refreshRate * 2)
     private var spawnTimer = 0f
 
 

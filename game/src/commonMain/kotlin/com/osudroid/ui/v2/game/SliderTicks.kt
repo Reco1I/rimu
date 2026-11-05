@@ -19,6 +19,7 @@ import com.reco1l.verktex.ui.container.UIContainer
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
+import kotlin.jvm.JvmStatic
 
 class SliderTickContainer : UIContainer() {
     private var slider: Slider? = null

@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.Platform
 import com.osudroid.math.Vector2
 import com.osudroid.GameMode
@@ -364,6 +365,8 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         get() = clock.time
 
     override fun isAfterSeek() = false
+
+    override fun isRemoveSliderLock() = Multiplayer.isRemoveSliderLock()
 
     //endregion
 

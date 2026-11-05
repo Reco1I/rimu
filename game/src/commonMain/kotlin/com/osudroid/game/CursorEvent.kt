@@ -8,6 +8,8 @@ import com.reco1l.verktex.input.PointerEvent
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmStatic
 
 /**
  * Represents a cursor event in gameplay.
