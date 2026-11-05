@@ -189,15 +189,6 @@ open class UIContainer : UIComponent(), MutableIterable<UIComponent> {
 
     //endregion
 
-    //region Style
-
-    override fun onStyle(theme: Theme) {
-        super.onStyle(theme)
-        // Children styles can depend on this container's state (e.g. a button's density).
-        children.forEach { it.style() }
-    }
-
-    //endregion
 
     //region Update
 
