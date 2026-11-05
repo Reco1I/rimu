@@ -58,6 +58,41 @@ fun JsonArray.optString(index: Int, fallback: String = "") = getOrNull(index).as
 fun JsonArray.optJsonObject(index: Int) = getOrNull(index) as? JsonObject
 
 
+/**
+ * A missing value or one of another type, as org.json's `JSONException`.
+ */
+class JsonException(message: String) : RuntimeException(message)
+
+// Strict lookups, which throw a JsonException like org.json's getters, with the same coercions.
+
+fun JsonObject.getString(key: String) = this[key].strictString() ?: throw missing(key, "String")
+
+fun JsonObject.getInt(key: String) = this[key].asDouble()?.toInt() ?: throw missing(key, "int")
+
+fun JsonObject.getLong(key: String) = this[key].asLong() ?: throw missing(key, "long")
+
+fun JsonObject.getDouble(key: String) = this[key].asDouble() ?: throw missing(key, "double")
+
+fun JsonObject.getBoolean(key: String) = this[key].asBoolean() ?: throw missing(key, "boolean")
+
+fun JsonObject.getJsonObject(key: String) = this[key] as? JsonObject ?: throw missing(key, "JSONObject")
+
+fun JsonObject.getJsonArray(key: String) = this[key] as? JsonArray ?: throw missing(key, "JSONArray")
+
+fun JsonArray.getString(index: Int) = getOrNull(index).strictString() ?: throw missing("[$index]", "String")
+
+fun JsonArray.getJsonObject(index: Int) = getOrNull(index) as? JsonObject ?: throw missing("[$index]", "JSONObject")
+
+private fun missing(key: String, type: String) = JsonException("Value at $key is missing or not a $type.")
+
+// Like org.json's getString, which only accepts strings and numbers (a null value isn't one).
+private fun JsonElement?.strictString(): String? = when (this) {
+    null, is JsonNull -> null
+    is JsonPrimitive -> content
+    else -> null
+}
+
+
 private fun JsonElement?.asString(): String? = when (this) {
     null -> null
     is JsonNull -> "null"

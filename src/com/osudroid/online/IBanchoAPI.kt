@@ -1,5 +1,9 @@
 package com.osudroid.online
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+
 import com.osudroid.online.model.*
 import com.reco1l.framework.net.*
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -26,10 +30,10 @@ object IBanchoAPI {
 
             val list = mutableListOf<BeatmapScoreModel>()
 
-            val leaderboard = request.execute().json.getJSONArray("Leaderboard")
+            val leaderboard = request.execute().json.getJsonArray("Leaderboard")
 
-            for (i in 0 until leaderboard.length()) {
-                list.add(BeatmapScore(leaderboard.getJSONObject(i)))
+            for (i in 0 until leaderboard.size) {
+                list.add(BeatmapScore(leaderboard.getJsonObject(i)))
             }
 
             return list

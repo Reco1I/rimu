@@ -1,5 +1,10 @@
 package com.osudroid.beatmaplisting.mirrors
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import com.reco1l.framework.net.HttpUrlBuilder
+
 import com.osudroid.beatmaplisting.BeatmapMirrorDownloadRequestModel
 import com.osudroid.beatmaplisting.BeatmapMirrorPreviewRequestModel
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel
@@ -21,9 +26,6 @@ import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel.SortType.Tota
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchResponseModel
 import com.osudroid.beatmaplisting.BeatmapModel
 import com.osudroid.beatmaplisting.BeatmapSetModel
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.json.JSONArray
 import ru.nsu.ccfit.zuev.osu.RankedStatus
 
 // API reference: https://dev.catboy.best/docs
@@ -51,10 +53,9 @@ class CatboySearchRequestModel : BeatmapMirrorSearchRequestModel {
         Descending -> "desc"
     }
 
-    override fun invoke(query: String, offset: Int, limit: Int, sort: SortType, order: OrderType, status: RankedStatus?): HttpUrl {
+    override fun invoke(query: String, offset: Int, limit: Int, sort: SortType, order: OrderType, status: RankedStatus?): String {
 
-        return "https://catboy.best/api/v2/search".toHttpUrl()
-            .newBuilder()
+        return HttpUrlBuilder("https://catboy.best/api/v2/search")
             .addQueryParameter("sort", "${sort.parseToApi()}:${order.parseToApi()}")
             .apply {
                 if (status != null) {
@@ -72,10 +73,10 @@ class CatboySearchRequestModel : BeatmapMirrorSearchRequestModel {
 
 class CatboySearchResponseModel : BeatmapMirrorSearchResponseModel {
     override fun invoke(response: Any): MutableList<BeatmapSetModel> {
-        response as JSONArray
+        response as JsonArray
 
-        return MutableList(response.length()) { i ->
-            val json = response.getJSONObject(i)
+        return MutableList(response.size) { i ->
+            val json = response.getJsonObject(i)
 
             BeatmapSetModel(
                 id = json.getLong("id"),
@@ -87,11 +88,11 @@ class CatboySearchResponseModel : BeatmapMirrorSearchResponseModel {
                 creator = json.getString("creator"),
                 hasVideo = json.getBoolean("video"),
                 thumbnail = "https://assets.ppy.sh/beatmaps/${json.getLong("id")}/covers/card.jpg",
-                beatmaps = json.getJSONArray("beatmaps").let {
+                beatmaps = json.getJsonArray("beatmaps").let {
 
-                    MutableList(it.length()) { i ->
+                    MutableList(it.size) { i ->
 
-                        val obj = it.getJSONObject(i)
+                        val obj = it.getJsonObject(i)
 
                         BeatmapModel(
                             id = obj.getLong("id"),
@@ -117,14 +118,14 @@ class CatboySearchResponseModel : BeatmapMirrorSearchResponseModel {
 
 
 class CatboyDownloadRequestModel : BeatmapMirrorDownloadRequestModel {
-    override fun invoke(beatmapSetId: Long, withVideo: Boolean): HttpUrl {
-        return "https://catboy.best/d/$beatmapSetId".toHttpUrl()
+    override fun invoke(beatmapSetId: Long, withVideo: Boolean): String {
+        return "https://catboy.best/d/$beatmapSetId"
     }
 }
 
 
 class CatboyPreviewRequestModel : BeatmapMirrorPreviewRequestModel {
-    override fun invoke(beatmapId: Long): HttpUrl {
-        return "https://catboy.best/preview/audio/$beatmapId".toHttpUrl()
+    override fun invoke(beatmapId: Long): String {
+        return "https://catboy.best/preview/audio/$beatmapId"
     }
 }

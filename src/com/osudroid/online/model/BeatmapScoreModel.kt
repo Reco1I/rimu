@@ -1,14 +1,17 @@
 package com.osudroid.online.model
 
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+
 import com.osudroid.data.*
-import org.json.*
 
 data class BeatmapScoreModel(
     val scoreId: Long,
     val rank: Int,
     val mark: String = "",
     val playerName: String,
-    val mods: JSONArray,
+    val mods: JsonArray,
     val score: Long,
     val pp: Float,
     val maxCombo: Int,
@@ -16,13 +19,13 @@ data class BeatmapScoreModel(
     val avatarUrl: String? = null,
 )
 
-fun BeatmapScore(json: JSONObject): BeatmapScoreModel {
+fun BeatmapScore(json: JsonObject): BeatmapScoreModel {
     return BeatmapScoreModel(
         scoreId = json.getLong("Id"),
         rank = -1,
         mark = json.optString("Mark", ""),
         playerName = json.getString("Username"),
-        mods = json.getJSONArray("Mods"),
+        mods = json.getJsonArray("Mods"),
         score = json.getLong("Score"),
         pp = json.getDouble("Pp").toFloat(),
         maxCombo = json.getInt("Combo"),
@@ -37,7 +40,7 @@ fun BeatmapScore(info: ScoreInfo): BeatmapScoreModel {
         rank = 0,
         mark = info.mark,
         playerName = info.playerName,
-        mods = JSONArray(info.mods),
+        mods = LenientJson.parseToJsonElement(info.mods) as JsonArray,
         score = info.score,
         pp = 0f,
         maxCombo = info.maxCombo,

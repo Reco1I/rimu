@@ -1,6 +1,9 @@
 package com.osudroid.beatmaplisting
 
-import okhttp3.HttpUrl
+import com.osudroid.utils.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+
 import ru.nsu.ccfit.zuev.osu.RankedStatus
 
 
@@ -11,7 +14,7 @@ fun interface BeatmapMirrorSearchRequestModel {
      * @param query The search query.
      * @param offset The search result offset.
      */
-    operator fun invoke(query: String, offset: Int, limit: Int, sort: SortType, order: OrderType, status: RankedStatus?): HttpUrl
+    operator fun invoke(query: String, offset: Int, limit: Int, sort: SortType, order: OrderType, status: RankedStatus?): String
 
     /**
      * Sorting types availables by the osu!api.
@@ -43,14 +46,14 @@ fun interface BeatmapMirrorDownloadRequestModel {
      * @param beatmapSetId The beatmap set ID.
      * @param withVideo Whether to include the video in the download if available.
      */
-    operator fun invoke(beatmapSetId: Long, withVideo: Boolean): HttpUrl
+    operator fun invoke(beatmapSetId: Long, withVideo: Boolean): String
 }
 
 fun interface BeatmapMirrorPreviewRequestModel {
     /**
      * @param beatmapId The beatmap ID.
      */
-    operator fun invoke(beatmapId: Long): HttpUrl
+    operator fun invoke(beatmapId: Long): String
 }
 
 

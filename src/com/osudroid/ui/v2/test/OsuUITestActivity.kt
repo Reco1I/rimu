@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.android.OkHttpClientImplementation
+import com.reco1l.framework.net.Http
 import com.osudroid.OsuPlatform
 import com.osudroid.android.AndroidOsuPlatform
 import com.osudroid.android.AndroidStringTable
@@ -24,6 +26,7 @@ class OsuUITestActivity : UITestActivity() {
         FirebaseApp.initializeApp(this)
 
         OsuPlatform.implementation = AndroidOsuPlatform(this)
+        Http.implementation = OkHttpClientImplementation()
         Config.loadConfig()
         StringTable.implementation = AndroidStringTable(this)
         Skin.load(Config.getSkinPath())
