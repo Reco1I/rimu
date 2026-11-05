@@ -1,6 +1,6 @@
 package com.osudroid.game
 
-import android.graphics.PointF
+import com.osudroid.math.Vector2
 import android.os.SystemClock
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
@@ -70,13 +70,13 @@ class CursorEvent : IPoolable {
      * The position of the cursor in screen space.
      */
     @JvmField
-    var position = PointF()
+    var position = Vector2(0f)
 
     /**
      * The position of the cursor in playfield space.
      */
     @JvmField
-    var trackPosition = PointF()
+    var trackPosition = Vector2(0f)
 
     /**
      * Releases this [CursorEvent] back to the pool for reuse.

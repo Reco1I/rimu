@@ -17,7 +17,7 @@ import com.osudroid.ui.v2.hud.HUDElements
 import com.osudroid.ui.v2.hud.IGameplayEvents
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.framework.forEachTolerant
-import android.graphics.PointF
+import com.osudroid.math.Vector2
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.reco1l.verktex.data.Anchor
@@ -146,7 +146,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
         elements.forEach { it.onAccuracyRegister(type, accuracy) }
     }
 
-    override fun onAimJudgement(objectPosition: PointF, cursorPosition: PointF, objectRadius: Float) {
+    override fun onAimJudgement(objectPosition: Vector2, cursorPosition: Vector2, objectRadius: Float) {
         elements.forEach { it.onAimJudgement(objectPosition, cursorPosition, objectRadius) }
     }
 

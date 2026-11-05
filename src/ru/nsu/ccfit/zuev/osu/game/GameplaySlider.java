@@ -2,7 +2,7 @@ package ru.nsu.ccfit.zuev.osu.game;
 
 import com.osudroid.multiplayer.Multiplayer;
 
-import android.graphics.PointF;
+import com.osudroid.math.Vector2;
 
 import com.reco1l.verktex.math.Easing;
 import com.osudroid.math.MathUtils;
@@ -89,9 +89,9 @@ public class GameplaySlider extends GameObject {
 
     private final UISprite followCircle;
 
-    // Temporarily used PointF to avoid allocations
-    private final PointF tmpPoint = new PointF();
-    private final PointF tmpTargetPoint = new PointF();
+    // Temporarily used Vector2 to avoid allocations
+    private final Vector2 tmpPoint = new Vector2(0f);
+    private final Vector2 tmpTargetPoint = new Vector2(0f);
     private float ballAngle;
 
     private boolean kiai;
@@ -116,7 +116,7 @@ public class GameplaySlider extends GameObject {
      * The absolute slider's path end position.
      * This already takes into account the absolute object's position.
      */
-    private final PointF pathEndPosition = new PointF();
+    private final Vector2 pathEndPosition = new Vector2(0f);
 
     /**
      * The slider ball sprite.
@@ -440,9 +440,9 @@ public class GameplaySlider extends GameObject {
         setLifetimeEnd(Float.MAX_VALUE);
     }
 
-    private PointF getPositionAt(final float percentage, final boolean updateBallAngle, final boolean updateEndArrowRotation) {
+    private Vector2 getPositionAt(final float percentage, final boolean updateBallAngle, final boolean updateEndArrowRotation) {
         int index = path.positionAt(tmpPoint, percentage);
-        tmpPoint.offset(position.x, position.y);
+        tmpPoint.set(tmpPoint.x + position.x, tmpPoint.y + position.y);
 
         if (path.anchorCount < 2) {
             return tmpPoint;
@@ -489,7 +489,7 @@ public class GameplaySlider extends GameObject {
      * Searches for the nearest point on the path that is spatially distinct from the current position.
      * This ensures a stable direction vector even when the path contains duplicate points.
      */
-    private boolean findRotationTarget(int startIndex, int direction, PointF currentPos, PointF outTarget) {
+    private boolean findRotationTarget(int startIndex, int direction, Vector2 currentPos, Vector2 outTarget) {
         for (int i = startIndex; i >= 0 && i < path.anchorCount; i += direction) {
             float xi = path.getX(i) + position.x;
             float yi = path.getY(i) + position.y;
@@ -760,7 +760,7 @@ public class GameplaySlider extends GameObject {
         removeFromScene();
     }
 
-    private void updateTracking(PointF position) {
+    private void updateTracking(Vector2 position) {
         if (!startHit) {
             // Do not allow tracking to happen when the slider head is not yet judged.
             isTracking = false;
@@ -803,7 +803,7 @@ public class GameplaySlider extends GameObject {
         updateFollowCircleTrackingState();
     }
 
-    private boolean isCursorTracking(PointF trackingPosition, CursorEvent cursorEvent) {
+    private boolean isCursorTracking(Vector2 trackingPosition, CursorEvent cursorEvent) {
         if (cursorEvent.isActionUp()) {
             return false;
         }

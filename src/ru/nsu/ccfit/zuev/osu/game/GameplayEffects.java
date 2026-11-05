@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
-import android.graphics.PointF;
+import com.osudroid.math.Vector2;
 
 import androidx.annotation.Nullable;
 
@@ -46,7 +46,7 @@ public class GameplayEffects {
     /**
      * Shows the judgement sprite with the given texture name, e.g. {@code hit300} or {@code hit0}.
      */
-    public void hit(final PointF pos, final String name, @Nullable Color4 color) {
+    public void hit(final Vector2 pos, final String name, @Nullable Color4 color) {
 
         var effect = GameObjectPool.getInstance().getEffect(name);
         var isAnimated = effect.hit instanceof UIAnimatedSprite animatedHit && animatedHit.getFrames().size() > 1;
@@ -142,28 +142,28 @@ public class GameplayEffects {
     /**
      * The burst of a hit circle.
      */
-    public void burst(final PointF pos, final Color4 color) {
+    public void burst(final Vector2 pos, final Color4 color) {
         burst(pos, color, "hitcircle", "hitcircleoverlay");
     }
 
     /**
      * The burst of the head of a slider.
      */
-    public void burstSliderStart(final PointF pos, final Color4 color) {
+    public void burstSliderStart(final Vector2 pos, final Color4 color) {
         burst(pos, color, "sliderstartcircle", "sliderstartcircleoverlay");
     }
 
     /**
      * The burst of the end of a slider.
      */
-    public void burstSliderEnd(final PointF pos, final Color4 color) {
+    public void burstSliderEnd(final Vector2 pos, final Color4 color) {
         burst(pos, color, "sliderendcircle", "sliderendcircleoverlay");
     }
 
     /**
      * The burst of a reverse arrow of a slider.
      */
-    public void burstSliderReverse(final PointF pos, float ang, final Color4 color) {
+    public void burstSliderReverse(final Vector2 pos, float ang, final Color4 color) {
         if (!areBurstsShown()) {
             return;
         }
@@ -174,7 +174,7 @@ public class GameplayEffects {
     }
 
 
-    private void burst(final PointF pos, final Color4 color, String circleTexture, String overlayTexture) {
+    private void burst(final Vector2 pos, final Color4 color, String circleTexture, String overlayTexture) {
         if (!areBurstsShown()) {
             return;
         }
@@ -193,7 +193,7 @@ public class GameplayEffects {
                 !GameHelper.isTraceable();
     }
 
-    private void applyBurst(GameEffect effect, PointF pos) {
+    private void applyBurst(GameEffect effect, Vector2 pos) {
 
         // Reference: https://github.com/ppy/osu/blob/c5893f245ce7a89d1900dbb620390823702481fe/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyMainCirclePiece.cs#L152-L174
 

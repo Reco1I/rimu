@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game;
 
-import android.graphics.PointF;
+import com.osudroid.math.Vector2;
 
 import com.osudroid.game.Cursor;
 import com.reco1l.verktex.data.Color4;
@@ -14,9 +14,9 @@ public interface GameObjectListener {
 
     int SLIDER_START = 1, SLIDER_REPEAT = 2, SLIDER_END = 3, SLIDER_TICK = 4;
 
-    void onCircleHit(int id, float accuracy, PointF pos, boolean endCombo, byte forcedScore, Color4 color);
+    void onCircleHit(int id, float accuracy, Vector2 pos, boolean endCombo, byte forcedScore, Color4 color);
 
-    void onSliderHit(int id, int score, PointF judgementPos,
+    void onSliderHit(int id, int score, Vector2 judgementPos,
                      boolean endCombo, Color4 color, int type, boolean incrementCombo);
 
     void onSliderEnd(int id, int accuracy, BitSet tickSet);
@@ -24,7 +24,7 @@ public interface GameObjectListener {
     /**
      * Called when a slider reaches the end of a span and goes back, at the reverse arrow.
      */
-    void onSliderReverse(PointF pos, float ang, Color4 color);
+    void onSliderReverse(Vector2 pos, float ang, Color4 color);
 
     void onSpinnerStart(int id);
 

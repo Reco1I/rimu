@@ -12,7 +12,7 @@ import com.reco1l.verktex.ui.moveTo
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.shape.circle
 
-import android.graphics.PointF
+import com.osudroid.math.Vector2
 import com.osudroid.math.toRadians
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.utils.*
@@ -66,7 +66,7 @@ class HUDAimErrorMeter : HUDElement() {
         }
     }
 
-    // Scratch fields reused every judgement to avoid Vec2/PointF allocations in this hot path.
+    // Scratch fields reused every judgement to avoid Vec2/Vector2 allocations in this hot path.
     private var hitPositionX = 0f
     private var hitPositionY = 0f
 
@@ -170,7 +170,7 @@ class HUDAimErrorMeter : HUDElement() {
         alpha = guideAlpha
     }
 
-    override fun onAimJudgement(objectPosition: PointF, cursorPosition: PointF, objectRadius: Float) {
+    override fun onAimJudgement(objectPosition: Vector2, cursorPosition: Vector2, objectRadius: Float) {
         if (objectRadius <= 0f) {
             return
         }
@@ -220,7 +220,7 @@ class HUDAimErrorMeter : HUDElement() {
      * Rotates the hit offset so that the previous-to-current object flow direction always points along a fixed
      * 45-degree axis, falling back to a raw (unrotated) offset for the very first judgement of a play.
      */
-    private fun computeHitPosition(objectPosition: PointF, cursorPosition: PointF, objectRadius: Float) {
+    private fun computeHitPosition(objectPosition: Vector2, cursorPosition: Vector2, objectRadius: Float) {
         if (hasLastObjectPosition) {
             val angle1 = atan2(objectPosition.y - cursorPosition.y, cursorPosition.x - objectPosition.x)
             val angle2 = atan2(objectPosition.y - lastObjectPositionY, lastObjectPositionX - objectPosition.x)

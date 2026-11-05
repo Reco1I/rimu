@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.hud
 
-import android.graphics.PointF
+import com.osudroid.math.Vector2
 import android.view.MotionEvent
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
@@ -34,7 +34,7 @@ interface IGameplayEvents {
      * @param cursorPosition The screen-space position of the cursor that produced the judgement.
      * @param objectRadius The screen-space radius of the hit circle that was judged.
      */
-    fun onAimJudgement(objectPosition: PointF, cursorPosition: PointF, objectRadius: Float)
+    fun onAimJudgement(objectPosition: Vector2, cursorPosition: Vector2, objectRadius: Float)
 
     /**
      * Called when the gameplay is seeked to a new position.

@@ -4,7 +4,7 @@ import kotlin.jvm.JvmClassMappingKt;
 
 import static kotlinx.coroutines.JobKt.ensureActive;
 
-import android.graphics.PointF;
+import com.osudroid.math.Vector2;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 
@@ -1186,7 +1186,7 @@ public class GameScene implements GameObjectListener {
             comboBurst.attachAll(bgScene);
         }
 
-        var position = new PointF(Config.getRES_WIDTH() - 130, 130);
+        var position = new Vector2(Config.getRES_WIDTH() - 130, 130);
 
         for (var mod : lastMods.values()) {
             if (!mod.isUserPlayable()) {
@@ -2294,7 +2294,7 @@ public class GameScene implements GameObjectListener {
     }
 
 
-    public void onCircleHit(int id, final float acc, final PointF pos,
+    public void onCircleHit(int id, final float acc, final Vector2 pos,
                             final boolean endCombo, byte forcedScore, Color4 color) {
         var playableBeatmap = this.playableBeatmap;
 
@@ -2364,11 +2364,11 @@ public class GameScene implements GameObjectListener {
     }
 
     @Override
-    public void onSliderReverse(PointF pos, float ang, Color4 color) {
+    public void onSliderReverse(Vector2 pos, float ang, Color4 color) {
         effects.burstSliderReverse(pos, ang, color);
     }
 
-    public void onSliderHit(int id, final int score, final PointF judgementPos, final boolean endCombo,
+    public void onSliderHit(int id, final int score, final Vector2 judgementPos, final boolean endCombo,
                             Color4 color, int type, boolean incrementCombo) {
         // Autoplay/Autopilot synthesize their own cursor movement rather than using real touch input, so
         // real touch events (e.g. a resting finger) must not be picked up as the "cursor position" here.
@@ -2507,7 +2507,7 @@ public class GameScene implements GameObjectListener {
             replay.addObjectResult(id, acc, null);
         }
 
-        final PointF pos = new PointF((float) Config.getRES_WIDTH() / 2,
+        final Vector2 pos = new Vector2((float) Config.getRES_WIDTH() / 2,
                 (float) Config.getRES_HEIGHT() / 2);
 
         VibratorManager.INSTANCE.spinnerVibration();

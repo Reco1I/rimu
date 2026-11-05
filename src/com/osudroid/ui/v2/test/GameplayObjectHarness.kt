@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.test
 
-import android.graphics.PointF
+import com.osudroid.math.Vector2
 import android.os.SystemClock
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.constants.HitObjectType
@@ -269,7 +269,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     //region GameObjectListener
 
-    override fun onCircleHit(id: Int, accuracy: Float, pos: PointF, endCombo: Boolean, forcedScore: Byte, color: Color4) {
+    override fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4) {
         val hitWindow = current?.hitObject?.hitWindow ?: return
         val error = abs(accuracy) * 1000
 
@@ -289,7 +289,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         stage.log(if (score == 0) "Circle missed" else "Circle hit $score, offset ${(accuracy * 1000).toInt()}ms")
     }
 
-    override fun onSliderHit(id: Int, score: Int, judgementPos: PointF, endCombo: Boolean, color: Color4, type: Int, incrementCombo: Boolean) {
+    override fun onSliderHit(id: Int, score: Int, judgementPos: Vector2, endCombo: Boolean, color: Color4, type: Int, incrementCombo: Boolean) {
         // The whole slider was missed.
         if (score == 0) {
             effects.hit(judgementPos, "hit0", color)
@@ -323,7 +323,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         stage.log("Slider ${partName(type)}, score $score")
     }
 
-    override fun onSliderReverse(pos: PointF, ang: Float, color: Color4) = effects.burstSliderReverse(pos, ang, color)
+    override fun onSliderReverse(pos: Vector2, ang: Float, color: Color4) = effects.burstSliderReverse(pos, ang, color)
 
     override fun onSliderEnd(id: Int, accuracy: Int, tickSet: BitSet?) = Unit
 
@@ -335,7 +335,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
             return
         }
 
-        val center = PointF(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f)
+        val center = Vector2(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f)
         effects.hit(center, scoreName(score), null)
         stage.log(if (score == 0) "Spinner missed" else "Spinner judged $score")
     }
