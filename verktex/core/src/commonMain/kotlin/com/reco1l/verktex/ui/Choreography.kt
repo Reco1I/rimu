@@ -330,7 +330,7 @@ class Choreography internal constructor(private val target: UIComponent) {
                 Property.Rotation -> target.rotationZ = value
                 Property.TranslationX -> target.translationX = value.px
                 Property.TranslationY -> target.translationY = value.px
-                Property.Color -> target.color = ColorInterpolation.colorAt(progress, fromColor, toColor, 0f, 1f).copy(alpha = target.alpha)
+                Property.Color -> target.color = ColorInterpolation.colorAt(progress, fromColor, toColor, 0f, 1f).alpha(target.alpha)
             }
         }
     }

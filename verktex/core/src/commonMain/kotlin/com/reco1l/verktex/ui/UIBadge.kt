@@ -121,7 +121,7 @@ open class UILabeledBadge : UILinearContainer() {
      */
     val labelComponent = UIText().apply {
         alignment = Anchor.Center
-        backgroundColor = Color4.Black.copy(alpha = 0.1f)
+        backgroundColor = Color4.Black.alpha(0.1f)
     }
 
     /**

@@ -286,7 +286,7 @@ class SongSelectLeaderboard : UILinearContainer() {
                     radius = 12f.px
                     borderWidth = 2f.px
 
-                    backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.75f) }
+                    backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.75f) }
                     borderColor = themed { palette.accent.shade(0.2f) }
 
                     container {

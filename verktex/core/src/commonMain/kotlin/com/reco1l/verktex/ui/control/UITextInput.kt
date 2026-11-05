@@ -182,7 +182,7 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
         border = Border(1.5f.dip, borderTargetColor(resolvedTheme))
 
         textComponent.color = Color4.White
-        placeholderText.color = Color4.White.copy(alpha = 0.5f)
+        placeholderText.color = Color4.White.alpha(0.5f)
         caret.backgroundColor = themed { palette.accent }
         leadingIconComponent.color = themed { palette.accent }
         trailingIconComponent.color = themed { palette.accent }
@@ -229,7 +229,7 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
     //region Update
 
     private fun borderTargetColor(theme: Theme) =
-        if (isFocused) theme.palette.accent else theme.palette.accent.copy(alpha = 0f)
+        if (isFocused) theme.palette.accent else theme.palette.accent.alpha(0f)
 
     override fun onUpdate(clock: FrameClock) {
 

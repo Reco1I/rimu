@@ -112,7 +112,7 @@ class HUDBarHitErrorMeter : HUDHitErrorMeter() {
         activeIndicators.forEach {
             val x = centerX + it.x
 
-            renderer.drawLine(x, centerY - halfHeight, x, centerY + halfHeight, INDICATOR_WIDTH, it.color.copy(alpha = it.alpha))
+            renderer.drawLine(x, centerY - halfHeight, x, centerY + halfHeight, INDICATOR_WIDTH, it.color.alpha(it.alpha))
         }
     }
 

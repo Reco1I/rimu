@@ -62,7 +62,7 @@ class RippleVisualizer : UICanvas() {
                 width = size,
                 height = size,
                 thickness = thickness,
-                color = contentColor.copy(alpha = info.alpha)
+                color = contentColor.alpha(info.alpha)
             )
         }
     }

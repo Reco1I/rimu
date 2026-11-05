@@ -59,12 +59,12 @@ class PlayerButton : UIClickableContainer() {
             padding = Padding(9f.dip)
             spacing = 8f.dip
             radius = themed { radius.xl }
-            backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.2f) }
+            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.2f) }
 
             avatarSprite = sprite {
                 width = 48f.dip
                 height = 48f.dip
-                backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.3f) }
+                backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.3f) }
                 radius = themed { radius.xl }
                 scaleType = UISprite.ScaleType.Crop
                 textureRegion = SkinTextures["emptyavatar"]

@@ -96,7 +96,7 @@ class RoomChat : UILinearContainer() {
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
             translationY = BODY_HEIGHT.dip
-            backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.9f) }
+            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.9f) }
 
             +button
 
@@ -291,7 +291,7 @@ class RoomChat : UILinearContainer() {
         init {
             width = Dimension.FillAvailable
             height = 45.6f.dip
-            backgroundColor = themed { (palette.accent.shade(0.15f)).copy(alpha = 0.5f) }
+            backgroundColor = themed { (palette.accent.shade(0.15f)).alpha(0.5f) }
             padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 0f.dip, bottom = 0f.dip)
 
             onActionUp = {
@@ -355,7 +355,7 @@ class RoomChat : UILinearContainer() {
             width = Dimension.FillAvailable
             orientation = Orientation.Horizontal
             spacing = 8f.dip
-            backgroundColor = themed { (palette.accent.shade(0.09f)).copy(alpha = 0f) }
+            backgroundColor = themed { (palette.accent.shade(0.09f)).alpha(0f) }
             padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 0f.dip, bottom = 0f.dip)
         }
 
@@ -371,7 +371,7 @@ class RoomChat : UILinearContainer() {
                 val messageIndex = messages.indexOf(message)
 
                 backgroundColor =
-                    backgroundColor.copy(alpha = if (messageIndex % 2 == 0) 0.5f else 0f)
+                    backgroundColor.alpha(if (messageIndex % 2 == 0) 0.5f else 0f)
 
                 if (message is SystemMessage) {
                     text {

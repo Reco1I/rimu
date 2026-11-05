@@ -438,14 +438,14 @@ abstract class UIComponent {
      * already applied to everything the component draws through the renderer's color stack.
      */
     protected val contentColor
-        get() = color.copy(alpha = 1f)
+        get() = color.alpha(1f)
 
     /**
      * The alpha component of the compoent's color.
      */
     var alpha
         get() = color.alpha
-        set(value) { color = colorProperty.raw.copy(alpha = value) }
+        set(value) { color = colorProperty.raw.alpha(value) }
 
     /**
      * The red component of the compoent's color.

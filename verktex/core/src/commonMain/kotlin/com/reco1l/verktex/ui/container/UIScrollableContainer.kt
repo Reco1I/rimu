@@ -378,7 +378,7 @@ open class UIScrollableContainer : UIContainer() {
                 y = scrollY * (bounds.height / scrollableContentHeight),
                 width = indicatorThickness,
                 height = indicatorHeight,
-                color = Color4.White.copy(alpha = indicatorYAlpha)
+                color = Color4.White.alpha(indicatorYAlpha)
             )
         }
 
@@ -390,7 +390,7 @@ open class UIScrollableContainer : UIContainer() {
                 y = bounds.height - indicatorThickness,
                 width = indicatorWidth,
                 height = indicatorThickness,
-                color = Color4.White.copy(alpha = indicatorXAlpha)
+                color = Color4.White.alpha(indicatorXAlpha)
             )
         }
     }

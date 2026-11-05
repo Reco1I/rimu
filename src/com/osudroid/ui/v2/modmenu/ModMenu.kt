@@ -118,7 +118,7 @@ object ModMenu : UICaptureContainer() {
             width = fill()
             height = fill()
             padding = horizontalPadding(8f.dip)
-            backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.75f) }
+            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.75f) }
 
             linearContainer {
                 width = fill()

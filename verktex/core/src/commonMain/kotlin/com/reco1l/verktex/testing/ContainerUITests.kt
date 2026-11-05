@@ -276,7 +276,7 @@ fun UITestSuite.addContainerTests() {
                     backgroundColor = FAINT
 
                     for ((index, origin) in ANCHORS.withIndex()) {
-                        block("", colorAt(index).copy(alpha = 0.6f)) {
+                        block("", colorAt(index).alpha(0.6f)) {
                             anchor = Anchor.Center
                             this.origin = origin
                             width = 40f.dip
@@ -335,7 +335,7 @@ fun UITestSuite.addContainerTests() {
                 origin = Anchor.Center
             }
 
-            val inside = block("Filling target", colorAt(0).copy(alpha = 0.5f)) {
+            val inside = block("Filling target", colorAt(0).alpha(0.5f)) {
                 anchor = Anchor.BottomCenter
                 origin = Anchor.BottomCenter
                 width = fill()
@@ -507,6 +507,6 @@ private class RecyclerRow : RecyclableComponent<Int>() {
 
     override fun onBind(data: Int) {
         label.text = "Item $data"
-        backgroundColor = colorAt(data).copy(alpha = 0.3f)
+        backgroundColor = colorAt(data).alpha(0.3f)
     }
 }

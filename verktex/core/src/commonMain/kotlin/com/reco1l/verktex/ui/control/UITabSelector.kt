@@ -42,7 +42,7 @@ class UITabSelector : UIContainer() {
 
     init {
         padding = themed { Padding(gap.xs) }
-        backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.25f) }
+        backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.25f) }
         radius = themed { radius.lg }
 
         selectionIndicator = box {

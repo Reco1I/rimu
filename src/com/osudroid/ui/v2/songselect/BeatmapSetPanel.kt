@@ -137,7 +137,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 origin = Anchor.TopRight
                 onActionLongPress = { beatmapCarrousel.onBeatmapSetLongPress?.invoke(this@BeatmapSetPanel) }
                 onActionUp = { select() }
-                borderColor = themed { palette.accent.copy(alpha = 0.3f) }
+                borderColor = themed { palette.accent.alpha(0.3f) }
                 borderWidth = 1f.dip
                 radius = themed { radius.xl }
 
@@ -145,14 +145,14 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                     width = fill()
                     height = fill()
                     scaleType = UISprite.ScaleType.Crop
-                    backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.5f) }
+                    backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.5f) }
                     radius = themed { radius.xl }
                 }
 
                 box {
                     width = fill()
                     height = fill()
-                    backgroundColor = Color4.Black.copy(alpha = 0.6f)
+                    backgroundColor = Color4.Black.alpha(0.6f)
                     radius = themed { radius.xl }
                 }
 
@@ -237,7 +237,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         val accent = Verktex.theme.palette.accent
 
         val targetExtraWidth = if (isExpanded) EXPANDED_EXTRA_WIDTH.dip.toPixels() else 0f
-        val targetBorderColor = if (isExpanded) accent else accent.copy(alpha = 0.3f)
+        val targetBorderColor = if (isExpanded) accent else accent.alpha(0.3f)
 
         buttonExtraWidth = clock.interpolateWithSnap(0.1f, buttonExtraWidth, targetExtraWidth, 0.5f)
 
@@ -245,7 +245,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
         button.apply {
             borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
-            shadow = if (buttonGlow > 0f) Shadow(accent.copy(alpha = GLOW_ALPHA * buttonGlow), blur = GLOW_BLUR.dip, cutout = true) else null
+            shadow = if (buttonGlow > 0f) Shadow(accent.alpha(GLOW_ALPHA * buttonGlow), blur = GLOW_BLUR.dip, cutout = true) else null
         }
         updateTranslation()
 

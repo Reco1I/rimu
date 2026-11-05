@@ -92,7 +92,7 @@ class ThemedValuesTest {
 
         box.theme = blueTheme
 
-        assertEquals(Color4.Blue500.copy(alpha = 0.5f), box.color)
+        assertEquals(Color4.Blue500.alpha(0.5f), box.color)
     }
 
     @Test
@@ -138,7 +138,7 @@ class ThemedValuesTest {
         val color = Color4(0.1f, 0.2f, 0.3f, 0.4f)
         assertEquals(Color4(0.1f, 0.2f, 0.3f, 0.4f), color)
         assertEquals(color.hashCode(), Color4(0.1f, 0.2f, 0.3f, 0.4f).hashCode())
-        assertEquals(Color4(0.1f, 0.2f, 0.3f, 1f), color.copy(alpha = 1f))
+        assertEquals(Color4(0.1f, 0.2f, 0.3f, 1f), color.alpha(1f))
         assertNotEquals(color, themed { color })
 
         val (r, g, b, a) = color

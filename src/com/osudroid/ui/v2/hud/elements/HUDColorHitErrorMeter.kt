@@ -17,7 +17,7 @@ class HUDColorHitErrorMeter : HUDHitErrorMeter() {
         width = totalWidth.px
 
         height = (INDICATOR_SIZE).px
-        backgroundColor = Color4.Black.copy(alpha = 0.6f)
+        backgroundColor = Color4.Black.alpha(0.6f)
     }
 
     override fun addResult(type: HitObjectType, accuracy: Float, color: Color4) {
@@ -48,7 +48,7 @@ class HUDColorHitErrorMeter : HUDHitErrorMeter() {
                 y = y,
                 width = INDICATOR_SIZE,
                 height = INDICATOR_SIZE,
-                color = it.color.copy(alpha = it.alpha)
+                color = it.color.alpha(it.alpha)
             )
         }
     }

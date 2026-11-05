@@ -85,7 +85,7 @@ class LobbyScene : UIScene() {
             height = Dimension.FillAvailable
             spacing = 16f.dip
             padding = Padding(top = 8f.dip, bottom = 8f.dip)
-            backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.9f) }
+            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.9f) }
 
             container {
                 width = Dimension.FillAvailable

@@ -64,7 +64,7 @@ class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
             translationY = (-2f).px
             alpha = 0.75f
 
-            color = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.75f) }
+            color = themed { palette.accent.shade(0.1f).alpha(0.75f) }
             radius = 12f.dip
             strokeWidth = 2f.px
             strokeColor = themed { palette.accent.shade(0.2f) }

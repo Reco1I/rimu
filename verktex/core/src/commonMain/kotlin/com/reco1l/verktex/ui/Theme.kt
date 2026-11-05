@@ -115,11 +115,11 @@ open class Theme(
         elevation = Elevation(
             bezel = Border(
                 width = 1f.px,
-                color = Color4.White.copy(alpha = 0.06f),
-                colorBottom = Color4.Black.copy(alpha = 0.2f),
+                color = Color4.White.alpha(0.06f),
+                colorBottom = Color4.Black.alpha(0.2f),
             ),
             shadow = Shadow(
-                color = Color4.Black.copy(alpha = 0.3f),
+                color = Color4.Black.alpha(0.3f),
                 offsetY = 1f.dip,
                 blur = 2f.dip,
             ),
@@ -133,11 +133,11 @@ open class Theme(
         elevation = Elevation(
             bezel = Border(
                 width = 1f.px,
-                color = Color4.White.copy(alpha = 0.06f),
-                colorBottom = Color4.Black.copy(alpha = 0.2f),
+                color = Color4.White.alpha(0.06f),
+                colorBottom = Color4.Black.alpha(0.2f),
             ),
             shadow = Shadow(
-                color = Color4.Black.copy(alpha = 0.35f),
+                color = Color4.Black.alpha(0.35f),
                 offsetY = 2f.dip,
                 blur = 8f.dip,
             ),
