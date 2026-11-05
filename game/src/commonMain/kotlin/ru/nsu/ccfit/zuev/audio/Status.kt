@@ -1,9 +1,9 @@
-package ru.nsu.ccfit.zuev.audio;
+package ru.nsu.ccfit.zuev.audio
 
 /**
  * @author dgsrz (dgsrz@vip.qq.com)
  */
-public enum Status {
+enum class Status {
 
     STOPPED,
     PLAYING,

@@ -11,7 +11,9 @@ import com.reco1l.verktex.ui.container.UIContainer
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
-import java.io.File
+import com.osudroid.utils.SystemFileSystem
+import kotlin.jvm.JvmStatic
+import okio.Path.Companion.toPath
 
 /**
  * Looks up textures downloaded to the cache folder, such as avatars, through Verktex [Textures].
@@ -28,9 +30,9 @@ object CachedTextures {
      */
     operator fun get(url: String): GraphicsTexture.Region? {
         val key = keyOf(url)
-        val file = File(Config.getCachePath(), MD5Calculator.getStringMD5(url))
+        val file = Config.getCachePath().toPath() / MD5Calculator.getStringMD5(url)
 
-        return Textures[key] ?: Textures.load(key, file.absolutePath, isInternal = false)
+        return Textures[key] ?: Textures.load(key, file.toString(), isInternal = false)
     }
 }
 
@@ -101,9 +103,8 @@ object SkinTextures {
      * Registers a texture of the beatmap skin. Files that don't replace a known texture are ignored.
      */
     @JvmStatic
-    fun loadBeatmapTexture(file: File) {
-        val name = file.name.substringBeforeLast('.').lowercase()
-        val path = file.absolutePath
+    fun loadBeatmapTexture(path: String) {
+        val name = path.toPath().name.substringBeforeLast('.').lowercase()
 
         if (!isKnown(name)) {
             // A single image replacing all the frames of an animation.
@@ -124,7 +125,7 @@ object SkinTextures {
             var frame = 0
 
             while (isKnown("$name$delimiter$frame")) {
-                beatmapFiles.putIfAbsent("$name$delimiter$frame", path)
+                beatmapFiles.getOrPut("$name$delimiter$frame") { path }
                 frame++
             }
 
@@ -134,13 +135,13 @@ object SkinTextures {
         beatmapFiles[name] = path
 
         if (name == "hitcircle") {
-            beatmapFiles.putIfAbsent("sliderstartcircle", path)
-            beatmapFiles.putIfAbsent("sliderendcircle", path)
+            beatmapFiles.getOrPut("sliderstartcircle") { path }
+            beatmapFiles.getOrPut("sliderendcircle") { path }
         }
 
         if (name == "hitcircleoverlay") {
-            beatmapFiles.putIfAbsent("sliderstartcircleoverlay", path)
-            beatmapFiles.putIfAbsent("sliderendcircleoverlay", path)
+            beatmapFiles.getOrPut("sliderstartcircleoverlay") { path }
+            beatmapFiles.getOrPut("sliderendcircleoverlay") { path }
         }
     }
 
@@ -174,7 +175,7 @@ object SkinTextures {
     }
 
     private fun isKnown(name: String): Boolean {
-        return File(Config.getSkinPath(), "$name.png").isFile
+        return SystemFileSystem.metadataOrNull(Config.getSkinPath().toPath() / "$name.png")?.isRegularFile == true
             || Platform.provider.exists("gfx/$name.png", false)
             || Platform.provider.exists("$name.png", false)
     }
