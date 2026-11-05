@@ -1,5 +1,6 @@
 package com.reco1l.verktex.testing
 
+import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.input.InputEvent
@@ -110,8 +111,8 @@ class UITestScene(
 
     private val stageClock = Verktex.clock.derive()
 
-    // The browser is drawn flat, with square corners and filled buttons, so it can be told apart
-    // from the components under test, which use the global theme.
+    // The browser is drawn flat, with square corners, filled buttons and the system font, so it can
+    // be told apart from the components under test, which use the global theme.
     private val flatTheme = Theme(
         palette = Verktex.theme.palette,
         radius = Theme.FixedSizeBreakpoints(0f.dip, 0f.dip, 0f.dip, 0f.dip, 0f.dip),
@@ -120,6 +121,7 @@ class UITestScene(
         Theme(
             palette = theme.palette,
             radius = theme.radius,
+            typography = theme.typography.withFamily(BuiltIn.Fonts.System.name),
             buttonStyle = theme.buttonStyle.withoutElevation(),
             cardStyle = theme.cardStyle.withoutElevation(),
         )
@@ -159,7 +161,7 @@ class UITestScene(
                     for (suite in suites) {
                         text {
                             text = suite.name
-                            fontSize = Verktex.theme.typography.caption.size
+                            fontSettings = flatTheme.typography.caption
                             color = Color4(1f, 1f, 1f, 0.5f)
                             padding = Padding(8f.dip, 12f.dip, 8f.dip, 4f.dip)
                         }
@@ -197,7 +199,7 @@ class UITestScene(
                         height = fill()
                         alignment = Anchor.CenterLeft
                         text = "Select a test"
-                        fontSettings = Verktex.theme.typography.h3
+                        fontSettings = flatTheme.typography.h3
                     }
 
                     iconButton {
@@ -320,7 +322,7 @@ class UITestScene(
                         anchor = Anchor.BottomLeft
                         origin = Anchor.BottomLeft
                         padding = Padding(12f.dip, 6f.dip)
-                        fontSize = Verktex.theme.typography.caption.size
+                        fontSettings = flatTheme.typography.caption
                         color = Color4(1f, 1f, 1f, 0.7f)
                         text = " "
                     }
@@ -517,5 +519,18 @@ class UITestScene(
         private fun formatRate(rate: Float) = "${rate.toString().removeSuffix(".0")}x"
 
         fun idOf(suite: UITestSuite, test: UITest) = "${suite.name}/${test.name}"
+
+        private fun Theme.Typography.withFamily(family: String): Theme.Typography {
+            fun Theme.FontSettings.withFamily() = Theme.FontSettings(size, family, color, weight, style)
+            return Theme.Typography(
+                h1 = h1.withFamily(),
+                h2 = h2.withFamily(),
+                h3 = h3.withFamily(),
+                body = body.withFamily(),
+                smallBody = smallBody.withFamily(),
+                caption = caption.withFamily(),
+                smallCaption = smallCaption.withFamily(),
+            )
+        }
     }
 }
