@@ -1,6 +1,5 @@
 package com.reco1l.verktex.ui.control
 
-import androidx.core.text.isDigitsOnly
 import com.reco1l.verktex.*
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.ClipMode
@@ -392,7 +391,7 @@ class IntegerTextInput(
     minValue: Int? = -Int.MAX_VALUE,
     maxValue: Int? = Int.MAX_VALUE,
 ) : RangeConstrainedTextInput<Int>(initialValue, minValue, maxValue) {
-    override fun isCharacterAllowed(char: String) = super.isCharacterAllowed(char) && (char.isDigitsOnly() || char == "-")
+    override fun isCharacterAllowed(char: String) = super.isCharacterAllowed(char) && (char.all(Char::isDigit) || char == "-")
 
     override fun isTextValid(text: String) =
         // Check for underflow/overflow
@@ -410,7 +409,7 @@ class FloatTextInput(
     maxValue: Float? = Float.MAX_VALUE,
 ) : RangeConstrainedTextInput<Float>(initialValue, minValue, maxValue) {
     override fun isCharacterAllowed(char: String) =
-        super.isCharacterAllowed(char) && (char.isDigitsOnly() || char == "." || char == "-")
+        super.isCharacterAllowed(char) && (char.all(Char::isDigit) || char == "." || char == "-")
 
     override fun isTextValid(text: String) =
         // Check for underflow/overflow
