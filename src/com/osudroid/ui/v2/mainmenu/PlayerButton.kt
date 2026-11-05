@@ -22,6 +22,7 @@ import com.reco1l.verktex.ui.dialog.UIConfirmDialog
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import java.util.Locale
 import kotlin.math.roundToInt
+import com.reco1l.verktex.ui.themed
 
 class PlayerButton : UIClickableContainer() {
 
@@ -57,18 +58,14 @@ class PlayerButton : UIClickableContainer() {
             minWidth = 208f.dip
             padding = Padding(9f.dip)
             spacing = 8f.dip
-            style = Style { theme ->
-                radius = theme.radius.xl
-                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.2f)
-            }
+            radius = themed { radius.xl }
+            backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.2f) }
 
             avatarSprite = sprite {
                 width = 48f.dip
                 height = 48f.dip
-                style = Style { theme ->
-                    backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.3f)
-                    radius = theme.radius.xl
-                }
+                backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.3f) }
+                radius = themed { radius.xl }
                 scaleType = UISprite.ScaleType.Crop
                 textureRegion = SkinTextures["emptyavatar"]
             }
@@ -80,17 +77,13 @@ class PlayerButton : UIClickableContainer() {
 
                 nameText = text {
                     text = "Player"
-                    style = Style { theme ->
-                        color = theme.palette.accent
-                    }
+                    color = themed { palette.accent }
                 }
 
                 informationText = text {
                     text = "Loading..."
-                    style = Style { theme ->
-                        fontSize = theme.typography.smallCaption.size
-                        color = theme.palette.accent * 0.8f
-                    }
+                    fontSize = themed { typography.smallCaption.size }
+                    color = themed { palette.accent * 0.8f }
                 }
             }
         }

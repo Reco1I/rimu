@@ -65,10 +65,8 @@ class ModsIndicator : UILinearContainer() {
 
     init {
         orientation = Orientation.Horizontal
-        style = Style {
-            spacing = (-5f).px
-            applyIconSize()
-        }
+        spacing = (-5f).px
+        applyIconSize()
     }
 
 

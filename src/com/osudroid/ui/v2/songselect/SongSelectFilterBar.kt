@@ -18,6 +18,7 @@ import com.reco1l.verktex.ui.form.FormCheckbox
 import com.reco1l.verktex.ui.iconButton
 import com.reco1l.verktex.ui.text.faSolidIcon
 import ru.nsu.ccfit.zuev.osu.Config
+import com.reco1l.verktex.ui.themed
 
 class SongSelectFilterBar : UILinearContainer() {
 
@@ -101,7 +102,7 @@ class SongSelectFilterBar : UILinearContainer() {
                     anchor = Anchor.CenterRight
                     origin = Anchor.CenterRight
                     x = (-12f).px
-                    style = Style { theme -> color = theme.palette.accent }
+                    color = themed { palette.accent }
                 }
             }
         }
@@ -110,12 +111,10 @@ class SongSelectFilterBar : UILinearContainer() {
             width = Dimension.FillAvailable
             orientation = Orientation.Vertical
             isVisible = false
-            style = Style { theme ->
-                backgroundColor = theme.palette.surface
-                radius = theme.radius.xl
-                padding = Padding(theme.gap.md)
-                spacing = theme.gap.sm
-            }
+            backgroundColor = themed { palette.surface }
+            radius = themed { radius.xl }
+            padding = themed { Padding(gap.md) }
+            spacing = themed { gap.sm }
 
             linearContainer {
                 width = Dimension.FillAvailable

@@ -2,7 +2,7 @@ package com.osudroid.ui.v2
 
 import com.osudroid.ui.OsuColors
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.fonts.Fonts
+import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
@@ -10,6 +10,7 @@ import com.reco1l.verktex.ui.UIBadge
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.rian.framework.RollingDoubleCounter
 import kotlin.math.abs
+import com.reco1l.verktex.ui.themed
 
 
 /**
@@ -39,12 +40,15 @@ class StarRatingBadge : UIBadge() {
 
     init {
         // Sized like any badge, with a bolder font. The colors are determined by the rating, so
-        // they're applied again over the ones of the badge style.
-        style += Style { theme ->
-            fontFamily = Fonts[theme.typography.h3.family]
-            fontWeight = theme.typography.h3.weight
-            applyRating(counter.currentValue)
+        // they replace the ones of the badge style.
+        fontSettings = themed {
+            Theme.FontSettings(
+                size = badgeStyle[density].fontSize,
+                family = typography.h3.family,
+                weight = typography.h3.weight,
+            )
         }
+        applyRating(counter.currentValue)
         text = "0.00"
         leadingIcon = faSolidIcon(FAIcon.Star)
     }

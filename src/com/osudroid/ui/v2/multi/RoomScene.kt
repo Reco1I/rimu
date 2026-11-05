@@ -73,6 +73,7 @@ import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
+import com.reco1l.verktex.ui.themed
 
 class RoomScene(
     /**
@@ -184,14 +185,12 @@ class RoomScene(
         container {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            style = Style {
-                padding = Padding(
-                    left = 80f.px,
-                    top = 8f.dip,
-                    right = 80f.px,
-                    bottom = (8f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
-                )
-            }
+            padding = Padding(
+            left = 80f.px,
+            top = 8f.dip,
+            right = 80f.px,
+            bottom = (8f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
+            )
 
             linearContainer {
                 orientation = UILinearContainer.Orientation.Vertical
@@ -208,10 +207,8 @@ class RoomScene(
 
                         nameText = text {
                             text = room.name
-                            style = Style { theme ->
-                                color = theme.palette.accent
-                                fontSize = theme.typography.h3.size
-                            }
+                            color = themed { palette.accent }
+                            fontSize = themed { typography.h3.size }
                         }
 
                         linearContainer {
@@ -272,7 +269,7 @@ class RoomScene(
 
                             text {
                                 text = StringTable.get(title).uppercase()
-                                style = Style { theme -> color = theme.palette.accent * 0.7f }
+                                color = themed { palette.accent * 0.7f }
                             }
 
                             block()
@@ -301,10 +298,8 @@ class RoomScene(
 
                         +BeatmapInfoLayout().apply {
                             padding = Padding(12f.dip)
-                            style = Style { theme ->
-                                radius = theme.radius.md
-                                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.5f)
-                            }
+                            radius = themed { radius.md }
+                            backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.5f) }
                             isVisible = false
 
                             beatmapInfoLayout = this
@@ -314,10 +309,8 @@ class RoomScene(
                             width = Dimension.FillAvailable
                             alignment = Anchor.Center
                             padding = Padding(12f.dip)
-                            style = Style { theme ->
-                                radius = theme.radius.md
-                                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.5f)
-                            }
+                            radius = themed { radius.md }
+                            backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.5f) }
                         }
 
                         linearContainer {
@@ -367,10 +360,8 @@ class RoomScene(
                             leadingIcon = faSolidIcon(FAIcon.ArrowRightFromBracket)
                             setText(R.string.multiplayer_room_leave)
                             tintChildren = true
-                            style += Style {
-                                color = Color4(0xFFFFBFBF)
-                                backgroundColor = Color4(0xFF342121)
-                            }
+                            color = Color4(0xFFFFBFBF)
+                            backgroundColor = Color4(0xFF342121)
                             onActionUp = { leaveDialog.show() }
                         }
 

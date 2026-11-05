@@ -43,6 +43,7 @@ import ru.nsu.ccfit.zuev.osu.ToastLogger
 import kotlin.coroutines.cancellation.CancellationException
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
+import com.reco1l.verktex.ui.themed
 
 class LobbyScene : UIScene() {
 
@@ -83,10 +84,8 @@ class LobbyScene : UIScene() {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             spacing = 16f.dip
-            style = Style { theme ->
-                padding = Padding(top = 8f.dip, bottom = 8f.dip)
-                backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.9f)
-            }
+            padding = Padding(top = 8f.dip, bottom = 8f.dip)
+            backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.9f) }
 
             container {
                 width = Dimension.FillAvailable
@@ -138,9 +137,7 @@ class LobbyScene : UIScene() {
                         padding = Padding(8f.dip, 0f.dip)
 
                         +UIIcon(FAIcon.MagnifyingGlass).apply {
-                            style = Style { theme ->
-                                color = theme.palette.accent
-                            }
+                            color = themed { palette.accent }
                         }
                     }
                 }
@@ -240,10 +237,8 @@ class LobbyScene : UIScene() {
                     clearChildren()
 
                     text {
-                        style = Style { theme ->
-                            fontSize = theme.typography.smallBody.size
-                            color = theme.palette.accent
-                        }
+                        fontSize = themed { typography.smallBody.size }
+                        color = themed { palette.accent }
                         setText(string.multiplayer_lobby_fetch_error)
                     }
                 }
@@ -284,10 +279,8 @@ class LobbyScene : UIScene() {
                         clearChildren()
 
                         text {
-                            style = Style { theme ->
-                                fontSize = theme.typography.smallBody.size
-                                color = theme.palette.accent
-                            }
+                            fontSize = themed { typography.smallBody.size }
+                            color = themed { palette.accent }
                             setText(if (searchQuery.isNullOrEmpty()) string.multiplayer_lobby_no_rooms else string.multiplayer_lobby_no_results)
                         }
                     }

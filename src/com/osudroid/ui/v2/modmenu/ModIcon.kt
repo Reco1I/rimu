@@ -12,6 +12,7 @@ import com.reco1l.verktex.data.px
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.themed
 
 
 /**
@@ -43,10 +44,8 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 text = mod.acronym
-                style = Style { theme ->
-                    fontSize = theme.typography.smallBody.size
-                    color = theme.palette.accent
-                }
+                fontSize = themed { typography.smallBody.size }
+                color = themed { palette.accent }
             }
         }
 

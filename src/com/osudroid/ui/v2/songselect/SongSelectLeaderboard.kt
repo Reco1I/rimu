@@ -39,6 +39,7 @@ import ru.nsu.ccfit.zuev.osu.online.*
 import java.text.*
 import java.util.*
 import kotlin.coroutines.cancellation.CancellationException
+import com.reco1l.verktex.ui.themed
 
 class SongSelectLeaderboard : UILinearContainer() {
 
@@ -159,7 +160,7 @@ class SongSelectLeaderboard : UILinearContainer() {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
                 alignment = Anchor.TopCenter
-                style = Style { theme -> color = theme.palette.accent }
+                color = themed { palette.accent }
                 spans {
                     size(32f.px) { icon(FAIcon.CircleInfo) }
                     +"\n"
@@ -185,7 +186,7 @@ class SongSelectLeaderboard : UILinearContainer() {
             text {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                style = Style { theme -> color = theme.palette.accent }
+                color = themed { palette.accent }
                 text = "Loading scores..."
             }
         }
@@ -273,10 +274,8 @@ class SongSelectLeaderboard : UILinearContainer() {
 
             button = UIButton().apply {
                 width = Dimension.FillAvailable
-                style += Style {
-                    height = Dimension.WrapContent
-                    padding = Padding.Zero
-                }
+                height = Dimension.WrapContent
+                padding = Padding.Zero
 
                 linearContainer {
                     width = Dimension.FillAvailable
@@ -287,10 +286,8 @@ class SongSelectLeaderboard : UILinearContainer() {
                     radius = 12f.px
                     borderWidth = 2f.px
 
-                    style = Style { theme ->
-                        backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.75f)
-                        borderColor = theme.palette.accent * 0.2f
-                    }
+                    backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.75f) }
+                    borderColor = themed { palette.accent * 0.2f }
 
                     container {
                         width = Dimension.FillAvailable
@@ -306,7 +303,7 @@ class SongSelectLeaderboard : UILinearContainer() {
                                 anchor = Anchor.CenterLeft
                                 origin = Anchor.CenterLeft
                                 alignment = Anchor.Center
-                                style = Style { theme -> color = theme.palette.accent }
+                                color = themed { palette.accent }
                                 text = ""
                             }
 
@@ -327,14 +324,12 @@ class SongSelectLeaderboard : UILinearContainer() {
 
                                 +nameText.apply {
                                     text = "Unknown Player"
-                                    style = Style { theme -> color = theme.palette.accent }
+                                    color = themed { palette.accent }
                                 }
 
                                 +modsIndicator.apply {
-                                    style = Style {
-                                        iconSize = 16f.px
-                                        spacing = (-5f).px
-                                    }
+                                    iconSize = 16f.px
+                                    spacing = (-5f).px
                                 }
                             }
 
@@ -350,7 +345,7 @@ class SongSelectLeaderboard : UILinearContainer() {
 
                                 val metricText = UIText().apply {
                                     text = placeholder
-                                    style = Style { theme -> color = theme.palette.accent }
+                                    color = themed { palette.accent }
                                 }
 
                                 linearContainer {
@@ -359,7 +354,7 @@ class SongSelectLeaderboard : UILinearContainer() {
 
                                     text {
                                         text = name.uppercase()
-                                        style = Style { theme -> color = theme.palette.accent * 0.8f }
+                                        color = themed { palette.accent * 0.8f }
                                     }
                                     +metricText
                                 }

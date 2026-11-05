@@ -27,16 +27,15 @@ import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.helper.*
 import ru.nsu.ccfit.zuev.osu.online.*
+import com.reco1l.verktex.ui.themed
 
 class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
 
     init {
         width = fill()
-        style += Style { theme ->
-            height = Dimension.WrapContent
-            backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.8f)
-            padding = Padding(12f.dip)
-        }
+        height = Dimension.WrapContent
+        backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.8f) }
+        padding = Padding(12f.dip)
 
         linearContainer {
             orientation = UILinearContainer.Orientation.Vertical
@@ -49,7 +48,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
 
                 text {
                     width = fill()
-                    style = Style { theme -> color = theme.palette.accent }
+                    color = themed { palette.accent }
                     spans {
                         icon(if (room.isLocked) FAIcon.Lock else FAIcon.LockOpen)
                         space(8f.dip)
@@ -59,10 +58,8 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
 
                 text {
                     scale = 0.85f
-                    style = Style { theme ->
-                        fontSize = theme.typography.smallBody.size
-                        color = theme.palette.accent
-                    }
+                    fontSize = themed { typography.smallBody.size }
+                    color = themed { palette.accent }
                     setText(when (room.status) {
                         RoomStatus.ChangingBeatmap -> string.multiplayer_room_status_changing_beatmap
                         RoomStatus.Playing -> string.multiplayer_room_status_playing
@@ -75,10 +72,8 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 text = room.playerNames.takeUnless { it.isEmpty() }
                     ?: if (room.playerCount > 0) "${room.playerCount} player${if (room.playerCount != 1) "s" else ""}"
                        else StringTable.get(string.multiplayer_room_no_players)
-                style = Style { theme ->
-                    fontSize = theme.typography.smallCaption.size
-                    color = theme.palette.accent.copy(alpha = 0.95f)
-                }
+                fontSize = themed { typography.smallCaption.size }
+                color = themed { palette.accent.copy(alpha = 0.95f) }
             }
 
             linearContainer {
@@ -124,10 +119,8 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
             if (room.mods.isNotEmpty()) {
                 +ModsIndicator().apply {
                     mods = room.mods.values
-                    style = Style {
-                        iconSize = 24f.px
-                        spacing = (-5f).px
-                    }
+                    iconSize = 24f.px
+                    spacing = (-5f).px
                 }
             }
         }

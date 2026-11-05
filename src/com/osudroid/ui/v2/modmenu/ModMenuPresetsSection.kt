@@ -96,10 +96,8 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
         init {
             width = fill()
-            style += Style {
-                height = wrap()
-                padding = Padding(12f.dip)
-            }
+            height = wrap()
+            padding = Padding(12f.dip)
 
             onActionUp = {
                 if (isSelected) {
@@ -153,10 +151,8 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
                 }
 
                 +ModsIndicator().apply {
-                    style = Style {
-                        iconSize = 16f.dip
-                        spacing = (-5f).px
-                    }
+                    iconSize = 16f.dip
+                    spacing = (-5f).px
                     mods = preset.mods.values
                 }
             }

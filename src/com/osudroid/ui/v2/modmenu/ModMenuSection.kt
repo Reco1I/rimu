@@ -16,6 +16,7 @@ import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.themed
 
 @Suppress("LeakingThis")
 open class ModMenuSection(name: String, private val toggles: List<UIButton> = listOf()) : UILinearContainer() {
@@ -33,9 +34,7 @@ open class ModMenuSection(name: String, private val toggles: List<UIButton> = li
             text = name.uppercase()
             alignment = Anchor.Center
             padding = Padding(8f.dip)
-            style = Style { theme ->
-                fontSettings = theme.typography.smallCaption
-            }
+            fontSettings = themed { typography.smallCaption }
         }
 
         scrollableContainer {

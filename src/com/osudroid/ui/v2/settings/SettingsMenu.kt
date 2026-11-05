@@ -41,6 +41,7 @@ import kotlin.math.ceil
 import kotlin.math.log10
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
+import com.reco1l.verktex.ui.themed
 
 
 enum class Section {
@@ -197,26 +198,24 @@ class SettingsMenu : UIScene() {
 
 
     init {
-        style = Style { theme -> backgroundColor = theme.palette.surface }
+        backgroundColor = themed { palette.surface }
 
         linearContainer {
             width = fill()
             height = fill()
             orientation = UILinearContainer.Orientation.Horizontal
-            style = Style { theme -> spacing = theme.gap.sm }
+            spacing = themed { gap.sm }
 
             // Sections
             scrollableContainer {
                 scrollAxes = Axis.Y
                 height = fill()
-                style = Style { theme ->
-                    padding = Padding(theme.gap.lg)
-                    backgroundColor = theme.palette.buttonBackgroundSurface
-                }
+                padding = themed { Padding(gap.lg) }
+                backgroundColor = themed { palette.buttonBackgroundSurface }
 
                 linearContainer {
                     orientation = UILinearContainer.Orientation.Vertical
-                    style = Style { theme -> spacing = theme.gap.xs }
+                    spacing = themed { gap.xs }
 
                     +UITextButton().apply {
                         text = "Back"
@@ -231,7 +230,7 @@ class SettingsMenu : UIScene() {
                     box {
                         width = SIDEBAR_WIDTH
                         height = 2f.dip
-                        style = Style { theme -> backgroundColor = theme.palette.divider }
+                        backgroundColor = themed { palette.divider }
                     }
 
                     // In a room its settings come first, and the ones only meant for the menu are hidden.
@@ -265,10 +264,8 @@ class SettingsMenu : UIScene() {
                 sectionContainer = linearContainer {
                     orientation = UILinearContainer.Orientation.Vertical
                     width = fill()
-                    style = Style { theme ->
-                        spacing = theme.gap.lg
-                        padding = Padding(theme.gap.xl, theme.gap.lg)
-                    }
+                    spacing = themed { gap.lg }
+                    padding = themed { Padding(gap.xl, gap.lg) }
                 }
             }
         }
@@ -306,10 +303,8 @@ class SettingsMenu : UIScene() {
     private fun UILinearContainer.sidebarCaption(caption: String) = text {
         text = caption
         alpha = 0.6f
-        style = Style { theme ->
-            fontSettings = theme.typography.caption
-            padding = Padding(theme.gap.sm, theme.gap.xs)
-        }
+        fontSettings = themed { typography.caption }
+        padding = themed { Padding(gap.sm, gap.xs) }
     }
 
 
@@ -357,10 +352,8 @@ class SettingsMenu : UIScene() {
                     text {
                         width = fill()
                         text = category.title
-                        style = Style { theme ->
-                            fontSettings = theme.typography.h3
-                            padding = Padding(theme.gap.sm)
-                        }
+                        fontSettings = themed { typography.h3 }
+                        padding = themed { Padding(gap.sm) }
                     }
 
                     category.options.forEach { option ->
@@ -378,7 +371,7 @@ class SettingsMenu : UIScene() {
 
                             container {
                                 width = fill()
-                                style = Style { theme -> padding = Padding(theme.gap.sm) }
+                                padding = themed { Padding(gap.sm) }
                                 +button
                             }
 
@@ -403,7 +396,7 @@ class SettingsMenu : UIScene() {
                     box {
                         width = fill()
                         height = 2f.dip
-                        style = Style { theme -> backgroundColor = theme.palette.divider }
+                        backgroundColor = themed { palette.divider }
                     }
                 }
             }
@@ -422,10 +415,8 @@ class SettingsMenu : UIScene() {
             wrapText = true
             text = summary
             alpha = 0.6f
-            style = Style { theme ->
-                fontSettings = theme.typography.smallCaption
-                padding = Padding(left = theme.gap.sm, right = theme.gap.sm, bottom = theme.gap.sm)
-            }
+            fontSettings = themed { typography.smallCaption }
+            padding = themed { Padding(left = gap.sm, right = gap.sm, bottom = gap.sm) }
         }
     }
 

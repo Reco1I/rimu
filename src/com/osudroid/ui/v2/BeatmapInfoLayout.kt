@@ -32,6 +32,7 @@ import java.util.*
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
+import com.reco1l.verktex.ui.themed
 
 class BeatmapInfoLayout : UILinearContainer() {
 
@@ -74,38 +75,30 @@ class BeatmapInfoLayout : UILinearContainer() {
 
                 artistText = text {
                     text = "Unknown"
-                    style = Style { theme ->
-                        fontSize = theme.typography.smallBody.size
-                        color = theme.palette.accent * 0.9f
-                    }
+                    fontSize = themed { typography.smallBody.size }
+                    color = themed { palette.accent * 0.9f }
                     clipping = ClipMode.Bounds
                 }
 
                 titleText = text {
                     width = Dimension.FillAvailable
                     text = "No selected beatmap"
-                    style = Style { theme ->
-                        fontSize = theme.typography.smallBody.size
-                        color = theme.palette.accent
-                    }
+                    fontSize = themed { typography.smallBody.size }
+                    color = themed { palette.accent }
                     clipping = ClipMode.Bounds
                 }
 
                 versionText = text {
                     text = "Unknown"
-                    style = Style { theme ->
-                        fontSize = theme.typography.smallBody.size
-                        color = theme.palette.accent * 0.8f
-                    }
+                    fontSize = themed { typography.smallBody.size }
+                    color = themed { palette.accent * 0.8f }
                     clipping = ClipMode.Bounds
                 }
 
                 creatorText = text {
                     text = "Unknown"
-                    style = Style { theme ->
-                        fontSize = theme.typography.smallBody.size
-                        color = theme.palette.accent * 0.8f
-                    }
+                    fontSize = themed { typography.smallBody.size }
+                    color = themed { palette.accent * 0.8f }
                 }
             }
 

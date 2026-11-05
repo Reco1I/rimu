@@ -33,6 +33,7 @@ import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
 import kotlin.math.abs
 import kotlin.random.*
+import com.reco1l.verktex.ui.themed
 
 /**
  * Moves towards [end], jumping to it once it is closer than [snapBy].
@@ -136,29 +137,23 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 origin = Anchor.TopRight
                 onActionLongPress = { beatmapCarrousel.onBeatmapSetLongPress?.invoke(this@BeatmapSetPanel) }
                 onActionUp = { select() }
-                style = Style { theme ->
-                    borderColor = theme.palette.accent.copy(alpha = 0.3f)
-                    borderWidth = 1f.dip
-                    radius = theme.radius.xl
-                }
+                borderColor = themed { palette.accent.copy(alpha = 0.3f) }
+                borderWidth = 1f.dip
+                radius = themed { radius.xl }
 
                 cover = sprite {
                     width = fill()
                     height = fill()
                     scaleType = UISprite.ScaleType.Crop
-                    style = Style { theme ->
-                        backgroundColor = (theme.palette.accent * 0.1f).copy(alpha = 0.5f)
-                        radius = theme.radius.xl
-                    }
+                    backgroundColor = themed { (palette.accent * 0.1f).copy(alpha = 0.5f) }
+                    radius = themed { radius.xl }
                 }
 
                 box {
                     width = fill()
                     height = fill()
                     backgroundColor = Color4.Black.copy(alpha = 0.6f)
-                    style = Style { theme ->
-                        radius = theme.radius.xl
-                    }
+                    radius = themed { radius.xl }
                 }
 
                 linearContainer {
@@ -169,19 +164,15 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
                     titleText = text {
                         text = "Unknown"
-                        style = Style {
-                            fontSettings = it.typography.h3
-                            fontSize = it.typography.body.size
-                        }
+                        fontSettings = themed { typography.h3 }
+                        fontSize = themed { typography.body.size }
                     }
 
                     artistText = text {
                         text = "Unknown"
-                        style = Style {
-                            fontSettings = it.typography.caption
-                            fontSize = it.typography.smallCaption.size
-                            color = it.palette.accent * 0.8f
-                        }
+                        fontSettings = themed { typography.caption }
+                        fontSize = themed { typography.smallCaption.size }
+                        color = themed { palette.accent * 0.8f }
                     }
 
                     difficultyIndicators = linearContainer {

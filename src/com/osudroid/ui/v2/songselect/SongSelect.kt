@@ -145,10 +145,8 @@ object SongSelect : UIScene() {
             modsIndicator = ModsIndicator().apply {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                style = Style {
-                    iconSize = 28f.px
-                    spacing = (-5f).px
-                }
+                iconSize = 28f.px
+                spacing = (-5f).px
             }
             +modsIndicator
 
@@ -342,7 +340,7 @@ object SongSelect : UIScene() {
                 text = "Delete"
                 leadingIcon = faSolidIcon(FAIcon.Trash)
                 tintChildren = true
-                style += Style { color = Color4("#FFBFBF") }
+                color = Color4("#FFBFBF")
                 onActionUp = {
                     UIConfirmDialog().apply {
                         this.title = "Delete beatmap set"
