@@ -1,7 +1,7 @@
 # Extracting Verktex
 
 Verktex lives in osu!droid for now, but it's meant to become its own Kotlin Multiplatform project, of
-which the game only uses the core and the Android platform. The `verktex/` folder is already laid out
+which the game only uses the core and the Android platform. The `../verktex` folder is already laid out
 as that project:
 
 ```
@@ -41,14 +41,14 @@ The game depends only on `:verktex:android`, which exposes `:verktex:core` as an
 
 ## What's left
 
-1. **Building on its own.** Give `verktex/` its own `settings.gradle.kts` and plugin versions, and
+1. **Building on its own.** Give `../verktex` its own `settings.gradle.kts` and plugin versions, and
    have the game consume it with `includeBuild("verktex")` and dependency substitution, which is how
    it'll look once it's a separate repository. The lookup of `verktex.validationLayers` in
-   `local.properties` will then need a fallback to the game's.
+   `../local.properties` will then need a fallback to the game's.
 2. **More targets.** Adding a target to `:verktex:core` only takes the actual declarations of
    `jvmMain` (for now `fairReentrantLock()`), and a platform module implementing
    `Platform.Implementation`, like `:verktex:android` and `:verktex:desktop` do. Both JVM platforms
    share the core's `jvmMain`, e.g. `ThreadLoopWorker`.
-3. **Shared shaders.** Done: the built-in shaders and fonts are in `verktex/core/assets/`, a plain
+3. **Shared shaders.** Done: the built-in shaders and fonts are in `../verktex/core/assets`, a plain
    folder rather than the core's resources, so they aren't packaged twice in the APK (as assets and
    as jar resources). Each platform packages it itself, see `desktop-platform.md`.

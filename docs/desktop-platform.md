@@ -41,7 +41,7 @@ Found while checking, in the core and so on every platform:
   using `org.lwjgl.opengl.GL33` where Android uses `android.opengl.GLES20/30`. The Android backends
   stay untouched, so their performance isn't at risk. Until they're merged behind a common GL
   interface, a fix to the GL logic has to be made in both.
-- **Shared assets.** The built-in shaders and fonts live in `verktex/core/assets/`. It's a plain
+- **Shared assets.** The built-in shaders and fonts live in `../verktex/core/assets`. It's a plain
   folder, not a resources directory of the core, so the core's jar (and the APK) doesn't carry a
   second copy. Android packages it as assets, desktop as classpath resources.
 - **Same shaders.** The GLSL ES 3.00 shaders are rewritten at load time to `#version 330 core`.
@@ -66,7 +66,7 @@ Found while checking, in the core and so on every platform:
 ## Steps
 
 1. **Shared assets.** Move `verktex/android/src/main/assets/{shaders,fonts}` to
-   `verktex/core/assets/`. Android adds it as an assets directory, and `compileVulkanShaders` reads the
+   `../verktex/core/assets`. Android adds it as an assets directory, and `compileVulkanShaders` reads the
    shaders from there. The asset paths (`shaders/main.vert`, `fonts/…`) don't change.
 2. **A shared JVM loop worker.** `AndroidLoopWorker` is plain JVM code, so it moves to the core's
    `jvmMain` as `ThreadLoopWorker`, used by both platforms.
@@ -122,7 +122,7 @@ Found while checking, in the core and so on every platform:
    ```
 
    `--screenshot <file.png>` saves a frame after a second and exits, for smoke checks.
-10. **Docs:** `extraction.md` and `CLAUDE.md`.
+10. **Docs:** `extraction.md` and `../CLAUDE.md`.
 
 ## Verification
 
