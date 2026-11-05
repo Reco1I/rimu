@@ -1,6 +1,6 @@
 package com.osudroid.multiplayer.api.data
 
-import android.util.Log
+import com.reco1l.verktex.Logger
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -27,12 +27,12 @@ fun parsePlayers(array: JSONArray?, size: Int): Array<RoomPlayer?> {
         val actual = array.length()
 
         when {
-            actual > size -> Log.w(
+            actual > size -> Logger.w(
                 "Parsing",
                 "parsePlayers: array has $actual entries but maxPlayers=$size; " +
                 "${actual - size} excess player(s) beyond slot boundary will be ignored (EH-4)"
             )
-            actual < size -> Log.d(
+            actual < size -> Logger.i(
                 "Parsing",
                 "parsePlayers: array has $actual entries for a $size-slot room; " +
                 "${size - actual} trailing slot(s) treated as empty (EH-4)"

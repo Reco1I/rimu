@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.scoring;
 
-import android.util.Log;
+import com.reco1l.verktex.Logger;
 
 import com.edlplan.framework.utils.functionality.SmartIterator;
 import com.osudroid.beatmaps.BeatmapCache;
@@ -397,7 +397,7 @@ public class ScoringScene {
                     }
                 );
             } catch (Exception e) {
-                Log.e("ScoringScene", "Failed to parse beatmap for difficulty calculation", e);
+                Logger.e("ScoringScene", "Failed to parse beatmap for difficulty calculation", e);
                 beatmapData = null;
             }
 
@@ -546,7 +546,7 @@ public class ScoringScene {
             try {
                 DatabaseManager.getScoreInfoTable().insertScore(stat.toScoreInfo());
             } catch (Exception e) {
-                Log.e("GameScene", "Failed to save score to database", e);
+                Logger.e("GameScene", "Failed to save score to database", e);
             }
 
             // Upload score

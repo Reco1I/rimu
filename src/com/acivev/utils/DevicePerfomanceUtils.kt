@@ -3,7 +3,7 @@ package com.acivev.utils
 import android.app.ActivityManager
 import android.content.Context
 import android.content.pm.ConfigurationInfo
-import android.util.Log
+import com.reco1l.verktex.Logger
 import androidx.core.content.getSystemService
 import com.acivev.utils.OpenGLVersionUtil.supportsGLES3
 
@@ -16,10 +16,10 @@ object DevicePerformanceUtil {
     fun isLowEndDevice(context: Context): Boolean {
         // Check for GLES3 support
         if (!supportsGLES3(context)) {
-            Log.w("DevicePerformance", "Low-end device detected")
+            Logger.w("DevicePerformance", "Low-end device detected")
             return true
         } else {
-            Log.i("DevicePerformance", "High-end device detected")
+            Logger.i("DevicePerformance", "High-end device detected")
         }
 
         // Additional checks like RAM or CPU can go here

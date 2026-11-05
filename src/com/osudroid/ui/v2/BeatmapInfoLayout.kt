@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2
 
-import android.util.Log
+import com.reco1l.verktex.Logger
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.data.*
@@ -224,7 +224,7 @@ class BeatmapInfoLayout : UILinearContainer() {
                         throw e
                     }
 
-                    Log.e("BeatmapInfoLayout", "Failed to calculate difficulty for ${beatmapInfo.filename}", e)
+                    Logger.e("BeatmapInfoLayout", "Failed to calculate difficulty for ${beatmapInfo.filename}", e)
                     null
                 }
 

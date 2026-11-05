@@ -1,6 +1,6 @@
 package com.reco1l.framework.net
 
-import android.util.Log
+import com.reco1l.verktex.Logger
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Response
@@ -49,7 +49,7 @@ class JsonObjectRequest(url: HttpUrl) : JsonRequest<JSONObject>(url) {
         val json = JSONObject(responseBody)
 
         if (BuildConfig.DEBUG) {
-            Log.i("JsonRequester", "Received JSON: " + json.toString(4))
+            Logger.i("JsonRequester", "Received JSON: " + json.toString(4))
         }
 
         return json
@@ -71,7 +71,7 @@ class JsonArrayRequest(url: HttpUrl) : JsonRequest<JSONArray>(url) {
         val json = JSONArray(responseBody)
 
         if (BuildConfig.DEBUG) {
-            Log.i("JsonRequester", "Received JSON: " + json.toString(4))
+            Logger.i("JsonRequester", "Received JSON: " + json.toString(4))
         }
 
         return json

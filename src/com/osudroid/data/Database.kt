@@ -2,7 +2,7 @@ package com.osudroid.data
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
-import android.util.Log
+import com.reco1l.verktex.Logger
 import androidx.room.*
 import com.osudroid.mods.LegacyModConverter
 import com.osudroid.mods.ModDifficultyAdjust
@@ -167,7 +167,7 @@ object DatabaseManager {
         val fileVersion = try {
             SQLiteDatabase.openDatabase(dbFile.path, null, SQLiteDatabase.OPEN_READONLY).use { it.version }
         } catch (e: Exception) {
-            Log.e("DatabaseManager", "Failed to read database version prior to opening", e)
+            Logger.e("DatabaseManager", "Failed to read database version prior to opening", e)
             return false
         }
 
@@ -175,7 +175,7 @@ object DatabaseManager {
             return false
         }
 
-        Log.w(
+        Logger.w(
             "DatabaseManager",
             "Database was created by a newer version of the game (file version $fileVersion, game version " +
                 "$DATABASE_VERSION) and will be reset. The previous database will be backed up."
@@ -190,7 +190,7 @@ object DatabaseManager {
 
             dbFile.copyTo(File(dbFile.parentFile, "${dbFile.name}.v$fileVersion.bak"), true)
         } catch (e: IOException) {
-            Log.e("DatabaseManager", "Failed to back up database before reset", e)
+            Logger.e("DatabaseManager", "Failed to back up database before reset", e)
         }
 
         return true
@@ -232,7 +232,7 @@ object DatabaseManager {
             }
 
         } catch (e: IOException) {
-            Log.e("DatabaseManager", "Failed to migrate legacy beatmap properties", e)
+            Logger.e("DatabaseManager", "Failed to migrate legacy beatmap properties", e)
         }
 
         // BeatmapCollections
@@ -260,7 +260,7 @@ object DatabaseManager {
             }
 
         } catch (e: Exception) {
-            Log.e("DatabaseManager", "Failed to migrate legacy beatmap collections", e)
+            Logger.e("DatabaseManager", "Failed to migrate legacy beatmap collections", e)
         }
 
         // ScoreInfo
@@ -292,7 +292,7 @@ object DatabaseManager {
                                 val replay = Replay()
 
                                 if (!replay.load(replayFilePath, false)) {
-                                    Log.e("ScoreLibrary", "Failed to import score from old database. Replay file not found.")
+                                    Logger.e("ScoreLibrary", "Failed to import score from old database. Replay file not found.")
                                     pendingScores--
                                     continue
                                 }
@@ -338,7 +338,7 @@ object DatabaseManager {
                                 pendingScores--
 
                             } catch (e: Exception) {
-                                Log.e("ScoreLibrary", "Failed to import score from old database.", e)
+                                Logger.e("ScoreLibrary", "Failed to import score from old database.", e)
                             }
                         }
 
@@ -354,7 +354,7 @@ object DatabaseManager {
             }
 
         } catch (e: IOException) {
-            Log.e("DatabaseManager", "Failed to migrate legacy score table", e)
+            Logger.e("DatabaseManager", "Failed to migrate legacy score table", e)
         }
 
     }

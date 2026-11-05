@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.util.Log
+import com.reco1l.verktex.Logger
 
 object VibratorCheckUtils {
 
@@ -26,17 +26,17 @@ object VibratorCheckUtils {
     fun checkVibratorSupport(context: Context) =
         when {
             hasVibrationSupport(context) -> {
-                Log.i("VibratorCheckUtils", "Device supports basic vibration but no haptic feedback.")
+                Logger.i("VibratorCheckUtils", "Device supports basic vibration but no haptic feedback.")
                 VibrationSupport.BASIC_VIBRATION
             }
 
             hasHapticSupport(context) -> {
-                Log.i("VibratorCheckUtils", "Device supports basic haptic feedback.")
+                Logger.i("VibratorCheckUtils", "Device supports basic haptic feedback.")
                 VibrationSupport.ADVANCED_HAPTIC
             }
 
             else -> {
-                Log.w("VibratorCheckUtils", "Device does not support vibration or haptic feedback.")
+                Logger.w("VibratorCheckUtils", "Device does not support vibration or haptic feedback.")
                 VibrationSupport.NO_VIBRATION
             }
         }

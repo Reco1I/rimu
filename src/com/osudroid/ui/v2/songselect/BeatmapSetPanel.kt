@@ -2,7 +2,7 @@ package com.osudroid.ui.v2.songselect
 
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
-import android.util.Log
+import com.reco1l.verktex.Logger
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.ui.OsuColors
 import com.reco1l.verktex.Verktex
@@ -278,7 +278,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         val data = boundData
 
         if (data == null) {
-            Log.w("BeatmapSetPanel", "Cannot expand panel without bound data!")
+            Logger.w("BeatmapSetPanel", "Cannot expand panel without bound data!")
             return
         }
 

@@ -21,7 +21,7 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.os.StatFs;
 import android.util.DisplayMetrics;
-import android.util.Log;
+import com.reco1l.verktex.Logger;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
@@ -244,7 +244,7 @@ public class MainActivity extends AndroidGameHost {
             try {
                 nomedia.createNewFile();
             } catch (final IOException e) {
-                Log.e("MainActivity", "LibraryManager: " + e.getMessage(), e);
+                Logger.e("MainActivity", "LibraryManager: " + e.getMessage(), e);
             }
         }
 
@@ -298,7 +298,7 @@ public class MainActivity extends AndroidGameHost {
         if (availableMemory < 0.5 * minMem) { //I set 512MiB as a minimum
             Execution.mainThread(() -> Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show());
         }
-        Log.i("MainActivity", "Free Space: " + df.format(availableMemory / minMem));
+        Logger.i("MainActivity", "Free Space: " + df.format(availableMemory / minMem));
     }
 
     public void loadBeatmapLibrary() {
@@ -481,9 +481,9 @@ public class MainActivity extends AndroidGameHost {
             // Also attach to Crashlytics so crash reports include the GLES capability.
             crashlytics.setCustomKey("gles_version", glesVersionStr);
 
-            Log.i("MainActivity", "Device max GLES version: " + glesVersionStr + " (raw=0x" + Integer.toHexString(reqGlEsVersion) + ")");
+            Logger.i("MainActivity", "Device max GLES version: " + glesVersionStr + " (raw=0x" + Integer.toHexString(reqGlEsVersion) + ")");
         } catch (Exception e) {
-            Log.e("MainActivity", "Failed to detect GLES version: " + e.getMessage(), e);
+            Logger.e("MainActivity", "Failed to detect GLES version: " + e.getMessage(), e);
         }
     }
 
@@ -565,7 +565,7 @@ public class MainActivity extends AndroidGameHost {
                 displayName = cursor.getString(0);
             }
         } catch (IllegalArgumentException | SecurityException e) {
-            Log.e("MainActivity", "MainActivity.copyContentUriToCache: cannot query display name: " + e.getMessage(), e);
+            Logger.e("MainActivity", "MainActivity.copyContentUriToCache: cannot query display name: " + e.getMessage(), e);
         }
 
         if (displayName != null && !displayName.isEmpty()) {
@@ -577,7 +577,7 @@ public class MainActivity extends AndroidGameHost {
             try {
                 mimeType = getContentResolver().getType(uri);
             } catch (SecurityException e) {
-                Log.e("MainActivity", "MainActivity.copyContentUriToCache: cannot query MIME type: " + e.getMessage(), e);
+                Logger.e("MainActivity", "MainActivity.copyContentUriToCache: cannot query MIME type: " + e.getMessage(), e);
             }
 
             String ext;
@@ -597,11 +597,11 @@ public class MainActivity extends AndroidGameHost {
 
         try {
             if (!tempFile.getCanonicalPath().startsWith(getCacheDir().getCanonicalPath() + File.separator)) {
-                Log.e("MainActivity", "MainActivity.copyContentUriToCache: rejected unsafe display name: " + displayName);
+                Logger.e("MainActivity", "MainActivity.copyContentUriToCache: rejected unsafe display name: " + displayName);
                 return null;
             }
         } catch (IOException e) {
-            Log.e("MainActivity", "MainActivity.copyContentUriToCache: " + e.getMessage(), e);
+            Logger.e("MainActivity", "MainActivity.copyContentUriToCache: " + e.getMessage(), e);
             return null;
         }
 
@@ -615,7 +615,7 @@ public class MainActivity extends AndroidGameHost {
             sink.writeAll(Okio.source(in));
             return tempFile.getAbsolutePath();
         } catch (IOException | SecurityException e) {
-            Log.e("MainActivity", "MainActivity.copyContentUriToCache: " + e.getMessage(), e);
+            Logger.e("MainActivity", "MainActivity.copyContentUriToCache: " + e.getMessage(), e);
             ToastLogger.showText(StringTable.get(R.string.import_failed_open_file), false);
             return null;
         }

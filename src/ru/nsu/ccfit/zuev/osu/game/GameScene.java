@@ -37,7 +37,7 @@ import com.osudroid.ui.v2.game.SliderTickSprite;
 import com.osudroid.ui.v2.hud.elements.HUDLeaderboard;
 import com.osudroid.ui.v2.modmenu.ModIcon;
 import com.osudroid.utils.Execution;
-import android.util.Log;
+import com.reco1l.verktex.Logger;
 import com.osudroid.ui.v2.SkinSounds;
 import com.osudroid.ui.v2.SkinTextures;
 import com.reco1l.verktex.Verktex;
@@ -483,7 +483,7 @@ public class GameScene implements GameObjectListener {
                 video.setOnReady(() -> Execution.updateThread(this::applyBackground));
             } catch (Exception e) {
                 video = null;
-                Log.e("GameScene", "Error while loading video background.", e);
+                Logger.e("GameScene", "Error while loading video background.", e);
             }
 
             videoLoadingJob = null;
@@ -593,7 +593,7 @@ public class GameScene implements GameObjectListener {
         if (rFile != null && rFile.startsWith("https://")) {
             this.replayFilePath = Config.getCachePath() + "/" +
                     MD5Calculator.getStringMD5(rFile) + ".odr";
-            Log.i("GameScene", "ReplayFile = " + replayFilePath);
+            Logger.i("GameScene", "ReplayFile = " + replayFilePath);
             if (!OnlineFileOperator.downloadFile(rFile, this.replayFilePath)) {
                 ToastLogger.showText(com.osudroid.resources.R.string.replay_cantdownload, true);
                 return false;
@@ -611,7 +611,7 @@ public class GameScene implements GameObjectListener {
             try {
                 parsedBeatmap = BeatmapCache.getBeatmap(beatmapInfo, true, GameMode.Droid, scope);
             } catch (IOException | IllegalArgumentException e) {
-                Log.e("GameScene", "startGame: " + e.getMessage());
+                Logger.e("GameScene", "startGame: " + e.getMessage());
                 ToastLogger.showText(e.getMessage(), true);
                 return false;
             }
@@ -725,7 +725,7 @@ public class GameScene implements GameObjectListener {
             audioFilePath = musicFile.getPath();
 
         } catch (final Exception e) {
-            Log.e("GameScene", "Load Music: " + e.getMessage());
+            Logger.e("GameScene", "Load Music: " + e.getMessage());
             ToastLogger.showText(e.getMessage(), true);
             return false;
         }
@@ -1021,7 +1021,7 @@ public class GameScene implements GameObjectListener {
                                 throw e;
                             }
 
-                            Log.e("GameScene", "Failed to load gameplay", e);
+                            Logger.e("GameScene", "Failed to load gameplay", e);
                         } finally {
                             if (requestId == loadingRequestId.get()) {
                                 if (!succeeded && !cancelled) {
@@ -3179,7 +3179,7 @@ public class GameScene implements GameObjectListener {
                 try {
                     DatabaseManager.getScoreInfoTable().insertScore(stat.toScoreInfo());
                 } catch (Exception e) {
-                    Log.e("GameScene", "Failed to save score to database", e);
+                    Logger.e("GameScene", "Failed to save score to database", e);
                 }
             }
 

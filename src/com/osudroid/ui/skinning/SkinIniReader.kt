@@ -1,6 +1,6 @@
 package com.osudroid.ui.skinning
 
-import android.util.Log
+import com.reco1l.verktex.Logger
 import okhttp3.internal.toImmutableMap
 import okio.buffer
 import okio.source
@@ -93,7 +93,7 @@ class IniReader(file: File) : Closeable {
 
                 currentSection = map[sectionName]
 
-                Log.i("IniReader", line)
+                Logger.i("IniReader", line)
                 return@let
             }
 
@@ -104,7 +104,7 @@ class IniReader(file: File) : Closeable {
             currentSection?.put(command, o)
 
             if (BuildConfig.DEBUG) {
-                Log.i("IniReader", "$command: ${if (o is IntArray) o.contentToString() else o}")
+                Logger.i("IniReader", "$command: ${if (o is IntArray) o.contentToString() else o}")
             }
         }
         buffer.close()

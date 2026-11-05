@@ -6,7 +6,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
-import android.util.Log;
+import com.reco1l.verktex.Logger;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -149,7 +149,7 @@ public final class SecurityUtils {
 
             return toHexString(mac.doFinal(bytes)).equals(hash);
         } catch (IOException e) {
-            Log.e("SecurityUtils", "Failed to check file integrity for " + fileName, e);
+            Logger.e("SecurityUtils", "Failed to check file integrity for " + fileName, e);
 
             return false;
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {

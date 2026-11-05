@@ -2,7 +2,7 @@ package ru.nsu.ccfit.zuev.osu;
 
 import static com.osudroid.data.BeatmapsKt.BeatmapInfo;
 
-import android.util.Log;
+import com.reco1l.verktex.Logger;
 
 import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.beatmaps.DifficultyCalculationManager;
@@ -58,7 +58,7 @@ public class LibraryManager {
                 new File(directory, ".nomedia").createNewFile();
 
             } catch (IOException e) {
-                Log.e("LibraryManager", "Failed to create .nomedia file", e);
+                Logger.e("LibraryManager", "Failed to create .nomedia file", e);
             }
         }
 
@@ -115,7 +115,7 @@ public class LibraryManager {
                 try {
                     mutex.wait();
                 } catch (InterruptedException e) {
-                    Log.e("LibraryManager", "Failed to wait for thread termination", e);
+                    Logger.e("LibraryManager", "Failed to wait for thread termination", e);
                 }
             }
         }
@@ -161,7 +161,7 @@ public class LibraryManager {
                 pendingBeatmaps.add(beatmapInfo);
                 beatmapsFound++;
             } catch (Exception e) {
-                Log.e("LibraryManager", "Failed to parse beatmap file: " + osuFile.getPath(), e);
+                Logger.e("LibraryManager", "Failed to parse beatmap file: " + osuFile.getPath(), e);
                 if (Config.isDeleteUnimportedBeatmaps()) {
                     try {
                         //noinspection ResultOfMethodCallIgnored
@@ -322,18 +322,18 @@ public class LibraryManager {
                     }
 
                 } else {
-                    Log.e("LibraryManager", "Timeout while waiting for executor termination.");
+                    Logger.e("LibraryManager", "Timeout while waiting for executor termination.");
                 }
 
             } catch (InterruptedException e) {
-                Log.e("LibraryManager", "Failed while waiting for executor termination.", e);
+                Logger.e("LibraryManager", "Failed while waiting for executor termination.", e);
             }
 
             try {
                 DatabaseManager.getBeatmapInfoTable().insertAll(pendingBeatmaps);
                 pendingBeatmaps.clear();
             } catch (Exception e) {
-                Log.e("LibraryManager", "Failed to insert beatmaps into database.", e);
+                Logger.e("LibraryManager", "Failed to insert beatmaps into database.", e);
                 return;
             }
 

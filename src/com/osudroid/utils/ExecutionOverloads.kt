@@ -4,7 +4,7 @@ package com.osudroid.utils
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 
 import java.util.concurrent.CompletableFuture
@@ -36,7 +36,7 @@ private val executionScope = CoroutineScope(SupervisorJob() + Dispatchers.Defaul
     // Without the main activity (e.g. in the UI test browser) a task may reach something only the
     // game sets up, which must not take the whole process down.
     if (GlobalManager.getInstance().isHeadless) {
-        Log.e("Execution", "Uncaught exception in a task while headless", e)
+        Logger.e("Execution", "Uncaught exception in a task while headless", e)
     } else {
         Thread.currentThread().let { it.uncaughtExceptionHandler?.uncaughtException(it, e) ?: throw e }
     }

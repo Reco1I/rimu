@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.test
 
-import android.util.Log
+import com.reco1l.verktex.Logger
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.utils.ModHashMap
@@ -24,7 +24,7 @@ class FakeGameScene : GameScene() {
     /**
      * Called instead of starting gameplay, e.g. when a beatmap is confirmed in song select.
      */
-    var onStartGame: (BeatmapInfo?) -> Unit = { Log.i("FakeGameScene", "Would play ${it?.title}") }
+    var onStartGame: (BeatmapInfo?) -> Unit = { Logger.i("FakeGameScene", "Would play ${it?.title}") }
 
 
     init {

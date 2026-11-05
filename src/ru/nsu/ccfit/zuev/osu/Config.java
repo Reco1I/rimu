@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Environment;
 import android.util.DisplayMetrics;
-import android.util.Log;
+import com.reco1l.verktex.Logger;
 
 import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
@@ -304,7 +304,7 @@ public class Config {
             RES_HEIGHT = height;
         }
 
-        Log.v("Config", "Viewport size: " + RES_WIDTH + "x" + RES_HEIGHT + " Display size: " + width + "x" + height);
+        Logger.i("Config", "Viewport size: " + RES_WIDTH + "x" + RES_HEIGHT + " Display size: " + width + "x" + height);
     }
 
     public static boolean isEnableStoryboard() {

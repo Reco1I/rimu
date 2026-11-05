@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.helper;
 
-import android.util.Log;
+import com.reco1l.verktex.Logger;
 
 /**
  * Logging shortcuts for the legacy code.
@@ -12,18 +12,18 @@ public final class Debug {
     }
 
     public static void i(String message) {
-        Log.i(TAG, message);
+        Logger.i(TAG, message);
     }
 
     public static void e(String message) {
-        Log.e(TAG, message);
+        Logger.e(TAG, message);
     }
 
     public static void e(Throwable throwable) {
-        Log.e(TAG, throwable.getMessage(), throwable);
+        Logger.e(TAG, throwable.getMessage(), throwable);
     }
 
     public static void e(String message, Throwable throwable) {
-        Log.e(TAG, message, throwable);
+        Logger.e(TAG, message, throwable);
     }
 }
