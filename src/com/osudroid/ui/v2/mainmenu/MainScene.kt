@@ -168,7 +168,7 @@ object MainScene : UIScene() {
                 gradientAngle = 270f
                 alpha = 0f
                 colorStart = Verktex.theme.palette.accent.shade(0.1f)
-                colorEnd = (Verktex.theme.palette.accent.shade(0.1f)).copy(alpha = 0.5f)
+                colorEnd = (Verktex.theme.palette.accent.shade(0.1f)).alpha(0.5f)
                 menuGradientBox = this
             }
 
@@ -321,7 +321,7 @@ object MainScene : UIScene() {
 
             text {
                 text = "osu!droid ${BuildConfig.VERSION_NAME}"
-                backgroundColor = Color4.Black.copy(alpha = 0.5f)
+                backgroundColor = Color4.Black.alpha(0.5f)
                 padding = Padding(8f.dip, 4f.dip)
                 radius = themed { radius.md }
                 fontSize = themed { typography.smallBody.size }
@@ -641,7 +641,7 @@ class MenuButton(icon: Int, title: String) : UIButton() {
         width = 256f.dip
         height = Dimension.WrapContent
         radius = 10.4f.dip
-        backgroundColor = themed { palette.buttonBackgroundSurface.copy(alpha = 0.6f) }
+        backgroundColor = themed { palette.buttonBackgroundSurface.alpha(0.6f) }
         padding = Padding(24f.dip)
 
         text {

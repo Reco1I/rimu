@@ -257,7 +257,7 @@ class UIPerformanceOverlay : UIClickableContainer() {
                     if (frameTime <= 0f) continue
 
                     val barHeight = min(frameTime / MAX_FRAME_TIME, 1f) * height
-                    val color = colorFor(frameTime).copy(alpha = baseColor.alpha)
+                    val color = colorFor(frameTime).alpha(baseColor.alpha)
 
                     val x = i * barWidth
                     val y = height - barHeight

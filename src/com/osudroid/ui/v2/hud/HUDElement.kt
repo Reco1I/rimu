@@ -173,7 +173,7 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
         isInEditMode = value
 
         if (value) {
-            backgroundColor = Color4(0x29F27272).copy(alpha = 0.15f)
+            backgroundColor = Color4(0x29F27272).alpha(0.15f)
             editorOverlay = HUDElementOverlay(this)
 
             parent!! += editorOverlay!!
@@ -192,7 +192,7 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
      */
     open fun onSelectionStateChange(isSelected: Boolean) {
 
-        backgroundColor = backgroundColor.copy(alpha = if (isSelected) 0.5f else 0.15f)
+        backgroundColor = backgroundColor.alpha(if (isSelected) 0.5f else 0.15f)
 
         editorOverlay?.clearTransforms()
         editorOverlay?.fadeTo(if (isSelected) 1f else 0f, 0.1f)

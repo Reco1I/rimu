@@ -44,8 +44,8 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
         radius = themed { radius.xl }
-        backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.6f) }
-        borderColor = themed { palette.accent.copy(alpha = 0.3f) }
+        backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.6f) }
+        borderColor = themed { palette.accent.alpha(0.3f) }
         borderWidth = 1f.dip
 
         linearContainer {
@@ -85,7 +85,7 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
     override fun onUpdate(clock: FrameClock) {
         val accent = Verktex.theme.palette.accent
 
-        val targetBorderColor = if (isExpanded) accent else accent.copy(alpha = 0.3f)
+        val targetBorderColor = if (isExpanded) accent else accent.alpha(0.3f)
         val targetExtraWidth = if (isExpanded) EXPANDED_EXTRA_WIDTH.dip.toPixels() else 0f
 
         borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
@@ -94,7 +94,7 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         updateTranslation()
 
         glow = clock.interpolateWithSnap(0.1f, glow, if (isExpanded) 1f else 0f, 0.01f)
-        shadow = if (glow > 0f) Shadow(accent.copy(alpha = GLOW_ALPHA * glow), blur = GLOW_BLUR.dip, cutout = true) else null
+        shadow = if (glow > 0f) Shadow(accent.alpha(GLOW_ALPHA * glow), blur = GLOW_BLUR.dip, cutout = true) else null
 
         super.onUpdate(clock)
     }

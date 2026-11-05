@@ -258,7 +258,7 @@ abstract class GraphicsRenderer {
         get() = colorStack.lastOrNull()?.alpha ?: 1f
 
     fun pushColor(color: Color4) {
-        colorStack.addLast(color.copy(alpha = color.alpha * (colorStack.lastOrNull()?.alpha ?: 1f)))
+        colorStack.addLast(color.alpha(color.alpha * (colorStack.lastOrNull()?.alpha ?: 1f)))
     }
 
     /**

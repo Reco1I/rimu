@@ -280,7 +280,7 @@ class HUDAimErrorMeter : HUDElement() {
         activeIndicators.forEach {
             val x = centerX + it.x
             val y = centerY + it.y
-            val color = it.color.copy(alpha = it.alpha)
+            val color = it.color.alpha(it.alpha)
 
             renderer.drawLine(x - offset, y - offset, x + offset, y + offset, HIT_MARKER_THICKNESS, color)
             renderer.drawLine(x - offset, y + offset, x + offset, y - offset, HIT_MARKER_THICKNESS, color)

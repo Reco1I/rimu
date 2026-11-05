@@ -220,7 +220,7 @@ open class UIModal(
 
 
     companion object {
-        private val BACKDROP_COLOR = Color4.Black.copy(alpha = 0.5f)
+        private val BACKDROP_COLOR = Color4.Black.alpha(0.5f)
         private const val HIDDEN_CARD_SCALE = 0.9f
     }
 }

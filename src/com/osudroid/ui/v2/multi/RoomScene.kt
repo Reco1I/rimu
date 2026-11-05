@@ -298,7 +298,7 @@ class RoomScene(
                         +BeatmapInfoLayout().apply {
                             padding = Padding(12f.dip)
                             radius = themed { radius.md }
-                            backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.5f) }
+                            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.5f) }
                             isVisible = false
 
                             beatmapInfoLayout = this
@@ -309,7 +309,7 @@ class RoomScene(
                             alignment = Anchor.Center
                             padding = Padding(12f.dip)
                             radius = themed { radius.md }
-                            backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.5f) }
+                            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.5f) }
                         }
 
                         linearContainer {

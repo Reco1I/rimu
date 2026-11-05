@@ -157,7 +157,7 @@ class ModCustomizationMenu(private val trigger: UIButton) : UIModal(
                 width = Dimension.FillAvailable
                 padding = Padding(12f.dip)
                 spacing = 8f.dip
-                backgroundColor = Color4.Black.copy(alpha = 0.05f)
+                backgroundColor = Color4.Black.alpha(0.05f)
                 radius = themed { radius.lg }
 
                 +ModIcon(mod).apply {

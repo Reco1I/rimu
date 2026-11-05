@@ -94,7 +94,7 @@ class Transform internal constructor(
                 target.translationY = lerp(startY, endY, progress).px
             }
             // Only the RGB channels are animated so it can run alongside an alpha transform.
-            Kind.Color -> target.color = ColorInterpolation.colorAt(progress, startColor, endColor, 0f, 1f).copy(alpha = target.alpha)
+            Kind.Color -> target.color = ColorInterpolation.colorAt(progress, startColor, endColor, 0f, 1f).alpha(target.alpha)
         }
 
         return hasEnded

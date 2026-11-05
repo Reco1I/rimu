@@ -34,7 +34,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
     init {
         width = fill()
         height = Dimension.WrapContent
-        backgroundColor = themed { (palette.accent.shade(0.1f)).copy(alpha = 0.8f) }
+        backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.8f) }
         padding = Padding(12f.dip)
 
         linearContainer {
@@ -73,7 +73,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                     ?: if (room.playerCount > 0) "${room.playerCount} player${if (room.playerCount != 1) "s" else ""}"
                        else StringTable.get(string.multiplayer_room_no_players)
                 fontSize = themed { typography.smallCaption.size }
-                color = themed { palette.accent.copy(alpha = 0.95f) }
+                color = themed { palette.accent.alpha(0.95f) }
             }
 
             linearContainer {

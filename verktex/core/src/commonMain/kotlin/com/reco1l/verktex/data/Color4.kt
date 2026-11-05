@@ -183,6 +183,15 @@ open class Color4 @JvmOverloads constructor(
         )
     }
 
+    fun alpha(factor: Float): Color4 {
+        return Color4(
+            red = red,
+            green = green,
+            blue = blue,
+            alpha = (alpha * factor).coerceIn(0f, 1f)
+        )
+    }
+
     //endregion
 
     //region Conversions
