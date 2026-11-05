@@ -11,6 +11,8 @@ import kotlin.uuid.Uuid
 import okio.Path.Companion.toPath
 import ru.nsu.ccfit.zuev.osu.helper.Debug
 import ru.nsu.ccfit.zuev.osu.scoring.BeatmapLeaderboardScoringMode
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmStatic
 
 object Config {
     private var corePath: String = ""

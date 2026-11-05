@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.helper
 
 import com.reco1l.verktex.Logger
+import kotlin.jvm.JvmStatic
 
 /**
  * Logging shortcuts for the legacy code.

@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu
 
 import com.osudroid.GameMode
+import kotlin.jvm.JvmStatic
 
 /**
  * Represents the algorithm used to calculate the difficulty of a beatmap.

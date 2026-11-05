@@ -1,5 +1,8 @@
 package com.reco1l.verktex
 
+import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmStatic
+
 /**
  * A singleton object that provides logging functionality for the engine. It allows logging messages
  * at different levels (info, warning, error) through a platform-specific implementation, printing to
