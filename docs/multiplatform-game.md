@@ -170,6 +170,33 @@ The app's tests (`tests/test/kotlin/`) move to `game/src/jvmTest` (JUnit as toda
 - `com.osudroid.math` and its tests are in `:game`; `Vector2`'s `PointF` conversions stay in the app
   (`com/osudroid/math/PointFVectors.kt`) until `PointF` is gone.
 - `Constants`, `GameMod`, `TouchType` and `ResultType` are Kotlin and in `:game`.
+- `StringTable` is common: `:game` generates `com.osudroid.resources.Res` (the language pack's string
+  and array names) and the platform provides the text (`AndroidStringTable` reads the language pack's
+  resources by name, so Android still picks the language). The `Int` overloads stay for app code.
+- `ToastLogger` is common, the platform shows the messages (`AndroidToasts`).
+- The mod system has no JVM reflection: `ModHashMap` is a copy-on-write map keyed by `KClass`, settings
+  register themselves through `provideDelegate`, and new instances come from `modFactories`.
 - `Config.isRemoveSliderLock()` no longer looks at the room: `Multiplayer.isRemoveSliderLock()` does.
 - The app's Robolectric tests need Java 17 (Robolectric can't read Java 25 class files), and some
   assume an English locale. Tests that move to `:game` run as plain JVM tests.
+
+## Next steps
+
+The core logic (beatmaps, difficulty, mods, scoring, replay checkers) moves together with `Replay` and
+`StatisticV2`, which it depends on. Before that:
+
+1. **EdlJavaExt.** `GameHelper`, the slider body (`SliderBody`, `DrawLinePath`, `TriangleBuilder`) and
+   the gameplay objects use its `Vec2`, `LinePath`, `AbstractPath`, `FMath`, `FloatArraySlice` and
+   `SmartIterator` (22 classes with what they need). They are either ported to Kotlin (if its
+   license allows copying) or replaced with `Vector2` and new path code. Its `Easing` is only used
+   by the Android View UI and can stay there until that is rewritten.
+2. **`StatisticV2`'s links**: `toJson()`/`toBoardItem()`/`isTeamStatistic()` become multiplayer
+   extensions, `toScoreInfo()` goes with `ScoreInfo`, and the `GameHelper` state it reads
+   (`healthDrain`, `scoreV2`) comes with `GameHelper` once it is converted (it also needs `OsuSkin`).
+3. **`Replay`**: Java serialization and zips go behind an expect/actual (`java.io` on the JVM), so
+   existing replays keep loading byte for byte; `BitSet` needs a small common replacement;
+   `GameScene.CursorCount` and `Utils`' coordinate conversions move with it.
+4. **Files**: `FileUtils.getMD5Checksum` and `java.io.File` in the beatmap parser go to Okio
+   (`SystemFileSystem`, `ByteString.md5()`).
+5. `ModType`'s `R.string` uses become `Res.string`, and `DifficultyCalculationManager` and
+   `BeatmapCache` (database and UI) stay in the app until the database moves.
