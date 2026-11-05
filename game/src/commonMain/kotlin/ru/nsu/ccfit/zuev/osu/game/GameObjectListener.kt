@@ -54,6 +54,12 @@ interface GameObjectListener {
      */
     fun isAfterSeek(): Boolean
 
+    /**
+     * Whether sliders and spinners count as judged once their start is hit, so the objects after them
+     * can be hit while they're still active.
+     */
+    fun isRemoveSliderLock(): Boolean
+
     companion object {
         const val SLIDER_START = 1
         const val SLIDER_REPEAT = 2

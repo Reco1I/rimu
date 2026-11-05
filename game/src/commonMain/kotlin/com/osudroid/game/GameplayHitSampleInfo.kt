@@ -8,6 +8,7 @@ import com.osudroid.utils.SynchronizedPool
 import kotlin.math.max
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider
 import ru.nsu.ccfit.zuev.skins.OsuSkin
+import kotlin.jvm.JvmStatic
 
 /**
  * A wrapper for [HitSampleInfo]s to allow for additional gameplay-specific information to be stored.

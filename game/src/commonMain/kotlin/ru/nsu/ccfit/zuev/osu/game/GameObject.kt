@@ -10,6 +10,7 @@ import com.reco1l.verktex.ui.Choreography
 import kotlin.math.max
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
+import kotlin.jvm.JvmField
 
 abstract class GameObject {
     @JvmField

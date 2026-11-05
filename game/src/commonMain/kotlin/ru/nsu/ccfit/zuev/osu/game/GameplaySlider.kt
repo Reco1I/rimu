@@ -17,7 +17,6 @@ import com.osudroid.math.Precision
 import com.osudroid.math.Vector2
 import com.osudroid.mods.ModHidden
 import com.osudroid.mods.ModSynesthesia
-import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.game.CirclePiece
 import com.osudroid.ui.v2.game.NumberedCirclePiece
@@ -1030,7 +1029,7 @@ class GameplaySlider : GameObject() {
     }
 
     override fun isJudged(): Boolean {
-        return if (Multiplayer.isRemoveSliderLock()) startHit else isOver
+        return if (listener?.isRemoveSliderLock() == true) startHit else isOver
     }
 
     private fun getTrackingDistanceThresholdSquared(isTracking: Boolean): Float {

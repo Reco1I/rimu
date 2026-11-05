@@ -1168,7 +1168,9 @@ open class GameScene : GameObjectListener {
             val cdSpeed = countdown.speed
             skipTime -= cdSpeed * Countdown.COUNTDOWN_LENGTH
             if (cdSpeed != 0f && firstObjectStartTime - gameplayClock.time >= cdSpeed * Countdown.COUNTDOWN_LENGTH) {
-                countdownAnimator = Countdown(bgScene, cdSpeed, 0f, firstObjectStartTime - gameplayClock.time)
+                countdownAnimator = Countdown(bgScene, cdSpeed, 0f, firstObjectStartTime - gameplayClock.time).also {
+                    it.onFinish = { countdownAnimator = null }
+                }
             }
         }
 
@@ -1302,6 +1304,11 @@ open class GameScene : GameObjectListener {
         stat.playerName = playname
 
         val breakAnimator = BreakAnimator(fgScene, stat, hud)
+        breakAnimator.onEnding = {
+            if (Multiplayer.isMultiplayer) {
+                Multiplayer.roomScene?.chat?.hide()
+            }
+        }
         this.breakAnimator = breakAnimator
 
         if (!startedFromHUDEditor && (GameHelper.isAutoplay() || replaying)) {
@@ -3055,6 +3062,10 @@ open class GameScene : GameObjectListener {
      */
     override val elapsedTime: Float
         get() = gameplayClock.time
+
+    override fun isRemoveSliderLock(): Boolean {
+        return Multiplayer.isRemoveSliderLock()
+    }
 
     override fun isAfterSeek(): Boolean {
         return postSeekFrameCount > 0

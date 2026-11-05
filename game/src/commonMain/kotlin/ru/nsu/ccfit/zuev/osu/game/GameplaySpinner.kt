@@ -5,7 +5,6 @@ import com.osudroid.beatmaps.hitobjects.Spinner
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.GameplaySequenceHitSampleInfo
 import com.osudroid.math.Vector2
-import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.game.ScoreNumber
 import com.reco1l.verktex.data.Anchor
@@ -29,6 +28,8 @@ import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmStatic
 
 open class GameplaySpinner : GameObject() {
     private val background: UISprite
@@ -457,7 +458,7 @@ open class GameplaySpinner : GameObject() {
     override fun isJudged(): Boolean {
         // In remove spinner lock mode, the spinner is assumed to be judged to allow other objects to be judged while
         // the spinner is still active.
-        return Multiplayer.isRemoveSliderLock() || passedTime >= duration
+        return listener?.isRemoveSliderLock() == true || passedTime >= duration
     }
 
     protected fun applySeekRotations() {

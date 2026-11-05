@@ -2,6 +2,8 @@ package com.edlplan.andengine
 
 import com.osudroid.math.Vector2
 import com.osudroid.utils.FloatArraySlice
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmOverloads
 
 class TriangleBuilder @JvmOverloads constructor(size: Int = 1) : FloatArraySlice() {
 

@@ -3,6 +3,8 @@ package com.osudroid.game
 
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.input.PointerEvent
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmName
 
 /**
  * Represents a cursor in gameplay.
