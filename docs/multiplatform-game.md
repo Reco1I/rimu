@@ -222,6 +222,21 @@ Done since the previous notes:
   the migrations and imports the legacy data. DAOs stay blocking, so callers didn't change. Another
   platform would implement `GameDatabase` itself, with Room on desktop JVM.
 
+- The Kotlin UI uses the common `Res` string keys instead of Android's `R` (the app's temporary strings
+  are generated into `Res` too); Java still uses `R`.
+
+- Networking is common code over blocking platform clients:
+  - `Http` runs `HttpRequest`s (built with `HttpRequestBuilder`, `HttpUrlBuilder` and `HttpBody`); OkHttp
+    implements it on Android (`OkHttpClientImplementation`).
+  - `WebRequest`, `JsonRequest` and `FileRequest` read kotlinx JSON, with strict getters
+    (`getString`, `getInt`…) that mirror org.json's next to the `opt*` ones.
+  - `OnlineManager`, `OnlineFileOperator` and the post builders are Kotlin in `:game`. `SecurityUtils`
+    signs with Okio; the APK signature and asset checks stay in `AndroidSecurityUtils`.
+  - Multiplayer talks through `RoomSocket`, which `SocketIORoomSocket` implements on Android over the
+    socket.io Java client, converting org.json at that boundary.
+  - Calls stay blocking, so callers didn't change. **Later:** move to Ktor (suspend calls) and a Socket.IO
+    client over Ktor WebSockets, which would drop OkHttp and socket.io-client.
+
 What's left, roughly in order:
 
 1. **Skins, the rest**: `Skin` (reading the skin folder, which reports to the loading screen and
@@ -233,7 +248,7 @@ What's left, roughly in order:
    `java.lang.String.format` and `SimpleDateFormat`); the rest of the Java (`MainActivity`, `LibraryManager`,
    `OnlineManager`, `GlobalManager`…) is still to convert.
 4. **Database**: done as above; a desktop `GameDatabase` when there's a desktop launcher.
-5. **Networking**: Ktor for `WebRequest`/`JsonRequest`/`OnlineManager`, Socket.IO over Ktor WebSockets.
+5. **Networking**: done as above, except `OnlineScoring` (Java, shows an Android Snackbar). Ktor later.
 6. **Android views**: rewrite on Verktex (beatmap listing, collections, block area editor, dialogs,
    toasts) and `Platform.openWebPage` instead of the WebView.
 7. A Java serialization reader/writer in common code, if replays must load outside the JVM.
