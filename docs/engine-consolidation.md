@@ -355,7 +355,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 5. Settings replace `Config` | Done |
 | 6. Ktor networking | Done |
 | 7. Split `OsuPlatform` | Done |
-| 8. No `GlobalManager` | In progress: `OsuGame` and `BeatmapSelection` done |
+| 8. No `GlobalManager` | In progress: step 1 (`OsuGame`, `BeatmapSelection`) done, paused |
 | 9. Database in Verktex | Not started |
 | 10. `Path` and `UIPath` | Not started |
 | 11. Video | Not started |
@@ -692,7 +692,23 @@ Done in steps, each committed on its own.
 - The startup progress and message are `SplashScene.progress`/`info`.
 - `GlobalManager` is deleted (about 150 references in 34 files).
 
-Left: step 2, scenes created when pushed with their lasting state moved out (`MainScene`,
-`SongSelect`, `CalibrationScene`, `SplashScene`, `ModMenu`); step 3, `GameScene` and `ScoringScene`
-created per play.
+- Checked: the game tests, the common check, the app's unit tests compiling and `assembleDebug`. Not
+  seen on screen.
+
+**Paused after step 1.** What's left, cheapest first:
+- `ModSelection` for the selected mods. `ModMenu.enabledMods` has 13 users, plus `setMods`,
+  `addMod`, `removeMod` and `clear`.
+- `SplashScene`, `CalibrationScene` and `MainScene` as classes created when pushed. Few outside users:
+  - `MainScene.watchReplay`, `exit` and `showExitDialog`, which reach the scene in the stack;
+  - `CalibrationScene.OFFSET`/`show`;
+  - `SplashScene`'s `progress`/`info`/`playWelcomeAnimation`, which move to its companion.
+  - `MainScene`'s background index moves out.
+- `SongSelect` as a class. Its filter, sort and scroll position move out, and `loadBeatmaps`,
+  `setStarRatingDisplay`, `setDifficultyStatistics`, `scoreBoardItems` and `isLeaderboardOnline`
+  get a home outside the scene. This needs the plan's measurement, the time to open song select
+  with a large library before and after, which wasn't possible while the machine only ran silent
+  checks. If it regresses, the carousel data stays in a driver object.
+- Step 3: `GameScene` and `ScoringScene` created per play by `GameLoaderScene`, with
+  `sliderRenderPaths` moving to the loader's result. `OsuGame.gameScene`/`scoring` then go away. It's
+  the riskiest step, best checked on a device right after.
 
