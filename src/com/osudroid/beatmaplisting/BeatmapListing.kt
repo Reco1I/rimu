@@ -1,7 +1,6 @@
 package com.osudroid.beatmaplisting
 
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
-import com.osudroid.MusicManager
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import com.reco1l.verktex.Logger
@@ -311,7 +310,7 @@ class BeatmapListing : BaseFragment(),
 
 
     override fun show() {
-        isPlayingMusic = GlobalManager.getInstance().songService.status == Status.PLAYING
+        isPlayingMusic = GlobalManager.getInstance().music.status == Status.PLAYING
         super.show()
     }
 
@@ -721,14 +720,14 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
                         stopPreview(true)
     
                         if (BeatmapListing.isPlayingMusic) {
-                            MusicManager.play()
+                            GlobalManager.getInstance().music.play()
                         }
                     }
                 }
 
                 ensureActive()
 
-                MusicManager.pause()
+                GlobalManager.getInstance().music.pause()
 
                 previewStream!!.volume = Config.getBgmVolume()
                 previewStream!!.play()
@@ -783,7 +782,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
         }
 
         if (shouldResumeMusic && BeatmapListing.isPlayingMusic) {
-            MusicManager.play()
+            GlobalManager.getInstance().music.play()
         }
     }
 

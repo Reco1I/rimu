@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu
 
+import com.osudroid.audio.MusicService
+
 import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.Platform
 import com.osudroid.OsuPlatform
@@ -20,7 +22,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
 import kotlin.math.min
 
-object LibraryManager {
+object LibraryManager : MusicService.Playlist {
 
 
     private var library: MutableList<BeatmapSetInfo> = ArrayList()
@@ -213,6 +215,10 @@ object LibraryManager {
         currentIndex = if (currentIndex == 0) library.size - 1 else --currentIndex
         return library[currentIndex]
     }
+
+    override fun nextBeatmapSet() = selectNextBeatmapSet()
+
+    override fun previousBeatmapSet() = selectPreviousBeatmapSet()
 
 
     @JvmStatic

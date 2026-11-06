@@ -441,11 +441,11 @@ object CalibrationScene : UIScene() {
         updateTapFeedback()
         highPrecisionToggle.value = Config.isHighPrecisionInput()
 
-        val songService = GlobalManager.getInstance().songService
-        wasMusicPlaying = songService.status == Status.PLAYING
+        val music = GlobalManager.getInstance().music
+        wasMusicPlaying = music.status == Status.PLAYING
 
         if (wasMusicPlaying) {
-            songService.pause()
+            music.pause()
         }
 
         Verktex.withTreeLock { Verktex.pushScene(this) }
@@ -453,7 +453,7 @@ object CalibrationScene : UIScene() {
 
     fun back() {
         if (wasMusicPlaying) {
-            GlobalManager.getInstance().songService.play()
+            GlobalManager.getInstance().music.play()
         }
 
         Verktex.withTreeLock { Verktex.popScene() }

@@ -4,7 +4,7 @@ import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Platform
 import com.edlplan.osu.support.slider.SliderBody
 import com.osudroid.GameMode
-import com.osudroid.audio.SongServiceClock
+import com.osudroid.audio.MusicClock
 import com.osudroid.beatmaps.Beatmap
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.beatmaps.ComboColor
@@ -122,7 +122,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.audio.effect.Metronome
-import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
+import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -751,7 +751,7 @@ open class GameScene : GameObjectListener {
 
         scope?.ensureActive()
 
-        GlobalManager.getInstance().songService.preLoad(audioFilePath, GameHelper.getSpeedMultiplier(),
+        GlobalManager.getInstance().music.preLoad(audioFilePath, GameHelper.getSpeedMultiplier(),
             GameHelper.getSpeedMultiplier() != 1f &&
                 (Config.isShiftPitchInRateChange() || ModNightCore::class in mods || ModOldNightCore::class in mods))
 
@@ -759,7 +759,7 @@ open class GameScene : GameObjectListener {
 
         scope?.ensureActive()
 
-        totalLength = GlobalManager.getInstance().songService.length
+        totalLength = GlobalManager.getInstance().music.length
         judgeableObject = null
         breakPeriodIndex = 0
         objectIndex = 0
@@ -1369,11 +1369,11 @@ open class GameScene : GameObjectListener {
         val playableBeatmap = this.playableBeatmap ?: return
         val hud = hud!!
 
-        val songService = GlobalManager.getInstance().songService
+        val music = GlobalManager.getInstance().music
 
-        // Hook up the framed beatmap clock as the scene's clock. Use SongService as the audio source.
-        if (songService != null) {
-            gameplayClock.changeSource(SongServiceClock(songService))
+        // Hook up the framed beatmap clock as the scene's clock. Use MusicService as the audio source.
+        if (music != null) {
+            gameplayClock.changeSource(MusicClock(music))
         }
 
         // Ensure user-defined offset has time to be applied.
@@ -1385,7 +1385,7 @@ open class GameScene : GameObjectListener {
         gameplayClock.seek(min(gameplayClock.time, firstObjectStartTime - firstObjectTimePreempt))
         initialStartTimeValue = gameplayClock.time
 
-        songService?.volume = Config.getBgmVolume()
+        music?.volume = Config.getBgmVolume()
 
         gameplayClock.start()
 
@@ -1475,9 +1475,9 @@ open class GameScene : GameObjectListener {
                     video!!.setPlaybackSpeed(currentSpeedMultiplier)
                 }
 
-                val songService = GlobalManager.getInstance().songService
-                songService.speed = modRate
-                songService.setPitchRate(replaySettingsRate)
+                val music = GlobalManager.getInstance().music
+                music.speed = modRate
+                music.setPitchRate(replaySettingsRate)
             }
         }
 
@@ -1904,7 +1904,7 @@ open class GameScene : GameObjectListener {
         }
 
         if (gameplayClock.time >= 0 && mutedMod != null) {
-            GlobalManager.getInstance().songService.volume =
+            GlobalManager.getInstance().music.volume =
                 Config.getBgmVolume() * mutedMod.volumeAt(stat.combo)
         }
 
@@ -1954,7 +1954,7 @@ open class GameScene : GameObjectListener {
             val scoringScene = scoringScene
             if (scoringScene != null && !startedFromHUDEditor) {
                 if (replaying)
-                    scoringScene.load(scoringScene.replayStat!!, null, GlobalManager.getInstance().songService, replayPath, null, lastBeatmapInfo)
+                    scoringScene.load(scoringScene.replayStat!!, null, GlobalManager.getInstance().music, replayPath, null, lastBeatmapInfo)
                 else {
                     if (ModAutoplay::class in stat.mod) {
                         stat.playerName = "osu!"
@@ -1968,9 +1968,9 @@ open class GameScene : GameObjectListener {
 
                         Toasts.show("Loading room statistics...")
                     }
-                    scoringScene.load(stat, lastBeatmapInfo, GlobalManager.getInstance().songService, replayPath, parsedBeatmap!!.md5, null)
+                    scoringScene.load(stat, lastBeatmapInfo, GlobalManager.getInstance().music, replayPath, parsedBeatmap!!.md5, null)
                 }
-                GlobalManager.getInstance().songService.volume = 0.2f
+                GlobalManager.getInstance().music.volume = 0.2f
                 replaceCurrentScene(scoringScene.scene!!)
             } else {
                 returnToPreviousScene()
@@ -2134,19 +2134,19 @@ open class GameScene : GameObjectListener {
 
         val mSecPassed = gameplayClock.time * 1000
         val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap
-        val songService = GlobalManager.getInstance().songService
+        val music = GlobalManager.getInstance().music
 
-        if (songService != null && selectedBeatmap != null && !Multiplayer.isMultiplayer) {
+        if (music != null && selectedBeatmap != null && !Multiplayer.isMultiplayer) {
             // osu!stable restarts the song back to preview time when the player is in the last 10 seconds *or* 2% of the beatmap.
             val continuePreview = mSecPassed < totalLength - 10000 && mSecPassed / totalLength < 0.98f
-            val previewTime = if (continuePreview) songService.position else selectedBeatmap.previewTime
+            val previewTime = if (continuePreview) music.position else selectedBeatmap.previewTime
 
             if (Config.isPlayMusicPreview()) {
                 async {
-                    songService.stop()
-                    songService.preLoad(selectedBeatmap.audioPath)
-                    songService.play()
-                    songService.seekTo(previewTime)
+                    music.stop()
+                    music.preLoad(selectedBeatmap.audioPath)
+                    music.play()
+                    music.seekTo(previewTime)
                 }
             }
         }
@@ -2173,7 +2173,7 @@ open class GameScene : GameObjectListener {
         if (Multiplayer.isMultiplayer) {
             releaseVideo()
 
-            GlobalManager.getInstance().songService?.stop()
+            GlobalManager.getInstance().music?.stop()
 
             val roomScene = Multiplayer.roomScene
 
@@ -2720,7 +2720,7 @@ open class GameScene : GameObjectListener {
 
         if (isGameOver) {
             // Finishing the game over animation now.
-            GlobalManager.getInstance().songService.setFrequencyForcefully(101f)
+            GlobalManager.getInstance().music.setFrequencyForcefully(101f)
             return
         }
 
@@ -2769,7 +2769,7 @@ open class GameScene : GameObjectListener {
         }
 
         stopLoopingSamples()
-        val songService = GlobalManager.getInstance().songService
+        val music = GlobalManager.getInstance().music
 
         if (GameHelper.isPerfect()) {
             video?.pause()
@@ -2784,16 +2784,16 @@ open class GameScene : GameObjectListener {
         SkinSounds.get("failsound")!!.play()
         gameStarted = false
 
-        val initialFrequency = songService.frequency
+        val initialFrequency = music.frequency
 
         // Wind down animation for failing based on osu!stable behavior.
-        failAnimation = FailAnimation(songService, initialFrequency)
+        failAnimation = FailAnimation(music, initialFrequency)
     }
 
     /**
      * The wind down animation played when failing, based on osu!stable behavior.
      */
-    private inner class FailAnimation(private val songService: SongService, private val initialFrequency: Float) {
+    private inner class FailAnimation(private val music: MusicService, private val initialFrequency: Float) {
         private var elapsedTime = 0f
 
         private fun applyEffectToLayer(layer: UIContainer) {
@@ -2830,25 +2830,25 @@ open class GameScene : GameObjectListener {
 
             elapsedTime -= sixtyFPS
 
-            if (songService.frequency > 101) {
+            if (music.frequency > 101) {
                 applyEffectToLayer(mgScene)
                 applyEffectToLayer(bgScene)
 
-                val decreasedFrequency = max(101f, songService.frequency - 300)
+                val decreasedFrequency = max(101f, music.frequency - 300)
                 val decreasedSpeed = GameHelper.getSpeedMultiplier() * (1 - (initialFrequency - decreasedFrequency) / initialFrequency)
 
                 if (videoEnabled && video != null) {
                     video!!.setPlaybackSpeed(decreasedSpeed)
                 }
 
-                songService.setFrequencyForcefully(decreasedFrequency)
+                music.setFrequencyForcefully(decreasedFrequency)
             } else {
                 if (videoEnabled && video != null) {
                     video!!.pause()
                 }
 
                 // Ensure music frequency is reset back to what it was.
-                songService.setFrequencyForcefully(initialFrequency)
+                music.setFrequencyForcefully(initialFrequency)
                 gameplayClock.pause()
                 paused = true
 

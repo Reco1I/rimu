@@ -293,7 +293,7 @@ class LobbyScene : UIScene() {
 
     fun back() {
         Multiplayer.isMultiplayer = false
-        GlobalManager.getInstance().songService.isGaming = false
+        GlobalManager.getInstance().music.isGaming = false
         Verktex.withTreeLock { Verktex.popScene() }
     }
 

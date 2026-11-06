@@ -192,7 +192,7 @@ object SongSelect : UIScene() {
             return
         }
 
-        GlobalManager.getInstance().songService.apply {
+        GlobalManager.getInstance().music.apply {
             speed = 1f
             setAdjustPitch(false)
         }
@@ -398,7 +398,7 @@ object SongSelect : UIScene() {
                 updateThread { backgroundSprite.textureRegion = SkinTextures["menu-background"] }
 
                 ensureActive()
-                GlobalManager.getInstance().songService.stop()
+                GlobalManager.getInstance().music.stop()
 
                 return@launch
             }
@@ -418,10 +418,10 @@ object SongSelect : UIScene() {
             if (currentSongPath != beatmapInfo.audioPath) {
                 currentSongPath = beatmapInfo.audioPath
 
-                val songService = GlobalManager.getInstance().songService
+                val music = GlobalManager.getInstance().music
 
                 ensureActive()
-                songService.preLoad(beatmapInfo.audioPath)
+                music.preLoad(beatmapInfo.audioPath)
 
                 ensureActive()
                 updateMusicEffects()
@@ -429,13 +429,13 @@ object SongSelect : UIScene() {
                 val previewTime = if (beatmapInfo.previewTime >= 0)
                     beatmapInfo.previewTime
                 else
-                    (songService.length * 0.4f).toInt()
+                    (music.length * 0.4f).toInt()
 
                 ensureActive()
-                songService.play()
+                music.play()
 
                 ensureActive()
-                songService.seekTo(previewTime)
+                music.seekTo(previewTime)
             }
 
             ensureActive()
@@ -494,8 +494,8 @@ object SongSelect : UIScene() {
         val speed = ModMenu.enabledMods.values.calculateRate(Double.POSITIVE_INFINITY)
         val adjustPitch = ModNightCore::class in ModMenu.enabledMods
 
-        GlobalManager.getInstance().songService.speed = speed
-        GlobalManager.getInstance().songService.setAdjustPitch(adjustPitch)
+        GlobalManager.getInstance().music.speed = speed
+        GlobalManager.getInstance().music.setAdjustPitch(adjustPitch)
     }
 
     // Scenes are never attached to a parent, onAttached doesn't run for them.

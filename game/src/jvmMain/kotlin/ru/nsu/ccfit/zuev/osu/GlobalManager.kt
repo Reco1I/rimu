@@ -3,7 +3,8 @@ package ru.nsu.ccfit.zuev.osu
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.ui.v2.Skin
 import com.osudroid.ui.v2.SkinSounds
-import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
+import com.osudroid.audio.MusicService
+import com.reco1l.verktex.Platform
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
 
@@ -15,7 +16,16 @@ class GlobalManager {
     lateinit var scoring: ScoringScene
     var loadingProgress = 0
     var info: String? = null
-    lateinit var songService: SongService
+
+    /**
+     * The music of the game. Replaced by the UI test browser with one that plays nothing.
+     */
+    var music = MusicService().apply { playlist = LibraryManager }
+        set(value) {
+            value.playlist = LibraryManager
+            field = value
+        }
+
     var selectedBeatmap: BeatmapInfo? = null
 
     /**
@@ -38,11 +48,10 @@ class GlobalManager {
     var isHeadless = true
 
     /**
-     * Loads the skin and creates the gameplay scenes. The platform opens the database and sets the
-     * [songService] before.
+     * Loads the skin and creates the gameplay scenes. The platform opens the database before.
      */
     fun init() {
-        SongService.initAudio()
+        Platform.audioDriver.enumerateDevices()
         loadingProgress = 10
         info = "Loading skin..."
         Skin.load(Config.getSkinPath())
@@ -52,9 +61,7 @@ class GlobalManager {
         loadingProgress = 40
         scoring = ScoringScene(gameScene)
         gameScene.setScoringScene(scoring)
-        if (::songService.isInitialized) {
-            songService.stop()
-        }
+        music.stop()
     }
 
     companion object {

@@ -330,7 +330,7 @@ class SettingsMenu : UIScene() {
                 Multiplayer.roomScene?.updatePlayerList()
             }
         } else {
-            global.songService.isGaming = false
+            global.music.isGaming = false
 
             // The account may have changed (Config.loadConfig above reloads it), the player button
             // follows the login by itself. Headless (e.g. in the UI test browser) it never logs in.

@@ -22,7 +22,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 import kotlin.math.sin
-import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
+import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.Utils
@@ -598,7 +598,7 @@ open class GameplaySpinner : GameObject() {
         if (isSpinnerFrequencyModulate) {
             // Note that osu!stable sets the frequency directly at BassSoundProvider level.
             // This implementation tries to closely follow that behavior with the default frequency in mind.
-            var frequency = min(100000f, 20000 + 40000 * progress) / SongService.defaultFrequency
+            var frequency = min(100000f, 20000 + 40000 * progress) / MusicService.DEFAULT_FREQUENCY
 
             if (applyTrackRate) {
                 frequency *= GameHelper.getSpeedMultiplier()

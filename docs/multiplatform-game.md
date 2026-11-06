@@ -76,7 +76,8 @@ Game-specific services go in a new **`OsuPlatform`** interface in the game's `co
 implemented by the Android app:
 - crash reporting and analytics (Firebase Crashlytics/Analytics, `AppException`)
 - push notifications (`PushNotificationService`, Firebase Messaging)
-- the background song service (`SongService`, `SaveServiceObject`)
+- the background song service (`SongService`, `SaveServiceObject`), since replaced by the common
+  `MusicService` without an Android service
 - integrity checks (`SecurityUtils`, `AccessibilityDetector`)
 - app updates (`UpdateManager`, APK install)
 - device performance (`DevicePerfomanceUtils`)
@@ -205,9 +206,9 @@ Done since the previous notes:
   `TriangleBuilder`. Their protected fields stay `@JvmField` while Java (`GameScene`) uses them.
 
 - The skin assets and the audio are in `:game`: `SkinTextures`, `SkinSounds`, `BeatmapSkinManager`,
-  `ISkinnable`, `MD5Calculator`, `BassSoundProvider`, `Metronome`, `Status`, `SongPlayer`,
-  `SongServiceClock` and `SongService`. `SongService` is a plain class now; on Android
-  `AndroidSongService` (the bound service) creates it and stops itself through `SongService.onExit`.
+  `ISkinnable`, `MD5Calculator`, `BassSoundProvider`, `Metronome`, `Status`, and the music:
+  `MusicService` (which merged `SongService`, `SongPlayer` and `MusicManager`) and `MusicClock`. No
+  Android service holds it, see `docs/engine-consolidation.md`.
   Verktex's `Provider.list` lists bundled assets, so `SkinSounds` no longer needs Android's `AssetManager`.
 
 - The gameplay objects are in `:game`: hit objects, slider body, cursors, effects, hit samples and the

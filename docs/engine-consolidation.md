@@ -350,7 +350,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 |---|---|
 | 1. File system and buffers | Done |
 | 2. Toasts | Done |
-| 3. `MusicService` | Not started |
+| 3. `MusicService` | Done |
 | 4. Localization | Not started |
 | 5. Settings replace `Config` | Not started |
 | 6. Ktor networking | Not started |
@@ -404,3 +404,34 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
     since it runs without the engine.
 - Checked: the tests (only the 3 failures from before), the common checks, `assembleDebug`, the toasts
   UI test and the game on desktop. Not checked on a device.
+
+### Phase 3: `MusicService`
+
+- `com.osudroid.audio.MusicService` (common code) merges `SongService`, `SongPlayer` and
+  `MusicManager`'s playback: the stream and its lock, the FFT cache, "stop at the end while gaming",
+  `currentBeatmap` with its listeners, `load(beatmap)`, `play(beatmap)`, `next`, `previous` and
+  `update()`, which plays the next song when one ends outside of gameplay.
+  - It's an `open class`, not `abstract`: nothing needs a platform yet, so every platform uses it as
+    is. `onPlaybackStateChanged` is the hook for a later media session.
+  - `next`/`previous` take beatmap sets from a `MusicService.Playlist`, which `LibraryManager`
+    implements, since the library isn't common code yet.
+  - `play()` does nothing when the song is already playing, as `MusicManager.play()` did; before,
+    `SongService.play()` restarted it. `stop()` always releases the song.
+  - The stream primitives (`startStream`, `pauseStream`, `stopStream`) are open, so
+    `FakeMusicService` replaces them while `play`, `pause` and `stop` keep their bookkeeping.
+- `GlobalManager.music` holds it (moving to `OsuGame.music` in phase 8). It's created with
+  `GlobalManager`, so the platforms no longer set it.
+- The control points stay with the menu: `RythimManager` (now in `ui/v2/mainmenu/`) parses those of
+  `music.currentBeatmap` when it changes, and its `onUpdate` also calls `music.update()`.
+- Only the callers of `MusicManager` set `currentBeatmap`. Song select, gameplay and the results
+  still load songs by path, and the menu catches up when it's entered, until phase 8's
+  `BeatmapSelection`.
+- Deleted: `AndroidSongService`, its manifest entry, the binding in `MainActivity`, and the song
+  service static of `SaveServiceObject` (which stays as the `Application`) and `AndroidGame`. The
+  audio driver is disposed by `Verktex.dispose` as before.
+- `SongServiceClock` is `MusicClock`, `SongService.defaultFrequency` is
+  `MusicService.DEFAULT_FREQUENCY`.
+- Checked: the core, desktop and game tests, the common checks and `assembleDebug`. Not run on
+  desktop or a device: the desktop checks stay off on this machine while UI tests are worked on
+  there, and no phone was connected. `:verktex:android:testDebugUnitTest` fails before and after
+  this phase on JDK 25 (Robolectric).

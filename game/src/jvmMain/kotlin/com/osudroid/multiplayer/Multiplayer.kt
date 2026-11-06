@@ -141,7 +141,7 @@ object Multiplayer {
             return
         }
 
-        GlobalManager.getInstance().songService.isGaming = true
+        GlobalManager.getInstance().music.isGaming = true
         isMultiplayer = true
 
         async {

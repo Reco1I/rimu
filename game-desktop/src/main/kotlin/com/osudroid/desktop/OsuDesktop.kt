@@ -15,7 +15,6 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.desktop.DesktopGameHost
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.VerktexSettings
-import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
@@ -40,7 +39,6 @@ class OsuDesktop(
         OnlineManager.getInstance().init()
         DesktopDatabase.load()
 
-        GlobalManager.getInstance().songService = SongService().apply { onBind() }
         GlobalManager.getInstance().isHeadless = false
     }
 

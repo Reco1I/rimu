@@ -52,7 +52,7 @@ class StatisticSelector(stats: Array<StatisticV2>?) : UIScrollableContainer() {
 
         val global = GlobalManager.getInstance()
 
-        global.scoring.load(stat, global.scoring.beatmapInfo, global.songService, null, null, null)
+        global.scoring.load(stat, global.scoring.beatmapInfo, global.music, null, null, null)
     }
 
 

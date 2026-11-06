@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.mainmenu
 
-import com.osudroid.MusicManager
+import ru.nsu.ccfit.zuev.osu.GlobalManager
+
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
@@ -88,7 +89,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     step = 0.01f
                     onStartDragging = { draggingProgressSlider = true }
                     onStopDragging = {
-                        MusicManager.position = (value * 1000).toInt()
+                        GlobalManager.getInstance().music.seekTo((value * 1000).toInt())
                         draggingProgressSlider = false
                     }
                     progressSlider = this
@@ -107,7 +108,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         origin = Anchor.CenterLeft
                         scaleOrigin = Anchor.Center
 
-                        onActionUp = { MusicManager.previous() }
+                        onActionUp = { GlobalManager.getInstance().music.previous() }
                     }
 
                     playPauseButton = iconButton {
@@ -117,10 +118,10 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         radius = FULL_RADIUS
 
                         onActionUp = {
-                            if (MusicManager.isPlaying) {
-                                MusicManager.pause()
+                            if (GlobalManager.getInstance().music.isPlaying) {
+                                GlobalManager.getInstance().music.pause()
                             } else {
-                                MusicManager.play()
+                                GlobalManager.getInstance().music.play()
                             }
                         }
                     }
@@ -132,7 +133,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         origin = Anchor.CenterLeft
                         scaleOrigin = Anchor.Center
 
-                        onActionUp = { MusicManager.next() }
+                        onActionUp = { GlobalManager.getInstance().music.next() }
                     }
                 }
 
@@ -162,18 +163,18 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
             placeBelowTrigger()
         }
 
-        titleText.text = MusicManager.currentBeatmap?.titleText ?: "Unknown"
-        artistText.text = MusicManager.currentBeatmap?.artistText ?: "Unknown"
+        titleText.text = GlobalManager.getInstance().music.currentBeatmap?.titleText ?: "Unknown"
+        artistText.text = GlobalManager.getInstance().music.currentBeatmap?.artistText ?: "Unknown"
 
-        val showHours = MusicManager.length >= 3600000
-        currentTime.text = formatDuration(MusicManager.position, showHours)
-        totalTime.text = formatDuration(MusicManager.length, showHours)
+        val showHours = GlobalManager.getInstance().music.length >= 3600000
+        currentTime.text = formatDuration(GlobalManager.getInstance().music.position, showHours)
+        totalTime.text = formatDuration(GlobalManager.getInstance().music.length, showHours)
 
-        playPauseButton.icon = if (MusicManager.isPlaying) FAIcon.Pause else FAIcon.Play
+        playPauseButton.icon = if (GlobalManager.getInstance().music.isPlaying) FAIcon.Pause else FAIcon.Play
 
-        progressSlider.max = MusicManager.length / 1000f
+        progressSlider.max = GlobalManager.getInstance().music.length / 1000f
         if (!draggingProgressSlider) {
-            progressSlider.value = MusicManager.position / 1000f
+            progressSlider.value = GlobalManager.getInstance().music.position / 1000f
         }
 
         super.onUpdate(clock)

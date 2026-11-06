@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.mainmenu
 
-import com.osudroid.RythimManager
 import com.reco1l.framework.forEachIndexedTolerant
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.dip
@@ -40,7 +39,7 @@ class RadialVisualizer : UICanvas() {
     var magnitudeMultiplier = 2f
 
 
-    private val songService = GlobalManager.getInstance().songService
+    private val music = GlobalManager.getInstance().music
 
     private var bars = mutableListOf<BarInfo>()
     private var visualizerRadius = 0f
@@ -76,7 +75,7 @@ class RadialVisualizer : UICanvas() {
     override fun onUpdate(clock: FrameClock) {
         val deltaTimeSec = clock.elapsedFrameTime
 
-        val fft = songService.getAudioFFT(bars.size / 6)
+        val fft = music.getAudioFFT(bars.size / 6)
 
         // Synchronize rotation speed with the beat
         val beatLength = RythimManager.beatLength
