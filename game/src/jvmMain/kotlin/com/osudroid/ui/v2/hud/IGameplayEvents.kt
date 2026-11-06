@@ -1,7 +1,6 @@
 package com.osudroid.ui.v2.hud
 
 import com.osudroid.math.Vector2
-import android.view.MotionEvent
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import ru.nsu.ccfit.zuev.osu.game.GameScene
@@ -12,7 +11,7 @@ interface IGameplayEvents {
     fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float)
 
     /**
-     * Called when a [MotionEvent.ACTION_DOWN] event occurs in gameplay.
+     * Called when a pointer down event occurs in gameplay.
      *
      * @param time The time in seconds when the event occurred with respect to gameplay time.
      */

@@ -143,6 +143,14 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
         }
     }
 
+    override fun checkSkinTexture(path: String, optional: Boolean) {
+        if (optional) {
+            com.osudroid.ui.skinning.ensureOptionalTexture(File(path))
+        } else {
+            com.osudroid.ui.skinning.ensureTexture(File(path))
+        }
+    }
+
     override val hasBeatmapListing = true
 
     override fun showBeatmapListing() {
