@@ -15,6 +15,15 @@ import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.ui.ITextInput
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.opengl.GL33.GL_PACK_ALIGNMENT
+import org.lwjgl.opengl.GL33.GL_RGBA
+import org.lwjgl.opengl.GL33.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL33.glPixelStorei
+import org.lwjgl.opengl.GL33.glReadPixels
+import org.lwjgl.stb.STBImageWrite
+import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
  * The base of desktop game hosts, the counterpart of the Android platform's AndroidGameHost: it
@@ -268,6 +277,46 @@ abstract class DesktopGameHost(
      * Called with a GLFW key code when a key press wasn't consumed by the current scene.
      */
     protected open fun onUnhandledKeyDown(key: Int, mods: Int) = Unit
+
+    /**
+     * Saves the frame shown [delaySeconds] after this call to [file] as a PNG and closes the window,
+     * e.g. for smoke checks.
+     */
+    fun captureScreenshot(file: File, delaySeconds: Double) {
+        val start = glfwGetTime()
+
+        // Called on the draw thread, the frame is complete in the back buffer before it's presented.
+        context.onBeforePresent = callback@{
+            if (glfwGetTime() - start < delaySeconds) return@callback
+            context.onBeforePresent = null
+
+            val window = context.window
+            val width = window.windowWidth
+            val height = window.windowHeight
+
+            val pixels = ByteBuffer.allocateDirect(width * height * 4).order(ByteOrder.nativeOrder())
+            glPixelStorei(GL_PACK_ALIGNMENT, 1)
+            glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
+
+            // GL reads from the bottom row, images start at the top.
+            val flipped = ByteBuffer.allocateDirect(pixels.capacity())
+            val row = ByteArray(width * 4)
+            for (y in height - 1 downTo 0) {
+                pixels.position(y * width * 4)
+                pixels.get(row)
+                flipped.put(row)
+            }
+            flipped.flip()
+
+            file.absoluteFile.parentFile?.mkdirs()
+            if (STBImageWrite.stbi_write_png(file.absolutePath, width, height, 4, flipped, width * 4)) {
+                Logger.i("DesktopGameHost", "Saved a screenshot to ${file.absolutePath}")
+            } else {
+                Logger.e("DesktopGameHost", "Couldn't write the screenshot to ${file.absolutePath}")
+            }
+            close()
+        }
+    }
 
 
     override fun attachTextInput(textInput: ITextInput) {
