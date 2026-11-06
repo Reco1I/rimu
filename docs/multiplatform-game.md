@@ -261,3 +261,37 @@ What's left, roughly in order:
    the remaining `MessageDialog`s (`BlockAreaEditorFragment`;
    the ones in `UpdateManager`, `AndroidDatabase`, `AccessibilityDetector` and `MainActivity` are Android only).
 7. A Java serialization reader/writer in common code, if replays must load outside the JVM.
+
+## Desktop game first
+
+Decided with the user on 2026-11-05: get a desktop build of the game compiling (then running)
+before finishing the smaller items above. What isn't a big scope is skipped for now:
+
+- **Features left on Android, behind `OsuPlatform` hooks.** Desktop doesn't offer them, and the
+  game hides their buttons or does nothing:
+  - the beatmap listing, with its download and loading fragments;
+  - the block area editor;
+  - the difficulty calculation badge;
+  - the replay import's file picker and its loading fragment;
+  - the video background (`UIVideo` decodes with ExoPlayer);
+  - vibrations, app updates, push notifications, the accessibility check and Crashlytics.
+- **JVM code goes to `:game`'s `jvmMain`.** Code that still needs `java.*` (files, executors, date
+  formats, Java serialization) moves there instead of being rewritten as common code. Desktop is a
+  JVM too, so it compiles for both, and `-Pgame.checkCommon` keeps checking `commonMain`. Rewriting
+  that code as common code comes later.
+- **Multiplayer on desktop**: the code moves to `:game`, but desktop has no `RoomSocket` yet, so
+  multiplayer isn't offered there.
+
+The big pieces are done for real, in order:
+
+1. The hooks above in `OsuPlatform`, and their Android implementations.
+2. `GlobalManager` in Kotlin without the activity or its context. The platform opens the database
+   and the song service, then the common `init` loads the skin and the scenes.
+3. The app's game code moves to `:game` in batches, following its dependencies: `LibraryManager`,
+   `ScoreBoardItem`, `OnlineScoring`, `Multiplayer`, then the UI (`hud`, `songselect`, `modmenu`,
+   `multi`, `mainmenu`, `settings`), `GameScene`, `ScoringScene` and `GameLoaderScene`. Packages
+   don't change. What stays in the app is the Android shell: `MainActivity`, the services, Firebase,
+   the Android database, the platform implementations and the skipped features.
+4. `:game-desktop`, the desktop launcher over `:verktex:desktop`: the desktop `OsuPlatform`
+   (preferences, folders), the strings read from the language pack, the database (Room on the
+   JVM), HTTP, and a game host doing what `MainActivity` does at startup.
