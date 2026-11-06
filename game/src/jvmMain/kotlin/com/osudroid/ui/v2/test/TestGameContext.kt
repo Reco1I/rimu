@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.test
 
-import com.osudroid.MusicManager
 import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.testing.UITestStage
@@ -15,7 +14,7 @@ import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
  * runs without the main activity (see [GlobalManager.isHeadless]).
  *
  * Everything is made up or kept in memory: the database is seeded with [TestData], songs are played
- * by a [FakeSongService], gameplay by a [FakeGameScene] and multiplayer by the mock socket of debug
+ * by a [FakeMusicService], gameplay by a [FakeGameScene] and multiplayer by the mock socket of debug
  * builds. Nothing goes online and no file of the game is changed, except the preferences, which are
  * shared with the game.
  */
@@ -28,14 +27,14 @@ object TestGameContext {
         private set
 
     /**
-     * The song service every component sees as the game's.
+     * The music service every component sees as the game's.
      */
-    lateinit var songService: FakeSongService
+    lateinit var music: FakeMusicService
         private set
 
 
     /**
-     * Must run before any component is built, some of them keep the song service they first see. The
+     * Must run before any component is built, some of them keep the music service they first see. The
      * platform sets up the toasts before, and [loadInMemoryDatabase] opens an empty database kept in
      * memory, so the game's own is never touched.
      */
@@ -49,8 +48,8 @@ object TestGameContext {
         seedDatabase()
         LibraryManager.loadLibrary()
 
-        songService = FakeSongService()
-        global.songService = songService
+        music = FakeMusicService()
+        global.music = music
 
         gameScene = FakeGameScene()
         global.gameScene = gameScene
@@ -70,9 +69,9 @@ object TestGameContext {
         Multiplayer.player = null
         Multiplayer.isMultiplayer = false
 
-        MusicManager.stop()
+        music.stop()
         GlobalManager.getInstance().selectedBeatmap = null
-        songService.isGaming = false
+        music.isGaming = false
 
         gameScene.resetPlay()
         gameScene.onStartGame = {}

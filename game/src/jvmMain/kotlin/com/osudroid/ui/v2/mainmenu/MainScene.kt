@@ -221,7 +221,7 @@ object MainScene : UIScene() {
                             OsuPlatform.implementation.loadBeatmapLibrary()
 
                             // Song select opens on the beatmap playing in the menu.
-                            MusicManager.currentBeatmap?.let { GlobalManager.getInstance().selectedBeatmap = it }
+                            GlobalManager.getInstance().music.currentBeatmap?.let { GlobalManager.getInstance().selectedBeatmap = it }
                             SongSelect.loadBeatmaps()
 
                             if (LibraryManager.getLibrary().isEmpty()) {
@@ -234,7 +234,7 @@ object MainScene : UIScene() {
                                 }
 
                                 // After the menu was entered again by removing the loader, which resets it.
-                                GlobalManager.getInstance().songService.isGaming = true
+                                GlobalManager.getInstance().music.isGaming = true
                             }
                         }
                     }
@@ -263,7 +263,7 @@ object MainScene : UIScene() {
                                 }
 
                                 // After the menu was entered again by removing the loader, which resets it.
-                                GlobalManager.getInstance().songService.isGaming = true
+                                GlobalManager.getInstance().music.isGaming = true
                             }
                         }
                     }
@@ -352,7 +352,7 @@ object MainScene : UIScene() {
 
         }
 
-        MusicManager.addOnBeatmapChangeListener(this) { beatmap ->
+        GlobalManager.getInstance().music.addOnBeatmapChangeListener(this) { beatmap ->
             changeBackground(beatmap)
 
             updateMusicButton()
@@ -381,9 +381,7 @@ object MainScene : UIScene() {
     fun setBeatmap(beatmapInfo: BeatmapInfo) {
         GlobalManager.getInstance().selectedBeatmap = beatmapInfo
 
-        MusicManager.currentBeatmap = beatmapInfo
-        MusicManager.load()
-        MusicManager.play()
+        GlobalManager.getInstance().music.play(beatmapInfo)
     }
 
     /**
@@ -405,7 +403,7 @@ object MainScene : UIScene() {
         stat.migrateLegacyMods(beatmap.getBeatmapDifficulty())
         stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
 
-        global.scoring.load(stat, null, global.songService, replayFile, null, beatmap)
+        global.scoring.load(stat, null, global.music, replayFile, null, beatmap)
         Verktex.pushScene(global.scoring.scene!!)
     }
 
@@ -426,7 +424,7 @@ object MainScene : UIScene() {
         isExiting = true
         isMenuExpanded = false
 
-        MusicManager.stop()
+        GlobalManager.getInstance().music.stop()
         SkinSounds["seeya"].play()
 
         backgroundSprite.fadeOut(0.4f)
@@ -457,7 +455,7 @@ object MainScene : UIScene() {
         val global = GlobalManager.getInstance()
 
         // Songs end on their own in the menu instead of stopping as in gameplay.
-        global.songService.isGaming = false
+        global.music.isGaming = false
 
         if (!hasEntered) {
             hasEntered = true
@@ -472,28 +470,22 @@ object MainScene : UIScene() {
         }
 
         val selectedBeatmap = global.selectedBeatmap
+        val music = global.music
 
-        if (MusicManager.isPlaying && selectedBeatmap != null && selectedBeatmap != MusicManager.currentBeatmap) {
+        if (music.isPlaying && selectedBeatmap != null && selectedBeatmap != music.currentBeatmap) {
             // Song select left its beatmap playing, the menu follows it from where it is.
-            MusicManager.currentBeatmap = selectedBeatmap
-            MusicManager.load(reloadAudio = false)
-        } else if (!MusicManager.isPlaying) {
-            if (MusicManager.currentBeatmap == null) {
-                // Null with an empty library, the menu stays silent.
-                MusicManager.currentBeatmap = LibraryManager.getLibrary().randomOrNull()?.beatmaps?.randomOrNull()
-            }
-
-            if (MusicManager.currentBeatmap != null) {
-                MusicManager.load()
-                MusicManager.play()
-            }
+            music.currentBeatmap = selectedBeatmap
+        } else if (!music.isPlaying) {
+            // Null with an empty library, the menu stays silent.
+            val beatmap = music.currentBeatmap ?: LibraryManager.getLibrary().randomOrNull()?.beatmaps?.randomOrNull()
+            beatmap?.let { music.play(it) }
         }
 
         updateMusicButton()
     }
 
     private fun updateMusicButton() {
-        val beatmap = MusicManager.currentBeatmap
+        val beatmap = GlobalManager.getInstance().music.currentBeatmap
         musicButton.text = if (beatmap != null) "${beatmap.titleText} - ${beatmap.artistText}" else ""
         lastMusicChange = System.currentTimeMillis()
     }
@@ -530,7 +522,7 @@ object MainScene : UIScene() {
      * Bursts stars from the bottom corners for a while when a kiai section starts, as the old menu did.
      */
     private fun updateKiaiParticles(deltaTimeSec: Float) {
-        val isKiai = MusicManager.isPlaying && RythimManager.isKiai
+        val isKiai = GlobalManager.getInstance().music.isPlaying && RythimManager.isKiai
         if (isKiai && !wasKiai) {
             kiaiParticleTime = KIAI_PARTICLE_DURATION
         }
@@ -589,7 +581,7 @@ object MainScene : UIScene() {
     override fun onUpdate(clock: FrameClock) {
         val deltaTimeSec = clock.elapsedFrameTime
 
-        MusicManager.onUpdate(deltaTimeSec)
+        RythimManager.onUpdate(deltaTimeSec)
 
         // The expanded menu folds back after a while without being used, as the old menu did.
         if (isMenuExpanded) {

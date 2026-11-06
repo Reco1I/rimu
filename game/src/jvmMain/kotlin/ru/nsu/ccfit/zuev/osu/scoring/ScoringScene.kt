@@ -48,7 +48,7 @@ import com.reco1l.verktex.ui.text.UIText
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
+import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import com.reco1l.verktex.ui.toast.Toasts
@@ -62,7 +62,7 @@ class ScoringScene(pGame: GameScene) {
     var scene: UIScene? = null
         private set
     private var content: UIContainer? = null
-    private var songService: SongService? = null
+    private var music: MusicService? = null
     var replayStat: StatisticV2? = null
     var replayID = -1
     @JvmField
@@ -143,14 +143,14 @@ class ScoringScene(pGame: GameScene) {
     }
 
     fun load(stat: StatisticV2, beatmap: BeatmapInfo?,
-             player: SongService?, replayPath: String?, mapMD5: String?,
+             player: MusicService?, replayPath: String?, mapMD5: String?,
              beatmapToReplay: BeatmapInfo?) {
         val wasShown = scene != null && Verktex.scene === scene
         val previousScene = scene
 
         val scene = UIScene()
         this.scene = scene
-        songService = player
+        music = player
         currentStatistic = stat
         if (replayPath != null && beatmap == null) {
             replayStat = stat
@@ -606,15 +606,15 @@ class ScoringScene(pGame: GameScene) {
     }
 
     fun stopMusic() {
-        songService?.stop()
+        music?.stop()
     }
 
     fun replayMusic() {
-        if (songService != null) {
-            songService!!.stop()
-//            songService.preLoadWithLoop(game.filePath);
-            songService!!.preLoad(beatmapInfo!!.audioPath)
-            songService!!.play()
+        if (music != null) {
+            music!!.stop()
+//            music.preLoadWithLoop(game.filePath);
+            music!!.preLoad(beatmapInfo!!.audioPath)
+            music!!.play()
         }
     }
 }

@@ -119,7 +119,7 @@ The game itself runs with **osu!droid: Game (Android)** and **osu!droid: Game (D
 
 ### Audio
 
-BASS native library, bundled in `:verktex:android` and reached through Verktex's audio API. `SongService` plays songs, and `BassSoundProvider` plays sound effects.
+BASS native library, bundled in `:verktex:android` and reached through Verktex's audio API. `MusicService` (`com/osudroid/audio/`, reached through `GlobalManager.music`) plays songs and knows their beatmap, and `BassSoundProvider` plays sound effects.
 
 ### Beatmaps & Difficulty
 

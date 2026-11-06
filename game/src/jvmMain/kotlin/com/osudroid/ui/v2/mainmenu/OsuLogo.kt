@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.mainmenu
 
-import com.osudroid.RythimManager
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4

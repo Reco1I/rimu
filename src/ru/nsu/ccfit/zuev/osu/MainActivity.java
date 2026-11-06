@@ -13,11 +13,9 @@ import com.osudroid.android.AndroidStringTable;
 import com.osudroid.ui.v2.settings.SettingsSectionsKt;
 import android.Manifest;
 import android.app.ActivityManager;
-import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.provider.OpenableColumns;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
@@ -28,7 +26,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.IBinder;
 import android.os.StatFs;
 import android.util.DisplayMetrics;
 import com.reco1l.verktex.Logger;
@@ -84,9 +81,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import okio.Okio;
-import ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject;
-import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;
-import ru.nsu.ccfit.zuev.audio.serviceAudio.AndroidSongService;
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils;
 import ru.nsu.ccfit.zuev.osu.helper.StringTable;
 import ru.nsu.ccfit.zuev.osu.helper.Debug;
@@ -98,11 +92,8 @@ import com.osudroid.debug.QuickPlay;
 public class MainActivity extends AndroidGameHost {
 
     public static String versionName;
-    public static SongService songService;
-    public ServiceConnection connection;
     private String fileToAdd = null;
     private Uri contentUriToAdd = null;
-    private SaveServiceObject saveServiceObject;
     private FirebaseAnalytics analytics;
     private FirebaseCrashlytics crashlytics;
     private boolean willReplay = false;
@@ -178,11 +169,6 @@ public class MainActivity extends AndroidGameHost {
 
         Execution.async(() -> {
             AndroidDatabase.load(this);
-            AndroidGame.setSaveServiceObject((SaveServiceObject) getApplication());
-            var boundSongService = AndroidGame.getSaveServiceObject().getSongService();
-            if (boundSongService != null) {
-                GlobalManager.getInstance().setSongService(boundSongService);
-            }
             GlobalManager.getInstance().init();
 
             // The "Show FPS" setting shows the engine's performance overlay.
@@ -537,33 +523,6 @@ public class MainActivity extends AndroidGameHost {
             } catch (IOException ignored) {
             }
         }
-        onBeginBindService();
-    }
-
-    public void onBeginBindService() {
-        if (connection == null && songService == null) {
-            connection = new ServiceConnection() {
-                @Override
-                public void onServiceConnected(ComponentName name, IBinder service) {
-                    songService = ((AndroidSongService.ReturnBindObject) service).getObject();
-                    saveServiceObject = (SaveServiceObject) getApplication();
-                    saveServiceObject.setSongService(songService);
-                    GlobalManager.getInstance().setSongService(songService);
-                }
-
-                @Override
-                public void onServiceDisconnected(ComponentName name) {
-
-                }
-
-            };
-
-            bindService(new Intent(MainActivity.this, AndroidSongService.class), connection, BIND_AUTO_CREATE);
-        }
-        if (songService != null) {
-            GlobalManager.getInstance().setSongService(songService);
-        }
-        AndroidGame.setSaveServiceObject(saveServiceObject);
     }
 
     @Override

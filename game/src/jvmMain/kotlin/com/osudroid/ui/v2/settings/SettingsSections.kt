@@ -352,7 +352,7 @@ val generalSection = listOf(
 
                     if (success) {
                         val prefs = OsuPlatform.implementation.preferences
-                        GlobalManager.getInstance().songService.volume = prefs.getInt("bgmvolume", 100) / 100f
+                        GlobalManager.getInstance().music.volume = prefs.getInt("bgmvolume", 100) / 100f
 
                         loadSkin(prefs.getString("skinPath", "")).invokeOnCompletion {
                             mainThread {
@@ -868,7 +868,7 @@ val audioSection = listOf(
                 isFloat = true,
                 valueFormatter = { "%.1f%%".format(it) },
                 onChange = { value ->
-                    GlobalManager.getInstance().songService.volume = value as Float / 100f
+                    GlobalManager.getInstance().music.volume = value as Float / 100f
                 }
             ),
             OptionInfo(

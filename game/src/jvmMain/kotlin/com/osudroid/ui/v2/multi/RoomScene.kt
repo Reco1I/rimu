@@ -325,7 +325,7 @@ class RoomScene(
                                 onActionUp = {
                                     if (Multiplayer.isRoomHost) {
                                         if (LibraryManager.getLibrary().isEmpty()) {
-                                            GlobalManager.getInstance().songService.pause()
+                                            GlobalManager.getInstance().music.pause()
                                             OsuPlatform.implementation.showBeatmapListing()
                                         }
 
@@ -779,11 +779,11 @@ class RoomScene(
             val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap
 
             if (selectedBeatmap != null) {
-                val songService = GlobalManager.getInstance().songService
+                val music = GlobalManager.getInstance().music
 
-                if (songService.status == Status.STOPPED) {
-                    songService.preLoad(selectedBeatmap.audioPath)
-                    songService.play()
+                if (music.status == Status.STOPPED) {
+                    music.preLoad(selectedBeatmap.audioPath)
+                    music.play()
                 }
             }
         }
@@ -952,12 +952,12 @@ class RoomScene(
         }
 
         if (selectedBeatmap == null) {
-            GlobalManager.getInstance().songService.stop()
+            GlobalManager.getInstance().music.stop()
             return
         }
 
-        GlobalManager.getInstance().songService.preLoad(selectedBeatmap.audioPath)
-        GlobalManager.getInstance().songService.play()
+        GlobalManager.getInstance().music.preLoad(selectedBeatmap.audioPath)
+        GlobalManager.getInstance().music.play()
     }
 
     override fun onRoomHostChange(uid: Long) {
@@ -1105,7 +1105,7 @@ class RoomScene(
                 }
 
                 allowAutomaticPlaybackRestart = false
-                global.songService.stop()
+                global.music.stop()
                 global.gameScene.startGame(global.selectedBeatmap, null, ModMenu.enabledMods)
 
             }

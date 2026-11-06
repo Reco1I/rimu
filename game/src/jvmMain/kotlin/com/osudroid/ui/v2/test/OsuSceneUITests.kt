@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.test
 
-import com.osudroid.MusicManager
 import com.osudroid.debug.MockRoom
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
@@ -28,6 +27,7 @@ import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.textButton
 import com.reco1l.verktex.ui.text.faSolidIcon
 import ru.nsu.ccfit.zuev.osu.GlobalManager
+import com.osudroid.ui.v2.mainmenu.RythimManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
@@ -51,9 +51,9 @@ object OsuSceneUITests : UITestSuite("Scenes") {
             useGameContext()
 
             // Played as the main menu does, which isn't shown here.
-            onEachFrame { MusicManager.onUpdate(it.elapsedFrameTime) }
-            if (MusicManager.currentBeatmap == null) {
-                MusicManager.next()
+            onEachFrame { RythimManager.onUpdate(it.elapsedFrameTime) }
+            if (GlobalManager.getInstance().music.currentBeatmap == null) {
+                GlobalManager.getInstance().music.next()
             }
 
             lateinit var trigger: UIButton

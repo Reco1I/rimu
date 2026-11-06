@@ -2,36 +2,35 @@ package com.osudroid.audio
 
 import com.reco1l.verktex.time.AdjustableClock
 import ru.nsu.ccfit.zuev.audio.Status
-import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 
 /**
- * A clock following the song being played by a [SongService].
+ * A clock following the song being played by a [MusicService].
  */
-class SongServiceClock(private val songService: SongService) : AdjustableClock() {
+class MusicClock(private val music: MusicService) : AdjustableClock() {
 
     override val time
-        get() = (songService.positionPrecise / 1000.0).toFloat()
+        get() = (music.positionPrecise / 1000.0).toFloat()
 
-    override var rate by songService::speed
+    override var rate by music::speed
 
     override val isRunning
-        get() = songService.status == Status.PLAYING
+        get() = music.status == Status.PLAYING
 
     override fun reset() {
-        songService.seekTo(0)
-        songService.stop()
+        music.seekTo(0)
+        music.stop()
     }
 
     override fun start() {
-        songService.play()
+        music.play()
     }
 
     override fun pause() {
-        songService.pause()
+        music.pause()
     }
 
     override fun seek(to: Float): Boolean {
-        val trackLength = songService.length / 1000f
+        val trackLength = music.length / 1000f
 
         // Avoid allocation
         @Suppress("ConvertTwoComparisonsToRangeCheck")
@@ -39,7 +38,7 @@ class SongServiceClock(private val songService: SongService) : AdjustableClock()
             return false
         }
 
-        songService.seekTo((to * 1000).toInt())
+        music.seekTo((to * 1000).toInt())
         return true
     }
 

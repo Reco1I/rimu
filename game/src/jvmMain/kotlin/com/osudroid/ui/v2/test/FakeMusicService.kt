@@ -1,17 +1,17 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.audio.MusicService
 import kotlin.math.abs
 import kotlin.math.sin
 import ru.nsu.ccfit.zuev.audio.Status
-import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 
 /**
- * A song service that plays nothing but keeps the position as if it did, so the music controls,
+ * A music service that plays nothing but keeps the position as if it did, so the music controls,
  * the visualizers and the beat of the menus work in the UI test browser without audio files.
  *
  * Any song "loads", and every song is [SONG_LENGTH] long.
  */
-class FakeSongService : SongService() {
+class FakeMusicService : MusicService() {
 
     private var currentStatus = Status.STOPPED
 
@@ -27,22 +27,21 @@ class FakeSongService : SongService() {
         return true
     }
 
-    override fun play() {
+    override fun startStream() {
         setPosition(positionPrecise)
         currentStatus = Status.PLAYING
     }
 
-    override fun pause() {
+    override fun pauseStream() {
         if (currentStatus == Status.PLAYING) {
             setPosition(positionPrecise)
             currentStatus = Status.PAUSED
         }
     }
 
-    override fun stop(): Boolean {
+    override fun stopStream() {
         currentStatus = Status.STOPPED
         setPosition(0.0)
-        return true
     }
 
     override fun seekTo(time: Int) = setPosition(time.toDouble())
@@ -51,7 +50,7 @@ class FakeSongService : SongService() {
         get() {
             // Stops at the end, as a song would.
             if (currentStatus == Status.PLAYING && elapsedPosition() >= SONG_LENGTH) {
-                stop()
+                stopStream()
             }
             return currentStatus
         }
@@ -81,16 +80,7 @@ class FakeSongService : SongService() {
 
     override fun setFrequencyForcefully(frequency: Float) = Unit
 
-    override val frequency get() = DEFAULT_FREQUENCY
-
-    override fun checkFileExist(path: String?) = true
-
-    override val isRunningForeground get() = true
-
-    override fun exit(): Boolean {
-        stop()
-        return true
-    }
+    override val frequency get() = DEFAULT_FREQUENCY.toFloat()
 
 
     private fun setPosition(position: Double) {
@@ -113,6 +103,5 @@ class FakeSongService : SongService() {
 
     companion object {
         const val SONG_LENGTH = 120_000
-        private const val DEFAULT_FREQUENCY = defaultFrequency.toFloat()
     }
 }

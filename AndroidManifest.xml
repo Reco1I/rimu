@@ -28,7 +28,6 @@
         android:name="ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject"
         tools:ignore="UnusedAttribute">
         <profileable android:shell="${profileable}" tools:targetApi="29"/>
-        <service android:name="ru.nsu.ccfit.zuev.audio.serviceAudio.AndroidSongService" android:exported="false"/>
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"

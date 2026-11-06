@@ -1,7 +1,6 @@
 package com.osudroid.android
 
 import android.content.Context
-import ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject
 import ru.nsu.ccfit.zuev.osu.MainActivity
 
 /**
@@ -14,12 +13,6 @@ object AndroidGame {
      */
     @JvmStatic
     var mainActivity: MainActivity? = null
-
-    /**
-     * The application, which holds the song service.
-     */
-    @JvmStatic
-    var saveServiceObject: SaveServiceObject? = null
 
     private var fallbackContext: Context? = null
 

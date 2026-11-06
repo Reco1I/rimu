@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.mainmenu
 
-import com.osudroid.RythimManager
 import com.reco1l.framework.forEachTolerant
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.px
