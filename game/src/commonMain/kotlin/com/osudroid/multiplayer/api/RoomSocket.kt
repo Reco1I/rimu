@@ -1,7 +1,9 @@
 package com.osudroid.multiplayer.api
 
+import com.reco1l.verktex.Platform
+
 /**
- * A Socket.IO connection to a multiplayer room, made by the platform's client.
+ * A Socket.IO connection to a multiplayer room, see [KtorRoomSocket].
  *
  * Event arguments are strings, numbers, booleans, null, and kotlinx `JsonObject`s and `JsonArray`s.
  */
@@ -44,14 +46,14 @@ interface RoomSocket {
         const val EVENT_DISCONNECT = "disconnect"
 
         /**
-         * The factory of the current platform.
+         * The factory of the sockets, replaced in tests.
          */
-        lateinit var factory: Factory
+        var factory: Factory = KtorRoomSocket.factory
 
         /**
-         * Whether the current platform has set a [factory], without which there's no multiplayer.
+         * Whether the platform can connect to rooms, which needs networking.
          */
         val isAvailable
-            get() = ::factory.isInitialized
+            get() = Platform.implementation.httpEngine != null
     }
 }

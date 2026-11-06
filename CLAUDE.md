@@ -37,7 +37,7 @@ The game is split in three modules, see `docs/multiplatform-game.md`:
 
 - `:game` (`game/`): the game itself, Kotlin Multiplatform with only the JVM as a target for now. What doesn't depend on the JVM is in `src/commonMain/` and is checked with `./gradlew -Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs`. What still does (the scenes, `GameScene`, `GlobalManager`, `LibraryManager`, most of the UI) is in `src/jvmMain/` until it's rewritten as common code. What it needs from a platform goes through `OsuPlatform.Implementation`, whose optional features (the beatmap listing, videos, vibrations…) default to "not available". Its tests are in `src/jvmTest/` and run with `./gradlew :game:jvmTest`.
 - The root module (`src/`): the Android app, a shell around `:game`: `MainActivity`, the services, Firebase, the Android database, the platform implementations and the features only Android has so far (the beatmap listing, the block area editor, the old fragments and dialogs).
-- `:game-desktop`: the desktop launcher, over `:verktex:desktop`. Run it with `./gradlew :game-desktop:run`; `--args="--screenshot build/game.png --delay 10"` saves a frame after the delay and exits. It has no multiplayer, beatmap listing or videos yet, and its database is recreated instead of migrated.
+- `:game-desktop`: the desktop launcher, over `:verktex:desktop`. Run it with `./gradlew :game-desktop:run`; `--args="--screenshot build/game.png --delay 10"` saves a frame after the delay and exits. It has no beatmap listing or videos yet (multiplayer connects but is untried), and its database is recreated instead of migrated.
 
 ## Architecture Overview
 
@@ -139,7 +139,7 @@ Settings go through Verktex's `Settings` (`verktex/core/.../settings/`), a typed
 
 ### Multiplayer
 
-Socket.IO for real-time lobby/room events. HTTP requests go through Ktor: Verktex's `Network` creates clients over the platform's engine (`Platform.Implementation.httpEngine`, OkHttp on Android and desktop), and the game's `OsuHttp` (`com/osudroid/online/`) has its client and suspend helpers (`getJsonObject`, `postForm`, `download`…), called from coroutines such as `async {}` blocks. Firebase Messaging handles push notifications. Multiplayer logic lives in `com/osudroid/multiplayer/`.
+Socket.IO for real-time room events, through `KtorRoomSocket`: a Socket.IO v4 client over Ktor WebSockets, in common code (`KtorRoomSocketTest` runs against a server given with `-PsocketIoTestUrl`). HTTP requests go through Ktor: Verktex's `Network` creates clients over the platform's engine (`Platform.Implementation.httpEngine`, OkHttp on Android and desktop), and the game's `OsuHttp` (`com/osudroid/online/`) has its client and suspend helpers (`getJsonObject`, `postForm`, `download`…), called from coroutines such as `async {}` blocks. Firebase Messaging handles push notifications. Multiplayer logic lives in `com/osudroid/multiplayer/`.
 
 ## Key Conventions
 

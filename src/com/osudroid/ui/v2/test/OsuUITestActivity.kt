@@ -2,8 +2,6 @@ package com.osudroid.ui.v2.test
 
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.SkinFolders
-import com.osudroid.android.SocketIORoomSocket
-import com.osudroid.multiplayer.api.RoomSocket
 import com.osudroid.OsuPlatform
 import com.osudroid.android.AndroidOsuPlatform
 import com.osudroid.android.AndroidGame
@@ -27,7 +25,6 @@ class OsuUITestActivity : UITestActivity() {
         FirebaseApp.initializeApp(this)
 
         OsuPlatform.implementation = AndroidOsuPlatform(this)
-        RoomSocket.factory = SocketIORoomSocket.factory
         OsuSettings.load()
         Skin.load(SkinFolders.path)
 
