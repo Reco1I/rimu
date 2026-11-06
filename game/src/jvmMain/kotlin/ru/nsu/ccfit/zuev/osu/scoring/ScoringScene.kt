@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.osudroid.OsuPlatform
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.Beatmap
@@ -50,7 +51,7 @@ import java.util.Locale
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -528,7 +529,7 @@ class ScoringScene(pGame: GameScene) {
             // Do not save and submit score if note count does not match, since it indicates a corrupted score
             // (potentially from bugging the gameplay by any unnecessary means).
             if (totalNotes != beatmap.totalHitObjectCount) {
-                ToastLogger.showText(com.osudroid.resources.Res.string.replay_corrupted, true)
+                Toasts.showLong(StringTable.get(com.osudroid.resources.Res.string.replay_corrupted))
                 return
             }
 

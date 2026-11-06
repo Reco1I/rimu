@@ -15,7 +15,7 @@ import com.osudroid.utils.async
 import net.lingala.zip4j.ZipFile
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import java.io.IOException
@@ -93,20 +93,20 @@ object BeatmapDownloader : IFileRequestObserver {
             ZipFile(file).use {
                 if (!it.isValidZipFile) {
                     mainThread(fragment::dismiss)
-                    ToastLogger.showText("Import failed, invalid ZIP file.", true)
+                    Toasts.showLong("Import failed, invalid ZIP file.")
                     return
                 }
 
                 if (!FileUtils.extractZip(file.path, Config.getBeatmapPath())) {
                     mainThread(fragment::dismiss)
-                    ToastLogger.showText("Import failed, failed to extract ZIP file.", true)
+                    Toasts.showLong("Import failed, failed to extract ZIP file.")
                     return
                 }
 
                 OsuPlatform.implementation.loadBeatmapLibrary()
             }
         } catch (e: IOException) {
-            ToastLogger.showText("Import failed:" + e.message, true)
+            Toasts.showLong("Import failed:" + e.message)
         } finally {
             mainThread(fragment::dismiss)
 
@@ -119,7 +119,7 @@ object BeatmapDownloader : IFileRequestObserver {
     }
 
     override fun onDownloadCancel(downloader: FileRequest) {
-        ToastLogger.showText("Download canceled.", true)
+        Toasts.showLong("Download canceled.")
 
         mainThread(fragment::dismiss)
         isDownloading = false
@@ -139,7 +139,7 @@ object BeatmapDownloader : IFileRequestObserver {
     }
 
     override fun onDownloadFail(downloader: FileRequest, exception: Exception) {
-        ToastLogger.showText("Download failed. " + exception.message, true)
+        Toasts.showLong("Download failed. " + exception.message)
 
         mainThread(fragment::dismiss)
         isDownloading = false

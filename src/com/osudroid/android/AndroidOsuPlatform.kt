@@ -5,7 +5,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Build
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.FileProvider
 import androidx.core.content.getSystemService
@@ -16,7 +15,6 @@ import com.osudroid.UpdateManager
 import com.osudroid.beatmaplisting.BeatmapDownloader
 import com.osudroid.beatmaplisting.BeatmapListing
 import com.osudroid.ui.v1.BlockAreaEditorFragment
-import com.osudroid.ui.v1.LoadingBadgeFragment
 import com.osudroid.utils.mainThread
 import com.reco1l.verktex.android.isVulkanAvailable
 import com.reco1l.verktex.android.resetVulkanCrashGuard
@@ -115,25 +113,6 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
         mainActivity?.finish()
     }
 
-    // Created when first shown, it needs the window of the main activity.
-    private var connectionFailureSnackbar: Snackbar? = null
-
-    override fun showConnectionFailure() {
-        val mainActivity = mainActivity ?: return
-
-        mainThread {
-            val snackbar = connectionFailureSnackbar ?: Snackbar.make(mainActivity.window.decorView, "", 10000)
-            connectionFailureSnackbar = snackbar
-
-            snackbar.dismiss()
-            snackbar.setText("Cannot connect to server. Please check the following article for troubleshooting.")
-            snackbar.setAction("Check") {
-                mainActivity.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(OsuPlatform.LOGIN_FAIL_HELP_URL)))
-            }
-            snackbar.show()
-        }
-    }
-
     override fun checkSkinTexture(path: String, optional: Boolean) {
         if (optional) {
             com.osudroid.ui.skinning.ensureOptionalTexture(File(path))
@@ -163,23 +142,6 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
 
     override fun showBlockAreaEditor() {
         mainThread { BlockAreaEditorFragment().show() }
-    }
-
-    override fun showProgressBadge(header: String, message: String): OsuPlatform.ProgressBadge {
-        val badge = LoadingBadgeFragment().apply {
-            this.header = header
-            this.message = message
-        }
-        mainThread { badge.show() }
-
-        return object : OsuPlatform.ProgressBadge {
-            override var header by badge::header
-            override var message by badge::message
-            override var isIndeterminate by badge::isIndeterminate
-            override var progress by badge::progress
-
-            override fun dismiss() = badge.dismiss()
-        }
     }
 
     override fun createVideo(path: String) = ExoPlayerVideo(path)

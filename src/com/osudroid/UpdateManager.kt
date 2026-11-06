@@ -1,5 +1,7 @@
 package com.osudroid
 
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
+import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.android.AndroidGame
 import com.osudroid.utils.getLong
 import com.osudroid.utils.getString
@@ -64,7 +66,7 @@ object UpdateManager: IFileRequestObserver
     fun checkNewUpdates(silently: Boolean) {
 
         if (!silently) {
-            ToastLogger.showText(Res.string.update_info_checking, false)
+            Toasts.show(StringTable.get(Res.string.update_info_checking))
         }
 
         async {
@@ -85,7 +87,7 @@ object UpdateManager: IFileRequestObserver
 
                     if (newVersion <= AndroidGame.mainActivity!!.versionCode) {
                         if (!silently) {
-                            ToastLogger.showText(Res.string.update_info_latest, false)
+                            Toasts.show(StringTable.get(Res.string.update_info_latest))
                         }
                         return@use
                     }
@@ -125,7 +127,7 @@ object UpdateManager: IFileRequestObserver
                 Log.e("UpdateManager", "Failed to check for updates.", e)
 
                 if (!silently) {
-                    ToastLogger.showText(Res.string.update_info_check_failed, false)
+                    Toasts.show(StringTable.get(Res.string.update_info_check_failed))
                 }
             }
         }
@@ -155,14 +157,14 @@ object UpdateManager: IFileRequestObserver
 
     override fun onDownloadFail(request: FileRequest, exception: Exception) {
         Log.e("UpdateManager", "Failed to download update.", exception)
-        ToastLogger.showText(Res.string.update_info_download_failed, false)
+        Toasts.show(StringTable.get(Res.string.update_info_download_failed))
 
         mainThread { progressDialog?.dismiss() }
         File(request.path).delete()
     }
 
     override fun onDownloadCancel(request: FileRequest) {
-        ToastLogger.showText(Res.string.update_info_download_canceled, false)
+        Toasts.show(StringTable.get(Res.string.update_info_download_canceled))
 
         mainThread { progressDialog?.dismiss() }
         File(request.path).delete()

@@ -2,7 +2,6 @@ package com.osudroid
 
 import com.osudroid.ui.v2.UIVideo
 import com.russhwolf.settings.Settings
-import ru.nsu.ccfit.zuev.osu.ToastLogger
 
 /**
  * What the game needs from the platform it runs on that the engine doesn't provide. Each platform
@@ -13,7 +12,6 @@ object OsuPlatform {
     /**
      * The article that helps players who can't log in.
      */
-    const val LOGIN_FAIL_HELP_URL = "https://neroyuki.github.io/osudroid-guide/help/login_fail"
 
     /**
      * The implementation of the current platform.
@@ -113,13 +111,6 @@ object OsuPlatform {
         fun checkSkinTexture(path: String, optional: Boolean) = Unit
 
         /**
-         * Tells the player that the game couldn't connect to the server to log in.
-         */
-        fun showConnectionFailure() {
-            ToastLogger.showText("Cannot connect to server. Please check $LOGIN_FAIL_HELP_URL for troubleshooting.", true)
-        }
-
-        /**
          * Whether [showBeatmapListing] and [downloadBeatmapSet] are available.
          */
         val hasBeatmapListing: Boolean
@@ -157,11 +148,6 @@ object OsuPlatform {
          */
         fun showBlockAreaEditor() = Unit
 
-        /**
-         * Shows the progress of a task running in the background, such as the difficulty calculation,
-         * or returns null where the platform doesn't show it.
-         */
-        fun showProgressBadge(header: String, message: String): ProgressBadge? = null
 
         /**
          * Creates the video of the file at [path], or returns null where videos can't be played.
@@ -257,21 +243,6 @@ object OsuPlatform {
     }
 
 
-    /**
-     * The progress of a task running in the background, see [Implementation.showProgressBadge].
-     */
-    interface ProgressBadge {
-        var header: String
-        var message: String
-        var isIndeterminate: Boolean
-
-        /**
-         * The progress, from 0 to 100.
-         */
-        var progress: Int
-
-        fun dismiss()
-    }
 
     /**
      * The vibrations of gameplay, see [Implementation.vibrations].

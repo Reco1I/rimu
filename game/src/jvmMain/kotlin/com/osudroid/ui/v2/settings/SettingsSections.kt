@@ -38,7 +38,7 @@ import kotlinx.coroutines.Job
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
@@ -225,7 +225,7 @@ val roomSection = listOf(
                     val room = Multiplayer.room
                     if (room != null) {
                         OsuPlatform.implementation.copyToClipboard(room.name, "${LobbyAPI.INVITE_HOST}/${room.id}/")
-                        ToastLogger.showText("Link copied to clipboard. If the room has a password, you can write it at the end of the link.", false)
+                        Toasts.show("Link copied to clipboard. If the room has a password, you can write it at the end of the link.")
                     }
                 }
             )
@@ -339,10 +339,7 @@ val generalSection = listOf(
                 summary = Res.string.opt_config_backup_summary,
                 onClick = {
                     val success = OsuPlatform.implementation.exportPreferences()
-                    ToastLogger.showText(
-                        if (success) Res.string.config_backup_info_success else Res.string.config_backup_info_fail,
-                        true
-                    )
+                    Toasts.showLong(StringTable.get(if (success) Res.string.config_backup_info_success else Res.string.config_backup_info_fail))
                 }
             ),
             OptionInfo(
@@ -359,11 +356,11 @@ val generalSection = listOf(
 
                         loadSkin(prefs.getString("skinPath", "")).invokeOnCompletion {
                             mainThread {
-                                ToastLogger.showText(Res.string.config_backup_restore_info_success, true)
+                                Toasts.showLong(StringTable.get(Res.string.config_backup_restore_info_success))
                             }
                         }
                     } else {
-                        ToastLogger.showText(Res.string.config_backup_restore_info_fail, true)
+                        Toasts.showLong(StringTable.get(Res.string.config_backup_restore_info_fail))
                     }
                 }
             )
@@ -471,9 +468,9 @@ val gameplaySection = listOf(
                     val selectedBeatmap = global.selectedBeatmap
 
                     if (global.isHeadless) {
-                        ToastLogger.showText("The HUD editor needs the game running", true)
+                        Toasts.showLong("The HUD editor needs the game running")
                     } else if (LibraryManager.getSizeOfBeatmaps() == 0 || selectedBeatmap == null) {
-                        ToastLogger.showText("Cannot enter HUD editor with empty beatmap library!", true)
+                        Toasts.showLong("Cannot enter HUD editor with empty beatmap library!")
                     } else {
                         val modMap = ModHashMap().apply {
                             put(ModAutoplay::class)
@@ -733,9 +730,9 @@ private fun graphicsBackendOption(): OptionInfo {
             if (selected == GraphicsBackend.Vulkan.name) {
                 // Picking it again retries it, even if it crashed while starting the last time.
                 OsuPlatform.implementation.resetVulkanCrashGuard()
-                ToastLogger.showText(Res.string.opt_graphics_backend_vulkan_experimental, true)
+                Toasts.showLong(StringTable.get(Res.string.opt_graphics_backend_vulkan_experimental))
             } else {
-                ToastLogger.showText(Res.string.opt_graphics_backend_restart, true)
+                Toasts.showLong(StringTable.get(Res.string.opt_graphics_backend_restart))
             }
         }
     )
@@ -1053,7 +1050,7 @@ val librarySection = listOf(
                 summary = Res.string.opt_clear_summary,
                 onClick = {
                     LibraryManager.clearDatabase()
-                    ToastLogger.showText(StringTable.get(Res.string.library_cleared), true)
+                    Toasts.showLong(StringTable.get(Res.string.library_cleared))
                 }
             ),
             OptionInfo(
@@ -1199,7 +1196,7 @@ val advancedSection = listOf(
                     val file = File(newValue)
 
                     if (!file.exists() && !file.mkdirs()) {
-                        ToastLogger.showText(StringTable.get(Res.string.message_error_dir_not_found), true)
+                        Toasts.showLong(StringTable.get(Res.string.message_error_dir_not_found))
                         return@OptionInfo
                     }
 
@@ -1268,6 +1265,6 @@ fun loadSkin(path: String): Job {
             }
         }
 
-        ToastLogger.showText(Res.string.message_loaded_skin, false)
+        Toasts.show(StringTable.get(Res.string.message_loaded_skin))
     }
 }

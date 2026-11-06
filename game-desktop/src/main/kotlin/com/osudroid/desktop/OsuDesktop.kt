@@ -18,7 +18,6 @@ import com.reco1l.verktex.settings.VerktexSettings
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import java.io.File
@@ -101,8 +100,6 @@ fun initializeDesktopPlatform() {
     Config.loadConfig()
     StringTable.implementation = DesktopStringTable()
 
-    // There are no toasts on desktop yet, their messages go to the log.
-    ToastLogger.init { message, _ -> Logger.i("Toast", message) }
 }
 
 fun main(args: Array<String>) {

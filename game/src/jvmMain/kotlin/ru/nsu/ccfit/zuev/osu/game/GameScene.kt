@@ -126,7 +126,7 @@ import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameHelper.SliderPath
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
@@ -590,7 +590,7 @@ open class GameScene : GameObjectListener {
 
     private fun loadGame(beatmapInfo: BeatmapInfo, rFile: String?, mods: ModHashMap, scope: CoroutineScope?): Boolean {
         if (!OsuPlatform.implementation.verifyFileIntegrity()) {
-            ToastLogger.showText(Res.string.file_integrity_tampered, true)
+            Toasts.showLong(StringTable.get(Res.string.file_integrity_tampered))
             return false
         }
 
@@ -601,7 +601,7 @@ open class GameScene : GameObjectListener {
                 MD5Calculator.getStringMD5(rFile) + ".odr"
             Logger.i("GameScene", "ReplayFile = $replayFilePath")
             if (!OnlineFileOperator.downloadFile(rFile, this.replayFilePath!!)) {
-                ToastLogger.showText(Res.string.replay_cantdownload, true)
+                Toasts.showLong(StringTable.get(Res.string.replay_cantdownload))
                 return false
             }
         } else
@@ -616,11 +616,11 @@ open class GameScene : GameObjectListener {
                 parsedBeatmap = BeatmapCache.getBeatmap(beatmapInfo, true, GameMode.Droid, scope)
             } catch (e: IOException) {
                 Logger.e("GameScene", "startGame: " + e.message)
-                ToastLogger.showText(e.message.toString(), true)
+                Toasts.showLong(e.message.toString())
                 return false
             } catch (e: IllegalArgumentException) {
                 Logger.e("GameScene", "startGame: " + e.message)
-                ToastLogger.showText(e.message.toString(), true)
+                Toasts.showLong(e.message.toString())
                 return false
             }
         }
@@ -628,12 +628,12 @@ open class GameScene : GameObjectListener {
         val parsedBeatmap = parsedBeatmap ?: return false
 
         if (parsedBeatmap.md5 != beatmapInfo.md5) {
-            ToastLogger.showText(Res.string.file_integrity_tampered, true)
+            Toasts.showLong(StringTable.get(Res.string.file_integrity_tampered))
             return false
         }
 
         if (parsedBeatmap.hitObjects.objects.isEmpty()) {
-            ToastLogger.showText("Empty Beatmap", true)
+            Toasts.showLong("Empty Beatmap")
             return false
         }
 
@@ -732,7 +732,7 @@ open class GameScene : GameObjectListener {
 
         } catch (e: Exception) {
             Logger.e("GameScene", "Load Music: " + e.message)
-            ToastLogger.showText(e.message.toString(), true)
+            Toasts.showLong(e.message.toString())
             return false
         }
 
@@ -889,7 +889,7 @@ open class GameScene : GameObjectListener {
             replaying = replay.load(replayFilePath!!, true)
 
             if (!replaying) {
-                ToastLogger.showText(Res.string.replay_invalid, true)
+                Toasts.showLong(StringTable.get(Res.string.replay_invalid))
                 return false
             }
 
@@ -902,7 +902,7 @@ open class GameScene : GameObjectListener {
             // customizations.
             for (mod in mods.values) {
                 if (!replay.getStat()!!.mod.containsKey(mod::class)) {
-                    ToastLogger.showText(Res.string.replay_invalid, true)
+                    Toasts.showLong(StringTable.get(Res.string.replay_invalid))
                     return false
                 }
             }
@@ -1414,7 +1414,7 @@ open class GameScene : GameObjectListener {
         replaceCurrentScene(gameUIScene)
 
         if (isHUDEditorMode) {
-            ToastLogger.showText(Res.string.hudEditor_back_for_menu, false)
+            Toasts.show(StringTable.get(Res.string.hudEditor_back_for_menu))
         }
     }
 
@@ -1720,7 +1720,7 @@ open class GameScene : GameObjectListener {
                 } else {
                     if (Multiplayer.isMultiplayer) {
                         if (!hasFailed) {
-                            ToastLogger.showText("You failed but you can continue playing.", false)
+                            Toasts.show("You failed but you can continue playing.")
                         }
                         hasFailed = true
                     } else {
@@ -1966,7 +1966,7 @@ open class GameScene : GameObjectListener {
 
                         async { runSafe { RoomAPI.submitFinalScore(stat.toJson()) } }
 
-                        ToastLogger.showText("Loading room statistics...", false)
+                        Toasts.show("Loading room statistics...")
                     }
                     scoringScene.load(stat, lastBeatmapInfo, GlobalManager.getInstance().songService, replayPath, parsedBeatmap!!.md5, null)
                 }
@@ -2011,7 +2011,7 @@ open class GameScene : GameObjectListener {
                             skipBtn!!.isVisible = false
 
                             async { RoomAPI.requestSkip() }
-                            ToastLogger.showText("Skip requested", false)
+                            Toasts.show("Skip requested")
                         }
                         return
                     }
@@ -2714,7 +2714,7 @@ open class GameScene : GameObjectListener {
             }
 
             lastBackPressTime = realTimeElapsed.toFloat()
-            ToastLogger.showText("Tap twice to exit to room.", false)
+            Toasts.show("Tap twice to exit to room.")
             return
         }
 
@@ -3102,11 +3102,11 @@ open class GameScene : GameObjectListener {
                 }
             }
 
-            ToastLogger.showText(StringTable.get(Res.string.message_save_replay_successful), true)
+            Toasts.showLong(StringTable.get(Res.string.message_save_replay_successful))
             replayFilePath = null
             return true
         } else {
-            ToastLogger.showText(StringTable.get(Res.string.message_save_replay_failed), true)
+            Toasts.showLong(StringTable.get(Res.string.message_save_replay_failed))
             return false
         }
     }

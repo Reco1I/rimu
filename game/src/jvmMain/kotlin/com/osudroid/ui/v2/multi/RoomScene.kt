@@ -72,7 +72,7 @@ import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.themed
 
@@ -390,7 +390,7 @@ class RoomScene(
                                 }
 
                                 if (room.beatmap == null) {
-                                    ToastLogger.showText(Res.string.multiplayer_room_must_select_beatmap, true)
+                                    Toasts.showLong(StringTable.get(Res.string.multiplayer_room_must_select_beatmap))
                                     return@callback
                                 }
 
@@ -399,7 +399,7 @@ class RoomScene(
                                         val teams = room.teamMap
 
                                         if (teams.values.any { it.isEmpty() }) {
-                                            ToastLogger.showText(Res.string.multiplayer_room_at_least_one_player_per_team, true)
+                                            Toasts.showLong(StringTable.get(Res.string.multiplayer_room_at_least_one_player_per_team))
                                             return@callback
                                         }
                                     }
@@ -407,7 +407,7 @@ class RoomScene(
                                     val players = room.activePlayers.filter { it.status != PlayerStatus.MissingBeatmap }
 
                                     if (players.size <= 1) {
-                                        ToastLogger.showText(Res.string.multiplayer_room_at_least_two_players_beatmap, true)
+                                        Toasts.showLong(StringTable.get(Res.string.multiplayer_room_at_least_two_players_beatmap))
                                         return@callback
                                     }
                                 }
@@ -442,13 +442,13 @@ class RoomScene(
 
                             PlayerStatus.NotReady -> {
                                 if (room.beatmap == null) {
-                                    ToastLogger.showText(Res.string.multiplayer_room_cannot_ready_changing_beatmap, true)
+                                    Toasts.showLong(StringTable.get(Res.string.multiplayer_room_cannot_ready_changing_beatmap))
                                     isWaitingForStatusChange.set(false)
                                     return@callback
                                 }
 
                                 if (room.teamMode == TeamMode.TeamVS && player.team == null) {
-                                    ToastLogger.showText(Res.string.multiplayer_room_cannot_ready_no_team, true)
+                                    Toasts.showLong(StringTable.get(Res.string.multiplayer_room_cannot_ready_no_team))
                                     isWaitingForStatusChange.set(false)
                                     return@callback
                                 }
@@ -459,7 +459,7 @@ class RoomScene(
                                     PlayerStatus.Ready -> invalidateStatus()
 
                                     PlayerStatus.MissingBeatmap -> {
-                                        ToastLogger.showText(Res.string.multiplayer_room_cannot_ready_missing_beatmap, true)
+                                        Toasts.showLong(StringTable.get(Res.string.multiplayer_room_cannot_ready_missing_beatmap))
                                         isWaitingForStatusChange.set(false)
                                     }
 
@@ -640,7 +640,7 @@ class RoomScene(
                                 "${roomBeatmap.parentSetID} ${roomBeatmap.artist} - ${roomBeatmap.title}"
                             )
                         } catch (e: Exception) {
-                            ToastLogger.showText(StringTable.format(Res.string.multiplayer_room_unable_download, e.message), true)
+                            Toasts.showLong(StringTable.format(Res.string.multiplayer_room_unable_download, e.message))
                             e.printStackTrace()
                         }
                     }
@@ -795,7 +795,7 @@ class RoomScene(
     // Communication
 
     override fun onServerError(error: String) {
-        ToastLogger.showText(error, true)
+        Toasts.showLong(error)
     }
 
     override fun onRoomChatMessage(uid: Long?, message: String) {
@@ -939,7 +939,7 @@ class RoomScene(
 
         // Notify to the host when other players can't download the beatmap.
         if (Multiplayer.isRoomHost && beatmap != null && beatmap.parentSetID == null) {
-            mainThread { ToastLogger.showText(Res.string.multiplayer_room_beatmap_unavailable, false) }
+            mainThread { Toasts.show(StringTable.get(Res.string.multiplayer_room_beatmap_unavailable)) }
         }
 
         invalidateStatus()
@@ -1191,7 +1191,7 @@ class RoomScene(
                     //      remainder of the game as a solo session — submitFinalScore() will
                     //      not be called, and ScoringScene.back() will return to SongMenu
                     //      rather than trying to re-enter the (now-disconnected) room.
-                    ToastLogger.showText(Res.string.multiplayer_room_kicked_gameplay, true)
+                    Toasts.showLong(StringTable.get(Res.string.multiplayer_room_kicked_gameplay))
                     teardownSession()
                     Multiplayer.isMultiplayer = false
 

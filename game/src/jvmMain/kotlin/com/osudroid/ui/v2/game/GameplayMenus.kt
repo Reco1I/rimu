@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.game
 
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
@@ -17,7 +18,7 @@ import com.reco1l.verktex.ui.fadeIn
 import kotlin.math.hypot
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 
@@ -85,7 +86,7 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : UICo
 
     private fun saveReplay() {
         if (isFail && !isReplaySaved && !game.replaying && game.saveFailedReplay()) {
-            ToastLogger.showText(Res.string.message_save_replay_successful, true)
+            Toasts.showLong(StringTable.get(Res.string.message_save_replay_successful))
             isReplaySaved = true
         }
     }

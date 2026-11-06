@@ -1,12 +1,13 @@
 package ru.nsu.ccfit.zuev.osu.online
 
-import com.osudroid.OsuPlatform
+import kotlin.time.Duration.Companion.seconds
+import com.reco1l.verktex.Platform
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.ui.SendingPanel
 import com.osudroid.utils.async
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.helper.Debug
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import kotlin.coroutines.cancellation.CancellationException
@@ -54,7 +55,7 @@ class OnlineScoring {
                     OnlineManager.getInstance().isStayOnline = false
 
                     if (OnlineManager.getInstance().failMessage == "Cannot connect to server") {
-                        OsuPlatform.implementation.showConnectionFailure()
+                        showConnectionFailure()
                     }
                 }
             }
@@ -87,7 +88,7 @@ class OnlineScoring {
                     }
 
                     if (OnlineManager.getInstance().failMessage.isNotEmpty()) {
-                        ToastLogger.showText(OnlineManager.getInstance().failMessage, true)
+                        Toasts.showLong(OnlineManager.getInstance().failMessage)
                         if (OnlineManager.getInstance().failMessage == "Invalid record data")
                             i = attemptCount
                     } else if (success) {
@@ -141,4 +142,20 @@ class OnlineScoring {
             return instance!!
         }
     }
+}
+
+
+private const val LOGIN_FAIL_HELP_URL = "https://neroyuki.github.io/osudroid-guide/help/login_fail"
+
+/**
+ * Tells the player that the game couldn't connect to the server to log in, with a link to the
+ * troubleshooting guide.
+ */
+private fun showConnectionFailure() {
+    Toasts.show(
+        "Cannot connect to server. Please check the following article for troubleshooting.",
+        duration = 10.seconds,
+        action = "Check",
+        onAction = { Platform.openUrl(LOGIN_FAIL_HELP_URL) }
+    )
 }

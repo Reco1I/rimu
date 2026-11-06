@@ -1,5 +1,6 @@
 package com.osudroid.beatmaps
 
+import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.ui.v2.songselect.SongSelect
 
 import com.reco1l.verktex.Logger
@@ -30,7 +31,7 @@ object DifficultyCalculationManager {
 
     private var job: Job? = null
 
-    private var badge: OsuPlatform.ProgressBadge? = null
+    private var badge: Toasts.Toast? = null
 
 
     @JvmStatic
@@ -66,9 +67,10 @@ object DifficultyCalculationManager {
             return
         }
 
-        badge = OsuPlatform.implementation.showProgressBadge(
-            header = "Calculating beatmap difficulties...",
-            message = "During this process, the game may suffer performance degradation."
+        badge = Toasts.showPersistent(
+            title = "Calculating beatmap difficulties...",
+            text = "During this process, the game may suffer performance degradation.",
+            isIndeterminate = true
         )
 
         job = async {
@@ -124,9 +126,8 @@ object DifficultyCalculationManager {
                                 mainThread {
                                     badge?.apply {
                                         isIndeterminate = false
-                                        progress = calculated * 100 / totalBeatmaps
-                                        header =
-                                            "Calculating beatmap difficulties... (${progress}%)"
+                                        progress = calculated.toFloat() / totalBeatmaps
+                                        title = "Calculating beatmap difficulties... (${calculated * 100 / totalBeatmaps}%)"
                                     }
                                 }
 

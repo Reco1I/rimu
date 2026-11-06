@@ -57,7 +57,7 @@ import kotlinx.coroutines.SupervisorJob
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osuplus.R
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -226,7 +226,7 @@ class BeatmapListing : BaseFragment(),
         pendingRequest?.cancel()
         pendingRequest = searchScope.launch(CoroutineExceptionHandler { _, throwable ->
 
-            ToastLogger.showText("Failed to connect to server, please check your internet connection.", false)
+            Toasts.show("Failed to connect to server, please check your internet connection.")
 
             Logger.e("BeatmapListing", "Failed to connect to beatmap mirror.", throwable)
 
@@ -707,7 +707,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
     fun playPreview(beatmapSet: BeatmapSetModel) {
 
         if (BeatmapListing.previewPlayCount >= 2) {
-            ToastLogger.showText("Please wait a few seconds before trying again.", false)
+            Toasts.show("Please wait a few seconds before trying again.")
             return
         }
 

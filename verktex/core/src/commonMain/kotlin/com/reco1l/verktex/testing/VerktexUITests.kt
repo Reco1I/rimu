@@ -46,6 +46,8 @@ import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.ui.textButton
 import com.reco1l.verktex.ui.transformSequence
+import com.reco1l.verktex.ui.toast.Toasts
+import kotlin.math.roundToInt
 
 /**
  * Tests for the components built into Verktex.
@@ -389,6 +391,57 @@ object VerktexUITests : UITestSuite("Verktex") {
                                 addButton { text = "Cancel"; onActionUp = { hide() } }
                             }.show()
                         }
+                    }
+                }
+            }
+        }
+
+        test("Toasts") {
+            var task: Toasts.Toast? = null
+            var elapsed = 0f
+
+            // A task that shows its progress after a second of loading.
+            onEachFrame { clock ->
+                val toast = task ?: return@onEachFrame
+                elapsed += clock.elapsedFrameTime
+
+                if (elapsed >= 1f) {
+                    val progress = ((elapsed - 1f) / 3f).coerceAtMost(1f)
+                    toast.isIndeterminate = false
+                    toast.progress = progress
+                    toast.title = "A task (${(progress * 100).roundToInt()}%)"
+
+                    if (progress >= 1f) {
+                        toast.dismiss()
+                        task = null
+                    }
+                }
+            }
+            onDispose { task?.dismiss() }
+
+            fun startTask() {
+                task?.dismiss()
+                elapsed = 0f
+                task = Toasts.showPersistent("Working on something...", title = "A task", isIndeterminate = true)
+            }
+
+            // Shown right away, so a screenshot of the test has a toast.
+            startTask()
+            Toasts.show("A short message.")
+
+            column {
+                section("Toasts") {
+                    textButton {
+                        text = "Short"
+                        onActionUp = { Toasts.show("A short message.") }
+                    }
+                    textButton {
+                        text = "Long"
+                        onActionUp = { Toasts.show("A longer message that stays on screen a bit more, and wraps when it doesn't fit in one line.", Toasts.Long) }
+                    }
+                    textButton {
+                        text = "Progress"
+                        onActionUp = { startTask() }
                     }
                 }
             }

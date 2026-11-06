@@ -28,7 +28,7 @@ import okio.BufferedSink;
 import okio.Okio;
 import okio.Source;
 import ru.nsu.ccfit.zuev.osu.Config;
-import ru.nsu.ccfit.zuev.osu.ToastLogger;
+import com.reco1l.verktex.ui.toast.Toasts;
 
 public class FileUtils {
 
@@ -83,9 +83,7 @@ public class FileUtils {
 
         try (ZipFile zip = new ZipFile(file)) {
             if(!zip.isValidZipFile()) {
-                ToastLogger.showText(
-                        StringTable.format(com.osudroid.resources.R.string.message_error, "Invalid file"),
-                        false);
+                Toasts.show(StringTable.format(com.osudroid.resources.R.string.message_error, "Invalid file"));
                 Debug.e("FileUtils.extractZip: " + file.getName() + " is invalid");
                 file.renameTo(new File(file.getParentFile(), sourceFileName + ".badzip"));
                 FilesKt.deleteRecursively(folderFile);
@@ -148,12 +146,9 @@ public class FileUtils {
         } else {
             if (Environment.getExternalStorageState().equals(
                     Environment.MEDIA_MOUNTED_READ_ONLY)) {
-                ToastLogger.showText(
-                        StringTable.get(com.osudroid.resources.R.string.message_error_sdcardread),
-                        false);
+                Toasts.show(StringTable.get(com.osudroid.resources.R.string.message_error_sdcardread));
             } else {
-                ToastLogger.showText(
-                        StringTable.get(com.osudroid.resources.R.string.message_error_sdcard), false);
+                Toasts.show(StringTable.get(com.osudroid.resources.R.string.message_error_sdcard));
             }
         }
 

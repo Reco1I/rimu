@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.multiplayer.api.RoomSocket
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.text.spans
@@ -242,7 +243,7 @@ object MainScene : UIScene() {
                     if (RoomSocket.isAvailable) {
                         +menuButton(FAIcon.UserGroup, "Multi") action@{
                             if (!OnlineManager.getInstance().isStayOnline && !BuildSettings.MOCK_MULTIPLAYER) {
-                                ToastLogger.showText(StringTable.format(Res.string.multiplayer_not_online), true)
+                                Toasts.showLong(StringTable.format(Res.string.multiplayer_not_online))
                                 return@action
                             }
 
@@ -418,7 +419,7 @@ object MainScene : UIScene() {
 
         // Headless (e.g. in the UI test browser) there's no game to leave, the menu stays usable.
         if (GlobalManager.getInstance().isHeadless) {
-            ToastLogger.showText("Would exit the game", false)
+            Toasts.show("Would exit the game")
             return
         }
 

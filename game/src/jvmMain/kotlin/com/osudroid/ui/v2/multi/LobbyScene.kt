@@ -39,7 +39,7 @@ import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.SecurityUtils
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import kotlin.coroutines.cancellation.CancellationException
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -227,10 +227,7 @@ class LobbyScene : UIScene() {
         fetchScope.launch(CoroutineExceptionHandler { _, throwable ->
             Logger.e("LobbyScene", "Error fetching multiplayer rooms", throwable)
 
-            ToastLogger.showText(
-                StringTable.format(string.multiplayer_lobby_fetch_error_toast, throwable.message),
-                true
-            )
+            Toasts.showLong(StringTable.format(string.multiplayer_lobby_fetch_error_toast, throwable.message))
 
             updateThread {
                 messageContainer.apply {
