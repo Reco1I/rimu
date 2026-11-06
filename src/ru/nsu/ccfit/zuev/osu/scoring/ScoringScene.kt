@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
+import com.osudroid.OsuPlatform
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.Beatmap
 import com.osudroid.beatmaps.BeatmapCache
@@ -55,7 +56,6 @@ import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
-import ru.nsu.ccfit.zuev.osuplus.BuildConfig
 
 class ScoringScene(pGame: GameScene) {
     private val game: GameScene = pGame
@@ -320,7 +320,7 @@ class ScoringScene(pGame: GameScene) {
         var mapperStr = "Beatmap by " + beatmapInfo.creator
         var playerStr = "Played by " + stat.playerName + " on " +
             SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault()).format(Date(stat.time))
-        playerStr += String.format("  %s(%s)", BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE)
+        playerStr += String.format("  %s(%s)", OsuPlatform.implementation.versionName, OsuPlatform.implementation.buildType)
         if (ModCustomSpeed::class in mods ||
             ModDifficultyAdjust::class in mods ||
             (ModFlashlight::class in mods && !mods.ofType(ModFlashlight::class)!!.usesDefaultSettings)) {

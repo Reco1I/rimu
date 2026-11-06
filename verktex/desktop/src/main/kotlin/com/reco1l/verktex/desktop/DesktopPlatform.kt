@@ -34,7 +34,9 @@ class DesktopPlatform(density: Float, width: Int, height: Int) : Platform.Implem
     }
 
     // A desktop has no web view of its own, the page opens in the browser.
-    override fun openWebPage(url: String, userAgent: String?) {
+    override fun openWebPage(url: String, userAgent: String?) = openUrl(url)
+
+    override fun openUrl(url: String) {
         try {
             if (java.awt.Desktop.isDesktopSupported() && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
                 java.awt.Desktop.getDesktop().browse(java.net.URI(url))

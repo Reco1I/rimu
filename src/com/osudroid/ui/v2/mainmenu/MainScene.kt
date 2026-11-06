@@ -9,12 +9,7 @@ import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import com.reco1l.verktex.ui.dialog.UIConfirmDialog
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.ui.v2.SkinSounds
-import android.content.*
-import android.net.*
-import android.util.*
-import androidx.core.content.*
 import com.osudroid.*
-import com.osudroid.beatmaplisting.*
 import com.osudroid.multiplayer.*
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.LoaderScene
@@ -28,6 +23,7 @@ import kotlin.random.Random
 import kotlinx.coroutines.Job
 import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.Platform
+import com.reco1l.verktex.Logger
 import com.reco1l.verktex.ui.UIParticleSystem
 import com.reco1l.verktex.ui.particleSystem
 import com.reco1l.verktex.data.Anchor
@@ -71,8 +67,6 @@ import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.helper.*
 import ru.nsu.ccfit.zuev.osu.online.*
-import ru.nsu.ccfit.zuev.osuplus.BuildConfig
-import java.io.*
 import kotlin.math.*
 import com.reco1l.verktex.ui.themed
 
@@ -221,8 +215,8 @@ object MainScene : UIScene() {
                         async {
                             LoaderScene().show()
 
-                            GlobalManager.getInstance().mainActivity?.checkNewSkins()
-                            GlobalManager.getInstance().mainActivity?.loadBeatmapLibrary()
+                            OsuPlatform.implementation.checkNewSkins()
+                            OsuPlatform.implementation.loadBeatmapLibrary()
 
                             // Song select opens on the beatmap playing in the menu.
                             MusicManager.currentBeatmap?.let { GlobalManager.getInstance().selectedBeatmap = it }
@@ -230,7 +224,7 @@ object MainScene : UIScene() {
 
                             if (LibraryManager.getLibrary().isEmpty()) {
                                 Verktex.withTreeLock { Verktex.popScene() }
-                                BeatmapListing().show()
+                                OsuPlatform.implementation.showBeatmapListing()
                             } else {
                                 Verktex.withTreeLock {
                                     Verktex.popScene()
@@ -254,8 +248,8 @@ object MainScene : UIScene() {
                         async {
                             LoaderScene().show()
 
-                            GlobalManager.getInstance().mainActivity?.checkNewSkins()
-                            GlobalManager.getInstance().mainActivity?.loadBeatmapLibrary()
+                            OsuPlatform.implementation.checkNewSkins()
+                            OsuPlatform.implementation.loadBeatmapLibrary()
 
                             SongSelect.loadBeatmaps()
 
@@ -269,8 +263,10 @@ object MainScene : UIScene() {
                         }
                     }
 
-                    +menuButton(FAIcon.TableList, "Browse") {
-                        mainThread { BeatmapListing().show() }
+                    if (OsuPlatform.implementation.hasBeatmapListing) {
+                        +menuButton(FAIcon.TableList, "Browse") {
+                            OsuPlatform.implementation.showBeatmapListing()
+                        }
                     }
 
                     +menuButton(FAIcon.Gear, "Settings") {
@@ -321,7 +317,7 @@ object MainScene : UIScene() {
             paddingBottom = 16f.dip
 
             text {
-                text = "osu!droid ${BuildConfig.VERSION_NAME}"
+                text = "osu!droid ${OsuPlatform.implementation.versionName}"
                 backgroundColor = Color4.Black.alpha(0.5f)
                 padding = Padding(8f.dip, 4f.dip)
                 radius = themed { radius.md }
@@ -444,7 +440,7 @@ object MainScene : UIScene() {
             alpha = 0f
 
             fadeIn(3f).after {
-                GlobalManager.getInstance().mainActivity.finish()
+                OsuPlatform.implementation.exitGame()
             }
         }
     }
@@ -462,8 +458,8 @@ object MainScene : UIScene() {
             hasEntered = true
 
             (background as? UIContainer)?.let {
-                addSnowfallWithPeriod(it, global.context)
-                addFireworksWithPeriod(it, global.context)
+                addSnowfallWithPeriod(it)
+                addFireworksWithPeriod(it)
             }
 
             // Only logs in when staying online is enabled.
@@ -717,7 +713,7 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                 text {
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
-                    text = "Version: ${BuildConfig.VERSION_NAME}"
+                    text = "Version: ${OsuPlatform.implementation.versionName}"
                     fontSize = 16f.dip
                 }
 
@@ -731,10 +727,7 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
 
                 fun goToLink(link: String) {
                     hide()
-                    val context = GlobalManager.getInstance().context
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = Uri.parse(link)
-                    context.startActivity(intent)
+                    Platform.openUrl(link)
                 }
 
                 textButton {
@@ -782,28 +775,9 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                 hide()
 
                 try {
-                    val context = GlobalManager.getInstance().context
-                    val changelogFile = File(context.cacheDir, "changelog.html")
-
-                    context.assets.open("app/changelog.html").use { inputStream ->
-                        changelogFile.outputStream().use { outputStream ->
-                            val buffer = ByteArray(1024)
-                            var length: Int
-                            while ((inputStream.read(buffer).also { length = it }) > 0) {
-                                outputStream.write(buffer, 0, length)
-                            }
-                        }
-                    }
-
-                    val changelogUri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileProvider", changelogFile)
-
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.setDataAndType(changelogUri, "text/html")
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-                    context.startActivity(intent)
+                    OsuPlatform.implementation.openChangelog()
                 } catch (e: Exception) {
-                    Log.e("MainScene", "Failed to load changelog", e)
+                    Logger.e("MainScene", "Failed to load changelog", e)
                 }
             }
         }

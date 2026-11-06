@@ -1,20 +1,17 @@
 package com.osudroid.ui.v2.settings
 
 import com.reco1l.verktex.Platform
+import com.osudroid.OsuPlatform
+import com.osudroid.ui.v2.LoaderScene
 import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToInt
 import com.reco1l.verktex.graphics.GraphicsBackend
-import com.reco1l.verktex.android.isVulkanAvailable
-import com.reco1l.verktex.android.resetVulkanCrashGuard
 import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.form.FormSelect
 import com.reco1l.verktex.ui.UIButton
 import kotlin.math.max
-import androidx.core.content.getSystemService
-import android.content.ClipboardManager
-import android.content.ClipData
 import com.reco1l.verktex.ui.form.FormSlider
 import com.reco1l.verktex.ui.form.FormInput
 import com.reco1l.verktex.ui.form.FormControl
@@ -25,17 +22,6 @@ import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.ui.v2.SkinSounds
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
-import androidx.preference.PreferenceManager
-import com.acivev.VibratorManager
-import com.edlplan.ui.fragment.LoadingFragment
-import com.google.android.material.snackbar.Snackbar
-import com.osudroid.UpdateManager
 import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.resources.Res
@@ -50,10 +36,8 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.ui.control.UISelect
 import kotlinx.coroutines.Job
 import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.ConfigBackup
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
-import ru.nsu.ccfit.zuev.osu.MainActivity
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -240,10 +224,7 @@ val roomSection = listOf(
                 onClick = {
                     val room = Multiplayer.room
                     if (room != null) {
-                        val context = GlobalManager.getInstance().context
-                        context.getSystemService<ClipboardManager>()?.setPrimaryClip(
-                            ClipData.newPlainText(room.name, "${LobbyAPI.INVITE_HOST}/${room.id}/")
-                        )
+                        OsuPlatform.implementation.copyToClipboard(room.name, "${LobbyAPI.INVITE_HOST}/${room.id}/")
                         ToastLogger.showText("Link copied to clipboard. If the room has a password, you can write it at the end of the link.", false)
                     }
                 }
@@ -313,8 +294,7 @@ val generalSection = listOf(
                 title = Res.string.opt_register_title,
                 summary = Res.string.opt_register_summary,
                 onClick = {
-                    val context = GlobalManager.getInstance().context
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(REGISTER_URL)))
+                    Platform.openUrl(REGISTER_URL)
                 }
             )
         )
@@ -341,13 +321,15 @@ val generalSection = listOf(
                 title = Res.string.opt_update_title,
                 summary = Res.string.opt_update_summary,
                 onClick = {
-                    UpdateManager.checkNewUpdates(false)
+                    OsuPlatform.implementation.checkForUpdates(false)
                 }
             )
-        )
+        ),
+        isVisible = OsuPlatform.implementation.canCheckForUpdates
     ),
 
     CategoryInfo(
+        isVisible = OsuPlatform.implementation.canBackUpPreferences,
         title = StringTable.get(Res.string.opt_category_config_backup),
         options = listOf(
             OptionInfo(
@@ -356,7 +338,7 @@ val generalSection = listOf(
                 title = Res.string.opt_config_backup_title,
                 summary = Res.string.opt_config_backup_summary,
                 onClick = {
-                    val success = ConfigBackup.exportPreferences()
+                    val success = OsuPlatform.implementation.exportPreferences()
                     ToastLogger.showText(
                         if (success) Res.string.config_backup_info_success else Res.string.config_backup_info_fail,
                         true
@@ -369,14 +351,13 @@ val generalSection = listOf(
                 title = Res.string.opt_config_backup_restore_title,
                 summary = Res.string.opt_config_backup_restore_summary,
                 onClick = {
-                    val context = GlobalManager.getInstance().context
-                    val success = ConfigBackup.importPreferences()
+                    val success = OsuPlatform.implementation.importPreferences()
 
                     if (success) {
-                        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+                        val prefs = OsuPlatform.implementation.preferences
                         GlobalManager.getInstance().songService.volume = prefs.getInt("bgmvolume", 100) / 100f
 
-                        loadSkin(context, prefs.getString("skinPath", "")!!).invokeOnCompletion {
+                        loadSkin(prefs.getString("skinPath", "")).invokeOnCompletion {
                             mainThread {
                                 ToastLogger.showText(Res.string.config_backup_restore_info_success, true)
                             }
@@ -390,6 +371,7 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
+        isVisible = OsuPlatform.implementation.canChooseLanguage,
         title = StringTable.get(Res.string.opt_category_localization),
         options = listOf(
             OptionInfo(
@@ -438,14 +420,7 @@ val generalSection = listOf(
                     @Suppress("UNCHECKED_CAST")
                     val selected = (value as List<String>)[0]
 
-                    val locale = LocaleListCompat.forLanguageTags(selected)
-                    AppCompatDelegate.setApplicationLocales(locale)
-
-                    // Headless (e.g. in the UI test browser) there's no game to restart.
-                    val context = GlobalManager.getInstance().mainActivity ?: return@OptionInfo
-                    val intent = Intent(context, MainActivity::class.java)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    context.startActivity(intent)
+                    OsuPlatform.implementation.setLanguage(selected)
 
                 }
             )
@@ -480,9 +455,8 @@ val gameplaySection = listOf(
                 onChange = { value ->
                     @Suppress("UNCHECKED_CAST")
                     val newValue = (value as List<String>).firstOrNull() ?: return@OptionInfo
-                    val context = GlobalManager.getInstance().context
                     Config.setString("skinPath", newValue)
-                    loadSkin(context, newValue)
+                    loadSkin(newValue)
                 }
             ),
             OptionInfo(
@@ -741,9 +715,8 @@ const val RESOLUTION_SCALE_KEY = "resolutionScale"
 const val GRAPHICS_BACKEND_KEY = "graphicsBackend"
 
 private fun graphicsBackendOption(): OptionInfo {
-    val context = GlobalManager.getInstance().context
     // The experimental Vulkan backend is only offered where the device reports Vulkan 1.1.
-    val withVulkan = isVulkanAvailable(context)
+    val withVulkan = OsuPlatform.implementation.isVulkanAvailable
 
     return OptionInfo(
         type = OptionType.Select,
@@ -759,7 +732,7 @@ private fun graphicsBackendOption(): OptionInfo {
             // The engine keeps the backend it was initialized with until the game restarts.
             if (selected == GraphicsBackend.Vulkan.name) {
                 // Picking it again retries it, even if it crashed while starting the last time.
-                resetVulkanCrashGuard(context)
+                OsuPlatform.implementation.resetVulkanCrashGuard()
                 ToastLogger.showText(Res.string.opt_graphics_backend_vulkan_experimental, true)
             } else {
                 ToastLogger.showText(Res.string.opt_graphics_backend_restart, true)
@@ -1051,7 +1024,8 @@ val librarySection = listOf(
                 key = "importReplay",
                 title = Res.string.opt_import_replay_title,
                 summary = Res.string.opt_import_replay_summary,
-                onClick = { pickAndImportReplays() }
+                onAttach = { it.isVisible = OsuPlatform.implementation.canImportReplays },
+                onClick = { OsuPlatform.implementation.pickAndImportReplays() }
             )
         )
     ),
@@ -1104,8 +1078,9 @@ val inputSection = listOf(
                 key = "block_areas",
                 title = Res.string.block_area_preference_title,
                 summary = Res.string.block_area_preference_summary,
+                onAttach = { it.isVisible = OsuPlatform.implementation.hasBlockAreaEditor },
                 onClick = {
-                    com.osudroid.ui.v1.BlockAreaEditorFragment().show()
+                    OsuPlatform.implementation.showBlockAreaEditor()
                 }
             ),
             OptionInfo(
@@ -1137,6 +1112,7 @@ val inputSection = listOf(
     ),
 
     CategoryInfo(
+        isVisible = OsuPlatform.implementation.vibrations != null,
         title = "Vibration",
         options = listOf(
             OptionInfo(
@@ -1145,7 +1121,7 @@ val inputSection = listOf(
                 title = "Circle",
                 defaultValue = false,
                 onChange = { value ->
-                    VibratorManager.isCircleVibrationEnabled = value as Boolean
+                    OsuPlatform.implementation.vibrations?.isCircleVibrationEnabled = value as Boolean
                 }
             ),
             OptionInfo(
@@ -1154,7 +1130,7 @@ val inputSection = listOf(
                 title = "Slider",
                 defaultValue = false,
                 onChange = { value ->
-                    VibratorManager.isSliderVibrationEnabled = value as Boolean
+                    OsuPlatform.implementation.vibrations?.isSliderVibrationEnabled = value as Boolean
                 }
             ),
             OptionInfo(
@@ -1163,7 +1139,7 @@ val inputSection = listOf(
                 title = "Spinner",
                 defaultValue = false,
                 onChange = { value ->
-                    VibratorManager.isSpinnerVibrationEnabled = value as Boolean
+                    OsuPlatform.implementation.vibrations?.isSpinnerVibrationEnabled = value as Boolean
                 }
             ),
             OptionInfo(
@@ -1177,7 +1153,7 @@ val inputSection = listOf(
                 step = 1f,
                 valueFormatter = { "${((it / 255f) * 100f).toInt()}%" },
                 onChange = { value ->
-                    VibratorManager.intensity = (value as Float).toInt()
+                    OsuPlatform.implementation.vibrations?.intensity = (value as Float).toInt()
                 }
             )
         )
@@ -1250,12 +1226,10 @@ val advancedSection = listOf(
                 summary = Res.string.opt_force_max_refresh_rate_summary,
                 defaultValue = false,
                 onAttach = { component ->
-                    // Obtaining supported refresh rates is only available on Android 12 and above.
-                    // See https://developer.android.com/reference/android/view/Display.Mode#getAlternativeRefreshRates().
-                    component.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                    component.isVisible = OsuPlatform.implementation.canForceMaxRefreshRate
                 },
                 onChange = { value ->
-                    GlobalManager.getInstance().mainActivity?.applyRefreshRateSetting(value as Boolean)
+                    OsuPlatform.implementation.applyRefreshRateSetting(value as Boolean)
                 }
             ),
             OptionInfo(
@@ -1275,27 +1249,25 @@ private fun String.withTrailingSlash() = if (endsWith('/')) this else "$this/"
 const val REGISTER_URL: String = "https://${OnlineManager.hostname}/user/?action=register"
 
 // Helper functions
-fun loadSkin(context: Context, path: String): Job {
-    val loading = LoadingFragment()
-
-    loading.isDismissOnBackPress = false
+fun loadSkin(path: String): Job {
+    val loading = LoaderScene()
     loading.show()
 
     return async {
-        BeatmapSkinManager.getInstance().clearSkin()
-        Config.setSkinPath(path)
-        Skin.load(path)
-        SkinSounds.onSkinChanged()
-        Verktex.withTreeLock { SkinTextures.onSkinChanged() }
-
-        mainThread {
-            loading.dismiss()
-            val mainActivity = GlobalManager.getInstance().mainActivity ?: return@mainThread
-            Snackbar.make(
-                mainActivity.window.decorView,
-                StringTable.get(Res.string.message_loaded_skin),
-                1500
-            ).show()
+        try {
+            BeatmapSkinManager.getInstance().clearSkin()
+            Config.setSkinPath(path)
+            Skin.load(path)
+            SkinSounds.onSkinChanged()
+            Verktex.withTreeLock { SkinTextures.onSkinChanged() }
+        } finally {
+            Verktex.withTreeLock {
+                if (Verktex.scene == loading) {
+                    Verktex.popScene()
+                }
+            }
         }
+
+        ToastLogger.showText(Res.string.message_loaded_skin, false)
     }
 }

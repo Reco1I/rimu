@@ -38,4 +38,10 @@ class AndroidPlatform(private val context: android.content.Context) : Platform.I
         WebPageActivity.open(context, url, userAgent)
     }
 
+    override fun openUrl(url: String) {
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    }
+
 }

@@ -1,11 +1,10 @@
 package com.osudroid.ui
 
+import com.reco1l.verktex.Platform
 import com.osudroid.utils.*
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 
-import android.content.Intent
-import android.net.Uri
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.framework.net.JsonArrayRequest
@@ -150,9 +149,7 @@ object BannerManager {
                 val banner = banners[currentBannerIndex]
 
                 if (event.action == PointerEvent.Action.Up && banner.url.isNotBlank()) {
-                    val uri = Uri.parse(banner.url)
-                    val intent = Intent(Intent.ACTION_VIEW, uri)
-                    GlobalManager.getInstance().mainActivity.startActivity(intent)
+                    Platform.openUrl(banner.url)
                 }
             }
 

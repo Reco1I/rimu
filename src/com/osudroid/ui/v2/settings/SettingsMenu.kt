@@ -69,6 +69,11 @@ data class CategoryInfo(
      * The options that will be displayed in the category.
      */
     val options: List<OptionInfo>,
+
+    /**
+     * Whether the category is shown, false for features the platform doesn't have.
+     */
+    val isVisible: Boolean = true,
 )
 
 enum class OptionType {
@@ -345,7 +350,7 @@ class SettingsMenu : UIScene() {
         sectionScroll.scrollY = 0f
 
         sectionContainer.apply {
-            content.forEachIndexed { index, category ->
+            content.filter { it.isVisible }.forEachIndexed { index, category ->
 
                 linearContainer {
                     orientation = UILinearContainer.Orientation.Vertical
@@ -361,7 +366,6 @@ class SettingsMenu : UIScene() {
                     category.options.forEach { option ->
                         val title = when (option.title) {
                             is StringResource -> StringTable.get(option.title)
-                            is Int -> GlobalManager.getInstance().context.getString(option.title)
                             else -> option.title.toString()
                         }
 
@@ -410,7 +414,6 @@ class SettingsMenu : UIScene() {
         val summary = when (option.summary) {
             null -> return
             is StringResource -> StringTable.get(option.summary)
-            is Int -> GlobalManager.getInstance().context.getString(option.summary)
             else -> option.summary.toString()
         }
 

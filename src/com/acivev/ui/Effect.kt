@@ -1,7 +1,6 @@
 package com.acivev.ui
 
-import android.content.Context
-import com.acivev.utils.DevicePerformanceUtil
+import com.osudroid.OsuPlatform
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.graphics.BlendMode
 import com.reco1l.verktex.texture.Textures
@@ -161,7 +160,7 @@ private class Fireworks(private val isLowEndDevice: Boolean) : UIContainer() {
 /**
  * Adds snowfall between December 15 and January 6, excluding the time of the fireworks.
  */
-fun addSnowfallWithPeriod(container: UIContainer, context: Context) {
+fun addSnowfallWithPeriod(container: UIContainer) {
     val calendar = Calendar.getInstance()
     val month = calendar.get(Calendar.MONTH)
     val day = calendar.get(Calendar.DAY_OF_MONTH)
@@ -171,19 +170,19 @@ fun addSnowfallWithPeriod(container: UIContainer, context: Context) {
     val isSnowfallPeriod = (month == Calendar.DECEMBER && day >= 15) || (month == Calendar.JANUARY && day <= 6)
 
     if (isSnowfallPeriod && !isFireworksPeriod) {
-        container += Snowfall(DevicePerformanceUtil.isLowEndDevice(context))
+        container += Snowfall(OsuPlatform.implementation.isLowEndDevice)
     }
 }
 
 /**
  * Adds fireworks during the first 20 hours of January 1st.
  */
-fun addFireworksWithPeriod(container: UIContainer, context: Context) {
+fun addFireworksWithPeriod(container: UIContainer) {
     val calendar = Calendar.getInstance()
 
     if (calendar.get(Calendar.MONTH) == Calendar.JANUARY
         && calendar.get(Calendar.DAY_OF_MONTH) == 1
         && calendar.get(Calendar.HOUR_OF_DAY) < 20) {
-        container += Fireworks(DevicePerformanceUtil.isLowEndDevice(context))
+        container += Fireworks(OsuPlatform.implementation.isLowEndDevice)
     }
 }
