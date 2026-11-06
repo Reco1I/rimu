@@ -42,9 +42,10 @@ class PixelsTextureSource(
             // stb_image doesn't premultiply, the pixels have straight alpha as textures expect.
             val decoded = STBImage.stbi_load_from_memory(input, width, height, channels, 4) ?: return null
 
-            // Copied to memory the garbage collector owns, so the source needs no explicit release.
+            // Copied to memory the garbage collector owns, so the source needs no explicit release. The copy
+            // reads a duplicate: LWJGL frees the buffer's current position, which reading moves to its end.
             val pixels = ByteBuffer.allocateDirect(decoded.remaining()).order(ByteOrder.nativeOrder())
-            pixels.put(decoded).flip()
+            pixels.put(decoded.duplicate()).flip()
             STBImage.stbi_image_free(decoded)
 
             PixelsTextureSource(width[0], height[0], pixels)
