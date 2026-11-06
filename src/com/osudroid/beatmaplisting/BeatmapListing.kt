@@ -1,5 +1,8 @@
 package com.osudroid.beatmaplisting
 
+import io.ktor.client.request.get
+import io.ktor.client.call.body
+import com.osudroid.online.httpClient
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import android.graphics.BitmapFactory
@@ -35,7 +38,6 @@ import com.edlplan.ui.fragment.BaseFragment
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.audio.AudioStream
-import com.osudroid.online.OsuHttp
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel.OrderType
@@ -255,10 +257,10 @@ class BeatmapListing : BaseFragment(),
                 status = filtersFragment.rankedStatus
             )
 
-            val json = OsuHttp.getJsonArray(url) { header(HttpHeaders.UserAgent, OsuHttp.MIRROR_USER_AGENT) }
+            val response = httpClient.get(url) { header(HttpHeaders.UserAgent, MIRROR_USER_AGENT) }
             ensureActive()
 
-            val beatmapSets = mirror.search.response(json)
+            val beatmapSets = mirror.search.response(response)
             ensureActive()
 
             mainThread {
@@ -635,7 +637,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
             coverJob = mediaScope.launch {
 
                 try {
-                    val bytes = OsuHttp.getBytes(beatmapSet.thumbnail!!)
+                    val bytes = httpClient.get(beatmapSet.thumbnail!!).body<ByteArray>()
                     ensureActive()
 
                     val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)

@@ -1,8 +1,7 @@
 package com.osudroid.beatmaplisting.mirrors
 
-import com.osudroid.utils.*
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
+import io.ktor.client.call.body
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.URLBuilder
 
 import com.osudroid.beatmaplisting.BeatmapMirrorDownloadRequestModel
@@ -12,7 +11,6 @@ import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel.*
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel.OrderType.*
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel.SortType.*
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchResponseModel
-import com.osudroid.beatmaplisting.BeatmapModel
 import com.osudroid.beatmaplisting.BeatmapSetModel
 import ru.nsu.ccfit.zuev.osu.RankedStatus
 
@@ -55,48 +53,8 @@ class OsuDirectSearchRequestModel : BeatmapMirrorSearchRequestModel {
 }
 
 class OsuDirectSearchResponseModel : BeatmapMirrorSearchResponseModel {
-    override fun invoke(response: Any): MutableList<BeatmapSetModel> {
-        response as JsonArray
-
-        return MutableList(response.size) { index ->
-            val json = response.getJsonObject(index)
-
-            BeatmapSetModel(
-                id = json.getLong("id"),
-                title = json.getString("title"),
-                titleUnicode = json.getString("title_unicode"),
-                artist = json.getString("artist"),
-                artistUnicode = json.getString("artist_unicode"),
-                status = RankedStatus.valueOf(json.getInt("ranked")),
-                creator = json.getString("creator"),
-                thumbnail = json.optJsonObject("covers")?.optString("card"),
-                hasVideo = json.getBoolean("video"),
-                beatmaps = json.getJsonArray("beatmaps").let {
-
-                    MutableList(it.size) { i ->
-
-                        val obj = it.getJsonObject(i)
-
-                        BeatmapModel(
-                            id = obj.getLong("id"),
-                            version = obj.getString("version"),
-                            starRating = obj.getDouble("difficulty_rating"),
-                            ar = obj.getDouble("ar"),
-                            cs = obj.getDouble("cs"),
-                            hp = obj.getDouble("drain"),
-                            od = obj.getDouble("accuracy"),
-                            bpm = obj.getDouble("bpm"),
-                            lengthSec = obj.getLong("hit_length"),
-                            circleCount = obj.getInt("count_circles"),
-                            sliderCount = obj.getInt("count_sliders"),
-                            spinnerCount = obj.getInt("count_spinners")
-                        )
-
-                    }.sortedBy(BeatmapModel::starRating)
-                }
-            )
-        }
-    }
+    override suspend fun invoke(response: HttpResponse): MutableList<BeatmapSetModel> =
+        response.body<List<MirrorBeatmapSet>>().mapTo(mutableListOf()) { it.toModel(thumbnail = it.covers?.card) }
 }
 
 class OsuDirectDownloadRequestModel : BeatmapMirrorDownloadRequestModel {

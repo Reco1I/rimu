@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.online
 
-import com.osudroid.online.OsuHttp
+import com.osudroid.online.downloadTo
+import com.osudroid.online.httpClient
 import com.reco1l.verktex.Platform
 import io.ktor.client.request.header
 import kotlin.jvm.JvmStatic
@@ -32,7 +33,7 @@ object OnlineFileOperator {
             // Cheching for errors
             Debug.i("Connected to $urlstr")
 
-            OsuHttp.download(urlstr, file, configure = {
+            httpClient.downloadTo(urlstr, file, configure = {
                 if (checkModificationDate && exists) {
                     header("If-Modified-Since", formatHttpDate(lastModified ?: 0L))
                 }

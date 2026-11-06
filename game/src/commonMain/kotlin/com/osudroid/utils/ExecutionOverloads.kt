@@ -11,7 +11,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
@@ -44,7 +43,7 @@ fun async(block: Runnable) = executionScope.launch { block.run() }
 
 /**
  * Run a task on asynchronous using [executionScope]. The block is a coroutine, it can call suspend
- * functions such as the network requests of [com.osudroid.online.OsuHttp].
+ * functions such as the requests of [com.osudroid.online.httpClient].
  */
 fun async(block: suspend CoroutineScope.() -> Unit) = executionScope.launch(block = block)
 

@@ -1,5 +1,7 @@
 package com.osudroid.beatmaplisting
 
+import com.osudroid.online.downloadTo
+import com.osudroid.online.httpClient
 import com.osudroid.settings.GameFolders
 import com.osudroid.android.AndroidGame
 import com.osudroid.OsuPlatform
@@ -8,7 +10,6 @@ import android.os.Environment.DIRECTORY_DOWNLOADS
 import android.view.View
 import com.osudroid.resources.Res
 import com.osudroid.online.DownloadProgress
-import com.osudroid.online.OsuHttp
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.CancellationException
@@ -18,7 +19,6 @@ import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.ui.v1.DownloadFragment
 import com.osudroid.utils.async
 import net.lingala.zip4j.ZipFile
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils
 import java.io.IOException
@@ -65,8 +65,8 @@ object BeatmapDownloader {
                 }
 
                 try {
-                    OsuHttp.download(url, file.toOkioPath(), configure = {
-                        header(HttpHeaders.UserAgent, OsuHttp.MIRROR_USER_AGENT)
+                    httpClient.downloadTo(url, file.toOkioPath(), configure = {
+                        header(HttpHeaders.UserAgent, MIRROR_USER_AGENT)
                     }, onProgress = ::onDownloadUpdate)
                 } catch (e: CancellationException) {
                     onDownloadCancel()

@@ -1,6 +1,10 @@
 package ru.nsu.ccfit.zuev.osu.online
 
-import com.osudroid.online.OsuHttp
+import com.osudroid.online.httpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.Serializable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import com.osudroid.settings.GameFolders
@@ -8,20 +12,14 @@ import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.OsuPlatform
 import com.osudroid.data.BeatmapInfo
-import com.osudroid.utils.JsonException
-import com.osudroid.utils.LenientJson
 import com.reco1l.verktex.Platform
-import com.osudroid.utils.optInt
 import com.osudroid.utils.sha256Checksum
 
 import ru.nsu.ccfit.zuev.osu.helper.Debug
 
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmName
-import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
-import kotlinx.serialization.json.JsonObject
-import okio.IOException
 import okio.Path.Companion.toPath
 
 import com.osudroid.ui.v2.CachedTextures
@@ -261,19 +259,20 @@ class OnlineManager {
         return response
     }
 
-    @Throws(OnlineManagerException::class)
+    /**
+     * The ranked status of a beatmap on osu.direct, as it answers it.
+     */
+    @Serializable
+    private class BeatmapStatusResponse(val ranked: Int = 0)
+
     suspend fun getBeatmapStatus(md5: String): RankedStatus? {
         try {
-            val json = OsuHttp.getJsonObject("https://osu.direct/api/v2/md5/$md5")
-            return RankedStatus.valueOf(json.optInt("ranked"))
-        } catch (e: IOException) {
-            Debug.e("getBeatmapStatus IOException " + e.message, e)
-        } catch (e: JsonException) {
-            Debug.e("getBeatmapStatus JSONException " + e.message, e)
-        } catch (e: kotlinx.serialization.SerializationException) {
-            Debug.e("getBeatmapStatus JSONException " + e.message, e)
-        } catch (e: IllegalArgumentException) {
-            Debug.e("getBeatmapStatus IllegalArgumentException " + e.message, e)
+            val response = httpClient.get("https://osu.direct/api/v2/md5/$md5").body<BeatmapStatusResponse>()
+            return RankedStatus.valueOf(response.ranked)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Debug.e("getBeatmapStatus: " + e.message, e)
         }
 
         return null

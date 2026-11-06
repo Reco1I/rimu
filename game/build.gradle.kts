@@ -188,6 +188,10 @@ kotlin {
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
             api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
+            // Response bodies read as @Serializable classes, see com.osudroid.online.httpClient.
+            implementation("io.ktor:ktor-client-content-negotiation:3.1.3")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.3")
+
             // Files, streams and hashing.
             api("com.squareup.okio:okio:3.9.1")
 
@@ -210,6 +214,9 @@ kotlin {
 
             // An HTTP engine for the tests that connect, see KtorRoomSocketTest.
             implementation("io.ktor:ktor-client-okhttp:3.1.3")
+
+            // Canned responses for the HTTP client's tests.
+            implementation("io.ktor:ktor-client-mock:3.1.3")
         }
     }
 }

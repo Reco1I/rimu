@@ -2,9 +2,6 @@ package com.osudroid.multiplayer.api
 
 import com.osudroid.utils.*
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 
 import com.osudroid.BuildSettings
 import com.osudroid.debug.MockRoom
@@ -15,7 +12,14 @@ import com.osudroid.multiplayer.api.data.RoomStatus
 import com.osudroid.multiplayer.api.data.TeamMode
 import com.osudroid.multiplayer.api.data.WinCondition
 import com.osudroid.multiplayer.api.data.parseGameplaySettings
-import com.osudroid.online.OsuHttp
+import com.osudroid.online.httpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import kotlinx.serialization.Serializable
 
 object LobbyAPI {
 
@@ -54,7 +58,8 @@ object LobbyAPI {
             )
         }
 
-        val rooms = OsuHttp.getJsonArray("$HOST$GET_ROOMS") {
+        // Read as JSON, the rooms are made as the socket's events make them.
+        val rooms = httpClient.get("$HOST$GET_ROOMS") {
             if (sign != null || query != null) {
                 url {
                     // A null value is sent as a name alone, as it always was.
@@ -64,7 +69,7 @@ object LobbyAPI {
                     parameters.append("sessionId", sessionId)
                 }
             }
-        }
+        }.body<JsonArray>()
 
         return List(rooms.size) { i ->
 
@@ -100,30 +105,45 @@ object LobbyAPI {
             return 1
         }
 
-        val body = buildJsonObject {
-            put("hostUid", hostUID)
-            put("name", name)
-            put("maxPlayers", maxPlayers)
+        val request = CreateRoomRequest(
+            hostUid = hostUID,
+            name = name,
+            maxPlayers = maxPlayers,
+            beatmap = beatmap?.let { CreateRoomRequest.Beatmap(it.md5, it.title, it.artist, it.creator, it.version) },
+            password = password?.takeUnless { it.isBlank() },
+            version = RoomAPI.API_VERSION,
+            sessionId = sessionId,
+            sign = sign,
+        )
 
-            if (beatmap != null) {
-                put("beatmap", buildJsonObject {
-                    putIfNotNull("md5", beatmap.md5)
-                    putIfNotNull("title", beatmap.title)
-                    putIfNotNull("artist", beatmap.artist)
-                    putIfNotNull("creator", beatmap.creator)
-                    putIfNotNull("version", beatmap.version)
-                })
-            }
-
-            if (!password.isNullOrBlank()) {
-                put("password", password)
-            }
-
-            put("version", RoomAPI.API_VERSION)
-            put("sessionId", sessionId)
-            putIfNotNull("sign", sign)
-        }
-
-        return OsuHttp.postJson("$HOST$CREATE_ROOM", body).getString("id").toLong()
+        return httpClient.post("$HOST$CREATE_ROOM") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body<CreateRoomResponse>().id.toLong()
     }
+
+
+    /**
+     * The room to create, as the server takes it. Null values are left out.
+     */
+    @Serializable
+    private class CreateRoomRequest(
+        val hostUid: Long,
+        val name: String,
+        val maxPlayers: Int,
+        val beatmap: Beatmap?,
+        val password: String?,
+        val version: Int,
+        val sessionId: String,
+        val sign: String?,
+    ) {
+        @Serializable
+        class Beatmap(val md5: String?, val title: String?, val artist: String?, val creator: String?, val version: String?)
+    }
+
+    /**
+     * The room created, of which only the id is read. It's a number the server may send as text.
+     */
+    @Serializable
+    private class CreateRoomResponse(val id: String)
 }

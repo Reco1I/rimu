@@ -558,12 +558,23 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
   OkHttp on Android and desktop (`ktor-client-okhttp` in each platform module), null by default.
   `Network.createClient(configure)` builds a client over it, and `Network.client` is a shared default.
 - In the game:
-  - `OsuHttp` holds the game's client (`expectSuccess = false`) and suspend helpers: `getJsonObject`,
-    `getJsonArray` (lenient JSON, checked as `JsonObjectRequest`/`JsonArrayRequest` did), `postJson`,
-    `postForm`, `postMultipart` (with `FormPart`s), `getBytes`, and `download`. `download` streams
-    `bodyAsChannel()` into an Okio sink with a `DownloadProgress` callback, deletes the file if it
-    doesn't finish, and lets a `304` through for `If-Modified-Since`. An unsuccessful response throws
-    `HttpStatusException`.
+  - The game uses Ktor directly. `httpClient` (`com/osudroid/online/HttpClient.kt`) is the game's
+    client:
+    - `expectSuccess`, so an unsuccessful response throws Ktor's `ResponseException`.
+    - `ContentNegotiation` with `NetworkJson`: the lenient JSON, ignoring unknown keys, coercing nulls
+      to defaults and leaving nulls out of requests. It's registered for `ContentType.Any`, since some
+      servers answer JSON as `text/html`.
+    Responses are `@Serializable` classes read with `body<T>()`: the leaderboard
+    (`LeaderboardResponse`), the beatmap status, the banners, the update check, room creation (its
+    request too) and the mirrors' searches (`MirrorBeatmapSet`, shared by both mirrors, read by the
+    `BeatmapMirrorSearchResponseModel`s from the `HttpResponse`). The lobby's rooms stay a
+    `JsonArray`, since `Room` is made from JSON objects as the socket's events make it. Forms use
+    `submitForm`/`submitFormWithBinaryData` in the post builders.
+  - `downloadTo` is the one helper: an `HttpClient` extension streaming `bodyAsChannel()` into an
+    Okio sink with a `DownloadProgress` callback. It deletes the file if it doesn't finish, and
+    returns false for a `304` (for `If-Modified-Since`).
+  - A first version had an `OsuHttp` wrapper with JSON helpers returning `JsonObject`s, which was
+    replaced by the above.
   - `async {}` and `delayed {}` take a `suspend` block, so their bodies call the requests directly.
   - Suspend now: `OnlineManager`'s requests (login, score submission, leaderboards, beatmap status,
     avatar and banner downloads; the login lock is a `Mutex`), `PostBuilder.requestWithAttempts`
@@ -581,10 +592,12 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
     `OkHttpClientImplementation`), its `Http.implementation` setup in the three hosts, `sleepBlocking`,
     and the direct OkHttp dependencies of `:game`, `:game-desktop` and the app (socket.io-client still
     brings it to Android).
-  - Not added: the content negotiation plugin, since the game reads `JsonObject`s rather than
-    serializable classes, and a global user agent or timeouts, so the servers see the requests as
-    before (OkHttp's defaults; the mirrors still get `Chrome/Android`).
-- Tests: `UrlParametersTest` replaces `HttpUrlBuilderTest`.
+  - Not added: a global user agent or timeouts, so the servers see the requests as before (OkHttp's
+    defaults; the mirrors still get `Chrome/Android`, `MIRROR_USER_AGENT`).
+- Tests: `UrlParametersTest` replaces `HttpUrlBuilderTest`. `HttpClientTest` checks the client's
+  configuration over Ktor's `MockEngine`: JSON as `text/html`, unknown fields, coerced nulls, a
+  number read as a string, nulls left out of requests, failures, the leaderboard and mirror shapes,
+  and downloads with a `304`.
 - Checked: the core, desktop and game tests, the app's unit tests compiling, the common checks and
   `assembleDebug`. Not run against the servers: login, score submission, leaderboards, the beatmap
   listing, downloads and updates weren't tried.
