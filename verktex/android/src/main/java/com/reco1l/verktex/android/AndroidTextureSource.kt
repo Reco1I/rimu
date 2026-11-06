@@ -38,7 +38,7 @@ class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
         // Targets take tightly packed rows, OpenGL ES 2.0 has no GL_UNPACK_ROW_LENGTH to skip the padding.
         val pixels = if (rowStride == width) buffer else packRows(buffer, width, height, rowStride)
 
-        target.write(x, y, width, height, pixels.asReadBuffer())
+        target.write(x, y, width, height, pixels)
     }
 
     companion object {

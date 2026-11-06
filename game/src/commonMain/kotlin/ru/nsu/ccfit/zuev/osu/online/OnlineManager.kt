@@ -4,7 +4,7 @@ import com.osudroid.OsuPlatform
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.utils.JsonException
 import com.osudroid.utils.LenientJson
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import com.osudroid.utils.optInt
 import com.osudroid.utils.sha256Checksum
 import com.reco1l.framework.net.Http
@@ -186,7 +186,7 @@ class OnlineManager {
         Debug.i("Sending record...")
 
         val replayFile = replayPath.toPath()
-        if (!SystemFileSystem.exists(replayFile)) {
+        if (!Platform.fileSystem.exists(replayFile)) {
             failMessage = "Replay file not found"
             Debug.e("Replay file not found")
             return false
@@ -305,7 +305,7 @@ class OnlineManager {
         val picfile = Config.getCachePath().toPath() / filename
         OnlineFileOperator.downloadFile(avatarURL, picfile.toString(), true)
 
-        if (SystemFileSystem.exists(picfile)) {
+        if (Platform.fileSystem.exists(picfile)) {
             // Avatar has been cached locally
             if (CachedTextures[avatarURL] != null) {
                 return true
@@ -316,7 +316,7 @@ class OnlineManager {
             val avatarFile = Config.getCachePath().toPath() / defaultAvatarFilename
             OnlineFileOperator.downloadFile(defaultAvatarURL, avatarFile.toString())
 
-            if (SystemFileSystem.exists(avatarFile)) {
+            if (Platform.fileSystem.exists(avatarFile)) {
                 //Avatar has been cached locally
                 if (CachedTextures[defaultAvatarURL] != null) {
                     return true
@@ -340,7 +340,7 @@ class OnlineManager {
         val bannerFile = Config.getCachePath().toPath() / filename
         OnlineFileOperator.downloadFile(bannerURL, bannerFile.toString(), true)
 
-        if (!SystemFileSystem.exists(bannerFile)) {
+        if (!Platform.fileSystem.exists(bannerFile)) {
             return false
         }
 

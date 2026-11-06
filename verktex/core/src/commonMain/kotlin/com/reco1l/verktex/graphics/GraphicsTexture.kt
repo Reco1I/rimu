@@ -3,7 +3,6 @@ package com.reco1l.verktex.graphics
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.atomicfu.locks.SynchronizedObject
 import com.reco1l.verktex.data.Vec4
-import com.ditchoom.buffer.ReadBuffer
 
 /**
  * The [GraphicsTexture] class represents a texture resource that can be used for rendering in the application.
@@ -164,7 +163,7 @@ abstract class GraphicsTexture : GraphicsResource() {
      * Called while the pending sources are written, see [flushUploads], with the pixels of a
      * rectangle of the texture as described by [PixelTarget]. It may change which texture is bound.
      */
-    protected abstract fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ReadBuffer)
+    protected abstract fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: PixelBuffer)
 
     /**
      * Called when the texture should be created on the GPU with storage for [width] x [height] pixels.
@@ -280,7 +279,7 @@ abstract class GraphicsTexture : GraphicsResource() {
          * with straight alpha, rows tightly packed from the top, between its position and limit.
          * The buffer is only read during the call.
          */
-        fun write(x: Int, y: Int, width: Int, height: Int, pixels: ReadBuffer)
+        fun write(x: Int, y: Int, width: Int, height: Int, pixels: PixelBuffer)
     }
 }
 

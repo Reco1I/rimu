@@ -2,6 +2,7 @@
 
 package com.osudroid.utils
 
+import com.reco1l.verktex.Platform
 import kotlin.jvm.JvmName
 import okio.use
 import okio.HashingSink
@@ -26,7 +27,7 @@ fun sha256Checksum(path: String): String = checksum(path) { HashingSink.sha256(i
 private fun checksum(path: String, createSink: (okio.Sink) -> HashingSink): String {
     return try {
         val hashingSink = createSink(blackholeSink())
-        SystemFileSystem.source(path.toPath()).buffer().use { source ->
+        Platform.fileSystem.source(path.toPath()).buffer().use { source ->
             hashingSink.buffer().use { source.readAll(it) }
         }
         hashingSink.hash.hex()

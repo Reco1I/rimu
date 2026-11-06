@@ -2,7 +2,7 @@ package ru.nsu.ccfit.zuev.skins
 
 import com.reco1l.verktex.data.Color4
 
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import kotlin.jvm.JvmStatic
 import okio.Path.Companion.toPath
 
@@ -28,12 +28,12 @@ class BeatmapSkinManager private constructor() {
         skinname = beatmapFolder
         val folderFile = beatmapFolder.toPath()
         val endsWithExtensions = arrayOf(".wav", ".mp3", ".ogg", ".png", ".jpg")
-        val folderFiles = (SystemFileSystem.listOrNull(folderFile) ?: emptyList()).filter { file ->
+        val folderFiles = (Platform.fileSystem.listOrNull(folderFile) ?: emptyList()).filter { file ->
             val filename = file.name.lowercase()
             endsWithExtensions.any { filename.endsWith(it) }
         }
         for (f in folderFiles) {
-            val metadata = SystemFileSystem.metadataOrNull(f)
+            val metadata = Platform.fileSystem.metadataOrNull(f)
             if (metadata == null || !metadata.isRegularFile) {
                 continue
             }

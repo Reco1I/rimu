@@ -348,7 +348,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 
 | Phase | State |
 |---|---|
-| 1. File system and buffers | Not started |
+| 1. File system and buffers | Done |
 | 2. Toasts | Not started |
 | 3. `MusicService` | Not started |
 | 4. Localization | Not started |
@@ -359,3 +359,24 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 9. Database in Verktex | Not started |
 | 10. `Path` and `UIPath` | Not started |
 | 11. Video | Not started |
+
+### Phase 1: file system and buffers
+
+- DitchOoM's buffer is gone. Textures take a `PixelBuffer`, an `expect sealed class` that is
+  `java.nio.ByteBuffer` on the JVM (sealed, since recent JDKs seal `ByteBuffer`). Both platforms'
+  `Buffers.kt` bridges were deleted. Backends pass the buffer to GL, GLES and Vulkan as before.
+- The unused `kotlinx-io-core` was dropped from `:verktex:android`.
+- Verktex core depends on Okio. `Platform.fileSystem` replaces the game's `SystemFileSystem`; it
+  doesn't need `Platform.implementation`, so tests can use it.
+- `Platform.storage` (`dataDirectory`, `cacheDirectory`, `externalDirectory`) replaces
+  `OsuPlatform.defaultCorePath`, `cachePath` and `canUseStorage`.
+  - Android: `filesDir`, `cacheDir`, and the external storage when it's mounted.
+  - Desktop: the system's application data folder (`%APPDATA%`, `Application Support`,
+    `$XDG_DATA_HOME`) named after the host's title, the temporary folder, and the home folder. Both
+    folders are created at startup.
+  - The game's default folder is `<external or data>/osu!droid/`. That's the same path as before,
+    except on an Android device whose storage isn't mounted, which now falls back to the private folder.
+- Checked: the core, desktop and game tests, the common checks, `assembleDebug`, and the desktop game.
+  Not checked on a device; no phone was connected.
+- Already failing before this phase: `ColorInheritanceTest`, `PointerEventTest` and
+  `ThemedValuesTest` in `:verktex:core:jvmTest`.

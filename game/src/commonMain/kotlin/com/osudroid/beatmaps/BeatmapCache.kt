@@ -5,7 +5,7 @@ import com.osudroid.data.BeatmapSetInfo
 import com.osudroid.beatmaps.parser.BeatmapParser
 import com.osudroid.GameMode
 import com.osudroid.utils.LRUCache
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import com.osudroid.utils.md5Checksum
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
@@ -87,7 +87,7 @@ object BeatmapCache {
             return cache
         }
 
-        if (!SystemFileSystem.exists(beatmapInfo.path.toPath())) {
+        if (!Platform.fileSystem.exists(beatmapInfo.path.toPath())) {
             throw IOException("Beatmap file does not exist: ${beatmapInfo.path}")
         }
 

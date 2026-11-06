@@ -94,7 +94,8 @@ abstract class DesktopGameHost(
             Platform.implementation = DesktopPlatform(
                 density = scaleX[0].takeIf { it > 0f } ?: 1f,
                 width = mode?.width() ?: initialWidth,
-                height = mode?.height() ?: initialHeight
+                height = mode?.height() ?: initialHeight,
+                applicationName = title,
             )
 
             Verktex.initialize(

@@ -16,7 +16,7 @@ import com.osudroid.mods.ModReplayV6
 import com.osudroid.resources.Res
 import com.osudroid.utils.BitSet
 import com.osudroid.utils.ModHashMap
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import com.osudroid.utils.applyMods
 import com.osudroid.utils.deserializeMods
 import kotlin.jvm.JvmField
@@ -185,7 +185,7 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
         val path = replayFilePath.toPath()
 
         val source = try {
-            SystemFileSystem.source(path)
+            Platform.fileSystem.source(path)
         } catch (e: IOException) {
             Debug.e("Cannot load replay: " + e.message, e)
             return false

@@ -1,6 +1,6 @@
 package com.reco1l.verktex.android.gles
 
-import com.ditchoom.buffer.ReadBuffer
+import com.reco1l.verktex.graphics.PixelBuffer
 import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
@@ -98,7 +98,7 @@ open class ESExternalTexture(
     override fun addSource(source: Source): Region? = null
 
     // Nothing is written, there are no sources.
-    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ReadBuffer) = Unit
+    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: PixelBuffer) = Unit
 
     override fun onBindTexture() {
         bindExternalTexture()

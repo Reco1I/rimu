@@ -51,15 +51,6 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
     // Committed right away as the preferences always were.
     override val preferences = SharedPreferencesSettings(PreferenceManager.getDefaultSharedPreferences(activity), commit = true)
 
-    override val defaultCorePath: String
-        get() = Environment.getExternalStorageDirectory().toString() + "/osu!droid/"
-
-    override val canUseStorage: Boolean
-        get() = ru.nsu.ccfit.zuev.osu.helper.FileUtils.canUseSD()
-
-    override val cachePath: String
-        get() = activity.cacheDir.path
-
     override val displayWidth: Int
         get() = realDisplayMetrics().widthPixels
 

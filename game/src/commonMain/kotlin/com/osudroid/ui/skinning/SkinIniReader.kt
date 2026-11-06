@@ -2,7 +2,7 @@ package com.osudroid.ui.skinning
 
 import com.reco1l.verktex.Logger
 import com.osudroid.OsuPlatform
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import okio.IOException
 import okio.Path.Companion.toPath
 import okio.buffer
@@ -14,7 +14,7 @@ class IniReader(path: String) : AutoCloseable {
 
     val map = HashMap<String, HashMap<String, Any>>()
 
-    private val buffer = SystemFileSystem.source(path.toPath()).buffer()
+    private val buffer = Platform.fileSystem.source(path.toPath()).buffer()
 
     private var currentLine: String? = null
 

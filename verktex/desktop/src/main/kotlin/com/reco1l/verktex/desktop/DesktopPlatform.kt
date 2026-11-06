@@ -5,6 +5,8 @@ import com.reco1l.verktex.Platform
 import com.reco1l.verktex.desktop.bass.BASSAudioDriver
 import com.reco1l.verktex.worker.LoopWorker
 import com.reco1l.verktex.worker.ThreadLoopWorker
+import okio.Path
+import okio.Path.Companion.toPath
 import org.lwjgl.glfw.GLFW.glfwGetTime
 
 /**
@@ -12,12 +14,24 @@ import org.lwjgl.glfw.GLFW.glfwGetTime
  *
  * @param density The scale of the window's content set by the system (e.g. 1.5 at 150%), which
  * density independent sizes follow.
+ * @param applicationName The name of the folders the application keeps its files in, see [storage].
  */
-class DesktopPlatform(density: Float, width: Int, height: Int) : Platform.Implementation {
+class DesktopPlatform(density: Float, width: Int, height: Int, applicationName: String = "Verktex") : Platform.Implementation {
 
     override val provider = DesktopProvider()
     override val audioDriver by lazy { BASSAudioDriver() }
     override val currentDisplay = Platform.Display(density = density, width = width, height = height)
+
+    override val storage = Platform.Storage(
+        dataDirectory = dataDirectory(applicationName),
+        cacheDirectory = System.getProperty("java.io.tmpdir").toPath() / applicationName,
+        externalDirectory = System.getProperty("user.home").toPath(),
+    )
+
+    init {
+        Platform.fileSystem.createDirectories(storage.dataDirectory)
+        Platform.fileSystem.createDirectories(storage.cacheDirectory)
+    }
 
     // A physical keyboard, text is typed into the focused input directly.
     override val usesVirtualKeyboard = false
@@ -54,4 +68,21 @@ class DesktopPlatform(density: Float, width: Int, height: Int) : Platform.Implem
             com.reco1l.verktex.Logger.e("DesktopPlatform", "Couldn't open $url", e)
         }
     }
+}
+
+
+/**
+ * Where each system keeps the files of applications: `%APPDATA%` on Windows, `Application Support`
+ * on macOS, and `$XDG_DATA_HOME` (`~/.local/share` by default) elsewhere.
+ */
+private fun dataDirectory(applicationName: String): Path {
+    val home = System.getProperty("user.home").toPath()
+    val os = System.getProperty("os.name").lowercase()
+
+    val root = when {
+        "win" in os -> System.getenv("APPDATA")?.toPath() ?: (home / "AppData" / "Roaming")
+        "mac" in os -> home / "Library" / "Application Support"
+        else -> System.getenv("XDG_DATA_HOME")?.takeIf { it.isNotEmpty() }?.toPath() ?: (home / ".local" / "share")
+    }
+    return root / applicationName
 }
