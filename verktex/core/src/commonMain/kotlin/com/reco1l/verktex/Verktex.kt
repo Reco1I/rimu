@@ -16,7 +16,7 @@ import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
-import com.reco1l.verktex.settings.Setting
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.time.SystemBasedFrameClock
@@ -257,6 +257,8 @@ object Verktex {
 
             PerformanceStats.updateTime = (monotonicNanos() - updateStartNanos) / 1_000_000f
         }
+
+        Settings.update()
     }
 
     /**
@@ -287,7 +289,7 @@ object Verktex {
         imeShift = clock.interpolateFloat(0.15f, imeShift, targetShift)
     }
 
-    private val showPerformanceOverlay by Setting(VerktexSettings.ShowPerformanceOverlay, false)
+    private val showPerformanceOverlay by VerktexSettings.ShowPerformanceOverlay
     private val performanceOverlay by lazy { UIPerformanceOverlay() }
 
     /**
@@ -386,6 +388,9 @@ object Verktex {
 
         Logger.i("Verktex", "Pausing draw and update workers...")
 
+        // The process can be killed while paused.
+        Settings.flush()
+
         clock.pause()
 
         drawWorker.pause()
@@ -404,6 +409,8 @@ object Verktex {
         }
 
         Logger.i("Verktex", "Disposing engine resources and stopping workers...")
+
+        Settings.flush()
 
         clock.pause()
 

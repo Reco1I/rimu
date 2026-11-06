@@ -1,39 +1,38 @@
 package com.osudroid.ui.v2.settings
 
+import com.reco1l.verktex.settings.SettingKey
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.form.FormCheckbox
 import com.reco1l.verktex.ui.form.FormInput
 import com.reco1l.verktex.ui.form.FormSelect
 import com.reco1l.verktex.ui.form.FormSlider
 import kotlin.math.roundToInt
-import ru.nsu.ccfit.zuev.osu.Config
 
 /*
- * Form controls that persist their value in the shared preferences. These live outside of the
- * Verktex module since the engine does not know about Config.
+ * Form controls that store their value in a setting, whose default is the one the reset button
+ * restores.
  */
 
-class PreferenceCheckbox(private val preferenceKey: String, fallback: Boolean = false) :
-    FormCheckbox(Config.getBoolean(preferenceKey, fallback)) {
+class PreferenceCheckbox(private val setting: SettingKey<Boolean>) : FormCheckbox(Settings[setting]) {
 
     init {
-        defaultValue = fallback
+        defaultValue = setting.default
     }
 
     override fun onControlValueChanged() {
-        Config.setBoolean(preferenceKey, value)
+        Settings[setting] = value
         super.onControlValueChanged()
     }
 }
 
-class PreferenceInput(private val preferenceKey: String, fallback: String = "") :
-    FormInput(Config.getString(preferenceKey, fallback)) {
+class PreferenceInput(private val setting: SettingKey<String>) : FormInput(Settings[setting]) {
 
     init {
-        defaultValue = fallback
+        defaultValue = setting.default
     }
 
     override fun onControlValueChanged() {
-        Config.setString(preferenceKey, value)
+        Settings[setting] = value
         super.onControlValueChanged()
     }
 }
@@ -41,48 +40,45 @@ class PreferenceInput(private val preferenceKey: String, fallback: String = "") 
 /**
  * A select storing its single selected value as a string, the format the legacy list preferences use.
  */
-class PreferenceSelect(private val preferenceKey: String, fallback: String = "") :
-    FormSelect<String>(Config.getString(preferenceKey, fallback).let { if (it.isEmpty()) emptyList() else listOf(it) }) {
+class PreferenceSelect(private val setting: SettingKey<String>) :
+    FormSelect<String>(Settings[setting].let { if (it.isEmpty()) emptyList() else listOf(it) }) {
 
     init {
-        defaultValue = if (fallback.isEmpty()) emptyList() else listOf(fallback)
+        defaultValue = if (setting.default.isEmpty()) emptyList() else listOf(setting.default)
     }
 
     override fun onControlValueChanged() {
-        Config.setString(preferenceKey, value.firstOrNull() ?: "")
+        Settings[setting] = value.firstOrNull() ?: ""
         super.onControlValueChanged()
     }
 }
 
 /**
- * A slider storing its value as a float, for the preferences in [Config.FLOAT_PREFERENCES].
+ * A slider storing its value as a float.
  */
-class FloatPreferenceSlider(private val preferenceKey: String, fallback: Float = 0f) :
-    FormSlider(Config.getNumber(preferenceKey, fallback)) {
+class FloatPreferenceSlider(private val setting: SettingKey<Float>) : FormSlider(Settings[setting]) {
 
     init {
-        defaultValue = fallback
+        defaultValue = setting.default
     }
 
     override fun onControlValueChanged() {
-        Config.setFloat(preferenceKey, value)
+        Settings[setting] = value
         super.onControlValueChanged()
     }
 }
 
 /**
- * A slider storing its value as an integer, for the numeric preferences that are whole numbers
- * (see [Config.PREFERENCE_BOUNDS]).
+ * A slider storing its value as a whole number.
  */
-class IntPreferenceSlider(private val preferenceKey: String, fallback: Int = 0) :
-    FormSlider(Config.getInt(preferenceKey, fallback).toFloat()) {
+class IntPreferenceSlider(private val setting: SettingKey<Int>) : FormSlider(Settings[setting].toFloat()) {
 
     init {
-        defaultValue = fallback.toFloat()
+        defaultValue = setting.default.toFloat()
     }
 
     override fun onControlValueChanged() {
-        Config.setInt(preferenceKey, value.roundToInt())
+        Settings[setting] = value.roundToInt()
         super.onControlValueChanged()
     }
 }

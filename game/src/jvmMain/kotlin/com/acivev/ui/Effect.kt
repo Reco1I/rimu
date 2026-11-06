@@ -1,5 +1,6 @@
 package com.acivev.ui
 
+import com.osudroid.settings.GameResolution
 import com.osudroid.OsuPlatform
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.graphics.BlendMode
@@ -9,7 +10,6 @@ import com.reco1l.verktex.ui.UIParticleSystem
 import com.reco1l.verktex.ui.container.UIContainer
 import java.util.Calendar
 import kotlin.random.Random
-import ru.nsu.ccfit.zuev.osu.Config
 
 private fun Random.nextFloat(from: Float, to: Float) = from + nextFloat() * (to - from)
 
@@ -35,7 +35,7 @@ private class Snowfall(isLowEndDevice: Boolean) : UIParticleSystem(if (isLowEndD
             spawnTimer -= interval
 
             emit(
-                x = Random.nextFloat() * Config.getRES_WIDTH(),
+                x = Random.nextFloat() * GameResolution.width,
                 y = 0f,
                 lifetime = Random.nextFloat(1f, 7f),
                 velocityX = Random.nextFloat(-50f, 50f),
@@ -87,7 +87,7 @@ private class Fireworks(private val isLowEndDevice: Boolean) : UIContainer() {
 
         if (launchTimer <= 0f) {
             launchTimer = Random.nextFloat(1.5f, 4f)
-            launchX = Config.getRES_WIDTH() * Random.nextFloat(0.05f, 0.95f)
+            launchX = GameResolution.width * Random.nextFloat(0.05f, 0.95f)
             trailTimer = 0.8f
         }
 
@@ -100,7 +100,7 @@ private class Fireworks(private val isLowEndDevice: Boolean) : UIContainer() {
 
                 trail.emit(
                     x = launchX,
-                    y = Config.getRES_HEIGHT() * 0.9f,
+                    y = GameResolution.height * 0.9f,
                     lifetime = Random.nextFloat(0.3f, 0.6f),
                     velocityX = Random.nextFloat(-20f, 20f),
                     velocityY = Random.nextFloat(-800f, -600f),
@@ -125,7 +125,7 @@ private class Fireworks(private val isLowEndDevice: Boolean) : UIContainer() {
         repeat(particles) {
             system.emit(
                 x = launchX,
-                y = Config.getRES_HEIGHT() * 0.2f,
+                y = GameResolution.height * 0.2f,
                 lifetime = Random.nextFloat(0.8f, 1.5f),
                 velocityX = Random.nextFloat(-400f, 400f),
                 velocityY = Random.nextFloat(-400f, 400f),

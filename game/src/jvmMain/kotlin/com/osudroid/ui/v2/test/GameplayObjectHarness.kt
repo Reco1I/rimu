@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.settings.GameResolution
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.Platform
 import com.osudroid.math.Vector2
@@ -27,7 +28,6 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
@@ -80,7 +80,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
      * The container objects are added to, with the size of the gameplay playfield.
      */
     val playfield = UIContainer().apply {
-        setSize(Config.getRES_WIDTH().toFloat(), Config.getRES_HEIGHT().toFloat())
+        setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
         anchor = Anchor.Center
         origin = Anchor.Center
         scaleOrigin = Anchor.Center
@@ -124,7 +124,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         stage.onEachFrame { frame ->
             // Fits the playfield in the stage, as the game fits it in the screen.
             val bounds = stage.bounds
-            playfield.scale = min(bounds.width / Config.getRES_WIDTH(), bounds.height / Config.getRES_HEIGHT())
+            playfield.scale = min(bounds.width / GameResolution.width, bounds.height / GameResolution.height)
 
             val deltaTime = frame.elapsedFrameTime
             clock.time += deltaTime
@@ -238,8 +238,8 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         event.systemTime = Platform.uptimeMillis
         event.trackTime = clock.time * 1000
         event.position.set(
-            Config.getRES_WIDTH() / 2f + SPIN_RADIUS * cos(spinAngle).toFloat(),
-            Config.getRES_HEIGHT() / 2f + SPIN_RADIUS * sin(spinAngle).toFloat()
+            GameResolution.width / 2f + SPIN_RADIUS * cos(spinAngle).toFloat(),
+            GameResolution.height / 2f + SPIN_RADIUS * sin(spinAngle).toFloat()
         )
         event.trackPosition.set(event.position)
         cursor.addEvent(event)
@@ -336,7 +336,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
             return
         }
 
-        val center = Vector2(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f)
+        val center = Vector2(GameResolution.width / 2f, GameResolution.height / 2f)
         effects.hit(center, scoreName(score), null)
         stage.log(if (score == 0) "Spinner missed" else "Spinner judged $score")
     }

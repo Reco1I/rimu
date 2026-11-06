@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.ui.text.spans
 import com.osudroid.data.*
@@ -73,7 +75,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 scaleType = UISprite.ScaleType.Crop
-                textureRegion = if (Config.isSafeBeatmapBg()) SkinTextures["menu-background"] else Textures["::background"]
+                textureRegion = if (Settings[OsuSettings.SafeBeatmapBackground]) SkinTextures["menu-background"] else Textures["::background"]
             }
 
             dimBox = box {
@@ -221,9 +223,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 if (System.currentTimeMillis() - lastTimeTouched > minimumTimeout || Multiplayer.isMultiplayer) {
                     isStarting = true
 
-                    // This is used instead of getBackgroundBrightness to directly obtain the
-                    // updated value from the brightness slider.
-                    val backgroundBrightness = Config.getNumber("bgbrightness", 25f)
+                    val backgroundBrightness = Settings[OsuSettings.BackgroundBrightness]
 
                     mainContainer.fadeOut(0.1f, Easing.OutExpo)
 
@@ -326,7 +326,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
                     content.apply {
 
-                        +FloatPreferenceSlider("bgbrightness", 25f).apply {
+                        +FloatPreferenceSlider(OsuSettings.BackgroundBrightness).apply {
                             label = Res.string.opt_bgbrightness_title
                             control.min = 0f
                             control.max = 100f
@@ -339,8 +339,6 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                             }
                             valueFormatter = { "%.1f%%".format(it) }
                             onValueChanged = {
-                                Config.setBackgroundBrightness(it / 100f)
-
                                 // Storyboard and video should not be enabled if the background brightness is too low,
                                 // so we trigger a reload when changing brightness.
                                 gameScene.loadVideo(beatmapInfo)
@@ -351,20 +349,20 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                             }
                         }
 
-                        +PreferenceCheckbox("enableStoryboard").apply {
+                        +PreferenceCheckbox(OsuSettings.EnableStoryboard).apply {
                             label = Res.string.opt_enableStoryboard_title
                             onValueChanged = {
                             }
                         }
 
-                        +PreferenceCheckbox("enableVideo").apply {
+                        +PreferenceCheckbox(OsuSettings.EnableVideo).apply {
                             label = Res.string.opt_video_title
                             onValueChanged = {
                                 gameScene.loadVideo(beatmapInfo)
                             }
                         }
 
-                        +PreferenceCheckbox("showscoreboard").apply {
+                        +PreferenceCheckbox(OsuSettings.ShowScoreboard).apply {
                             label = Res.string.opt_show_scoreboard_title
                         }
                     }

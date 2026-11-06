@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.data.Color4
@@ -9,7 +11,6 @@ import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.UIAnimatedSprite
 import com.reco1l.verktex.ui.container.UIContainer
 import kotlin.random.Random
-import ru.nsu.ccfit.zuev.osu.Config
 
 /**
  * The effects shown when hit objects are judged: the judgement sprites (300, 100, miss...), the hit
@@ -92,7 +93,7 @@ class GameplayEffects {
             return
         }
 
-        if (Config.isHitLighting() && name != "sliderpoint10" && name != "sliderpoint30" && SkinTextures.get("lighting") != null) {
+        if (Settings[OsuSettings.HitLighting] && name != "sliderpoint10" && name != "sliderpoint30" && SkinTextures.get("lighting") != null) {
 
             // Reference https://github.com/ppy/osu/blob/a7e110f6693beca6f6e6a20efb69a6913d58550e/osu.Game.Rulesets.Osu/Objects/Drawables/DrawableOsuJudgement.cs#L71-L88
 
@@ -185,7 +186,7 @@ class GameplayEffects {
     }
 
     private fun areBurstsShown(): Boolean {
-        return Config.isBurstEffects() &&
+        return Settings[OsuSettings.BurstEffects] &&
             (GameHelper.getHidden() == null || GameHelper.getHidden()!!.onlyFadeApproachCircles) &&
             !GameHelper.isTraceable()
     }

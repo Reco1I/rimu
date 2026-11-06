@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.helper.sql;
 
+import com.osudroid.settings.GameFolders;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.database.DatabaseErrorHandler;
@@ -12,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 
 import kotlin.Deprecated;
-import ru.nsu.ccfit.zuev.osu.Config;
 
 /**
  * Created by Fuuko on 2015/2/27.
@@ -30,7 +30,7 @@ public class DatabaseContext extends ContextWrapper {
 
     @Override
     public File getDatabasePath(String name) {
-        String dbfile = Config.getCorePath() + "databases/" + name;
+        String dbfile = GameFolders.getCorePath() + "databases/" + name;
         if (!dbfile.endsWith(".db")) {
             dbfile += ".db";
         }
@@ -49,7 +49,7 @@ public class DatabaseContext extends ContextWrapper {
                 Debug.e(e);
             }
         }
-        final String olddbfile = Config.getCorePath() + File.separator + "databases" + File.separator + name;
+        final String olddbfile = GameFolders.getCorePath() + File.separator + "databases" + File.separator + name;
         final File olddb2 = new File(olddbfile);
         if (result.exists() == false && olddb2.exists() == true) {
             try {
@@ -58,7 +58,7 @@ public class DatabaseContext extends ContextWrapper {
                 Debug.e(e);
             }
         }
-        final String olddbfile2 = Config.getCorePath() + File.separator + "databases" + File.separator + "osudroid.db";
+        final String olddbfile2 = GameFolders.getCorePath() + File.separator + "databases" + File.separator + "osudroid.db";
         final File olddb3 = new File(olddbfile2);
         if (result.exists() == false && olddb3.exists() == true) {
             try {

@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.skins
 
+import com.osudroid.settings.GameResolution
 import com.osudroid.utils.optDouble
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.UISprite
@@ -7,7 +8,6 @@ import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.json.JsonObject
-import ru.nsu.ccfit.zuev.osu.Config
 
 class SkinLayout {
 
@@ -43,14 +43,14 @@ class SkinLayout {
         // different origins yet. To work around this, we need to flip the position in the Y axis.
         // TODO: When ExtendedSprite supports touch area properly, this should be changed to use bottom-left origin
         var x = xPosition
-        var y = Config.getRES_HEIGHT() - sprite.transformedHeight - yPosition
+        var y = GameResolution.height - sprite.transformedHeight - yPosition
 
         if (x.isNaN()) {
             x = if (previousSprite != null) previousSprite.x.resolve(0f) + previousSprite.transformedWidth else 0f
         }
 
         if (y.isNaN()) {
-            y = Config.getRES_HEIGHT() - sprite.transformedHeight
+            y = GameResolution.height - sprite.transformedHeight
         }
 
         sprite.setPosition(x, y)

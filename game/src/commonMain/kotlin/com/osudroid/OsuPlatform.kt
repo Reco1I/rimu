@@ -1,7 +1,6 @@
 package com.osudroid
 
 import com.osudroid.ui.v2.UIVideo
-import com.russhwolf.settings.Settings
 
 /**
  * What the game needs from the platform it runs on that the engine doesn't provide. Each platform
@@ -44,9 +43,10 @@ object OsuPlatform {
         val isDebug: Boolean
 
         /**
-         * The user's preferences.
+         * The preferences the game kept before its settings were stored by Verktex, by name, imported
+         * on the first start with them. Empty by default.
          */
-        val preferences: Settings
+        fun legacyPreferences(): Map<String, Any?> = emptyMap()
 
         /**
          * The width of the display in pixels, including the space the system decorations take.
@@ -175,22 +175,6 @@ object OsuPlatform {
          * Looks for a newer version of the game, telling the player only about a new one if [silently].
          */
         fun checkForUpdates(silently: Boolean) = Unit
-
-        /**
-         * Whether [exportPreferences] and [importPreferences] are available.
-         */
-        val canBackUpPreferences: Boolean
-            get() = false
-
-        /**
-         * Saves the preferences to a file, returning whether it succeeded.
-         */
-        fun exportPreferences(): Boolean = false
-
-        /**
-         * Restores the preferences saved by [exportPreferences], returning whether it succeeded.
-         */
-        fun importPreferences(): Boolean = false
 
         /**
          * Copies [text] to the clipboard, under [label] where the platform names its entries.

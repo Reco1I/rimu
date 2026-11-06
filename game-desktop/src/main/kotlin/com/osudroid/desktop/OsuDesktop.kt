@@ -1,10 +1,12 @@
 package com.osudroid.desktop
 
+import com.osudroid.settings.GameFolders
+import com.osudroid.settings.OsuSettings
+import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.OsuPlatform
 import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.ui.v2.SplashScene
 import com.osudroid.ui.v2.mainmenu.MainScene
-import com.osudroid.ui.v2.settings.RESOLUTION_SCALE_KEY
 import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.async
 import com.osudroid.utils.delayed
@@ -15,7 +17,6 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.desktop.DesktopGameHost
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.VerktexSettings
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import java.io.File
@@ -52,13 +53,13 @@ class OsuDesktop(
             GlobalManager.getInstance().init()
 
             // The "Show FPS" setting shows the engine's performance overlay.
-            Settings[VerktexSettings.ShowPerformanceOverlay] = Config.isShowFPS()
+            Settings[VerktexSettings.ShowPerformanceOverlay] = Settings[OsuSettings.ShowFps]
 
             // The resolution scale setting is stored as a percentage.
-            Settings[VerktexSettings.ResolutionScale] = Config.getInt(RESOLUTION_SCALE_KEY, 100) / 100f
+            Settings[VerktexSettings.ResolutionScale] = Settings[OsuSettings.ResolutionScale] / 100f
 
             GlobalManager.getInstance().loadingProgress = 50
-            Config.loadSkins()
+            SkinFolders.load()
             DifficultyCalculationManager.checkForOutdatedStarRatings()
             OsuPlatform.implementation.loadBeatmapLibrary()
 
@@ -74,8 +75,8 @@ class OsuDesktop(
     }
 
     private fun createGameDirectories() {
-        File(Config.getBeatmapPath()).mkdirs()
-        File(Config.getSkinTopPath()).mkdirs()
+        File(GameFolders.beatmapPath).mkdirs()
+        File(SkinFolders.topPath).mkdirs()
     }
 }
 
@@ -94,7 +95,7 @@ class OsuDesktop(
 fun initializeDesktopPlatform() {
     OsuPlatform.implementation = DesktopOsuPlatform()
     Http.implementation = OkHttpClientImplementation()
-    Config.loadConfig()
+    OsuSettings.load()
 
 }
 

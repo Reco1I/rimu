@@ -1,9 +1,9 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.testing.UITestStage
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -42,7 +42,7 @@ object TestGameContext {
         val global = GlobalManager.getInstance()
 
         // The skins of the skin folder, for the settings.
-        Config.loadSkins()
+        SkinFolders.load()
 
         loadInMemoryDatabase()
         seedDatabase()

@@ -110,7 +110,7 @@ class AndroidWindow(androidContext: AndroidContext) : SurfaceView(androidContext
     init {
         holder.addCallback(this)
 
-        Settings.on(VerktexSettings.ResolutionScale) { post { updateBufferSize() } }
+        Settings.observe(VerktexSettings.ResolutionScale) { post { updateBufferSize() } }
 
         setOnApplyWindowInsetsListener { view, viewInsets ->
 
@@ -206,7 +206,7 @@ class AndroidWindow(androidContext: AndroidContext) : SurfaceView(androidContext
             return
         }
 
-        val scale = Settings[VerktexSettings.ResolutionScale, 1f].coerceIn(MIN_RESOLUTION_SCALE, 1f)
+        val scale = Settings[VerktexSettings.ResolutionScale].coerceIn(MIN_RESOLUTION_SCALE, 1f)
 
         if (scale >= 1f) {
             holder.setSizeFromLayout()

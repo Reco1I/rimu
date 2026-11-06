@@ -1,5 +1,6 @@
 package com.osudroid.audio
 
+import com.osudroid.settings.OsuSettings
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.BeatmapSetInfo
 import com.reco1l.verktex.Logger
@@ -11,7 +12,6 @@ import kotlin.math.pow
 import kotlin.time.TimeSource
 import okio.Path.Companion.toPath
 import ru.nsu.ccfit.zuev.audio.Status
-import ru.nsu.ccfit.zuev.osu.Config
 
 /**
  * Plays the music of the game, and knows which beatmap it belongs to.
@@ -377,7 +377,7 @@ open class MusicService {
             // A paused song continues from where it was, otherwise it starts over.
             stream.play(restart = !stream.isPaused)
         }
-        volume = Config.getBgmVolume()
+        volume = OsuSettings.musicVolume
     }
 
     protected open fun pauseStream() {

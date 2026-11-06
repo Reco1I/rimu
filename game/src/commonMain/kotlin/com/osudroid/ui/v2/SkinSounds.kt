@@ -6,7 +6,6 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import okio.Path.Companion.toPath
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 
 /**
@@ -160,7 +159,7 @@ object SkinSounds {
 
     private fun loadFromSkin(name: String): BassSoundProvider? {
         for (extension in extensions) {
-            val file = Config.getSkinPath().toPath() / "$name.$extension"
+            val file = SkinFolders.path.toPath() / "$name.$extension"
             val metadata = Platform.fileSystem.metadataOrNull(file)
 
             if (metadata != null && metadata.isRegularFile && (metadata.size ?: 0L) > 0) {

@@ -1,5 +1,6 @@
 package com.osudroid.beatmaps.hitobjects
 
+import com.osudroid.settings.GameResolution
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.beatmaps.HitWindow
@@ -13,7 +14,6 @@ import com.osudroid.utils.CircleSizeCalculator
 import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads
@@ -271,7 +271,7 @@ abstract class HitObject(
      * The scale of this [HitObject] in gameplay, in screen pixels.
      */
     val screenSpaceGameplayScale
-        get() = gameplayScale * Config.getRES_HEIGHT() / 480
+        get() = gameplayScale * GameResolution.height / 480
 
     /**
      * The radius of this [HitObject] in gameplay, in screen pixels.
@@ -443,8 +443,8 @@ abstract class HitObject(
         val yScale = Constants.MAP_ACTUAL_HEIGHT / Constants.MAP_HEIGHT.toFloat()
 
         // Center the position on the screen.
-        val xOffset = (Config.getRES_WIDTH() - Constants.MAP_ACTUAL_WIDTH) / 2f
-        val yOffset = (Config.getRES_HEIGHT() - Constants.MAP_ACTUAL_HEIGHT) / 2f
+        val xOffset = (GameResolution.width - Constants.MAP_ACTUAL_WIDTH) / 2f
+        val yOffset = (GameResolution.height - Constants.MAP_ACTUAL_HEIGHT) / 2f
 
         return Vector2(position.x * xScale + xOffset, position.y * yScale + yOffset)
     }

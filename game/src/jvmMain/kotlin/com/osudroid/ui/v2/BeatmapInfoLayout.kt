@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.Logger
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.BeatmapCache
@@ -216,7 +217,7 @@ class BeatmapInfoLayout : UILinearContainer() {
                     BeatmapCache.getBeatmap(
                         beatmapInfo,
                         true,
-                        Config.getDifficultyAlgorithm().toGameMode(),
+                        OsuSettings.difficultyAlgorithm.toGameMode(),
                         this
                     )
                 } catch (e: Exception) {

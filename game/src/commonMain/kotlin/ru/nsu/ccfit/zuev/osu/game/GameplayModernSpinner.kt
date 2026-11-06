@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.Spinner
 import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.SkinTextures
@@ -15,7 +17,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 import kotlin.math.sin
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
@@ -94,7 +95,7 @@ class GameplayModernSpinner : GameplaySpinner() {
         glow.setColor(0f, 0.8f, 1f)
 
         val isBackgroundVisible = (!GameHelper.isTraceable() ||
-            (Config.isShowFirstApproachCircle() && GameHelper.getTraceable()!!.firstObject === beatmapSpinner))
+            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapSpinner))
 
         if (isBackgroundVisible) {
             middle.alpha = 0f

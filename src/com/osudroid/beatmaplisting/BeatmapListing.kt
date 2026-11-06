@@ -1,5 +1,7 @@
 package com.osudroid.beatmaplisting
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import com.reco1l.verktex.Logger
@@ -53,7 +55,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.SupervisorJob
 import ru.nsu.ccfit.zuev.audio.Status
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osuplus.R
@@ -337,9 +338,9 @@ class BeatmapListing : BaseFragment(),
          * The current selected beatmap mirror.
          */
         var mirror
-            get() = BeatmapMirror.entries[Config.getInt("beatmapMirror", 0)]
+            get() = BeatmapMirror.entries.getOrElse(Settings[OsuSettings.BeatmapMirror]) { BeatmapMirror.entries[0] }
             set(value) {
-                Config.setInt("beatmapMirror", value.ordinal)
+                Settings[OsuSettings.BeatmapMirror] = value.ordinal
             }
 
         /**
@@ -606,10 +607,10 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
 
         metadata.setText(buildSpannedString {
 
-            append(if (Config.isForceRomanized()) beatmapSet.title else beatmapSet.titleUnicode)
+            append(if (Settings[OsuSettings.ForceRomanized]) beatmapSet.title else beatmapSet.titleUnicode)
             appendLine()
             color(0xFFB2B2CC.toInt()) {
-                append(if (Config.isForceRomanized()) beatmapSet.artist else beatmapSet.artistUnicode)
+                append(if (Settings[OsuSettings.ForceRomanized]) beatmapSet.artist else beatmapSet.artistUnicode)
             }
 
         }, TextView.BufferType.SPANNABLE)
@@ -728,7 +729,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
 
                 GlobalManager.getInstance().music.pause()
 
-                previewStream!!.volume = Config.getBgmVolume()
+                previewStream!!.volume = OsuSettings.musicVolume
                 previewStream!!.play()
 
                 BeatmapListing.previewPlayCount++

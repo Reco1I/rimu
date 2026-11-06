@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Logger
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.LobbyAPI
@@ -35,7 +37,6 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import kotlinx.coroutines.*
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import com.reco1l.verktex.ui.toast.Toasts
@@ -72,7 +73,7 @@ class LobbyScene : UIScene() {
             scaleType = UISprite.ScaleType.Crop
             textureRegion = SkinTextures["menu-background"]
 
-            if (!Config.isSafeBeatmapBg()) {
+            if (!Settings[OsuSettings.SafeBeatmapBackground]) {
                 textureRegion = Textures["::background"] ?: textureRegion
             }
         }

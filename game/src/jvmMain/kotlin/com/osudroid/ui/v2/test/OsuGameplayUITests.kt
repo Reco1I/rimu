@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.HitCircle
 import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.hitobjects.SliderPath
@@ -24,7 +26,6 @@ import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.textButton
 import com.osudroid.ui.v2.test.GameplayObjectHarness.Play
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameplayHitCircle
 import ru.nsu.ccfit.zuev.osu.game.GameplayModernSpinner
@@ -94,7 +95,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
 
         test("Spinners") {
             val harness = GameplayObjectHarness(this)
-            var isModern = Config.getSpinnerStyle() == 1
+            var isModern = OsuSettings.spinnerStyle == 1
 
             fun play() = harness.loop { startTime ->
                 val spinner = harness.prepare(Spinner(startTime, startTime + 3000, true))
@@ -179,7 +180,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
             skin.sliderBorderWidth * scale,
             skin.isSliderHintEnable && slider.distance > skin.sliderHintShowMinLength,
             skin.sliderHintWidth * scale,
-            Config.isSnakingInSliders() || Config.isSnakingOutSliders()
+            Settings[OsuSettings.SnakingInSliders] || Settings[OsuSettings.SnakingOutSliders]
         )
     }
 

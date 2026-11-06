@@ -4,7 +4,6 @@ import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Verktex
-import com.russhwolf.settings.PreferencesSettings
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import java.io.File
 import java.util.prefs.Preferences
@@ -21,7 +20,11 @@ class DesktopOsuPlatform : OsuPlatform.Implementation {
 
     override val isDebug = true
 
-    override val preferences = PreferencesSettings(Preferences.userRoot().node("osu!droid"))
+    // The values are kept as strings, which the settings read as their type.
+    override fun legacyPreferences(): Map<String, Any?> {
+        val node = Preferences.userRoot().node("osu!droid")
+        return node.keys().associateWith { node.get(it, null) }
+    }
 
     override val displayWidth: Int
         get() = Platform.currentDisplay.width

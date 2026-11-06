@@ -36,8 +36,9 @@ kotlin {
             // Multiplatform locks.
             implementation("org.jetbrains.kotlinx:atomicfu:0.33.0")
 
-            // JSON, e.g. the strings of the localizations.
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+            // JSON, e.g. the strings of the localizations and the settings, whose keys expose
+            // their serializer.
+            api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
         }
 
         if (providers.gradleProperty("verktex.checkCommon").isPresent) {

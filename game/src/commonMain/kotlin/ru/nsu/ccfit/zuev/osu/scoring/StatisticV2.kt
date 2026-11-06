@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
+import com.osudroid.settings.OsuSettings
 import com.osudroid.beatmaps.sections.BeatmapDifficulty
 import com.osudroid.mods.IMigratableMod
 import com.osudroid.mods.ModFlashlight
@@ -17,7 +18,6 @@ import kotlin.random.Random
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
 
 class StatisticV2() {
@@ -40,7 +40,7 @@ class StatisticV2() {
         private set
     var diffModifier = 1f
     var mod = ModHashMap()
-    var playerName: String = Config.getOnlineUsername()
+    var playerName: String = OsuSettings.onlineUsername
     var replayFilename = ""
     private var forcedScore = -1L
     private var markValue: String? = null

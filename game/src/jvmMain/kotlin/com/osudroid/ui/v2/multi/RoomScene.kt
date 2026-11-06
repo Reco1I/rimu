@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.utils.*
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -68,7 +70,6 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import ru.nsu.ccfit.zuev.audio.Status
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.ui.toast.Toasts
@@ -168,7 +169,7 @@ class RoomScene(
                 scaleType = UISprite.ScaleType.Crop
                 textureRegion = SkinTextures["menu-background"]
 
-                if (!Config.isSafeBeatmapBg()) {
+                if (!Settings[OsuSettings.SafeBeatmapBackground]) {
                     textureRegion = Textures["::background"] ?: textureRegion
                 }
             }
@@ -765,7 +766,7 @@ class RoomScene(
     }
 
     override fun onUpdate(clock: FrameClock) {
-        if (Config.isPlayMusicPreview() && allowAutomaticPlaybackRestart) {
+        if (Settings[OsuSettings.PlayMusicPreview] && allowAutomaticPlaybackRestart) {
             val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap
 
             if (selectedBeatmap != null) {

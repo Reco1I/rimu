@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.edlplan.osu.support.slider.SliderBody
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.beatmaps.constants.HitObjectType
@@ -40,7 +42,6 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameHelper.SliderPath
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
@@ -236,7 +237,7 @@ class GameplaySlider : GameObject() {
         currentNestedObjectIndex = 0
 
         val applyIncreasedVisibilityToCirclePiece = !GameHelper.isTraceable() ||
-            (Config.isShowFirstApproachCircle() && GameHelper.getTraceable()!!.firstObject === beatmapSlider)
+            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapSlider)
 
         // Start circle piece
         headCirclePiece.setCircleTextureRegion(sliderStartCircleTexture)
@@ -259,7 +260,7 @@ class GameplaySlider : GameObject() {
         approachCircle.alpha = 0f
         approachCircle.setPosition(this.position.x, this.position.y)
         approachCircle.isVisible = !GameHelper.isHidden() ||
-            (Config.isShowFirstApproachCircle() && GameHelper.getHidden()!!.firstObject === beatmapSlider)
+            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getHidden()!!.firstObject === beatmapSlider)
 
         approachCircle.textureRegion = SkinTextures.get(
             if (GameHelper.isTraceable()) "defaultapproachcircle" else "approachcircle")
@@ -295,7 +296,7 @@ class GameplaySlider : GameObject() {
         }
 
         // When snaking in is enabled, the first repeat or tail needs to be delayed until the snaking completes.
-        val fadeInDelay = if (Config.isSnakingInSliders()) timePreempt / 3 else 0f
+        val fadeInDelay = if (Settings[OsuSettings.SnakingInSliders]) timePreempt / 3 else 0f
         val headFadeIn = beatmapSlider.head.timeFadeIn.toFloat() / 1000
 
         // Repeat arrow at end
@@ -303,7 +304,7 @@ class GameplaySlider : GameObject() {
             endArrow.alpha = 0f
             endArrow.scale = scale
 
-            if (Config.isSnakingInSliders()) {
+            if (Settings[OsuSettings.SnakingInSliders]) {
                 getPositionAt(0f, false, true)
 
                 tailCirclePiece.setPosition(position.x, position.y)
@@ -379,7 +380,7 @@ class GameplaySlider : GameObject() {
         val isHintVisible = OsuSkin.get().isSliderHintEnable &&
             beatmapSlider.distance > OsuSkin.get().sliderHintShowMinLength
 
-        sliderBody.init(Config.isSnakingInSliders(), stackedPosition, buildCache)
+        sliderBody.init(Settings[OsuSettings.SnakingInSliders], stackedPosition, buildCache)
         sliderBody.setBackgroundWidth(sliderBodyWidth)
         sliderBody.setTrackBorderWidth(sliderBorderWidth)
         sliderBody.setTrackBorderColor(borderColor)
@@ -411,7 +412,7 @@ class GameplaySlider : GameObject() {
 
         tickContainer.init(beatmapSlider)
 
-        if (Config.isDimHitObjects()) {
+        if (Settings[OsuSettings.DimHitObjects]) {
             applyDim(headCirclePiece)
             applyDim(tailCirclePiece)
             applyDim(endArrow)
@@ -524,7 +525,7 @@ class GameplaySlider : GameObject() {
 
         lifetimeEnd = modifierStartTime
 
-        if (Config.isAnimateFollowCircle()) {
+        if (Settings[OsuSettings.AnimateFollowCircle]) {
             if (isInRadius) {
                 followCircle.clearAnimations()
 
@@ -831,7 +832,7 @@ class GameplaySlider : GameObject() {
         if (isTracking && !isInRadius) {
             playSlidingSamples()
 
-            if (Config.isAnimateFollowCircle()) {
+            if (Settings[OsuSettings.AnimateFollowCircle]) {
                 val remainTime = max(0.0, duration - elapsedSpanTime).toFloat()
                 val initialScale = if (followCircle.alpha == 0f) scale * 0.5f else followCircle.scaleX
 
@@ -846,7 +847,7 @@ class GameplaySlider : GameObject() {
         } else if (!isTracking && isInRadius) {
             stopSlidingSamples()
 
-            if (Config.isAnimateFollowCircle()) {
+            if (Settings[OsuSettings.AnimateFollowCircle]) {
                 followCircle.clearAnimations()
 
                 followCircle.scaleTo(scale * 2, 0.1f)
@@ -919,7 +920,7 @@ class GameplaySlider : GameObject() {
                 approachCircle.alpha = 0f
             }
 
-            if (Config.isSnakingInSliders()) {
+            if (Settings[OsuSettings.SnakingInSliders]) {
                 val percentage = MathUtils.clamp((timePreempt + elapsedSpanTime).toFloat() / (timePreempt / 3), 0f, 1f)
 
                 if (percentage < 1) {
@@ -949,7 +950,7 @@ class GameplaySlider : GameObject() {
 
         // If we entered this phase without going through the approach phase (e.g., after a seek), the snake-in
         // animation may not have completed yet. Force the body to its full length here.
-        if (!preStageFinish && Config.isSnakingInSliders() && superPath != null) {
+        if (!preStageFinish && Settings[OsuSettings.SnakingInSliders] && superPath != null) {
             applySnakeBodyLength(false, superPathMaxLength, true)
             preStageFinish = true
         }
@@ -971,7 +972,7 @@ class GameplaySlider : GameObject() {
             ball.alpha = 1f
 
             followCircle.alpha = 0f
-            if (!Config.isAnimateFollowCircle()) {
+            if (!Settings[OsuSettings.AnimateFollowCircle]) {
                 followCircle.scale = scale
             }
 
@@ -998,7 +999,7 @@ class GameplaySlider : GameObject() {
         val percentage = MathUtils.clamp((elapsedSpanTime / spanDuration).toFloat(), 0f, 1f)
         val bodyProgress = if (reverse) 1 - percentage else percentage
 
-        if (shouldSnakeOut && Config.isSnakingOutSliders() && completedSpanCount == beatmapSlider.spanCount - 1) {
+        if (shouldSnakeOut && Settings[OsuSettings.SnakingOutSliders] && completedSpanCount == beatmapSlider.spanCount - 1) {
             val length = bodyProgress * superPathMaxLength
 
             // In reverse, the snaking out animation starts from the end node.
@@ -1255,7 +1256,7 @@ class GameplaySlider : GameObject() {
             val isTracking = isTracking()
 
             if (isTracking) {
-                if (Config.isAnimateFollowCircle() && followCircle.scaleX > 1f) {
+                if (Settings[OsuSettings.AnimateFollowCircle] && followCircle.scaleX > 1f) {
                     followCircle.clearAnimations()
 
                     followCircle.scale = scale * 1.1f

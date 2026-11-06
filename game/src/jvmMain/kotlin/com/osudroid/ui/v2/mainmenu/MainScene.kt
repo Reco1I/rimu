@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.multiplayer.api.RoomSocket
 import com.reco1l.verktex.ui.text.spans
@@ -65,7 +67,6 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import ru.nsu.ccfit.zuev.osu.*
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.helper.*
 import ru.nsu.ccfit.zuev.osu.online.*
 import kotlin.math.*
@@ -497,7 +498,7 @@ object MainScene : UIScene() {
         backgroundLoadJob?.cancel()
 
         val path = beatmap?.backgroundPath
-        if (path == null || Config.isSafeBeatmapBg()) {
+        if (path == null || Settings[OsuSettings.SafeBeatmapBackground]) {
             fadeToBackground(SkinTextures["menu-background"])
             return
         }

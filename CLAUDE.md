@@ -45,7 +45,7 @@ The game is split in three modules, see `docs/multiplatform-game.md`:
 
 The codebase is split across multiple main package roots, each in `game/src/{commonMain,jvmMain}/kotlin/` and, for its Android parts, in `src/`:
 
-- **`ru/nsu/ccfit/zuev/osu/`** — Legacy code, mostly converted to Kotlin: `GameScene`, `ScoringScene`, `Config`, `GlobalManager` and `LibraryManager` are in `:game`, `MainActivity` (still Java) in the app. Most subsystems here are singletons.
+- **`ru/nsu/ccfit/zuev/osu/`** — Legacy code, mostly converted to Kotlin: `GameScene`, `ScoringScene`, `GlobalManager` and `LibraryManager` are in `:game`, `MainActivity` (still Java) in the app. Most subsystems here are singletons.
 - **`com/acivev/`** — Vibration and haptic feedback management (`VibratorManager`, `VibratorCheckUtils`, etc.) as well as snow effects (`ui/Effect.kt`).
 - **`com/edlplan/andengine/`** — `TriangleBuilder`, used to build slider body geometry.
 - **`com/edlplan/framework/`** — Math, easing and utility classes.
@@ -133,7 +133,9 @@ Mods are defined in `com/osudroid/mods/`. Each mod implements modifier interface
 
 ### Data Persistence
 
-Room database accessed via `DatabaseManager`. DAOs and entities are under `com/osudroid/data/`. Schemas are versioned in `schemas/`. `Config` (SharedPreferences) stores user settings.
+Room database accessed via `DatabaseManager`. DAOs and entities are under `com/osudroid/data/`. Schemas are versioned in `schemas/`.
+
+Settings go through Verktex's `Settings` (`verktex/core/.../settings/`), a typed store saved as `settings.json` in the data directory. Each setting is a `SettingKey` (`setting(name, default)`), read with `Settings[key]` and written with `Settings[key] = value`. The engine's are in `VerktexSettings`, the game's in `OsuSettings` (`com/osudroid/settings/`) under the names the old preferences had, with helpers for the ones read in other units (e.g. `OsuSettings.musicVolume`). The folders are in `GameFolders` and `SkinFolders`, and the viewport size in `GameResolution`.
 
 ### Multiplayer
 

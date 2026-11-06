@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.parser.*
 import com.osudroid.data.*
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateDroidDifficulty
@@ -276,7 +278,7 @@ object SongSelect : UIScene() {
             val collection = filter.collection?.let { DatabaseManager.beatmapCollectionsTable.getBeatmaps(it)?.toSet() }
 
             ensureActive()
-            val models = filter.apply(beatmapSets, Config.getDifficultyAlgorithm(), favorites, collection).map {
+            val models = filter.apply(beatmapSets, OsuSettings.difficultyAlgorithm, favorites, collection).map {
                 BeatmapSetModel(it, isDifficulty = filter.grouping == BeatmapGrouping.Difficulty)
             }
 
@@ -405,7 +407,7 @@ object SongSelect : UIScene() {
 
             val backgroundPath = beatmapInfo.backgroundPath
 
-            if (!Config.isSafeBeatmapBg() && backgroundPath != null && currentBackgroundPath != backgroundPath) {
+            if (!Settings[OsuSettings.SafeBeatmapBackground] && backgroundPath != null && currentBackgroundPath != backgroundPath) {
                 currentBackgroundPath = backgroundPath
 
                 ensureActive()
@@ -467,7 +469,7 @@ object SongSelect : UIScene() {
                 val mods = ModMenu.enabledMods.deepCopy().values
 
                 ensureActive()
-                val attributes = when (Config.getDifficultyAlgorithm()) {
+                val attributes = when (OsuSettings.difficultyAlgorithm) {
                     DifficultyAlgorithm.droid -> calculateDroidDifficulty(data, mods, this@calculationJob)
                     DifficultyAlgorithm.standard -> calculateStandardDifficulty(data, mods, this@calculationJob)
                 }

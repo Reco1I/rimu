@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.helper;
 
+import com.osudroid.settings.OsuSettings;
+import com.reco1l.verktex.settings.Settings;
 import com.osudroid.resources.Res;
 import com.osudroid.utils.FileChecksums;
 
@@ -28,7 +30,6 @@ import java.util.LinkedList;
 import okio.BufferedSink;
 import okio.Okio;
 import okio.Source;
-import ru.nsu.ccfit.zuev.osu.Config;
 import com.reco1l.verktex.ui.toast.Toasts;
 
 public class FileUtils {
@@ -92,7 +93,7 @@ public class FileUtils {
             }
 
             zip.extractAll(folderFile.getAbsolutePath());
-            if((Config.isDELETE_OSZ() && sourceFileName.toLowerCase().endsWith(".osz"))
+            if((Settings.get(OsuSettings.DeleteOsz) && sourceFileName.toLowerCase().endsWith(".osz"))
                 || sourceFileName.toLowerCase().endsWith(".osk")) {
                 file.delete();
             }

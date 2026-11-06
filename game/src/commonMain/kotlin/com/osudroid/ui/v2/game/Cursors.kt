@@ -1,5 +1,8 @@
 package com.osudroid.ui.v2.game
 
+import com.osudroid.settings.GameResolution
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
@@ -10,7 +13,6 @@ import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.rotateTo
 import com.reco1l.verktex.ui.scaleTo
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
 import ru.nsu.ccfit.zuev.osu.game.GameplaySpinner
@@ -22,7 +24,7 @@ import ru.nsu.ccfit.zuev.skins.OsuSkin
  */
 class CursorSprite : UISprite(), ISliderListener {
 
-    val baseSize = Config.getCursorSize() * 2
+    val baseSize = OsuSettings.cursorSize * 2
 
     init {
         anchor = Anchor.Center
@@ -90,7 +92,7 @@ open class CursorEntity : UIContainer() {
 
     protected val cursorSprite = CursorSprite()
 
-    private val trail = if (Config.isUseParticles()) CursorTrail(cursorSprite) else null
+    private val trail = if (Settings[OsuSettings.UseParticles]) CursorTrail(cursorSprite) else null
     private var isShowing = false
 
 
@@ -179,7 +181,7 @@ class AutoCursor : CursorEntity(), ISliderListener {
 
 
     init {
-        setPosition(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f)
+        setPosition(GameResolution.width / 2f, GameResolution.height / 2f)
         setShowing(true)
     }
 

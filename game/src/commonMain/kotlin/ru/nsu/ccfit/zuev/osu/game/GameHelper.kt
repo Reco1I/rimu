@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.hitobjects.SliderPathType
 import com.osudroid.math.Interpolation
@@ -14,7 +16,6 @@ import kotlin.jvm.JvmStatic
 import kotlin.math.abs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
 
 object GameHelper {
@@ -118,7 +119,7 @@ object GameHelper {
 
         var distanceThreshold = 0
 
-        if (!Config.isSnakingOutSliders()) {
+        if (!Settings[OsuSettings.SnakingOutSliders]) {
             // osu!stable optimizes gameplay path rendering by only including points that are 6 osu!pixels apart.
             // In linear paths, the distance threshold is further extended to 32 osu!pixels.
             // However, we exclude this optimization if snaking out sliders is enabled as slider velocity may not be

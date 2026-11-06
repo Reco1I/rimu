@@ -1,5 +1,8 @@
 package com.osudroid.android
 
+import android.content.Context
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -17,20 +20,16 @@ import com.osudroid.utils.mainThread
 import com.reco1l.verktex.android.isVulkanAvailable
 import com.reco1l.verktex.android.resetVulkanCrashGuard
 import ru.nsu.ccfit.zuev.osu.AndroidSecurityUtils
-import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.ConfigBackup
 import java.io.File
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
-import androidx.preference.PreferenceManager
 import com.google.firebase.messaging.FirebaseMessaging
 import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Logger
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.MainActivity
-import com.russhwolf.settings.SharedPreferencesSettings
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig
 
 /**
@@ -44,8 +43,9 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
 
     override val isDebug: Boolean = BuildConfig.DEBUG
 
-    // Committed right away as the preferences always were.
-    override val preferences = SharedPreferencesSettings(PreferenceManager.getDefaultSharedPreferences(activity), commit = true)
+    // The default preferences of the application, where the game kept its settings before.
+    override fun legacyPreferences(): Map<String, Any?> =
+        activity.getSharedPreferences(activity.packageName + "_preferences", Context.MODE_PRIVATE).all
 
     override val displayWidth: Int
         get() = realDisplayMetrics().widthPixels
@@ -126,7 +126,7 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
     }
 
     override fun downloadBeatmapSet(setId: Long, filename: String) {
-        val url = BeatmapListing.mirror.download.request(setId, !Config.isPreferNoVideoDownloads()).toString()
+        val url = BeatmapListing.mirror.download.request(setId, !Settings[OsuSettings.PreferNoVideoDownloads]).toString()
         BeatmapDownloader.download(url, filename)
     }
 
@@ -152,12 +152,6 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
     override val canCheckForUpdates = true
 
     override fun checkForUpdates(silently: Boolean) = UpdateManager.checkNewUpdates(silently)
-
-    override val canBackUpPreferences = true
-
-    override fun exportPreferences() = ConfigBackup.exportPreferences()
-
-    override fun importPreferences() = ConfigBackup.importPreferences()
 
     override fun copyToClipboard(label: String, text: String) {
         activity.getSystemService<ClipboardManager>()?.setPrimaryClip(ClipData.newPlainText(label, text))

@@ -1,5 +1,8 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
+import com.osudroid.settings.GameResolution
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.OsuPlatform
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.Beatmap
@@ -48,7 +51,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.osudroid.audio.MusicService
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
@@ -167,13 +169,13 @@ class ScoringScene(pGame: GameScene) {
         // Everything is placed in the coordinates of the game's resolution and scaled to fit the window.
         val content = UIContainer()
         this.content = content
-        content.setSize(Config.getRES_WIDTH().toFloat(), Config.getRES_HEIGHT().toFloat())
+        content.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
         content.scaleOrigin = Anchor.TopLeft
-        content.scale = Verktex.graphics.window.windowWidth.toFloat() / Config.getRES_WIDTH()
+        content.scale = Verktex.graphics.window.windowWidth.toFloat() / GameResolution.width
         scene += content
 
         val bgTopRect = UIBox()
-        bgTopRect.setSize(Config.getRES_WIDTH().toFloat(), Utils.toRes(100).toFloat())
+        bgTopRect.setSize(GameResolution.width.toFloat(), Utils.toRes(100).toFloat())
         bgTopRect.backgroundColor = Color4(0f, 0f, 0f, 0.8f)
         content += bgTopRect
 
@@ -188,10 +190,10 @@ class ScoringScene(pGame: GameScene) {
             0f
 
         val scaledContainer = UIContainer()
-        scaledContainer.setSize(Config.getRES_WIDTH().toFloat(), Config.getRES_HEIGHT().toFloat())
+        scaledContainer.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
         scaledContainer.setPosition(0f, 100f)
         scaledContainer.scaleOrigin = Anchor.TopLeft
-        scaledContainer.scale = (Config.getRES_HEIGHT() - paddingButtom) / Config.getRES_HEIGHT()
+        scaledContainer.scale = (GameResolution.height - paddingButtom) / GameResolution.height
         content += scaledContainer
 
         val x = 0
@@ -208,7 +210,7 @@ class ScoringScene(pGame: GameScene) {
         scaledContainer += createHitSprite("hit0", (340 + x).toFloat(), (130 + 92 * 2 + y).toFloat())
 
         content += createSprite("ranking-title",
-            (Config.getRES_WIDTH() * 5).toFloat() / 6 - textureWidth("ranking-title") / 2, 0f)
+            (GameResolution.width * 5).toFloat() / 6 - textureWidth("ranking-title") / 2, 0f)
 
         val scoreStr = StringBuilder(stat.totalScoreWithMultiplier.toString())
         while (scoreStr.length < 8) {
@@ -255,7 +257,7 @@ class ScoringScene(pGame: GameScene) {
             Utils.toRes(332 + y + 38).toFloat(), accStr, 1f, false)
         scaledContainer += accuracy
 
-        val markX = (Config.getRES_WIDTH() * 5).toFloat() / 6 - textureWidth("ranking-" + stat.mark) / 2
+        val markX = (GameResolution.width * 5).toFloat() / 6 - textureWidth("ranking-" + stat.mark) / 2
         val mark = createSprite("ranking-" + stat.mark, markX, 80f)
 
         if (beatmap != null) {
@@ -268,8 +270,8 @@ class ScoringScene(pGame: GameScene) {
         content += mark
 
         val backBtn = createButton("ranking-back") { back() }
-        val buttonX = Config.getRES_WIDTH() - textureWidth("ranking-back") - 10
-        val backY = Config.getRES_HEIGHT() - textureHeight("ranking-back") - 10 - paddingButtom
+        val buttonX = GameResolution.width - textureWidth("ranking-back") - 10
+        val backY = GameResolution.height - textureHeight("ranking-back") - 10 - paddingButtom
         backBtn.setPosition(buttonX, backY)
         content += backBtn
 
@@ -374,7 +376,7 @@ class ScoringScene(pGame: GameScene) {
         infoContainer += createText(mapperStr, 21f)
         infoContainer += createText(playerStr, 21f)
 
-        if (Config.isDisplayScoreStatistics() && !currentStatistic!!.isTeamStatistic()) {
+        if (Settings[OsuSettings.DisplayScoreStatistics] && !currentStatistic!!.isTeamStatistic()) {
 
             val ppinfo = StringBuilder()
             var beatmapData: Beatmap?
@@ -383,7 +385,7 @@ class ScoringScene(pGame: GameScene) {
                 beatmapData = BeatmapCache.getBeatmap(
                     beatmapInfo,
                     true,
-                    when (Config.getDifficultyAlgorithm()) {
+                    when (OsuSettings.difficultyAlgorithm) {
                         DifficultyAlgorithm.droid -> GameMode.Droid
                         DifficultyAlgorithm.standard -> GameMode.Standard
                     }
@@ -422,7 +424,7 @@ class ScoringScene(pGame: GameScene) {
                             copiedMods.put(ModOldNightCore::class)
                         }
 
-                        when (Config.getDifficultyAlgorithm()) {
+                        when (OsuSettings.difficultyAlgorithm) {
                             DifficultyAlgorithm.droid -> {
                                 val playableBeatmap = beatmapData.createDroidPlayableBeatmap(copiedMods.values)
 
@@ -449,12 +451,12 @@ class ScoringScene(pGame: GameScene) {
                 }
 
                 if (difficultyAttributes == null) {
-                    difficultyAttributes = when (Config.getDifficultyAlgorithm()) {
+                    difficultyAttributes = when (OsuSettings.difficultyAlgorithm) {
                         DifficultyAlgorithm.droid -> BeatmapDifficultyCalculator.calculateDroidDifficulty(beatmapData, mods.values)
                         DifficultyAlgorithm.standard -> BeatmapDifficultyCalculator.calculateStandardDifficulty(beatmapData, mods.values)
                     }
 
-                    performanceAttributes = when (Config.getDifficultyAlgorithm()) {
+                    performanceAttributes = when (OsuSettings.difficultyAlgorithm) {
                         DifficultyAlgorithm.droid -> BeatmapDifficultyCalculator.calculateDroidPerformance(
                             beatmapData, difficultyAttributes as DroidDifficultyAttributes, stat
                         )
@@ -465,7 +467,7 @@ class ScoringScene(pGame: GameScene) {
                     }
                 }
 
-                val maxPerformanceAttributes = when (Config.getDifficultyAlgorithm()) {
+                val maxPerformanceAttributes = when (OsuSettings.difficultyAlgorithm) {
                     DifficultyAlgorithm.droid -> BeatmapDifficultyCalculator.calculateDroidPerformance(
                         difficultyAttributes as DroidDifficultyAttributes
                     )
@@ -477,7 +479,7 @@ class ScoringScene(pGame: GameScene) {
 
                 ppinfo.append(String.format(
                     Locale.ENGLISH,
-                    "%.2f★ | %.2f/%.2f" + (if (Config.getDifficultyAlgorithm() == DifficultyAlgorithm.droid) "dpp" else "pp"),
+                    "%.2f★ | %.2f/%.2f" + (if (OsuSettings.difficultyAlgorithm == DifficultyAlgorithm.droid) "dpp" else "pp"),
                     difficultyAttributes.starRating,
                     performanceAttributes!!.total,
                     maxPerformanceAttributes.total
@@ -496,7 +498,7 @@ class ScoringScene(pGame: GameScene) {
             val ppInfo = createText(ppinfo.toString(), 21f)
             ppInfo.backgroundColor = Color4(0f, 0f, 0f, 0.5f)
             ppInfo.origin = Anchor.BottomLeft
-            ppInfo.setPosition(Utils.toRes(240).toFloat(), Config.getRES_HEIGHT() - Utils.toRes(2) - paddingButtom)
+            ppInfo.setPosition(Utils.toRes(240).toFloat(), GameResolution.height - Utils.toRes(2) - paddingButtom)
             content += ppInfo
         }
         content += infoContainer
@@ -543,7 +545,7 @@ class ScoringScene(pGame: GameScene) {
 
             // Upload score
             if (!OnlineManager.getInstance().isStayOnline ||
-                (Multiplayer.isMultiplayer && !Config.isSubmitScoreOnMultiplayer())) {
+                (Multiplayer.isMultiplayer && !Settings[OsuSettings.SubmitScoreOnMultiplayer])) {
                 return
             }
 

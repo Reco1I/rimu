@@ -1,5 +1,8 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.osudroid.settings.GameFolders;
+import com.osudroid.settings.OsuSettings;
+import com.osudroid.ui.v2.SkinFolders;
 import com.osudroid.resources.Res;
 import com.reco1l.verktex.ui.toast.Toasts;
 import com.osudroid.android.AndroidGame;
@@ -10,14 +13,11 @@ import com.osudroid.android.SocketIORoomSocket;
 import com.osudroid.multiplayer.api.RoomSocket;
 import com.reco1l.framework.net.Http;
 
-import com.osudroid.ui.v2.settings.SettingsSectionsKt;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.provider.OpenableColumns;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -36,7 +36,6 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.PermissionChecker;
-import androidx.preference.PreferenceManager;
 
 import com.edlplan.ui.ActivityOverlay;
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -127,12 +126,12 @@ public class MainActivity extends AndroidGameHost {
         OsuPlatform.INSTANCE.setImplementation(new AndroidOsuPlatform(this));
         Http.INSTANCE.setImplementation(new OkHttpClientImplementation());
         RoomSocket.Companion.setFactory(SocketIORoomSocket.factory);
-        Config.loadConfig();
+        OsuSettings.load();
         initialGameDirectory();
         Multiplayer.initLog();
         //Debug.setDebugLevel(Debug.DebugLevel.NONE);
         OnlineManager.getInstance().init();
-        crashlytics.setUserId(Config.getOnlineDeviceID());
+        crashlytics.setUserId(OsuSettings.getInstallId());
 
         final DisplayMetrics dm = new DisplayMetrics();
         display = getWindowManager().getDefaultDisplay();
@@ -170,15 +169,15 @@ public class MainActivity extends AndroidGameHost {
             GlobalManager.getInstance().init();
 
             // The "Show FPS" setting shows the engine's performance overlay.
-            Settings.INSTANCE.set(VerktexSettings.ShowPerformanceOverlay, Config.isShowFPS());
+            Settings.set(VerktexSettings.ShowPerformanceOverlay, Settings.get(OsuSettings.ShowFps));
 
             // The resolution scale setting is stored as a percentage.
-            Settings.INSTANCE.set(VerktexSettings.ResolutionScale, Config.getInt(SettingsSectionsKt.RESOLUTION_SCALE_KEY, 100) / 100f);
+            Settings.set(VerktexSettings.ResolutionScale, Settings.get(OsuSettings.ResolutionScale) / 100f);
 
             analytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, null);
             GlobalManager.getInstance().setLoadingProgress(50);
             checkNewSkins();
-            Config.loadSkins();
+            SkinFolders.load();
             DifficultyCalculationManager.checkForOutdatedStarRatings();
             loadBeatmapLibrary();
 
@@ -193,9 +192,8 @@ public class MainActivity extends AndroidGameHost {
                 Verktex.pushScene(MainScene.INSTANCE);
                 SongSelect.INSTANCE.loadBeatmaps();
 
-                initPreferences();
                 availableInternalMemory();
-                applyRefreshRateSetting(Config.isForceMaxRefreshRate());
+                applyRefreshRateSetting(Settings.get(OsuSettings.ForceMaxRefreshRate));
 
                 AccessibilityDetector.register(MainActivity.this);
 
@@ -223,20 +221,14 @@ public class MainActivity extends AndroidGameHost {
     public void onEngineStarted() {}
 
     private void initialGameDirectory() {
-        File dir = new File(Config.getBeatmapPath());
+        File dir = new File(GameFolders.getBeatmapPath());
         // Creating Osu directory if it doesn't exist
         if (!dir.exists()) {
             if (!dir.mkdirs()) {
-                Config.setBeatmapPath(Config.getCorePath() + "Songs/");
-                dir = new File(Config.getBeatmapPath());
+                GameFolders.setBeatmapPath(GameFolders.getCorePath() + "Songs/");
+                dir = new File(GameFolders.getBeatmapPath());
                 if (!(dir.exists() || dir.mkdirs())) {
                     Toasts.showLong(Res.string.message_error_createdir.format(dir.getPath()));
-                } else {
-                    final SharedPreferences prefs = PreferenceManager
-                            .getDefaultSharedPreferences(this);
-                    final SharedPreferences.Editor editor = prefs.edit();
-                    editor.putString("directory", dir.getPath());
-                    editor.commit();
                 }
 
             }
@@ -248,36 +240,10 @@ public class MainActivity extends AndroidGameHost {
             }
         }
 
-        final File skinDir = new File(Config.getCorePath() + "/Skin");
+        final File skinDir = new File(GameFolders.getCorePath() + "/Skin");
         // Creating Osu/Skin directory if it doesn't exist
         if (!skinDir.exists()) {
             skinDir.mkdirs();
-        }
-    }
-
-    private void initPreferences() {
-        final SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(this);
-
-        if (!prefs.getBoolean("qualitySet", false)) {
-            final SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean("qualitySet", true);
-            final DisplayMetrics dm = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(dm);
-
-            if (dm.densityDpi > DisplayMetrics.DENSITY_MEDIUM) {
-                editor.putBoolean("lowtextures", false);
-            } else {
-                editor.putBoolean("lowtextures", false);
-            }
-            editor.commit();
-        }
-
-        if (!prefs.getBoolean("onlineSet", false)) {
-
-            Editor editor = prefs.edit();
-            editor.putBoolean("onlineSet", true);
-            editor.commit();
         }
     }
 
@@ -307,21 +273,21 @@ public class MainActivity extends AndroidGameHost {
             fileToAdd = copyContentUriToCache(contentUriToAdd);
             contentUriToAdd = null;
         }
-        final File mainDir = new File(Config.getCorePath());
+        final File mainDir = new File(GameFolders.getCorePath());
         final HashSet<String> forceImportedBeatmaps = new HashSet<>();
         if (fileToAdd != null) {
             File file = new File(fileToAdd);
             if (file.getName().toLowerCase().endsWith(".osz")) {
                 Toasts.show(Res.string.library_importing);
 
-                FileUtils.extractBeatmapset(fileToAdd, Config.getBeatmapPath());
+                FileUtils.extractBeatmapset(fileToAdd, GameFolders.getBeatmapPath());
                 forceImportedBeatmaps.add(file.getName().substring(0, file.getName().length() - 4)
                         .replaceAll("(?i) \\[no video]$", ""));
                 // LibraryManager.INSTANCE.sort();
                 fileToAdd = null;
             } else if (file.getName().toLowerCase().endsWith(".osk")) {
                 Toasts.show(Res.string.library_skin_importing);
-                FileUtils.extractZip(fileToAdd, Config.getSkinTopPath());
+                FileUtils.extractZip(fileToAdd, SkinFolders.getTopPath());
                 fileToAdd = null;
             } else if (file.getName().toLowerCase().endsWith(".odr")) {
                 willReplay = true;
@@ -340,7 +306,7 @@ public class MainActivity extends AndroidGameHost {
                 }
             }
 
-            File beatmapDir = new File(Config.getBeatmapPath());
+            File beatmapDir = new File(GameFolders.getBeatmapPath());
             if (beatmapDir.exists()
                     && beatmapDir.isDirectory()) {
                 filelist = FileUtils.listFiles(beatmapDir, ".osz");
@@ -357,7 +323,7 @@ public class MainActivity extends AndroidGameHost {
             }
 
             File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if (Config.isSCAN_DOWNLOAD()
+            if (Settings.get(OsuSettings.ScanDownload)
                     && downloadDir.exists()
                     && downloadDir.isDirectory()) {
                 filelist = FileUtils.listFiles(downloadDir, ".osz");
@@ -374,13 +340,13 @@ public class MainActivity extends AndroidGameHost {
             }
 
             if (beatmaps.size() > 0) {
-                // final boolean deleteOsz = Config.isDELETE_OSZ();
-                // Config.setDELETE_OSZ(true);
+                // final boolean deleteOsz = Settings.get(OsuSettings.DeleteOsz);
+                // Settings.set(OsuSettings.DeleteOsz, true);
                 Toasts.show(Res.string.library_importing_several.format(beatmaps.size()));
                 for (final String beatmap : beatmaps) {
-                    FileUtils.extractBeatmapset(beatmap, Config.getBeatmapPath());
+                    FileUtils.extractBeatmapset(beatmap, GameFolders.getBeatmapPath());
                 }
-                // Config.setDELETE_OSZ(deleteOsz);
+                // Settings.set(OsuSettings.DeleteOsz, deleteOsz);
 
                 // LibraryManager.INSTANCE.sort();
             }
@@ -396,7 +362,7 @@ public class MainActivity extends AndroidGameHost {
         final ArrayList<String> skins = new ArrayList<>();
 
         // Scanning skin directory
-        final File skinDir = new File(Config.getSkinTopPath());
+        final File skinDir = new File(SkinFolders.getTopPath());
 
         if (skinDir.exists() && skinDir.isDirectory()) {
             final File[] files = FileUtils.listFiles(skinDir, ".osk");
@@ -414,7 +380,7 @@ public class MainActivity extends AndroidGameHost {
         // Scanning download directory
         final File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 
-        if (Config.isSCAN_DOWNLOAD()
+        if (Settings.get(OsuSettings.ScanDownload)
                 && downloadDir.exists()
                 && downloadDir.isDirectory()) {
             final File[] files = FileUtils.listFiles(downloadDir, ".osk");
@@ -433,11 +399,11 @@ public class MainActivity extends AndroidGameHost {
             Toasts.show(Res.string.library_skin_importing_several.format(skins.size()));
 
             for (final String skin : skins) {
-                if (FileUtils.extractZip(skin, Config.getSkinTopPath())) {
+                if (FileUtils.extractZip(skin, SkinFolders.getTopPath())) {
                     String folderName = skin.substring(0, skin.length() - 4);
                     // We have imported the skin!
                     Toasts.showLong(Res.string.library_imported.format(folderName));
-                    Config.addSkin(folderName.substring(folderName.lastIndexOf("/") + 1), skin);
+                    SkinFolders.add(folderName.substring(folderName.lastIndexOf("/") + 1), skin);
                 }
             }
         }
@@ -494,9 +460,13 @@ public class MainActivity extends AndroidGameHost {
         AndroidGame.setMainActivity(this);
         GlobalManager.getInstance().setHeadless(false);
 
-        // The engine picks its graphics backend when the host is created, Config isn't loaded yet.
-        Settings.INSTANCE.set(VerktexSettings.GraphicsBackend, PreferenceManager.getDefaultSharedPreferences(this)
-            .getString(SettingsSectionsKt.GRAPHICS_BACKEND_KEY, GraphicsBackend.Auto.name()));
+        // The engine picks its graphics backend from its settings when the host is created. Until
+        // the settings were imported from the preferences, on the first start with them, the backend
+        // chosen before is taken from there.
+        if (!new File(getFilesDir(), "settings.json").exists()) {
+            Settings.set(VerktexSettings.GraphicsBackend, getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE)
+                .getString(OsuSettings.LegacyGraphicsBackend.getName(), GraphicsBackend.Auto.name()));
+        }
 
         super.onCreate(pSavedInstanceState);
 

@@ -1,5 +1,8 @@
 package com.osudroid.ui.v2.game
 
+import com.osudroid.settings.GameResolution
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.mods.ModFlashlight
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
@@ -17,7 +20,6 @@ import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.UIBox
 import com.osudroid.math.Vector2
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameObject
@@ -65,7 +67,7 @@ class FlashLightEntity(flashlight: ModFlashlight) : UIContainer() {
 
 
     init {
-        setPosition(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f)
+        setPosition(GameResolution.width / 2f, GameResolution.height / 2f)
     }
 
 
@@ -89,8 +91,8 @@ class FlashLightEntity(flashlight: ModFlashlight) : UIContainer() {
     }
 
     fun onMouseMove(x: Float, y: Float) {
-        nextX = x.coerceIn(0f, Config.getRES_WIDTH().toFloat())
-        nextY = y.coerceIn(0f, Config.getRES_HEIGHT().toFloat())
+        nextX = x.coerceIn(0f, GameResolution.width.toFloat())
+        nextY = y.coerceIn(0f, GameResolution.height.toFloat())
     }
 
     fun onTrackingSliders(isTrackingSliders: Boolean) {
@@ -167,7 +169,7 @@ class BreakAnimator(
     }
 
     private var dimRectangle: UIComponent? = null
-    private var dimBrightness = Config.getBackgroundBrightness()
+    private var dimBrightness = OsuSettings.backgroundBrightness
 
     private var length = 0f
     private var time = 0f
@@ -184,8 +186,8 @@ class BreakAnimator(
         val arrowWidth = texture?.width ?: 0f
         val arrowHeight = texture?.height ?: 0f
         val margin = Utils.toRes(64).toFloat()
-        val right = Config.getRES_WIDTH() - arrowWidth - margin
-        val bottom = Config.getRES_HEIGHT() - arrowHeight
+        val right = GameResolution.width - arrowWidth - margin
+        val bottom = GameResolution.height - arrowHeight
         val top = Utils.toRes(72).toFloat()
 
         arrows[0].setPosition(margin, top)
@@ -249,7 +251,7 @@ class BreakAnimator(
 
         passFail = UISprite(SkinTextures["section-$ending"]).also {
             it.origin = Anchor.Center
-            it.setPosition(Config.getRES_WIDTH() / 2f, Config.getRES_HEIGHT() / 2f)
+            it.setPosition(GameResolution.width / 2f, GameResolution.height / 2f)
             it.isVisible = false
             hud.add(0, it)
         }
@@ -266,7 +268,7 @@ class BreakAnimator(
         val zeroWidth = SkinTextures[OsuSkin.get().scorePrefix, "0"]?.width ?: 0f
 
         mark = UISprite(rankingTexture()).also {
-            it.setPosition(Config.getRES_WIDTH() - zeroWidth * 11f, 5f)
+            it.setPosition(GameResolution.width - zeroWidth * 11f, 5f)
             it.scale = 1.2f
             hud.add(0, it)
         }
@@ -286,13 +288,13 @@ class BreakAnimator(
     }
 
     private fun setBgFade(percent: Float) {
-        if (!Config.isNoChangeDimInBreaks()) {
+        if (!Settings[OsuSettings.NoChangeDimInBreaks]) {
             dimRectangle?.alpha = (1 - dimBrightness) * (1 - percent)
         }
     }
 
     private fun resumeBgFade() {
-        if (!Config.isNoChangeDimInBreaks()) {
+        if (!Settings[OsuSettings.NoChangeDimInBreaks]) {
             dimRectangle?.alpha = 1 - dimBrightness
         }
     }
@@ -389,7 +391,7 @@ class ComboBurst(private val rightX: Float, private val bottomY: Float) {
 
 
     fun checkAndShow(currentCombo: Int) {
-        if (!Config.isComboburst() || currentCombo < nextKeyComboNum) {
+        if (!Settings[OsuSettings.ComboBurst] || currentCombo < nextKeyComboNum) {
             return
         }
 
@@ -483,7 +485,7 @@ class Countdown(
 
     private val ready = createSprite("ready", center.x)
     private val count3 = createSprite("count3", (SkinTextures["count3"]?.width ?: 0f) / 2f)
-    private val count2 = createSprite("count2", Config.getRES_WIDTH() - (SkinTextures["count2"]?.width ?: 0f) / 2f)
+    private val count2 = createSprite("count2", GameResolution.width - (SkinTextures["count2"]?.width ?: 0f) / 2f)
     private val count1 = createSprite("count1", center.x)
     private val go = createSprite("go", center.x)
 

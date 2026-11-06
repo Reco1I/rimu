@@ -1,5 +1,8 @@
 package com.osudroid
 
+import com.reco1l.verktex.settings.Settings
+import com.osudroid.settings.OsuSettings
+import com.osudroid.settings.GameFolders
 import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.android.AndroidGame
 import com.osudroid.utils.getLong
@@ -13,7 +16,6 @@ import com.osudroid.utils.*
 import com.reco1l.framework.net.*
 import com.reco1l.osu.ui.*
 import ru.nsu.ccfit.zuev.osu.*
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.helper.*
 import ru.nsu.ccfit.zuev.osu.online.*
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig
@@ -22,7 +24,7 @@ import java.io.*
 object UpdateManager: IFileRequestObserver
 {
 
-    private val apksDirectory = File(Config.getCachePath(), "updates").apply(File::mkdirs)
+    private val apksDirectory = File(GameFolders.cachePath, "updates").apply(File::mkdirs)
 
 
     private var progressDialog: ProgressDialog? = null
@@ -34,7 +36,7 @@ object UpdateManager: IFileRequestObserver
         val activity = AndroidGame.mainActivity!!
 
         // -1 indicates the first run of the game.
-        val version = Config.getLong("version", -1)
+        val version = Settings[OsuSettings.Version]
 
         // Ignoring debug because otherwise every compiled build will show the dialog.
         if (!BuildConfig.DEBUG && version != -1L && version < activity.versionCode) {
@@ -52,7 +54,7 @@ object UpdateManager: IFileRequestObserver
                 .show()
         }
 
-        Config.setLong("version", activity.versionCode)
+        Settings[OsuSettings.Version] = activity.versionCode
         checkNewUpdates(true)
     }
 

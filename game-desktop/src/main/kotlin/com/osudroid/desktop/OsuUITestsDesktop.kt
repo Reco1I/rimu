@@ -1,5 +1,6 @@
 package com.osudroid.desktop
 
+import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.ui.v2.Skin
 import com.osudroid.ui.v2.test.OsuGameplayUITests
 import com.osudroid.ui.v2.test.OsuSceneUITests
@@ -7,7 +8,6 @@ import com.osudroid.ui.v2.test.OsuUITests
 import com.osudroid.ui.v2.test.TestGameContext
 import com.reco1l.verktex.desktop.testing.UITestApplication
 import com.reco1l.verktex.testing.VerktexUITests
-import ru.nsu.ccfit.zuev.osu.Config
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -22,7 +22,7 @@ class OsuUITestsDesktop(initialTest: String?, screenshot: File?) : UITestApplica
 
     override fun onEngineInitialized() {
         initializeDesktopPlatform()
-        Skin.load(Config.getSkinPath())
+        Skin.load(SkinFolders.path)
 
         // Before any suite is created, the components under test reach the game through it.
         TestGameContext.install { DesktopDatabase.loadInMemory() }

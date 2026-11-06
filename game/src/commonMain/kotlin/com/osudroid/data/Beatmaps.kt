@@ -1,9 +1,11 @@
 package com.osudroid.data
 
+import com.osudroid.settings.GameFolders
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Logger
 import androidx.room.*
 import com.osudroid.difficulty.BeatmapDifficultyCalculator
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.*
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
@@ -71,7 +73,7 @@ data class BeatmapInfo(
     // Parent set
 
     /**
-     * The beatmap set directory relative to [Config.getBeatmapPath].
+     * The beatmap set directory relative to [com.osudroid.settings.GameFolders.beatmapPath].
      */
     var setDirectory: String,
 
@@ -234,10 +236,10 @@ data class BeatmapInfo(
         get() = "${absoluteSetDirectory}/$backgroundFilename"
 
     /**
-     * The beatmap set path ([setDirectory]) with [Config.getBeatmapPath] prepended.
+     * The beatmap set path ([setDirectory]) with [com.osudroid.settings.GameFolders.beatmapPath] prepended.
      */
     val absoluteSetDirectory
-        get() = "${Config.getBeatmapPath()}$setDirectory"
+        get() = "${GameFolders.beatmapPath}$setDirectory"
 
     /**
      * The total hit object count.
@@ -250,14 +252,14 @@ data class BeatmapInfo(
      * will return [title], otherwise [titleUnicode] if it's not blank.
      */
     val titleText
-        get() = if (Config.isForceRomanized()) title else titleUnicode.takeUnless { it.isBlank() } ?: title
+        get() = if (Settings[OsuSettings.ForceRomanized]) title else titleUnicode.takeUnless { it.isBlank() } ?: title
 
     /**
      * Returns the artist text based on the current configuration, whether romanization is forced it
      * will return [artist], otherwise [artistUnicode] if it's not blank.
      */
     val artistText
-        get() = if (Config.isForceRomanized()) artist else artistUnicode.takeUnless { it.isBlank() } ?: artist
+        get() = if (Settings[OsuSettings.ForceRomanized]) artist else artistUnicode.takeUnless { it.isBlank() } ?: artist
 
     /**
      * Whether the beatmap needs a difficulty calculation.
@@ -308,7 +310,7 @@ data class BeatmapInfo(
      * Returns 0 if the star rating has not been calculated.
      */
     @JvmOverloads
-    fun getStarRating(algorithm: DifficultyAlgorithm = Config.getDifficultyAlgorithm()) = when(algorithm) {
+    fun getStarRating(algorithm: DifficultyAlgorithm = OsuSettings.difficultyAlgorithm) = when(algorithm) {
         droid -> droidStarRating ?: 0f
         standard -> standardStarRating ?: 0f
     }

@@ -8,7 +8,6 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorSecondary">@color/colorAccent</item>
 
-        <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
@@ -20,15 +19,6 @@
         <item name="seekBarStyle">@style/seekbar</item>
     </style>
 
-    <style name="AppTheme.PreferenceThemeOverlay" parent="@style/PreferenceThemeOverlay">
-        <item name="android:layout">@layout/settings_fragment</item>
-        <item name="preferenceStyle">@style/settings_preference</item>
-        <item name="dialogPreferenceStyle">@style/settings_preference_dialog</item>
-        <item name="editTextPreferenceStyle">@style/settings_preference_edittext</item>
-        <item name="preferenceCategoryStyle">@style/settings_preference_category</item>
-        <item name="checkBoxPreferenceStyle">@style/settings_preference_checkbox</item>
-        <item name="seekBarPreferenceStyle">@style/settings_preference_seekbar</item>
-    </style>
 
 
     <!--Elements-->
@@ -99,42 +89,6 @@
     </style>
 
     <!--Settings-->
-    <style name="settings_preference" parent="@style/Preference.Material">
-        <item name="layout">@layout/settings_preference</item>
-        <item name="allowDividerAbove">false</item>
-        <item name="allowDividerBelow">false</item>
-    </style>
-
-    <style name="settings_preference_dialog" parent="@style/Preference.DialogPreference">
-        <item name="layout">@layout/settings_preference</item>
-        <item name="allowDividerAbove">false</item>
-        <item name="allowDividerBelow">false</item>
-    </style>
-
-    <style name="settings_preference_edittext" parent="@style/Preference.DialogPreference.EditTextPreference">
-        <item name="layout">@layout/settings_preference</item>
-        <item name="allowDividerAbove">false</item>
-        <item name="allowDividerBelow">false</item>
-    </style>
-
-    <style name="settings_preference_checkbox" parent="@style/Preference.CheckBoxPreference.Material">
-        <item name="layout">@layout/settings_preference_checkbox</item>
-        <item name="allowDividerAbove">false</item>
-        <item name="allowDividerBelow">false</item>
-    </style>
-
-    <style name="settings_preference_seekbar" parent="@style/Preference.SeekBarPreference.Material">
-        <item name="layout">@layout/settings_preference_seekbar</item>
-        <item name="allowDividerAbove">false</item>
-        <item name="allowDividerBelow">false</item>
-    </style>
-
-    <style name="settings_preference_category" parent="@style/Preference.Category.Material">
-        <item name="layout">@layout/settings_preference_category</item>
-        <item name="allowDividerAbove">false</item>
-        <item name="allowDividerBelow">false</item>
-    </style>
-
     <style name="settings_tab_text">
         <item name="android:layout_width">200dp</item>
         <item name="android:layout_height">wrap_content</item>
@@ -176,13 +130,6 @@
         <item name="android:textSize">12sp</item>
         <item name="android:textStyle">normal</item>
         <item name="android:textColor">#FFB2B2CC</item>
-    </style>
-
-    <style name="settings_row_seekbar" parent="seekbar">
-        <item name="android:id">@id/seekbar</item>
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">16dp</item>
     </style>
 
     <style name="settings_tab_divider">
