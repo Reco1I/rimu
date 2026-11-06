@@ -35,13 +35,7 @@ class OsuDesktop(
 ) : DesktopGameHost(title = "osu!droid", vsync = true) {
 
     override fun onEngineInitialized() {
-        OsuPlatform.implementation = DesktopOsuPlatform()
-        Http.implementation = OkHttpClientImplementation()
-        Config.loadConfig()
-        StringTable.implementation = DesktopStringTable()
-
-        // There are no toasts on desktop yet, their messages go to the log.
-        ToastLogger.init { message, _ -> Logger.i("Toast", message) }
+        initializeDesktopPlatform()
 
         createGameDirectories()
         OnlineManager.getInstance().init()
@@ -98,6 +92,19 @@ class OsuDesktop(
  *
  * `--screenshot` saves the frame shown `--delay` seconds (10 by default) after starting and exits.
  */
+/**
+ * Sets what the game needs from desktop, before anything of the game is used.
+ */
+fun initializeDesktopPlatform() {
+    OsuPlatform.implementation = DesktopOsuPlatform()
+    Http.implementation = OkHttpClientImplementation()
+    Config.loadConfig()
+    StringTable.implementation = DesktopStringTable()
+
+    // There are no toasts on desktop yet, their messages go to the log.
+    ToastLogger.init { message, _ -> Logger.i("Toast", message) }
+}
+
 fun main(args: Array<String>) {
     var screenshot: File? = null
     var delay = 10.0

@@ -232,3 +232,13 @@ tasks.named<JavaExec>("run") {
     // Relative paths given in --args, e.g. --screenshot, resolve against where Gradle was started.
     workingDir = rootProject.projectDir
 }
+
+// The UI test browser of osu!droid, with Verktex's suites too.
+tasks.register<JavaExec>("runUITests") {
+    group = "application"
+    description = "Runs the UI test browser of osu!droid on desktop."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("com.osudroid.desktop.OsuUITestsDesktopKt")
+    jvmArgs = application.applicationDefaultJvmArgs.toList()
+    workingDir = rootProject.projectDir
+}

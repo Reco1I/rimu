@@ -24,7 +24,6 @@ import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.textButton
 import com.osudroid.ui.v2.test.GameplayObjectHarness.Play
-import kotlin.reflect.full.createInstance
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameplayHitCircle
@@ -143,7 +142,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                             clipping = ClipMode.Bounds
 
                             val element = try {
-                                entry.type.createInstance()
+                                entry.create()
                             } catch (e: Exception) {
                                 text {
                                     width = fill()

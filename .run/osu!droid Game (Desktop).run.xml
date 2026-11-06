@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="UI Tests (Desktop)" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="osu!droid: Game (Desktop)" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":verktex:desktop:run" />
+          <option value=":game-desktop:run" />
         </list>
       </option>
       <option name="vmOptions" />

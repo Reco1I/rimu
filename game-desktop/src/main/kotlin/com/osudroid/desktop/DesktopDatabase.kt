@@ -70,13 +70,25 @@ abstract class DesktopDatabase : RoomDatabase() {
             val path = DatabaseManager.databasePath
             File(path).parentFile?.mkdirs()
 
-            val database = Room.databaseBuilder<DesktopDatabase>(name = path)
-                .setDriver(BundledSQLiteDriver())
-                // Desktop databases have no users to keep data for yet, so they don't migrate: a
-                // database of another version is created again.
-                .fallbackToDestructiveMigration(true)
-                .build()
+            use(
+                Room.databaseBuilder<DesktopDatabase>(name = path)
+                    .setDriver(BundledSQLiteDriver())
+                    // Desktop databases have no users to keep data for yet, so they don't migrate: a
+                    // database of another version is created again.
+                    .fallbackToDestructiveMigration(true)
+                    .build()
+            )
+        }
 
+        /**
+         * Opens an empty database kept in memory instead of the database file, so the real one is
+         * never touched, e.g. in the UI test browser.
+         */
+        fun loadInMemory() {
+            use(Room.inMemoryDatabaseBuilder<DesktopDatabase>().setDriver(BundledSQLiteDriver()).build())
+        }
+
+        private fun use(database: DesktopDatabase) {
             DatabaseManager.database = object : GameDatabase {
                 private val beatmapInfo = SuspendBeatmapInfoDAOAdapter(database.beatmapInfoTable())
                 private val beatmapOptions = SuspendBeatmapOptionsDAOAdapter(database.beatmapOptionsTable())
