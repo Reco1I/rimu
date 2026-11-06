@@ -8,7 +8,7 @@ with one implementation per platform, `SystemFileSystem`, the `Http`/`WebRequest
 `ToastLogger` with native toasts, Room wired separately on each platform, the `OsuPlatform` grab bag,
 `SongService` and `SongPlayer`, `GlobalManager` and the singleton scenes, and the edlplan slider-body code.
 The goal is to shrink the game: Verktex provides each of these features, and the game only configures
-them.
+them. Also the goal is to shrink game platform-specific code.
 
 **Decided with the user:**
 - Settings are stored in a JSON file.
