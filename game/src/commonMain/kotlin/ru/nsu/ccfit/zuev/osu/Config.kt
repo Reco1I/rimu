@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu
 
+import com.osudroid.resources.Languages
 import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Logger
@@ -254,6 +255,8 @@ object Config {
         }
 
         loadOnlineConfig()
+
+        Languages.apply(prefs.getString(Languages.SETTING_KEY, Languages.SYSTEM))
     }
 
     @JvmStatic

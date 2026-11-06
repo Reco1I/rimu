@@ -1,12 +1,10 @@
 package com.osudroid.ui.v2.multi
 
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.resources.Res.string
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*
 import com.osudroid.ui.v2.LoaderScene
-import com.osudroid.ui.v2.setText
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.ClipMode
@@ -44,7 +42,7 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
                 async {
                     LoaderScene().show()
 
-                    val name = data["name"]?.toString() ?: StringTable.format(string.multiplayer_lobby_create_room_name_default, OnlineManager.getInstance().username)
+                    val name = data["name"]?.toString() ?: string.multiplayer_lobby_create_room_name_default.format(OnlineManager.getInstance().username).toString()
                     val password = data["password"]?.toString().orEmpty().takeUnless(String::isBlank)
                     val capacity = (data["capacity"] as Number).toInt()
 
@@ -94,22 +92,22 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
                 }
             }
 
-            +FormInput(StringTable.format(string.multiplayer_lobby_create_room_name_default, OnlineManager.getInstance().username)).apply {
+            +FormInput(string.multiplayer_lobby_create_room_name_default.format(OnlineManager.getInstance().username).toString()).apply {
                 key = "name"
                 width = Dimension.FillAvailable
-                label = StringTable.get(string.multiplayer_lobby_room_name)
+                label = string.multiplayer_lobby_room_name
             }
 
             +FormInput().apply {
                 key = "password"
                 width = Dimension.FillAvailable
-                label = StringTable.get(string.multiplayer_lobby_room_password)
+                label = string.multiplayer_lobby_room_password
             }
 
             +FormSlider(8f).apply {
                 key = "capacity"
                 width = Dimension.FillAvailable
-                label = StringTable.get(string.multiplayer_lobby_room_capacity)
+                label = string.multiplayer_lobby_room_capacity
                 control.max = 16f
                 control.min = 2f
                 control.step = 1f
@@ -120,10 +118,10 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
 
         innerContent += form
 
-        title = StringTable.get(string.multiplayer_lobby_create_room)
+        title = string.multiplayer_lobby_create_room
 
         addButton(UITextButton().apply {
-            setText(string.multiplayer_lobby_create_room_accept)
+            text = string.multiplayer_lobby_create_room_accept
             variant = UIButton.Variant.Solid
             onActionUp = {
                 form.submit()
@@ -131,7 +129,7 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
         })
 
         addButton(UITextButton().apply {
-            setText(string.multiplayer_lobby_create_room_cancel)
+            text = string.multiplayer_lobby_create_room_cancel
             onActionUp = { hide() }
         })
     }

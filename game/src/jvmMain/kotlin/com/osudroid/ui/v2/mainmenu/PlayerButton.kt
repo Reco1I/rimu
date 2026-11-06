@@ -18,7 +18,6 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
 import com.reco1l.verktex.Platform
 import com.osudroid.resources.Res
 import com.reco1l.verktex.ui.dialog.UIConfirmDialog
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import java.util.Locale
 import kotlin.math.roundToInt
 import com.reco1l.verktex.ui.themed
@@ -42,7 +41,7 @@ class PlayerButton : UIClickableContainer() {
             if (onlineManager.isStayOnline) {
                 UIConfirmDialog().apply {
                     title = onlineManager.username
-                    text = StringTable.get(Res.string.dialog_visit_osudroid_profile_page)
+                    text = Res.string.dialog_visit_osudroid_profile_page
                     onConfirm = {
                         Platform.openWebPage(OnlineManager.profileEndpoint + onlineManager.userId, OnlineManager.profileUserAgent)
                     }

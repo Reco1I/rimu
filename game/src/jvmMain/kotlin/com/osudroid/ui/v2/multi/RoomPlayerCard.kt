@@ -39,7 +39,6 @@ import com.reco1l.verktex.ui.text.text
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import com.reco1l.verktex.ui.themed
 
@@ -261,7 +260,7 @@ class RoomPlayerCard : UILinearContainer() {
                     maxWidth = 384f.dip
 
                     addButton {
-                        setText(Res.string.multiplayer_room_player_menu_view_profile)
+                        text = Res.string.multiplayer_room_player_menu_view_profile
                         onActionUp = {
                             Platform.openWebPage(OnlineManager.profileEndpoint + player.id, OnlineManager.profileUserAgent)
                             this@dropdown.hide()
@@ -270,7 +269,7 @@ class RoomPlayerCard : UILinearContainer() {
 
                     if (player.id != Multiplayer.player!!.id) {
                         addButton {
-                            setText(if (player.isMuted) Res.string.multiplayer_room_player_menu_unmute else Res.string.multiplayer_room_player_menu_mute)
+                            text = if (player.isMuted) Res.string.multiplayer_room_player_menu_unmute else Res.string.multiplayer_room_player_menu_mute
                             onActionUp = {
                                 player.isMuted = !player.isMuted
                                 updatePlayerIcons(room, player)
@@ -280,11 +279,11 @@ class RoomPlayerCard : UILinearContainer() {
 
                         if (Multiplayer.isRoomHost) {
                             addButton {
-                                setText(Res.string.multiplayer_room_player_menu_transfer_host)
+                                text = Res.string.multiplayer_room_player_menu_transfer_host
                                 onActionUp = {
                                     UIConfirmDialog().apply {
-                                        title = StringTable.format(Res.string.multiplayer_room_player_transfer_dialog_title, player.name)
-                                        text = StringTable.get(Res.string.multiplayer_room_player_transfer_dialog_message)
+                                        title = Res.string.multiplayer_room_player_transfer_dialog_title.format(player.name)
+                                        text = Res.string.multiplayer_room_player_transfer_dialog_message
                                         onConfirm = {
                                             if (Multiplayer.isConnected) {
                                                 RoomAPI.setRoomHost(player.id)
@@ -296,12 +295,12 @@ class RoomPlayerCard : UILinearContainer() {
                             }
 
                             addButton {
-                                setText(Res.string.multiplayer_room_player_menu_kick)
+                                text = Res.string.multiplayer_room_player_menu_kick
                                 color = Color4("#FFBFBF")
                                 onActionUp = {
                                     UIConfirmDialog().apply {
-                                        title = StringTable.format(Res.string.multiplayer_room_player_kick_dialog_title, player.name)
-                                        text = StringTable.get(Res.string.multiplayer_room_player_kick_dialog_message)
+                                        title = Res.string.multiplayer_room_player_kick_dialog_title.format(player.name)
+                                        text = Res.string.multiplayer_room_player_kick_dialog_message
                                         onConfirm = {
                                             if (Multiplayer.isConnected) {
                                                 RoomAPI.kickPlayer(player.id)

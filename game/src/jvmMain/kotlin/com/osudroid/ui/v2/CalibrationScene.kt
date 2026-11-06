@@ -7,7 +7,7 @@ import com.reco1l.verktex.ui.borderColor
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.math.Interpolation
 import com.osudroid.resources.Res.string
-import com.osudroid.resources.StringResource
+import com.reco1l.verktex.localization.LocalizedString
 import com.osudroid.utils.median
 import com.osudroid.utils.standardDeviation
 import com.osudroid.utils.updateThread
@@ -48,7 +48,6 @@ import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.themed
 
 object CalibrationScene : UIScene() {
@@ -213,7 +212,7 @@ object CalibrationScene : UIScene() {
         }
 
         text {
-            setText(string.opt_offset_calibration_tap_hint)
+            text = string.opt_offset_calibration_tap_hint
             fontSize = 14f.dip
             alignment = Anchor.BottomCenter
             anchor = Anchor.BottomCenter
@@ -234,7 +233,7 @@ object CalibrationScene : UIScene() {
             backgroundColor = themed { palette.accent.shade(0.15f) }
 
             text {
-                setText(string.opt_offset_calibration_calibration)
+                text = string.opt_offset_calibration_calibration
                 fontSize = 14f.dip
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
@@ -294,7 +293,7 @@ object CalibrationScene : UIScene() {
             }
 
             text {
-                setText(string.opt_offset_calibration_offset)
+                text = string.opt_offset_calibration_offset
                 fontSize = 14f.dip
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
@@ -333,7 +332,7 @@ object CalibrationScene : UIScene() {
             }
 
             textButton {
-                setText(string.opt_offset_calibration_set)
+                text = string.opt_offset_calibration_set
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
                 onActionUp = {
@@ -345,7 +344,7 @@ object CalibrationScene : UIScene() {
             }
 
             textButton {
-                setText(string.opt_offset_calibration_reset)
+                text = string.opt_offset_calibration_reset
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
                 color = Color4(0xFFFFBFBF)
@@ -377,7 +376,7 @@ object CalibrationScene : UIScene() {
 
             // Header
             text {
-                setText(string.opt_offset_calibration_settings)
+                text = string.opt_offset_calibration_settings
                 fontSize = 14f.dip
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
@@ -401,7 +400,7 @@ object CalibrationScene : UIScene() {
                 width = Dimension.FillAvailable
 
                 text {
-                    setText(string.opt_highPrecisionInput_title)
+                    text = string.opt_highPrecisionInput_title
                     fontSize = 14f.dip
                     alignment = Anchor.CenterLeft
                     anchor = Anchor.CenterLeft
@@ -419,7 +418,7 @@ object CalibrationScene : UIScene() {
 
             // Description below the row
             text {
-                setText(string.opt_highPrecisionInput_summary)
+                text = string.opt_highPrecisionInput_summary
                 fontSize = 14f.dip
                 width = Dimension.FillAvailable
                 clipping = ClipMode.Bounds
@@ -537,7 +536,7 @@ object CalibrationScene : UIScene() {
         punchCircle()
     }
 
-    private enum class Judgement(val label: StringResource, val color: Color4) {
+    private enum class Judgement(val label: LocalizedString, val color: Color4) {
         PERFECT(string.opt_offset_calibration_judgement_perfect, Color4(0xFF6ECFFF)),
         GOOD(string.opt_offset_calibration_judgement_good, Color4(0xFF64DC28)),
         MEH(string.opt_offset_calibration_judgement_meh, Color4(0xFFc8b46e)),
@@ -548,7 +547,7 @@ object CalibrationScene : UIScene() {
     private fun showJudgement(judgement: Judgement) {
         judgementText.apply {
             clearTransforms()
-            setText(judgement.label)
+            text = judgement.label
             color = judgement.color
             scale = 0.7f
             alpha = 1f
@@ -590,7 +589,7 @@ object CalibrationScene : UIScene() {
         streakText.apply {
             when {
                 successfulTapStreak >= 10 -> {
-                    text = StringTable.format(string.opt_offset_calibration_streak, successfulTapStreak)
+                    text = string.opt_offset_calibration_streak.format(successfulTapStreak)
                     color = Color4(0xFFFFAA00)
 
                     // tiny pulse on milestone
@@ -603,7 +602,7 @@ object CalibrationScene : UIScene() {
                 }
 
                 successfulTapStreak >= 3 -> {
-                    text = StringTable.format(string.opt_offset_calibration_streak_combo, successfulTapStreak)
+                    text = string.opt_offset_calibration_streak_combo.format(successfulTapStreak)
                     color = Color4(0xFF88FF88)
                 }
 
@@ -616,24 +615,24 @@ object CalibrationScene : UIScene() {
         if (lastError != null) {
             val absErr = abs(lastError).roundToInt()
 
-            val label = StringTable.get(when {
+            val label = when {
                 absErr < judgementHitWindow.greatWindow -> string.opt_offset_calibration_feedback_perfect
                 lastError > 0 -> string.opt_offset_calibration_feedback_late
                 else -> string.opt_offset_calibration_feedback_early
-            })
+            }
 
             val detail =
                 if (absErr < 16) label
                 else "$label (${if (lastError > 0) "+" else ""}${lastError.roundToInt()} ms)"
 
-            tapFeedbackText.text = "$detail  •  ${tapOffsets.size} ${StringTable.get(string.opt_offset_calibration_feedback_tap_count)}"
+            tapFeedbackText.text = "$detail  •  ${tapOffsets.size} ${string.opt_offset_calibration_feedback_tap_count}"
             tapFeedbackText.color = when {
                 absErr < judgementHitWindow.greatWindow -> Color4(0xFF88FF88)
                 absErr < judgementHitWindow.okWindow -> Color4(0xFFFFFF88)
                 else -> Color4(0xFFFF8888)
             }
         } else {
-            tapFeedbackText.text = if (tapOffsets.isNotEmpty()) "${tapOffsets.size} ${StringTable.get(string.opt_offset_calibration_feedback_tap_count)}" else ""
+            tapFeedbackText.text = if (tapOffsets.isNotEmpty()) "${tapOffsets.size} ${string.opt_offset_calibration_feedback_tap_count}" else ""
             tapFeedbackText.color = Color4(0xFFAAAAAA)
         }
     }
@@ -661,8 +660,8 @@ object CalibrationScene : UIScene() {
     private fun showOffsetInputDialog() {
         updateThread {
             UIPromptDialog(IntegerTextInput(pendingOffset)).apply {
-                title = StringTable.get(com.osudroid.resources.Res.string.opt_offset_title)
-                text = StringTable.get(com.osudroid.resources.Res.string.opt_offset_summary)
+                title = com.osudroid.resources.Res.string.opt_offset_title
+                text = com.osudroid.resources.Res.string.opt_offset_summary
 
                 addButton {
                     text = "OK"

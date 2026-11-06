@@ -1,5 +1,6 @@
 package com.reco1l.verktex.ui
 
+import com.reco1l.verktex.localization.Localization
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.input.InputEvent
@@ -565,6 +566,43 @@ abstract class UIComponent {
         themeBindings?.values?.toList()?.forEach { it.apply(theme) }
     }
 
+    //region Localization
+
+    private var localeBindings: LinkedHashMap<Any, () -> Unit>? = null
+
+    // The Localization.version the locale bindings were last applied with.
+    private var boundLocaleVersion = -1
+
+    /**
+     * Calls [apply] now, and again when the strings of [Localization] change (e.g. the locale), for
+     * values that depend on them, such as a [com.reco1l.verktex.localization.LocalizedString]. It's
+     * applied on the next update after the change, so components out of the tree catch up once
+     * they're back. Binding with the same [key] again replaces the previous binding.
+     */
+    fun bindLocale(key: Any, apply: () -> Unit) {
+        val bindings = localeBindings ?: LinkedHashMap<Any, () -> Unit>().also { localeBindings = it }
+        bindings[key] = apply
+        apply()
+    }
+
+    /**
+     * Removes the binding added with [bindLocale] with the given [key], keeping its last value.
+     */
+    fun unbindLocale(key: Any) {
+        localeBindings?.remove(key)
+    }
+
+    private fun applyLocaleBindings() {
+        val bindings = localeBindings ?: return
+        val version = Localization.version
+        if (boundLocaleVersion == version) return
+
+        boundLocaleVersion = version
+        bindings.values.toList().forEach { it() }
+    }
+
+    //endregion
+
     /**
      * Resolves the [themed] values of this component and its children again, for when they depend
      * on a state that changed, e.g. the variant of a button.
@@ -856,6 +894,7 @@ abstract class UIComponent {
         }
 
         engineClockTime = clock.time
+        applyLocaleBindings()
         transforms?.update(this, clock.elapsedFrameTime)
         choreography?.update(currentClockTime)
         onUpdate(clock)

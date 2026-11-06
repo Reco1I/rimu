@@ -29,7 +29,7 @@ open class UIPromptDialog<T : UITextInput>(val input: T) : UIDialog<UILinearCont
     /**
      * The message shown above the input, hidden while it's empty.
      */
-    var text: String
+    var text: CharSequence
         get() = messageText.text
         set(value) {
             messageText.text = value

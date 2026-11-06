@@ -9,6 +9,7 @@ import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.LayoutConstraints
+import com.reco1l.verktex.localization.Localized
 import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.ui.isThemed
 import com.reco1l.verktex.ui.themed
@@ -20,6 +21,9 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.data.Color4
 import kotlin.math.max
 
+
+// The key of the locale binding of a text.
+private object TextLocaleBinding
 
 inline fun UIContainer.text(builder: UIText.() -> Unit): UIText {
     return UIText().apply(builder).also(::plusAssign)
@@ -35,12 +39,20 @@ open class UIText : UICanvas() {
 
     /**
      * The text to be displayed, without styles. Setting it replaces the [spannedText].
+     *
+     * A [Localized] text, such as a [com.reco1l.verktex.localization.LocalizedString], is shown in
+     * the current locale and again whenever it changes. Reading it gives back the text as it was set.
      */
-    var text: String
-        get() = spannedText.text
+    var text: CharSequence
+        get() = localizedText ?: spannedText.text
         set(value) {
-            if (spannedText.isPlain && spannedText.text == value) return
-            spannedText = SpannedText.of(value)
+            if (value is Localized) {
+                localizedText = value
+                bindLocale(TextLocaleBinding) { setPlainText(value.toString()) }
+            } else {
+                clearLocalizedText()
+                setPlainText(value.toString())
+            }
         }
 
     /**
@@ -49,14 +61,34 @@ open class UIText : UICanvas() {
      */
     var spannedText: SpannedText = SpannedText.Empty
         set(value) {
+            clearLocalizedText()
             if (field == value) return
             field = value
             invalidateMeasure()
         }
 
+    // The text as set when it's localized, which the spanned text is resolved from.
+    private var localizedText: Localized? = null
+
 
     init {
         color = themed { palette.accent }
+    }
+
+
+    private fun setPlainText(value: String) {
+        if (spannedText.isPlain && spannedText.text == value) return
+        val localized = localizedText
+        spannedText = SpannedText.of(value)
+        // Setting the spanned text clears it.
+        localizedText = localized
+    }
+
+    private fun clearLocalizedText() {
+        if (localizedText != null) {
+            localizedText = null
+            unbindLocale(TextLocaleBinding)
+        }
     }
 
 

@@ -6,7 +6,6 @@ import com.osudroid.multiplayer.api.RoomSocket
 import com.reco1l.framework.net.Http
 import com.osudroid.OsuPlatform
 import com.osudroid.android.AndroidOsuPlatform
-import com.osudroid.android.AndroidStringTable
 import com.osudroid.android.AndroidGame
 import com.osudroid.data.AndroidDatabase
 import com.google.firebase.FirebaseApp
@@ -14,7 +13,6 @@ import com.osudroid.ui.v2.Skin
 import com.reco1l.verktex.android.UITestActivity
 import com.reco1l.verktex.testing.VerktexUITests
 import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 
 /**
  * The UI test browser of osu!droid. It runs in its own process, so the game itself is never started
@@ -33,7 +31,6 @@ class OsuUITestActivity : UITestActivity() {
         Http.implementation = OkHttpClientImplementation()
         RoomSocket.factory = SocketIORoomSocket.factory
         Config.loadConfig()
-        StringTable.implementation = AndroidStringTable(this)
         Skin.load(Config.getSkinPath())
 
         // The activity is the context of the game here, it can start other activities too.

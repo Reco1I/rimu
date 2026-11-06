@@ -193,17 +193,6 @@ object OsuPlatform {
         fun importPreferences(): Boolean = false
 
         /**
-         * Whether the player can choose the language of the game, see [setLanguage].
-         */
-        val canChooseLanguage: Boolean
-            get() = false
-
-        /**
-         * Changes the language of the game to the one with [tag] (such as `es`), restarting it if needed.
-         */
-        fun setLanguage(tag: String) = Unit
-
-        /**
          * Copies [text] to the clipboard, under [label] where the platform names its entries.
          */
         fun copyToClipboard(label: String, text: String) = Unit

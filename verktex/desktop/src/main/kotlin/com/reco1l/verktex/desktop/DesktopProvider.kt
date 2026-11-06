@@ -27,10 +27,7 @@ class DesktopProvider : Provider {
         return DesktopProvider::class.java.getResourceAsStream("/" + path.removePrefix("/"))
     }
 
-    /**
-     * The bytes of the resource at [path], or null when there's none.
-     */
-    fun read(path: String, isExternal: Boolean): ByteArray? = try {
+    override fun read(path: String, isExternal: Boolean): ByteArray? = try {
         open(path, isExternal)?.use { it.readBytes() }
     } catch (e: Exception) {
         Logger.e("DesktopProvider", "Couldn't read $path", e)

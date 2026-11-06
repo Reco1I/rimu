@@ -351,7 +351,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 1. File system and buffers | Done |
 | 2. Toasts | Done |
 | 3. `MusicService` | Done |
-| 4. Localization | Not started |
+| 4. Localization | Done |
 | 5. Settings replace `Config` | Not started |
 | 6. Ktor networking | Not started |
 | 7. Split `OsuPlatform` | Not started |
@@ -435,3 +435,51 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
   desktop or a device: the desktop checks stay off on this machine while UI tests are worked on
   there, and no phone was connected. `:verktex:android:testDebugUnitTest` fails before and after
   this phase on JDK 25 (Robolectric).
+
+### Phase 4: localization
+
+- Verktex has `localization/`:
+  - `Localization` holds the `locale`, its `fallbackChain` (`pt-BR`, `pt`, `en`), the `sources`, a
+    `version` increased on every change, `get`, `getArray` and locale listeners. `normalize` turns
+    Android's `pt-rBR` and `pt_BR` into `pt-BR`.
+  - `JsonStringSource` reads `strings/<locale>.json` through the new `Provider.read`. It's the
+    built-in source, and `addSource` puts others first.
+  - `formatString` (also `Localization.format`) handles `%s %d %x %f %.Nf %n$s %% %n` with the `-`,
+    `0`, `+` and `,` flags and a width. It's built on `math/toFixed`, which now rounds halves like
+    `1.005` up, as `java.util.Formatter` does. The decimal point is always `.`.
+  - `LocalizedString` is a `Localized` `CharSequence` resolved on read and cached per `version`;
+    `format(args)` gives a formatted one. `LocalizedStringArray` has `values`.
+  - `Platform.systemLocale` is the system's language (`Locale.getDefault()` on both platforms).
+- Components re-resolve on their own: `UIComponent.bindLocale` bindings run again on the component's
+  next update after the `version` changed. That's pulled rather than pushed, so scenes that aren't
+  shown (the singleton ones) catch up when they come back.
+  - `UIText.text` and `UITextureText.text` are `CharSequence`. A `Localized` one is bound, and reading
+    it gives back what was set. Through them, so are the texts of `UITextButton`, `UIDialog`,
+    `UIMessageDialog`, `FormControl.label` and `UIToast`.
+  - `UIPromptDialog.text`, `UICard.title`, `UISelect.placeholder`, `UISelect.Option.text` and the
+    toasts (`Toasts.show`, `showPersistent`, `Toast.text/title`, the action) take a `CharSequence`.
+- In the game:
+  - `:game:generateStringResources` also writes every language of the pack (and English's
+    `strings_temporary_for_locals.xml`) as `strings/<locale>.json` into
+    `game/build/generated/resources/assets`, which the app's assets and the desktop's resources
+    include. `Res` keeps its shape with `@JvmField` `LocalizedString`/`LocalizedStringArray`, so Java
+    uses `Res.string.x` too.
+  - `StringTable`, `AndroidStringTable`, `DesktopStringTable`, `StringResource`, the `setText`
+    extensions and the desktop's `copyStrings` are gone. Call sites pass `Res.string.x` (or
+    `.format(...)`) and take `toString()` only where a `String` is needed (chat history, Android
+    dialogs, comparisons, spans).
+  - `OptionInfo.title/summary` and `CategoryInfo.title` are `CharSequence`.
+  - `Languages` lists the languages and applies the `appLanguage` setting, from `Config.loadConfig`
+    and when it's changed in the settings, which updates the text in place. The setting is shown on
+    every platform; `OsuPlatform.canChooseLanguage`/`setLanguage` and the restart are gone.
+- Left on Android resources: `ImportReplayActivity` and the crash dialog of `AppException`, which run
+  without the engine, and the XML layouts of the old fragments, which follow the system's language
+  rather than the game's.
+- Tests: `LocalizationTest` (Verktex) covers the fallback, the re-resolving and the formatter against
+  `java.util.Formatter`; `GeneratedStringsTest` (game) loads the generated files and formats every
+  pattern of every language.
+- Checked: the core, desktop and game tests, the common checks and `assembleDebug` (the APK has the
+  14 `assets/strings/*.json`). Not run on desktop or a device, so changing the language live wasn't
+  seen on screen. No Verktex UI test was added for it, since the UI tests are being worked on
+  separately.
+

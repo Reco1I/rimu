@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.game
 
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
@@ -86,7 +85,7 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : UICo
 
     private fun saveReplay() {
         if (isFail && !isReplaySaved && !game.replaying && game.saveFailedReplay()) {
-            Toasts.showLong(StringTable.get(Res.string.message_save_replay_successful))
+            Toasts.showLong(Res.string.message_save_replay_successful)
             isReplaySaved = true
         }
     }

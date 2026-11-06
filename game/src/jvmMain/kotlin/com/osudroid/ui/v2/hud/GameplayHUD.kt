@@ -33,7 +33,6 @@ import ru.nsu.ccfit.zuev.osu.scoring.*
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import ru.nsu.ccfit.zuev.skins.SkinJsonReader
 import java.io.File
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import kotlin.reflect.*
 
 class GameplayHUD : UIContainer(), IGameplayEvents {
@@ -134,36 +133,36 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
         }
 
         UIMessageDialog().apply {
-            title = StringTable.get(string.hudEditor_modal_title)
+            title = string.hudEditor_modal_title
 
             addButton {
-                text = StringTable.get(string.hudEditor_modal_save)
+                text = string.hudEditor_modal_save
                 onActionUp = {
                     hide()
-                    Toasts.showLong(StringTable.get(string.hudEditor_saving))
+                    Toasts.showLong(string.hudEditor_saving)
                     setEditMode(false)
                     saveToSkinJSON()
-                    Toasts.showLong(StringTable.get(string.hudEditor_saved))
+                    Toasts.showLong(string.hudEditor_saved)
                 }
             }
             addButton {
-                text = StringTable.get(string.hudEditor_modal_discard)
+                text = string.hudEditor_modal_discard
                 onActionUp = {
                     hide()
                     setSkinData(OsuSkin.get().hudSkinData)
-                    Toasts.showLong(StringTable.get(string.hudEditor_discarded))
+                    Toasts.showLong(string.hudEditor_discarded)
                 }
             }
             addButton {
-                text = StringTable.get(string.hudEditor_modal_reset)
+                text = string.hudEditor_modal_reset
                 onActionUp = {
                     hide()
                     setSkinData(HUDSkinData.Default)
-                    Toasts.showLong(StringTable.get(string.hudEditor_reset))
+                    Toasts.showLong(string.hudEditor_reset)
                 }
             }
             addButton {
-                text = StringTable.get(string.hudEditor_modal_cancel)
+                text = string.hudEditor_modal_cancel
                 onActionUp = { hide() }
             }
         }.show()

@@ -2,7 +2,6 @@ package com.osudroid.ui.v2.mainmenu
 
 import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.multiplayer.api.RoomSocket
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.data.LayoutConstraints
 import com.acivev.ui.addSnowfallWithPeriod
@@ -243,7 +242,7 @@ object MainScene : UIScene() {
                     if (RoomSocket.isAvailable) {
                         +menuButton(FAIcon.UserGroup, "Multi") action@{
                             if (!OnlineManager.getInstance().isStayOnline && !BuildSettings.MOCK_MULTIPLAYER) {
-                                Toasts.showLong(StringTable.format(Res.string.multiplayer_not_online))
+                                Toasts.showLong(Res.string.multiplayer_not_online.format())
                                 return@action
                             }
 
@@ -370,7 +369,7 @@ object MainScene : UIScene() {
 
         UIConfirmDialog().apply {
             title = "Exit"
-            text = StringTable.get(Res.string.dialog_exit_message)
+            text = Res.string.dialog_exit_message
             onConfirm = { exit() }
         }.show()
     }

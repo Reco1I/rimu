@@ -14,6 +14,9 @@ class AndroidPlatform(private val context: android.content.Context) : Platform.I
     override val currentDisplay: Platform.Display
     override val usesVirtualKeyboard = true
 
+    override val systemLocale: String
+        get() = java.util.Locale.getDefault().toLanguageTag()
+
     override val storage: Platform.Storage
         get() = Platform.Storage(
             dataDirectory = context.filesDir.toOkioPath(),

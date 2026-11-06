@@ -5,10 +5,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Build
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.FileProvider
 import androidx.core.content.getSystemService
-import androidx.core.os.LocaleListCompat
 import com.acivev.VibratorManager
 import com.acivev.utils.DevicePerformanceUtil
 import com.osudroid.UpdateManager
@@ -160,20 +158,6 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
     override fun exportPreferences() = ConfigBackup.exportPreferences()
 
     override fun importPreferences() = ConfigBackup.importPreferences()
-
-    override val canChooseLanguage = true
-
-    override fun setLanguage(tag: String) {
-        mainThread {
-            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
-
-            // Headless there's no game to restart.
-            val mainActivity = mainActivity ?: return@mainThread
-            val intent = Intent(mainActivity, MainActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            mainActivity.startActivity(intent)
-        }
-    }
 
     override fun copyToClipboard(label: String, text: String) {
         activity.getSystemService<ClipboardManager>()?.setPrimaryClip(ClipData.newPlainText(label, text))

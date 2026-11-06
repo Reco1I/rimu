@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.multi
 
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.ui.text.spans
 import com.osudroid.resources.Res.string
@@ -62,18 +61,18 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                     scale = 0.85f
                     fontSize = themed { typography.smallBody.size }
                     color = themed { palette.accent }
-                    setText(when (room.status) {
+                    text = when (room.status) {
                         RoomStatus.ChangingBeatmap -> string.multiplayer_room_status_changing_beatmap
                         RoomStatus.Playing -> string.multiplayer_room_status_playing
                         else -> string.multiplayer_room_status_idle
-                    })
+                    }
                 }
             }
 
             text {
                 text = room.playerNames.takeUnless { it.isEmpty() }
                     ?: if (room.playerCount > 0) "${room.playerCount} player${if (room.playerCount != 1) "s" else ""}"
-                       else StringTable.get(string.multiplayer_room_no_players)
+                       else string.multiplayer_room_no_players
                 fontSize = themed { typography.smallCaption.size }
                 color = themed { palette.accent.alpha(0.95f) }
             }
@@ -83,29 +82,25 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
 
                 badge {
                     density = UIBadge.Density.Small
-                    setText(
-                        when (room.teamMode) {
+                    text = when (room.teamMode) {
                             TeamMode.HeadToHead -> string.multiplayer_room_head_to_head
                             TeamMode.TeamVS -> string.multiplayer_room_team_versus
                         }
-                    )
                 }
 
                 badge {
                     density = UIBadge.Density.Small
-                    setText(
-                        when (room.winCondition) {
+                    text = when (room.winCondition) {
                             WinCondition.ScoreV1 -> string.multiplayer_room_score_v1
                             WinCondition.ScoreV2 -> string.multiplayer_room_score_v2
                             WinCondition.Accuracy -> string.multiplayer_room_highest_accuracy
                             WinCondition.MaxCombo -> string.multiplayer_room_maximum_combo
                         }
-                    )
                 }
 
                 labeledBadge {
                     density = UIBadge.Density.Small
-                    label = StringTable.get(string.multiplayer_room_players)
+                    label = string.multiplayer_room_players
                     value = "${room.playerCount}/${room.maxPlayers}"
                 }
 
@@ -113,7 +108,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                     badge {
                         density = UIBadge.Density.Small
                         variant = UIBadge.Variant.Solid
-                        setText(string.multiplayer_room_free_mods)
+                        text = string.multiplayer_room_free_mods
                     }
                 }
             }
@@ -139,7 +134,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                     +FormInput().apply {
                         key = "password"
                         width = fill()
-                        label = StringTable.get(string.multiplayer_lobby_room_password)
+                        label = string.multiplayer_lobby_room_password
                     }
 
                     onSubmit = {
@@ -147,16 +142,16 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                     }
                 }) {
                     init {
-                        title = StringTable.get(string.multiplayer_lobby_join_room)
+                        title = string.multiplayer_lobby_join_room
 
                         addButton(UITextButton().apply {
-                            setText(string.multiplayer_lobby_join_room_accept)
+                            text = string.multiplayer_lobby_join_room_accept
                             variant = UIButton.Variant.Solid
                             onActionUp = { form.submit() }
                         })
 
                         addButton(UITextButton().apply {
-                            setText(string.multiplayer_lobby_join_room_cancel)
+                            text = string.multiplayer_lobby_join_room_cancel
                             onActionUp = { hide() }
                         })
                     }

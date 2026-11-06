@@ -17,7 +17,6 @@ import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.VerktexSettings
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import java.io.File
 
@@ -96,7 +95,6 @@ fun initializeDesktopPlatform() {
     OsuPlatform.implementation = DesktopOsuPlatform()
     Http.implementation = OkHttpClientImplementation()
     Config.loadConfig()
-    StringTable.implementation = DesktopStringTable()
 
 }
 

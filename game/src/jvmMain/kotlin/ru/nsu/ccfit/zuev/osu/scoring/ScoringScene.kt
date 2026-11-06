@@ -1,6 +1,5 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.osudroid.OsuPlatform
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.Beatmap
@@ -529,7 +528,7 @@ class ScoringScene(pGame: GameScene) {
             // Do not save and submit score if note count does not match, since it indicates a corrupted score
             // (potentially from bugging the gameplay by any unnecessary means).
             if (totalNotes != beatmap.totalHitObjectCount) {
-                Toasts.showLong(StringTable.get(com.osudroid.resources.Res.string.replay_corrupted))
+                Toasts.showLong(com.osudroid.resources.Res.string.replay_corrupted)
                 return
             }
 

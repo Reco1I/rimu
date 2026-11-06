@@ -174,6 +174,7 @@ The app's tests (`tests/test/kotlin/`) move to `game/src/jvmTest` (JUnit as toda
 - `StringTable` is common: `:game` generates `com.osudroid.resources.Res` (the language pack's string
   and array names) and the platform provides the text (`AndroidStringTable` reads the language pack's
   resources by name, so Android still picks the language). The `Int` overloads stay for app code.
+  Since replaced by Verktex's `Localization`, see `engine-consolidation.md`.
 - `ToastLogger` is common, the platform shows the messages (`AndroidToasts`).
 - The mod system has no JVM reflection: `ModHashMap` is a copy-on-write map keyed by `KClass`, settings
   register themselves through `provideDelegate`, and new instances come from `modFactories`.

@@ -59,6 +59,18 @@ class AndroidProvider(private val context: android.content.Context) : Provider {
         }
     }
 
+    override fun read(path: String, isExternal: Boolean): ByteArray? {
+        return try {
+            if (isExternal) {
+                java.io.File(path).readBytes()
+            } else {
+                context.assets.open(path).use { it.readBytes() }
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     //endregion
 
     //region Source creation

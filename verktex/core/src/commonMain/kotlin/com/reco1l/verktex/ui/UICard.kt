@@ -25,7 +25,7 @@ open class UICard : UILinearContainer() {
     /**
      * The title to show in the card's title bar. If `null` or empty, the title bar will not be shown.
      */
-    var title: String? = null
+    var title: CharSequence? = null
         set(value) {
             field = value
             titleText.text = value ?: ""

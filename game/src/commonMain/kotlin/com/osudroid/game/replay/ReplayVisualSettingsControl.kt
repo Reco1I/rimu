@@ -5,7 +5,6 @@ import com.reco1l.verktex.ui.UICard
 import com.reco1l.verktex.ui.form.FormSlider
 import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 
 /**
  * Controls visual settings of gameplay when replaying.
@@ -26,7 +25,7 @@ class ReplayVisualSettingsControl : UICard() {
         }
 
     private val brightnessSlider = FormSlider(defaultBackgroundBrightness * 100).apply {
-        label = StringTable.get(com.osudroid.resources.Res.string.opt_bgbrightness_title)
+        label = com.osudroid.resources.Res.string.opt_bgbrightness_title
         control.min = 0f
         control.max = 100f
         valueFormatter = { "${it.roundToInt()}%"}

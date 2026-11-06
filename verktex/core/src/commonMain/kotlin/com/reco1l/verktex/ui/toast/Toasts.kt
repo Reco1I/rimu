@@ -50,13 +50,13 @@ object Toasts {
      * Shows [text] for [Short].
      */
     @JvmStatic
-    fun show(text: String) = show(text, Short)
+    fun show(text: CharSequence) = show(text, Short)
 
     /**
      * Shows [text] for [Long].
      */
     @JvmStatic
-    fun showLong(text: String) = show(text, Long)
+    fun showLong(text: CharSequence) = show(text, Long)
 
     /**
      * Shows [text] for [duration], see [Short] and [Long].
@@ -64,7 +64,7 @@ object Toasts {
      * @param action The label of a button at the end of the toast, which calls [onAction] and hides
      * the toast, none if null.
      */
-    fun show(text: String, duration: Duration, action: String? = null, onAction: () -> Unit = {}): Toast {
+    fun show(text: CharSequence, duration: Duration, action: CharSequence? = null, onAction: () -> Unit = {}): Toast {
         val toast = Toast(text, title = "", duration)
         if (action != null) {
             toast.setAction(action) {
@@ -80,7 +80,7 @@ object Toasts {
      */
     @JvmStatic
     @JvmOverloads
-    fun showPersistent(text: String, title: String = "", isIndeterminate: Boolean = false): Toast {
+    fun showPersistent(text: CharSequence, title: CharSequence = "", isIndeterminate: Boolean = false): Toast {
         return Toast(text, title, duration = null).also {
             it.isIndeterminate = isIndeterminate
             add(it)
@@ -124,7 +124,7 @@ object Toasts {
     /**
      * A toast on screen. Its properties can be changed from any thread.
      */
-    class Toast internal constructor(text: String, title: String, internal val duration: Duration?) {
+    class Toast internal constructor(text: CharSequence, title: CharSequence, internal val duration: Duration?) {
 
         // Created on first use, so nothing of the UI is built while the engine isn't initialized.
         internal val component by lazy {
@@ -137,7 +137,7 @@ object Toasts {
         /**
          * The message of the toast.
          */
-        var text: String = text
+        var text: CharSequence = text
             set(value) {
                 field = value
                 update { component.text = value }
@@ -146,7 +146,7 @@ object Toasts {
         /**
          * The title above the message, none if empty.
          */
-        var title: String = title
+        var title: CharSequence = title
             set(value) {
                 field = value
                 update { component.title = value }
@@ -173,7 +173,7 @@ object Toasts {
         /**
          * Shows a button labeled [text] at the end of the toast, see [UIToast.setAction].
          */
-        fun setAction(text: String?, onClick: () -> Unit = {}) = update { component.setAction(text, onClick) }
+        fun setAction(text: CharSequence?, onClick: () -> Unit = {}) = update { component.setAction(text, onClick) }
 
         /**
          * Hides the toast.

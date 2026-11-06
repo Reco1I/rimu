@@ -33,6 +33,15 @@ interface Provider {
     fun list(path: String, isExternal: Boolean): List<String>? = null
 
     /**
+     * Reads the whole content of a file.
+     *
+     * @param path The path to the file.
+     * @param isExternal Whether the path is external or internal, as specified in the [exists] method.
+     * @return The content of the file, or null when it doesn't exist or can't be read.
+     */
+    fun read(path: String, isExternal: Boolean): ByteArray? = null
+
+    /**
      * Creates a FontFamilySource from the given path.
      *
      * @param path The path to the font family source.

@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.osudroid.resources.Res;
 import com.reco1l.verktex.ui.toast.Toasts;
 import com.osudroid.android.AndroidGame;
 import com.osudroid.OsuPlatform;
@@ -8,7 +9,6 @@ import com.reco1l.framework.net.OkHttpClientImplementation;
 import com.osudroid.android.SocketIORoomSocket;
 import com.osudroid.multiplayer.api.RoomSocket;
 import com.reco1l.framework.net.Http;
-import com.osudroid.android.AndroidStringTable;
 
 import com.osudroid.ui.v2.settings.SettingsSectionsKt;
 import android.Manifest;
@@ -82,7 +82,6 @@ import java.util.concurrent.TimeUnit;
 
 import okio.Okio;
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils;
-import ru.nsu.ccfit.zuev.osu.helper.StringTable;
 import ru.nsu.ccfit.zuev.osu.helper.Debug;
 import com.osudroid.ui.v2.SplashScene;
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager;
@@ -129,7 +128,6 @@ public class MainActivity extends AndroidGameHost {
         Http.INSTANCE.setImplementation(new OkHttpClientImplementation());
         RoomSocket.Companion.setFactory(SocketIORoomSocket.factory);
         Config.loadConfig();
-        StringTable.INSTANCE.setImplementation(new AndroidStringTable(this));
         initialGameDirectory();
         Multiplayer.initLog();
         //Debug.setDebugLevel(Debug.DebugLevel.NONE);
@@ -232,8 +230,7 @@ public class MainActivity extends AndroidGameHost {
                 Config.setBeatmapPath(Config.getCorePath() + "Songs/");
                 dir = new File(Config.getBeatmapPath());
                 if (!(dir.exists() || dir.mkdirs())) {
-                    Toasts.showLong(StringTable.format(
-                                    R.string.message_error_createdir, dir.getPath()));
+                    Toasts.showLong(Res.string.message_error_createdir.format(dir.getPath()));
                 } else {
                     final SharedPreferences prefs = PreferenceManager
                             .getDefaultSharedPreferences(this);
@@ -297,7 +294,7 @@ public class MainActivity extends AndroidGameHost {
         File internal = Environment.getDataDirectory();
         StatFs stat = new StatFs(internal.getPath());
         availableMemory = (double) stat.getAvailableBytes();
-        String toastMessage = String.format(StringTable.get(R.string.message_low_storage_space), df.format(availableMemory / minMem));
+        String toastMessage = Res.string.message_low_storage_space.format(df.format(availableMemory / minMem)).toString();
         if (availableMemory < 0.5 * minMem) { //I set 512MiB as a minimum
             Toasts.showLong(toastMessage);
         }
@@ -315,7 +312,7 @@ public class MainActivity extends AndroidGameHost {
         if (fileToAdd != null) {
             File file = new File(fileToAdd);
             if (file.getName().toLowerCase().endsWith(".osz")) {
-                Toasts.show(StringTable.get(R.string.library_importing));
+                Toasts.show(Res.string.library_importing);
 
                 FileUtils.extractBeatmapset(fileToAdd, Config.getBeatmapPath());
                 forceImportedBeatmaps.add(file.getName().substring(0, file.getName().length() - 4)
@@ -323,7 +320,7 @@ public class MainActivity extends AndroidGameHost {
                 // LibraryManager.INSTANCE.sort();
                 fileToAdd = null;
             } else if (file.getName().toLowerCase().endsWith(".osk")) {
-                Toasts.show(StringTable.get(R.string.library_skin_importing));
+                Toasts.show(Res.string.library_skin_importing);
                 FileUtils.extractZip(fileToAdd, Config.getSkinTopPath());
                 fileToAdd = null;
             } else if (file.getName().toLowerCase().endsWith(".odr")) {
@@ -379,9 +376,7 @@ public class MainActivity extends AndroidGameHost {
             if (beatmaps.size() > 0) {
                 // final boolean deleteOsz = Config.isDELETE_OSZ();
                 // Config.setDELETE_OSZ(true);
-                Toasts.show(StringTable.format(
-                        R.string.library_importing_several,
-                        beatmaps.size()));
+                Toasts.show(Res.string.library_importing_several.format(beatmaps.size()));
                 for (final String beatmap : beatmaps) {
                     FileUtils.extractBeatmapset(beatmap, Config.getBeatmapPath());
                 }
@@ -435,15 +430,13 @@ public class MainActivity extends AndroidGameHost {
         }
 
         if (skins.size() > 0) {
-            Toasts.show(StringTable.format(
-                    R.string.library_skin_importing_several,
-                    skins.size()));
+            Toasts.show(Res.string.library_skin_importing_several.format(skins.size()));
 
             for (final String skin : skins) {
                 if (FileUtils.extractZip(skin, Config.getSkinTopPath())) {
                     String folderName = skin.substring(0, skin.length() - 4);
                     // We have imported the skin!
-                    Toasts.showLong(StringTable.format(R.string.library_imported, folderName));
+                    Toasts.showLong(Res.string.library_imported.format(folderName));
                     Config.addSkin(folderName.substring(folderName.lastIndexOf("/") + 1), skin);
                 }
             }
@@ -583,7 +576,7 @@ public class MainActivity extends AndroidGameHost {
         try (var in = getContentResolver().openInputStream(uri);
              var sink = Okio.buffer(Okio.sink(tempFile))) {
             if (in == null) {
-                Toasts.show(StringTable.get(R.string.import_failed_open_file));
+                Toasts.show(Res.string.import_failed_open_file);
                 return null;
             }
 
@@ -591,7 +584,7 @@ public class MainActivity extends AndroidGameHost {
             return tempFile.getAbsolutePath();
         } catch (IOException | SecurityException e) {
             Logger.e("MainActivity", "MainActivity.copyContentUriToCache: " + e.getMessage(), e);
-            Toasts.show(StringTable.get(R.string.import_failed_open_file));
+            Toasts.show(Res.string.import_failed_open_file);
             return null;
         }
     }
@@ -896,10 +889,10 @@ public class MainActivity extends AndroidGameHost {
     private void showMultiModeWindowAlert() {
         if (multiWindowAlert == null) {
             multiWindowAlert = new MessageDialog()
-                .setTitle(getString(R.string.multi_mode_window_alert_title))
-                .setMessage(getString(R.string.multi_mode_window_alert_message))
+                .setTitle(Res.string.multi_mode_window_alert_title.toString())
+                .setMessage(Res.string.multi_mode_window_alert_message.toString())
                 .setAllowDismiss(false)
-                .addButton(getString(R.string.accessibility_detector_exit), (d) -> {
+                .addButton(Res.string.accessibility_detector_exit.toString(), (d) -> {
                     finish();
                     return null;
                 });

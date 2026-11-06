@@ -36,6 +36,9 @@ class DesktopPlatform(density: Float, width: Int, height: Int, applicationName: 
     // A physical keyboard, text is typed into the focused input directly.
     override val usesVirtualKeyboard = false
 
+    override val systemLocale: String
+        get() = java.util.Locale.getDefault().toLanguageTag()
+
     // The same clock as the time of the input events.
     override val uptimeMillis: Long
         get() = (glfwGetTime() * 1000).toLong()

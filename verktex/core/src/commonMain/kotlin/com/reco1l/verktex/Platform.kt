@@ -86,6 +86,13 @@ object Platform {
             return implementation.usesVirtualKeyboard
         }
 
+    /**
+     * The language the user chose for the system, as a BCP 47 tag such as `pt-BR`. English without
+     * a platform, e.g. in tests.
+     */
+    val systemLocale: String
+        get() = if (::implementation.isInitialized) implementation.systemLocale else "en"
+
 
     /**
      * Opens a web page, in a web view inside the app where the platform has one (Android) or in the
@@ -153,6 +160,12 @@ object Platform {
          * The milliseconds of the host's uptime clock, the time base of the input events.
          */
         val uptimeMillis: Long
+
+        /**
+         * The language the user chose for the system, as a BCP 47 tag such as `pt-BR`.
+         */
+        val systemLocale: String
+            get() = "en"
 
 
         /**

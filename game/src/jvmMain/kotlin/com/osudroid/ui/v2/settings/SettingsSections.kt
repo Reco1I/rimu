@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.settings
 
+import com.osudroid.resources.Languages
 import com.reco1l.verktex.Platform
 import com.osudroid.OsuPlatform
 import com.osudroid.ui.v2.LoaderScene
@@ -39,7 +40,6 @@ import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.ui.toast.Toasts
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import java.io.File
@@ -53,7 +53,7 @@ internal var onPlayfieldChanged: (() -> Unit)? = null
 
 val playerSection = listOf(
     CategoryInfo(
-        title = StringTable.get(Res.string.mp_room_category_lobby),
+        title = Res.string.mp_room_category_lobby,
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
@@ -83,7 +83,7 @@ val playerSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.mp_room_category_in_game),
+        title = Res.string.mp_room_category_in_game,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -110,7 +110,7 @@ val playerSection = listOf(
 // Settings of the room, only for its host. They're the room's current values, not preferences.
 val roomSection = listOf(
     CategoryInfo(
-        title = StringTable.get(Res.string.mp_room_category_details),
+        title = Res.string.mp_room_category_details,
         options = listOf(
             OptionInfo(
                 type = OptionType.Input,
@@ -160,7 +160,7 @@ val roomSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.mp_room_category_variables),
+        title = Res.string.mp_room_category_variables,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -214,7 +214,7 @@ val roomSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.mp_room_category_share),
+        title = Res.string.mp_room_category_share,
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
@@ -235,7 +235,7 @@ val roomSection = listOf(
 
 val generalSection = listOf(
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_online),
+        title = Res.string.opt_category_online,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -271,7 +271,7 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_account),
+        title = Res.string.opt_category_account,
         options = listOf(
             OptionInfo(
                 type = OptionType.Input,
@@ -301,7 +301,7 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_community),
+        title = Res.string.opt_category_community,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -313,7 +313,7 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_updates),
+        title = Res.string.opt_category_updates,
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
@@ -330,7 +330,7 @@ val generalSection = listOf(
 
     CategoryInfo(
         isVisible = OsuPlatform.implementation.canBackUpPreferences,
-        title = StringTable.get(Res.string.opt_category_config_backup),
+        title = Res.string.opt_category_config_backup,
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
@@ -339,7 +339,7 @@ val generalSection = listOf(
                 summary = Res.string.opt_config_backup_summary,
                 onClick = {
                     val success = OsuPlatform.implementation.exportPreferences()
-                    Toasts.showLong(StringTable.get(if (success) Res.string.config_backup_info_success else Res.string.config_backup_info_fail))
+                    Toasts.showLong(if (success) Res.string.config_backup_info_success else Res.string.config_backup_info_fail)
                 }
             ),
             OptionInfo(
@@ -356,11 +356,11 @@ val generalSection = listOf(
 
                         loadSkin(prefs.getString("skinPath", "")).invokeOnCompletion {
                             mainThread {
-                                Toasts.showLong(StringTable.get(Res.string.config_backup_restore_info_success))
+                                Toasts.showLong(Res.string.config_backup_restore_info_success)
                             }
                         }
                     } else {
-                        Toasts.showLong(StringTable.get(Res.string.config_backup_restore_info_fail))
+                        Toasts.showLong(Res.string.config_backup_restore_info_fail)
                     }
                 }
             )
@@ -368,57 +368,23 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        isVisible = OsuPlatform.implementation.canChooseLanguage,
-        title = StringTable.get(Res.string.opt_category_localization),
+        title = Res.string.opt_category_localization,
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
-                key = "appLanguage",
+                key = Languages.SETTING_KEY,
                 title = Res.string.opt_language_title,
                 summary = Res.string.opt_language_summary,
                 entries = Res.array.placeholder_array,
                 entryValues = Res.array.placeholder_array,
                 onAttach = {
-                    // Changing it restarts the game, which would leave the room.
-                    (it as PreferenceSelect).isEnabled = !Multiplayer.isMultiplayer
-
-                    it.options = listOf(
-                        UISelect.Option("system", "System Default"),
-                        UISelect.Option("en", "English"),
-                        // German
-                        UISelect.Option("de", "Deutsch"),
-                        // Spanish
-                        UISelect.Option("es", "Español"),
-                        // French
-                        UISelect.Option("fr", "Français"),
-                        // Indonesian
-                        UISelect.Option("id", "Bahasa Indonesia"),
-                        // Italian
-                        UISelect.Option("it", "Italiano"),
-                        // Japanese
-                        UISelect.Option("ja", "日本語"),
-                        // Korean
-                        UISelect.Option("ko", "한국어"),
-                        // Netherlands
-                        UISelect.Option("nl", "Nederlands"),
-                        // Portuguese
-                        UISelect.Option("pt-rBR", "Português (Brasil)"),
-                        // Russian
-                        UISelect.Option("ru", "Русский"),
-                        // Thai
-                        UISelect.Option("th", "ไทย"),
-                        // Vietnamese
-                        UISelect.Option("vi", "Tiếng Việt"),
-                        // Chinese
-                        UISelect.Option("zh", "中文 (简体)"),
-                    )
+                    (it as PreferenceSelect).options = listOf(UISelect.Option(Languages.SYSTEM, "System Default")) +
+                        Languages.names.map { (tag, name) -> UISelect.Option(tag, name) }
                 },
                 onChange = { value ->
+                    // The text of the game follows it right away.
                     @Suppress("UNCHECKED_CAST")
-                    val selected = (value as List<String>)[0]
-
-                    OsuPlatform.implementation.setLanguage(selected)
-
+                    Languages.apply((value as List<String>).firstOrNull() ?: Languages.SYSTEM)
                 }
             )
         )
@@ -427,7 +393,7 @@ val generalSection = listOf(
 
 val gameplaySection = listOf(
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_skin),
+        title = Res.string.opt_category_skin,
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
@@ -443,7 +409,7 @@ val gameplaySection = listOf(
                     val skinMain = File(Config.getSkinTopPath())
                     val skins = Config.getSkins()!!.map { skin ->
                         UISelect.Option(skin.value.withTrailingSlash(), skin.key)
-                    }.sortedBy { it.text }.toMutableList()
+                    }.sortedBy { it.text.toString() }.toMutableList()
                     skins.add(0, UISelect.Option(skinMain.path.withTrailingSlash(), skinMain.name + " (Default)"))
 
                     @Suppress("UNCHECKED_CAST")
@@ -504,7 +470,7 @@ val gameplaySection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_hit_objects),
+        title = Res.string.opt_category_hit_objects,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -517,7 +483,7 @@ val gameplaySection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_background),
+        title = Res.string.opt_category_background,
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
@@ -555,7 +521,7 @@ val gameplaySection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_playfield),
+        title = Res.string.opt_category_playfield,
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
@@ -613,7 +579,7 @@ val gameplaySection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_hud),
+        title = Res.string.opt_category_hud,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -730,9 +696,9 @@ private fun graphicsBackendOption(): OptionInfo {
             if (selected == GraphicsBackend.Vulkan.name) {
                 // Picking it again retries it, even if it crashed while starting the last time.
                 OsuPlatform.implementation.resetVulkanCrashGuard()
-                Toasts.showLong(StringTable.get(Res.string.opt_graphics_backend_vulkan_experimental))
+                Toasts.showLong(Res.string.opt_graphics_backend_vulkan_experimental)
             } else {
-                Toasts.showLong(StringTable.get(Res.string.opt_graphics_backend_restart))
+                Toasts.showLong(Res.string.opt_graphics_backend_restart)
             }
         }
     )
@@ -740,12 +706,12 @@ private fun graphicsBackendOption(): OptionInfo {
 
 val graphicsSection = listOfNotNull(
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_rendering),
+        title = Res.string.opt_category_rendering,
         options = listOfNotNull(graphicsBackendOption(), resolutionScaleOption())
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_cursor),
+        title = Res.string.opt_category_cursor,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -776,7 +742,7 @@ val graphicsSection = listOfNotNull(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_animations),
+        title = Res.string.opt_category_animations,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -854,7 +820,7 @@ val graphicsSection = listOfNotNull(
 
 val audioSection = listOf(
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_volume),
+        title = Res.string.opt_category_volume,
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
@@ -896,7 +862,7 @@ val audioSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_offset),
+        title = Res.string.opt_category_offset,
         options = listOf(
             OptionInfo(
                 type = OptionType.Slider,
@@ -935,7 +901,7 @@ val audioSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_effect),
+        title = Res.string.opt_category_effect,
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
@@ -957,7 +923,7 @@ val audioSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_miscellaneous),
+        title = Res.string.opt_category_miscellaneous,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -979,7 +945,7 @@ val audioSection = listOf(
 
 val librarySection = listOf(
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_import),
+        title = Res.string.opt_category_import,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -1028,7 +994,7 @@ val librarySection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_metadata),
+        title = Res.string.opt_category_metadata,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -1041,7 +1007,7 @@ val librarySection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_storage),
+        title = Res.string.opt_category_storage,
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
@@ -1050,7 +1016,7 @@ val librarySection = listOf(
                 summary = Res.string.opt_clear_summary,
                 onClick = {
                     LibraryManager.clearDatabase()
-                    Toasts.showLong(StringTable.get(Res.string.library_cleared))
+                    Toasts.showLong(Res.string.library_cleared)
                 }
             ),
             OptionInfo(
@@ -1068,7 +1034,7 @@ val librarySection = listOf(
 
 val inputSection = listOf(
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_gameplay),
+        title = Res.string.opt_category_gameplay,
         options = listOf(
             OptionInfo(
                 type = OptionType.Button,
@@ -1157,7 +1123,7 @@ val inputSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_synchronization),
+        title = Res.string.opt_category_synchronization,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -1172,7 +1138,7 @@ val inputSection = listOf(
 
 val advancedSection = listOf(
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_directories),
+        title = Res.string.opt_category_directories,
         options = listOf(
             OptionInfo(
                 type = OptionType.Input,
@@ -1196,7 +1162,7 @@ val advancedSection = listOf(
                     val file = File(newValue)
 
                     if (!file.exists() && !file.mkdirs()) {
-                        Toasts.showLong(StringTable.get(Res.string.message_error_dir_not_found))
+                        Toasts.showLong(Res.string.message_error_dir_not_found)
                         return@OptionInfo
                     }
 
@@ -1214,7 +1180,7 @@ val advancedSection = listOf(
     ),
 
     CategoryInfo(
-        title = StringTable.get(Res.string.opt_category_miscellaneous),
+        title = Res.string.opt_category_miscellaneous,
         options = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
@@ -1265,6 +1231,6 @@ fun loadSkin(path: String): Job {
             }
         }
 
-        Toasts.show(StringTable.get(Res.string.message_loaded_skin))
+        Toasts.show(Res.string.message_loaded_skin)
     }
 }
