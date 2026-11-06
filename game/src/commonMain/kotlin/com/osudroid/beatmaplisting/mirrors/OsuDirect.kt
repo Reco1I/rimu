@@ -3,7 +3,7 @@ package com.osudroid.beatmaplisting.mirrors
 import com.osudroid.utils.*
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
-import com.reco1l.framework.net.HttpUrlBuilder
+import io.ktor.http.URLBuilder
 
 import com.osudroid.beatmaplisting.BeatmapMirrorDownloadRequestModel
 import com.osudroid.beatmaplisting.BeatmapMirrorPreviewRequestModel
@@ -41,18 +41,16 @@ class OsuDirectSearchRequestModel : BeatmapMirrorSearchRequestModel {
 
     override fun invoke(query: String, offset: Int, limit: Int, sort: SortType, order: OrderType, status: RankedStatus?): String {
 
-        return HttpUrlBuilder("https://osu.direct/api/v2/search")
-            .addQueryParameter("sort", "${sort.parseToApi()}:${order.parseToApi()}")
-            .apply {
-                if (status != null) {
-                    addQueryParameter("status", status.value.toString())
-                }
+        return URLBuilder("https://osu.direct/api/v2/search").apply {
+            parameters.append("sort", "${sort.parseToApi()}:${order.parseToApi()}")
+            if (status != null) {
+                parameters.append("status", status.value.toString())
             }
-            .addQueryParameter("mode", "0")
-            .addQueryParameter("query", query)
-            .addQueryParameter("offset", offset.toString())
-            .addQueryParameter("amount", limit.toString())
-            .build()
+            parameters.append("mode", "0")
+            parameters.append("query", query)
+            parameters.append("offset", offset.toString())
+            parameters.append("amount", limit.toString())
+        }.buildString()
     }
 }
 
@@ -105,7 +103,7 @@ class OsuDirectDownloadRequestModel : BeatmapMirrorDownloadRequestModel {
     override fun invoke(beatmapSetId: Long, withVideo: Boolean): String {
         val url = "https://osu.direct/api/d/$beatmapSetId"
 
-        return if (!withVideo) HttpUrlBuilder(url).addQueryParameter("noVideo", "1").build() else url
+        return if (!withVideo) URLBuilder(url).apply { parameters.append("noVideo", "1") }.buildString() else url
     }
 }
 

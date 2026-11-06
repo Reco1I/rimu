@@ -227,7 +227,8 @@ Done since the previous notes:
 - The Kotlin UI uses the common `Res` string keys instead of Android's `R` (the app's temporary strings
   are generated into `Res` too); Java still uses `R`.
 
-- Networking is common code over blocking platform clients:
+- Networking is common code over blocking platform clients (since replaced by Ktor, see
+  `engine-consolidation.md`):
   - `Http` runs `HttpRequest`s (built with `HttpRequestBuilder`, `HttpUrlBuilder` and `HttpBody`); OkHttp
     implements it on Android (`OkHttpClientImplementation`).
   - `WebRequest`, `JsonRequest` and `FileRequest` read kotlinx JSON, with strict getters

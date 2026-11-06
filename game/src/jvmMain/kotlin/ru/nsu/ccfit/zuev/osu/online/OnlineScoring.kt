@@ -6,14 +6,17 @@ import com.osudroid.data.BeatmapInfo
 import com.osudroid.ui.SendingPanel
 import com.osudroid.utils.async
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.helper.Debug
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import kotlin.coroutines.cancellation.CancellationException
 
 class OnlineScoring {
-    private val onlineMutex = Any()
+    private val onlineMutex = Mutex()
     var isAvatarLoaded = false
         private set
 
@@ -28,7 +31,7 @@ class OnlineScoring {
         loginJob?.cancel(CancellationException("Login cancelled"))
 
         loginJob = async {
-            synchronized(onlineMutex) {
+            onlineMutex.withLock {
                 var success = false
 
                 //Trying to send request
@@ -39,11 +42,7 @@ class OnlineScoring {
                         success = OnlineManager.getInstance().logIn()
                     } catch (e: OnlineManager.OnlineManagerException) {
                         Debug.e("Login error: " + e.message)
-                        try {
-                            Thread.sleep(3000)
-                        } catch (_: InterruptedException) {
-                            break
-                        }
+                        delay(3.seconds)
                         continue
                     }
                     break
@@ -72,7 +71,7 @@ class OnlineScoring {
 
         async {
             var success = false
-            synchronized(onlineMutex) {
+            onlineMutex.withLock {
                 var i = 0
                 while (i < attemptCount) {
                     if (!record.isScoreValid) {
@@ -97,10 +96,7 @@ class OnlineScoring {
                         break
                     }
 
-                    try {
-                        Thread.sleep(5000)
-                    } catch (_: InterruptedException) {
-                    }
+                    delay(5.seconds)
                     i++
                 }
 
@@ -121,7 +117,7 @@ class OnlineScoring {
         profileAssetsJob?.cancel(CancellationException("Profile asset loading cancelled"))
 
         profileAssetsJob = async {
-            synchronized(onlineMutex) {
+            onlineMutex.withLock {
                 isAvatarLoaded = !avatarUrl.isNullOrEmpty() && OnlineManager.getInstance().loadAvatarToTextureManager()
                 if (!profileBannerUrl.isNullOrEmpty()) {
                     OnlineManager.getInstance().loadProfileBannerToTextureManager()

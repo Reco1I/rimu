@@ -353,7 +353,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 3. `MusicService` | Done |
 | 4. Localization | Done |
 | 5. Settings replace `Config` | Done |
-| 6. Ktor networking | Not started |
+| 6. Ktor networking | Done, except the Socket.IO follow-up |
 | 7. Split `OsuPlatform` | Not started |
 | 8. No `GlobalManager` | Not started |
 | 9. Database in Verktex | Not started |
@@ -551,4 +551,43 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 - Checked: the core, desktop and game tests, the app's unit tests compiling, the common checks and
   `assembleDebug`. Not run on desktop or a device, so the upgrade from existing preferences wasn't
   seen on a real install.
+
+### Phase 6: Ktor networking
+
+- Verktex core has Ktor's client (`api`, 3.1.3). `Platform.Implementation.httpEngine` is the engine,
+  OkHttp on Android and desktop (`ktor-client-okhttp` in each platform module), null by default.
+  `Network.createClient(configure)` builds a client over it, and `Network.client` is a shared default.
+- In the game:
+  - `OsuHttp` holds the game's client (`expectSuccess = false`) and suspend helpers: `getJsonObject`,
+    `getJsonArray` (lenient JSON, checked as `JsonObjectRequest`/`JsonArrayRequest` did), `postJson`,
+    `postForm`, `postMultipart` (with `FormPart`s), `getBytes`, and `download`. `download` streams
+    `bodyAsChannel()` into an Okio sink with a `DownloadProgress` callback, deletes the file if it
+    doesn't finish, and lets a `304` through for `If-Modified-Since`. An unsuccessful response throws
+    `HttpStatusException`.
+  - `async {}` and `delayed {}` take a `suspend` block, so their bodies call the requests directly.
+  - Suspend now: `OnlineManager`'s requests (login, score submission, leaderboards, beatmap status,
+    avatar and banner downloads; the login lock is a `Mutex`), `PostBuilder.requestWithAttempts`
+    (with `delay` between attempts), `OnlineFileOperator.downloadFile`, `IBanchoAPI`, `LobbyAPI`
+    and `BannerManager.loadBannerSprite`. `OnlineScoring` uses a `Mutex` and `delay` instead of
+    `synchronized` and `Thread.sleep`.
+  - The mirrors build their URLs with Ktor's `URLBuilder`. It writes a space in a query as `+`
+    rather than `%20`; both decode the same.
+  - App callers: `UpdateManager`, `BeatmapDownloader`, `BeatmapListing` (search and covers) and
+    `DownloadFragment`, which cancels a download by cancelling its coroutine.
+  - Blocking bridges stay only where callers are legacy code on a background thread:
+    `GameScene.loadGame`'s replay download (`runBlocking`) and the Java `PushNotificationService`
+    (`OnlineFiles.downloadFileBlocking`).
+  - Deleted: `com/reco1l/framework/net/` (`Http`, `WebRequest`, `JsonRequest`, `FileRequest`,
+    `OkHttpClientImplementation`), its `Http.implementation` setup in the three hosts, `sleepBlocking`,
+    and the direct OkHttp dependencies of `:game`, `:game-desktop` and the app (socket.io-client still
+    brings it to Android).
+  - Not added: the content negotiation plugin, since the game reads `JsonObject`s rather than
+    serializable classes, and a global user agent or timeouts, so the servers see the requests as
+    before (OkHttp's defaults; the mirrors still get `Chrome/Android`).
+- Tests: `UrlParametersTest` replaces `HttpUrlBuilderTest`.
+- Checked: the core, desktop and game tests, the app's unit tests compiling, the common checks and
+  `assembleDebug`. Not run against the servers: login, score submission, leaderboards, the beatmap
+  listing, downloads and updates weren't tried.
+- Left: the Socket.IO client over Ktor WebSockets (a separate commit), which would give desktop
+  multiplayer and drop socket.io-client.
 

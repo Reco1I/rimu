@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import kotlinx.coroutines.runBlocking
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
@@ -602,7 +603,8 @@ open class GameScene : GameObjectListener {
             this.replayFilePath = GameFolders.cachePath + "/" +
                 MD5Calculator.getStringMD5(rFile) + ".odr"
             Logger.i("GameScene", "ReplayFile = $replayFilePath")
-            if (!OnlineFileOperator.downloadFile(rFile, this.replayFilePath!!)) {
+            // Loading runs on a background thread, which waits for the download.
+            if (!runBlocking { OnlineFileOperator.downloadFile(rFile, replayFilePath!!) }) {
                 Toasts.showLong(Res.string.replay_cantdownload)
                 return false
             }

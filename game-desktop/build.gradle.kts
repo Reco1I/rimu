@@ -31,7 +31,6 @@ dependencies {
     implementation("androidx.sqlite:sqlite-bundled:2.5.1")
     ksp("androidx.room:room-compiler:$roomVersion")
 
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
 
 ksp {

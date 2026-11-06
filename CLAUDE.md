@@ -139,7 +139,7 @@ Settings go through Verktex's `Settings` (`verktex/core/.../settings/`), a typed
 
 ### Multiplayer
 
-Socket.IO for real-time lobby/room events. REST calls use OkHttp3. Firebase Messaging handles push notifications. Multiplayer logic lives in `com/osudroid/multiplayer/`.
+Socket.IO for real-time lobby/room events. HTTP requests go through Ktor: Verktex's `Network` creates clients over the platform's engine (`Platform.Implementation.httpEngine`, OkHttp on Android and desktop), and the game's `OsuHttp` (`com/osudroid/online/`) has its client and suspend helpers (`getJsonObject`, `postForm`, `download`…), called from coroutines such as `async {}` blocks. Firebase Messaging handles push notifications. Multiplayer logic lives in `com/osudroid/multiplayer/`.
 
 ## Key Conventions
 

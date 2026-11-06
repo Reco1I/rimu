@@ -26,6 +26,9 @@ val lwjglNatives = listOf("natives-windows", "natives-linux", "natives-linux-arm
 dependencies {
     implementation(project(":verktex:core"))
 
+    // The HTTP engine of Network.
+    implementation("io.ktor:ktor-client-okhttp:3.1.3")
+
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
     for (module in listOf("lwjgl", "lwjgl-glfw", "lwjgl-opengl", "lwjgl-stb")) {
         implementation("org.lwjgl:$module")

@@ -10,8 +10,6 @@ import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.async
 import com.osudroid.utils.delayed
-import com.reco1l.framework.net.Http
-import com.reco1l.framework.net.OkHttpClientImplementation
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.desktop.DesktopGameHost
@@ -94,7 +92,6 @@ class OsuDesktop(
  */
 fun initializeDesktopPlatform() {
     OsuPlatform.implementation = DesktopOsuPlatform()
-    Http.implementation = OkHttpClientImplementation()
     OsuSettings.load()
 
 }

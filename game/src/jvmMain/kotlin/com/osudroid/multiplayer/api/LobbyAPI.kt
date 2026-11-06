@@ -15,8 +15,7 @@ import com.osudroid.multiplayer.api.data.RoomStatus
 import com.osudroid.multiplayer.api.data.TeamMode
 import com.osudroid.multiplayer.api.data.WinCondition
 import com.osudroid.multiplayer.api.data.parseGameplaySettings
-import com.reco1l.framework.net.JsonArrayRequest
-import com.reco1l.framework.net.JsonObjectRequest
+import com.osudroid.online.OsuHttp
 
 object LobbyAPI {
 
@@ -45,7 +44,7 @@ object LobbyAPI {
     /**
      * Get room list.
      */
-    fun getRooms(query: String?, uid: Long, sessionId: String, sign: String?): List<Room> {
+    suspend fun getRooms(query: String?, uid: Long, sessionId: String, sign: String?): List<Room> {
 
         if (BuildSettings.MOCK_MULTIPLAYER) {
             return listOf(
@@ -55,82 +54,76 @@ object LobbyAPI {
             )
         }
 
-        JsonArrayRequest("$HOST$GET_ROOMS").use {
-
+        val rooms = OsuHttp.getJsonArray("$HOST$GET_ROOMS") {
             if (sign != null || query != null) {
-                it.buildUrl {
-                    addQueryParameter("sign", sign)
-                    addQueryParameter("query", query)
-                    addQueryParameter("uid", uid.toString())
-                    addQueryParameter("sessionId", sessionId)
+                url {
+                    // A null value is sent as a name alone, as it always was.
+                    parameters.appendAll("sign", listOfNotNull(sign))
+                    parameters.appendAll("query", listOfNotNull(query))
+                    parameters.append("uid", uid.toString())
+                    parameters.append("sessionId", sessionId)
                 }
             }
-
-            return List(it.execute().json.size) { i ->
-
-                val json = it.json.optJsonObject(i) ?: return@List null
-
-                return@List try {
-
-                    Room(
-                        id = json.getLong("id"),
-                        name = json.getString("name"),
-                        isLocked = json.getBoolean("isLocked"),
-                        maxPlayers = json.getInt("maxPlayers"),
-                        mods = RoomMods(json.getJsonArray("mods").toString()),
-                        gameplaySettings = parseGameplaySettings(json.getJsonObject("gameplaySettings")),
-                        teamMode = TeamMode.fromWire(json.getString("teamMode")) ?: TeamMode.HeadToHead,
-                        winCondition = WinCondition.fromWire(json.getString("winCondition")) ?: WinCondition.ScoreV1,
-                        playerCount = json.getInt("playerCount"),
-                        playerNames = json.optString("playerNames", ""),
-                        status = RoomStatus.fromWire(json.getString("status"))
-                    )
-
-                } catch (_: Exception) {
-                    null
-                }
-
-            }.filterNotNull()
         }
+
+        return List(rooms.size) { i ->
+
+            val json = rooms.optJsonObject(i) ?: return@List null
+
+            try {
+                Room(
+                    id = json.getLong("id"),
+                    name = json.getString("name"),
+                    isLocked = json.getBoolean("isLocked"),
+                    maxPlayers = json.getInt("maxPlayers"),
+                    mods = RoomMods(json.getJsonArray("mods").toString()),
+                    gameplaySettings = parseGameplaySettings(json.getJsonObject("gameplaySettings")),
+                    teamMode = TeamMode.fromWire(json.getString("teamMode")) ?: TeamMode.HeadToHead,
+                    winCondition = WinCondition.fromWire(json.getString("winCondition")) ?: WinCondition.ScoreV1,
+                    playerCount = json.getInt("playerCount"),
+                    playerNames = json.optString("playerNames", ""),
+                    status = RoomStatus.fromWire(json.getString("status"))
+                )
+            } catch (_: Exception) {
+                null
+            }
+
+        }.filterNotNull()
     }
 
     /**
      * Create room and get the ID.
      */
-    fun createRoom(name: String, beatmap: RoomBeatmap?, hostUID: Long, sessionId: String, sign: String?, password: String? = null, maxPlayers: Int = 8): Long {
+    suspend fun createRoom(name: String, beatmap: RoomBeatmap?, hostUID: Long, sessionId: String, sign: String?, password: String? = null, maxPlayers: Int = 8): Long {
 
         if (BuildSettings.MOCK_MULTIPLAYER) {
             return 1
         }
 
-        JsonObjectRequest("$HOST$CREATE_ROOM").use { request ->
+        val body = buildJsonObject {
+            put("hostUid", hostUID)
+            put("name", name)
+            put("maxPlayers", maxPlayers)
 
-            request.buildRequestBody {
-
-                put("hostUid", hostUID)
-                put("name", name)
-                put("maxPlayers", maxPlayers)
-
-                if (beatmap != null) {
-                    put("beatmap", buildJsonObject {
-                        putIfNotNull("md5", beatmap.md5)
-                        putIfNotNull("title", beatmap.title)
-                        putIfNotNull("artist", beatmap.artist)
-                        putIfNotNull("creator", beatmap.creator)
-                        putIfNotNull("version", beatmap.version)
-                    })
-                }
-
-                if (!password.isNullOrBlank()) {
-                    put("password", password)
-                }
-
-                put("version", RoomAPI.API_VERSION)
-                put("sessionId", sessionId)
-                putIfNotNull("sign", sign)
+            if (beatmap != null) {
+                put("beatmap", buildJsonObject {
+                    putIfNotNull("md5", beatmap.md5)
+                    putIfNotNull("title", beatmap.title)
+                    putIfNotNull("artist", beatmap.artist)
+                    putIfNotNull("creator", beatmap.creator)
+                    putIfNotNull("version", beatmap.version)
+                })
             }
 
-            return request.execute().json.getString("id").toLong()
+            if (!password.isNullOrBlank()) {
+                put("password", password)
+            }
+
+            put("version", RoomAPI.API_VERSION)
+            put("sessionId", sessionId)
+            putIfNotNull("sign", sign)
         }
+
+        return OsuHttp.postJson("$HOST$CREATE_ROOM", body).getString("id").toLong()
     }
 }

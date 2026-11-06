@@ -7,6 +7,7 @@ import com.reco1l.verktex.io.systemFileSystem
 import okio.FileSystem
 import okio.Path
 import com.reco1l.verktex.worker.LoopWorker
+import io.ktor.client.engine.HttpClientEngineFactory
 
 /**
  * An interface that defines the platform-specific functionality required by the engine.
@@ -166,6 +167,13 @@ object Platform {
          */
         val systemLocale: String
             get() = "en"
+
+        /**
+         * The engine HTTP clients make their requests with, see [com.reco1l.verktex.network.Network].
+         * None by default, for platforms without networking.
+         */
+        val httpEngine: HttpClientEngineFactory<*>?
+            get() = null
 
 
         /**

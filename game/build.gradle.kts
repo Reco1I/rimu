@@ -205,11 +205,6 @@ kotlin {
             }
         }
 
-        // HTTP on the JVM platforms, Android and desktop.
-        jvmMain.dependencies {
-            implementation("com.squareup.okhttp3:okhttp:4.12.0")
-        }
-
         jvmTest.dependencies {
             implementation("junit:junit:4.13.2")
         }

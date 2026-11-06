@@ -39,6 +39,8 @@ class DesktopPlatform(density: Float, width: Int, height: Int, applicationName: 
     override val systemLocale: String
         get() = java.util.Locale.getDefault().toLanguageTag()
 
+    override val httpEngine = io.ktor.client.engine.okhttp.OkHttp
+
     // The same clock as the time of the input events.
     override val uptimeMillis: Long
         get() = (glfwGetTime() * 1000).toLong()

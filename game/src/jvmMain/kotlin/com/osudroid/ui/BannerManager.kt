@@ -1,5 +1,7 @@
 package com.osudroid.ui
 
+import com.osudroid.online.OsuHttp
+import kotlinx.coroutines.CancellationException
 import com.osudroid.settings.GameFolders
 import com.reco1l.verktex.Platform
 import com.osudroid.utils.*
@@ -8,8 +10,6 @@ import kotlinx.serialization.json.JsonObject
 
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.ui.UISprite
-import com.reco1l.framework.net.JsonArrayRequest
-import com.reco1l.framework.net.WebRequest
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.input.InputEvent
@@ -28,8 +28,7 @@ object BannerManager {
     private const val BANNER_DURATION = 10f // Seconds
 
 
-    @JvmStatic
-    fun loadBannerSprite(): BannerSprite? {
+    suspend fun loadBannerSprite(): BannerSprite? {
 
         val banners = mutableListOf<Banner>()
 
@@ -40,38 +39,30 @@ object BannerManager {
                 mkdirs()
             }
 
-            JsonArrayRequest(OnlineManager.endpoint + "game/banner.php").use { request ->
-                request.execute()
+            val json = OsuHttp.getJsonArray(OnlineManager.endpoint + "game/banner.php")
 
-                for (i in 0 until request.json.size) {
+            for (i in 0 until json.size) {
 
-                    try {
-                        val banner = request.json.getJsonObject(i)
+                try {
+                    val banner = json.getJsonObject(i)
 
-                        val url = banner.getString("Url")
-                        val imageLink = banner.getString("ImageLink")
+                    val url = banner.getString("Url")
+                    val imageLink = banner.getString("ImageLink")
 
-                        WebRequest(imageLink).use { imageRequest ->
+                    val bannerFile = File(bannersFolder, "${i}.png")
+                    bannerFile.writeBytes(OsuHttp.getBytes(imageLink))
 
-                            val bannerFile = File(bannersFolder, "${i}.png")
-                            bannerFile.createNewFile()
+                    banners.add(Banner(url, Textures.load("banner@${i}", bannerFile.absolutePath, isInternal = false)))
 
-                            imageRequest.execute()
-                            imageRequest.responseBody.inputStream().use { input ->
-                                bannerFile.outputStream().use { output ->
-                                    input.copyTo(output)
-                                }
-                            }
-
-                            banners.add(Banner(url, Textures.load("banner@${i}", bannerFile.absolutePath, isInternal = false)))
-                        }
-
-                    } catch (e: Exception) {
-                        Logger.e("BannerManager", "Failed to get banner at index ${i}.", e)
-                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logger.e("BannerManager", "Failed to get banner at index ${i}.", e)
                 }
             }
 
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e("BannerManager", "Failed to get banners from server.", e)
         }
