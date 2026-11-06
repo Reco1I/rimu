@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.hud
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeTo
 
@@ -18,7 +20,6 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import kotlin.math.abs
 import kotlin.reflect.KClass
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
@@ -75,7 +76,7 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
     /**
      * Whether this [HUDElement] should be shown.
      */
-    open val shouldBeShown = !Config.isHideInGameUI()
+    open val shouldBeShown = !Settings[OsuSettings.HideInGameUI]
 
     /**
      * The overlay for this element to be used in edit mode.

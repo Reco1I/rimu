@@ -1,24 +1,42 @@
-@file:Suppress("ConstPropertyName")
-
 package com.reco1l.verktex.settings
 
+import kotlin.jvm.JvmField
+
 /**
- * A set of native settings that are used by the framework.
+ * The settings of the engine.
  */
 object VerktexSettings {
-    const val ShowComponentBoundaries = "show_component_boundaries"
-    const val ShowPerformanceOverlay = "show_performance_overlay"
-    const val DrawTextures = "draw_textures"
 
     /**
-     * The resolution the window renders at relative to the display, a float from 0 to 1. Below 1
-     * fewer pixels are drawn and the display scales them up.
+     * Whether every component is outlined, to see its bounds.
      */
-    const val ResolutionScale = "resolution_scale"
+    @JvmField
+    val ShowComponentBoundaries = setting("show_component_boundaries", false)
 
     /**
-     * The [com.reco1l.verktex.graphics.GraphicsBackend] to render with, stored by name. It's read
-     * once when the engine is initialized, so it must be set before the host is created.
+     * Whether the frame times and the other performance statistics are shown above everything.
      */
-    const val GraphicsBackend = "graphics_backend"
+    @JvmField
+    val ShowPerformanceOverlay = setting("show_performance_overlay", false)
+
+    /**
+     * The resolution the window renders at relative to the display, from 0 to 1. Below 1 fewer
+     * pixels are drawn and the display scales them up.
+     */
+    @JvmField
+    val ResolutionScale = setting("resolution_scale", 1f)
+
+    /**
+     * The name of the [com.reco1l.verktex.graphics.GraphicsBackend] to render with. It's read once
+     * when the engine is initialized, so a change applies on the next start.
+     */
+    @JvmField
+    val GraphicsBackend = setting("graphics_backend", "Auto")
+
+    /**
+     * Set while the Vulkan backend starts and cleared once it presented a frame. Found set when
+     * starting, Vulkan crashed the last time, and OpenGL ES is used until Vulkan is picked again.
+     */
+    @JvmField
+    val VulkanStarting = setting("vulkan_starting", false)
 }

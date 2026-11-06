@@ -31,6 +31,9 @@ abstract class UITestActivity : AndroidGameHost() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // The settings are the game's, which the tests mustn't change.
+        Settings.isReadOnly = true
+
         // Read when the engine is initialized, in super.onCreate.
         intent.getStringExtra(EXTRA_BACKEND)?.let { backend ->
             Settings[VerktexSettings.GraphicsBackend] = backend
@@ -49,7 +52,7 @@ abstract class UITestActivity : AndroidGameHost() {
         val preferences = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
         val initialTest = intent.getStringExtra(EXTRA_TEST) ?: preferences.getString(KEY_LAST_TEST, null)
 
-        // Always shown while trying components, this process doesn't share settings with the game.
+        // Always shown while trying components, without saving it.
         Settings[VerktexSettings.ShowPerformanceOverlay] = true
 
         Verktex.withTreeLock {

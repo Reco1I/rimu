@@ -1,5 +1,6 @@
 package com.osudroid.debug
 
+import com.osudroid.settings.OsuSettings
 import com.osudroid.multiplayer.api.data.PlayerStatus
 import com.osudroid.multiplayer.api.data.Room
 import com.osudroid.multiplayer.api.data.RoomGameplaySettings
@@ -18,7 +19,6 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import ru.nsu.ccfit.zuev.osu.Config
 
 /**
  * Creates a mock multiplayer room.
@@ -62,7 +62,7 @@ class MockSocket(private val uid: Long) : RoomSocket {
             "scoreSubmission" -> "allPlayersScoreSubmitted" to arrayOf(JsonArray(listOf(args[0] as JsonElement)))
             "liveScoreData" -> "liveScoreData" to arrayOf(JsonArray(listOf(
                 // The username is expected to be added by the server.
-                JsonObject((args[0] as JsonObject) + ("username" to JsonPrimitive(Config.getOnlineUsername())))
+                JsonObject((args[0] as JsonObject) + ("username" to JsonPrimitive(OsuSettings.onlineUsername)))
             )))
 
             // Simulating the server response when all players emit these events.
@@ -114,7 +114,7 @@ class MockSocket(private val uid: Long) : RoomSocket {
             put("teamMode", TeamMode.HeadToHead.ordinal)
             put("winCondition", WinCondition.ScoreV1.ordinal)
             put("playerCount", 1)
-            put("playerNames", Config.getOnlineUsername())
+            put("playerNames", OsuSettings.onlineUsername)
             put("sessionId", "")
             put("status", RoomStatus.Idle.ordinal)
             put("beatmap", JsonNull)
@@ -133,7 +133,7 @@ class MockSocket(private val uid: Long) : RoomSocket {
             put("players", buildJsonArray {
                 add(buildJsonObject {
                     put("id", uid)
-                    put("username", Config.getOnlineUsername())
+                    put("username", OsuSettings.onlineUsername)
                     put("rank", 1)
                     put("status", PlayerStatus.NotReady.ordinal)
                     put("team", JsonNull)

@@ -28,7 +28,6 @@ import okio.EOFException
 import okio.IOException
 import okio.Path.Companion.toPath
 import okio.Source
-import ru.nsu.ccfit.zuev.osu.Config
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.helper.Debug
@@ -582,8 +581,8 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
                         val baseX = readTouchPoint(`is`, replay)
                         val baseY = readTouchPoint(`is`, replay)
                         val gamePoint = Vector2(
-                            baseX / Config.getTextureQuality(),
-                            baseY / Config.getTextureQuality()
+                            baseX / 1,
+                            baseY / 1
                         )
                         val realPoint = if (replay.replayVersion > 1)
                             Utils.trackToRealCoords(gamePoint, isHardRock)

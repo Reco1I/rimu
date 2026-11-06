@@ -9,12 +9,7 @@ import com.reco1l.verktex.localization.Localization
 object Languages {
 
     /**
-     * The setting with the chosen language, a locale tag or [SYSTEM].
-     */
-    const val SETTING_KEY = "appLanguage"
-
-    /**
-     * The value of the setting that follows the language of the system.
+     * The value of [com.osudroid.settings.OsuSettings.Language] that follows the language of the system.
      */
     const val SYSTEM = "system"
 

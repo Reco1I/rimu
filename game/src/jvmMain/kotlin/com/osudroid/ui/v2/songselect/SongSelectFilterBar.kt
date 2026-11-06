@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
+import com.reco1l.verktex.settings.Settings
+import com.osudroid.settings.OsuSettings
 import com.osudroid.data.DatabaseManager
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Dimension
@@ -17,7 +19,6 @@ import com.reco1l.verktex.ui.control.UITextInput
 import com.reco1l.verktex.ui.form.FormCheckbox
 import com.reco1l.verktex.ui.iconButton
 import com.reco1l.verktex.ui.text.faSolidIcon
-import ru.nsu.ccfit.zuev.osu.Config
 import com.reco1l.verktex.ui.themed
 
 class SongSelectFilterBar : UILinearContainer() {
@@ -26,8 +27,8 @@ class SongSelectFilterBar : UILinearContainer() {
      * The filter set by the bar.
      */
     var filter = BeatmapFilter(
-        sortOrder = BeatmapSortOrder.entries.getOrElse(Config.getInt(SORT_ORDER_KEY, 0)) { BeatmapSortOrder.Title },
-        grouping = BeatmapGrouping.entries.getOrElse(Config.getInt(GROUPING_KEY, 0)) { BeatmapGrouping.BeatmapSet }
+        sortOrder = BeatmapSortOrder.entries.getOrElse(Settings[OsuSettings.SongSelectSortOrder]) { BeatmapSortOrder.Title },
+        grouping = BeatmapGrouping.entries.getOrElse(Settings[OsuSettings.SongSelectGrouping]) { BeatmapGrouping.BeatmapSet }
     )
         private set(value) {
             if (field != value) {
@@ -125,7 +126,7 @@ class SongSelectFilterBar : UILinearContainer() {
                     options = BeatmapSortOrder.entries.map { UISelect.Option(it, it.label, leadingIcon = faSolidIcon(FAIcon.ArrowDownWideShort)) }
                     onValueChange = { values ->
                         val order = values.firstOrNull() ?: BeatmapSortOrder.Title
-                        Config.setInt(SORT_ORDER_KEY, order.ordinal)
+                        Settings[OsuSettings.SongSelectSortOrder] = order.ordinal
                         filter = filter.copy(sortOrder = order)
                     }
                 }
@@ -135,7 +136,7 @@ class SongSelectFilterBar : UILinearContainer() {
                     options = BeatmapGrouping.entries.map { UISelect.Option(it, it.label, leadingIcon = faSolidIcon(FAIcon.LayerGroup)) }
                     onValueChange = { values ->
                         val grouping = values.firstOrNull() ?: BeatmapGrouping.BeatmapSet
-                        Config.setInt(GROUPING_KEY, grouping.ordinal)
+                        Settings[OsuSettings.SongSelectGrouping] = grouping.ordinal
                         filter = filter.copy(grouping = grouping)
                     }
                 }

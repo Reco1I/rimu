@@ -1,5 +1,8 @@
 package com.osudroid.beatmaps
 
+import com.reco1l.verktex.settings.SettingKey
+import com.reco1l.verktex.settings.Settings
+import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.ui.v2.songselect.SongSelect
 
@@ -25,10 +28,6 @@ import kotlin.math.max
 object DifficultyCalculationManager {
 
 
-    private val preferences
-        get() = OsuPlatform.implementation.preferences
-
-
     private var job: Job? = null
 
     private var badge: Toasts.Toast? = null
@@ -36,20 +35,20 @@ object DifficultyCalculationManager {
 
     @JvmStatic
     fun checkForOutdatedStarRatings(): CompletableFuture<Unit> = stopCalculation().thenApply {
-        preferences.apply {
-            // Before per-star rating versioning, the version was stored in this key.
-            // If both star ratings have been updated after this, this key is no longer needed and can be removed.
-            val oldStarRatingVersion = getLong("starRatingVersion", 0)
+        // Before per-star rating versioning, the version was stored in this key.
+        // If both star ratings have been updated after this, this key is no longer needed and can be removed.
+        val oldStarRatingVersion = Settings[OsuSettings.LegacyStarRatingVersion]
 
-            if (getLong("droidStarRatingVersion", oldStarRatingVersion) < DroidDifficultyCalculator.VERSION) {
-                DatabaseManager.beatmapInfoTable.resetDroidStarRatings()
-                putLong("droidStarRatingVersion", DroidDifficultyCalculator.VERSION)
-            }
+        fun storedVersion(key: SettingKey<Long>) = if (Settings.contains(key)) Settings[key] else oldStarRatingVersion
 
-            if (getLong("standardStarRatingVersion", oldStarRatingVersion) < StandardDifficultyCalculator.VERSION) {
-                DatabaseManager.beatmapInfoTable.resetStandardStarRatings()
-                putLong("standardStarRatingVersion", StandardDifficultyCalculator.VERSION)
-            }
+        if (storedVersion(OsuSettings.DroidStarRatingVersion) < DroidDifficultyCalculator.VERSION) {
+            DatabaseManager.beatmapInfoTable.resetDroidStarRatings()
+            Settings[OsuSettings.DroidStarRatingVersion] = DroidDifficultyCalculator.VERSION
+        }
+
+        if (storedVersion(OsuSettings.StandardStarRatingVersion) < StandardDifficultyCalculator.VERSION) {
+            DatabaseManager.beatmapInfoTable.resetStandardStarRatings()
+            Settings[OsuSettings.StandardStarRatingVersion] = StandardDifficultyCalculator.VERSION
         }
     }
 

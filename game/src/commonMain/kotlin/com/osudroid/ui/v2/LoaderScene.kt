@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Dimension
@@ -10,7 +12,6 @@ import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.sprite
-import ru.nsu.ccfit.zuev.osu.Config
 
 class LoaderScene : UIScene() {
 
@@ -25,7 +26,7 @@ class LoaderScene : UIScene() {
                 scaleType = UISprite.ScaleType.Crop
                 textureRegion = SkinTextures["menu-background"]
 
-                if (!Config.isSafeBeatmapBg()) {
+                if (!Settings[OsuSettings.SafeBeatmapBackground]) {
                     textureRegion = Textures["::background"] ?: textureRegion
                 }
             }

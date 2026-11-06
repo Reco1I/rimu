@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.control.IntegerTextInput
 import com.reco1l.verktex.ui.dialog.UIPromptDialog
 import com.reco1l.verktex.ui.borderWidth
@@ -46,7 +48,6 @@ import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.audio.Status
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.themed
 
@@ -408,9 +409,9 @@ object CalibrationScene : UIScene() {
                     color = themed { palette.accent.shade(0.9f) }
                 }
 
-                highPrecisionToggle = UICheckbox(Config.isHighPrecisionInput()).apply {
+                highPrecisionToggle = UICheckbox(Settings[OsuSettings.HighPrecisionInput]).apply {
                     onValueChange =  {
-                        Config.setBoolean("highPrecisionInput", value)
+                        Settings[OsuSettings.HighPrecisionInput] = value
                     }
                 }
                 +highPrecisionToggle
@@ -431,14 +432,14 @@ object CalibrationScene : UIScene() {
     }
 
     fun show() {
-        pendingOffset = Config.getOffset().toInt()
+        pendingOffset = OsuSettings.offset.toInt()
         beatTimer = 0f
         metronomeTime = 0.0
         successfulTapStreak = 0
         tapOffsets.clear()
         updateOffsetDisplay()
         updateTapFeedback()
-        highPrecisionToggle.value = Config.isHighPrecisionInput()
+        highPrecisionToggle.value = Settings[OsuSettings.HighPrecisionInput]
 
         val music = GlobalManager.getInstance().music
         wasMusicPlaying = music.status == Status.PLAYING
@@ -736,8 +737,7 @@ object CalibrationScene : UIScene() {
     }
 
     private fun applyOffset() {
-        Config.setOffset(pendingOffset.toFloat())
-        Config.setInt("offset", pendingOffset)
+        Settings[OsuSettings.Offset] = pendingOffset
     }
 
     private fun computePendingOffset(): Int {

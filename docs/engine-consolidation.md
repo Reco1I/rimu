@@ -352,7 +352,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 2. Toasts | Done |
 | 3. `MusicService` | Done |
 | 4. Localization | Done |
-| 5. Settings replace `Config` | Not started |
+| 5. Settings replace `Config` | Done |
 | 6. Ktor networking | Not started |
 | 7. Split `OsuPlatform` | Not started |
 | 8. No `GlobalManager` | Not started |
@@ -482,4 +482,73 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
   14 `assets/strings/*.json`). Not run on desktop or a device, so changing the language live wasn't
   seen on screen. No Verktex UI test was added for it, since the UI tests are being worked on
   separately.
+
+### Phase 5: settings
+
+- Verktex's `Settings` is typed and persistent:
+  - A `SettingKey<T>(name, default, serializer)` is declared with `setting(name, default)`. It's read
+    with `Settings[key]` and written with `Settings[key] = value`, and it's a property delegate.
+    `observe`/`removeObserver` replace `on`/`off`.
+  - The values are a JSON object in `settings.json` in `Platform.storage.dataDirectory`, read on first
+    use. Decoded values are cached per key. A value that can't be read as its key's type reads as
+    the default (strings like `"true"` and `"75"` do read as booleans and numbers). Unknown keys
+    are kept.
+  - Saving happens one second after the last change (`Settings.update()`, called by the update
+    loop), and right away on `Verktex.pause()`/`dispose()` and on `Settings.flush()`. The file is
+    written to `settings.json.tmp`, then `atomicMove`d.
+  - Values set before there's a platform (Android's backend choice before `super.onCreate`) are
+    kept in memory and go over the file once it's read.
+  - `isReadOnly` keeps a process from writing. The Android and desktop UI test browsers set it: they
+    read the game's settings but never change them. `isNew` says there was no file.
+  - `toJson()` and `putAll()` are for backups and imports.
+  - `VerktexSettings` are keys: the overlays, the resolution scale, the graphics backend, and the
+    Vulkan crash guard (`VulkanStarting`, flushed right away), which replaces the
+    `verktex_graphics` SharedPreferences. The old string-keyed API and `Setting` are gone.
+  - Verktex core exposes kotlinx-serialization-json (`api`), since keys carry their serializer.
+- In the game:
+  - `OsuSettings` declares the 84 settings as `OsuSettingKey`s, with their old names and storage
+    types (e.g. `spinnerstyle` stays a string). `bounds` and `isSensitive` are properties of the
+    keys and replace `PREFERENCE_BOUNDS` and `SENSITIVE_KEYS`; `FLOAT_PREFERENCES` isn't needed,
+    since a float key reads an integer too.
+    - Helpers cover the values read in another unit or form: `musicVolume`, `soundVolume`,
+      `backgroundBrightness`, `offset`, `cursorSize`, `playfieldSize` and its position,
+      `spinnerStyle`, `metronomeSwitch`, `isStoryboardEnabled`, `isStayOnline`, `onlineUsername`,
+      `difficultyAlgorithm`, `beatmapLeaderboardScoringMode`, `comboColors` and `installId`.
+    - `OsuSettings.load()` replaces `Config.loadConfig()`. It imports the legacy preferences once,
+      keeps the folders of a new installation, measures the viewport, subscribes to announcements
+      and applies the language.
+  - `Config`'s derived state moved out:
+    - `GameFolders` has `corePath`, `beatmapPath`, `scorePath`, `cachePath` and `defaultCorePath`,
+      computed from the settings with a trailing slash.
+    - `SkinFolders` has the skin `path`, the `topPath` and the list of skins.
+    - `GameResolution` has the viewport `width`/`height` (the old `RES_WIDTH`/`RES_HEIGHT`). It still
+      measures `OsuPlatform.displayWidth/Height`, the real size of the display: Android's
+      `Platform.currentDisplay` leaves out the system bars, so moving to it waits for phase 7.
+  - `Config` is deleted. Its ~400 references in 77 files use the keys and helpers. The values it
+    cached are read live, so the settings menu no longer reloads anything when it's left.
+  - `PreferenceControls` take a `SettingKey`. `OptionInfo.setting` replaces `defaultValue` and
+    `isFloat` (a `Float` key makes a float slider). The graphics backend option uses the engine's
+    `VerktexSettings.GraphicsBackend` directly.
+  - Changed behavior:
+    - `bursts` and `displayScoreStatistics` default to false, which the game used, while the settings
+      showed true.
+    - The beatmap mirror, the star rating versions, the vibrations and the song select's sort and
+      grouping are settings too.
+  - Migration: the first time without `settings.json`, `OsuPlatform.legacyPreferences()` is imported
+    (Android: every entry of the default SharedPreferences; desktop: the `osu!droid` node of
+    `java.util.prefs`, as strings). After that the old store is left untouched. On Android the
+    backend chosen before is read from the old preferences until `settings.json` exists, since the
+    engine picks it before the game starts.
+  - `SettingsBackup` (common) replaces `ConfigBackup`. It writes the settings minus the sensitive ones
+    to `osudroid.cfg` in the game folder, and restores them clamped to their bounds; backups of the
+    old preferences restore too. It's offered on every platform.
+  - Removed: `OsuPlatform.preferences` and the backup hooks, `MainActivity`'s raw preference writes
+    (including the unused `qualitySet`/`lowtextures`/`onlineSet`), `multiplatform-settings`,
+    `androidx.preference`, and the old preference screen's styles and layouts.
+- Tests: `SettingsTest` (Verktex) covers saving, unknown keys, lenient reading, read-only and
+  observers. `OsuSettingsTest` (game) covers the legacy import on both platforms, the backup and the
+  folders.
+- Checked: the core, desktop and game tests, the app's unit tests compiling, the common checks and
+  `assembleDebug`. Not run on desktop or a device, so the upgrade from existing preferences wasn't
+  seen on a real install.
 

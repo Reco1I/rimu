@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.OnTransformFinished
@@ -18,7 +20,7 @@ import ru.nsu.ccfit.zuev.skins.*
 class HUDComboCounter : HUDElement() {
 
 
-    private val popOutCount = if (Config.isAnimateComboText()) SpriteFont(OsuSkin.get().comboPrefix).also {
+    private val popOutCount = if (Settings[OsuSettings.AnimateComboText]) SpriteFont(OsuSkin.get().comboPrefix).also {
 
         it.alpha = 0f
         it.text = "0x"

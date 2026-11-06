@@ -1,5 +1,8 @@
 package com.osudroid.ui.v2.settings
 
+import com.osudroid.settings.SettingsBackup
+import com.osudroid.settings.OsuSettings
+import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.resources.Languages
 import com.reco1l.verktex.Platform
 import com.osudroid.OsuPlatform
@@ -36,7 +39,6 @@ import com.osudroid.utils.ModHashMap
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.ui.control.UISelect
 import kotlinx.coroutines.Job
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.ui.toast.Toasts
@@ -75,9 +77,9 @@ val playerSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "player_preferModAcronym",
+                setting = OsuSettings.PreferModAcronymInMultiplayer,
                 title = Res.string.mp_room_prefer_mod_acronym_title,
                 summary = Res.string.mp_room_prefer_mod_acronym_summary,
-                defaultValue = false
             )
         )
     ),
@@ -88,18 +90,17 @@ val playerSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "player_submitScore",
+                setting = OsuSettings.SubmitScoreOnMultiplayer,
                 title = Res.string.mp_room_enable_score_submission_title,
                 summary = Res.string.mp_room_enable_score_submission_summary,
-                defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "player_nightcore",
+                setting = OsuSettings.UseNightcoreOnMultiplayer,
                 title = Res.string.mp_room_nightcore_title,
                 summary = Res.string.mp_room_nightcore_summary,
-                defaultValue = false,
-                onChange = { value ->
-                    Config.setUseNightcoreOnMultiplayer(value as Boolean)
+                onChange = {
                     Multiplayer.room?.let { Multiplayer.roomScene?.onRoomModsChange(it.mods) }
                 }
             )
@@ -240,29 +241,29 @@ val generalSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "stayOnline",
+                setting = OsuSettings.StayOnline,
                 title = Res.string.opt_stayonline_title,
                 summary = Res.string.opt_stayonline_summary
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "loadAvatar",
+                setting = OsuSettings.LoadAvatar,
                 title = Res.string.opt_loadavatar_title,
                 summary = Res.string.opt_loadavatar_summary
             ),
             OptionInfo(
                 type = OptionType.Select,
                 key = "difficultyAlgorithm",
+                setting = OsuSettings.DifficultyAlgorithmSetting,
                 title = Res.string.difficulty_algorithm_title,
                 summary = Res.string.difficulty_algorithm_summary,
-                // The default of Config.getDifficultyAlgorithm, shown while it was never changed.
-                defaultValue = "0",
                 entries = Res.array.difficulty_algorithm_names,
                 entryValues = Res.array.difficulty_algorithm_values,
                 onChange = { value ->
                     if (Multiplayer.isMultiplayer) {
                         @Suppress("UNCHECKED_CAST")
                         val newValue = (value as List<String>)[0]
-                        Config.setString("difficultyAlgorithm", newValue)
                         Multiplayer.roomScene?.updateBeatmapInfo()
                     }
                 }
@@ -276,12 +277,14 @@ val generalSection = listOf(
             OptionInfo(
                 type = OptionType.Input,
                 key = "onlineUsername",
+                setting = OsuSettings.OnlineUsername,
                 title = Res.string.opt_login_title,
                 summary = Res.string.opt_login_summary
             ),
             OptionInfo(
                 type = OptionType.Input,
                 key = "onlinePassword",
+                setting = OsuSettings.OnlinePassword,
                 title = Res.string.opt_password_title,
                 summary = Res.string.opt_password_summary,
                 onAttach = {
@@ -306,6 +309,7 @@ val generalSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "receiveAnnouncements",
+                setting = OsuSettings.ReceiveAnnouncements,
                 title = Res.string.opt_receive_announcements_title,
                 summary = Res.string.opt_receive_announcements_summary
             )
@@ -329,7 +333,6 @@ val generalSection = listOf(
     ),
 
     CategoryInfo(
-        isVisible = OsuPlatform.implementation.canBackUpPreferences,
         title = Res.string.opt_category_config_backup,
         options = listOf(
             OptionInfo(
@@ -338,7 +341,7 @@ val generalSection = listOf(
                 title = Res.string.opt_config_backup_title,
                 summary = Res.string.opt_config_backup_summary,
                 onClick = {
-                    val success = OsuPlatform.implementation.exportPreferences()
+                    val success = SettingsBackup.export()
                     Toasts.showLong(if (success) Res.string.config_backup_info_success else Res.string.config_backup_info_fail)
                 }
             ),
@@ -348,13 +351,12 @@ val generalSection = listOf(
                 title = Res.string.opt_config_backup_restore_title,
                 summary = Res.string.opt_config_backup_restore_summary,
                 onClick = {
-                    val success = OsuPlatform.implementation.importPreferences()
+                    val success = SettingsBackup.import()
 
                     if (success) {
-                        val prefs = OsuPlatform.implementation.preferences
-                        GlobalManager.getInstance().music.volume = prefs.getInt("bgmvolume", 100) / 100f
+                        GlobalManager.getInstance().music.volume = OsuSettings.musicVolume
 
-                        loadSkin(prefs.getString("skinPath", "")).invokeOnCompletion {
+                        loadSkin(SkinFolders.path).invokeOnCompletion {
                             mainThread {
                                 Toasts.showLong(Res.string.config_backup_restore_info_success)
                             }
@@ -372,7 +374,8 @@ val generalSection = listOf(
         options = listOf(
             OptionInfo(
                 type = OptionType.Select,
-                key = Languages.SETTING_KEY,
+                key = "appLanguage",
+                setting = OsuSettings.Language,
                 title = Res.string.opt_language_title,
                 summary = Res.string.opt_language_summary,
                 entries = Res.array.placeholder_array,
@@ -402,12 +405,12 @@ val gameplaySection = listOf(
                 summary = Res.string.opt_skinpath_summary,
                 entries = Res.array.placeholder_array,
                 entryValues = Res.array.placeholder_array,
-                // Config ends the path with a slash, which the folders don't, so it's shown and stored
-                // as Config has it rather than through the preference.
-                initialValue = { Config.getSkinPath() },
+                // SkinFolders ends the path with a slash, which the folders don't, so it's shown and
+                // stored as SkinFolders has it rather than through the setting.
+                initialValue = { SkinFolders.path },
                 onAttach = {
-                    val skinMain = File(Config.getSkinTopPath())
-                    val skins = Config.getSkins()!!.map { skin ->
+                    val skinMain = File(SkinFolders.topPath)
+                    val skins = SkinFolders.skins.map { skin ->
                         UISelect.Option(skin.value.withTrailingSlash(), skin.key)
                     }.sortedBy { it.text.toString() }.toMutableList()
                     skins.add(0, UISelect.Option(skinMain.path.withTrailingSlash(), skinMain.name + " (Default)"))
@@ -418,7 +421,7 @@ val gameplaySection = listOf(
                 onChange = { value ->
                     @Suppress("UNCHECKED_CAST")
                     val newValue = (value as List<String>).firstOrNull() ?: return@OptionInfo
-                    Config.setString("skinPath", newValue)
+                    SkinFolders.path = newValue
                     loadSkin(newValue)
                 }
             ),
@@ -453,18 +456,18 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Select,
                 key = "spinnerstyle",
+                setting = OsuSettings.SpinnerStyle,
                 title = Res.string.opt_spinner_style_title,
                 summary = Res.string.opt_spinner_style_summary,
-                defaultValue = "1",
                 entries = Res.array.spinner_style_names,
                 entryValues = Res.array.spinner_style_values
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "skin",
+                setting = OsuSettings.UseCustomSkins,
                 title = Res.string.opt_skin_title,
                 summary = Res.string.opt_skin_summary,
-                defaultValue = false
             )
         )
     ),
@@ -475,9 +478,9 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "showfirstapproachcircle",
+                setting = OsuSettings.ShowFirstApproachCircle,
                 title = Res.string.opt_show_first_approach_circle_title,
                 summary = Res.string.opt_show_first_approach_circle_summary,
-                defaultValue = false
             )
         )
     ),
@@ -488,34 +491,33 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "bgbrightness",
+                setting = OsuSettings.BackgroundBrightness,
                 title = Res.string.opt_bgbrightness_title,
                 summary = Res.string.opt_bgbrightness_summary,
-                defaultValue = 25,
                 min = 0f,
                 max = 100f,
                 step = 0.1f,
-                isFloat = true,
                 valueFormatter = { "%.1f%%".format(it) }
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "keepBackgroundAspectRatio",
+                setting = OsuSettings.KeepBackgroundAspectRatio,
                 title = Res.string.opt_keep_background_aspect_ratio_title,
                 summary = Res.string.opt_keep_background_aspect_ratio_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "enableStoryboard",
+                setting = OsuSettings.EnableStoryboard,
                 title = Res.string.opt_enableStoryboard_title,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "enableVideo",
+                setting = OsuSettings.EnableVideo,
                 title = Res.string.opt_video_title,
                 summary = Res.string.opt_video_summary,
-                defaultValue = false
             )
         )
     ),
@@ -526,54 +528,51 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "playfieldSize",
+                setting = OsuSettings.PlayfieldSize,
                 title = Res.string.opt_setplayfield_title,
                 summary = Res.string.opt_setplayfield_summary,
-                defaultValue = 100,
                 min = 50f,
                 max = 100f,
                 step = 1f,
                 valueFormatter = { "${it.toInt()}%" },
-                onChange = { value ->
-                    Config.setPlayfieldSize(value as Float / 100f)
+                onChange = {
                     onPlayfieldChanged?.invoke()
                 }
             ),
             OptionInfo(
                 type = OptionType.Slider,
                 key = "playfieldHorizontalPosition",
+                setting = OsuSettings.PlayfieldHorizontalPosition,
                 title = Res.string.opt_playfieldHorizontalPosition_title,
                 summary = Res.string.opt_playfieldHorizontalPosition_summary,
-                defaultValue = 50,
                 min = 0f,
                 max = 100f,
                 step = 1f,
                 valueFormatter = { "${it.toInt()}%" },
-                onChange = { value ->
-                    Config.setPlayfieldHorizontalPosition(value as Float / 100f)
+                onChange = {
                     onPlayfieldChanged?.invoke()
                 }
             ),
             OptionInfo(
                 type = OptionType.Slider,
                 key = "playfieldVerticalPosition",
+                setting = OsuSettings.PlayfieldVerticalPosition,
                 title = Res.string.opt_playfieldVerticalPosition_title,
                 summary = Res.string.opt_playfieldVerticalPosition_summary,
-                defaultValue = 50,
                 min = 0f,
                 max = 100f,
                 step = 1f,
                 valueFormatter = { "${it.toInt()}%" },
-                onChange = { value ->
-                    Config.setPlayfieldVerticalPosition(value as Float / 100f)
+                onChange = {
                     onPlayfieldChanged?.invoke()
                 }
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "displayPlayfieldBorder",
+                setting = OsuSettings.DisplayPlayfieldBorder,
                 title = Res.string.opt_display_playfield_border_title,
                 summary = Res.string.opt_display_playfield_border_summary,
-                defaultValue = false
             )
         )
     ),
@@ -584,32 +583,32 @@ val gameplaySection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "hideInGameUI",
+                setting = OsuSettings.HideInGameUI,
                 title = Res.string.opt_hide_ingame_ui_title,
                 summary = Res.string.opt_hide_ingame_ui_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "hideReplayMarquee",
+                setting = OsuSettings.HideReplayMarquee,
                 title = Res.string.opt_hide_replay_marquee_title,
                 summary = Res.string.opt_hide_replay_marquee_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "fps",
+                setting = OsuSettings.ShowFps,
                 title = Res.string.opt_fps_title,
                 summary = Res.string.opt_fps_summary,
-                defaultValue = true,
                 // Shows the engine's performance overlay.
                 onChange = { value -> Settings[VerktexSettings.ShowPerformanceOverlay] = value as Boolean }
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "displayScoreStatistics",
+                setting = OsuSettings.DisplayScoreStatistics,
                 title = Res.string.opt_display_score_statistics_title,
                 summary = Res.string.opt_display_score_statistics_summary,
-                defaultValue = true
             )
         )
     )
@@ -642,10 +641,10 @@ private fun resolutionScaleOption(): OptionInfo? {
 
     return OptionInfo(
         type = OptionType.Slider,
-        key = RESOLUTION_SCALE_KEY,
+        key = "resolutionScale",
+        setting = OsuSettings.ResolutionScale,
         title = Res.string.opt_resolution_scale_title,
         summary = Res.string.opt_resolution_scale_summary,
-        defaultValue = 100,
         min = minPercentage,
         max = 100f,
         step = 1f,
@@ -666,29 +665,19 @@ private fun resolutionScaleOption(): OptionInfo? {
     )
 }
 
-/**
- * The preference storing the resolution scale, as a percentage.
- */
-const val RESOLUTION_SCALE_KEY = "resolutionScale"
-
-/**
- * The preference storing the [GraphicsBackend] by name, loaded into [VerktexSettings.GraphicsBackend]
- * before the engine is initialized.
- */
-const val GRAPHICS_BACKEND_KEY = "graphicsBackend"
-
 private fun graphicsBackendOption(): OptionInfo {
     // The experimental Vulkan backend is only offered where the device reports Vulkan 1.1.
     val withVulkan = OsuPlatform.implementation.isVulkanAvailable
 
     return OptionInfo(
         type = OptionType.Select,
-        key = GRAPHICS_BACKEND_KEY,
+        key = "graphicsBackend",
+        // The engine's own setting, read when it starts.
+        setting = VerktexSettings.GraphicsBackend,
         title = Res.string.opt_graphics_backend_title,
         summary = Res.string.opt_graphics_backend_summary,
         entries = if (withVulkan) Res.array.opt_graphics_backend_names_with_vulkan else Res.array.opt_graphics_backend_names,
         entryValues = if (withVulkan) Res.array.opt_graphics_backend_values_with_vulkan else Res.array.opt_graphics_backend_values,
-        defaultValue = GraphicsBackend.Auto.name,
         onChange = { value ->
             val selected = (value as? List<*>)?.firstOrNull() ?: value
 
@@ -716,16 +705,16 @@ val graphicsSection = listOfNotNull(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "showcursor",
+                setting = OsuSettings.ShowCursor,
                 title = Res.string.opt_showcursor_title,
                 summary = Res.string.opt_showcursor_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Slider,
                 key = "cursorSize",
+                setting = OsuSettings.CursorSize,
                 title = Res.string.opt_cursor_size,
                 summary = Res.string.opt_cursor_size_summary,
-                defaultValue = 50,
                 min = 25f,
                 max = 300f,
                 step = 1f,
@@ -734,9 +723,9 @@ val graphicsSection = listOfNotNull(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "particles",
+                setting = OsuSettings.UseParticles,
                 title = Res.string.opt_particles_title,
                 summary = Res.string.opt_particles_summary,
-                defaultValue = false
             )
         )
     ),
@@ -747,72 +736,72 @@ val graphicsSection = listOfNotNull(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "dimHitObjects",
+                setting = OsuSettings.DimHitObjects,
                 title = Res.string.opt_dim_hit_objects_title,
                 summary = Res.string.opt_dim_hit_objects_summary,
-                defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "comboburst",
+                setting = OsuSettings.ComboBurst,
                 title = Res.string.opt_combo_burst_title,
                 summary = Res.string.opt_combo_burst_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "images",
+                setting = OsuSettings.Corovans,
                 title = Res.string.opt_largeimages_title,
                 summary = Res.string.opt_largeimages_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "animateFollowCircle",
+                setting = OsuSettings.AnimateFollowCircle,
                 title = Res.string.opt_animate_follow_circle_title,
                 summary = Res.string.opt_animate_follow_circle_summary,
-                defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "animateComboText",
+                setting = OsuSettings.AnimateComboText,
                 title = Res.string.opt_animate_combo_text_title,
                 summary = Res.string.opt_animate_combo_text_summary,
-                defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "snakingInSliders",
+                setting = OsuSettings.SnakingInSliders,
                 title = Res.string.opt_snakingInSliders_title,
                 summary = Res.string.opt_snakingInSliders_summary,
-                defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "snakingOutSliders",
+                setting = OsuSettings.SnakingOutSliders,
                 title = Res.string.opt_snakingOutSliders_title,
                 summary = Res.string.opt_snakingOutSliders_summary,
-                defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "noChangeDimInBreaks",
+                setting = OsuSettings.NoChangeDimInBreaks,
                 title = Res.string.opt_noChangeDimInBreaks_title,
                 summary = Res.string.opt_noChangeDimInBreaks_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "bursts",
+                setting = OsuSettings.BurstEffects,
                 title = Res.string.opt_bursts_title,
                 summary = Res.string.opt_bursts_summary,
-                defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "hitlighting",
+                setting = OsuSettings.HitLighting,
                 title = Res.string.opt_hitlighting_title,
                 summary = Res.string.opt_hitlighting_summary,
-                defaultValue = false
             )
         )
     )
@@ -825,13 +814,12 @@ val audioSection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "bgmvolume",
+                setting = OsuSettings.MusicVolume,
                 title = Res.string.opt_bgm_volume_title,
                 summary = Res.string.opt_bgm_volume_summary,
-                defaultValue = 100,
                 min = 0f,
                 max = 100f,
                 step = 0.1f,
-                isFloat = true,
                 valueFormatter = { "%.1f%%".format(it) },
                 onChange = { value ->
                     GlobalManager.getInstance().music.volume = value as Float / 100f
@@ -840,19 +828,14 @@ val audioSection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "soundvolume",
+                setting = OsuSettings.SoundVolume,
                 title = Res.string.opt_sound_volume_title,
                 summary = Res.string.opt_sound_volume_summary,
-                defaultValue = 100,
                 min = 0f,
                 max = 100f,
                 step = 0.1f,
-                isFloat = true,
                 valueFormatter = { "%.1f%%".format(it) },
-                onChange = { value ->
-                    val floatValue = value as Float / 100f
-                    // Set the configuration now as the sound below depends on this value.
-                    Config.setSoundVolume(floatValue)
-
+                onChange = {
                     // Use the sound when the osu! cookie is clicked since it is guaranteed to be available and not
                     // skinnable (which means the player cannot silence it via skins).
                     SkinSounds.getDefault("menuhit").play()
@@ -867,9 +850,9 @@ val audioSection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "offset",
+                setting = OsuSettings.Offset,
                 title = Res.string.opt_offset_title,
                 summary = Res.string.opt_offset_summary,
-                defaultValue = 0,
                 min = -750f,
                 max = 750f,
                 step = 1f,
@@ -889,9 +872,9 @@ val audioSection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "gameAudioSynchronizationThreshold",
+                setting = OsuSettings.GameAudioSynchronizationThreshold,
                 title = Res.string.opt_gameAudioSynchronizationThreshold_title,
                 summary = Res.string.opt_gameAudioSynchronizationThreshold_summary,
-                defaultValue = 20,
                 min = 0f,
                 max = 100f,
                 step = 1f,
@@ -906,18 +889,18 @@ val audioSection = listOf(
             OptionInfo(
                 type = OptionType.Select,
                 key = "metronomeswitch",
+                setting = OsuSettings.MetronomeSwitch,
                 title = Res.string.opt_metronome_switch_title,
                 summary = Res.string.opt_metronome_switch_summary,
-                defaultValue = "1",
                 entries = Res.array.metronome_switch_names,
                 entryValues = Res.array.metronome_switch_values
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "shiftPitchInRateChange",
+                setting = OsuSettings.ShiftPitchInRateChange,
                 title = Res.string.opt_shiftPitchInRateChange_title,
                 summary = Res.string.opt_shiftPitchInRateChange_summary,
-                defaultValue = false
             )
         )
     ),
@@ -928,16 +911,16 @@ val audioSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "beatmapSounds",
+                setting = OsuSettings.UseBeatmapSounds,
                 title = Res.string.opt_sound_title,
                 summary = Res.string.opt_sound_summary,
-                defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "musicpreview",
+                setting = OsuSettings.PlayMusicPreview,
                 title = Res.string.opt_musicpreview_title,
                 summary = Res.string.opt_musicpreview_summary,
-                defaultValue = true
             )
         )
     )
@@ -950,37 +933,37 @@ val librarySection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "preferNoVideoDownloads",
+                setting = OsuSettings.PreferNoVideoDownloads,
                 title = Res.string.opt_prefer_no_video_downloads_title,
                 summary = Res.string.opt_prefer_no_video_downloads_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "deleteosz",
+                setting = OsuSettings.DeleteOsz,
                 title = Res.string.opt_deleteosz_title,
                 summary = Res.string.opt_deleteosz_summary,
-                defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "scandownload",
+                setting = OsuSettings.ScanDownload,
                 title = Res.string.opt_scandownload_title,
                 summary = Res.string.opt_scandownload_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "deleteUnimportedBeatmaps",
+                setting = OsuSettings.DeleteUnimportedBeatmaps,
                 title = Res.string.opt_deleteUnimportedBeatmaps_title,
                 summary = Res.string.opt_deleteUnimportedBeatmaps_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "deleteUnsupportedVideos",
+                setting = OsuSettings.DeleteUnsupportedVideos,
                 title = Res.string.opt_delete_unsupported_videos_title,
                 summary = Res.string.opt_delete_unsupported_videos_summary,
-                defaultValue = true
             ),
             OptionInfo(
                 type = OptionType.Button,
@@ -999,9 +982,9 @@ val librarySection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "forceromanized",
+                setting = OsuSettings.ForceRomanized,
                 title = Res.string.force_romanized,
                 summary = Res.string.force_romanized_summary,
-                defaultValue = false
             )
         )
     ),
@@ -1049,16 +1032,16 @@ val inputSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "highPrecisionInput",
+                setting = OsuSettings.HighPrecisionInput,
                 title = Res.string.opt_highPrecisionInput_title,
                 summary = Res.string.opt_highPrecisionInput_summary,
-                defaultValue = false
             ),
             OptionInfo(
                 type = OptionType.Slider,
                 key = "back_button_press_time",
+                setting = OsuSettings.BackButtonPressTime,
                 title = Res.string.opt_backButtonPressTime_title,
                 summary = Res.string.opt_backButtonPressTime_summary,
-                defaultValue = 300,
                 min = 0f,
                 max = 300f,
                 step = 1f,
@@ -1067,9 +1050,9 @@ val inputSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "removeSliderLock",
+                setting = OsuSettings.RemoveSliderLock,
                 title = "Remove slider and spinner lock",
                 summary = "[UNRANKED] Allow circles and sliders to be hittable when another slider or spinner is currently active.",
-                defaultValue = false
             )
         )
     ),
@@ -1081,8 +1064,8 @@ val inputSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "vibrationCircle",
+                setting = OsuSettings.VibrationCircle,
                 title = "Circle",
-                defaultValue = false,
                 onChange = { value ->
                     OsuPlatform.implementation.vibrations?.isCircleVibrationEnabled = value as Boolean
                 }
@@ -1090,8 +1073,8 @@ val inputSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "vibrationSlider",
+                setting = OsuSettings.VibrationSlider,
                 title = "Slider",
-                defaultValue = false,
                 onChange = { value ->
                     OsuPlatform.implementation.vibrations?.isSliderVibrationEnabled = value as Boolean
                 }
@@ -1099,8 +1082,8 @@ val inputSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "vibrationSpinner",
+                setting = OsuSettings.VibrationSpinner,
                 title = "Spinner",
-                defaultValue = false,
                 onChange = { value ->
                     OsuPlatform.implementation.vibrations?.isSpinnerVibrationEnabled = value as Boolean
                 }
@@ -1108,9 +1091,9 @@ val inputSection = listOf(
             OptionInfo(
                 type = OptionType.Slider,
                 key = "seekBarVibrateIntensity",
+                setting = OsuSettings.SeekBarVibrateIntensity,
                 title = Res.string.opt_seekBarVibrateIntensity_title,
                 summary = Res.string.opt_seekBarVibrateIntensity_summary,
-                defaultValue = 127,
                 min = 1f,
                 max = 255f,
                 step = 1f,
@@ -1128,9 +1111,9 @@ val inputSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "fixFrameOffset",
+                setting = OsuSettings.FixFrameOffset,
                 title = Res.string.opt_fix_frame_offset_title,
                 summary = Res.string.opt_fix_frame_offset_summary,
-                defaultValue = true
             )
         )
     )
@@ -1143,19 +1126,20 @@ val advancedSection = listOf(
             OptionInfo(
                 type = OptionType.Input,
                 key = "corePath",
+                setting = OsuSettings.CorePath,
                 title = Res.string.opt_corepath_title,
                 summary = Res.string.opt_corepath_summary
             ),
             OptionInfo(
                 type = OptionType.Input,
                 key = "skinTopPath",
+                setting = OsuSettings.SkinTopPath,
                 title = Res.string.opt_skin_top_path_title,
                 summary = Res.string.opt_skin_top_path_summary,
                 onChange = { value ->
                     val newValue = value as String
 
                     if (newValue.trim { it <= ' ' }.isEmpty()) {
-                        Config.loadConfig()
                         return@OptionInfo
                     }
 
@@ -1166,15 +1150,15 @@ val advancedSection = listOf(
                         return@OptionInfo
                     }
 
-                    Config.loadConfig()
+                    SkinFolders.load()
                 }
             ),
             OptionInfo(
                 type = OptionType.Input,
                 key = "directory",
+                setting = OsuSettings.BeatmapPath,
                 title = Res.string.opt_directory_title,
                 summary = Res.string.opt_directory_summary,
-                defaultValue = "/sdcard/osu!droid/Songs"
             )
         )
     ),
@@ -1185,9 +1169,9 @@ val advancedSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "forceMaxRefreshRate",
+                setting = OsuSettings.ForceMaxRefreshRate,
                 title = Res.string.opt_force_max_refresh_rate_title,
                 summary = Res.string.opt_force_max_refresh_rate_summary,
-                defaultValue = false,
                 onAttach = { component ->
                     component.isVisible = OsuPlatform.implementation.canForceMaxRefreshRate
                 },
@@ -1198,9 +1182,9 @@ val advancedSection = listOf(
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "safebeatmapbg",
+                setting = OsuSettings.SafeBeatmapBackground,
                 title = Res.string.opt_safe_beatmap_bg_title,
                 summary = Res.string.opt_safe_beatmap_bg_summary,
-                defaultValue = false
             )
         )
     )
@@ -1219,7 +1203,7 @@ fun loadSkin(path: String): Job {
     return async {
         try {
             BeatmapSkinManager.getInstance().clearSkin()
-            Config.setSkinPath(path)
+            SkinFolders.path = path
             Skin.load(path)
             SkinSounds.onSkinChanged()
             Verktex.withTreeLock { SkinTextures.onSkinChanged() }

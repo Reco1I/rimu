@@ -2,6 +2,7 @@
 
 package com.osudroid.data
 
+import com.osudroid.settings.GameFolders
 import androidx.room.Dao
 import androidx.room.Entity
 import androidx.room.Index
@@ -16,7 +17,6 @@ import com.osudroid.scoring.LegacyScoreMultiplierCalculator
 import com.osudroid.scoring.ScoreMultiplierCalculator
 import com.osudroid.utils.deserializeMods
 import kotlin.math.roundToLong
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
@@ -140,7 +140,7 @@ data class ScoreInfo @JvmOverloads constructor(
      * The replay file path.
      */
     val replayPath
-        get() = "${Config.getScorePath()}/$replayFilename"
+        get() = "${GameFolders.scorePath}/$replayFilename"
 
     /**
      * The number of notes hit.

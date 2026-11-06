@@ -1,8 +1,8 @@
 package com.osudroid.data
 
+import com.osudroid.settings.GameFolders
 import androidx.room.ColumnInfo
 import androidx.room.Relation
-import ru.nsu.ccfit.zuev.osu.Config
 import kotlin.jvm.JvmName
 
 /**
@@ -41,7 +41,7 @@ data class BeatmapSetInfo(
      * The absolute path.
      */
     val path
-        get() = "${Config.getBeatmapPath()}${directory}"
+        get() = "${GameFolders.beatmapPath}${directory}"
 
 
     /**

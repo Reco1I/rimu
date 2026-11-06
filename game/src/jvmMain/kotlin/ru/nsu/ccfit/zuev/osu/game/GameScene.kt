@@ -1,5 +1,9 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.settings.GameFolders
+import com.osudroid.settings.GameResolution
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Platform
 import com.edlplan.osu.support.slider.SliderBody
@@ -123,7 +127,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.audio.effect.Metronome
 import com.osudroid.audio.MusicService
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
@@ -365,7 +368,7 @@ open class GameScene : GameObjectListener {
         backgroundLayer.height = Dimension.FillAvailable
 
         playfield = UIContainer()
-        playfield.setSize(Config.getRES_WIDTH().toFloat(), Config.getRES_HEIGHT().toFloat())
+        playfield.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
         playfield.scaleOrigin = Anchor.TopLeft
 
         bgScene = createLayer()
@@ -393,7 +396,7 @@ open class GameScene : GameObjectListener {
 
     private fun createLayer(): UIContainer {
         val layer = UIContainer()
-        layer.setSize(Config.getRES_WIDTH().toFloat(), Config.getRES_HEIGHT().toFloat())
+        layer.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
         return layer
     }
 
@@ -420,7 +423,7 @@ open class GameScene : GameObjectListener {
 
         val playableBeatmap = this.playableBeatmap ?: return
 
-        val textureRegion = if (Config.isSafeBeatmapBg() || playableBeatmap.events.backgroundFilename == null)
+        val textureRegion = if (Settings[OsuSettings.SafeBeatmapBackground] || playableBeatmap.events.backgroundFilename == null)
             SkinTextures.get("menu-background")
         else
             Textures.get("::background")
@@ -448,11 +451,11 @@ open class GameScene : GameObjectListener {
 
         // This is used instead of getBackgroundBrightness to directly obtain the
         // updated value from the brightness slider.
-        val brightness = Config.getNumber("bgbrightness", 25f) / 100f
+        val brightness = OsuSettings.backgroundBrightness
         val videoFilename = playableBeatmap.events.videoFilename
         // Some graphics backends can't show video frames on some devices (e.g. Vulkan before Android 10).
         val videosSupported = Verktex.graphics.device.capabilities.supportsExternalTextures
-        videoEnabled = brightness > 0.02f && Config.getBoolean("enableVideo", false) && videoFilename != null && videosSupported
+        videoEnabled = brightness > 0.02f && Settings[OsuSettings.EnableVideo] && videoFilename != null && videosSupported
 
         if (!videoEnabled) {
             cancelVideoLoading()
@@ -522,20 +525,20 @@ open class GameScene : GameObjectListener {
 
         // This is used instead of getBackgroundBrightness to directly obtain the
         // updated value from the brightness slider.
-        val brightness = Config.getNumber("bgbrightness", 25f) / 100f
+        val brightness = OsuSettings.backgroundBrightness
 
-        val playfieldSize = Config.getPlayfieldSize()
+        val playfieldSize = OsuSettings.playfieldSize
 
         val video = this.video
         var sceneBorder = this.sceneBorder
 
-        if (sceneBorder == null && Config.isDisplayPlayfieldBorder() && playfieldSize < 1f) {
+        if (sceneBorder == null && Settings[OsuSettings.DisplayPlayfieldBorder] && playfieldSize < 1f) {
             sceneBorder = UIBox().apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 border = Border(Dimension.Fixed.Pixels(5f), Color4.White, Color4.White)
                 alpha = Interpolation.linear(0.2f, 0.8f, brightness)
-                setSize(Config.getRES_WIDTH().toFloat(), Config.getRES_HEIGHT().toFloat())
+                setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
             }
 
             playfield.add(0, sceneBorder)
@@ -556,7 +559,7 @@ open class GameScene : GameObjectListener {
                 val windowWidth = root.bounds.width
                 val windowHeight = root.bounds.height
 
-                val factor = if (Config.isKeepBackgroundAspectRatio())
+                val factor = if (Settings[OsuSettings.KeepBackgroundAspectRatio])
                     windowHeight / backgroundHeight
                 else
                     windowWidth / backgroundWidth
@@ -596,7 +599,7 @@ open class GameScene : GameObjectListener {
         scope?.ensureActive()
 
         if (rFile != null && rFile.startsWith("https://")) {
-            this.replayFilePath = Config.getCachePath() + "/" +
+            this.replayFilePath = GameFolders.cachePath + "/" +
                 MD5Calculator.getStringMD5(rFile) + ".odr"
             Logger.i("GameScene", "ReplayFile = $replayFilePath")
             if (!OnlineFileOperator.downloadFile(rFile, this.replayFilePath!!)) {
@@ -652,7 +655,7 @@ open class GameScene : GameObjectListener {
             val finalParsedBeatmap = parsedBeatmap
 
             // Calculate timed difficulty attributes
-            when (Config.getDifficultyAlgorithm()) {
+            when (OsuSettings.difficultyAlgorithm) {
                 DifficultyAlgorithm.droid -> {
                     performanceAttributes = DroidPerformanceAttributes()
                     performanceCalculationParameters = DroidPerformanceCalculationParameters()
@@ -752,7 +755,7 @@ open class GameScene : GameObjectListener {
 
         GlobalManager.getInstance().music.preLoad(audioFilePath, GameHelper.getSpeedMultiplier(),
             GameHelper.getSpeedMultiplier() != 1f &&
-                (Config.isShiftPitchInRateChange() || ModNightCore::class in mods || ModOldNightCore::class in mods))
+                (Settings[OsuSettings.ShiftPitchInRateChange] || ModNightCore::class in mods || ModOldNightCore::class in mods))
 
         gameplayClock.rate = GameHelper.getSpeedMultiplier()
 
@@ -1138,16 +1141,16 @@ open class GameScene : GameObjectListener {
         previousFrameTime = 0
 
         metronome = null
-        if ((Config.getMetronomeSwitch() == 1 && GameHelper.isNightCore())
+        if ((OsuSettings.metronomeSwitch == 1 && GameHelper.isNightCore())
             || (GameHelper.isMuted() && GameHelper.getMuted()!!.enableMetronome)
-            || Config.getMetronomeSwitch() == 2) {
+            || OsuSettings.metronomeSwitch == 2) {
             metronome = Metronome()
         }
 
         distToNextObject = 0.0
 
         // TODO passive objects
-        if ((replaying || Config.isShowCursor()) && !GameHelper.isAutoplay() && !GameHelper.isAutopilot()) {
+        if ((replaying || Settings[OsuSettings.ShowCursor]) && !GameHelper.isAutoplay() && !GameHelper.isAutopilot()) {
             val cursorSprites = Array(cursorCount) { CursorEntity() }
             this.cursorSprites = cursorSprites
             for (i in 0 until cursorCount) {
@@ -1163,7 +1166,7 @@ open class GameScene : GameObjectListener {
         }
 
         val countdown = playableBeatmap.general.countdown
-        if (Config.isCorovans() && countdown != BeatmapCountdown.NoCountdown) {
+        if (Settings[OsuSettings.Corovans] && countdown != BeatmapCountdown.NoCountdown) {
             val cdSpeed = countdown.speed
             skipTime -= cdSpeed * Countdown.COUNTDOWN_LENGTH
             if (cdSpeed != 0f && firstObjectStartTime - gameplayClock.time >= cdSpeed * Countdown.COUNTDOWN_LENGTH) {
@@ -1173,12 +1176,12 @@ open class GameScene : GameObjectListener {
             }
         }
 
-        if (Config.isComboburst()) {
-            comboBurst = ComboBurst(Config.getRES_WIDTH().toFloat(), Config.getRES_HEIGHT().toFloat())
+        if (Settings[OsuSettings.ComboBurst]) {
+            comboBurst = ComboBurst(GameResolution.width.toFloat(), GameResolution.height.toFloat())
             comboBurst!!.attachAll(bgScene)
         }
 
-        val position = Vector2(Config.getRES_WIDTH() - 130, 130)
+        val position = Vector2(GameResolution.width - 130, 130)
 
         for (mod in lastMods.values) {
             if (!mod.isUserPlayable) {
@@ -1224,7 +1227,7 @@ open class GameScene : GameObjectListener {
 
         if (!replaying && !GameHelper.isAutoplay()) {
             // Since block areas are saved in device pixels, we need to map them to scaled pixels.
-            val ratio = Config.getRES_WIDTH().toFloat() / OsuPlatform.implementation.displayWidth
+            val ratio = GameResolution.width.toFloat() / OsuPlatform.implementation.displayWidth
 
             for (area in DatabaseManager.blockAreaTable.getAll()) {
                 // Attach the block area to the HUD so that it does not get scaled with the playfield.
@@ -1273,22 +1276,22 @@ open class GameScene : GameObjectListener {
             val skipBtn = UIAnimatedSprite(SkinTextures.frames("play-skip"), OsuSkin.get().animationFramerate)
             this.skipBtn = skipBtn
             skipBtn.origin = Anchor.BottomRight
-            skipBtn.setPosition(Config.getRES_WIDTH().toFloat(), Config.getRES_HEIGHT() - paddingBottom)
+            skipBtn.setPosition(GameResolution.width.toFloat(), GameResolution.height - paddingBottom)
             skipBtn.alpha = 0.7f
             hud += skipBtn
         }
 
-        var playname = Config.getOnlineUsername()
+        var playname = OsuSettings.onlineUsername
 
         if (GameHelper.isAutoplay() || replaying) {
             val metadata = playableBeatmap.metadata
             playname = if (replaying) GlobalManager.getInstance().scoring.replayStat!!.playerName else "osu!"
 
-            if (!Config.isHideReplayMarquee()) {
+            if (!Settings[OsuSettings.HideReplayMarquee]) {
                 val replayText = UIText()
                 this.replayText = replayText
                 replayText.text = "Watching " + playname + " play " + metadata.artist + " - " + metadata.title + " [" + metadata.version + "]"
-                replayText.setPosition(Config.getRES_WIDTH() + 5f, 140f)
+                replayText.setPosition(GameResolution.width + 5f, 140f)
                 replayText.alpha = 0.7f
                 hud.add(0, replayText)
             }
@@ -1377,14 +1380,14 @@ open class GameScene : GameObjectListener {
 
         // Ensure user-defined offset has time to be applied.
         val props = DatabaseManager.beatmapOptionsTable.getOptions(lastBeatmapInfo!!.setDirectory)
-        gameplayClock.userGlobalOffset = Config.getOffset() / 1000
+        gameplayClock.userGlobalOffset = OsuSettings.offset / 1000
         gameplayClock.userBeatmapOffset = if (props != null) props.offset / 1000f else 0f
 
         val firstObjectTimePreempt = playableBeatmap.hitObjects.objects[0].timePreempt.toFloat() / 1000
         gameplayClock.seek(min(gameplayClock.time, firstObjectStartTime - firstObjectTimePreempt))
         initialStartTimeValue = gameplayClock.time
 
-        music?.volume = Config.getBgmVolume()
+        music?.volume = OsuSettings.musicVolume
 
         gameplayClock.start()
 
@@ -1395,9 +1398,9 @@ open class GameScene : GameObjectListener {
         applyPlayfieldSizeScale()
         applyBackground()
 
-        replaySettingsPanel?.visualSettingsControl?.defaultBackgroundBrightness = Config.getBackgroundBrightness()
+        replaySettingsPanel?.visualSettingsControl?.defaultBackgroundBrightness = OsuSettings.backgroundBrightness
 
-        if (!isHUDEditorMode && !Config.isShowScoreboard()) {
+        if (!isHUDEditorMode && !Settings[OsuSettings.ShowScoreboard]) {
             for (i in hud.childCount - 1 downTo 0) {
                 if (hud[i] is HUDLeaderboard) {
                     hud[i].removeSelf()
@@ -1904,7 +1907,7 @@ open class GameScene : GameObjectListener {
 
         if (gameplayClock.time >= 0 && mutedMod != null) {
             GlobalManager.getInstance().music.volume =
-                Config.getBgmVolume() * mutedMod.volumeAt(stat.combo)
+                OsuSettings.musicVolume * mutedMod.volumeAt(stat.combo)
         }
 
         if (shouldBePunished || (!isGameOver && objectIndex >= objects.size && activeObjects.isEmpty() && leadOut > 2)) {
@@ -1941,7 +1944,7 @@ open class GameScene : GameObjectListener {
             stat.time = System.currentTimeMillis()
             if (replay != null && !replaying) {
                 val ctime = System.currentTimeMillis().toString()
-                replayPath = Config.getCorePath() + "Scores/" +
+                replayPath = GameFolders.corePath + "Scores/" +
                     MD5Calculator.getStringMD5(lastBeatmapInfo!!.filename + ctime) +
                     ctime.substring(0, min(3, ctime.length)) + ".odr"
                 replay!!.setStat(stat)
@@ -2002,7 +2005,7 @@ open class GameScene : GameObjectListener {
                 val latestDownEvent = cursors[i]!!.getLatestNonUpEvent()
 
                 if (latestDownEvent != null && Utils.squaredDistance(latestDownEvent.position.x, latestDownEvent.position.y,
-                        Config.getRES_WIDTH().toFloat(), Config.getRES_HEIGHT().toFloat()) < 250 * 250) {
+                        GameResolution.width.toFloat(), GameResolution.height.toFloat()) < 250 * 250) {
                     if (Multiplayer.isConnected) {
                         if (!isSkipRequested) {
                             isSkipRequested = true
@@ -2140,7 +2143,7 @@ open class GameScene : GameObjectListener {
             val continuePreview = mSecPassed < totalLength - 10000 && mSecPassed / totalLength < 0.98f
             val previewTime = if (continuePreview) music.position else selectedBeatmap.previewTime
 
-            if (Config.isPlayMusicPreview()) {
+            if (Settings[OsuSettings.PlayMusicPreview]) {
                 async {
                     music.stop()
                     music.preLoad(selectedBeatmap.audioPath)
@@ -2477,8 +2480,8 @@ open class GameScene : GameObjectListener {
             replay!!.addObjectResult(id, acc, null)
         }
 
-        val pos = Vector2(Config.getRES_WIDTH().toFloat() / 2,
-            Config.getRES_HEIGHT().toFloat() / 2)
+        val pos = Vector2(GameResolution.width.toFloat() / 2,
+            GameResolution.height.toFloat() / 2)
 
         OsuPlatform.implementation.vibrations?.spinnerVibration()
 
@@ -2702,7 +2705,7 @@ open class GameScene : GameObjectListener {
 
         if (Multiplayer.isMultiplayer) {
             // Setting a delay of 300ms minimum for the player to tap back button again.
-            if (lastBackPressTime > 0 && realTimeElapsed - lastBackPressTime > max(300f, Config.getBackButtonPressTime() * 1.5f)) {
+            if (lastBackPressTime > 0 && realTimeElapsed - lastBackPressTime > max(300f, Settings[OsuSettings.BackButtonPressTime] * 1.5f)) {
                 // Room being null can happen when the player disconnects from socket while playing
                 if (Multiplayer.isConnected)
                     async { runSafe { RoomAPI.submitFinalScore(stat.toJson()) } }
@@ -3008,7 +3011,7 @@ open class GameScene : GameObjectListener {
                 sliderBorderWidth,
                 isHintVisible,
                 sliderHintWidth,
-                Config.isSnakingInSliders() || Config.isSnakingOutSliders()
+                Settings[OsuSettings.SnakingInSliders] || Settings[OsuSettings.SnakingOutSliders]
             )
 
             ++index
@@ -3086,7 +3089,7 @@ open class GameScene : GameObjectListener {
             val currentTime = System.currentTimeMillis().toString()
             val odrFilename = MD5Calculator.getStringMD5(lastBeatmapInfo!!.filename + currentTime) + currentTime.substring(0, min(3, currentTime.length)) + ".odr"
 
-            replayFilePath = Config.getScorePath() + odrFilename
+            replayFilePath = GameFolders.scorePath + odrFilename
             replay.setStat(stat)
             replay.save(replayFilePath!!)
 
@@ -3111,11 +3114,11 @@ open class GameScene : GameObjectListener {
     }
 
     private fun updatePPValue(objectId: Int) {
-        if (Config.isHideInGameUI() || !isHUDEditorMode && !OsuSkin.get().hudSkinData.hasElement(HUDElements.pp_counter.name)) {
+        if (Settings[OsuSettings.HideInGameUI] || !isHUDEditorMode && !OsuSkin.get().hudSkinData.hasElement(HUDElements.pp_counter.name)) {
             return
         }
 
-        val pp = when (Config.getDifficultyAlgorithm()) {
+        val pp = when (OsuSettings.difficultyAlgorithm) {
             DifficultyAlgorithm.droid -> getDroidPPAt(objectId)
             DifficultyAlgorithm.standard -> getStandardPPAt(objectId)
         }
@@ -3170,21 +3173,21 @@ open class GameScene : GameObjectListener {
             return
         }
 
-        val playfieldSize = Config.getPlayfieldSize()
-        val resolutionWidth = Config.getRES_WIDTH().toFloat()
-        val resolutionHeight = Config.getRES_HEIGHT().toFloat()
+        val playfieldSize = OsuSettings.playfieldSize
+        val resolutionWidth = GameResolution.width.toFloat()
+        val resolutionHeight = GameResolution.height.toFloat()
 
         // The point of the playfield that ends up at the center of the window.
         val centerX = resolutionWidth * Interpolation.linear(
             Interpolation.linear(0f, 0.5f, playfieldSize),
             Interpolation.linear(1f, 0.5f, playfieldSize),
-            1 - Config.getPlayfieldHorizontalPosition()
+            1 - OsuSettings.playfieldHorizontalPosition
         )
 
         val centerY = resolutionHeight * Interpolation.linear(
             Interpolation.linear(0f, 0.5f, playfieldSize),
             Interpolation.linear(1f, 0.5f, playfieldSize),
-            1 - Config.getPlayfieldVerticalPosition()
+            1 - OsuSettings.playfieldVerticalPosition
         )
 
         val resolutionScale = windowWidth / resolutionWidth
@@ -3195,7 +3198,7 @@ open class GameScene : GameObjectListener {
     }
 
     private fun resetPlayfieldSizeScale() {
-        playfield.scale = root.bounds.width / Config.getRES_WIDTH()
+        playfield.scale = root.bounds.width / GameResolution.width
         playfield.translationX = Dimension.Zero
         playfield.translationY = Dimension.Zero
     }
@@ -3883,10 +3886,10 @@ open class GameScene : GameObjectListener {
         private fun updateReplayText(deltaTimeSec: Float) {
             val replayText = replayText!!
             val textWidth = replayText.bounds.width
-            val distance = Config.getRES_WIDTH() + 5 + textWidth
+            val distance = GameResolution.width + 5 + textWidth
             val x = replayText.x.resolve(0f) - distance / 40f * deltaTimeSec
 
-            replayText.setPosition(if (x < -textWidth) Config.getRES_WIDTH() + 5f else x, 140f)
+            replayText.setPosition(if (x < -textWidth) GameResolution.width + 5f else x, 140f)
         }
     }
 

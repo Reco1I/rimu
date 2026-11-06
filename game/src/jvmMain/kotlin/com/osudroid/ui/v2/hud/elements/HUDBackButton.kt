@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.math.Easing
@@ -17,14 +19,13 @@ import com.reco1l.verktex.graphics.DepthState
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.data.px
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 
 class HUDBackButton : HUDElement() {
 
     override val shouldBeShown = true
 
-    private val requiredPressTimeMs = Config.getBackButtonPressTime().toFloat()
+    private val requiredPressTimeMs = Settings[OsuSettings.BackButtonPressTime].toFloat()
 
     private val arrow = UISprite().apply {
         textureRegion = SkinTextures["back-arrow"]

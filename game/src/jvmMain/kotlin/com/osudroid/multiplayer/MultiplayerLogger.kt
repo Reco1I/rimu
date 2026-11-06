@@ -1,5 +1,6 @@
 package com.osudroid.multiplayer
 
+import com.osudroid.settings.GameFolders
 import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Logger
 import java.io.BufferedWriter
@@ -10,7 +11,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import ru.nsu.ccfit.zuev.osu.Config
 import java.util.Date
 
 /**
@@ -33,7 +33,7 @@ class MultiplayerLogger : AutoCloseable {
      * Initializes the logger by creating the log file and writing the initial log entry.
      */
     fun init() {
-        writer = File("${Config.getDefaultCorePath()}/Log", "multi_log.txt").apply {
+        writer = File("${GameFolders.defaultCorePath}/Log", "multi_log.txt").apply {
             parentFile?.mkdirs()
 
             if (!exists()) {

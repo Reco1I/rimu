@@ -1,5 +1,8 @@
 package ru.nsu.ccfit.zuev.osu
 
+import com.osudroid.settings.GameFolders
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.audio.MusicService
 
 import com.reco1l.verktex.ui.toast.Toasts
@@ -72,7 +75,7 @@ object LibraryManager : MusicService.Playlist {
             return
         }
 
-        if (Platform.storage.externalDirectory == null || !checkDirectory(Config.getScorePath()) && !checkDirectory(Config.getBeatmapPath())) {
+        if (Platform.storage.externalDirectory == null || !checkDirectory(GameFolders.scorePath) && !checkDirectory(GameFolders.beatmapPath)) {
             return
         }
 
@@ -92,11 +95,11 @@ object LibraryManager : MusicService.Playlist {
     @JvmStatic
     fun scanDirectory(forceUpdateDirectories: Collection<String>?) {
 
-        if (!checkDirectory(Config.getBeatmapPath())) {
+        if (!checkDirectory(GameFolders.beatmapPath)) {
             return
         }
 
-        val directories = File(Config.getBeatmapPath()).listFiles(File::isDirectory) ?: return
+        val directories = File(GameFolders.beatmapPath).listFiles(File::isDirectory) ?: return
 
         LibraryDatabaseManager(directories, forceUpdateDirectories).start()
 
@@ -138,7 +141,7 @@ object LibraryManager : MusicService.Playlist {
         val osuFiles = directory.listFiles { _, name -> name.endsWith(".osu") }
 
         if (osuFiles == null) {
-            if (Config.isDeleteUnimportedBeatmaps()) {
+            if (Settings[OsuSettings.DeleteUnimportedBeatmaps]) {
                 directory.deleteRecursively()
             }
             return
@@ -155,7 +158,7 @@ object LibraryManager : MusicService.Playlist {
                 beatmapsFound++
             } catch (e: Exception) {
                 Logger.e("LibraryManager", "Failed to parse beatmap file: " + osuFile.path, e)
-                if (Config.isDeleteUnimportedBeatmaps()) {
+                if (Settings[OsuSettings.DeleteUnimportedBeatmaps]) {
                     try {
                         osuFile.delete()
                     } catch (_: Exception) {}
@@ -163,7 +166,7 @@ object LibraryManager : MusicService.Playlist {
             }
         }
 
-        if (Config.isDeleteUnimportedBeatmaps() && beatmapsFound == 0) {
+        if (Settings[OsuSettings.DeleteUnimportedBeatmaps] && beatmapsFound == 0) {
             directory.deleteRecursively()
         }
     }
@@ -340,7 +343,7 @@ object LibraryManager : MusicService.Playlist {
 
             for (i in missingDirectories.size - 1 downTo 0) {
 
-                if (File(Config.getBeatmapPath(), missingDirectories[i]).exists()) {
+                if (File(GameFolders.beatmapPath, missingDirectories[i]).exists()) {
                     missingDirectories.removeAt(i)
                 }
             }

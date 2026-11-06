@@ -36,7 +36,7 @@ fun Verktex.initializeAndroid(
 
     val window = AndroidWindow(host)
 
-    val backend = GraphicsBackend.fromName(Settings[VerktexSettings.GraphicsBackend, GraphicsBackend.Auto.name])
+    val backend = GraphicsBackend.fromName(Settings[VerktexSettings.GraphicsBackend])
 
     val renderer = (if (backend == GraphicsBackend.Vulkan) createVulkanRenderer(host, window) else null)
         ?: createESRenderer(window, if (backend == GraphicsBackend.OpenGLES2) ESVersion.ES2 else ESVersion.ES3)
@@ -62,28 +62,25 @@ fun isVulkanAvailable(context: Context): Boolean {
  * Lets Vulkan be tried again after it crashed while starting (see [createVulkanRenderer]), e.g. once
  * the user picks it again.
  */
+@Suppress("UNUSED_PARAMETER")
 fun resetVulkanCrashGuard(context: Context) {
-    crashGuardPreferences(context).edit().remove(KEY_VULKAN_STARTING).apply()
+    Settings[VerktexSettings.VulkanStarting] = false
 }
 
 private const val VULKAN_1_1 = 0x401000
-private const val KEY_VULKAN_STARTING = "vulkan_starting"
-
-private fun crashGuardPreferences(context: Context) =
-    context.getSharedPreferences("verktex_graphics", Context.MODE_PRIVATE)
 
 // Null when Vulkan can't be used on the device, the caller falls back to OpenGL ES.
 private fun createVulkanRenderer(host: AndroidGameHost, window: AndroidWindow): GraphicsRenderer? {
     // A driver crash in native code isn't an exception, the process dies. A flag is kept from before
     // Vulkan starts until its first frame is presented: found on the next launch, Vulkan crashed, and
     // OpenGL ES is used until it's picked again instead of crashing on every launch.
-    val preferences = crashGuardPreferences(host)
-    if (preferences.getBoolean(KEY_VULKAN_STARTING, false)) {
+    if (Settings[VerktexSettings.VulkanStarting]) {
         Logger.w("Verktex", "Vulkan didn't start the last time, using OpenGL ES. Pick it again in the settings to retry.")
         return null
     }
-    // Committed synchronously, it must be on disk if the process dies right after.
-    preferences.edit().putBoolean(KEY_VULKAN_STARTING, true).commit()
+    // Saved right away, it must be on disk if the process dies right after.
+    Settings[VerktexSettings.VulkanStarting] = true
+    Settings.flush()
 
     val isDebuggable = host.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
     var context: VKContext? = null

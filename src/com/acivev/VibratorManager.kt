@@ -1,5 +1,7 @@
 package com.acivev
 
+import com.reco1l.verktex.settings.Settings
+import com.osudroid.settings.OsuSettings
 import com.osudroid.OsuPlatform
 import android.content.Context
 import android.os.Build
@@ -7,7 +9,6 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import com.acivev.utils.VibrationSupport
 import com.acivev.utils.VibratorCheckUtils
-import ru.nsu.ccfit.zuev.osu.Config
 
 /**
  * Manage vibration effects for Android 7+.
@@ -28,7 +29,7 @@ object VibratorManager : OsuPlatform.GameplayVibrations {
     override var isCircleVibrationEnabled = false
         set(value) {
             field = value
-            Config.setBoolean("vibrationCircle", value)
+            Settings[OsuSettings.VibrationCircle] = value
         }
 
     /**
@@ -37,7 +38,7 @@ object VibratorManager : OsuPlatform.GameplayVibrations {
     override var isSliderVibrationEnabled = false
         set(value) {
             field = value
-            Config.setBoolean("vibrationSlider", value)
+            Settings[OsuSettings.VibrationSlider] = value
         }
 
     /**
@@ -46,7 +47,7 @@ object VibratorManager : OsuPlatform.GameplayVibrations {
     override var isSpinnerVibrationEnabled = false
         set(value) {
             field = value
-            Config.setBoolean("vibrationSpinner", value)
+            Settings[OsuSettings.VibrationSpinner] = value
         }
 
     /**
@@ -55,7 +56,7 @@ object VibratorManager : OsuPlatform.GameplayVibrations {
     override var intensity = 127
         set(value) {
             field = value
-            Config.setInt("seekBarVibrateIntensity", value)
+            Settings[OsuSettings.SeekBarVibrateIntensity] = value
 
             sliderSpinnerAmplitudes[1] = value
             sliderSpinnerAmplitudes[3] = value
@@ -74,10 +75,10 @@ object VibratorManager : OsuPlatform.GameplayVibrations {
      * MUST be called before using any vibration function.
      */
     fun init(context: Context) {
-        intensity = Config.getInt("seekBarVibrateIntensity", intensity)
-        isCircleVibrationEnabled = Config.getBoolean("vibrationCircle", isCircleVibrationEnabled)
-        isSliderVibrationEnabled = Config.getBoolean("vibrationSlider", isSliderVibrationEnabled)
-        isSpinnerVibrationEnabled = Config.getBoolean("vibrationSpinner", isSpinnerVibrationEnabled)
+        intensity = Settings[OsuSettings.SeekBarVibrateIntensity]
+        isCircleVibrationEnabled = Settings[OsuSettings.VibrationCircle]
+        isSliderVibrationEnabled = Settings[OsuSettings.VibrationSlider]
+        isSpinnerVibrationEnabled = Settings[OsuSettings.VibrationSpinner]
 
         vibrator = VibratorCheckUtils.getVibrator(context)
         hasVibrationSupport = VibratorCheckUtils.checkVibratorSupport(context) != VibrationSupport.NO_VIBRATION

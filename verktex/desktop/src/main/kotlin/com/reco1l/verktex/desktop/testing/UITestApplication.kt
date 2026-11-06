@@ -30,6 +30,12 @@ abstract class UITestApplication(
 
     private val preferences = Preferences.userRoot().node("com/reco1l/verktex/uitests")
 
+
+    init {
+        // What's changed while trying components isn't kept, as on Android.
+        Settings.isReadOnly = true
+    }
+
     /**
      * Creates the suites shown in the browser. Called once the engine is initialized, so textures and
      * fonts can be loaded.

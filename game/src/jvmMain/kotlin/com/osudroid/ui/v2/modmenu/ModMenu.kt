@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.data.BeatmapInfo
@@ -60,7 +62,6 @@ import com.reco1l.verktex.ui.textButton
 import com.rian.framework.RollingFloatCounter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.droid
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.standard
 import ru.nsu.ccfit.zuev.osu.GlobalManager
@@ -330,7 +331,7 @@ object ModMenu : UICaptureContainer() {
 
         calculationJob = async scope@{
 
-            val difficultyAlgorithm = Config.getDifficultyAlgorithm()
+            val difficultyAlgorithm = OsuSettings.difficultyAlgorithm
             val gameMode = if (difficultyAlgorithm == droid) GameMode.Droid else GameMode.Standard
 
             val beatmap = try {
@@ -489,10 +490,10 @@ object ModMenu : UICaptureContainer() {
             val doubleTime = enabledMods.ofType<ModDoubleTime>()
             val nightCore = enabledMods.ofType<ModNightCore>()
 
-            if (Config.isUseNightcoreOnMultiplayer() && doubleTime != null) {
+            if (Settings[OsuSettings.UseNightcoreOnMultiplayer] && doubleTime != null) {
                 removeMod(doubleTime)
                 addMod(ModNightCore())
-            } else if (!Config.isUseNightcoreOnMultiplayer() && nightCore != null) {
+            } else if (!Settings[OsuSettings.UseNightcoreOnMultiplayer] && nightCore != null) {
                 removeMod(nightCore)
                 addMod(ModDoubleTime())
             }

@@ -1,5 +1,6 @@
 package com.osudroid.ui
 
+import com.osudroid.settings.GameFolders
 import com.reco1l.verktex.Platform
 import com.osudroid.utils.*
 import kotlinx.serialization.json.JsonArray
@@ -18,7 +19,6 @@ import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.scaleTo
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import java.io.File
@@ -35,7 +35,7 @@ object BannerManager {
 
         try {
 
-            val bannersFolder = File(Config.getCachePath(), "banners").apply {
+            val bannersFolder = File(GameFolders.cachePath, "banners").apply {
                 delete()
                 mkdirs()
             }

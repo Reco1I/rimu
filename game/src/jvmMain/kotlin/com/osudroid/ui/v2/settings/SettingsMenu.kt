@@ -1,5 +1,9 @@
 package com.osudroid.ui.v2.settings
 
+import com.reco1l.verktex.settings.Settings
+import com.osudroid.OsuPlatform
+import com.reco1l.verktex.settings.SettingKey
+import com.osudroid.settings.OsuSettings
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
 import com.reco1l.verktex.localization.LocalizedStringArray
@@ -40,7 +44,6 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import kotlin.math.ceil
 import kotlin.math.log10
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.themed
 
@@ -107,9 +110,11 @@ data class OptionInfo(
     val summary: CharSequence? = null,
 
     /**
-     * The default value that will be used if no value is stored for this option.
+     * The setting this option shows and changes, whose type matches [type]: a `Boolean` for a
+     * checkbox, a `String` for an input or a select, an `Int` or a `Float` for a slider. Null for
+     * buttons and the options with an [initialValue].
      */
-    val defaultValue: Any? = null,
+    val setting: SettingKey<*>? = null,
 
     /**
      * The action that will be performed when the value of this option changes.
@@ -166,12 +171,6 @@ data class OptionInfo(
      */
     val step: Float? = 0.01f,
 
-    /**
-     * Whether the slider stores its value as a float instead of an integer.
-     *
-     * This property is only used in [OptionType.Slider] preferences.
-     */
-    val isFloat: Boolean = false,
 
     /**
      * The value formatter that will be used to format the value.
@@ -320,7 +319,8 @@ class SettingsMenu : UIScene() {
     fun back() {
         val global = GlobalManager.getInstance()
 
-        Config.loadConfig()
+        // As the legacy settings screen did when it was left.
+        OsuPlatform.implementation.setAnnouncementsSubscribed(Settings[OsuSettings.ReceiveAnnouncements])
         onPlayfieldChanged = null
 
         if (Multiplayer.isMultiplayer) {
@@ -331,8 +331,7 @@ class SettingsMenu : UIScene() {
         } else {
             global.music.isGaming = false
 
-            // The account may have changed (Config.loadConfig above reloads it), the player button
-            // follows the login by itself. Headless (e.g. in the UI test browser) it never logs in.
+            // The account may have changed, the player button follows the login by itself. Headless (e.g. in the UI test browser) it never logs in.
             if (!global.isHeadless) {
                 OnlineManager.getInstance().init()
                 OnlineScoring.getInstance().login()
@@ -432,13 +431,16 @@ class SettingsMenu : UIScene() {
                 OptionType.Button -> error("Buttons are not form controls")
             }.apply { showResetButton = false }
         } else {
+            val setting = option.setting ?: error("The option \"${option.key}\" has neither a setting nor an initial value")
+
+            @Suppress("UNCHECKED_CAST")
             when (option.type) {
-                OptionType.Checkbox -> PreferenceCheckbox(option.key, option.defaultValue as? Boolean ?: false)
-                OptionType.Input -> PreferenceInput(option.key, option.defaultValue as? String ?: "")
-                OptionType.Select -> PreferenceSelect(option.key, option.defaultValue as? String ?: "")
+                OptionType.Checkbox -> PreferenceCheckbox(setting as SettingKey<Boolean>)
+                OptionType.Input -> PreferenceInput(setting as SettingKey<String>)
+                OptionType.Select -> PreferenceSelect(setting as SettingKey<String>)
                 OptionType.Slider ->
-                    if (option.isFloat) FloatPreferenceSlider(option.key, (option.defaultValue as? Number)?.toFloat() ?: 0f)
-                    else IntPreferenceSlider(option.key, (option.defaultValue as? Number)?.toInt() ?: 0)
+                    if (setting.default is Float) FloatPreferenceSlider(setting as SettingKey<Float>)
+                    else IntPreferenceSlider(setting as SettingKey<Int>)
                 OptionType.Button -> error("Buttons are not form controls")
             }
         }
@@ -483,7 +485,7 @@ class SettingsMenu : UIScene() {
      */
     private class PlayfieldAreaDisplay : UIBox() {
 
-        private var previousPlayfieldSize = Config.getPlayfieldSize()
+        private var previousPlayfieldSize = OsuSettings.playfieldSize
 
         init {
             backgroundColor = Color4.White
@@ -492,7 +494,7 @@ class SettingsMenu : UIScene() {
 
         fun update() {
             val parentBounds = parent?.bounds ?: return
-            val playfieldSize = Config.getPlayfieldSize()
+            val playfieldSize = OsuSettings.playfieldSize
 
             // Nothing to show if the playfield size is 100%, since it will fill the entire screen anyway,
             // making position settings irrelevant.
@@ -507,8 +509,8 @@ class SettingsMenu : UIScene() {
 
             width = areaWidth.px
             height = areaHeight.px
-            x = ((parentBounds.width - areaWidth) * Config.getPlayfieldHorizontalPosition()).px
-            y = ((parentBounds.height - areaHeight) * Config.getPlayfieldVerticalPosition()).px
+            x = ((parentBounds.width - areaWidth) * OsuSettings.playfieldHorizontalPosition).px
+            y = ((parentBounds.height - areaHeight) * OsuSettings.playfieldVerticalPosition).px
 
             clearTransforms()
             transformSequence {

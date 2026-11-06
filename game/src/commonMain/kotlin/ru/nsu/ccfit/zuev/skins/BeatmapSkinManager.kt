@@ -1,12 +1,13 @@
 package ru.nsu.ccfit.zuev.skins
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.data.Color4
 
 import com.reco1l.verktex.Platform
 import kotlin.jvm.JvmStatic
 import okio.Path.Companion.toPath
 
-import ru.nsu.ccfit.zuev.osu.Config
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
 
@@ -16,7 +17,7 @@ class BeatmapSkinManager private constructor() {
     private var skinname = ""
 
     fun loadBeatmapSkin(beatmapFolder: String) {
-        if (!Config.isUseCustomSkins() && !Config.isUseCustomSounds()) {
+        if (!Settings[OsuSettings.UseCustomSkins] && !Settings[OsuSettings.UseBeatmapSounds]) {
             clearSkin()
             return
         }
@@ -37,13 +38,13 @@ class BeatmapSkinManager private constructor() {
             if (metadata == null || !metadata.isRegularFile) {
                 continue
             }
-            if (Config.isUseCustomSounds()
+            if (Settings[OsuSettings.UseBeatmapSounds]
                     && (f.name.lowercase().matches(Regex(".*[.]wav"))
                     || f.name.lowercase().matches(Regex(".*[.]mp3"))
                     || f.name.lowercase().matches(Regex(".*[.]ogg")))
                 && (metadata.size ?: 0L) >= 1024) {
                 SkinSounds.loadBeatmapSound(f.toString())
-            } else if (Config.isUseCustomSkins()
+            } else if (Settings[OsuSettings.UseCustomSkins]
                     && (f.name.lowercase().matches(Regex(".*[.]png"))
                     || f.name.lowercase().matches(Regex(".*[.]jpg")))) {
                 SkinTextures.loadBeatmapTexture(f.toString())

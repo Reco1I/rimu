@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.settings.GameFolders
 import com.osudroid.mods.ModDoubleTime
 import com.osudroid.mods.ModEasy
 import com.osudroid.mods.ModFlashlight
@@ -33,7 +34,6 @@ import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.control.slider
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import java.io.File
 
@@ -222,7 +222,7 @@ object OsuUITests : UITestSuite("osu!") {
 
         test("Video") {
             // The first beatmap video found, there's none bundled.
-            val file = File(Config.getBeatmapPath()).listFiles().orEmpty()
+            val file = File(GameFolders.beatmapPath).listFiles().orEmpty()
                 .filter { it.isDirectory }
                 .flatMap { it.listFiles().orEmpty().asList() }
                 .filter { it.extension.lowercase() in VIDEO_EXTENSIONS }
@@ -234,7 +234,7 @@ object OsuUITests : UITestSuite("osu!") {
                 text {
                     anchor = Anchor.Center
                     origin = Anchor.Center
-                    text = "No beatmap video found in ${Config.getBeatmapPath()}"
+                    text = "No beatmap video found in ${GameFolders.beatmapPath}"
                 }
                 return@test
             }

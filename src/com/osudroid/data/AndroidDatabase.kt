@@ -1,5 +1,6 @@
 package com.osudroid.data
 
+import com.osudroid.settings.GameFolders
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import com.reco1l.verktex.Logger
@@ -181,7 +182,7 @@ object AndroidDatabase {
 
         // BeatmapCollections
         try {
-            val oldFavoritesFile = File(Config.getCorePath(), "json/favorite.json")
+            val oldFavoritesFile = File(GameFolders.corePath, "json/favorite.json")
 
             if (oldFavoritesFile.exists()) {
                 GlobalManager.getInstance().info = "Migrating beatmap collections..."
@@ -200,7 +201,7 @@ object AndroidDatabase {
                     }
                 }
 
-                oldFavoritesFile.renameTo(File(Config.getCorePath(), "json/favorite_old.json"))
+                oldFavoritesFile.renameTo(File(GameFolders.corePath, "json/favorite_old.json"))
             }
 
         } catch (e: Exception) {
@@ -209,7 +210,7 @@ object AndroidDatabase {
 
         // ScoreInfo
         try {
-            val oldDatabaseFile = File(Config.getCorePath(), "databases/osudroid_test.db")
+            val oldDatabaseFile = File(GameFolders.corePath, "databases/osudroid_test.db")
 
             if (oldDatabaseFile.exists()) {
                 GlobalManager.getInstance().info = "Migrating score table..."
@@ -289,7 +290,7 @@ object AndroidDatabase {
                         scoreInfoTable.insertScores(scoreInfos)
 
                         if (pendingScores <= 0) {
-                            oldDatabaseFile.renameTo(File(Config.getCorePath(), "databases/osudroid_old.db"))
+                            oldDatabaseFile.renameTo(File(GameFolders.corePath, "databases/osudroid_old.db"))
                         }
                     }
 

@@ -1,11 +1,11 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.time.FrameClock
 
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.SpriteFont
 import com.rian.framework.RollingDoubleCounter
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.skins.OsuSkin
@@ -48,6 +48,6 @@ class HUDPPCounter : HUDElement() {
     }
 
     private fun updateText() {
-        sprite.text = "${value}${if (Config.getDifficultyAlgorithm() == DifficultyAlgorithm.droid) "dpp" else "pp"}"
+        sprite.text = "${value}${if (OsuSettings.difficultyAlgorithm == DifficultyAlgorithm.droid) "dpp" else "pp"}"
     }
 }

@@ -1,5 +1,8 @@
 package ru.nsu.ccfit.zuev.osu.online
 
+import com.osudroid.settings.GameFolders
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.OsuPlatform
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.utils.JsonException
@@ -22,7 +25,6 @@ import kotlinx.atomicfu.locks.synchronized
 import okio.IOException
 import okio.Path.Companion.toPath
 
-import ru.nsu.ccfit.zuev.osu.Config
 import com.osudroid.ui.v2.CachedTextures
 import ru.nsu.ccfit.zuev.osu.RankedStatus
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
@@ -66,10 +68,10 @@ class OnlineManager {
         get() = ssid
 
     fun init() {
-        this.isStayOnline = Config.isStayOnline()
-        this.username = Config.getOnlineUsername()
-        this.password = Config.getOnlinePassword()
-        this.deviceID = Config.getOnlineDeviceID()
+        this.isStayOnline = OsuSettings.isStayOnline
+        this.username = OsuSettings.onlineUsername
+        this.password = Settings[OsuSettings.OnlinePassword]
+        this.deviceID = OsuSettings.installId
     }
 
     @Throws(OnlineManagerException::class)
@@ -243,7 +245,7 @@ class OnlineManager {
         post.addParam("hash", hash)
         post.addParam("uid", userId.toString())
 
-        if (Config.getBeatmapLeaderboardScoringMode() == BeatmapLeaderboardScoringMode.PP) {
+        if (OsuSettings.beatmapLeaderboardScoringMode == BeatmapLeaderboardScoringMode.PP) {
             post.addParam("type", "pp")
         } else {
             post.addParam("type", "score")
@@ -302,7 +304,7 @@ class OnlineManager {
         val filename = MD5Calculator.getStringMD5(avatarURL)
         Debug.i("Loading avatar from $avatarURL")
         Debug.i("filename = $filename")
-        val picfile = Config.getCachePath().toPath() / filename
+        val picfile = GameFolders.cachePath.toPath() / filename
         OnlineFileOperator.downloadFile(avatarURL, picfile.toString(), true)
 
         if (Platform.fileSystem.exists(picfile)) {
@@ -313,7 +315,7 @@ class OnlineManager {
         } else {
             // Avatar not found, download the default avatar
             val defaultAvatarFilename = MD5Calculator.getStringMD5(defaultAvatarURL)
-            val avatarFile = Config.getCachePath().toPath() / defaultAvatarFilename
+            val avatarFile = GameFolders.cachePath.toPath() / defaultAvatarFilename
             OnlineFileOperator.downloadFile(defaultAvatarURL, avatarFile.toString())
 
             if (Platform.fileSystem.exists(avatarFile)) {
@@ -337,7 +339,7 @@ class OnlineManager {
 
         val filename = MD5Calculator.getStringMD5(bannerURL)
         Debug.i("Loading profile banner from $bannerURL")
-        val bannerFile = Config.getCachePath().toPath() / filename
+        val bannerFile = GameFolders.cachePath.toPath() / filename
         OnlineFileOperator.downloadFile(bannerURL, bannerFile.toString(), true)
 
         if (!Platform.fileSystem.exists(bannerFile)) {
@@ -352,7 +354,7 @@ class OnlineManager {
         val post: PostBuilder = URLEncodedPostBuilder()
         post.addParam("playID", playid.toString())
 
-        if (Config.getBeatmapLeaderboardScoringMode() == BeatmapLeaderboardScoringMode.PP) {
+        if (OsuSettings.beatmapLeaderboardScoringMode == BeatmapLeaderboardScoringMode.PP) {
             post.addParam("type", "pp")
         } else {
             post.addParam("type", "score")
@@ -400,7 +402,7 @@ class OnlineManager {
 
         @JvmStatic
         fun getReplayURL(playID: Int): String {
-            return when (Config.getBeatmapLeaderboardScoringMode()) {
+            return when (OsuSettings.beatmapLeaderboardScoringMode) {
                 BeatmapLeaderboardScoringMode.SCORE -> endpoint + "upload/" + playID + ".odr"
                 BeatmapLeaderboardScoringMode.PP -> endpoint + "bestpp/" + playID + ".odr"
             }

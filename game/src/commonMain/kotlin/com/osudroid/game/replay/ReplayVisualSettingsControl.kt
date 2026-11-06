@@ -1,10 +1,10 @@
 package com.osudroid.game.replay
 
+import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.UICard
 import com.reco1l.verktex.ui.form.FormSlider
 import kotlin.math.roundToInt
-import ru.nsu.ccfit.zuev.osu.Config
 
 /**
  * Controls visual settings of gameplay when replaying.
@@ -15,7 +15,7 @@ class ReplayVisualSettingsControl : UICard() {
      *
      * Note that setting this value will also override the control's value.
      */
-    var defaultBackgroundBrightness = Config.getBackgroundBrightness()
+    var defaultBackgroundBrightness = OsuSettings.backgroundBrightness
         set(value) {
             field = value
             val sliderValue = value * 100

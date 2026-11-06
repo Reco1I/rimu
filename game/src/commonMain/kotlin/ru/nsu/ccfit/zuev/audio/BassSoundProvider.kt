@@ -1,9 +1,9 @@
 package ru.nsu.ccfit.zuev.audio
 
+import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.audio.AudioPlayback
 import com.reco1l.verktex.audio.AudioSample
-import ru.nsu.ccfit.zuev.osu.Config
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads
 
@@ -55,7 +55,7 @@ class BassSoundProvider {
         val sample = sample ?: return
 
         this.volume = volume
-        val finalVolume = volume * Config.getSoundVolume()
+        val finalVolume = volume * OsuSettings.soundVolume
 
         if (finalVolume == 0f) {
             stop()
@@ -106,7 +106,7 @@ class BassSoundProvider {
         val playback = playback ?: return
 
         playback.looping = looping
-        playback.volume = volume * Config.getSoundVolume()
+        playback.volume = volume * OsuSettings.soundVolume
         playback.pitch = frequency
     }
 

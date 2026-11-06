@@ -18,7 +18,6 @@ import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.almostEquals
-import com.reco1l.verktex.settings.Setting
 import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.time.Clock
 import com.reco1l.verktex.time.FrameClock
@@ -1208,7 +1207,7 @@ abstract class UIComponent {
 
 
     companion object {
-        private val showComponentBoundaries by Setting(VerktexSettings.ShowComponentBoundaries, false)
+        private val showComponentBoundaries by VerktexSettings.ShowComponentBoundaries
 
         /**
          * Whether the components drawn meanwhile are outlined as with the setting, e.g. the content

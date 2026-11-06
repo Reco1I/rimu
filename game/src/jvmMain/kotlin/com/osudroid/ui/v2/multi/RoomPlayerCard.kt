@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
 import com.reco1l.verktex.Platform
@@ -38,7 +40,6 @@ import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import com.reco1l.verktex.ui.themed
 
@@ -225,7 +226,7 @@ class RoomPlayerCard : UILinearContainer() {
 
             missingBeatmapIcon.isVisible = player.status == MissingBeatmap
 
-            if (Config.isPreferModAcronymInMultiplayer()) {
+            if (Settings[OsuSettings.PreferModAcronymInMultiplayer]) {
                 if (modDisplay !is UIText) {
                     modDisplay?.removeSelf()
 

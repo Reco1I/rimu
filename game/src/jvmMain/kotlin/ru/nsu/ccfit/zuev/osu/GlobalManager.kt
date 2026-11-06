@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu
 
+import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.ui.v2.Skin
 import com.osudroid.ui.v2.SkinSounds
@@ -54,7 +55,7 @@ class GlobalManager {
         Platform.audioDriver.enumerateDevices()
         loadingProgress = 10
         info = "Loading skin..."
-        Skin.load(Config.getSkinPath())
+        Skin.load(SkinFolders.path)
         SkinSounds.preload()
         loadingProgress = 30
         gameScene = GameScene()

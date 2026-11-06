@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.osudroid.settings.GameFolders;
 import com.osudroid.android.AndroidGame;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -175,7 +176,7 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
             // 判断是否挂载了SD卡
             String storageState = Environment.getExternalStorageState();
             if (storageState.equals(Environment.MEDIA_MOUNTED)) {
-                savePath = Config.getCorePath() + File.separator + "Log/";
+                savePath = GameFolders.getCorePath() + File.separator + "Log/";
                 File file = new File(savePath);
                 if (!file.exists()) {
                     file.mkdirs();

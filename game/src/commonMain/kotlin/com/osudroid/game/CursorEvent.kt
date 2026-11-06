@@ -1,11 +1,13 @@
 package com.osudroid.game
 
+import com.osudroid.settings.GameResolution
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Platform
 import com.osudroid.math.Vector2
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import com.reco1l.verktex.input.PointerEvent
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import kotlin.jvm.JvmField
@@ -62,11 +64,11 @@ class CursorEvent : IPoolable {
         get() = action == PointerEvent.Action.Up
 
     /**
-     * The time at which this [CursorEvent] occurred, accounting for [Config.isFixFrameOffset], in the gameplay time
+     * The time at which this [CursorEvent] occurred, accounting for [com.osudroid.settings.OsuSettings.FixFrameOffset], in the gameplay time
      * base (milliseconds since the start of the track).
      */
     val hitTime
-        get() = trackTime + if (Config.isFixFrameOffset()) offset else 0.0
+        get() = trackTime + if (Settings[OsuSettings.FixFrameOffset]) offset else 0.0
 
     /**
      * The position of the cursor in screen space.
@@ -105,8 +107,8 @@ class CursorEvent : IPoolable {
         action = event.action
         offset = 0.0
 
-        val width = Config.getRES_WIDTH().toFloat()
-        val height = Config.getRES_HEIGHT().toFloat()
+        val width = GameResolution.width.toFloat()
+        val height = GameResolution.height.toFloat()
 
         position.x = x.coerceIn(0f, width)
         position.y = y.coerceIn(0f, height)

@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.hud
 
+import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.utils.LenientJson
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -25,7 +26,6 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.framework.forEachTolerant
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.game.GameScene
@@ -178,7 +178,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
         val data = getSkinData()
 
-        val jsonFile = File(Config.getSkinPath(), "skin.json")
+        val jsonFile = File(SkinFolders.path, "skin.json")
         var json: JsonObject
 
         if (jsonFile.exists()) {

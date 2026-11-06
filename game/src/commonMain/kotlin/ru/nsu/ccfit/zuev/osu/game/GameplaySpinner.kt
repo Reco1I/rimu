@@ -1,5 +1,8 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.settings.GameResolution
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.BankHitSampleInfo
 import com.osudroid.beatmaps.hitobjects.Spinner
 import com.osudroid.game.GameplayHitSampleInfo
@@ -23,7 +26,6 @@ import kotlin.math.min
 import kotlin.math.sign
 import kotlin.math.sin
 import com.osudroid.audio.MusicService
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
@@ -87,7 +89,7 @@ open class GameplaySpinner : GameObject() {
         background.setPosition(position.x, position.y)
         background.textureRegion = SkinTextures.get("spinner-background")
         val backgroundTexture = SkinTextures.get("spinner-background")
-        background.scale = if (backgroundTexture != null) Config.getRES_WIDTH() / backgroundTexture.width.toFloat() else 1f
+        background.scale = if (backgroundTexture != null) GameResolution.width / backgroundTexture.width.toFloat() else 1f
         fullHeight = if (backgroundTexture != null) backgroundTexture.height * background.scaleY else 0f
 
         circle = UISprite()
@@ -101,13 +103,13 @@ open class GameplaySpinner : GameObject() {
         metreSprite.textureRegion = SkinTextures.get("spinner-metre")
         metreSprite.anchor = Anchor.BottomLeft
         metreSprite.origin = Anchor.BottomLeft
-        metreSprite.setSize(Config.getRES_WIDTH().toFloat(), fullHeight)
+        metreSprite.setSize(GameResolution.width.toFloat(), fullHeight)
 
         metre = UIContainer()
         metre.clipping = ClipMode.Bounds
         metre.origin = Anchor.BottomLeft
-        metre.setPosition(position.x - Config.getRES_WIDTH() / 2f, position.y + fullHeight / 2f)
-        metre.setSize(Config.getRES_WIDTH().toFloat(), 0f)
+        metre.setPosition(position.x - GameResolution.width / 2f, position.y + fullHeight / 2f)
+        metre.setSize(GameResolution.width.toFloat(), 0f)
         metre += metreSprite
 
         approachCircle = UISprite()
@@ -161,9 +163,9 @@ open class GameplaySpinner : GameObject() {
         passedTime = -timePreempt
 
         background.isVisible = !GameHelper.isTraceable() ||
-            (Config.isShowFirstApproachCircle() && GameHelper.getTraceable()!!.firstObject === beatmapSpinner)
+            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapSpinner)
 
-        metre.setSize(Config.getRES_WIDTH().toFloat(), 0f)
+        metre.setSize(GameResolution.width.toFloat(), 0f)
 
         scene.add(0, spinText)
 
@@ -433,7 +435,7 @@ open class GameplaySpinner : GameObject() {
                 }
             }
 
-            metre.setSize(Config.getRES_WIDTH().toFloat(), fullHeight * min(1f, abs(percentfill)))
+            metre.setSize(GameResolution.width.toFloat(), fullHeight * min(1f, abs(percentfill)))
 
             oldMouse.set(currMouse)
         }

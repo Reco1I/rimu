@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.settings.GameFolders
 import com.osudroid.ui.ISkinnable
 import com.osudroid.ui.skinning.StringSkinData
 import com.reco1l.verktex.Platform
@@ -8,7 +9,6 @@ import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.container.UIContainer
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import kotlin.jvm.JvmStatic
@@ -29,7 +29,7 @@ object CachedTextures {
      */
     operator fun get(url: String): GraphicsTexture.Region? {
         val key = keyOf(url)
-        val file = Config.getCachePath().toPath() / MD5Calculator.getStringMD5(url)
+        val file = GameFolders.cachePath.toPath() / MD5Calculator.getStringMD5(url)
 
         return Textures[key] ?: Textures.load(key, file.toString(), isInternal = false)
     }
@@ -174,7 +174,7 @@ object SkinTextures {
     }
 
     private fun isKnown(name: String): Boolean {
-        return Platform.fileSystem.metadataOrNull(Config.getSkinPath().toPath() / "$name.png")?.isRegularFile == true
+        return Platform.fileSystem.metadataOrNull(SkinFolders.path.toPath() / "$name.png")?.isRegularFile == true
             || Platform.provider.exists("gfx/$name.png", false)
             || Platform.provider.exists("$name.png", false)
     }
@@ -201,7 +201,7 @@ object SkinTextures {
             return null
         }
 
-        val customPath = Config.getSkinPath() + customName + ".png"
+        val customPath = SkinFolders.path + customName + ".png"
         val defaultPath = "gfx/$defaultName.png"
 
         // Assets that aren't skinnable, such as UI icons, are at the root.

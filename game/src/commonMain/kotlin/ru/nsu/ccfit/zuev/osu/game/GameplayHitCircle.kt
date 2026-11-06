@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitCircle
@@ -19,7 +21,6 @@ import com.reco1l.verktex.ui.container.UIContainer
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 
@@ -91,14 +92,14 @@ class GameplayHitCircle : GameObject() {
         circlePiece.setNumberText(comboNum)
         circlePiece.setNumberScale(OsuSkin.get().comboTextScale)
         circlePiece.isVisible = !GameHelper.isTraceable() ||
-            (Config.isShowFirstApproachCircle() && GameHelper.getTraceable()!!.firstObject === beatmapCircle)
+            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapCircle)
 
         approachCircle.color = comboColor
         approachCircle.scale = scale * 3 * (beatmapCircle.timePreempt / GameHelper.getOriginalTimePreempt()).toFloat()
         approachCircle.alpha = 0f
         approachCircle.setPosition(this.position.x, this.position.y)
         approachCircle.isVisible = !GameHelper.isHidden() ||
-            (Config.isShowFirstApproachCircle() && GameHelper.getHidden()!!.firstObject === beatmapCircle)
+            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getHidden()!!.firstObject === beatmapCircle)
 
         approachCircle.textureRegion = SkinTextures.get(
             if (GameHelper.isTraceable()) "defaultapproachcircle" else "approachcircle")
@@ -141,7 +142,7 @@ class GameplayHitCircle : GameObject() {
                 .after { e -> e.alpha = 0f } }
         }
 
-        if (Config.isDimHitObjects() && circlePiece.isVisible) {
+        if (Settings[OsuSettings.DimHitObjects] && circlePiece.isVisible) {
             // Source: https://github.com/peppy/osu/blob/60271fb0f7e091afb754455f93180094c63fc3fb/osu.Game.Rulesets.Osu/Objects/Drawables/DrawableOsuHitObject.cs#L101
             val colorDim = 195f / 255f
 

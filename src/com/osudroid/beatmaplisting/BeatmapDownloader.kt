@@ -1,5 +1,6 @@
 package com.osudroid.beatmaplisting
 
+import com.osudroid.settings.GameFolders
 import com.osudroid.android.AndroidGame
 import com.osudroid.OsuPlatform
 import java.io.File
@@ -13,7 +14,6 @@ import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.ui.v1.DownloadFragment
 import com.osudroid.utils.async
 import net.lingala.zip4j.ZipFile
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils
@@ -96,7 +96,7 @@ object BeatmapDownloader : IFileRequestObserver {
                     return
                 }
 
-                if (!FileUtils.extractZip(file.path, Config.getBeatmapPath())) {
+                if (!FileUtils.extractZip(file.path, GameFolders.beatmapPath)) {
                     mainThread(fragment::dismiss)
                     Toasts.showLong("Import failed, failed to extract ZIP file.")
                     return

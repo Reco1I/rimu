@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.game
 
+import com.osudroid.settings.GameResolution
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
@@ -15,7 +16,6 @@ import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.fadeIn
 import kotlin.math.hypot
-import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.game.GameScene
@@ -45,7 +45,7 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : UICo
             orientation = UILinearContainer.Orientation.Vertical
             anchor = Anchor.Center
             origin = Anchor.Center
-            scale = Verktex.graphics.window.windowWidth.toFloat() / Config.getRES_WIDTH()
+            scale = Verktex.graphics.window.windowWidth.toFloat() / GameResolution.width
 
             if (isFail && !game.replaying) {
                 +MenuItem("pause-save-replay", ::saveReplay)

@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game
 
-import ru.nsu.ccfit.zuev.osu.Config
+import com.osudroid.settings.OsuSettings
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmStatic
 
@@ -38,7 +38,7 @@ class GameObjectPool private constructor() {
 
             objectsCreated++
 
-            return if (Config.getSpinnerStyle() == 1) GameplayModernSpinner() else GameplaySpinner()
+            return if (OsuSettings.spinnerStyle == 1) GameplayModernSpinner() else GameplaySpinner()
         }
 
     fun putSpinner(spinner: GameplaySpinner) {
@@ -93,7 +93,7 @@ class GameObjectPool private constructor() {
             putSlider(GameplaySlider())
         }
         for (i in 0 until 3) {
-            putSpinner(if (Config.getSpinnerStyle() == 1) GameplayModernSpinner() else GameplaySpinner())
+            putSpinner(if (OsuSettings.spinnerStyle == 1) GameplayModernSpinner() else GameplaySpinner())
         }
 
         objectsCreated = circles.size + sliders.size + spinners.size

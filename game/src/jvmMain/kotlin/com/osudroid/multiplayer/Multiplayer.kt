@@ -1,11 +1,12 @@
 package com.osudroid.multiplayer
 
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 import com.osudroid.OsuPlatform
 import com.osudroid.utils.*
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 
-import ru.nsu.ccfit.zuev.osu.Config
 import com.reco1l.verktex.Verktex
 import com.osudroid.ui.v2.songselect.SongSelect
 import com.reco1l.verktex.Logger
@@ -96,7 +97,7 @@ object Multiplayer {
     @JvmStatic
     fun isRemoveSliderLock(): Boolean {
         //noinspection DataFlowIssue
-        return if (isConnected) room!!.gameplaySettings.isRemoveSliderLock else Config.isRemoveSliderLock()
+        return if (isConnected) room!!.gameplaySettings.isRemoveSliderLock else Settings[OsuSettings.RemoveSliderLock]
     }
 
     private val logger = MultiplayerLogger()
