@@ -1,8 +1,8 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.OsuGameHost
 import com.osudroid.ui.skinning.IniReader
 import com.osudroid.ui.skinning.convertToJson
-import com.osudroid.OsuPlatform
 import com.osudroid.ui.skinning.mergeMissing
 import java.io.File
 import com.osudroid.utils.LenientJson
@@ -65,12 +65,12 @@ object Skin {
             null
         }
 
-        OsuPlatform.implementation.checkSkinTexture(File(folder, "sliderendcircle.png").path, optional = true)
-        OsuPlatform.implementation.checkSkinTexture(File(folder, "sliderendcircleoverlay.png").path, optional = true)
+        OsuGameHost.current.checkSkinTexture(File(folder, "sliderendcircle.png").path, optional = true)
+        OsuGameHost.current.checkSkinTexture(File(folder, "sliderendcircleoverlay.png").path, optional = true)
 
-        OsuPlatform.implementation.checkSkinTexture(File(folder, "selection-mods.png").path, optional = false)
-        OsuPlatform.implementation.checkSkinTexture(File(folder, "selection-random.png").path, optional = false)
-        OsuPlatform.implementation.checkSkinTexture(File(folder, "selection-options.png").path, optional = false)
+        OsuGameHost.current.checkSkinTexture(File(folder, "selection-mods.png").path, optional = false)
+        OsuGameHost.current.checkSkinTexture(File(folder, "selection-random.png").path, optional = false)
+        OsuGameHost.current.checkSkinTexture(File(folder, "selection-options.png").path, optional = false)
 
         return json
     }

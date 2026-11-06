@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.osudroid.OsuGameHost
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
@@ -217,8 +218,8 @@ object MainScene : UIScene() {
                         async {
                             LoaderScene().show()
 
-                            OsuPlatform.implementation.checkNewSkins()
-                            OsuPlatform.implementation.loadBeatmapLibrary()
+                            OsuGameHost.current.checkNewSkins()
+                            OsuGameHost.current.loadBeatmapLibrary()
 
                             // Song select opens on the beatmap playing in the menu.
                             GlobalManager.getInstance().music.currentBeatmap?.let { GlobalManager.getInstance().selectedBeatmap = it }
@@ -226,7 +227,7 @@ object MainScene : UIScene() {
 
                             if (LibraryManager.getLibrary().isEmpty()) {
                                 Verktex.withTreeLock { Verktex.popScene() }
-                                OsuPlatform.implementation.showBeatmapListing()
+                                OsuGameHost.current.showBeatmapListing()
                             } else {
                                 Verktex.withTreeLock {
                                     Verktex.popScene()
@@ -252,8 +253,8 @@ object MainScene : UIScene() {
                             async {
                                 LoaderScene().show()
 
-                                OsuPlatform.implementation.checkNewSkins()
-                                OsuPlatform.implementation.loadBeatmapLibrary()
+                                OsuGameHost.current.checkNewSkins()
+                                OsuGameHost.current.loadBeatmapLibrary()
 
                                 SongSelect.loadBeatmaps()
 
@@ -268,9 +269,9 @@ object MainScene : UIScene() {
                         }
                     }
 
-                    if (OsuPlatform.implementation.hasBeatmapListing) {
+                    if (OsuGameHost.current.hasBeatmapListing) {
                         +menuButton(FAIcon.TableList, "Browse") {
-                            OsuPlatform.implementation.showBeatmapListing()
+                            OsuGameHost.current.showBeatmapListing()
                         }
                     }
 
@@ -322,7 +323,7 @@ object MainScene : UIScene() {
             paddingBottom = 16f.dip
 
             text {
-                text = "osu!droid ${OsuPlatform.implementation.versionName}"
+                text = "osu!droid ${Platform.application.versionName}"
                 backgroundColor = Color4.Black.alpha(0.5f)
                 padding = Padding(8f.dip, 4f.dip)
                 radius = themed { radius.md }
@@ -443,7 +444,7 @@ object MainScene : UIScene() {
             alpha = 0f
 
             fadeIn(3f).after {
-                OsuPlatform.implementation.exitGame()
+                Platform.exit()
             }
         }
     }
@@ -710,7 +711,7 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                 text {
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
-                    text = "Version: ${OsuPlatform.implementation.versionName}"
+                    text = "Version: ${Platform.application.versionName}"
                     fontSize = 16f.dip
                 }
 
@@ -772,7 +773,7 @@ class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableConta
                 hide()
 
                 try {
-                    OsuPlatform.implementation.openChangelog()
+                    OsuGameHost.current.openChangelog()
                 } catch (e: Exception) {
                     Logger.e("MainScene", "Failed to load changelog", e)
                 }

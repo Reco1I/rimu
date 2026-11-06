@@ -96,6 +96,8 @@ abstract class DesktopGameHost(
                 width = mode?.width() ?: initialWidth,
                 height = mode?.height() ?: initialHeight,
                 applicationName = title,
+                application = application,
+                onExit = ::close,
             )
 
             Verktex.initialize(
@@ -124,6 +126,12 @@ abstract class DesktopGameHost(
             glfwSetErrorCallback(null)?.free()
         }
     }
+
+    /**
+     * The application this host runs, see [Platform.application].
+     */
+    protected open val application: Platform.Application
+        get() = Platform.Application()
 
     /**
      * Asks the window to close, from any thread. [run] returns once the engine stopped.

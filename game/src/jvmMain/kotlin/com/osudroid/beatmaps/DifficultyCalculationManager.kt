@@ -1,5 +1,6 @@
 package com.osudroid.beatmaps
 
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.settings.SettingKey
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.settings.OsuSettings
@@ -7,7 +8,6 @@ import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.ui.v2.songselect.SongSelect
 
 import com.reco1l.verktex.Logger
-import com.osudroid.OsuPlatform
 import com.osudroid.utils.async
 import com.osudroid.data.DatabaseManager
 import com.osudroid.utils.mainThread
@@ -113,7 +113,7 @@ object DifficultyCalculationManager {
 
                                     DatabaseManager.beatmapInfoTable.update(beatmapInfo)
 
-                                    if (OsuPlatform.implementation.isDebug) {
+                                    if (Platform.application.isDebug) {
                                         Logger.i(
                                             "DifficultyCalculation",
                                             "Calculated difficulty for ${beatmapInfo.path}, took ${System.currentTimeMillis() - msStartTime}ms."

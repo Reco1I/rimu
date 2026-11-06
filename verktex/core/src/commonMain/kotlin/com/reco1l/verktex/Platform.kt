@@ -8,6 +8,7 @@ import okio.FileSystem
 import okio.Path
 import com.reco1l.verktex.worker.LoopWorker
 import io.ktor.client.engine.HttpClientEngineFactory
+import com.reco1l.verktex.graphics.GraphicsBackend
 
 /**
  * An interface that defines the platform-specific functionality required by the engine.
@@ -124,6 +125,127 @@ object Platform {
     }
 
 
+    /**
+     * The application running, see [Application].
+     */
+    val application: Application
+        get() = if (::implementation.isInitialized) implementation.application else Application()
+
+    /**
+     * Whether the application is in the foreground, visible to the user.
+     */
+    val isInForeground: Boolean
+        get() {
+            checkImplementation()
+            return implementation.isInForeground
+        }
+
+    /**
+     * Whether the device is a low end one, for which applications may lighten their effects.
+     */
+    val isLowEndDevice: Boolean
+        get() {
+            checkImplementation()
+            return implementation.isLowEndDevice
+        }
+
+    /**
+     * The graphics backends the user can choose from (see
+     * [com.reco1l.verktex.settings.VerktexSettings.GraphicsBackend]), none where there's no choice.
+     */
+    val availableGraphicsBackends: List<GraphicsBackend>
+        get() {
+            checkImplementation()
+            return implementation.availableGraphicsBackends
+        }
+
+    /**
+     * The vibrator of the device, or null if it has none.
+     */
+    val haptics: Haptics?
+        get() {
+            checkImplementation()
+            return implementation.haptics
+        }
+
+    /**
+     * Whether [forceMaxRefreshRate] can be set.
+     */
+    val canForceMaxRefreshRate: Boolean
+        get() {
+            checkImplementation()
+            return implementation.canForceMaxRefreshRate
+        }
+
+    /**
+     * Whether the display is asked to run at its highest refresh rate rather than the one the system
+     * picks. Does nothing unless [canForceMaxRefreshRate].
+     */
+    var forceMaxRefreshRate: Boolean = false
+        set(value) {
+            field = value
+            checkImplementation()
+            implementation.setForceMaxRefreshRate(value)
+        }
+
+    /**
+     * Whether [pickFiles] is available.
+     */
+    val canPickFiles: Boolean
+        get() {
+            checkImplementation()
+            return implementation.canPickFiles
+        }
+
+    /**
+     * What's done with an exception that a background task didn't catch. By default the platform's
+     * [Implementation.handleUncaughtException], which may end the application; a process that must
+     * stay alive (e.g. a test browser) can log it instead.
+     */
+    var onUncaughtException: (Throwable) -> Unit = { throwable ->
+        if (::implementation.isInitialized) {
+            implementation.handleUncaughtException(throwable)
+        } else {
+            throw throwable
+        }
+    }
+
+
+    /**
+     * Runs [block] on the platform's main thread (Android's UI thread), right away if called from it.
+     */
+    fun runOnMainThread(block: () -> Unit) {
+        checkImplementation()
+        implementation.runOnMainThread(block)
+    }
+
+    /**
+     * Closes the application.
+     */
+    fun exit() {
+        checkImplementation()
+        implementation.exit()
+    }
+
+    /**
+     * Copies [text] to the clipboard, under [label] where the platform names its entries.
+     */
+    fun copyToClipboard(text: String, label: String = "") {
+        checkImplementation()
+        implementation.copyToClipboard(text, label)
+    }
+
+    /**
+     * Lets the user pick files of [mimeType] (e.g. `application/octet-stream`), and calls [onPicked]
+     * with copies of them in the cache, on a background thread, which it may delete. Nothing is picked
+     * if the user cancels. Does nothing unless [canPickFiles].
+     */
+    fun pickFiles(mimeType: String, onPicked: (List<Path>) -> Unit) {
+        checkImplementation()
+        implementation.pickFiles(mimeType, onPicked)
+    }
+
+
     private fun checkImplementation() {
         if (!::implementation.isInitialized) {
             throw IllegalStateException("Platform implementation not initialized")
@@ -175,6 +297,81 @@ object Platform {
         val httpEngine: HttpClientEngineFactory<*>?
             get() = null
 
+        /**
+         * The application running.
+         */
+        val application: Application
+            get() = Application()
+
+        /**
+         * Whether the application is in the foreground, visible to the user.
+         */
+        val isInForeground: Boolean
+            get() = true
+
+        /**
+         * Whether the device is a low end one.
+         */
+        val isLowEndDevice: Boolean
+            get() = false
+
+        /**
+         * The graphics backends the user can choose from, none where there's no choice.
+         */
+        val availableGraphicsBackends: List<GraphicsBackend>
+            get() = emptyList()
+
+        /**
+         * The vibrator of the device, or null if it has none.
+         */
+        val haptics: Haptics?
+            get() = null
+
+        /**
+         * Whether [setForceMaxRefreshRate] is supported.
+         */
+        val canForceMaxRefreshRate: Boolean
+            get() = false
+
+        /**
+         * Asks the display to run at its highest refresh rate, or at the one the system picks.
+         */
+        fun setForceMaxRefreshRate(enabled: Boolean) = Unit
+
+        /**
+         * Whether [pickFiles] is supported.
+         */
+        val canPickFiles: Boolean
+            get() = false
+
+        /**
+         * Lets the user pick files, see [Platform.pickFiles].
+         */
+        fun pickFiles(mimeType: String, onPicked: (List<Path>) -> Unit) = Unit
+
+        /**
+         * Handles an exception that a background task didn't catch. Logged by default.
+         */
+        fun handleUncaughtException(throwable: Throwable) {
+            Logger.e("Platform", "Uncaught exception in a task", throwable)
+        }
+
+        /**
+         * Runs [block] on the platform's main thread, right away if called from it. Right away by
+         * default, for platforms whose main thread is any.
+         */
+        fun runOnMainThread(block: () -> Unit) = block()
+
+        /**
+         * Closes the application. Does nothing by default.
+         */
+        fun exit() = Unit
+
+        /**
+         * Copies [text] to the clipboard. Does nothing by default.
+         */
+        fun copyToClipboard(text: String, label: String) = Unit
+
 
         /**
          * Creates a new instance of a loop worker, calling [onLoop] on its thread in a loop. The
@@ -219,6 +416,46 @@ object Platform {
          */
         val externalDirectory: Path?,
     )
+
+
+    /**
+     * The application running on the platform.
+     */
+    data class Application(
+
+        /**
+         * The name of its version, e.g. `1.8.2`.
+         */
+        val versionName: String = "",
+
+        /**
+         * Whether it's a debug build.
+         */
+        val isDebug: Boolean = false,
+    )
+
+    /**
+     * The vibrator of a device.
+     */
+    interface Haptics {
+
+        /**
+         * Vibrates for [milliseconds], with an [amplitude] from 1 to 255 where the device can tell
+         * them apart.
+         */
+        fun vibrate(milliseconds: Long, amplitude: Int = 255)
+
+        /**
+         * Vibrates following [timings], which alternate off and on durations in milliseconds starting
+         * with an off one, at the [amplitudes] of each, from 0 to 255.
+         */
+        fun vibrate(timings: LongArray, amplitudes: IntArray)
+
+        /**
+         * Stops the current vibration.
+         */
+        fun cancel()
+    }
 
 
     /**

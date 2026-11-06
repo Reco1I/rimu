@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.online
 
+import com.osudroid.OsuGameHost
 import io.ktor.client.HttpClient
 import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import okio.Path
@@ -22,7 +23,6 @@ import kotlinx.coroutines.sync.withLock
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
-import com.osudroid.OsuPlatform
 import com.osudroid.data.BeatmapInfo
 import com.reco1l.verktex.Platform
 import com.osudroid.utils.sha256Checksum
@@ -217,7 +217,7 @@ class OnlineManager {
             }
             profileBannerURL = getProfileBannerURL(userId)
 
-            OsuPlatform.implementation.logAnalyticsEvent("login", mapOf("method" to "ingame"))
+            OsuGameHost.current.logAnalyticsEvent("login", mapOf("method" to "ingame"))
 
             return true
         }

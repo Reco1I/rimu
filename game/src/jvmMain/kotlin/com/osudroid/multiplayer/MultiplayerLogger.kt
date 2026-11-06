@@ -1,7 +1,7 @@
 package com.osudroid.multiplayer
 
+import com.reco1l.verktex.Platform
 import com.osudroid.settings.GameFolders
-import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Logger
 import java.io.BufferedWriter
 import java.io.File
@@ -41,7 +41,7 @@ class MultiplayerLogger : AutoCloseable {
             }
         }.bufferedWriter()
 
-        write("[${SimpleDateFormat("yyyy/MM/dd hh:mm:ss").format(Date())}] Client ${OsuPlatform.implementation.versionName} started.")
+        write("[${SimpleDateFormat("yyyy/MM/dd hh:mm:ss").format(Date())}] Client ${Platform.application.versionName} started.")
     }
 
     /**

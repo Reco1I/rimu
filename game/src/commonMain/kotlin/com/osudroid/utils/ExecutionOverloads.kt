@@ -3,7 +3,7 @@
 
 package com.osudroid.utils
 
-import com.osudroid.OsuPlatform
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Verktex
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
@@ -27,11 +27,7 @@ interface CoroutineRunnable {
  * Scope used for fire-and-forget coroutines launched through [async] and [delayed].
  */
 private val executionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, e ->
-    if (OsuPlatform.isInitialized) {
-        OsuPlatform.implementation.handleUncaughtException(e)
-    } else {
-        throw e
-    }
+    Platform.onUncaughtException(e)
 })
 
 // Lots of overloads here, but they are necessary for Java interoperability...
@@ -91,7 +87,7 @@ fun delayed(time: Long, block: CoroutineRunnable) = executionScope.launch {
  * Run a task on the main thread.
  */
 fun mainThread(block: Runnable) {
-    OsuPlatform.implementation.runOnMainThread { block.run() }
+    Platform.runOnMainThread { block.run() }
 }
 
 /**

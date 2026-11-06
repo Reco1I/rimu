@@ -319,13 +319,21 @@ abstract class AndroidGameHost : AppCompatActivity(), GameHost {
         return consumed || super.onKeyUp(keyCode, event)
     }
 
+    /**
+     * Whether the activity is in the foreground, between [onResume] and [onPause].
+     */
+    var isInForeground = false
+        private set
+
     override fun onResume() {
         super.onResume()
+        isInForeground = true
         Verktex.resume()
     }
 
     override fun onPause() {
         super.onPause()
+        isInForeground = false
         Verktex.pause()
     }
 

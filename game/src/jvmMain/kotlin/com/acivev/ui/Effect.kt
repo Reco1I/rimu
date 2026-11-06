@@ -1,7 +1,7 @@
 package com.acivev.ui
 
+import com.reco1l.verktex.Platform
 import com.osudroid.settings.GameResolution
-import com.osudroid.OsuPlatform
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.graphics.BlendMode
 import com.reco1l.verktex.texture.Textures
@@ -170,7 +170,7 @@ fun addSnowfallWithPeriod(container: UIContainer) {
     val isSnowfallPeriod = (month == Calendar.DECEMBER && day >= 15) || (month == Calendar.JANUARY && day <= 6)
 
     if (isSnowfallPeriod && !isFireworksPeriod) {
-        container += Snowfall(OsuPlatform.implementation.isLowEndDevice)
+        container += Snowfall(Platform.isLowEndDevice)
     }
 }
 
@@ -183,6 +183,6 @@ fun addFireworksWithPeriod(container: UIContainer) {
     if (calendar.get(Calendar.MONTH) == Calendar.JANUARY
         && calendar.get(Calendar.DAY_OF_MONTH) == 1
         && calendar.get(Calendar.HOUR_OF_DAY) < 20) {
-        container += Fireworks(OsuPlatform.implementation.isLowEndDevice)
+        container += Fireworks(Platform.isLowEndDevice)
     }
 }

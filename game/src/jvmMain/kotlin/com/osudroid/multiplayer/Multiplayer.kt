@@ -1,11 +1,10 @@
 package com.osudroid.multiplayer
 
+import com.osudroid.OsuGameHost
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
-import com.osudroid.OsuPlatform
 import com.osudroid.utils.*
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
 
 import com.reco1l.verktex.Verktex
 import com.osudroid.ui.v2.songselect.SongSelect
@@ -150,8 +149,8 @@ object Multiplayer {
             try {
                 LoaderScene().show()
 
-                OsuPlatform.implementation.checkNewSkins()
-                OsuPlatform.implementation.loadBeatmapLibrary()
+                OsuGameHost.current.checkNewSkins()
+                OsuGameHost.current.loadBeatmapLibrary()
 
                 val roomID = pathSegments[0].toLong()
                 val password = if (pathSegments.size > 1) pathSegments[1] else null
