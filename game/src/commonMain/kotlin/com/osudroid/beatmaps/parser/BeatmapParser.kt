@@ -17,6 +17,7 @@ import com.osudroid.utils.md5Checksum
 import okio.use
 import okio.BufferedSource
 import okio.IOException
+import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 import kotlinx.coroutines.CancellationException
@@ -51,7 +52,9 @@ class BeatmapParser {
      */
     @JvmOverloads
     constructor(path: String, scope: CoroutineScope? = null, precomputedMD5: String? = null) {
-        this.path = path
+        // The beatmap's paths are split on '/' to find its file and set folder, Windows paths are
+        // given with '\' too.
+        this.path = if (Path.DIRECTORY_SEPARATOR == "\\") path.replace('\\', '/') else path
         this.scope = scope
         this.precomputedMD5 = precomputedMD5
     }
