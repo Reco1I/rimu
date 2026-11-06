@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Build
+import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.FileProvider
 import androidx.core.content.getSystemService
@@ -52,6 +53,9 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
 
     override val defaultCorePath: String
         get() = Environment.getExternalStorageDirectory().toString() + "/osu!droid/"
+
+    override val canUseStorage: Boolean
+        get() = ru.nsu.ccfit.zuev.osu.helper.FileUtils.canUseSD()
 
     override val cachePath: String
         get() = activity.cacheDir.path
@@ -118,6 +122,25 @@ class AndroidOsuPlatform(private val activity: Activity) : OsuPlatform.Implement
 
     override fun exitGame() {
         mainActivity?.finish()
+    }
+
+    // Created when first shown, it needs the window of the main activity.
+    private var connectionFailureSnackbar: Snackbar? = null
+
+    override fun showConnectionFailure() {
+        val mainActivity = mainActivity ?: return
+
+        mainThread {
+            val snackbar = connectionFailureSnackbar ?: Snackbar.make(mainActivity.window.decorView, "", 10000)
+            connectionFailureSnackbar = snackbar
+
+            snackbar.dismiss()
+            snackbar.setText("Cannot connect to server. Please check the following article for troubleshooting.")
+            snackbar.setAction("Check") {
+                mainActivity.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(OsuPlatform.LOGIN_FAIL_HELP_URL)))
+            }
+            snackbar.show()
+        }
     }
 
     override val hasBeatmapListing = true

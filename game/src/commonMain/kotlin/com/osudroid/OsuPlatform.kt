@@ -2,12 +2,18 @@ package com.osudroid
 
 import com.osudroid.ui.v2.UIVideo
 import com.russhwolf.settings.Settings
+import ru.nsu.ccfit.zuev.osu.ToastLogger
 
 /**
  * What the game needs from the platform it runs on that the engine doesn't provide. Each platform
  * sets [implementation] before the game starts.
  */
 object OsuPlatform {
+
+    /**
+     * The article that helps players who can't log in.
+     */
+    const val LOGIN_FAIL_HELP_URL = "https://neroyuki.github.io/osudroid-guide/help/login_fail"
 
     /**
      * The implementation of the current platform.
@@ -48,6 +54,12 @@ object OsuPlatform {
          * The folder where the game keeps its files by default, ending with a separator.
          */
         val defaultCorePath: String
+
+        /**
+         * Whether the storage with the game's folders can be used, which removable storage may not be.
+         */
+        val canUseStorage: Boolean
+            get() = true
 
         /**
          * The folder where the game keeps its cache.
@@ -108,6 +120,13 @@ object OsuPlatform {
          * Closes the game.
          */
         fun exitGame() = Unit
+
+        /**
+         * Tells the player that the game couldn't connect to the server to log in.
+         */
+        fun showConnectionFailure() {
+            ToastLogger.showText("Cannot connect to server. Please check $LOGIN_FAIL_HELP_URL for troubleshooting.", true)
+        }
 
         /**
          * Whether [showBeatmapListing] and [downloadBeatmapSet] are available.
