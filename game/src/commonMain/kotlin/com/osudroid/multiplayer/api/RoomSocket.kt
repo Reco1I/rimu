@@ -47,5 +47,11 @@ interface RoomSocket {
          * The factory of the current platform.
          */
         lateinit var factory: Factory
+
+        /**
+         * Whether the current platform has set a [factory], without which there's no multiplayer.
+         */
+        val isAvailable
+            get() = ::factory.isInitialized
     }
 }

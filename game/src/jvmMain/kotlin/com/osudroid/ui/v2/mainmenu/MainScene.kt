@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.osudroid.multiplayer.api.RoomSocket
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.data.LayoutConstraints
@@ -237,29 +238,32 @@ object MainScene : UIScene() {
                         }
                     }
 
-                    +menuButton(FAIcon.UserGroup, "Multi") action@{
-                        if (!OnlineManager.getInstance().isStayOnline && !BuildSettings.MOCK_MULTIPLAYER) {
-                            ToastLogger.showText(StringTable.format(Res.string.multiplayer_not_online), true)
-                            return@action
-                        }
-
-                        Multiplayer.isMultiplayer = true
-
-                        async {
-                            LoaderScene().show()
-
-                            OsuPlatform.implementation.checkNewSkins()
-                            OsuPlatform.implementation.loadBeatmapLibrary()
-
-                            SongSelect.loadBeatmaps()
-
-                            Verktex.withTreeLock {
-                                Verktex.popScene()
-                                Verktex.pushScene(LobbyScene())
+                    // Platforms without a room socket have no multiplayer.
+                    if (RoomSocket.isAvailable) {
+                        +menuButton(FAIcon.UserGroup, "Multi") action@{
+                            if (!OnlineManager.getInstance().isStayOnline && !BuildSettings.MOCK_MULTIPLAYER) {
+                                ToastLogger.showText(StringTable.format(Res.string.multiplayer_not_online), true)
+                                return@action
                             }
 
-                            // After the menu was entered again by removing the loader, which resets it.
-                            GlobalManager.getInstance().songService.isGaming = true
+                            Multiplayer.isMultiplayer = true
+
+                            async {
+                                LoaderScene().show()
+
+                                OsuPlatform.implementation.checkNewSkins()
+                                OsuPlatform.implementation.loadBeatmapLibrary()
+
+                                SongSelect.loadBeatmaps()
+
+                                Verktex.withTreeLock {
+                                    Verktex.popScene()
+                                    Verktex.pushScene(LobbyScene())
+                                }
+
+                                // After the menu was entered again by removing the loader, which resets it.
+                                GlobalManager.getInstance().songService.isGaming = true
+                            }
                         }
                     }
 
