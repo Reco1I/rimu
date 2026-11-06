@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
+import com.osudroid.OsuGame
+import com.osudroid.BeatmapSelection
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.parser.*
@@ -38,12 +40,6 @@ import kotlin.coroutines.cancellation.CancellationException
 
 
 object SongSelect : UIScene() {
-
-    /**
-     * The currently selected beatmap.
-     */
-    var selectedBeatmap: BeatmapInfo? = null
-        private set
 
     /**
      * The scores currently shown in the leaderboard, in the format used by the gameplay leaderboard.
@@ -194,7 +190,7 @@ object SongSelect : UIScene() {
             return
         }
 
-        GlobalManager.getInstance().music.apply {
+        OsuGame.music.apply {
             speed = 1f
             setAdjustPitch(false)
         }
@@ -219,7 +215,7 @@ object SongSelect : UIScene() {
             return
         }
 
-        val gameScene = GlobalManager.getInstance().gameScene
+        val gameScene = OsuGame.gameScene
 
         gameScene.setOldScene(this)
         gameScene.startGame(beatmapInfo, null, ModMenu.enabledMods)
@@ -287,8 +283,7 @@ object SongSelect : UIScene() {
                 beatmapCarrousel.selectedPanel = null
                 beatmapCarrousel.data = models
                 beatmapCarrousel.scrollY = 0f
-                // The global selection is set by any selection here, and also by the menu, so it's never older.
-                (GlobalManager.getInstance().selectedBeatmap ?: selectedBeatmap)?.let(::showBeatmap)
+                BeatmapSelection.beatmap?.let(::showBeatmap)
             }
         }
     }
@@ -372,7 +367,7 @@ object SongSelect : UIScene() {
     fun onBeatmapSetDeleted(directory: String) {
         beatmapSets = beatmapSets.filter { it.directory != directory }
 
-        if (selectedBeatmap?.setDirectory == directory) {
+        if (BeatmapSelection.beatmap?.setDirectory == directory) {
             onBeatmapSelected(null)
         }
         applyFilter()
@@ -380,7 +375,7 @@ object SongSelect : UIScene() {
 
 
     fun onBeatmapSelected(beatmapInfo: BeatmapInfo?) {
-        selectedBeatmap = beatmapInfo
+        BeatmapSelection.beatmap = beatmapInfo
 
         currentCalculationJob?.cancel(CancellationException("Calculation cancelled due to new selection."))
         currentBeatmapLoadingJob?.cancel(CancellationException("Beatmap loading cancelled due to new selection."))
@@ -390,8 +385,6 @@ object SongSelect : UIScene() {
 
         currentBeatmapLoadingJob = beatmapLoadingScope.launch {
 
-            GlobalManager.getInstance().selectedBeatmap = beatmapInfo
-
             ensureActive()
             if (beatmapInfo == null) {
                 currentSongPath = null
@@ -400,7 +393,7 @@ object SongSelect : UIScene() {
                 updateThread { backgroundSprite.textureRegion = SkinTextures["menu-background"] }
 
                 ensureActive()
-                GlobalManager.getInstance().music.stop()
+                OsuGame.music.stop()
 
                 return@launch
             }
@@ -420,7 +413,7 @@ object SongSelect : UIScene() {
             if (currentSongPath != beatmapInfo.audioPath) {
                 currentSongPath = beatmapInfo.audioPath
 
-                val music = GlobalManager.getInstance().music
+                val music = OsuGame.music
 
                 ensureActive()
                 music.preLoad(beatmapInfo.audioPath)
@@ -496,8 +489,8 @@ object SongSelect : UIScene() {
         val speed = ModMenu.enabledMods.values.calculateRate(Double.POSITIVE_INFINITY)
         val adjustPitch = ModNightCore::class in ModMenu.enabledMods
 
-        GlobalManager.getInstance().music.speed = speed
-        GlobalManager.getInstance().music.setAdjustPitch(adjustPitch)
+        OsuGame.music.speed = speed
+        OsuGame.music.setAdjustPitch(adjustPitch)
     }
 
     // Scenes are never attached to a parent, onAttached doesn't run for them.
@@ -505,7 +498,7 @@ object SongSelect : UIScene() {
         super.onEnter()
 
         updateThread {
-            val currentBeatmapInfo = GlobalManager.getInstance().selectedBeatmap
+            val currentBeatmapInfo = BeatmapSelection.beatmap
 
             currentSongPath = currentBeatmapInfo?.audioPath
             currentBackgroundPath = null

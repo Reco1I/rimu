@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.OsuGame
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Logger
@@ -37,7 +38,6 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import kotlinx.coroutines.*
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import com.reco1l.verktex.ui.toast.Toasts
 import kotlin.coroutines.cancellation.CancellationException
@@ -292,7 +292,7 @@ class LobbyScene : UIScene() {
 
     fun back() {
         Multiplayer.isMultiplayer = false
-        GlobalManager.getInstance().music.isGaming = false
+        OsuGame.music.isGaming = false
         Verktex.withTreeLock { Verktex.popScene() }
     }
 

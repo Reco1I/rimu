@@ -1,6 +1,7 @@
 package com.osudroid.audio
 
 import com.osudroid.settings.OsuSettings
+import com.osudroid.BeatmapSelection
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.BeatmapSetInfo
 import com.reco1l.verktex.Logger
@@ -32,15 +33,13 @@ open class MusicService {
 
 
     /**
-     * The beatmap whose song is played, set by [load]. Setting it alone doesn't load its song, e.g.
-     * when the song is already playing.
+     * The beatmap whose song is played: the [BeatmapSelection], which [load] sets. Setting it alone
+     * doesn't load its song, e.g. when the song is already playing.
      */
-    var currentBeatmap: BeatmapInfo? = null
+    var currentBeatmap: BeatmapInfo?
+        get() = BeatmapSelection.beatmap
         set(value) {
-            if (field != value) {
-                field = value
-                onBeatmapChangeListeners.values.forEach { it(value) }
-            }
+            BeatmapSelection.beatmap = value
         }
 
     /**
@@ -143,8 +142,6 @@ open class MusicService {
     private var lastFFTResolution = -1
     private val timeOrigin = TimeSource.Monotonic.markNow()
 
-    private var onBeatmapChangeListeners = mapOf<Any, (BeatmapInfo?) -> Unit>()
-
     // Whether the song is meant to be playing, set by play() and cleared by pause() and stop().
     private var isPlaybackWanted = false
 
@@ -183,14 +180,6 @@ open class MusicService {
         // Null when the library is empty.
         val beatmap = beatmapSet?.beatmaps?.randomOrNull() ?: return
         play(beatmap)
-    }
-
-    fun addOnBeatmapChangeListener(key: Any, listener: (BeatmapInfo?) -> Unit) {
-        onBeatmapChangeListeners = onBeatmapChangeListeners + (key to listener)
-    }
-
-    fun removeOnBeatmapChangeListener(key: Any) {
-        onBeatmapChangeListeners = onBeatmapChangeListeners - key
     }
 
     /**

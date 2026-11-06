@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.OsuGame
+import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
 import com.osudroid.game.GameplayVibrations
 import kotlinx.coroutines.runBlocking
@@ -122,7 +124,6 @@ import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.audio.effect.Metronome
 import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameHelper.SliderPath
@@ -748,7 +749,7 @@ open class GameScene : GameObjectListener {
 
         scope?.ensureActive()
 
-        GlobalManager.getInstance().music.preLoad(audioFilePath, GameHelper.getSpeedMultiplier(),
+        OsuGame.music.preLoad(audioFilePath, GameHelper.getSpeedMultiplier(),
             GameHelper.getSpeedMultiplier() != 1f &&
                 (Settings[OsuSettings.ShiftPitchInRateChange] || ModNightCore::class in mods || ModOldNightCore::class in mods))
 
@@ -756,7 +757,7 @@ open class GameScene : GameObjectListener {
 
         scope?.ensureActive()
 
-        totalLength = GlobalManager.getInstance().music.length
+        totalLength = OsuGame.music.length
         judgeableObject = null
         breakPeriodIndex = 0
         objectIndex = 0
@@ -1280,7 +1281,7 @@ open class GameScene : GameObjectListener {
 
         if (GameHelper.isAutoplay() || replaying) {
             val metadata = playableBeatmap.metadata
-            playname = if (replaying) GlobalManager.getInstance().scoring.replayStat!!.playerName else "osu!"
+            playname = if (replaying) OsuGame.scoring.replayStat!!.playerName else "osu!"
 
             if (!Settings[OsuSettings.HideReplayMarquee]) {
                 val replayText = UIText()
@@ -1366,7 +1367,7 @@ open class GameScene : GameObjectListener {
         val playableBeatmap = this.playableBeatmap ?: return
         val hud = hud!!
 
-        val music = GlobalManager.getInstance().music
+        val music = OsuGame.music
 
         // Hook up the framed beatmap clock as the scene's clock. Use MusicService as the audio source.
         if (music != null) {
@@ -1472,7 +1473,7 @@ open class GameScene : GameObjectListener {
                     video!!.setPlaybackSpeed(currentSpeedMultiplier)
                 }
 
-                val music = GlobalManager.getInstance().music
+                val music = OsuGame.music
                 music.speed = modRate
                 music.setPitchRate(replaySettingsRate)
             }
@@ -1901,7 +1902,7 @@ open class GameScene : GameObjectListener {
         }
 
         if (gameplayClock.time >= 0 && mutedMod != null) {
-            GlobalManager.getInstance().music.volume =
+            OsuGame.music.volume =
                 OsuSettings.musicVolume * mutedMod.volumeAt(stat.combo)
         }
 
@@ -1951,7 +1952,7 @@ open class GameScene : GameObjectListener {
             val scoringScene = scoringScene
             if (scoringScene != null && !startedFromHUDEditor) {
                 if (replaying)
-                    scoringScene.load(scoringScene.replayStat!!, null, GlobalManager.getInstance().music, replayPath, null, lastBeatmapInfo)
+                    scoringScene.load(scoringScene.replayStat!!, null, OsuGame.music, replayPath, null, lastBeatmapInfo)
                 else {
                     if (ModAutoplay::class in stat.mod) {
                         stat.playerName = "osu!"
@@ -1965,9 +1966,9 @@ open class GameScene : GameObjectListener {
 
                         Toasts.show("Loading room statistics...")
                     }
-                    scoringScene.load(stat, lastBeatmapInfo, GlobalManager.getInstance().music, replayPath, parsedBeatmap!!.md5, null)
+                    scoringScene.load(stat, lastBeatmapInfo, OsuGame.music, replayPath, parsedBeatmap!!.md5, null)
                 }
-                GlobalManager.getInstance().music.volume = 0.2f
+                OsuGame.music.volume = 0.2f
                 replaceCurrentScene(scoringScene.scene!!)
             } else {
                 returnToPreviousScene()
@@ -2130,8 +2131,8 @@ open class GameScene : GameObjectListener {
         cancelVideoLoading()
 
         val mSecPassed = gameplayClock.time * 1000
-        val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap
-        val music = GlobalManager.getInstance().music
+        val selectedBeatmap = BeatmapSelection.beatmap
+        val music = OsuGame.music
 
         if (music != null && selectedBeatmap != null && !Multiplayer.isMultiplayer) {
             // osu!stable restarts the song back to preview time when the player is in the last 10 seconds *or* 2% of the beatmap.
@@ -2170,7 +2171,7 @@ open class GameScene : GameObjectListener {
         if (Multiplayer.isMultiplayer) {
             releaseVideo()
 
-            GlobalManager.getInstance().music?.stop()
+            OsuGame.music?.stop()
 
             val roomScene = Multiplayer.roomScene
 
@@ -2717,7 +2718,7 @@ open class GameScene : GameObjectListener {
 
         if (isGameOver) {
             // Finishing the game over animation now.
-            GlobalManager.getInstance().music.setFrequencyForcefully(101f)
+            OsuGame.music.setFrequencyForcefully(101f)
             return
         }
 
@@ -2766,7 +2767,7 @@ open class GameScene : GameObjectListener {
         }
 
         stopLoopingSamples()
-        val music = GlobalManager.getInstance().music
+        val music = OsuGame.music
 
         if (GameHelper.isPerfect()) {
             video?.pause()

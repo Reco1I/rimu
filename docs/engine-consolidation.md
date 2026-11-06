@@ -355,7 +355,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 5. Settings replace `Config` | Done |
 | 6. Ktor networking | Done |
 | 7. Split `OsuPlatform` | Done |
-| 8. No `GlobalManager` | Not started |
+| 8. No `GlobalManager` | In progress: `OsuGame` and `BeatmapSelection` done |
 | 9. Database in Verktex | Not started |
 | 10. `Path` and `UIPath` | Not started |
 | 11. Video | Not started |
@@ -675,4 +675,24 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 - Checked: the core, desktop and game tests, the app's unit tests compiling, the common checks and
   `assembleDebug`. Not run on a device or desktop: vibrations, the refresh rate, exiting, the
   clipboard and the low-end effects weren't seen.
+
+### Phase 8: no `GlobalManager`, no singleton scenes (in progress)
+
+Done in steps, each committed on its own.
+
+**Step 1: `OsuGame` and `BeatmapSelection`.**
+- `OsuGame` (jvmMain, since the scenes are) replaces `GlobalManager`. It has `init()`, `music`,
+  `isHeadless`, and for now `gameScene`/`scoring`, which step 3 replaces.
+- `BeatmapSelection` (common) is the single owner of the selected beatmap, with listeners.
+  - It replaces `GlobalManager.selectedBeatmap` and `SongSelect.selectedBeatmap`.
+  - `MusicService.currentBeatmap` reads and sets it, and its beatmap listeners became the
+    selection's.
+  - The syncing in `MainScene` (the Solo button and `onEnter`) and in `SongSelect` is gone. Song
+    select now sets the selection right away rather than from its loading coroutine.
+- The startup progress and message are `SplashScene.progress`/`info`.
+- `GlobalManager` is deleted (about 150 references in 34 files).
+
+Left: step 2, scenes created when pushed with their lasting state moved out (`MainScene`,
+`SongSelect`, `CalibrationScene`, `SplashScene`, `ModMenu`); step 3, `GameScene` and `ScoringScene`
+created per play.
 

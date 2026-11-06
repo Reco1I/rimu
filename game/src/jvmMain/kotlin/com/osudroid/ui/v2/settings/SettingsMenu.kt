@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.settings
 
+import com.osudroid.OsuGame
 import com.osudroid.OsuGameHost
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.SettingKey
@@ -43,7 +44,6 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import kotlin.math.ceil
 import kotlin.math.log10
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.themed
 
 
@@ -316,7 +316,6 @@ class SettingsMenu : UIScene() {
      * Leaves the menu, applying the changed preferences the same way the legacy settings screen does.
      */
     fun back() {
-        val global = GlobalManager.getInstance()
 
         // As the legacy settings screen did when it was left.
         OsuGameHost.current.setAnnouncementsSubscribed(Settings[OsuSettings.ReceiveAnnouncements])
@@ -328,10 +327,10 @@ class SettingsMenu : UIScene() {
                 Multiplayer.roomScene?.updatePlayerList()
             }
         } else {
-            global.music.isGaming = false
+            OsuGame.music.isGaming = false
 
             // The account may have changed, the player button follows the login by itself. Headless (e.g. in the UI test browser) it never logs in.
-            if (!global.isHeadless) {
+            if (!OsuGame.isHeadless) {
                 OnlineManager.getInstance().init()
                 OnlineScoring.getInstance().login()
             }

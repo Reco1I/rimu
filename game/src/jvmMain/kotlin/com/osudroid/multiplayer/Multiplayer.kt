@@ -1,5 +1,6 @@
 package com.osudroid.multiplayer
 
+import com.osudroid.OsuGame
 import com.osudroid.OsuGameHost
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -26,7 +27,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
@@ -141,7 +141,7 @@ object Multiplayer {
             return
         }
 
-        GlobalManager.getInstance().music.isGaming = true
+        OsuGame.music.isGaming = true
         isMultiplayer = true
 
         async {
@@ -179,11 +179,11 @@ object Multiplayer {
 
     fun onLiveLeaderboard(array: JsonArray) {
 
-        if (Verktex.scene != GlobalManager.getInstance().gameScene.scene) {
+        if (Verktex.scene != OsuGame.gameScene.scene) {
             return
         }
 
-        val hud = GlobalManager.getInstance().gameScene.hud ?: return
+        val hud = OsuGame.gameScene.hud ?: return
 
         if (hud.hasElement(HUDLeaderboard::class)) {
 
@@ -226,7 +226,7 @@ object Multiplayer {
 
         // Replace server statistics with local in Head-to-Head mode.
         if (room?.isTeamVersus == false) {
-            val ownScore = GlobalManager.getInstance().gameScene.stat
+            val ownScore = OsuGame.gameScene.stat
             val ownScoreIndex = list.indexOfFirst { it.uid == OnlineManager.getInstance().userId }.takeUnless { it == -1 }
 
             if (ownScore != null) {
@@ -246,7 +246,7 @@ object Multiplayer {
         finalData = list.toTypedArray()
 
         // Reloading results screen
-        GlobalManager.getInstance().scoring.updateLeaderboard()
+        OsuGame.scoring.updateLeaderboard()
     }
 
 
@@ -294,7 +294,7 @@ object Multiplayer {
 
             // Do not interrupt an active game session; the teardown will happen naturally
             // when the player finishes (or abandons) the game.
-            val gameScene = GlobalManager.getInstance().gameScene
+            val gameScene = OsuGame.gameScene
             if (gameScene == null || Verktex.scene != gameScene.scene) {
                 updateThread { roomScene?.back() }
             }

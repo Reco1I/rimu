@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.OsuGame
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.data.WinCondition.Accuracy
 import com.reco1l.verktex.data.Axis
@@ -18,7 +19,6 @@ import java.text.NumberFormat.getNumberInstance
 import java.util.Locale.ENGLISH
 import java.util.Locale.US
 import kotlin.math.hypot
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
@@ -26,7 +26,7 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
  */
 class StatisticSelector(stats: Array<StatisticV2>?) : UIScrollableContainer() {
 
-    private val selected: StatisticV2? = GlobalManager.getInstance().scoring.currentStatistic
+    private val selected: StatisticV2? = OsuGame.scoring.currentStatistic
 
 
     init {
@@ -50,9 +50,8 @@ class StatisticSelector(stats: Array<StatisticV2>?) : UIScrollableContainer() {
             return
         }
 
-        val global = GlobalManager.getInstance()
 
-        global.scoring.load(stat, global.scoring.beatmapInfo, global.music, null, null, null)
+        OsuGame.scoring.load(stat, OsuGame.scoring.beatmapInfo, OsuGame.music, null, null, null)
     }
 
 

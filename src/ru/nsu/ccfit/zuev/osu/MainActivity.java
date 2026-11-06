@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.osudroid.OsuGame;
 import com.reco1l.verktex.Platform;
 import com.osudroid.settings.GameFolders;
 import com.osudroid.settings.OsuSettings;
@@ -119,7 +120,7 @@ public class MainActivity extends AndroidOsuGameHost {
 
         Execution.async(() -> {
             AndroidDatabase.load(this);
-            GlobalManager.getInstance().init();
+            OsuGame.init();
 
             // The "Show FPS" setting shows the engine's performance overlay.
             Settings.set(VerktexSettings.ShowPerformanceOverlay, Settings.get(OsuSettings.ShowFps));
@@ -128,7 +129,7 @@ public class MainActivity extends AndroidOsuGameHost {
             Settings.set(VerktexSettings.ResolutionScale, Settings.get(OsuSettings.ResolutionScale) / 100f);
 
             analytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, null);
-            GlobalManager.getInstance().setLoadingProgress(50);
+            SplashScene.setProgress(50);
             checkNewSkins();
             SkinFolders.load();
             DifficultyCalculationManager.checkForOutdatedStarRatings();
@@ -140,8 +141,8 @@ public class MainActivity extends AndroidOsuGameHost {
 
                 UpdateManager.onActivityStart();
                 AndroidDatabase.notifyIfResetDueToDowngrade();
-                GlobalManager.getInstance().setInfo("");
-                GlobalManager.getInstance().setLoadingProgress(100);
+                SplashScene.setInfo("");
+                SplashScene.setProgress(100);
                 Verktex.pushScene(MainScene.INSTANCE);
                 SongSelect.INSTANCE.loadBeatmaps();
 
@@ -221,7 +222,7 @@ public class MainActivity extends AndroidOsuGameHost {
     }
 
     public void loadBeatmapLibrary() {
-        GlobalManager.getInstance().setInfo("Checking for new maps...");
+        SplashScene.setInfo("Checking for new maps...");
         if (contentUriToAdd != null) {
             fileToAdd = copyContentUriToCache(contentUriToAdd);
             contentUriToAdd = null;
@@ -310,7 +311,7 @@ public class MainActivity extends AndroidOsuGameHost {
     }
 
     public void checkNewSkins() {
-        GlobalManager.getInstance().setInfo("Checking new skins...");
+        SplashScene.setInfo("Checking new skins...");
 
         final ArrayList<String> skins = new ArrayList<>();
 
@@ -407,7 +408,7 @@ public class MainActivity extends AndroidOsuGameHost {
         // Some components may already start using this class when onCreate is called. An example
         // is when the game is restoring after being killed by system due to low system memory.
         AndroidGame.setMainActivity(this);
-        GlobalManager.getInstance().setHeadless(false);
+        OsuGame.setHeadless(false);
 
         // The engine picks its graphics backend from its settings when the host is created. Until
         // the settings were imported from the preferences, on the first start with them, the backend
@@ -514,11 +515,9 @@ public class MainActivity extends AndroidOsuGameHost {
         setIntent(intent);
 
         if (parseIntent(intent)) {
-            var globalManager = GlobalManager.getInstance();
-
             if (roomInviteLink != null) {
                 Execution.updateThread(() -> {
-                    var gameScene = globalManager.getGameSceneOrNull();
+                    var gameScene = OsuGame.getGameSceneOrNull();
 
                     // Ensure gameplay is cleaned up before joining the lobby to prevent any potential issues with
                     // lingering game state.
@@ -653,7 +652,7 @@ public class MainActivity extends AndroidOsuGameHost {
             return true;
         }
 
-        var gameScene = GlobalManager.getInstance().getGameSceneOrNull();
+        var gameScene = OsuGame.getGameSceneOrNull();
 
         if (gameScene != null && currentScene == gameScene.getScene() &&
                 (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU)) {
@@ -669,7 +668,7 @@ public class MainActivity extends AndroidOsuGameHost {
             return false;
         }
 
-        var scoringScene = GlobalManager.getInstance().getScoringOrNull();
+        var scoringScene = OsuGame.getScoringOrNull();
 
         if (scoringScene != null && currentScene == scoringScene.getScene()) {
             scoringScene.back();
@@ -732,7 +731,7 @@ public class MainActivity extends AndroidOsuGameHost {
 
     public void forcedExit() {
         Execution.updateThread(() -> {
-            var gameScene = GlobalManager.getInstance().getGameSceneOrNull();
+            var gameScene = OsuGame.getGameSceneOrNull();
 
             if (gameScene != null && Verktex.getScene() == gameScene.getScene()) {
                 gameScene.quit();

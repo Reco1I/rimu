@@ -4,7 +4,7 @@ import android.content.Context
 import ru.nsu.ccfit.zuev.osu.MainActivity
 
 /**
- * The Android state of the game, which the common `GlobalManager` doesn't hold.
+ * The Android state of the game, which the common `OsuGame` doesn't hold.
  */
 object AndroidGame {
 

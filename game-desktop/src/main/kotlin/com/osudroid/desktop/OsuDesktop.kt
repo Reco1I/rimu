@@ -1,5 +1,6 @@
 package com.osudroid.desktop
 
+import com.osudroid.OsuGame
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import java.util.prefs.Preferences
 import com.reco1l.verktex.Platform
@@ -17,7 +18,6 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.desktop.DesktopGameHost
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.VerktexSettings
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import java.io.File
 
@@ -53,7 +53,7 @@ class OsuDesktop(
         OnlineManager.getInstance().init()
         DesktopDatabase.load()
 
-        GlobalManager.getInstance().isHeadless = false
+        OsuGame.isHeadless = false
     }
 
     override fun onEngineStarted() {
@@ -64,7 +64,7 @@ class OsuDesktop(
         }
 
         async {
-            GlobalManager.getInstance().init()
+            OsuGame.init()
 
             // The "Show FPS" setting shows the engine's performance overlay.
             Settings[VerktexSettings.ShowPerformanceOverlay] = Settings[OsuSettings.ShowFps]
@@ -72,7 +72,7 @@ class OsuDesktop(
             // The resolution scale setting is stored as a percentage.
             Settings[VerktexSettings.ResolutionScale] = Settings[OsuSettings.ResolutionScale] / 100f
 
-            GlobalManager.getInstance().loadingProgress = 50
+            SplashScene.progress = 50
             SkinFolders.load()
             DifficultyCalculationManager.checkForOutdatedStarRatings()
             OsuGameHost.current.loadBeatmapLibrary()
@@ -80,8 +80,8 @@ class OsuDesktop(
             SplashScene.playWelcomeAnimation()
 
             delayed(2500) {
-                GlobalManager.getInstance().info = ""
-                GlobalManager.getInstance().loadingProgress = 100
+                SplashScene.info = ""
+                SplashScene.progress = 100
                 Verktex.pushScene(MainScene)
                 SongSelect.loadBeatmaps()
             }

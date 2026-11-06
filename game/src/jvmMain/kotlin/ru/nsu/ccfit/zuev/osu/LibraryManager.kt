@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu
 
+import com.osudroid.OsuGame
+import com.osudroid.ui.v2.SplashScene
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -68,7 +70,7 @@ object LibraryManager : MusicService.Playlist {
 
         // Without the main activity the library is whatever is in the (in-memory) database, there
         // are no folders to check nor difficulties to calculate.
-        if (GlobalManager.getInstance().isHeadless) {
+        if (OsuGame.isHeadless) {
             currentIndex = 0
             library = DatabaseManager.beatmapInfoTable.getBeatmapSetList().toMutableList()
             return
@@ -127,7 +129,7 @@ object LibraryManager : MusicService.Playlist {
     @JvmStatic
     fun deleteBeatmapSet(beatmapSet: BeatmapSetInfo) {
         // Headless, the beatmap sets don't come from the beatmap folder, don't touch any file.
-        if (!GlobalManager.getInstance().isHeadless) {
+        if (!OsuGame.isHeadless) {
             File(beatmapSet.path).deleteRecursively()
         }
         DatabaseManager.beatmapInfoTable.deleteBeatmapSet(beatmapSet.directory)
@@ -294,8 +296,8 @@ object LibraryManager : MusicService.Playlist {
                             continue
                         }
 
-                        GlobalManager.getInstance().loadingProgress = 50 + 50 * fileCached / directoryCount
-                        GlobalManager.getInstance().info = "Loading " + directory.name + "..."
+                        SplashScene.progress = 50 + 50 * fileCached / directoryCount
+                        SplashScene.info = "Loading " + directory.name + "..."
 
                         fileCached++
 

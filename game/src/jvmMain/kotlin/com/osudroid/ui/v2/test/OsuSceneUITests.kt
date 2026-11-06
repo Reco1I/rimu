@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.OsuGame
+import com.osudroid.BeatmapSelection
 import com.osudroid.debug.MockRoom
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
@@ -26,7 +28,6 @@ import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.textButton
 import com.reco1l.verktex.ui.text.faSolidIcon
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.osudroid.ui.v2.mainmenu.RythimManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -52,8 +53,8 @@ object OsuSceneUITests : UITestSuite("Scenes") {
 
             // Played as the main menu does, which isn't shown here.
             onEachFrame { RythimManager.onUpdate(it.elapsedFrameTime) }
-            if (GlobalManager.getInstance().music.currentBeatmap == null) {
-                GlobalManager.getInstance().music.next()
+            if (BeatmapSelection.beatmap == null) {
+                OsuGame.music.next()
             }
 
             lateinit var trigger: UIButton
@@ -95,7 +96,7 @@ object OsuSceneUITests : UITestSuite("Scenes") {
 
         test("Mod menu") {
             useGameContext()
-            GlobalManager.getInstance().selectedBeatmap = firstBeatmap()
+            BeatmapSelection.beatmap = firstBeatmap()
 
             showModMenuButton()
             onDispose { ModMenu.back(false) }
@@ -104,7 +105,7 @@ object OsuSceneUITests : UITestSuite("Scenes") {
 
         test("Mod menu (multiplayer)") {
             useGameContext()
-            GlobalManager.getInstance().selectedBeatmap = firstBeatmap()
+            BeatmapSelection.beatmap = firstBeatmap()
 
             // A free mod room this player doesn't host, so only the mods of the player can change.
             val player = TestData.roomPlayer(OnlineManager.getInstance().userId)

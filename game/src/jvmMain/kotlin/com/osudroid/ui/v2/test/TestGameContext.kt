@@ -1,17 +1,18 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.OsuGame
+import com.osudroid.BeatmapSelection
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.testing.UITestStage
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
 
 /**
  * Sets up what the game would, for the scenes and components shown in the UI test browser, which
- * runs without the main activity (see [GlobalManager.isHeadless]).
+ * runs without the main activity (see [com.osudroid.OsuGame.isHeadless]).
  *
  * Everything is made up or kept in memory: the database is seeded with [TestData], songs are played
  * by a [FakeMusicService], gameplay by a [FakeGameScene] and multiplayer by the mock socket of debug
@@ -39,7 +40,6 @@ object TestGameContext {
      * memory, so the game's own is never touched.
      */
     fun install(loadInMemoryDatabase: () -> Unit) {
-        val global = GlobalManager.getInstance()
 
         // The skins of the skin folder, for the settings.
         SkinFolders.load()
@@ -49,12 +49,12 @@ object TestGameContext {
         LibraryManager.loadLibrary()
 
         music = FakeMusicService()
-        global.music = music
+        OsuGame.music = music
 
         gameScene = FakeGameScene()
-        global.gameScene = gameScene
-        global.scoring = ScoringScene(gameScene)
-        gameScene.setScoringScene(global.scoring)
+        OsuGame.gameScene = gameScene
+        OsuGame.scoring = ScoringScene(gameScene)
+        gameScene.setScoringScene(OsuGame.scoring)
 
         // It's on until the account is loaded, which is never done here.
         OnlineManager.getInstance().isStayOnline = false
@@ -70,7 +70,7 @@ object TestGameContext {
         Multiplayer.isMultiplayer = false
 
         music.stop()
-        GlobalManager.getInstance().selectedBeatmap = null
+        BeatmapSelection.beatmap = null
         music.isGaming = false
 
         gameScene.resetPlay()

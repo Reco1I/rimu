@@ -22,7 +22,6 @@ import com.reco1l.verktex.android.AndroidExternalTexture
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.px
 import com.osudroid.ui.v2.UIVideo
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference

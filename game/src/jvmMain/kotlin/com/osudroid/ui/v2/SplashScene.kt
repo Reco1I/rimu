@@ -11,12 +11,25 @@ import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.text.UIText
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 
 /**
  * The scene shown while the game is loading.
  */
 object SplashScene : UIScene() {
+
+    /**
+     * How far the game's startup is, from 0 to 100, shown below the logo.
+     */
+    @JvmStatic
+    @Volatile
+    var progress = 0
+
+    /**
+     * What the startup is doing, shown below the progress, nothing if null.
+     */
+    @JvmStatic
+    @Volatile
+    var info: String? = null
 
     private val loading = UISprite(SkinTextures["loading_start"]).also {
         it.anchor = Anchor.Center
@@ -46,15 +59,14 @@ object SplashScene : UIScene() {
     override fun onUpdate(clock: FrameClock) {
         super.onUpdate(clock)
 
-        val global = GlobalManager.getInstance()
 
         if (isStarting) {
             loading.alpha = minOf(1f, loading.alpha + 0.1f)
             loading.rotationZ = (loading.rotationZ + 180f * clock.elapsedFrameTime) % 360f
         }
 
-        progressText.text = "${global.loadingProgress} %"
-        global.info?.let { infoText.text = it }
+        progressText.text = "$progress %"
+        info?.let { infoText.text = it }
     }
 
     /**
