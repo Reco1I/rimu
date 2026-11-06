@@ -22,7 +22,7 @@ class OnlineEncodingTest {
     @Test
     fun `Test URL encoding matches URLEncoder`() {
         for (sample in samples) {
-            assertEquals(URLEncoder.encode(sample, "UTF-8"), PostBuilder.urlEncode(sample))
+            assertEquals(URLEncoder.encode(sample, "UTF-8"), OnlineManager.urlEncode(sample))
         }
     }
 
