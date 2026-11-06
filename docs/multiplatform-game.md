@@ -295,3 +295,37 @@ The big pieces are done for real, in order:
 4. `:game-desktop`, the desktop launcher over `:verktex:desktop`: the desktop `OsuPlatform`
    (preferences, folders), the strings read from the language pack, the database (Room on the
    JVM), HTTP, and a game host doing what `MainActivity` does at startup.
+
+### Progress
+
+All four steps are done, and the game starts on desktop: the main menu and the settings render, at
+60 FPS on OpenGL (`./gradlew :game-desktop:run`, `--screenshot` saves a frame).
+
+- `OsuPlatform` has a hook for each Android-only feature, with a default for platforms without it:
+  the beatmap listing and set downloads, the block area editor, the progress badge, the replay
+  picker, `createVideo` (`UIVideo` is abstract, `ExoPlayerVideo` is Android's), vibrations, file
+  integrity, updates, the preferences backup, the language, the clipboard, the changelog, the skin
+  texture checks and the login failure message. Settings hide the categories a platform lacks, and
+  `RoomSocket.isAvailable` hides multiplayer. Verktex has `Platform.openUrl` for links.
+- `GlobalManager`, `LibraryManager`, `ScoreBoardItem` and `OnlineScoring` are Kotlin. The activity,
+  its context and the application are in the app's `AndroidGame`.
+- 82 files moved to `game/src/jvmMain/` (all the game's scenes and UI). HUD elements are created by
+  factories instead of kotlin-reflect. OkHttp's `Http` implementation is in `jvmMain` for both
+  platforms.
+- Desktop database: Room only implements suspend DAO functions outside Android, so
+  `:game-desktop:generateSuspendDaos` copies the game's DAOs with suspend functions and generates
+  adapters that block on them, keeping the queries defined once. Desktop databases are recreated
+  instead of migrated for now.
+- Running it found an engine bug, fixed: the desktop image decoder freed a moved buffer, which
+  corrupted the heap.
+
+Left for desktop, roughly in order:
+
+1. Importing `.osz` and `.osk` files (Android's `loadBeatmapLibrary`/`checkNewSkins` use `FileUtils`,
+   which is Android code); desktop only scans folders already extracted into `Songs/`.
+2. Toasts: Verktex has no toast component yet, desktop logs them.
+3. Multiplayer: a `RoomSocket` for desktop (or the planned Socket.IO client over Ktor).
+4. Videos, the beatmap listing, the block area editor and the replay picker, as Verktex rewrites.
+5. Moving `jvmMain` code to `commonMain` as its JVM uses are replaced.
+6. The app's `MigrationTest` fails since `DatabaseManager.databasePath` reads `OsuPlatform`, which
+   the test doesn't set (since `057734a75`, before this work).
