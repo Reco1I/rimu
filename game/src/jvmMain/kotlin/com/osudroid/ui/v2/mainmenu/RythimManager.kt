@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.osudroid.OsuGame
 import com.osudroid.beatmaps.parser.BeatmapParser
 import com.osudroid.beatmaps.timings.EffectControlPoint
 import com.osudroid.beatmaps.timings.EffectControlPointManager
@@ -7,7 +8,6 @@ import com.osudroid.beatmaps.timings.TimingControlPoint
 import com.osudroid.beatmaps.timings.TimingControlPointManager
 import com.osudroid.data.BeatmapInfo
 import com.reco1l.verktex.Logger
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 
 /**
  * The beat of the song playing in the menu, from the control points of its beatmap.
@@ -114,7 +114,7 @@ object RythimManager {
      * Follows the music, and plays the next song when one ends. Called every frame by the menu.
      */
     fun onUpdate(secondsElapsed: Float) {
-        val music = GlobalManager.getInstance().music
+        val music = OsuGame.music
         music.update()
 
         if (music.currentBeatmap != loadedBeatmap) {

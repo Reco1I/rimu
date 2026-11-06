@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.settings
 
+import com.osudroid.OsuGame
+import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
 import com.osudroid.game.GameplayVibrations
 import com.osudroid.settings.SettingsBackup
@@ -40,7 +42,6 @@ import com.osudroid.utils.ModHashMap
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.ui.control.UISelect
 import kotlinx.coroutines.Job
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -355,7 +356,7 @@ val generalSection = listOf(
                     val success = SettingsBackup.import()
 
                     if (success) {
-                        GlobalManager.getInstance().music.volume = OsuSettings.musicVolume
+                        OsuGame.music.volume = OsuSettings.musicVolume
 
                         loadSkin(SkinFolders.path).invokeOnCompletion {
                             mainThread {
@@ -434,10 +435,9 @@ val gameplaySection = listOf(
                 // It plays the beatmap, which can't be done from a multiplayer room.
                 onAttach = { (it as UIButton).isEnabled = !Multiplayer.isMultiplayer },
                 onClick = {
-                    val global = GlobalManager.getInstance()
-                    val selectedBeatmap = global.selectedBeatmap
+                    val selectedBeatmap = BeatmapSelection.beatmap
 
-                    if (global.isHeadless) {
+                    if (OsuGame.isHeadless) {
                         Toasts.showLong("The HUD editor needs the game running")
                     } else if (LibraryManager.getSizeOfBeatmaps() == 0 || selectedBeatmap == null) {
                         Toasts.showLong("Cannot enter HUD editor with empty beatmap library!")
@@ -449,8 +449,8 @@ val gameplaySection = listOf(
                         // The editor returns to the menu, as the settings closed before it.
                         (Verktex.scene as? SettingsMenu)?.back()
 
-                        global.gameScene.setOldScene(MainScene)
-                        global.gameScene.startGame(selectedBeatmap, null, modMap, true)
+                        OsuGame.gameScene.setOldScene(MainScene)
+                        OsuGame.gameScene.startGame(selectedBeatmap, null, modMap, true)
                     }
                 }
             ),
@@ -826,7 +826,7 @@ val audioSection = listOf(
                 step = 0.1f,
                 valueFormatter = { "%.1f%%".format(it) },
                 onChange = { value ->
-                    GlobalManager.getInstance().music.volume = value as Float / 100f
+                    OsuGame.music.volume = value as Float / 100f
                 }
             ),
             OptionInfo(

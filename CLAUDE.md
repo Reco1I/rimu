@@ -35,7 +35,7 @@ Engine tests live in `verktex/core/src/jvmTest/` and in the other modules' `src/
 
 The game is split in three modules, see `docs/multiplatform-game.md`:
 
-- `:game` (`game/`): the game itself, Kotlin Multiplatform with only the JVM as a target for now. What doesn't depend on the JVM is in `src/commonMain/` and is checked with `./gradlew -Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs`. What still does (the scenes, `GameScene`, `GlobalManager`, `LibraryManager`, most of the UI) is in `src/jvmMain/` until it's rewritten as common code. What it needs from the platform goes through Verktex's `Platform` (clipboard, haptics, file picking, refresh rate…), and what only the game's hosts provide through `OsuGameHost` (`OsuGameHost.current`), implemented by `MainActivity` (over `AndroidOsuGameHost`), `OsuDesktop` and the UI test browsers; its optional features (the beatmap listing, videos, updates…) default to "not available". Its tests are in `src/jvmTest/` and run with `./gradlew :game:jvmTest`.
+- `:game` (`game/`): the game itself, Kotlin Multiplatform with only the JVM as a target for now. What doesn't depend on the JVM is in `src/commonMain/` and is checked with `./gradlew -Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs`. What still does (the scenes, `GameScene`, `OsuGame`, `LibraryManager`, most of the UI) is in `src/jvmMain/` until it's rewritten as common code. What it needs from the platform goes through Verktex's `Platform` (clipboard, haptics, file picking, refresh rate…), and what only the game's hosts provide through `OsuGameHost` (`OsuGameHost.current`), implemented by `MainActivity` (over `AndroidOsuGameHost`), `OsuDesktop` and the UI test browsers; its optional features (the beatmap listing, videos, updates…) default to "not available". Its tests are in `src/jvmTest/` and run with `./gradlew :game:jvmTest`.
 - The root module (`src/`): the Android app, a shell around `:game`: `MainActivity`, the services, Firebase, the Android database, the platform implementations and the features only Android has so far (the beatmap listing, the block area editor, the old fragments and dialogs).
 - `:game-desktop`: the desktop launcher, over `:verktex:desktop`. Run it with `./gradlew :game-desktop:run`; `--args="--screenshot build/game.png --delay 10"` saves a frame after the delay and exits. It has no beatmap listing or videos yet (multiplayer connects but is untried), and its database is recreated instead of migrated.
 
@@ -45,7 +45,7 @@ The game is split in three modules, see `docs/multiplatform-game.md`:
 
 The codebase is split across multiple main package roots, each in `game/src/{commonMain,jvmMain}/kotlin/` and, for its Android parts, in `src/`:
 
-- **`ru/nsu/ccfit/zuev/osu/`** — Legacy code, mostly converted to Kotlin: `GameScene`, `ScoringScene`, `GlobalManager` and `LibraryManager` are in `:game`, `MainActivity` (still Java) in the app. Most subsystems here are singletons.
+- **`ru/nsu/ccfit/zuev/osu/`** — Legacy code, mostly converted to Kotlin: `GameScene`, `ScoringScene` and `LibraryManager` are in `:game`, `MainActivity` (still Java) in the app. Most subsystems here are singletons.
 - **`com/acivev/`** — Vibration and haptic feedback management (`VibratorManager`, `VibratorCheckUtils`, etc.) as well as snow effects (`ui/Effect.kt`).
 - **`com/edlplan/andengine/`** — `TriangleBuilder`, used to build slider body geometry.
 - **`com/edlplan/framework/`** — Math, easing and utility classes.
@@ -121,7 +121,7 @@ Text goes through Verktex's `Localization` (`verktex/core/.../localization/`). `
 
 ### Audio
 
-BASS native library, bundled in `:verktex:android` and reached through Verktex's audio API. `MusicService` (`com/osudroid/audio/`, reached through `GlobalManager.music`) plays songs and knows their beatmap, and `BassSoundProvider` plays sound effects.
+BASS native library, bundled in `:verktex:android` and reached through Verktex's audio API. `MusicService` (`com/osudroid/audio/`, reached through `OsuGame.music`) plays songs and knows their beatmap, and `BassSoundProvider` plays sound effects.
 
 ### Beatmaps & Difficulty
 

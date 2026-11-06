@@ -1,5 +1,6 @@
 package com.osudroid.beatmaplisting
 
+import com.osudroid.OsuGame
 import io.ktor.client.request.get
 import io.ktor.client.call.body
 import com.osudroid.online.httpClient
@@ -58,7 +59,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.SupervisorJob
 import ru.nsu.ccfit.zuev.audio.Status
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osuplus.R
 import java.text.SimpleDateFormat
@@ -308,7 +308,7 @@ class BeatmapListing : BaseFragment(),
 
 
     override fun show() {
-        isPlayingMusic = GlobalManager.getInstance().music.status == Status.PLAYING
+        isPlayingMusic = OsuGame.music.status == Status.PLAYING
         super.show()
     }
 
@@ -717,14 +717,14 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
                         stopPreview(true)
     
                         if (BeatmapListing.isPlayingMusic) {
-                            GlobalManager.getInstance().music.play()
+                            OsuGame.music.play()
                         }
                     }
                 }
 
                 ensureActive()
 
-                GlobalManager.getInstance().music.pause()
+                OsuGame.music.pause()
 
                 previewStream!!.volume = OsuSettings.musicVolume
                 previewStream!!.play()
@@ -779,7 +779,7 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
         }
 
         if (shouldResumeMusic && BeatmapListing.isPlayingMusic) {
-            GlobalManager.getInstance().music.play()
+            OsuGame.music.play()
         }
     }
 

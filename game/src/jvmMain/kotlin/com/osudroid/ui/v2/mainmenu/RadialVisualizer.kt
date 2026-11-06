@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.osudroid.OsuGame
 import com.reco1l.framework.forEachIndexedTolerant
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.dip
@@ -9,7 +10,6 @@ import com.reco1l.verktex.math.FloatInterpolation
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.ui.UICanvas
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.min
@@ -39,7 +39,7 @@ class RadialVisualizer : UICanvas() {
     var magnitudeMultiplier = 2f
 
 
-    private val music = GlobalManager.getInstance().music
+    private val music = OsuGame.music
 
     private var bars = mutableListOf<BarInfo>()
     private var visualizerRadius = 0f

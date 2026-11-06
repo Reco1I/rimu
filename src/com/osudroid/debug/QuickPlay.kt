@@ -1,12 +1,13 @@
 package com.osudroid.debug
 
+import com.osudroid.OsuGame
+import com.osudroid.BeatmapSelection
 import android.content.Intent
 import com.reco1l.verktex.Logger
 import com.osudroid.mods.ModAutoplay
 import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.ModHashMap
 import com.reco1l.verktex.texture.Textures
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig
 
@@ -46,12 +47,11 @@ object QuickPlay {
         // Once only, not again when the activity is recreated.
         intent.removeExtra(EXTRA_BEATMAP)
 
-        val global = GlobalManager.getInstance()
         val beatmaps = LibraryManager.getLibrary().flatMap { it.beatmaps }
         val words = query.lowercase().split(' ').filter { it.isNotBlank() }
 
         val beatmap = if (words.isEmpty()) {
-            global.selectedBeatmap ?: beatmaps.firstOrNull()
+            BeatmapSelection.beatmap ?: beatmaps.firstOrNull()
         } else {
             beatmaps.firstOrNull { beatmap ->
                 val name = "${beatmap.artist} - ${beatmap.title} [${beatmap.version}]".lowercase()
@@ -71,11 +71,11 @@ object QuickPlay {
 
         Logger.i(TAG, "Playing ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] with ${mods.values}")
 
-        global.selectedBeatmap = beatmap
+        BeatmapSelection.beatmap = beatmap
         // Song select loads it otherwise, the game scene expects it.
         beatmap.backgroundPath?.let { Textures.load("::background", it) }
-        global.gameScene.setOldScene(SongSelect)
-        global.gameScene.startGame(beatmap, null, mods)
+        OsuGame.gameScene.setOldScene(SongSelect)
+        OsuGame.gameScene.startGame(beatmap, null, mods)
         return true
     }
 }

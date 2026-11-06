@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.hud
 
+import com.osudroid.OsuGame
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.utils.LenientJson
 import kotlinx.serialization.json.Json
@@ -26,7 +27,6 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.framework.forEachTolerant
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.*
@@ -77,7 +77,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
 
     override fun onUpdate(clock: FrameClock) {
-        if (Verktex.scene != GlobalManager.getInstance().gameScene?.scene) {
+        if (Verktex.scene != OsuGame.gameScene?.scene) {
             // Detach on the next tick to ensure that parent's entity list stays stable throughout this tick.
             updateThread { removeSelf() }
             return
@@ -262,7 +262,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
      */
     fun setEditMode(value: Boolean) {
         isInEditMode = value
-        GlobalManager.getInstance().gameScene.isHUDEditorMode = value
+        OsuGame.gameScene.isHUDEditorMode = value
 
         if (value) {
             elementSelector = HUDElementSelector(this)

@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.OsuGame
+import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -69,7 +71,6 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import ru.nsu.ccfit.zuev.audio.Status
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.ui.themed
@@ -323,7 +324,7 @@ class RoomScene(
                                 onActionUp = {
                                     if (Multiplayer.isRoomHost) {
                                         if (LibraryManager.getLibrary().isEmpty()) {
-                                            GlobalManager.getInstance().music.pause()
+                                            OsuGame.music.pause()
                                             OsuGameHost.current.showBeatmapListing()
                                         }
 
@@ -607,7 +608,7 @@ class RoomScene(
         updateBeatmapInfo(roomBeatmap)
 
         downloadBeatmapButton.apply {
-            val beatmapInfo = GlobalManager.getInstance().selectedBeatmap
+            val beatmapInfo = BeatmapSelection.beatmap
 
             if (beatmapInfo == null && OsuGameHost.current.hasBeatmapListing) {
                 isVisible = true
@@ -645,7 +646,7 @@ class RoomScene(
 
     @JvmOverloads
     fun updateBeatmapInfo(roomBeatmap: RoomBeatmap? = room.beatmap) {
-        val beatmapInfo = GlobalManager.getInstance().selectedBeatmap
+        val beatmapInfo = BeatmapSelection.beatmap
 
         if (beatmapInfo != null) {
             beatmapInfoLayout.setBeatmapInfo(beatmapInfo)
@@ -672,7 +673,7 @@ class RoomScene(
 
         var newStatus = PlayerStatus.NotReady
 
-        if (room.beatmap != null && GlobalManager.getInstance().selectedBeatmap == null) {
+        if (room.beatmap != null && BeatmapSelection.beatmap == null) {
             newStatus = PlayerStatus.MissingBeatmap
         }
 
@@ -766,10 +767,10 @@ class RoomScene(
 
     override fun onUpdate(clock: FrameClock) {
         if (Settings[OsuSettings.PlayMusicPreview] && allowAutomaticPlaybackRestart) {
-            val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap
+            val selectedBeatmap = BeatmapSelection.beatmap
 
             if (selectedBeatmap != null) {
-                val music = GlobalManager.getInstance().music
+                val music = OsuGame.music
 
                 if (music.status == Status.STOPPED) {
                     music.preLoad(selectedBeatmap.audioPath)
@@ -838,7 +839,7 @@ class RoomScene(
             val player = Multiplayer.player ?: return
 
             // If the server reports Playing, the match started while the player was disconnected.
-            if (player.status == PlayerStatus.Playing && GlobalManager.getInstance().selectedBeatmap != null) {
+            if (player.status == PlayerStatus.Playing && BeatmapSelection.beatmap != null) {
                 onRoomMatchPlay()
             } else {
                 // Always re-sync status after reconnection so that the isWaitingForStatusChange lock
@@ -850,7 +851,7 @@ class RoomScene(
         }
 
         val beatmapInfo = LibraryManager.findBeatmapByMD5(newRoom.beatmap?.md5)
-        GlobalManager.getInstance().selectedBeatmap = beatmapInfo
+        BeatmapSelection.beatmap = beatmapInfo
 
         updateBackground(beatmapInfo?.backgroundPath)
         updateBeatmap(newRoom.beatmap)
@@ -919,7 +920,7 @@ class RoomScene(
 
         room.beatmap = beatmap
 
-        GlobalManager.getInstance().selectedBeatmap = LibraryManager.findBeatmapByMD5(beatmap?.md5)
+        BeatmapSelection.beatmap = LibraryManager.findBeatmapByMD5(beatmap?.md5)
 
         if (Verktex.scene != this) {
             updateThread { updateBeatmapInfo() }
@@ -935,19 +936,19 @@ class RoomScene(
         invalidateStatus()
         isWaitingForBeatmapChange.set(false)
 
-        val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap
+        val selectedBeatmap = BeatmapSelection.beatmap
         updateThread {
             updateBackground(selectedBeatmap?.backgroundPath)
             updateBeatmap(beatmap)
         }
 
         if (selectedBeatmap == null) {
-            GlobalManager.getInstance().music.stop()
+            OsuGame.music.stop()
             return
         }
 
-        GlobalManager.getInstance().music.preLoad(selectedBeatmap.audioPath)
-        GlobalManager.getInstance().music.play()
+        OsuGame.music.preLoad(selectedBeatmap.audioPath)
+        OsuGame.music.play()
     }
 
     override fun onRoomHostChange(uid: Long) {
@@ -1085,18 +1086,17 @@ class RoomScene(
         }
 
         updateThread {
-            val global = GlobalManager.getInstance()
 
-            if (player.status != PlayerStatus.MissingBeatmap && Verktex.scene != global.gameScene.scene) {
+            if (player.status != PlayerStatus.MissingBeatmap && Verktex.scene != OsuGame.gameScene.scene) {
 
-                if (global.selectedBeatmap == null) {
+                if (BeatmapSelection.beatmap == null) {
                     Multiplayer.log("WARNING: Attempt to start match with null track.")
                     return@updateThread
                 }
 
                 allowAutomaticPlaybackRestart = false
-                global.music.stop()
-                global.gameScene.startGame(global.selectedBeatmap, null, ModMenu.enabledMods)
+                OsuGame.music.stop()
+                OsuGame.gameScene.startGame(BeatmapSelection.beatmap, null, ModMenu.enabledMods)
 
             }
         }
@@ -1107,7 +1107,7 @@ class RoomScene(
     override fun onRoomMatchStart() {
         updateThread {
             if (Verktex.scene is GameLoaderScene) {
-                GlobalManager.getInstance().gameScene.isReadyToStart = true
+                OsuGame.gameScene.isReadyToStart = true
             }
         }
 
@@ -1117,11 +1117,11 @@ class RoomScene(
     override fun onRoomMatchSkip() {
 
         updateThread {
-            if (Verktex.scene != GlobalManager.getInstance().gameScene.scene) {
+            if (Verktex.scene != OsuGame.gameScene.scene) {
                 return@updateThread
             }
 
-            GlobalManager.getInstance().gameScene.skip()
+            OsuGame.gameScene.skip()
         }
     }
 
@@ -1170,7 +1170,7 @@ class RoomScene(
             Multiplayer.log("Kicked from room.")
 
             updateThread {
-                if (Verktex.scene == GlobalManager.getInstance().gameScene.scene) {
+                if (Verktex.scene == OsuGame.gameScene.scene) {
                     // Kicked while a game is in progress. We cannot navigate away from the
                     // game scene immediately — doing so would abruptly interrupt gameplay.
                     // Instead:

@@ -8,7 +8,6 @@ import java.io.File
 import com.osudroid.utils.LenientJson
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import ru.nsu.ccfit.zuev.skins.SkinJsonReader
 
@@ -56,7 +55,7 @@ object Skin {
             return null
         }
 
-        GlobalManager.getInstance().info = ("Reading skin.ini...")
+        SplashScene.info = ("Reading skin.ini...")
 
         val json = try {
             IniReader(iniFile.path).use { convertToJson(it) }

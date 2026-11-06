@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.BeatmapSelection
 import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.resources.Res.string
 import com.osudroid.multiplayer.api.*
@@ -46,7 +47,7 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
                     val password = data["password"]?.toString().orEmpty().takeUnless(String::isBlank)
                     val capacity = (data["capacity"] as Number).toInt()
 
-                    val beatmap = GlobalManager.getInstance().selectedBeatmap?.let {
+                    val beatmap = BeatmapSelection.beatmap?.let {
 
                         RoomBeatmap(
                             md5 = it.md5,

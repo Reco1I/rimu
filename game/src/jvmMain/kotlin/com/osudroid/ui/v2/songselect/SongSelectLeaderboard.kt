@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.songselect
 
+import com.osudroid.BeatmapSelection
 import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
@@ -52,7 +53,7 @@ class SongSelectLeaderboard : UILinearContainer() {
             if (field != value) {
                 field = value
                 scoresContainer.onCreateComponent = { LeaderboardItem(value == Global) }
-                onBeatmapSelected(SongSelect.selectedBeatmap)
+                onBeatmapSelected(BeatmapSelection.beatmap)
             }
         }
 

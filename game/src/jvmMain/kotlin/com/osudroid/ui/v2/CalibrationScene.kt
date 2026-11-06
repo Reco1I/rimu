@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.OsuGame
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.control.IntegerTextInput
@@ -48,7 +49,6 @@ import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.audio.Status
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.themed
 
 object CalibrationScene : UIScene() {
@@ -441,7 +441,7 @@ object CalibrationScene : UIScene() {
         updateTapFeedback()
         highPrecisionToggle.value = Settings[OsuSettings.HighPrecisionInput]
 
-        val music = GlobalManager.getInstance().music
+        val music = OsuGame.music
         wasMusicPlaying = music.status == Status.PLAYING
 
         if (wasMusicPlaying) {
@@ -453,7 +453,7 @@ object CalibrationScene : UIScene() {
 
     fun back() {
         if (wasMusicPlaying) {
-            GlobalManager.getInstance().music.play()
+            OsuGame.music.play()
         }
 
         Verktex.withTreeLock { Verktex.popScene() }

@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.osudroid.OsuGame
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.ui.v2.SkinTextures
@@ -19,7 +20,6 @@ import com.reco1l.verktex.graphics.DepthState
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.data.px
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 
 class HUDBackButton : HUDElement() {
 
@@ -97,7 +97,7 @@ class HUDBackButton : HUDElement() {
 
                 if (holdDurationMs >= requiredPressTimeMs) {
                     isPressed = false
-                    GlobalManager.getInstance().gameScene.pause()
+                    OsuGame.gameScene.pause()
                 }
             } else {
                 holdDurationMs -= realMsElapsed * 2

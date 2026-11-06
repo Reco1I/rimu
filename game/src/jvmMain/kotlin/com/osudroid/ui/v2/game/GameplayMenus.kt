@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.game
 
+import com.osudroid.OsuGame
 import com.osudroid.settings.GameResolution
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.SkinSounds
@@ -16,7 +17,6 @@ import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.fadeIn
 import kotlin.math.hypot
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.skins.OsuSkin
@@ -65,7 +65,7 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : UICo
             }
 
             +MenuItem("pause-back") {
-                GlobalManager.getInstance().scoring.replayID = -1
+                OsuGame.scoring.replayID = -1
                 SkinSounds["menuback"].play()
                 game.quit()
             }

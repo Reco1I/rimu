@@ -1,14 +1,14 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.osudroid.OsuGame
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.ui.v2.hud.HUDElement
 import com.reco1l.verktex.data.Color4
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import kotlin.math.abs
 
 sealed class HUDHitErrorMeter : HUDElement() {
-    protected val hitWindow: HitWindow = GlobalManager.getInstance().gameScene.hitWindow!!
+    protected val hitWindow: HitWindow = OsuGame.gameScene.hitWindow!!
 
     protected val greatColor = Color4(70, 180, 220)
     protected val okColor = Color4(100, 220, 40)

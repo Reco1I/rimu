@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -221,8 +222,7 @@ object MainScene : UIScene() {
                             OsuGameHost.current.checkNewSkins()
                             OsuGameHost.current.loadBeatmapLibrary()
 
-                            // Song select opens on the beatmap playing in the menu.
-                            GlobalManager.getInstance().music.currentBeatmap?.let { GlobalManager.getInstance().selectedBeatmap = it }
+                            // Song select opens on the beatmap playing in the menu, the selection.
                             SongSelect.loadBeatmaps()
 
                             if (LibraryManager.getLibrary().isEmpty()) {
@@ -235,7 +235,7 @@ object MainScene : UIScene() {
                                 }
 
                                 // After the menu was entered again by removing the loader, which resets it.
-                                GlobalManager.getInstance().music.isGaming = true
+                                OsuGame.music.isGaming = true
                             }
                         }
                     }
@@ -264,7 +264,7 @@ object MainScene : UIScene() {
                                 }
 
                                 // After the menu was entered again by removing the loader, which resets it.
-                                GlobalManager.getInstance().music.isGaming = true
+                                OsuGame.music.isGaming = true
                             }
                         }
                     }
@@ -353,7 +353,7 @@ object MainScene : UIScene() {
 
         }
 
-        GlobalManager.getInstance().music.addOnBeatmapChangeListener(this) { beatmap ->
+        BeatmapSelection.addListener(this) { beatmap ->
             changeBackground(beatmap)
 
             updateMusicButton()
@@ -380,9 +380,8 @@ object MainScene : UIScene() {
      * Sets the beatmap being played in the menu.
      */
     fun setBeatmap(beatmapInfo: BeatmapInfo) {
-        GlobalManager.getInstance().selectedBeatmap = beatmapInfo
-
-        GlobalManager.getInstance().music.play(beatmapInfo)
+        // Which selects it too.
+        OsuGame.music.play(beatmapInfo)
     }
 
     /**
@@ -396,7 +395,6 @@ object MainScene : UIScene() {
         }
 
         val beatmap = LibraryManager.findBeatmapByMD5(replay.md5) ?: return
-        val global = GlobalManager.getInstance()
 
         setBeatmap(beatmap)
 
@@ -404,8 +402,8 @@ object MainScene : UIScene() {
         stat.migrateLegacyMods(beatmap.getBeatmapDifficulty())
         stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
 
-        global.scoring.load(stat, null, global.music, replayFile, null, beatmap)
-        Verktex.pushScene(global.scoring.scene!!)
+        OsuGame.scoring.load(stat, null, OsuGame.music, replayFile, null, beatmap)
+        Verktex.pushScene(OsuGame.scoring.scene!!)
     }
 
     /**
@@ -417,7 +415,7 @@ object MainScene : UIScene() {
         }
 
         // Headless (e.g. in the UI test browser) there's no game to leave, the menu stays usable.
-        if (GlobalManager.getInstance().isHeadless) {
+        if (OsuGame.isHeadless) {
             Toasts.show("Would exit the game")
             return
         }
@@ -425,7 +423,7 @@ object MainScene : UIScene() {
         isExiting = true
         isMenuExpanded = false
 
-        GlobalManager.getInstance().music.stop()
+        OsuGame.music.stop()
         SkinSounds["seeya"].play()
 
         backgroundSprite.fadeOut(0.4f)
@@ -453,10 +451,9 @@ object MainScene : UIScene() {
     override fun onEnter() {
         super.onEnter()
 
-        val global = GlobalManager.getInstance()
 
         // Songs end on their own in the menu instead of stopping as in gameplay.
-        global.music.isGaming = false
+        OsuGame.music.isGaming = false
 
         if (!hasEntered) {
             hasEntered = true
@@ -470,15 +467,12 @@ object MainScene : UIScene() {
             OnlineScoring.getInstance().login()
         }
 
-        val selectedBeatmap = global.selectedBeatmap
-        val music = global.music
+        val music = OsuGame.music
 
-        if (music.isPlaying && selectedBeatmap != null && selectedBeatmap != music.currentBeatmap) {
-            // Song select left its beatmap playing, the menu follows it from where it is.
-            music.currentBeatmap = selectedBeatmap
-        } else if (!music.isPlaying) {
+        // A song left playing (e.g. by song select) goes on, it's the selection's.
+        if (!music.isPlaying) {
             // Null with an empty library, the menu stays silent.
-            val beatmap = music.currentBeatmap ?: LibraryManager.getLibrary().randomOrNull()?.beatmaps?.randomOrNull()
+            val beatmap = BeatmapSelection.beatmap ?: LibraryManager.getLibrary().randomOrNull()?.beatmaps?.randomOrNull()
             beatmap?.let { music.play(it) }
         }
 
@@ -486,7 +480,7 @@ object MainScene : UIScene() {
     }
 
     private fun updateMusicButton() {
-        val beatmap = GlobalManager.getInstance().music.currentBeatmap
+        val beatmap = BeatmapSelection.beatmap
         musicButton.text = if (beatmap != null) "${beatmap.titleText} - ${beatmap.artistText}" else ""
         lastMusicChange = System.currentTimeMillis()
     }
@@ -523,7 +517,7 @@ object MainScene : UIScene() {
      * Bursts stars from the bottom corners for a while when a kiai section starts, as the old menu did.
      */
     private fun updateKiaiParticles(deltaTimeSec: Float) {
-        val isKiai = GlobalManager.getInstance().music.isPlaying && RythimManager.isKiai
+        val isKiai = OsuGame.music.isPlaying && RythimManager.isKiai
         if (isKiai && !wasKiai) {
             kiaiParticleTime = KIAI_PARTICLE_DURATION
         }

@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.mainmenu
 
-import ru.nsu.ccfit.zuev.osu.GlobalManager
+import com.osudroid.OsuGame
+import com.osudroid.BeatmapSelection
 
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
@@ -89,7 +90,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     step = 0.01f
                     onStartDragging = { draggingProgressSlider = true }
                     onStopDragging = {
-                        GlobalManager.getInstance().music.seekTo((value * 1000).toInt())
+                        OsuGame.music.seekTo((value * 1000).toInt())
                         draggingProgressSlider = false
                     }
                     progressSlider = this
@@ -108,7 +109,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         origin = Anchor.CenterLeft
                         scaleOrigin = Anchor.Center
 
-                        onActionUp = { GlobalManager.getInstance().music.previous() }
+                        onActionUp = { OsuGame.music.previous() }
                     }
 
                     playPauseButton = iconButton {
@@ -118,10 +119,10 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         radius = FULL_RADIUS
 
                         onActionUp = {
-                            if (GlobalManager.getInstance().music.isPlaying) {
-                                GlobalManager.getInstance().music.pause()
+                            if (OsuGame.music.isPlaying) {
+                                OsuGame.music.pause()
                             } else {
-                                GlobalManager.getInstance().music.play()
+                                OsuGame.music.play()
                             }
                         }
                     }
@@ -133,7 +134,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         origin = Anchor.CenterLeft
                         scaleOrigin = Anchor.Center
 
-                        onActionUp = { GlobalManager.getInstance().music.next() }
+                        onActionUp = { OsuGame.music.next() }
                     }
                 }
 
@@ -163,18 +164,18 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
             placeBelowTrigger()
         }
 
-        titleText.text = GlobalManager.getInstance().music.currentBeatmap?.titleText ?: "Unknown"
-        artistText.text = GlobalManager.getInstance().music.currentBeatmap?.artistText ?: "Unknown"
+        titleText.text = BeatmapSelection.beatmap?.titleText ?: "Unknown"
+        artistText.text = BeatmapSelection.beatmap?.artistText ?: "Unknown"
 
-        val showHours = GlobalManager.getInstance().music.length >= 3600000
-        currentTime.text = formatDuration(GlobalManager.getInstance().music.position, showHours)
-        totalTime.text = formatDuration(GlobalManager.getInstance().music.length, showHours)
+        val showHours = OsuGame.music.length >= 3600000
+        currentTime.text = formatDuration(OsuGame.music.position, showHours)
+        totalTime.text = formatDuration(OsuGame.music.length, showHours)
 
-        playPauseButton.icon = if (GlobalManager.getInstance().music.isPlaying) FAIcon.Pause else FAIcon.Play
+        playPauseButton.icon = if (OsuGame.music.isPlaying) FAIcon.Pause else FAIcon.Play
 
-        progressSlider.max = GlobalManager.getInstance().music.length / 1000f
+        progressSlider.max = OsuGame.music.length / 1000f
         if (!draggingProgressSlider) {
-            progressSlider.value = GlobalManager.getInstance().music.position / 1000f
+            progressSlider.value = OsuGame.music.position / 1000f
         }
 
         super.onUpdate(clock)

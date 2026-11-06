@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.osudroid.OsuGame
+import com.osudroid.BeatmapSelection
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.GameMode
@@ -64,7 +66,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.droid
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.standard
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import java.io.IOException
 import java.util.LinkedList
 import java.util.concurrent.CancellationException
@@ -327,7 +328,7 @@ object ModMenu : UICaptureContainer() {
     private fun parseBeatmap() {
         cancelCalculationJob()
 
-        val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap ?: return
+        val selectedBeatmap = BeatmapSelection.beatmap ?: return
 
         calculationJob = async scope@{
 
@@ -435,7 +436,7 @@ object ModMenu : UICaptureContainer() {
     fun back(updatePlayerMods: Boolean = true) {
 
         if (Multiplayer.isConnected) {
-            val gameScene = GlobalManager.getInstance().gameScene
+            val gameScene = OsuGame.gameScene
             val isInGameplay = gameScene != null &&
                     Verktex.scene == gameScene.scene
 
@@ -590,7 +591,7 @@ object ModMenu : UICaptureContainer() {
                 }
         }
 
-        val selectedBeatmap = GlobalManager.getInstance().selectedBeatmap
+        val selectedBeatmap = BeatmapSelection.beatmap
         scoreMultiplierBadge.updateValue(
             1f,
             ScoreMultiplierCalculator(selectedBeatmap?.getBeatmapDifficulty()).calculateFor(

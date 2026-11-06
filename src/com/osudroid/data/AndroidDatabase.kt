@@ -1,5 +1,6 @@
 package com.osudroid.data
 
+import com.osudroid.ui.v2.SplashScene
 import com.osudroid.settings.GameFolders
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
@@ -149,7 +150,7 @@ object AndroidDatabase {
             val oldPropertiesFile = File(context.filesDir, "properties")
 
             if (oldPropertiesFile.exists()) {
-                GlobalManager.getInstance().info = "Migrating beatmap properties..."
+                SplashScene.info = "Migrating beatmap properties..."
 
                 oldPropertiesFile.inputStream().use { fis ->
 
@@ -185,7 +186,7 @@ object AndroidDatabase {
             val oldFavoritesFile = File(GameFolders.corePath, "json/favorite.json")
 
             if (oldFavoritesFile.exists()) {
-                GlobalManager.getInstance().info = "Migrating beatmap collections..."
+                SplashScene.info = "Migrating beatmap collections..."
 
                 val json = JSONObject(oldFavoritesFile.readText())
 
@@ -213,7 +214,7 @@ object AndroidDatabase {
             val oldDatabaseFile = File(GameFolders.corePath, "databases/osudroid_test.db")
 
             if (oldDatabaseFile.exists()) {
-                GlobalManager.getInstance().info = "Migrating score table..."
+                SplashScene.info = "Migrating score table..."
 
                 DBOpenHelper.getOrCreate(context).writableDatabase.use { db ->
 
