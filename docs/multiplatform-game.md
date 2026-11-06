@@ -329,3 +329,9 @@ Left for desktop, roughly in order:
 5. Moving `jvmMain` code to `commonMain` as its JVM uses are replaced.
 6. The app's `MigrationTest` fails since `DatabaseManager.databasePath` reads `OsuPlatform`, which
    the test doesn't set (since `057734a75`, before this work).
+
+## Next: moving shared features into Verktex
+
+The game's own infrastructure (`Config`, `StringTable`, `ToastLogger`, `Http`, `OsuPlatform`,
+`SongService`, `GlobalManager`, the slider body code, `UIVideo`, the database setup) is being replaced
+by Verktex features, see `engine-consolidation.md`.

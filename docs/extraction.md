@@ -52,3 +52,6 @@ The game depends only on `:verktex:android`, which exposes `:verktex:core` as an
 3. **Shared shaders.** Done: the built-in shaders and fonts are in `../verktex/core/assets`, a plain
    folder rather than the core's resources, so they aren't packaged twice in the APK (as assets and
    as jar resources). Each platform packages it itself, see `desktop-platform.md`.
+
+Features the game still implements itself (settings, localization, toasts, networking, the database,
+paths, video) are being moved into Verktex, see `engine-consolidation.md`.
