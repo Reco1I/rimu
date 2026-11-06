@@ -35,7 +35,7 @@ Engine tests live in `verktex/core/src/jvmTest/` and in the other modules' `src/
 
 The game is split in three modules, see `docs/multiplatform-game.md`:
 
-- `:game` (`game/`): the game itself, Kotlin Multiplatform with only the JVM as a target for now. What doesn't depend on the JVM is in `src/commonMain/` and is checked with `./gradlew -Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs`. What still does (the scenes, `GameScene`, `GlobalManager`, `LibraryManager`, most of the UI) is in `src/jvmMain/` until it's rewritten as common code. What it needs from a platform goes through `OsuPlatform.Implementation`, whose optional features (the beatmap listing, videos, vibrations…) default to "not available". Its tests are in `src/jvmTest/` and run with `./gradlew :game:jvmTest`.
+- `:game` (`game/`): the game itself, Kotlin Multiplatform with only the JVM as a target for now. What doesn't depend on the JVM is in `src/commonMain/` and is checked with `./gradlew -Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs`. What still does (the scenes, `GameScene`, `GlobalManager`, `LibraryManager`, most of the UI) is in `src/jvmMain/` until it's rewritten as common code. What it needs from the platform goes through Verktex's `Platform` (clipboard, haptics, file picking, refresh rate…), and what only the game's hosts provide through `OsuGameHost` (`OsuGameHost.current`), implemented by `MainActivity` (over `AndroidOsuGameHost`), `OsuDesktop` and the UI test browsers; its optional features (the beatmap listing, videos, updates…) default to "not available". Its tests are in `src/jvmTest/` and run with `./gradlew :game:jvmTest`.
 - The root module (`src/`): the Android app, a shell around `:game`: `MainActivity`, the services, Firebase, the Android database, the platform implementations and the features only Android has so far (the beatmap listing, the block area editor, the old fragments and dialogs).
 - `:game-desktop`: the desktop launcher, over `:verktex:desktop`. Run it with `./gradlew :game-desktop:run`; `--args="--screenshot build/game.png --delay 10"` saves a frame after the delay and exits. It has no beatmap listing or videos yet (multiplayer connects but is untried), and its database is recreated instead of migrated.
 
@@ -147,6 +147,6 @@ Socket.IO for real-time room events, through `KtorRoomSocket`: a Socket.IO v4 cl
 - Generic UI components belong in `verktex/core/`, and game-specific ones in `com/osudroid/ui/v2/` (Kotlin).
 - Verktex never depends on the game, and `:verktex:core` never depends on Android or the JVM (including `org.json`, which ships with the Android SDK). What it needs from a platform goes through `Platform.Implementation`, everything else through multiplatform libraries; see `docs/extraction.md`.
 - Legacy Java files in `ru/nsu/ccfit/zuev/osu/` are modified in-place; avoid moving them.
-- Game code goes in `:game`, never depending on Android. What only a platform can do goes through `OsuPlatform.Implementation`, with a default for platforms that don't have it.
+- Game code goes in `:game`, never depending on Android. What any platform could do goes through Verktex's `Platform`; what's specific to the game's hosts through `OsuGameHost`, with a default for hosts that don't have it.
 
 @CLAUDE.local.md

@@ -1,10 +1,10 @@
 package com.osudroid.beatmaplisting
 
+import com.osudroid.OsuGameHost
 import com.osudroid.online.downloadTo
 import com.osudroid.online.httpClient
 import com.osudroid.settings.GameFolders
 import com.osudroid.android.AndroidGame
-import com.osudroid.OsuPlatform
 import java.io.File
 import android.os.Environment.DIRECTORY_DOWNLOADS
 import android.view.View
@@ -110,7 +110,7 @@ object BeatmapDownloader {
                     return
                 }
 
-                OsuPlatform.implementation.loadBeatmapLibrary()
+                OsuGameHost.current.loadBeatmapLibrary()
             }
         } catch (e: IOException) {
             Toasts.showLong("Import failed:" + e.message)

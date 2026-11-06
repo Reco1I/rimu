@@ -1,6 +1,6 @@
 package com.osudroid.settings
 
-import com.osudroid.OsuPlatform
+import com.osudroid.OsuGameHost
 import com.osudroid.resources.Languages
 import com.osudroid.ui.v2.SkinFolders
 import com.reco1l.verktex.Logger
@@ -311,14 +311,14 @@ object OsuSettings {
     /**
      * Prepares the settings on start, replacing what `Config.loadConfig` did: on the first start
      * with them, the preferences kept by the platform before are imported (see
-     * [OsuPlatform.Implementation.legacyPreferences]), then the language and the viewport follow
+     * [OsuGameHost.legacyPreferences]), then the language and the viewport follow
      * them.
      */
     @JvmStatic
     fun load() {
         // Only once: right after, the installation has its identifier.
         if (Settings.isNew && !Settings.contains(InstallId)) {
-            importLegacyPreferences(OsuPlatform.implementation.legacyPreferences())
+            importLegacyPreferences(OsuGameHost.current.legacyPreferences())
         }
 
         if (!Settings.contains(InstallId)) {
@@ -330,7 +330,7 @@ object OsuSettings {
         }
 
         GameResolution.measure()
-        OsuPlatform.implementation.setAnnouncementsSubscribed(Settings[ReceiveAnnouncements])
+        OsuGameHost.current.setAnnouncementsSubscribed(Settings[ReceiveAnnouncements])
         Languages.apply(Settings[Language])
     }
 

@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.OsuGameHost
 import com.osudroid.settings.GameFolders
 import com.osudroid.mods.ModDoubleTime
 import com.osudroid.mods.ModEasy
@@ -11,7 +12,6 @@ import com.osudroid.mods.ModRelax
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.SpriteFont
 import com.osudroid.ui.v2.StarRatingBadge
-import com.osudroid.OsuPlatform
 import com.reco1l.verktex.ui.UIBadge
 import com.osudroid.ui.v2.game.CursorSprite
 import com.osudroid.ui.v2.game.NumberedCirclePiece
@@ -241,7 +241,7 @@ object OsuUITests : UITestSuite("osu!") {
 
             log("Loading ${file.parentFile?.name}/${file.name}")
 
-            val video = (OsuPlatform.implementation.createVideo(file.path) ?: return@test).apply {
+            val video = (OsuGameHost.current.createVideo(file.path) ?: return@test).apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
             }

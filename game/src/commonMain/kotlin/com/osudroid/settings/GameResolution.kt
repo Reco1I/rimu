@@ -1,6 +1,6 @@
 package com.osudroid.settings
 
-import com.osudroid.OsuPlatform
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.settings.Settings
 import kotlin.jvm.JvmStatic
@@ -32,8 +32,8 @@ object GameResolution {
      */
     @JvmStatic
     fun measure() {
-        val displayWidth = OsuPlatform.implementation.displayWidth
-        val displayHeight = OsuPlatform.implementation.displayHeight
+        val displayWidth = Platform.currentDisplay.width
+        val displayHeight = Platform.currentDisplay.height
 
         val longSide = max(displayWidth, displayHeight)
         val shortSide = min(displayWidth, displayHeight)

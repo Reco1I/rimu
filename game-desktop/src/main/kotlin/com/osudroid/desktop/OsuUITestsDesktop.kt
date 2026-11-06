@@ -1,5 +1,7 @@
 package com.osudroid.desktop
 
+import com.osudroid.settings.OsuSettings
+import com.osudroid.OsuGameHost
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.ui.v2.Skin
 import com.osudroid.ui.v2.test.OsuGameplayUITests
@@ -18,10 +20,12 @@ import kotlin.system.exitProcess
  * ./gradlew :game-desktop:runUITests --args="--test 'osu!/Hit circles' --screenshot build/test.png"
  * ```
  */
-class OsuUITestsDesktop(initialTest: String?, screenshot: File?) : UITestApplication(initialTest, screenshot) {
+class OsuUITestsDesktop(initialTest: String?, screenshot: File?) : UITestApplication(initialTest, screenshot), OsuGameHost {
+
+    override val application = DESKTOP_APPLICATION
 
     override fun onEngineInitialized() {
-        initializeDesktopPlatform()
+        OsuSettings.load()
         Skin.load(SkinFolders.path)
 
         // Before any suite is created, the components under test reach the game through it.

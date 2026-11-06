@@ -38,6 +38,11 @@ fun Verktex.initializeAndroid(
 
     val backend = GraphicsBackend.fromName(Settings[VerktexSettings.GraphicsBackend])
 
+    // Picking Vulkan again retries it, even if it crashed while starting the last time.
+    Settings.observe(VerktexSettings.GraphicsBackend) { name ->
+        if (name == GraphicsBackend.Vulkan.name) resetVulkanCrashGuard()
+    }
+
     val renderer = (if (backend == GraphicsBackend.Vulkan) createVulkanRenderer(host, window) else null)
         ?: createESRenderer(window, if (backend == GraphicsBackend.OpenGLES2) ESVersion.ES2 else ESVersion.ES3)
 
@@ -54,16 +59,15 @@ fun Verktex.initializeAndroid(
  * Whether the device reports Vulkan 1.1 hardware, the version the experimental Vulkan backend
  * targets. It may still fall back to OpenGL ES if it can't be initialized.
  */
-fun isVulkanAvailable(context: Context): Boolean {
+internal fun isVulkanAvailable(context: Context): Boolean {
     return context.packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION, VULKAN_1_1)
 }
 
 /**
  * Lets Vulkan be tried again after it crashed while starting (see [createVulkanRenderer]), e.g. once
- * the user picks it again.
+ * the user picks it again, which [initializeAndroid] watches for.
  */
-@Suppress("UNUSED_PARAMETER")
-fun resetVulkanCrashGuard(context: Context) {
+internal fun resetVulkanCrashGuard() {
     Settings[VerktexSettings.VulkanStarting] = false
 }
 
@@ -89,14 +93,14 @@ private fun createVulkanRenderer(host: AndroidGameHost, window: AndroidWindow): 
         context = VKContext(window, enableValidation = isDebuggable)
         VKRenderer(context, VKDevice(context), window).also { renderer ->
             Logger.i("Verktex", "Using the experimental Vulkan backend: ${context.version}.")
-            renderer.onFirstFramePresented = { resetVulkanCrashGuard(host) }
+            renderer.onFirstFramePresented = { resetVulkanCrashGuard() }
         }
     } catch (e: Throwable) {
         // UnsatisfiedLinkError included, e.g. an ABI the native library wasn't built for. It failed
         // without crashing, there's no reason not to try again next time.
         Logger.e("Verktex", "Couldn't use Vulkan, falling back to OpenGL ES.", e)
         try { context?.destroy() } catch (_: Throwable) {}
-        resetVulkanCrashGuard(host)
+        resetVulkanCrashGuard()
         null
     }
 }

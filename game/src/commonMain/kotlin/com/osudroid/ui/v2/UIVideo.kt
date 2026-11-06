@@ -1,10 +1,11 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.OsuGameHost
 import com.reco1l.verktex.ui.UISprite
 
 /**
  * Plays a video file without sound. Each platform implements it with its own decoder, and creates it
- * with `OsuPlatform.implementation.createVideo`.
+ * with `OsuGameHost.current.createVideo`.
  */
 abstract class UIVideo : UISprite() {
 

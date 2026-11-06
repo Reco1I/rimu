@@ -1,7 +1,7 @@
 package com.osudroid.data
 
+import com.osudroid.OsuGameHost
 import com.osudroid.settings.GameFolders
-import com.osudroid.OsuPlatform
 import kotlin.jvm.JvmStatic
 
 // Ported from rimu! project
@@ -81,7 +81,7 @@ object DatabaseManager {
      */
     @JvmStatic
     val databasePath: String
-        get() = "${GameFolders.corePath}databases/room-${OsuPlatform.implementation.buildType}.db"
+        get() = "${GameFolders.corePath}databases/room-${OsuGameHost.current.buildType}.db"
 
     /**
      * The database, set by the platform once it's open.

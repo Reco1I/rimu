@@ -1,15 +1,14 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.OsuGameHost
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.utils.*
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
 
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.BuildSettings
 import java.util.concurrent.atomic.AtomicBoolean
-import com.osudroid.OsuPlatform
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.IPlayerEventListener
 import com.osudroid.multiplayer.api.IRoomEventListener
@@ -325,7 +324,7 @@ class RoomScene(
                                     if (Multiplayer.isRoomHost) {
                                         if (LibraryManager.getLibrary().isEmpty()) {
                                             GlobalManager.getInstance().music.pause()
-                                            OsuPlatform.implementation.showBeatmapListing()
+                                            OsuGameHost.current.showBeatmapListing()
                                         }
 
                                         SongSelect.loadBeatmaps()
@@ -610,7 +609,7 @@ class RoomScene(
         downloadBeatmapButton.apply {
             val beatmapInfo = GlobalManager.getInstance().selectedBeatmap
 
-            if (beatmapInfo == null && OsuPlatform.implementation.hasBeatmapListing) {
+            if (beatmapInfo == null && OsuGameHost.current.hasBeatmapListing) {
                 isVisible = true
 
                 if (roomBeatmap.parentSetID == null) {
@@ -626,7 +625,7 @@ class RoomScene(
                 onActionUp = {
                     async {
                         try {
-                            OsuPlatform.implementation.downloadBeatmapSet(
+                            OsuGameHost.current.downloadBeatmapSet(
                                 roomBeatmap.parentSetID!!,
                                 "${roomBeatmap.parentSetID} ${roomBeatmap.artist} - ${roomBeatmap.title}"
                             )

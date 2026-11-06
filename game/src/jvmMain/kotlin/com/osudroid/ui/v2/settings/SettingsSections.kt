@@ -1,11 +1,12 @@
 package com.osudroid.ui.v2.settings
 
+import com.osudroid.OsuGameHost
+import com.osudroid.game.GameplayVibrations
 import com.osudroid.settings.SettingsBackup
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.resources.Languages
 import com.reco1l.verktex.Platform
-import com.osudroid.OsuPlatform
 import com.osudroid.ui.v2.LoaderScene
 import kotlin.math.ceil
 import kotlin.math.min
@@ -225,7 +226,7 @@ val roomSection = listOf(
                 onClick = {
                     val room = Multiplayer.room
                     if (room != null) {
-                        OsuPlatform.implementation.copyToClipboard(room.name, "${LobbyAPI.INVITE_HOST}/${room.id}/")
+                        Platform.copyToClipboard("${LobbyAPI.INVITE_HOST}/${room.id}/", label = room.name)
                         Toasts.show("Link copied to clipboard. If the room has a password, you can write it at the end of the link.")
                     }
                 }
@@ -325,11 +326,11 @@ val generalSection = listOf(
                 title = Res.string.opt_update_title,
                 summary = Res.string.opt_update_summary,
                 onClick = {
-                    OsuPlatform.implementation.checkForUpdates(false)
+                    OsuGameHost.current.checkForUpdates(false)
                 }
             )
         ),
-        isVisible = OsuPlatform.implementation.canCheckForUpdates
+        isVisible = OsuGameHost.current.canCheckForUpdates
     ),
 
     CategoryInfo(
@@ -665,9 +666,14 @@ private fun resolutionScaleOption(): OptionInfo? {
     )
 }
 
-private fun graphicsBackendOption(): OptionInfo {
+private fun graphicsBackendOption(): OptionInfo? {
+    val backends = Platform.availableGraphicsBackends
+    if (backends.size < 2) {
+        return null
+    }
+
     // The experimental Vulkan backend is only offered where the device reports Vulkan 1.1.
-    val withVulkan = OsuPlatform.implementation.isVulkanAvailable
+    val withVulkan = GraphicsBackend.Vulkan in backends
 
     return OptionInfo(
         type = OptionType.Select,
@@ -683,8 +689,6 @@ private fun graphicsBackendOption(): OptionInfo {
 
             // The engine keeps the backend it was initialized with until the game restarts.
             if (selected == GraphicsBackend.Vulkan.name) {
-                // Picking it again retries it, even if it crashed while starting the last time.
-                OsuPlatform.implementation.resetVulkanCrashGuard()
                 Toasts.showLong(Res.string.opt_graphics_backend_vulkan_experimental)
             } else {
                 Toasts.showLong(Res.string.opt_graphics_backend_restart)
@@ -970,8 +974,8 @@ val librarySection = listOf(
                 key = "importReplay",
                 title = Res.string.opt_import_replay_title,
                 summary = Res.string.opt_import_replay_summary,
-                onAttach = { it.isVisible = OsuPlatform.implementation.canImportReplays },
-                onClick = { OsuPlatform.implementation.pickAndImportReplays() }
+                onAttach = { it.isVisible = OsuGameHost.current.canImportReplays },
+                onClick = { OsuGameHost.current.pickAndImportReplays() }
             )
         )
     ),
@@ -1024,9 +1028,9 @@ val inputSection = listOf(
                 key = "block_areas",
                 title = Res.string.block_area_preference_title,
                 summary = Res.string.block_area_preference_summary,
-                onAttach = { it.isVisible = OsuPlatform.implementation.hasBlockAreaEditor },
+                onAttach = { it.isVisible = OsuGameHost.current.hasBlockAreaEditor },
                 onClick = {
-                    OsuPlatform.implementation.showBlockAreaEditor()
+                    OsuGameHost.current.showBlockAreaEditor()
                 }
             ),
             OptionInfo(
@@ -1058,7 +1062,7 @@ val inputSection = listOf(
     ),
 
     CategoryInfo(
-        isVisible = OsuPlatform.implementation.vibrations != null,
+        isVisible = GameplayVibrations.isAvailable,
         title = "Vibration",
         options = listOf(
             OptionInfo(
@@ -1066,27 +1070,18 @@ val inputSection = listOf(
                 key = "vibrationCircle",
                 setting = OsuSettings.VibrationCircle,
                 title = "Circle",
-                onChange = { value ->
-                    OsuPlatform.implementation.vibrations?.isCircleVibrationEnabled = value as Boolean
-                }
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "vibrationSlider",
                 setting = OsuSettings.VibrationSlider,
                 title = "Slider",
-                onChange = { value ->
-                    OsuPlatform.implementation.vibrations?.isSliderVibrationEnabled = value as Boolean
-                }
             ),
             OptionInfo(
                 type = OptionType.Checkbox,
                 key = "vibrationSpinner",
                 setting = OsuSettings.VibrationSpinner,
                 title = "Spinner",
-                onChange = { value ->
-                    OsuPlatform.implementation.vibrations?.isSpinnerVibrationEnabled = value as Boolean
-                }
             ),
             OptionInfo(
                 type = OptionType.Slider,
@@ -1098,9 +1093,6 @@ val inputSection = listOf(
                 max = 255f,
                 step = 1f,
                 valueFormatter = { "${((it / 255f) * 100f).toInt()}%" },
-                onChange = { value ->
-                    OsuPlatform.implementation.vibrations?.intensity = (value as Float).toInt()
-                }
             )
         )
     ),
@@ -1173,10 +1165,10 @@ val advancedSection = listOf(
                 title = Res.string.opt_force_max_refresh_rate_title,
                 summary = Res.string.opt_force_max_refresh_rate_summary,
                 onAttach = { component ->
-                    component.isVisible = OsuPlatform.implementation.canForceMaxRefreshRate
+                    component.isVisible = Platform.canForceMaxRefreshRate
                 },
                 onChange = { value ->
-                    OsuPlatform.implementation.applyRefreshRateSetting(value as Boolean)
+                    Platform.forceMaxRefreshRate = value as Boolean
                 }
             ),
             OptionInfo(

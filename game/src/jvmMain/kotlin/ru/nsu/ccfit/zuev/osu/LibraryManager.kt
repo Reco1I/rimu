@@ -7,7 +7,6 @@ import com.osudroid.audio.MusicService
 
 import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.Platform
-import com.osudroid.OsuPlatform
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.beatmaps.parser.BeatmapParser

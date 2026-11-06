@@ -40,7 +40,7 @@ abstract class UITestActivity : AndroidGameHost() {
 
             // Asked for explicitly, it's tried even if it crashed while starting the last time.
             if (backend == GraphicsBackend.Vulkan.name) {
-                resetVulkanCrashGuard(this)
+                resetVulkanCrashGuard()
             }
         }
         super.onCreate(savedInstanceState)

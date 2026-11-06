@@ -354,7 +354,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 4. Localization | Done |
 | 5. Settings replace `Config` | Done |
 | 6. Ktor networking | Done |
-| 7. Split `OsuPlatform` | Not started |
+| 7. Split `OsuPlatform` | Done |
 | 8. No `GlobalManager` | Not started |
 | 9. Database in Verktex | Not started |
 | 10. `Path` and `UIPath` | Not started |
@@ -627,4 +627,52 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
     `-PsocketIoTestUrl=http://...`, and is skipped without one. It passed against socket.io 4.8.1
     (Node), with room namespaces, auth, events in both directions, a server disconnect, a refused
     connection, a client disconnect and 300 ms pings. The game's server wasn't tried.
+
+### Phase 7: split `OsuPlatform`
+
+- Verktex's `Platform` has, each with a default for platforms without it:
+  - `application` (`versionName`, `isDebug`), from the package on Android and from the host on
+    desktop (`DesktopGameHost.application`). Readable without a platform (the defaults).
+  - `isInForeground`, which `AndroidGameHost` tracks between `onResume` and `onPause`.
+  - `isLowEndDevice`: without OpenGL ES 3 or with less than 2 GB of memory, on Android.
+  - `availableGraphicsBackends`: Auto, OpenGL ES 3 and 2, and Vulkan where the device reports
+    Vulkan 1.1, on Android; none on desktop. `isVulkanAvailable` and `resetVulkanCrashGuard` are
+    internal to `verktex:android`, which resets the guard by itself when Vulkan is picked again.
+  - `haptics` (`Platform.Haptics`): one-shot and waveform vibrations with amplitudes, null without
+    a vibrator. `AndroidHaptics` covers Android 7 without amplitudes.
+  - `canForceMaxRefreshRate` and `forceMaxRefreshRate`, moved from `MainActivity` to
+    `AndroidPlatform` (Android 12 and up).
+  - `canPickFiles` and `pickFiles(mimeType)`, which copies the picked files to the cache and gives
+    their paths, on Android.
+  - `runOnMainThread`, `exit()` (finishes the activity; closes the window on desktop) and
+    `copyToClipboard`.
+  - `onUncaughtException`, defaulting to the platform's `handleUncaughtException` (Android: the
+    thread's handler, which reports the crash; elsewhere: logged). The Android UI test browser sets
+    it to log, replacing the headless check.
+  - Android's `currentDisplay` is the real size of the display, system bars included, which the game
+    used for its viewport.
+- The game:
+  - `OsuGameHost : GameHost` (common code) has the game's hooks: `buildType`, `legacyPreferences`,
+    announcements, analytics, the library and skin imports, `checkSkinTexture`, the beatmap listing
+    and downloads, the replay import, the block area editor, `createVideo`, `verifyFileIntegrity`,
+    updates and the changelog. `OsuGameHost.current` is `Verktex.host`, or a host without features
+    when there's no engine (unit tests).
+  - `AndroidOsuGameHost` (app) is the activity with the Android hooks, which `MainActivity` extends;
+    its own `loadBeatmapLibrary`/`checkNewSkins` implement those hooks. `OsuDesktop`,
+    `OsuUITestActivity` and `OsuUITestsDesktop` implement `OsuGameHost` with what they offer.
+  - `GameplayVibrations` is common, over `Platform.haptics` and the settings, which it reads on each
+    vibration (so the settings menu no longer pushes them). Before, `VibratorManager.init` was never
+    called, so gameplay vibrations didn't happen on Android at all; now they do.
+  - Deleted: `OsuPlatform`, `AndroidOsuPlatform`, `DesktopOsuPlatform`, `VibratorManager` and the
+    `com.acivev.utils` device checks, `MainActivity`'s refresh-rate and visibility code, and
+    `initializeDesktopPlatform`. Desktop exits the process after the window closes, as before.
+  - The replay import picks its files with `Platform.pickFiles` and shows its progress with toasts
+    instead of a loading fragment and snackbars. It stays in the app behind the
+    `pickAndImportReplays` hook until `ReplayImporter` (which needs the app's replay pack code) is
+    common.
+  - The graphics backend option is hidden where there's no choice (desktop).
+- Not done: a desktop clipboard (GLFW's must be set from the main thread) and file picker.
+- Checked: the core, desktop and game tests, the app's unit tests compiling, the common checks and
+  `assembleDebug`. Not run on a device or desktop: vibrations, the refresh rate, exiting, the
+  clipboard and the low-end effects weren't seen.
 

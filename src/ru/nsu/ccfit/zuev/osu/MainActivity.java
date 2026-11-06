@@ -1,13 +1,13 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.reco1l.verktex.Platform;
 import com.osudroid.settings.GameFolders;
 import com.osudroid.settings.OsuSettings;
 import com.osudroid.ui.v2.SkinFolders;
 import com.osudroid.resources.Res;
 import com.reco1l.verktex.ui.toast.Toasts;
 import com.osudroid.android.AndroidGame;
-import com.osudroid.OsuPlatform;
-import com.osudroid.android.AndroidOsuPlatform;
+import com.osudroid.android.AndroidOsuGameHost;
 
 import android.Manifest;
 import android.app.ActivityManager;
@@ -17,18 +17,14 @@ import android.provider.OpenableColumns;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
-import android.util.DisplayMetrics;
 import com.reco1l.verktex.Logger;
-import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.PermissionChecker;
@@ -60,7 +56,6 @@ import com.osudroid.ui.v2.settings.SettingsMenu;
 import com.reco1l.osu.ui.MessageDialog;
 import com.osudroid.difficulty.BeatmapDifficultyCalculator;
 import com.reco1l.verktex.Verktex;
-import com.reco1l.verktex.android.AndroidGameHost;
 
 import net.lingala.zip4j.ZipFile;
 
@@ -83,7 +78,7 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineManager;
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
 import com.osudroid.debug.QuickPlay;
 
-public class MainActivity extends AndroidGameHost {
+public class MainActivity extends AndroidOsuGameHost {
 
     public static String versionName;
     private String fileToAdd = null;
@@ -91,14 +86,8 @@ public class MainActivity extends AndroidGameHost {
     private FirebaseAnalytics analytics;
     private FirebaseCrashlytics crashlytics;
     private boolean willReplay = false;
-    private static boolean activityVisible = true;
     private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> logFlushFuture;
-    private Display display;
-    private DisplayManager.DisplayListener displayListener;
-    private float currentRefreshRate = 60;
-    private float maxRefreshRate = 60;
-    private int maxRefreshRateModeId = 0;
     private MessageDialog multiWindowAlert;
 
     // Multiplayer
@@ -119,42 +108,12 @@ public class MainActivity extends AndroidGameHost {
         // so we can see the GLES capability distribution across users.
         reportGlesVersion();
 
-        OsuPlatform.INSTANCE.setImplementation(new AndroidOsuPlatform(this));
         OsuSettings.load();
         initialGameDirectory();
         Multiplayer.initLog();
         //Debug.setDebugLevel(Debug.DebugLevel.NONE);
         OnlineManager.getInstance().init();
         crashlytics.setUserId(OsuSettings.getInstallId());
-
-        final DisplayMetrics dm = new DisplayMetrics();
-        display = getWindowManager().getDefaultDisplay();
-        display.getMetrics(dm);
-        currentRefreshRate = display.getRefreshRate();
-
-        displayListener = new DisplayManager.DisplayListener() {
-            @Override
-            public void onDisplayAdded(int displayId) {}
-
-            @Override
-            public void onDisplayRemoved(int displayId) {}
-
-            @Override
-            public void onDisplayChanged(int displayId) {
-                if (displayId == display.getDisplayId()) {
-                    currentRefreshRate = display.getRefreshRate();
-                }
-            }
-        };
-
-        ((DisplayManager) getSystemService(DISPLAY_SERVICE)).registerDisplayListener(displayListener, null);
-
-        for (var mode : display.getSupportedModes()) {
-            if (mode.getRefreshRate() > maxRefreshRate) {
-                maxRefreshRate = mode.getRefreshRate();
-                maxRefreshRateModeId = mode.getModeId();
-            }
-        }
 
         Verktex.pushScene(SplashScene.INSTANCE);
 
@@ -187,7 +146,7 @@ public class MainActivity extends AndroidGameHost {
                 SongSelect.INSTANCE.loadBeatmaps();
 
                 availableInternalMemory();
-                applyRefreshRateSetting(Settings.get(OsuSettings.ForceMaxRefreshRate));
+                Platform.INSTANCE.setForceMaxRefreshRate(Settings.get(OsuSettings.ForceMaxRefreshRate));
 
                 AccessibilityDetector.register(MainActivity.this);
 
@@ -443,10 +402,6 @@ public class MainActivity extends AndroidGameHost {
         return analytics;
     }
 
-    public static boolean isActivityVisible() {
-        return activityVisible;
-    }
-
     @Override
     protected void onCreate(Bundle pSavedInstanceState) {
         // Some components may already start using this class when onCreate is called. An example
@@ -597,7 +552,6 @@ public class MainActivity extends AndroidGameHost {
     @Override
     public void onResume() {
         super.onResume();
-        activityVisible = true;
 
         logFlushFuture = scheduledExecutor.scheduleAtFixedRate(Multiplayer::flushLog, 0, 5, TimeUnit.SECONDS);
 
@@ -610,7 +564,6 @@ public class MainActivity extends AndroidGameHost {
     @Override
     public void onPause() {
         super.onPause();
-        activityVisible = false;
 
         if (logFlushFuture != null && !logFlushFuture.isCancelled()) {
             logFlushFuture.cancel(false);
@@ -638,7 +591,6 @@ public class MainActivity extends AndroidGameHost {
 
         Multiplayer.flushLog();
 
-        activityVisible = false;
     }
 
     @Override
@@ -647,12 +599,6 @@ public class MainActivity extends AndroidGameHost {
 
         Multiplayer.flushLog();
         AccessibilityDetector.unregister(this);
-
-        var listener = displayListener;
-
-        if (listener != null) {
-            ((DisplayManager) getSystemService(DISPLAY_SERVICE)).unregisterDisplayListener(listener);
-        }
     }
 
     @Override
@@ -814,23 +760,6 @@ public class MainActivity extends AndroidGameHost {
             Debug.e("PackageManager: " + e.getMessage(), e);
         }
         return versionCode;
-    }
-
-    public float getRefreshRate() {
-        return currentRefreshRate;
-    }
-
-    public void applyRefreshRateSetting(boolean enable) {
-        runOnUiThread(() -> {
-            WindowManager.LayoutParams lp = getWindow().getAttributes();
-            lp.preferredDisplayModeId = enable ? maxRefreshRateModeId : 0;
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                lp.preferMinimalPostProcessing = enable && display.isMinimalPostProcessingSupported();
-            }
-
-            getWindow().setAttributes(lp);
-        });
     }
 
     private boolean checkPermissions() {

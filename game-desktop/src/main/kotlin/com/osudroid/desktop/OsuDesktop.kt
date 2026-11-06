@@ -1,16 +1,18 @@
 package com.osudroid.desktop
 
+import ru.nsu.ccfit.zuev.osu.LibraryManager
+import java.util.prefs.Preferences
+import com.reco1l.verktex.Platform
+import com.osudroid.OsuGameHost
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.SkinFolders
-import com.osudroid.OsuPlatform
 import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.ui.v2.SplashScene
 import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.async
 import com.osudroid.utils.delayed
-import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.desktop.DesktopGameHost
 import com.reco1l.verktex.settings.Settings
@@ -28,10 +30,24 @@ import java.io.File
 class OsuDesktop(
     private val screenshot: File? = null,
     private val screenshotDelaySeconds: Double = 10.0,
-) : DesktopGameHost(title = "osu!droid", vsync = true) {
+) : DesktopGameHost(title = "osu!droid", vsync = true), OsuGameHost {
+
+    override val application = DESKTOP_APPLICATION
+
+    // The values are kept as strings, which the settings read as their type.
+    override fun legacyPreferences(): Map<String, Any?> {
+        val node = Preferences.userRoot().node("osu!droid")
+        return node.keys().associateWith { node.get(it, null) }
+    }
+
+    // Beatmap sets are imported from their folders only, .osz files aren't extracted yet.
+    override fun loadBeatmapLibrary() {
+        LibraryManager.scanDirectory(emptySet())
+        LibraryManager.loadLibrary()
+    }
 
     override fun onEngineInitialized() {
-        initializeDesktopPlatform()
+        OsuSettings.load()
 
         createGameDirectories()
         OnlineManager.getInstance().init()
@@ -59,7 +75,7 @@ class OsuDesktop(
             GlobalManager.getInstance().loadingProgress = 50
             SkinFolders.load()
             DifficultyCalculationManager.checkForOutdatedStarRatings()
-            OsuPlatform.implementation.loadBeatmapLibrary()
+            OsuGameHost.current.loadBeatmapLibrary()
 
             SplashScene.playWelcomeAnimation()
 
@@ -88,13 +104,9 @@ class OsuDesktop(
  * `--screenshot` saves the frame shown `--delay` seconds (10 by default) after starting and exits.
  */
 /**
- * Sets what the game needs from desktop, before anything of the game is used.
+ * The game on desktop: a debug build, without a version of its own.
  */
-fun initializeDesktopPlatform() {
-    OsuPlatform.implementation = DesktopOsuPlatform()
-    OsuSettings.load()
-
-}
+internal val DESKTOP_APPLICATION = Platform.Application(versionName = "desktop", isDebug = true)
 
 fun main(args: Array<String>) {
     var screenshot: File? = null
@@ -114,4 +126,7 @@ fun main(args: Array<String>) {
     }
 
     OsuDesktop(screenshot, delay).run()
+
+    // Idle connection pools would keep the process alive for a while.
+    kotlin.system.exitProcess(0)
 }

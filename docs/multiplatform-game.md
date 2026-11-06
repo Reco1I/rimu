@@ -335,6 +335,6 @@ Left for desktop, roughly in order:
 
 ## Next: moving shared features into Verktex
 
-The game's own infrastructure (`Config`, `StringTable`, `ToastLogger`, `Http`, `OsuPlatform`,
+The game's own infrastructure (`Config`, `StringTable`, `ToastLogger`, `Http`, `OsuPlatform` (since split into Verktex's `Platform` and `OsuGameHost`),
 `SongService`, `GlobalManager`, the slider body code, `UIVideo`, the database setup) is being replaced
 by Verktex features, see `engine-consolidation.md`.

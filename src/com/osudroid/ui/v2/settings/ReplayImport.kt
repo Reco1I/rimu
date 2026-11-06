@@ -1,79 +1,38 @@
 package com.osudroid.ui.v2.settings
 
-import com.osudroid.android.AndroidGame
-import android.net.Uri
-import com.reco1l.verktex.Logger
-import androidx.activity.result.contract.ActivityResultContracts
-import com.edlplan.ui.fragment.LoadingFragment
-import com.google.android.material.snackbar.Snackbar
-import com.osudroid.resources.Res
-import com.osudroid.utils.async
-import com.osudroid.utils.mainThread
 import com.osudroid.replay.ReplayImporter
-import ru.nsu.ccfit.zuev.osu.GlobalManager
-import java.io.File
+import com.osudroid.resources.Res
+import com.reco1l.verktex.Logger
+import com.reco1l.verktex.Platform
+import com.reco1l.verktex.ui.toast.Toasts
+import okio.Path
 
 /**
- * Asks the user for replay files and imports them.
+ * Asks the user for replay files or replay packs and imports them.
  */
-fun pickAndImportReplays() = mainThread {
-    val activity = AndroidGame.mainActivity ?: return@mainThread
-
-    // Registered here since scenes aren't tied to the activity lifecycle.
-    val launcher = activity.activityResultRegistry.register(
-        "importReplay",
-        ActivityResultContracts.GetMultipleContents()
-    ) { uris -> importReplays(uris) }
-
-    launcher.launch("application/octet-stream")
+fun pickAndImportReplays() {
+    Platform.pickFiles("application/octet-stream", ::importReplays)
 }
 
-private fun importReplays(uris: List<Uri>) {
-    val loading = LoadingFragment()
-    loading.show()
+// Called on a background thread with copies of the picked files, deleted once imported.
+private fun importReplays(files: List<Path>) {
+    val progress = Toasts.showPersistent(Res.string.replay_import_result.format(0, files.size), isIndeterminate = true)
+    var importedCount = 0
 
-    async {
-        val context = AndroidGame.mainActivity!!
-        val decorView = context.window.decorView
-        var importedCount = 0
-        var tempFile: File? = null
-
-        for (uri in uris) {
-            try {
-                tempFile = File.createTempFile("importedReplay", null, context.externalCacheDir)
-
-                context.contentResolver.openInputStream(uri)!!.use { input ->
-                    tempFile!!.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-
-                ReplayImporter.import(tempFile)
-                importedCount++
-            } catch (e: Exception) {
-                Logger.e("ReplayImport", "Failed to import replay from $uri", e)
-
-                mainThread {
-                    Snackbar.make(
-                        decorView,
-                        Res.string.replay_import_error.format(uri.path ?: uri.toString(), e.message ?: "Unknown error"),
-                        3000
-                    ).show()
-                }
-            } finally {
-                tempFile?.delete()
-                tempFile = null
-            }
+    for ((i, file) in files.withIndex()) {
+        try {
+            ReplayImporter.import(file.toString())
+            importedCount++
+        } catch (e: Exception) {
+            Logger.e("ReplayImport", "Failed to import the replay $file", e)
+            Toasts.show(Res.string.replay_import_error.format("#${i + 1}", e.message ?: "Unknown error"))
+        } finally {
+            Platform.fileSystem.delete(file, mustExist = false)
         }
 
-        mainThread {
-            loading.dismiss()
-
-            Snackbar.make(
-                decorView,
-                Res.string.replay_import_result.format(importedCount, uris.size),
-                5000
-            ).show()
-        }
+        progress.text = Res.string.replay_import_result.format(importedCount, files.size)
     }
+
+    progress.dismiss()
+    Toasts.showLong(Res.string.replay_import_result.format(importedCount, files.size))
 }

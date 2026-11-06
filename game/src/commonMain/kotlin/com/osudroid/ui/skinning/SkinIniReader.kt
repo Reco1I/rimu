@@ -1,7 +1,6 @@
 package com.osudroid.ui.skinning
 
 import com.reco1l.verktex.Logger
-import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Platform
 import okio.IOException
 import okio.Path.Companion.toPath
@@ -101,7 +100,7 @@ class IniReader(path: String) : AutoCloseable {
             val o = parseObject(value)
             currentSection?.put(command, o)
 
-            if (OsuPlatform.isInitialized && OsuPlatform.implementation.isDebug) {
+            if (Platform.application.isDebug) {
                 Logger.i("IniReader", "$command: ${if (o is IntArray) o.contentToString() else o}")
             }
         }

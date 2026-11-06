@@ -15,8 +15,16 @@ import org.lwjgl.glfw.GLFW.glfwGetTime
  * @param density The scale of the window's content set by the system (e.g. 1.5 at 150%), which
  * density independent sizes follow.
  * @param applicationName The name of the folders the application keeps its files in, see [storage].
+ * @param onExit Closes the application, see [exit].
  */
-class DesktopPlatform(density: Float, width: Int, height: Int, applicationName: String = "Verktex") : Platform.Implementation {
+class DesktopPlatform(
+    density: Float,
+    width: Int,
+    height: Int,
+    applicationName: String = "Verktex",
+    override val application: Platform.Application = Platform.Application(),
+    private val onExit: () -> Unit = {},
+) : Platform.Implementation {
 
     override val provider = DesktopProvider()
     override val audioDriver by lazy { BASSAudioDriver() }
@@ -45,6 +53,14 @@ class DesktopPlatform(density: Float, width: Int, height: Int, applicationName: 
     override val uptimeMillis: Long
         get() = (glfwGetTime() * 1000).toLong()
 
+
+    // There are no platform views, what runs on the main thread goes to the update thread with
+    // the rest of the UI.
+    override fun runOnMainThread(block: () -> Unit) {
+        com.reco1l.verktex.Verktex.scheduleOnUpdate(block)
+    }
+
+    override fun exit() = onExit()
 
     override fun createLoopWorker(name: String, minimumInterval: Duration, onLoop: () -> Unit): LoopWorker {
         return object : ThreadLoopWorker(name, minimumInterval) {

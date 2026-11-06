@@ -1,18 +1,18 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.OsuGameHost
+import com.osudroid.game.GameplayVibrations
 import kotlinx.coroutines.runBlocking
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
-import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Platform
 import com.edlplan.osu.support.slider.SliderBody
 import com.osudroid.GameMode
 import com.osudroid.audio.MusicClock
 import com.osudroid.beatmaps.Beatmap
 import com.osudroid.beatmaps.BeatmapCache
-import com.osudroid.beatmaps.ComboColor
 import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.beatmaps.DroidPlayableBeatmap
 import com.osudroid.beatmaps.HitWindow
@@ -51,7 +51,6 @@ import com.osudroid.math.Vector2
 import com.osudroid.mods.*
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
-import com.osudroid.multiplayer.isTeamStatistic
 import com.osudroid.multiplayer.toBoardItem
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.GameLoaderScene
@@ -70,7 +69,6 @@ import com.osudroid.ui.v2.game.SliderTickSprite
 import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.hud.HUDElements
 import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
-import com.osudroid.ui.v2.hud.elements.HUDPPCounter
 import com.osudroid.ui.v2.modmenu.ModIcon
 import com.osudroid.ui.v2.multi.LobbyScene
 import com.osudroid.utils.BitSet
@@ -88,12 +86,9 @@ import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.graphics.BlendFactor
-import com.reco1l.verktex.graphics.BlendMode
 import com.reco1l.verktex.input.Input
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
-import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.time.FrameStableClock
@@ -118,10 +113,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.abs
 import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -481,7 +474,7 @@ open class GameScene : GameObjectListener {
 
         videoLoadingJob = async {
             try {
-                val video = OsuPlatform.implementation.createVideo(beatmapInfo.absoluteSetDirectory + "/" + videoFilename)
+                val video = OsuGameHost.current.createVideo(beatmapInfo.absoluteSetDirectory + "/" + videoFilename)
                     ?: return@async
                 video.alpha = 0f
 
@@ -592,7 +585,7 @@ open class GameScene : GameObjectListener {
     }
 
     private fun loadGame(beatmapInfo: BeatmapInfo, rFile: String?, mods: ModHashMap, scope: CoroutineScope?): Boolean {
-        if (!OsuPlatform.implementation.verifyFileIntegrity()) {
+        if (!OsuGameHost.current.verifyFileIntegrity()) {
             Toasts.showLong(Res.string.file_integrity_tampered)
             return false
         }
@@ -1229,7 +1222,7 @@ open class GameScene : GameObjectListener {
 
         if (!replaying && !GameHelper.isAutoplay()) {
             // Since block areas are saved in device pixels, we need to map them to scaled pixels.
-            val ratio = GameResolution.width.toFloat() / OsuPlatform.implementation.displayWidth
+            val ratio = GameResolution.width.toFloat() / Platform.currentDisplay.width
 
             for (area in DatabaseManager.blockAreaTable.getAll()) {
                 // Attach the block area to the HUD so that it does not get scaled with the playfield.
@@ -2312,7 +2305,7 @@ open class GameScene : GameObjectListener {
                 }
             }
         }
-        OsuPlatform.implementation.vibrations?.circleVibration()
+        GameplayVibrations.circle()
 
         if (accuracy > playableBeatmap.hitWindow.mehWindow / 1000 || forcedScore == ResultType.MISS.id) {
             effects.hit(pos, "hit0", color)
@@ -2375,7 +2368,7 @@ open class GameScene : GameObjectListener {
             }
         }
 
-        OsuPlatform.implementation.vibrations?.sliderVibration()
+        GameplayVibrations.slider()
 
         // Whole slider was missed.
         if (score == 0) {
@@ -2485,7 +2478,7 @@ open class GameScene : GameObjectListener {
         val pos = Vector2(GameResolution.width.toFloat() / 2,
             GameResolution.height.toFloat() / 2)
 
-        OsuPlatform.implementation.vibrations?.spinnerVibration()
+        GameplayVibrations.spinner()
 
         if (score == 0) {
             val effect = GameObjectPool.getInstance().getEffect(

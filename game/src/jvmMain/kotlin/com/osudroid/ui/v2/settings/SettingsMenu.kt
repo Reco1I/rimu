@@ -1,13 +1,12 @@
 package com.osudroid.ui.v2.settings
 
+import com.osudroid.OsuGameHost
 import com.reco1l.verktex.settings.Settings
-import com.osudroid.OsuPlatform
 import com.reco1l.verktex.settings.SettingKey
 import com.osudroid.settings.OsuSettings
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
 import com.reco1l.verktex.localization.LocalizedStringArray
-import com.reco1l.verktex.localization.LocalizedString
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
@@ -320,7 +319,7 @@ class SettingsMenu : UIScene() {
         val global = GlobalManager.getInstance()
 
         // As the legacy settings screen did when it was left.
-        OsuPlatform.implementation.setAnnouncementsSubscribed(Settings[OsuSettings.ReceiveAnnouncements])
+        OsuGameHost.current.setAnnouncementsSubscribed(Settings[OsuSettings.ReceiveAnnouncements])
         onPlayfieldChanged = null
 
         if (Multiplayer.isMultiplayer) {
