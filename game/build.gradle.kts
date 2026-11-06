@@ -207,6 +207,15 @@ kotlin {
 
         jvmTest.dependencies {
             implementation("junit:junit:4.13.2")
+
+            // An HTTP engine for the tests that connect, see KtorRoomSocketTest.
+            implementation("io.ktor:ktor-client-okhttp:3.1.3")
         }
     }
+}
+
+// KtorRoomSocketTest connects to the Socket.IO server at this URL, and is skipped without one:
+// ./gradlew :game:jvmTest -PsocketIoTestUrl=http://localhost:3000
+tasks.withType<Test>().configureEach {
+    providers.gradleProperty("socketIoTestUrl").orNull?.let { systemProperty("socketIoTestUrl", it) }
 }

@@ -353,7 +353,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 3. `MusicService` | Done |
 | 4. Localization | Done |
 | 5. Settings replace `Config` | Done |
-| 6. Ktor networking | Done, except the Socket.IO follow-up |
+| 6. Ktor networking | Done |
 | 7. Split `OsuPlatform` | Not started |
 | 8. No `GlobalManager` | Not started |
 | 9. Database in Verktex | Not started |
@@ -588,6 +588,26 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 - Checked: the core, desktop and game tests, the app's unit tests compiling, the common checks and
   `assembleDebug`. Not run against the servers: login, score submission, leaderboards, the beatmap
   listing, downloads and updates weren't tried.
-- Left: the Socket.IO client over Ktor WebSockets (a separate commit), which would give desktop
-  multiplayer and drop socket.io-client.
+- Socket.IO follow-up:
+  - `KtorRoomSocket` (common code) implements `RoomSocket` over a Ktor WebSocket to
+    `/socket.io/?EIO=4&transport=websocket`, without the polling transport. It covers what the rooms
+    use:
+    - the Engine.IO open, pings and close;
+    - the Socket.IO connect to the namespace in the URL's path, with the `auth` payload;
+    - events with JSON arguments, and connect errors;
+    - the server's disconnect, and the client's (`io client disconnect`).
+    It doesn't reconnect by itself (as before), acknowledge events or exchange binary data, and
+    dies on a missed ping deadline (`ping timeout`).
+  - Listeners get strings, numbers (an `Int` when it fits, as the Java client gave), booleans, null,
+    `JsonObject`s and `JsonArray`s, as they did. They're called from the connection's coroutine in
+    order.
+  - It's `RoomSocket.factory` by default, and `RoomSocket.isAvailable` is whether the platform has an
+    HTTP engine. So desktop shows multiplayer now; it connects, but nothing beyond the socket was
+    tried.
+  - Deleted: `SocketIORoomSocket`, its setup in `MainActivity` and `OsuUITestActivity`, and
+    `socket.io-client`. OkHttp now remains only as Ktor's engine.
+  - `KtorRoomSocketTest` runs against a real Socket.IO server given with
+    `-PsocketIoTestUrl=http://...`, and is skipped without one. It passed against socket.io 4.8.1
+    (Node), with room namespaces, auth, events in both directions, a server disconnect, a refused
+    connection, a client disconnect and 300 ms pings. The game's server wasn't tried.
 
