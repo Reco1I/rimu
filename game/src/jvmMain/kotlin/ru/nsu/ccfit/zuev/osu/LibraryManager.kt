@@ -292,7 +292,12 @@ object LibraryManager {
 
                         fileCached++
 
-                        scanBeatmapSetFolder(directory)
+                        // The executor keeps what a task throws in its future, which nothing reads.
+                        try {
+                            scanBeatmapSetFolder(directory)
+                        } catch (t: Throwable) {
+                            Logger.e("LibraryManager", "Failed to scan beatmap set folder: " + directory.path, t)
+                        }
                     }
                 }
 
