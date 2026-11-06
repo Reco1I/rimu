@@ -1,4 +1,4 @@
-package com.osudroid.ui.v2
+package com.osudroid.android
 
 import android.net.Uri
 import android.os.Handler
@@ -21,31 +21,31 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.android.AndroidExternalTexture
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.ui.UISprite
+import com.osudroid.ui.v2.UIVideo
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * Plays a video file without sound. It lives in the app rather than in the engine because it depends on
+ * A [UIVideo] played with ExoPlayer. It lives in the app rather than in the engine because it depends on
  * the FFmpeg decoder, which is a local AAR that a library module can't include.
  */
 @OptIn(UnstableApi::class)
-class UIVideo(source: String) : UISprite() {
+class ExoPlayerVideo(source: String) : UIVideo() {
 
     /**
      * The width of the video once the player reported it, 0 until then.
      */
     @Volatile
-    var videoWidth = 0
+    override var videoWidth = 0
         private set
 
     /**
      * The height of the video once the player reported it, 0 until then.
      */
     @Volatile
-    var videoHeight = 0
+    override var videoHeight = 0
         private set
 
 
@@ -55,7 +55,7 @@ class UIVideo(source: String) : UISprite() {
     private val texture = Verktex.graphics.createExternalTexture(NOMINAL_SIZE, NOMINAL_SIZE)
     private val externalTexture = texture as AndroidExternalTexture
 
-    private val onReady = AtomicReference<Runnable?>()
+    private val onReady = AtomicReference<(() -> Unit)?>()
     private val isReleased = AtomicBoolean(false)
 
 
@@ -106,10 +106,7 @@ class UIVideo(source: String) : UISprite() {
     }
 
 
-    /**
-     * Sets the callback called once on the update thread when the size of the video is known.
-     */
-    fun setOnReady(callback: Runnable) {
+    override fun setOnReady(callback: () -> Unit) {
         onReady.set(callback)
 
         // The size may have arrived before the callback was set.
@@ -123,30 +120,27 @@ class UIVideo(source: String) : UISprite() {
             width = videoWidth.toFloat().px
             height = videoHeight.toFloat().px
 
-            onReady.getAndSet(null)?.run()
+            onReady.getAndSet(null)?.invoke()
         }
     }
 
-    fun play() {
+    override fun play() {
         mainHandler.post { player.play() }
     }
 
-    fun pause() {
+    override fun pause() {
         mainHandler.post { player.pause() }
     }
 
-    fun seekTo(ms: Int) {
+    override fun seekTo(ms: Int) {
         mainHandler.post { player.seekTo(ms.toLong()) }
     }
 
-    fun setPlaybackSpeed(speed: Float) {
+    override fun setPlaybackSpeed(speed: Float) {
         mainHandler.post { player.playbackParameters = PlaybackParameters(speed) }
     }
 
-    /**
-     * Stops the video and frees its resources. Only the first call has an effect.
-     */
-    fun release() {
+    override fun release() {
         if (!isReleased.compareAndSet(false, true)) {
             return
         }

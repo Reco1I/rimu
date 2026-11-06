@@ -1,5 +1,6 @@
 package com.osudroid.multiplayer
 
+import com.osudroid.OsuPlatform
 import com.osudroid.utils.*
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -7,7 +8,6 @@ import kotlinx.serialization.json.JsonObject
 import ru.nsu.ccfit.zuev.osu.Config
 import com.reco1l.verktex.Verktex
 import com.osudroid.ui.v2.songselect.SongSelect
-import android.net.*
 import com.reco1l.verktex.Logger
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.Room
@@ -130,8 +130,12 @@ object Multiplayer {
 
     //region Connection
 
+    /**
+     * Connects to the room of an invite link, from the [pathSegments] of the link: the ID of the room,
+     * then its password if it has one.
+     */
     @JvmStatic
-    fun connectFromLink(link: Uri) {
+    fun connectFromLink(pathSegments: List<String>) {
 
         if (isConnected) {
             return
@@ -145,11 +149,11 @@ object Multiplayer {
             try {
                 LoaderScene().show()
 
-                GlobalManager.getInstance().mainActivity?.checkNewSkins()
-                GlobalManager.getInstance().mainActivity?.loadBeatmapLibrary()
+                OsuPlatform.implementation.checkNewSkins()
+                OsuPlatform.implementation.loadBeatmapLibrary()
 
-                val roomID = link.pathSegments[0].toLong()
-                val password = if (link.pathSegments.size > 1) link.pathSegments[1] else null
+                val roomID = pathSegments[0].toLong()
+                val password = if (pathSegments.size > 1) pathSegments[1] else null
 
                 RoomAPI.connectToRoom(
                     roomId = roomID,

@@ -1,7 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Platform
-import com.acivev.VibratorManager
 import com.edlplan.osu.support.slider.SliderBody
 import com.osudroid.GameMode
 import com.osudroid.audio.SongServiceClock
@@ -126,7 +126,6 @@ import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.AndroidSecurityUtils
 import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameHelper.SliderPath
@@ -479,7 +478,8 @@ open class GameScene : GameObjectListener {
 
         videoLoadingJob = async {
             try {
-                val video = UIVideo(beatmapInfo.absoluteSetDirectory + "/" + videoFilename)
+                val video = OsuPlatform.implementation.createVideo(beatmapInfo.absoluteSetDirectory + "/" + videoFilename)
+                    ?: return@async
                 video.alpha = 0f
 
                 ensureActive()
@@ -589,7 +589,7 @@ open class GameScene : GameObjectListener {
     }
 
     private fun loadGame(beatmapInfo: BeatmapInfo, rFile: String?, mods: ModHashMap, scope: CoroutineScope?): Boolean {
-        if (!AndroidSecurityUtils.verifyFileIntegrity(GlobalManager.getInstance().mainActivity)) {
+        if (!OsuPlatform.implementation.verifyFileIntegrity()) {
             ToastLogger.showText(Res.string.file_integrity_tampered, true)
             return false
         }
@@ -1225,11 +1225,7 @@ open class GameScene : GameObjectListener {
 
         if (!replaying && !GameHelper.isAutoplay()) {
             // Since block areas are saved in device pixels, we need to map them to scaled pixels.
-            val displayMetrics = android.util.DisplayMetrics()
-            @Suppress("DEPRECATION")
-            GlobalManager.getInstance().mainActivity.windowManager.defaultDisplay.getRealMetrics(displayMetrics)
-
-            val ratio = Config.getRES_WIDTH().toFloat() / displayMetrics.widthPixels
+            val ratio = Config.getRES_WIDTH().toFloat() / OsuPlatform.implementation.displayWidth
 
             for (area in DatabaseManager.blockAreaTable.getAll()) {
                 // Attach the block area to the HUD so that it does not get scaled with the playfield.
@@ -2312,7 +2308,7 @@ open class GameScene : GameObjectListener {
                 }
             }
         }
-        VibratorManager.circleVibration()
+        OsuPlatform.implementation.vibrations?.circleVibration()
 
         if (accuracy > playableBeatmap.hitWindow.mehWindow / 1000 || forcedScore == ResultType.MISS.id) {
             effects.hit(pos, "hit0", color)
@@ -2375,7 +2371,7 @@ open class GameScene : GameObjectListener {
             }
         }
 
-        VibratorManager.sliderVibration()
+        OsuPlatform.implementation.vibrations?.sliderVibration()
 
         // Whole slider was missed.
         if (score == 0) {
@@ -2485,7 +2481,7 @@ open class GameScene : GameObjectListener {
         val pos = Vector2(Config.getRES_WIDTH().toFloat() / 2,
             Config.getRES_HEIGHT().toFloat() / 2)
 
-        VibratorManager.spinnerVibration()
+        OsuPlatform.implementation.vibrations?.spinnerVibration()
 
         if (score == 0) {
             val effect = GameObjectPool.getInstance().getEffect(

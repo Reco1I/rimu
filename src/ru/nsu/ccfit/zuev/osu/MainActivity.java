@@ -220,7 +220,7 @@ public class MainActivity extends AndroidGameHost {
                 if (roomInviteLink != null) {
                     final Uri inviteLink = roomInviteLink;
                     roomInviteLink = null;
-                    Multiplayer.connectFromLink(inviteLink);
+                    Multiplayer.connectFromLink(inviteLink.getPathSegments());
                 } else if (willReplay) {
                     MainScene.INSTANCE.watchReplay(fileToAdd);
                     fileToAdd = null;
@@ -652,7 +652,7 @@ public class MainActivity extends AndroidGameHost {
                         gameScene.quit();
                     }
 
-                    Multiplayer.connectFromLink(roomInviteLink);
+                    Multiplayer.connectFromLink(roomInviteLink.getPathSegments());
                     roomInviteLink = null;
                 });
 

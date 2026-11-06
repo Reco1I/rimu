@@ -81,6 +81,14 @@ object Platform {
     }
 
     /**
+     * Opens [url] outside the app, with what the system picks for it: the browser for a web page.
+     */
+    fun openUrl(url: String) {
+        checkImplementation()
+        implementation.openUrl(url)
+    }
+
+    /**
      * Creates a new instance of a loop worker, see [Implementation.createLoopWorker].
      */
     fun createLoopWorker(name: String, minimumInterval: Duration = Duration.ZERO, onLoop: () -> Unit): LoopWorker {
@@ -134,6 +142,11 @@ object Platform {
          * Opens a web page, see [Platform.openWebPage].
          */
         fun openWebPage(url: String, userAgent: String?)
+
+        /**
+         * Opens a URL outside the app, see [Platform.openUrl].
+         */
+        fun openUrl(url: String)
 
     }
 

@@ -7,8 +7,7 @@ import kotlinx.serialization.json.JsonObject
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.BuildSettings
 import java.util.concurrent.atomic.AtomicBoolean
-import com.osudroid.beatmaplisting.BeatmapDownloader
-import com.osudroid.beatmaplisting.BeatmapListing
+import com.osudroid.OsuPlatform
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.IPlayerEventListener
 import com.osudroid.multiplayer.api.IRoomEventListener
@@ -327,7 +326,7 @@ class RoomScene(
                                     if (Multiplayer.isRoomHost) {
                                         if (LibraryManager.getLibrary().isEmpty()) {
                                             GlobalManager.getInstance().songService.pause()
-                                            BeatmapListing().show()
+                                            OsuPlatform.implementation.showBeatmapListing()
                                         }
 
                                         SongSelect.loadBeatmaps()
@@ -620,7 +619,7 @@ class RoomScene(
         downloadBeatmapButton.apply {
             val beatmapInfo = GlobalManager.getInstance().selectedBeatmap
 
-            if (beatmapInfo == null) {
+            if (beatmapInfo == null && OsuPlatform.implementation.hasBeatmapListing) {
                 isVisible = true
 
                 if (roomBeatmap.parentSetID == null) {
@@ -634,14 +633,12 @@ class RoomScene(
                 leadingIcon = faSolidIcon(FAIcon.Download)
                 setText(Res.string.multiplayer_room_download_beatmap)
                 onActionUp = {
-                    val url = BeatmapListing.mirror.download.request(
-                        roomBeatmap.parentSetID!!,
-                        !Config.isPreferNoVideoDownloads()
-                    ).toString()
-
                     async {
                         try {
-                            BeatmapDownloader.download(url, "${roomBeatmap.parentSetID} ${roomBeatmap.artist} - ${roomBeatmap.title}")
+                            OsuPlatform.implementation.downloadBeatmapSet(
+                                roomBeatmap.parentSetID!!,
+                                "${roomBeatmap.parentSetID} ${roomBeatmap.artist} - ${roomBeatmap.title}"
+                            )
                         } catch (e: Exception) {
                             ToastLogger.showText(StringTable.format(Res.string.multiplayer_room_unable_download, e.message), true)
                             e.printStackTrace()

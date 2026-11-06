@@ -1,5 +1,6 @@
 package com.acivev
 
+import com.osudroid.OsuPlatform
 import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
@@ -13,7 +14,7 @@ import ru.nsu.ccfit.zuev.osu.Config
  * It supports different vibration patterns and intensities.
  * - Vibration intensity can be set dynamically.
  */
-object VibratorManager {
+object VibratorManager : OsuPlatform.GameplayVibrations {
 
     private val SLIDER_VIBRATION_PATTERN = longArrayOf(0, 30, 20, 50) // Time intervals for slider vibration
     private val SPINNER_VIBRATION_PATTERN = longArrayOf(0, 20, 10, 30) // Time intervals for spinner vibration
@@ -24,7 +25,7 @@ object VibratorManager {
     /**
      * Whether vibration for circles is enabled.
      */
-    var isCircleVibrationEnabled = false
+    override var isCircleVibrationEnabled = false
         set(value) {
             field = value
             Config.setBoolean("vibrationCircle", value)
@@ -33,7 +34,7 @@ object VibratorManager {
     /**
      * Whether vibration for sliders is enabled.
      */
-    var isSliderVibrationEnabled = false
+    override var isSliderVibrationEnabled = false
         set(value) {
             field = value
             Config.setBoolean("vibrationSlider", value)
@@ -42,7 +43,7 @@ object VibratorManager {
     /**
      * Whether vibration for spinners is enabled.
      */
-    var isSpinnerVibrationEnabled = false
+    override var isSpinnerVibrationEnabled = false
         set(value) {
             field = value
             Config.setBoolean("vibrationSpinner", value)
@@ -51,7 +52,7 @@ object VibratorManager {
     /**
      * The intensity of the vibration.
      */
-    var intensity = 127
+    override var intensity = 127
         set(value) {
             field = value
             Config.setInt("seekBarVibrateIntensity", value)
@@ -135,7 +136,7 @@ object VibratorManager {
     /**
      * Provides haptic vibration for a click action using intensity.
      */
-    fun circleVibration() {
+    override fun circleVibration() {
         if (isCircleVibrationEnabled) {
             if (!hasVibrationSupport || vibrator == null) {
                 return
@@ -154,7 +155,7 @@ object VibratorManager {
     /**
      * Provides haptic vibration for a slider or scroll action using intensity.
      */
-    fun sliderVibration() {
+    override fun sliderVibration() {
         if (isSliderVibrationEnabled) {
             if (!hasVibrationSupport || vibrator == null) {
                 return
@@ -177,7 +178,7 @@ object VibratorManager {
     /**
      * Provides haptic vibration for a spinner using intensity.
      */
-    fun spinnerVibration() {
+    override fun spinnerVibration() {
         if (isSpinnerVibrationEnabled) {
             if (!hasVibrationSupport || vibrator == null) {
                 return

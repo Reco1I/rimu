@@ -3,8 +3,7 @@ package com.osudroid.beatmaps
 import com.osudroid.ui.v2.songselect.SongSelect
 
 import com.reco1l.verktex.Logger
-import androidx.preference.PreferenceManager
-import com.osudroid.ui.v1.LoadingBadgeFragment
+import com.osudroid.OsuPlatform
 import com.osudroid.utils.async
 import com.osudroid.data.DatabaseManager
 import com.osudroid.utils.mainThread
@@ -16,9 +15,7 @@ import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
-import ru.nsu.ccfit.zuev.osuplus.BuildConfig
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
@@ -27,37 +24,31 @@ import kotlin.math.max
 object DifficultyCalculationManager {
 
 
-    private val mainActivity = GlobalManager.getInstance().mainActivity
-
     private val preferences
-        get() = PreferenceManager.getDefaultSharedPreferences(mainActivity)
+        get() = OsuPlatform.implementation.preferences
 
 
     private var job: Job? = null
 
-    private var badge: LoadingBadgeFragment? = null
+    private var badge: OsuPlatform.ProgressBadge? = null
 
 
     @JvmStatic
     fun checkForOutdatedStarRatings(): CompletableFuture<Unit> = stopCalculation().thenApply {
         preferences.apply {
-            val editor = edit()
-
             // Before per-star rating versioning, the version was stored in this key.
             // If both star ratings have been updated after this, this key is no longer needed and can be removed.
             val oldStarRatingVersion = getLong("starRatingVersion", 0)
 
             if (getLong("droidStarRatingVersion", oldStarRatingVersion) < DroidDifficultyCalculator.VERSION) {
                 DatabaseManager.beatmapInfoTable.resetDroidStarRatings()
-                editor.putLong("droidStarRatingVersion", DroidDifficultyCalculator.VERSION)
+                putLong("droidStarRatingVersion", DroidDifficultyCalculator.VERSION)
             }
 
             if (getLong("standardStarRatingVersion", oldStarRatingVersion) < StandardDifficultyCalculator.VERSION) {
                 DatabaseManager.beatmapInfoTable.resetStandardStarRatings()
-                editor.putLong("standardStarRatingVersion", StandardDifficultyCalculator.VERSION)
+                putLong("standardStarRatingVersion", StandardDifficultyCalculator.VERSION)
             }
-
-            editor.apply()
         }
     }
 
@@ -75,14 +66,10 @@ object DifficultyCalculationManager {
             return
         }
 
-        mainThread {
-            badge = LoadingBadgeFragment().apply {
-                header = "Calculating beatmap difficulties..."
-                message = "During this process, the game may suffer performance degradation."
-                isIndeterminate = true
-                show()
-            }
-        }
+        badge = OsuPlatform.implementation.showProgressBadge(
+            header = "Calculating beatmap difficulties...",
+            message = "During this process, the game may suffer performance degradation."
+        )
 
         job = async {
             val threadCount = ceil(Runtime.getRuntime().availableProcessors() / 2f).toInt()
@@ -125,7 +112,7 @@ object DifficultyCalculationManager {
 
                                     DatabaseManager.beatmapInfoTable.update(beatmapInfo)
 
-                                    if (BuildConfig.DEBUG) {
+                                    if (OsuPlatform.implementation.isDebug) {
                                         Logger.i(
                                             "DifficultyCalculation",
                                             "Calculated difficulty for ${beatmapInfo.path}, took ${System.currentTimeMillis() - msStartTime}ms."
