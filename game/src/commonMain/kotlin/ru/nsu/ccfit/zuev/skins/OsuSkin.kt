@@ -5,7 +5,7 @@ import com.osudroid.ui.skinning.ColorSkinData
 import com.osudroid.ui.skinning.FloatSkinData
 import com.osudroid.ui.skinning.StringSkinData
 import com.osudroid.ui.v2.hud.HUDSkinData
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.data.Color4
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmStatic
@@ -171,7 +171,7 @@ class OsuSkin {
         @JvmStatic
         @Throws(IOException::class)
         fun readFull(path: String): String {
-            return SystemFileSystem.source(path.toPath()).buffer().use { it.readUtf8() }
+            return Platform.fileSystem.source(path.toPath()).buffer().use { it.readUtf8() }
         }
     }
 }

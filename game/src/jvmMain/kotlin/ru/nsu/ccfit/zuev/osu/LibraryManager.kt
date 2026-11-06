@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu
 
+import com.reco1l.verktex.Platform
 import com.osudroid.OsuPlatform
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.beatmaps.DifficultyCalculationManager
@@ -69,7 +70,7 @@ object LibraryManager {
             return
         }
 
-        if (!OsuPlatform.implementation.canUseStorage || !checkDirectory(Config.getScorePath()) && !checkDirectory(Config.getBeatmapPath())) {
+        if (Platform.storage.externalDirectory == null || !checkDirectory(Config.getScorePath()) && !checkDirectory(Config.getBeatmapPath())) {
             return
         }
 

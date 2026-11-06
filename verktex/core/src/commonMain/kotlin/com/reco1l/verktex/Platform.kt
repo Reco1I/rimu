@@ -3,6 +3,9 @@ package com.reco1l.verktex
 import kotlin.time.Duration
 import kotlin.concurrent.Volatile
 import com.reco1l.verktex.audio.AudioDriver
+import com.reco1l.verktex.io.systemFileSystem
+import okio.FileSystem
+import okio.Path
 import com.reco1l.verktex.worker.LoopWorker
 
 /**
@@ -30,6 +33,22 @@ object Platform {
         get() {
             checkImplementation()
             return implementation.uptimeMillis
+        }
+
+    /**
+     * The file system of the device. It doesn't need the [implementation], so code that runs
+     * without a platform (e.g. tests) can use it too.
+     */
+    val fileSystem: FileSystem
+        get() = systemFileSystem
+
+    /**
+     * The folders where the application keeps its files, see [Storage].
+     */
+    val storage: Storage
+        get() {
+            checkImplementation()
+            return implementation.storage
         }
 
     /**
@@ -116,6 +135,11 @@ object Platform {
         val audioDriver: AudioDriver
 
         /**
+         * The folders where the application keeps its files.
+         */
+        val storage: Storage
+
+        /**
          * The configuration of the current display.
          */
         val currentDisplay: Display
@@ -149,6 +173,31 @@ object Platform {
         fun openUrl(url: String)
 
     }
+
+
+    /**
+     * The folders where the application keeps its files, in [fileSystem].
+     */
+    class Storage(
+
+        /**
+         * The application's private folder, for its settings, databases and other files the user
+         * doesn't handle (e.g. Android's `filesDir`, `%APPDATA%/<name>` on Windows).
+         */
+        val dataDirectory: Path,
+
+        /**
+         * A folder for files that can be recreated, which the system may clear.
+         */
+        val cacheDirectory: Path,
+
+        /**
+         * The root of the storage the user sees and handles (Android's external storage, the home
+         * folder on desktop), or null when it can't be used right now (e.g. removable storage that
+         * isn't mounted).
+         */
+        val externalDirectory: Path?,
+    )
 
 
     /**

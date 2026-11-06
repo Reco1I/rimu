@@ -1,7 +1,7 @@
-package com.osudroid.utils
+package com.reco1l.verktex.io
 
 import okio.FileSystem
 import okio.NodeJsFileSystem
 
 // Only compiled to check the common code, see build.gradle.kts.
-actual val SystemFileSystem: FileSystem = NodeJsFileSystem
+internal actual val systemFileSystem: FileSystem = NodeJsFileSystem

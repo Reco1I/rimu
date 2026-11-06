@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.online
 
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import com.reco1l.framework.net.Http
 import com.reco1l.framework.net.HttpRequestBuilder
 import kotlin.jvm.JvmOverloads
@@ -20,8 +20,8 @@ object OnlineFileOperator {
         Debug.i("Starting download $urlstr")
         val file = filename.toPath()
         try {
-            val lastModified = SystemFileSystem.metadataOrNull(file)?.lastModifiedAtMillis
-            val exists = SystemFileSystem.exists(file)
+            val lastModified = Platform.fileSystem.metadataOrNull(file)?.lastModifiedAtMillis
+            val exists = Platform.fileSystem.exists(file)
 
             if (!checkModificationDate && exists) {
                 Debug.i(file.name + " already exists")
@@ -39,7 +39,7 @@ object OnlineFileOperator {
             val request = builder.build()
             Http.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
-                    SystemFileSystem.sink(file).buffer().use { sink ->
+                    Platform.fileSystem.sink(file).buffer().use { sink ->
                         sink.writeAll(response.body)
                     }
                 }

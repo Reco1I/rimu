@@ -24,7 +24,7 @@ class PixelsTextureSource(
 
     override fun writePixels(target: GraphicsTexture.PixelTarget, x: Int, y: Int) {
         // A duplicate, so the source can be written again (e.g. after a context loss).
-        target.write(x, y, pixelWidth, pixelHeight, pixels.duplicate().order(ByteOrder.nativeOrder()).asReadBuffer())
+        target.write(x, y, pixelWidth, pixelHeight, pixels.duplicate().order(ByteOrder.nativeOrder()))
     }
 
 

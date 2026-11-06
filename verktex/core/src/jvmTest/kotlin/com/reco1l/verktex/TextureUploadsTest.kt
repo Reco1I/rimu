@@ -5,9 +5,7 @@ import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.texture.FramedTextureRegion
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import com.ditchoom.buffer.BufferFactory
-import com.ditchoom.buffer.Default
-import com.ditchoom.buffer.ReadBuffer
+import com.reco1l.verktex.graphics.PixelBuffer
 
 /**
  * Sources write their pixels when the texture flushes its uploads, either through bind() or
@@ -28,7 +26,7 @@ class TextureUploadsTest {
         }
         override fun onUnload() = Unit
 
-        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ReadBuffer) {
+        override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: PixelBuffer) {
             writes += listOf(x, y, width, height, pixels.remaining())
         }
     }
@@ -39,7 +37,7 @@ class TextureUploadsTest {
 
         override fun writePixels(target: GraphicsTexture.PixelTarget, x: Int, y: Int) {
             val size = width.toInt()
-            target.write(x, y, size, size, BufferFactory.Default.allocate(size * size * 4))
+            target.write(x, y, size, size, java.nio.ByteBuffer.allocate(size * size * 4))
         }
     }
 

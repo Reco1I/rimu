@@ -1,7 +1,6 @@
 package com.reco1l.verktex.desktop.gl
 
-import com.ditchoom.buffer.ReadBuffer
-import com.reco1l.verktex.desktop.asByteBuffer
+import com.reco1l.verktex.graphics.PixelBuffer
 import com.reco1l.verktex.graphics.GraphicsTexture
 import java.nio.ByteBuffer
 import org.lwjgl.opengl.GL33.*
@@ -21,11 +20,11 @@ class GLTexture(
         glBindTexture(GL_TEXTURE_2D, id)
     }
 
-    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ReadBuffer) {
+    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: PixelBuffer) {
         // Already bound when the pixels are written while binding, not by flushUploads.
         glBindTexture(GL_TEXTURE_2D, id)
         // Rows are tightly packed and 4 bytes per pixel, the default alignment of 4 holds.
-        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.asByteBuffer())
+        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
     }
 
     override fun onCreateTexture() {

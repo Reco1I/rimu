@@ -1,6 +1,5 @@
 package com.reco1l.verktex
 
-import com.reco1l.verktex.android.asByteBuffer
 import android.graphics.Bitmap
 import com.reco1l.verktex.android.AndroidTextureSource
 import org.junit.Assert.assertArrayEquals
@@ -54,7 +53,7 @@ class AndroidTextureSourceTest {
 
         source.writePixels({ wx, wy, width, height, pixels ->
             val ints = IntArray(pixels.remaining() / 4)
-            pixels.asByteBuffer().duplicate().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(ints)
+            pixels.duplicate().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(ints)
             write = Write(wx, wy, width, height, ints)
         }, x, y)
 

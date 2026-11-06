@@ -11,7 +11,6 @@ import com.reco1l.verktex.ui.container.UIContainer
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
-import com.osudroid.utils.SystemFileSystem
 import kotlin.jvm.JvmStatic
 import okio.Path.Companion.toPath
 
@@ -175,7 +174,7 @@ object SkinTextures {
     }
 
     private fun isKnown(name: String): Boolean {
-        return SystemFileSystem.metadataOrNull(Config.getSkinPath().toPath() / "$name.png")?.isRegularFile == true
+        return Platform.fileSystem.metadataOrNull(Config.getSkinPath().toPath() / "$name.png")?.isRegularFile == true
             || Platform.provider.exists("gfx/$name.png", false)
             || Platform.provider.exists("$name.png", false)
     }

@@ -23,12 +23,6 @@ class DesktopOsuPlatform : OsuPlatform.Implementation {
 
     override val preferences = PreferencesSettings(Preferences.userRoot().node("osu!droid"))
 
-    override val defaultCorePath: String
-        get() = File(System.getProperty("user.home"), "osu!droid").path + File.separator
-
-    override val cachePath: String
-        get() = File(System.getProperty("java.io.tmpdir"), "osu!droid").apply { mkdirs() }.path
-
     override val displayWidth: Int
         get() = Platform.currentDisplay.width
 

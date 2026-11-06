@@ -1,14 +1,13 @@
 package ru.nsu.ccfit.zuev.audio.serviceAudio
 
 import com.osudroid.OsuPlatform
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Logger
 
 import kotlin.jvm.JvmStatic
 import okio.Path.Companion.toPath
 
 import com.osudroid.audio.SongPlayer
-import com.reco1l.verktex.Platform
 
 import ru.nsu.ccfit.zuev.audio.Status
 
@@ -199,7 +198,7 @@ open class SongService {
         if (path.trim().isEmpty()) return false
         else {
             val songFile = path.toPath()
-            if (!SystemFileSystem.exists(songFile)) return false
+            if (!Platform.fileSystem.exists(songFile)) return false
         }
         return true
     }

@@ -1,6 +1,6 @@
 package com.reco1l.framework.net
 
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import kotlin.time.TimeSource
 import okio.Path.Companion.toPath
 import okio.buffer
@@ -57,7 +57,7 @@ class FileRequest(val path: String, url: String): WebRequest(url) {
 
         response.body.use { buffer ->
 
-            SystemFileSystem.sink(file).buffer().use { out ->
+            Platform.fileSystem.sink(file).buffer().use { out ->
 
                 isDownloading = true
                 val startTime = TimeSource.Monotonic.markNow()
@@ -82,8 +82,8 @@ class FileRequest(val path: String, url: String): WebRequest(url) {
                 }
 
                 // This mean the file wasn't fully downloaded.
-                if (SystemFileSystem.exists(file)) {
-                    SystemFileSystem.delete(file)
+                if (Platform.fileSystem.exists(file)) {
+                    Platform.fileSystem.delete(file)
                 }
                 observer?.onDownloadCancel(this)
             }

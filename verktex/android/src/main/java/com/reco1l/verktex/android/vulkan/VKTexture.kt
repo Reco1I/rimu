@@ -1,7 +1,6 @@
 package com.reco1l.verktex.android.vulkan
 
-import com.reco1l.verktex.android.asByteBuffer
-import com.ditchoom.buffer.ReadBuffer
+import com.reco1l.verktex.graphics.PixelBuffer
 import android.graphics.ImageFormat
 import android.hardware.HardwareBuffer
 import android.media.Image
@@ -50,8 +49,8 @@ class VKTexture internal constructor(
 
     override fun onBindTexture() = Unit
 
-    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ReadBuffer) {
-        val bytes = pixels.asByteBuffer()
+    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: PixelBuffer) {
+        val bytes = pixels
         val size = bytes.remaining()
 
         if (bytes.isDirect) {
@@ -245,7 +244,7 @@ class VKExternalTexture internal constructor(
     override fun addSource(source: Source): Region? = null
 
     override fun onBindTexture() = Unit
-    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: ReadBuffer) = Unit
+    override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: PixelBuffer) = Unit
 
     override fun onUnload() {
         retireCurrentFrame()

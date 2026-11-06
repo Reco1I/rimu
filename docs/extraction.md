@@ -30,10 +30,11 @@ The game depends only on `:verktex:android`, which exposes `:verktex:core` as an
   compiles it for JavaScript as well.
 - What the core needs from a platform goes through `Platform.Implementation`: resources (`Provider`),
   audio (`AudioDriver`), the display, the keyboard, logging and threads (`LoopWorker`, which also
-  paces its loop). Everything else comes from multiplatform libraries: DitchOoM's `buffer` for the
-  pixels textures upload (`ReadBuffer`, `asReadBuffer()`/`asByteBuffer()` on Android), atomicfu for
-  locks, `kotlin.time` for time, and small helpers in the core (`toFixed`, the code points in
-  `ui/text/CodePoints.kt`).
+  paces its loop), and the storage folders (`Platform.storage`). Everything else comes from
+  multiplatform libraries or small expected declarations: Okio for files (`Platform.fileSystem`, which
+  needs no implementation), `PixelBuffer` for the pixels textures upload (a `java.nio.ByteBuffer` on
+  the JVM), atomicfu for locks, `kotlin.time` for time, and small helpers in the core (`toFixed`, the
+  code points in `ui/text/CodePoints.kt`).
 - Everything the engine needs at runtime, such as shaders and fonts, ships in its own modules, and so
   do the tasks that build it, such as `compileVulkanShaders` in `:verktex:android`.
 - The core keeps the API only the platforms should use public under `@VerktexPlatformApi`, which

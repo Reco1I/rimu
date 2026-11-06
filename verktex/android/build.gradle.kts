@@ -50,7 +50,6 @@ android {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.9.1")
 
     // Android specific
     implementation("androidx.appcompat:appcompat:1.7.1")

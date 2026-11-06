@@ -51,22 +51,6 @@ object OsuPlatform {
         val preferences: Settings
 
         /**
-         * The folder where the game keeps its files by default, ending with a separator.
-         */
-        val defaultCorePath: String
-
-        /**
-         * Whether the storage with the game's folders can be used, which removable storage may not be.
-         */
-        val canUseStorage: Boolean
-            get() = true
-
-        /**
-         * The folder where the game keeps its cache.
-         */
-        val cachePath: String
-
-        /**
          * The width of the display in pixels, including the space the system decorations take.
          */
         val displayWidth: Int

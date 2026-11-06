@@ -12,7 +12,7 @@ import com.osudroid.beatmaps.parser.sections.BeatmapEventsParser
 import com.osudroid.beatmaps.parser.sections.BeatmapGeneralParser
 import com.osudroid.beatmaps.parser.sections.BeatmapHitObjectsParser
 import com.osudroid.beatmaps.parser.sections.BeatmapMetadataParser
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import com.osudroid.utils.md5Checksum
 import okio.use
 import okio.BufferedSource
@@ -175,7 +175,7 @@ class BeatmapParser {
         beatmap
     }
 
-    private fun openFile() = SystemFileSystem.source(path.toPath()).buffer()
+    private fun openFile() = Platform.fileSystem.source(path.toPath()).buffer()
 
     @Throws(IOException::class, NumberFormatException::class)
     private fun getFormatVersion(source: BufferedSource): Int {

@@ -30,12 +30,17 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            // Multiplatform byte buffers, over direct java.nio buffers on the JVM and Android, for the
-            // pixels the textures upload.
-            api("com.ditchoom:buffer:6.30.8")
+            // Files, streams and hashing, see Platform.fileSystem.
+            api("com.squareup.okio:okio:3.9.1")
 
             // Multiplatform locks.
             implementation("org.jetbrains.kotlinx:atomicfu:0.33.0")
+        }
+
+        if (providers.gradleProperty("verktex.checkCommon").isPresent) {
+            jsMain.dependencies {
+                implementation("com.squareup.okio:okio-nodefilesystem:3.9.1")
+            }
         }
 
         jvmTest.dependencies {

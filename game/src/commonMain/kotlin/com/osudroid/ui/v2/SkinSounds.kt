@@ -1,7 +1,6 @@
 package com.osudroid.ui.v2
 
 import com.reco1l.verktex.Platform
-import com.osudroid.utils.SystemFileSystem
 import kotlin.jvm.JvmStatic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -162,7 +161,7 @@ object SkinSounds {
     private fun loadFromSkin(name: String): BassSoundProvider? {
         for (extension in extensions) {
             val file = Config.getSkinPath().toPath() / "$name.$extension"
-            val metadata = SystemFileSystem.metadataOrNull(file)
+            val metadata = Platform.fileSystem.metadataOrNull(file)
 
             if (metadata != null && metadata.isRegularFile && (metadata.size ?: 0L) > 0) {
                 val sound = BassSoundProvider()

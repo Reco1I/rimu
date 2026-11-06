@@ -1,7 +1,7 @@
 package ru.nsu.ccfit.zuev.osu
 
 import com.osudroid.OsuPlatform
-import com.osudroid.utils.SystemFileSystem
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.data.Color4
 import com.russhwolf.settings.Settings
@@ -171,7 +171,8 @@ object Config {
         }
 
         //advanced
-        defaultCorePath = OsuPlatform.implementation.defaultCorePath
+        // The game's folder in the storage the user sees, or in its private folder without one.
+        defaultCorePath = "${Platform.storage.externalDirectory ?: Platform.storage.dataDirectory}/osu!droid/"
         corePath = prefs.getString("corePath", defaultCorePath)
         if (corePath.length == 0) {
             corePath = defaultCorePath
@@ -198,7 +199,7 @@ object Config {
         }
 
         enableExtension = false// prefs.getBoolean("enableExtension", false);
-        cachePath = OsuPlatform.implementation.cachePath
+        cachePath = Platform.storage.cacheDirectory.toString()
         burstEffects = prefs.getBoolean("bursts", burstEffects)
         hitLighting = prefs.getBoolean("hitlighting", hitLighting)
         useParticles = prefs.getBoolean("particles", useParticles)
@@ -808,8 +809,8 @@ object Config {
     @JvmStatic
     fun loadSkins() {
         val topPath = skinTopPath.toPath()
-        val folders = (SystemFileSystem.listOrNull(topPath) ?: emptyList()).filter {
-            SystemFileSystem.metadataOrNull(it)?.isDirectory == true && !it.name.startsWith(".")
+        val folders = (Platform.fileSystem.listOrNull(topPath) ?: emptyList()).filter {
+            Platform.fileSystem.metadataOrNull(it)?.isDirectory == true && !it.name.startsWith(".")
         }
         skins = HashMap()
         for (folder in folders) {
