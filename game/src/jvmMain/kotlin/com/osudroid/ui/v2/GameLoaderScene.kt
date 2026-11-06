@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2
 
+import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.ui.text.spans
 import com.osudroid.data.*
 import com.osudroid.multiplayer.*
@@ -208,10 +209,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 multiplayerLoadElapsed += clock.elapsedFrameTime
 
                 if (multiplayerLoadElapsed >= MULTIPLAYER_LOAD_TIMEOUT_SEC) {
-                    ToastLogger.showText(
-                        "You have been moved back as you took too long to load the beatmap.",
-                        true
-                    )
+                    Toasts.showLong("You have been moved back as you took too long to load the beatmap.")
 
                     cancel()
                     return

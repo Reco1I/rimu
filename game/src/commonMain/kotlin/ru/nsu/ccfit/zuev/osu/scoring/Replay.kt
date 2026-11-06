@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.beatmaps.IBeatmap
@@ -29,7 +30,7 @@ import okio.IOException
 import okio.Path.Companion.toPath
 import okio.Source
 import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.helper.Debug
 
@@ -314,10 +315,10 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
         } catch (e: EOFException) {
             Debug.e("O_o eof...")
             Debug.e(e)
-            ToastLogger.showText(Res.string.replay_corrupted, true)
+            Toasts.showLong(StringTable.get(Res.string.replay_corrupted))
             return false
         } catch (e: Exception) {
-            ToastLogger.showText(Res.string.replay_corrupted, true)
+            Toasts.showLong(StringTable.get(Res.string.replay_corrupted))
             Debug.e("Cannot load replay: " + e.message, e)
             return false
         }

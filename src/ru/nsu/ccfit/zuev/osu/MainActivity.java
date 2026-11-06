@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.reco1l.verktex.ui.toast.Toasts;
 import com.osudroid.android.AndroidGame;
 import com.osudroid.OsuPlatform;
 import com.osudroid.android.AndroidOsuPlatform;
@@ -8,7 +9,6 @@ import com.osudroid.android.SocketIORoomSocket;
 import com.osudroid.multiplayer.api.RoomSocket;
 import com.reco1l.framework.net.Http;
 import com.osudroid.android.AndroidStringTable;
-import com.osudroid.android.AndroidToasts;
 
 import com.osudroid.ui.v2.settings.SettingsSectionsKt;
 import android.Manifest;
@@ -36,7 +36,6 @@ import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.PermissionChecker;
@@ -140,7 +139,6 @@ public class MainActivity extends AndroidGameHost {
         RoomSocket.Companion.setFactory(SocketIORoomSocket.factory);
         Config.loadConfig();
         StringTable.INSTANCE.setImplementation(new AndroidStringTable(this));
-        ToastLogger.init(new AndroidToasts(this));
         initialGameDirectory();
         Multiplayer.initLog();
         //Debug.setDebugLevel(Debug.DebugLevel.NONE);
@@ -248,9 +246,8 @@ public class MainActivity extends AndroidGameHost {
                 Config.setBeatmapPath(Config.getCorePath() + "Songs/");
                 dir = new File(Config.getBeatmapPath());
                 if (!(dir.exists() || dir.mkdirs())) {
-                    ToastLogger.showText(StringTable.format(
-                                    R.string.message_error_createdir, dir.getPath()),
-                            true);
+                    Toasts.showLong(StringTable.format(
+                                    R.string.message_error_createdir, dir.getPath()));
                 } else {
                     final SharedPreferences prefs = PreferenceManager
                             .getDefaultSharedPreferences(this);
@@ -316,7 +313,7 @@ public class MainActivity extends AndroidGameHost {
         availableMemory = (double) stat.getAvailableBytes();
         String toastMessage = String.format(StringTable.get(R.string.message_low_storage_space), df.format(availableMemory / minMem));
         if (availableMemory < 0.5 * minMem) { //I set 512MiB as a minimum
-            Execution.mainThread(() -> Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show());
+            Toasts.showLong(toastMessage);
         }
         Logger.i("MainActivity", "Free Space: " + df.format(availableMemory / minMem));
     }
@@ -332,9 +329,7 @@ public class MainActivity extends AndroidGameHost {
         if (fileToAdd != null) {
             File file = new File(fileToAdd);
             if (file.getName().toLowerCase().endsWith(".osz")) {
-                ToastLogger.showText(
-                        StringTable.get(R.string.library_importing),
-                        false);
+                Toasts.show(StringTable.get(R.string.library_importing));
 
                 FileUtils.extractBeatmapset(fileToAdd, Config.getBeatmapPath());
                 forceImportedBeatmaps.add(file.getName().substring(0, file.getName().length() - 4)
@@ -342,7 +337,7 @@ public class MainActivity extends AndroidGameHost {
                 // LibraryManager.INSTANCE.sort();
                 fileToAdd = null;
             } else if (file.getName().toLowerCase().endsWith(".osk")) {
-                ToastLogger.showText(StringTable.get(R.string.library_skin_importing), false);
+                Toasts.show(StringTable.get(R.string.library_skin_importing));
                 FileUtils.extractZip(fileToAdd, Config.getSkinTopPath());
                 fileToAdd = null;
             } else if (file.getName().toLowerCase().endsWith(".odr")) {
@@ -398,9 +393,9 @@ public class MainActivity extends AndroidGameHost {
             if (beatmaps.size() > 0) {
                 // final boolean deleteOsz = Config.isDELETE_OSZ();
                 // Config.setDELETE_OSZ(true);
-                ToastLogger.showText(StringTable.format(
+                Toasts.show(StringTable.format(
                         R.string.library_importing_several,
-                        beatmaps.size()), false);
+                        beatmaps.size()));
                 for (final String beatmap : beatmaps) {
                     FileUtils.extractBeatmapset(beatmap, Config.getBeatmapPath());
                 }
@@ -454,17 +449,15 @@ public class MainActivity extends AndroidGameHost {
         }
 
         if (skins.size() > 0) {
-            ToastLogger.showText(StringTable.format(
+            Toasts.show(StringTable.format(
                     R.string.library_skin_importing_several,
-                    skins.size()), false);
+                    skins.size()));
 
             for (final String skin : skins) {
                 if (FileUtils.extractZip(skin, Config.getSkinTopPath())) {
                     String folderName = skin.substring(0, skin.length() - 4);
                     // We have imported the skin!
-                    ToastLogger.showText(
-                            StringTable.format(R.string.library_imported, folderName),
-                            true);
+                    Toasts.showLong(StringTable.format(R.string.library_imported, folderName));
                     Config.addSkin(folderName.substring(folderName.lastIndexOf("/") + 1), skin);
                 }
             }
@@ -631,7 +624,7 @@ public class MainActivity extends AndroidGameHost {
         try (var in = getContentResolver().openInputStream(uri);
              var sink = Okio.buffer(Okio.sink(tempFile))) {
             if (in == null) {
-                ToastLogger.showText(StringTable.get(R.string.import_failed_open_file), false);
+                Toasts.show(StringTable.get(R.string.import_failed_open_file));
                 return null;
             }
 
@@ -639,7 +632,7 @@ public class MainActivity extends AndroidGameHost {
             return tempFile.getAbsolutePath();
         } catch (IOException | SecurityException e) {
             Logger.e("MainActivity", "MainActivity.copyContentUriToCache: " + e.getMessage(), e);
-            ToastLogger.showText(StringTable.get(R.string.import_failed_open_file), false);
+            Toasts.show(StringTable.get(R.string.import_failed_open_file));
             return null;
         }
     }
@@ -711,7 +704,7 @@ public class MainActivity extends AndroidGameHost {
 
 
             /*if (Multiplayer.isMultiplayer) {
-                ToastLogger.showText("You've left the match.", true);
+                Toasts.showLong("You've left the match.");
                 Execution.updateThread(gameScene::quit);
                 Multiplayer.log("Player left the match.");
             } else {

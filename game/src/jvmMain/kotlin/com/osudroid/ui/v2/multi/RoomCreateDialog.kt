@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.multi
 
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
+import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.resources.Res.string
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*
@@ -85,7 +87,7 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
                     } catch (e: Exception) {
                         // Removes the loader scene, leaving the lobby.
                         Verktex.withTreeLock { Verktex.popScene() }
-                        ToastLogger.showText("Failed to create a room: ${e.message}", true)
+                        Toasts.showLong("Failed to create a room: ${e.message}")
                         e.printStackTrace()
                     }
 

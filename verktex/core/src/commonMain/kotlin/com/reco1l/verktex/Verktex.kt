@@ -111,7 +111,11 @@ object Verktex {
     val imeOffset: Float
         get() = graphics.window.insets.offsets.y
 
-    private var isInitialized = false
+    /**
+     * Whether [initialize] was called, so the engine has a host, a renderer and an audio driver.
+     */
+    var isInitialized = false
+        private set
 
 
     /**

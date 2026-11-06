@@ -8,9 +8,7 @@ import com.osudroid.OsuPlatform
 import com.osudroid.android.AndroidOsuPlatform
 import com.osudroid.android.AndroidStringTable
 import com.osudroid.android.AndroidGame
-import com.osudroid.android.AndroidToasts
 import com.osudroid.data.AndroidDatabase
-import ru.nsu.ccfit.zuev.osu.ToastLogger
 import com.google.firebase.FirebaseApp
 import com.osudroid.ui.v2.Skin
 import com.reco1l.verktex.android.UITestActivity
@@ -40,7 +38,6 @@ class OsuUITestActivity : UITestActivity() {
 
         // The activity is the context of the game here, it can start other activities too.
         AndroidGame.context = this
-        ToastLogger.init(AndroidToasts(this))
 
         // Before any suite is created, the components under test reach the game through it.
         TestGameContext.install { AndroidDatabase.loadInMemory(this) }

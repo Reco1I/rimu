@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.multi
 
+import ru.nsu.ccfit.zuev.osu.helper.StringTable
+import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.ui.text.spans
 import com.osudroid.resources.Res.string
 import com.osudroid.multiplayer.*
@@ -181,7 +183,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                     roomPassword = password
                 )
             } catch (e: Exception) {
-                ToastLogger.showText("Failed to connect to the room: ${e.javaClass} - ${e.message}", true)
+                Toasts.showLong("Failed to connect to the room: ${e.javaClass} - ${e.message}")
                 Multiplayer.log(e)
 
                 // Removes the loader scene, leaving the lobby.

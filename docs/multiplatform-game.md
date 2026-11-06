@@ -323,7 +323,7 @@ Left for desktop, roughly in order:
 
 1. Importing `.osz` and `.osk` files (Android's `loadBeatmapLibrary`/`checkNewSkins` use `FileUtils`,
    which is Android code); desktop only scans folders already extracted into `Songs/`.
-2. Toasts: Verktex has no toast component yet, desktop logs them.
+2. Toasts: done, Verktex draws them (`Toasts`), see `engine-consolidation.md`.
 3. Multiplayer: a `RoomSocket` for desktop (or the planned Socket.IO client over Ktor).
 4. Videos, the beatmap listing, the block area editor and the replay picker, as Verktex rewrites.
 5. Moving `jvmMain` code to `commonMain` as its JVM uses are replaced.

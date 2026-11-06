@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu
 
+import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.Platform
 import com.osudroid.OsuPlatform
 import com.osudroid.beatmaps.BeatmapCache
@@ -41,7 +42,7 @@ object LibraryManager {
         if (!directory.exists()) {
 
             if (!directory.mkdir()) {
-                ToastLogger.showText(StringTable.format(Res.string.message_error_createdir, directory.path), true)
+                Toasts.showLong(StringTable.format(Res.string.message_error_createdir, directory.path))
                 return false
             }
 
@@ -289,7 +290,6 @@ object LibraryManager {
                         GlobalManager.getInstance().loadingProgress = 50 + 50 * fileCached / directoryCount
                         GlobalManager.getInstance().info = "Loading " + directory.name + "..."
 
-                        ToastLogger.setPercentage(fileCached * 100f / directoryCount)
                         fileCached++
 
                         scanBeatmapSetFolder(directory)

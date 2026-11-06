@@ -17,7 +17,7 @@ import java.io.File
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
@@ -44,7 +44,7 @@ abstract class BackedUpMigration(startVersion: Int, endVersion: Int) : Migration
         } catch (e: Exception) {
             val message = "Failed to perform database migration from version $startVersion to $endVersion"
 
-            ToastLogger.showText("$message, exiting", true)
+            Toasts.showLong("$message, exiting")
             Logger.e("Migration", message, e)
             FirebaseCrashlytics.getInstance().recordException(e)
 

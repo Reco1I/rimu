@@ -349,7 +349,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | Phase | State |
 |---|---|
 | 1. File system and buffers | Done |
-| 2. Toasts | Not started |
+| 2. Toasts | Done |
 | 3. `MusicService` | Not started |
 | 4. Localization | Not started |
 | 5. Settings replace `Config` | Not started |
@@ -380,3 +380,27 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
   Not checked on a device; no phone was connected.
 - Already failing before this phase: `ColorInheritanceTest`, `PointerEventTest` and
   `ThemedValuesTest` in `:verktex:core:jvmTest`.
+
+### Phase 2: toasts
+
+- Verktex has `UIToast` (title, text, progress bar or loading indicator, optional action button) and
+  `Toasts`, which stacks them at the bottom of the window on the overlay layer.
+  - `Toasts.show(text)` and `showLong(text)` are for Java. `show(text, duration, action, onAction)`
+    covers the rest.
+  - `showPersistent` keeps a toast until it's dismissed.
+  - A `Toasts.Toast` can be changed from any thread: changes take the tree lock.
+  - Nothing is built until the engine is initialized, so the game's JVM tests don't need it.
+  - The "Verktex/Toasts" UI test shows each kind.
+- `Verktex.isInitialized` is public (read only).
+- In the game:
+  - `ToastLogger` and `AndroidToasts` are gone, and the 80 calls use `Toasts`. Its unused log and
+    percentage went with it.
+  - The difficulty calculation's progress badge is a persistent toast. `OsuPlatform.showProgressBadge`,
+    `ProgressBadge`, `LoadingBadgeFragment` and its layout are deleted.
+  - The login connection failure is common code in `OnlineScoring`: a 10 second toast with a "Check"
+    button opening the guide, instead of Android's Snackbar.
+    `OsuPlatform.showConnectionFailure`/`LOGIN_FAIL_HELP_URL` are gone.
+  - `MainActivity`'s low storage warning uses `Toasts`. `ImportReplayActivity` keeps Android toasts,
+    since it runs without the engine.
+- Checked: the tests (only the 3 failures from before), the common checks, `assembleDebug`, the toasts
+  UI test and the game on desktop. Not checked on a device.

@@ -27,7 +27,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
@@ -163,7 +163,7 @@ object Multiplayer {
                 )
 
             } catch (e: Exception) {
-                ToastLogger.showText("Failed to connect to the room: ${e.javaClass} - ${e.message}", true)
+                Toasts.showLong("Failed to connect to the room: ${e.javaClass} - ${e.message}")
                 Logger.e("LobbyScene", "Failed to connect to room.", e)
 
                 updateThread { Verktex.pushScene(LobbyScene()) }
@@ -290,10 +290,7 @@ object Multiplayer {
                 isWaitingForModsChange.set(false)
             }
 
-            ToastLogger.showText(
-                "The connection to server has been lost, please check your internet connection.",
-                true
-            )
+            Toasts.showLong("The connection to server has been lost, please check your internet connection.")
 
             // Do not interrupt an active game session; the teardown will happen naturally
             // when the player finishes (or abandons) the game.

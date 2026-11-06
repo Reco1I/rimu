@@ -27,7 +27,7 @@ import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.ToastLogger
+import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.*
 import ru.nsu.ccfit.zuev.skins.OsuSkin
@@ -140,10 +140,10 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
                 text = StringTable.get(string.hudEditor_modal_save)
                 onActionUp = {
                     hide()
-                    ToastLogger.showText(string.hudEditor_saving, true)
+                    Toasts.showLong(StringTable.get(string.hudEditor_saving))
                     setEditMode(false)
                     saveToSkinJSON()
-                    ToastLogger.showText(string.hudEditor_saved, true)
+                    Toasts.showLong(StringTable.get(string.hudEditor_saved))
                 }
             }
             addButton {
@@ -151,7 +151,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
                 onActionUp = {
                     hide()
                     setSkinData(OsuSkin.get().hudSkinData)
-                    ToastLogger.showText(string.hudEditor_discarded, true)
+                    Toasts.showLong(StringTable.get(string.hudEditor_discarded))
                 }
             }
             addButton {
@@ -159,7 +159,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
                 onActionUp = {
                     hide()
                     setSkinData(HUDSkinData.Default)
-                    ToastLogger.showText(string.hudEditor_reset, true)
+                    Toasts.showLong(StringTable.get(string.hudEditor_reset))
                 }
             }
             addButton {
