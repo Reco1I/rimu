@@ -1,10 +1,5 @@
-package com.osudroid.android
+package com.reco1l.framework.net
 
-import com.reco1l.framework.net.Http
-import com.reco1l.framework.net.HttpBody
-import com.reco1l.framework.net.HttpCall
-import com.reco1l.framework.net.HttpRequest
-import com.reco1l.framework.net.HttpResponse
 import java.io.File
 import okhttp3.Call
 import okhttp3.FormBody

@@ -3,7 +3,7 @@ package ru.nsu.ccfit.zuev.osu;
 import com.osudroid.android.AndroidGame;
 import com.osudroid.OsuPlatform;
 import com.osudroid.android.AndroidOsuPlatform;
-import com.osudroid.android.OkHttpClientImplementation;
+import com.reco1l.framework.net.OkHttpClientImplementation;
 import com.osudroid.android.SocketIORoomSocket;
 import com.osudroid.multiplayer.api.RoomSocket;
 import com.reco1l.framework.net.Http;

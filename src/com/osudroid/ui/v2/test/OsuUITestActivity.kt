@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.test
 
-import com.osudroid.android.OkHttpClientImplementation
+import com.reco1l.framework.net.OkHttpClientImplementation
 import com.osudroid.android.SocketIORoomSocket
 import com.osudroid.multiplayer.api.RoomSocket
 import com.reco1l.framework.net.Http
