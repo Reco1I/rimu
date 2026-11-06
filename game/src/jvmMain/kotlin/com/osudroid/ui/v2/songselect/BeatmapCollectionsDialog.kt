@@ -21,7 +21,6 @@ import com.reco1l.verktex.ui.dialog.UIPromptDialog
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.themed
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 
 /**
  * Lists the beatmap collections to add the beatmap set in [directory] to or remove it from, and to
@@ -102,7 +101,7 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
                 onActionUp = {
                     val name = value.trim()
 
-                    if (name.isNotEmpty() && name != StringTable.get(string.favorite_default) &&
+                    if (name.isNotEmpty() && name != string.favorite_default.toString() &&
                         !DatabaseManager.beatmapCollectionsTable.collectionExists(name)) {
                         DatabaseManager.beatmapCollectionsTable.insertCollection(name)
                         hasChanges = true
@@ -195,7 +194,7 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
         private fun confirmDeletion() {
             UIConfirmDialog().apply {
                 title = "Delete collection"
-                text = "Delete the collection \"$name\"? ${StringTable.get(string.favorite_ensure)}"
+                text = "Delete the collection \"$name\"? ${string.favorite_ensure}"
                 onConfirm = {
                     DatabaseManager.beatmapCollectionsTable.clearCollection(name)
                     DatabaseManager.beatmapCollectionsTable.deleteCollection(name)

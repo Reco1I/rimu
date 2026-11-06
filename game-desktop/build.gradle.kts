@@ -22,12 +22,6 @@ kotlin {
 
 val roomVersion = "2.7.2"
 
-// The language pack, whose English strings the desktop reads, as the game module does.
-val languagePack: Configuration by configurations.creating {
-    isCanBeConsumed = false
-    isTransitive = false
-}
-
 dependencies {
     implementation(project(":game"))
     implementation(project(":verktex:desktop"))
@@ -38,8 +32,6 @@ dependencies {
     ksp("androidx.room:room-compiler:$roomVersion")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
-    languagePack("com.github.osudroid:language-pack:${providers.gradleProperty("languagePackVersion").get()}@aar")
 }
 
 ksp {
@@ -199,23 +191,10 @@ kotlin.sourceSets.main {
     kotlin.srcDir(generateSuspendDaos)
 }
 
-// The English strings of the language pack and the strings not in it yet, read by DesktopStringTable.
-val copyStrings by tasks.registering(Copy::class) {
-    from(zipTree(languagePack.singleFile)) {
-        include("res/values/values.xml")
-        rename { "language-pack.xml" }
-        eachFile { path = "strings/$name" }
-    }
-    from(rootProject.layout.projectDirectory.file("res/values/strings_temporary_for_locals.xml")) {
-        into("strings")
-    }
-    includeEmptyDirs = false
-    into(layout.buildDirectory.dir("generated/strings"))
-}
-
 // The game's assets (the default skin, sounds, fonts), which Android packages as its assets.
 sourceSets.main {
-    resources.srcDir(copyStrings)
+    // The game's strings, generated from the language pack.
+    resources.srcDir(files(project(":game").layout.buildDirectory.dir("generated/resources/assets")).builtBy(":game:generateStringResources"))
     resources.srcDir(rootProject.layout.projectDirectory.dir("assets"))
 }
 

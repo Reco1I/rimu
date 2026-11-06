@@ -130,7 +130,6 @@ import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameHelper.SliderPath
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.online.OnlineFileOperator
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
@@ -590,7 +589,7 @@ open class GameScene : GameObjectListener {
 
     private fun loadGame(beatmapInfo: BeatmapInfo, rFile: String?, mods: ModHashMap, scope: CoroutineScope?): Boolean {
         if (!OsuPlatform.implementation.verifyFileIntegrity()) {
-            Toasts.showLong(StringTable.get(Res.string.file_integrity_tampered))
+            Toasts.showLong(Res.string.file_integrity_tampered)
             return false
         }
 
@@ -601,7 +600,7 @@ open class GameScene : GameObjectListener {
                 MD5Calculator.getStringMD5(rFile) + ".odr"
             Logger.i("GameScene", "ReplayFile = $replayFilePath")
             if (!OnlineFileOperator.downloadFile(rFile, this.replayFilePath!!)) {
-                Toasts.showLong(StringTable.get(Res.string.replay_cantdownload))
+                Toasts.showLong(Res.string.replay_cantdownload)
                 return false
             }
         } else
@@ -628,7 +627,7 @@ open class GameScene : GameObjectListener {
         val parsedBeatmap = parsedBeatmap ?: return false
 
         if (parsedBeatmap.md5 != beatmapInfo.md5) {
-            Toasts.showLong(StringTable.get(Res.string.file_integrity_tampered))
+            Toasts.showLong(Res.string.file_integrity_tampered)
             return false
         }
 
@@ -889,7 +888,7 @@ open class GameScene : GameObjectListener {
             replaying = replay.load(replayFilePath!!, true)
 
             if (!replaying) {
-                Toasts.showLong(StringTable.get(Res.string.replay_invalid))
+                Toasts.showLong(Res.string.replay_invalid)
                 return false
             }
 
@@ -902,7 +901,7 @@ open class GameScene : GameObjectListener {
             // customizations.
             for (mod in mods.values) {
                 if (!replay.getStat()!!.mod.containsKey(mod::class)) {
-                    Toasts.showLong(StringTable.get(Res.string.replay_invalid))
+                    Toasts.showLong(Res.string.replay_invalid)
                     return false
                 }
             }
@@ -1414,7 +1413,7 @@ open class GameScene : GameObjectListener {
         replaceCurrentScene(gameUIScene)
 
         if (isHUDEditorMode) {
-            Toasts.show(StringTable.get(Res.string.hudEditor_back_for_menu))
+            Toasts.show(Res.string.hudEditor_back_for_menu)
         }
     }
 
@@ -3102,11 +3101,11 @@ open class GameScene : GameObjectListener {
                 }
             }
 
-            Toasts.showLong(StringTable.get(Res.string.message_save_replay_successful))
+            Toasts.showLong(Res.string.message_save_replay_successful)
             replayFilePath = null
             return true
         } else {
-            Toasts.showLong(StringTable.get(Res.string.message_save_replay_failed))
+            Toasts.showLong(Res.string.message_save_replay_failed)
             return false
         }
     }

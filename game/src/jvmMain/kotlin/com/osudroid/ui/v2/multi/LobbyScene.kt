@@ -5,7 +5,6 @@ import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.resources.Res.string
 import com.osudroid.ui.v2.SkinTextures
-import com.osudroid.ui.v2.setText
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
@@ -41,7 +40,6 @@ import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import com.reco1l.verktex.ui.toast.Toasts
 import kotlin.coroutines.cancellation.CancellationException
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import com.reco1l.verktex.ui.themed
 
@@ -97,13 +95,13 @@ class LobbyScene : UIScene() {
 
                     textButton {
                         leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
-                        setText(string.multiplayer_lobby_back)
+                        text = string.multiplayer_lobby_back
                         onActionUp = { back() }
                     }
 
                     textButton {
                         leadingIcon = faSolidIcon(FAIcon.Plus)
-                        setText(string.multiplayer_lobby_create_room)
+                        text = string.multiplayer_lobby_create_room
                         onActionUp = {
                             RoomCreateDialog(this@LobbyScene).show()
                         }
@@ -111,7 +109,7 @@ class LobbyScene : UIScene() {
 
                     refreshButton = textButton {
                         leadingIcon = faSolidIcon(FAIcon.Rotate)
-                        setText(string.multiplayer_lobby_refresh)
+                        text = string.multiplayer_lobby_refresh
                         onActionUp = { shouldFetch = true }
                     }
                 }
@@ -125,7 +123,7 @@ class LobbyScene : UIScene() {
                         key = "search"
                         width = 208f.dip
                         height = Dimension.FillAvailable
-                        placeholder = StringTable.get(string.multiplayer_lobby_search_rooms)
+                        placeholder = string.multiplayer_lobby_search_rooms
                         onValueChange = { value ->
                             searchQuery = value
                         }
@@ -227,7 +225,7 @@ class LobbyScene : UIScene() {
         fetchScope.launch(CoroutineExceptionHandler { _, throwable ->
             Logger.e("LobbyScene", "Error fetching multiplayer rooms", throwable)
 
-            Toasts.showLong(StringTable.format(string.multiplayer_lobby_fetch_error_toast, throwable.message))
+            Toasts.showLong(string.multiplayer_lobby_fetch_error_toast.format(throwable.message))
 
             updateThread {
                 messageContainer.apply {
@@ -236,7 +234,7 @@ class LobbyScene : UIScene() {
                     text {
                         fontSize = themed { typography.smallBody.size }
                         color = themed { palette.accent }
-                        setText(string.multiplayer_lobby_fetch_error)
+                        text = string.multiplayer_lobby_fetch_error
                     }
                 }
             }
@@ -278,7 +276,7 @@ class LobbyScene : UIScene() {
                         text {
                             fontSize = themed { typography.smallBody.size }
                             color = themed { palette.accent }
-                            setText(if (searchQuery.isNullOrEmpty()) string.multiplayer_lobby_no_rooms else string.multiplayer_lobby_no_results)
+                            text = if (searchQuery.isNullOrEmpty()) string.multiplayer_lobby_no_rooms else string.multiplayer_lobby_no_results
                         }
                     }
                 } else {

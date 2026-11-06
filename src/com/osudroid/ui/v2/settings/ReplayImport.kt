@@ -11,7 +11,6 @@ import com.osudroid.utils.async
 import com.osudroid.utils.mainThread
 import com.osudroid.replay.ReplayImporter
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import java.io.File
 
 /**
@@ -57,11 +56,7 @@ private fun importReplays(uris: List<Uri>) {
                 mainThread {
                     Snackbar.make(
                         decorView,
-                        StringTable.format(
-                            Res.string.replay_import_error,
-                            uri.path ?: uri.toString(),
-                            e.message ?: "Unknown error"
-                        ),
+                        Res.string.replay_import_error.format(uri.path ?: uri.toString(), e.message ?: "Unknown error"),
                         3000
                     ).show()
                 }
@@ -76,7 +71,7 @@ private fun importReplays(uris: List<Uri>) {
 
             Snackbar.make(
                 decorView,
-                StringTable.format(Res.string.replay_import_result, importedCount, uris.size),
+                Res.string.replay_import_result.format(importedCount, uris.size),
                 5000
             ).show()
         }

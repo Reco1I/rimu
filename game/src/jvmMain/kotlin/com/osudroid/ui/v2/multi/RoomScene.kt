@@ -29,7 +29,6 @@ import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.ModsIndicator
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.modmenu.ModMenu
-import com.osudroid.ui.v2.setText
 import com.osudroid.ui.v2.settings.SettingsMenu
 import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.async
@@ -73,7 +72,6 @@ import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.ui.toast.Toasts
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.themed
 
 class RoomScene(
@@ -225,14 +223,14 @@ class RoomScene(
 
                             playersBadge = labeledBadge {
                                 density = UIBadge.Density.Small
-                                label = StringTable.get(Res.string.multiplayer_room_players)
+                                label = Res.string.multiplayer_room_players
                                 value = "0/${room.maxPlayers}"
                             }
 
                             freeModsBadge = badge {
                                 density = UIBadge.Density.Small
                                 variant = UIBadge.Variant.Solid
-                                setText(Res.string.multiplayer_room_free_mods)
+                                text = Res.string.multiplayer_room_free_mods
                                 isVisible = false
                             }
 
@@ -251,7 +249,7 @@ class RoomScene(
                             chat.hide()
                             Verktex.pushScene(SettingsMenu())
                         }
-                        setText(Res.string.multiplayer_room_settings)
+                        text = Res.string.multiplayer_room_settings
                     }
                 }
 
@@ -261,7 +259,7 @@ class RoomScene(
                     padding = Padding(0f.dip, 8f.dip)
                     spacing = 24f.dip
 
-                    fun UILinearContainer.Section(title: com.osudroid.resources.StringResource, block: UILinearContainer.() -> Unit) {
+                    fun UILinearContainer.Section(title: com.reco1l.verktex.localization.LocalizedString, block: UILinearContainer.() -> Unit) {
                         linearContainer {
                             orientation = UILinearContainer.Orientation.Vertical
                             width = Dimension.FillAvailable
@@ -269,7 +267,7 @@ class RoomScene(
                             spacing = 8f.dip
 
                             text {
-                                text = StringTable.get(title).uppercase()
+                                text = title.toString().uppercase()
                                 color = themed { palette.accent.shade(0.7f) }
                             }
 
@@ -321,7 +319,7 @@ class RoomScene(
                             changeBeatmapButton = textButton {
                                 leadingIcon = faSolidIcon(FAIcon.ArrowRightArrowLeft)
                                 alignment = Anchor.CenterLeft
-                                setText(Res.string.multiplayer_room_change_beatmap)
+                                text = Res.string.multiplayer_room_change_beatmap
                                 onActionUp = {
                                     if (Multiplayer.isRoomHost) {
                                         if (LibraryManager.getLibrary().isEmpty()) {
@@ -359,7 +357,7 @@ class RoomScene(
 
                         textButton {
                             leadingIcon = faSolidIcon(FAIcon.ArrowRightFromBracket)
-                            setText(Res.string.multiplayer_room_leave)
+                            text = Res.string.multiplayer_room_leave
                             color = Color4(0xFFFFBFBF)
                             backgroundColor = Color4(0xFF342121)
                             onActionUp = { leaveDialog.show() }
@@ -367,7 +365,7 @@ class RoomScene(
 
                         modsButton = textButton {
                             leadingIcon = faSolidIcon(FAIcon.Sliders)
-                            setText(Res.string.multiplayer_room_mods)
+                            text = Res.string.multiplayer_room_mods
                             onActionUp = { ModMenu.show() }
                         }
                     }
@@ -382,7 +380,7 @@ class RoomScene(
                         textButton {
                             width = Dimension.FillAvailable
                             variant = UIButton.Variant.Solid
-                            setText(Res.string.multiplayer_room_start_game)
+                            text = Res.string.multiplayer_room_start_game
                             onActionUp = callback@{
 
                                 if (isWaitingForStatusChange.get() || !Multiplayer.isRoomHost || Multiplayer.player?.status != PlayerStatus.Ready) {
@@ -390,7 +388,7 @@ class RoomScene(
                                 }
 
                                 if (room.beatmap == null) {
-                                    Toasts.showLong(StringTable.get(Res.string.multiplayer_room_must_select_beatmap))
+                                    Toasts.showLong(Res.string.multiplayer_room_must_select_beatmap)
                                     return@callback
                                 }
 
@@ -399,7 +397,7 @@ class RoomScene(
                                         val teams = room.teamMap
 
                                         if (teams.values.any { it.isEmpty() }) {
-                                            Toasts.showLong(StringTable.get(Res.string.multiplayer_room_at_least_one_player_per_team))
+                                            Toasts.showLong(Res.string.multiplayer_room_at_least_one_player_per_team)
                                             return@callback
                                         }
                                     }
@@ -407,7 +405,7 @@ class RoomScene(
                                     val players = room.activePlayers.filter { it.status != PlayerStatus.MissingBeatmap }
 
                                     if (players.size <= 1) {
-                                        Toasts.showLong(StringTable.get(Res.string.multiplayer_room_at_least_two_players_beatmap))
+                                        Toasts.showLong(Res.string.multiplayer_room_at_least_two_players_beatmap)
                                         return@callback
                                     }
                                 }
@@ -420,7 +418,7 @@ class RoomScene(
 
                         textButton {
                             width = Dimension.FillAvailable
-                            setText(Res.string.multiplayer_room_not_ready)
+                            text = Res.string.multiplayer_room_not_ready
                             onActionUp = callback@{
 
                                 // Atomic guard: only the first tap wins even if two ACTION_UP events
@@ -442,13 +440,13 @@ class RoomScene(
 
                             PlayerStatus.NotReady -> {
                                 if (room.beatmap == null) {
-                                    Toasts.showLong(StringTable.get(Res.string.multiplayer_room_cannot_ready_changing_beatmap))
+                                    Toasts.showLong(Res.string.multiplayer_room_cannot_ready_changing_beatmap)
                                     isWaitingForStatusChange.set(false)
                                     return@callback
                                 }
 
                                 if (room.teamMode == TeamMode.TeamVS && player.team == null) {
-                                    Toasts.showLong(StringTable.get(Res.string.multiplayer_room_cannot_ready_no_team))
+                                    Toasts.showLong(Res.string.multiplayer_room_cannot_ready_no_team)
                                     isWaitingForStatusChange.set(false)
                                     return@callback
                                 }
@@ -459,7 +457,7 @@ class RoomScene(
                                     PlayerStatus.Ready -> invalidateStatus()
 
                                     PlayerStatus.MissingBeatmap -> {
-                                        Toasts.showLong(StringTable.get(Res.string.multiplayer_room_cannot_ready_missing_beatmap))
+                                        Toasts.showLong(Res.string.multiplayer_room_cannot_ready_missing_beatmap)
                                         isWaitingForStatusChange.set(false)
                                     }
 
@@ -493,21 +491,17 @@ class RoomScene(
 
         playersBadge.value = "${room.activePlayers.size}/${room.maxPlayers}"
 
-        winConditionBadge.setText(
-            when (room.winCondition) {
+        winConditionBadge.text = when (room.winCondition) {
                 WinCondition.ScoreV1 -> Res.string.multiplayer_room_score_v1
                 WinCondition.ScoreV2 -> Res.string.multiplayer_room_score_v2
                 WinCondition.Accuracy -> Res.string.multiplayer_room_highest_accuracy
                 WinCondition.MaxCombo -> Res.string.multiplayer_room_maximum_combo
             }
-        )
 
-        teamModeBadge.setText(
-            when (room.teamMode) {
+        teamModeBadge.text = when (room.teamMode) {
                 TeamMode.HeadToHead -> Res.string.multiplayer_room_head_to_head
                 TeamMode.TeamVS -> Res.string.multiplayer_room_team_versus
             }
-        )
 
         freeModsBadge.isVisible = room.gameplaySettings.isFreeMod
 
@@ -552,13 +546,11 @@ class RoomScene(
         val player = Multiplayer.player ?: return
 
         statusButton.apply {
-            setText(
-                when (player.status) {
+            text = when (player.status) {
                     PlayerStatus.NotReady -> Res.string.multiplayer_room_ready
                     PlayerStatus.Ready -> Res.string.multiplayer_room_not_ready
                     else -> Res.string.multiplayer_room_unable_status
                 }
-            )
 
             isEnabled = when (player.status) {
                 PlayerStatus.Ready, PlayerStatus.NotReady -> true
@@ -577,8 +569,8 @@ class RoomScene(
             isEnabled = isVisible
 
             text = when (playersReady.size) {
-                room.activePlayers.size -> StringTable.get(Res.string.multiplayer_room_start_game)
-                else -> StringTable.format(Res.string.multiplayer_room_force_start_game, playersReady.size, room.activePlayers.size)
+                room.activePlayers.size -> Res.string.multiplayer_room_start_game
+                else -> Res.string.multiplayer_room_force_start_game.format(playersReady.size, room.activePlayers.size)
             }
         }
 
@@ -601,13 +593,11 @@ class RoomScene(
                 onActionUp = null
             }
 
-            beatmapInfoAlert.setText(
-                if (Multiplayer.isRoomHost) {
+            beatmapInfoAlert.text = if (Multiplayer.isRoomHost) {
                     Res.string.multiplayer_room_no_beatmap_selected
                 } else {
                     Res.string.multiplayer_room_changing_beatmap
                 }
-            )
             return
         }
 
@@ -625,13 +615,13 @@ class RoomScene(
                 if (roomBeatmap.parentSetID == null) {
                     isEnabled = false
                     leadingIcon = faSolidIcon(FAIcon.Download)
-                    setText(Res.string.multiplayer_room_not_available_beatmap)
+                    text = Res.string.multiplayer_room_not_available_beatmap
                     return@apply
                 }
 
                 isEnabled = true
                 leadingIcon = faSolidIcon(FAIcon.Download)
-                setText(Res.string.multiplayer_room_download_beatmap)
+                text = Res.string.multiplayer_room_download_beatmap
                 onActionUp = {
                     async {
                         try {
@@ -640,7 +630,7 @@ class RoomScene(
                                 "${roomBeatmap.parentSetID} ${roomBeatmap.artist} - ${roomBeatmap.title}"
                             )
                         } catch (e: Exception) {
-                            Toasts.showLong(StringTable.format(Res.string.multiplayer_room_unable_download, e.message))
+                            Toasts.showLong(Res.string.multiplayer_room_unable_download.format(e.message))
                             e.printStackTrace()
                         }
                     }
@@ -827,7 +817,7 @@ class RoomScene(
     override fun onRoomConnect(newRoom: Room) {
 
         if (Multiplayer.room != newRoom) {
-            chat.onSystemChatMessage(StringTable.get(Res.string.multiplayer_room_welcome), "#459FFF")
+            chat.onSystemChatMessage(Res.string.multiplayer_room_welcome, "#459FFF")
         }
 
         ModMenu.clear()
@@ -882,7 +872,7 @@ class RoomScene(
                 // stuck in the isWaitingAttemptResponse polling branch until the 30s timeout.
                 Multiplayer.onReconnectAttempt(false)
             } else {
-                chat.onSystemChatMessage(StringTable.get(Res.string.multiplayer_room_reconnecting), "#FFBFBF")
+                chat.onSystemChatMessage(Res.string.multiplayer_room_reconnecting, "#FFBFBF")
                 Multiplayer.onReconnect()
             }
 
@@ -939,7 +929,7 @@ class RoomScene(
 
         // Notify to the host when other players can't download the beatmap.
         if (Multiplayer.isRoomHost && beatmap != null && beatmap.parentSetID == null) {
-            mainThread { Toasts.show(StringTable.get(Res.string.multiplayer_room_beatmap_unavailable)) }
+            mainThread { Toasts.show(Res.string.multiplayer_room_beatmap_unavailable) }
         }
 
         invalidateStatus()
@@ -965,7 +955,7 @@ class RoomScene(
         room.host = uid
 
         val newHostName = room.playersMap[uid]?.name ?: "#$uid"
-        chat.onSystemChatMessage(StringTable.format(Res.string.multiplayer_room_new_host, newHostName), "#459FFF")
+        chat.onSystemChatMessage(Res.string.multiplayer_room_new_host.format(newHostName), "#459FFF")
 
         updateThread {
             ModMenu.back(false)
@@ -1152,7 +1142,7 @@ class RoomScene(
 
         // We send the message if the player wasn't in the room, sometimes this event can be called by a reconnection.
         if (room.addPlayer(player)) {
-            chat.onSystemChatMessage(StringTable.format(Res.string.multiplayer_room_player_joined, player.name, player.id), "#459FFF")
+            chat.onSystemChatMessage(Res.string.multiplayer_room_player_joined.format(player.name, player.id), "#459FFF")
         }
 
         updateThread { updateInformation() }
@@ -1164,7 +1154,7 @@ class RoomScene(
         val player = room.removePlayer(uid)
 
         if (player != null) {
-            chat.onSystemChatMessage(StringTable.format(Res.string.multiplayer_room_player_left, player.name, player.id), "#459FFF")
+            chat.onSystemChatMessage(Res.string.multiplayer_room_player_left.format(player.name, player.id), "#459FFF")
         }
 
         updateThread { updateInformation() }
@@ -1191,7 +1181,7 @@ class RoomScene(
                     //      remainder of the game as a solo session — submitFinalScore() will
                     //      not be called, and ScoringScene.back() will return to SongMenu
                     //      rather than trying to re-enter the (now-disconnected) room.
-                    Toasts.showLong(StringTable.get(Res.string.multiplayer_room_kicked_gameplay))
+                    Toasts.showLong(Res.string.multiplayer_room_kicked_gameplay)
                     teardownSession()
                     Multiplayer.isMultiplayer = false
 
@@ -1201,11 +1191,11 @@ class RoomScene(
                 back()
 
                 UIMessageDialog().apply dialog@{
-                    title = StringTable.get(Res.string.multiplayer_room_kicked_title)
-                    text = StringTable.get(Res.string.multiplayer_room_kicked_message)
+                    title = Res.string.multiplayer_room_kicked_title
+                    text = Res.string.multiplayer_room_kicked_message
 
                     addButton {
-                        setText(Res.string.multiplayer_room_kicked_close)
+                        text = Res.string.multiplayer_room_kicked_close
                         onActionUp = { this@dialog.hide() }
                     }
                 }.show()
@@ -1216,7 +1206,7 @@ class RoomScene(
         val removedPlayer = room.removePlayer(uid)
 
         if (removedPlayer != null) {
-            chat.onSystemChatMessage(StringTable.format(Res.string.multiplayer_room_player_kicked, removedPlayer.name, removedPlayer.id), "#FFBFBF")
+            chat.onSystemChatMessage(Res.string.multiplayer_room_player_kicked.format(removedPlayer.name, removedPlayer.id), "#FFBFBF")
         }
 
         updateThread { updateInformation() }

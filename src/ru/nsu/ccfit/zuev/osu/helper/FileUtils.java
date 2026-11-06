@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.helper;
 
+import com.osudroid.resources.Res;
 import com.osudroid.utils.FileChecksums;
 
 import android.os.Build;
@@ -83,7 +84,7 @@ public class FileUtils {
 
         try (ZipFile zip = new ZipFile(file)) {
             if(!zip.isValidZipFile()) {
-                Toasts.show(StringTable.format(com.osudroid.resources.R.string.message_error, "Invalid file"));
+                Toasts.show(Res.string.message_error.format("Invalid file"));
                 Debug.e("FileUtils.extractZip: " + file.getName() + " is invalid");
                 file.renameTo(new File(file.getParentFile(), sourceFileName + ".badzip"));
                 FilesKt.deleteRecursively(folderFile);
@@ -146,9 +147,9 @@ public class FileUtils {
         } else {
             if (Environment.getExternalStorageState().equals(
                     Environment.MEDIA_MOUNTED_READ_ONLY)) {
-                Toasts.show(StringTable.get(com.osudroid.resources.R.string.message_error_sdcardread));
+                Toasts.show(Res.string.message_error_sdcardread);
             } else {
-                Toasts.show(StringTable.get(com.osudroid.resources.R.string.message_error_sdcard));
+                Toasts.show(Res.string.message_error_sdcard);
             }
         }
 

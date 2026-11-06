@@ -64,7 +64,6 @@ import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.droid
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.standard
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import java.io.IOException
 import java.util.LinkedList
 import java.util.concurrent.CancellationException
@@ -221,7 +220,7 @@ object ModMenu : UICaptureContainer() {
                         val mods = allModsInstances
 
                         ModType.entries.forEach { type ->
-                            val sectionName = StringTable.get(type.stringId)
+                            val sectionName = type.stringId.toString()
                             val sectionToggles = mods
                                 .filter { it !is IMigratableMod && it.isUserPlayable && it.type == type }
                                 .map { ModMenuToggle(it) }

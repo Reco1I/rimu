@@ -117,6 +117,8 @@ The game itself runs with **osu!droid: Game (Android)** and **osu!droid: Game (D
 
 `SkinTextures` and `SkinSounds` look up skin assets, preferring the beatmap skin, then the custom skin folder, then the default skin. `Skin` loads the configuration of a skin folder. Other textures and sounds go through Verktex's `Textures` and `Sounds`.
 
+Text goes through Verktex's `Localization` (`verktex/core/.../localization/`). `:game:generateStringResources` turns the language pack into `strings/<locale>.json` assets and the generated `Res`, whose `Res.string.*` are `LocalizedString`s: a `CharSequence` that components such as `UIText` show in the current language and re-resolve when it changes. Format one with `Res.string.x.format(args)`, and use `toString()` where a `String` is needed.
+
 ### Audio
 
 BASS native library, bundled in `:verktex:android` and reached through Verktex's audio API. `MusicService` (`com/osudroid/audio/`, reached through `GlobalManager.music`) plays songs and knows their beatmap, and `BassSoundProvider` plays sound effects.

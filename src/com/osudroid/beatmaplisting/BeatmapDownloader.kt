@@ -5,7 +5,7 @@ import com.osudroid.OsuPlatform
 import java.io.File
 import android.os.Environment.DIRECTORY_DOWNLOADS
 import android.view.View
-import com.osudroid.resources.R.*
+import com.osudroid.resources.Res
 import com.reco1l.framework.net.FileRequest
 import com.reco1l.framework.net.IFileRequestObserver
 import com.osudroid.utils.mainThread
@@ -17,7 +17,6 @@ import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import java.io.IOException
 
 object BeatmapDownloader : IFileRequestObserver {
@@ -54,10 +53,10 @@ object BeatmapDownloader : IFileRequestObserver {
         fragment.setDownloader(downloader) {
 
             fragment.text.visibility = View.VISIBLE
-            fragment.text.text = context.getString(string.beatmap_downloader_connecting)
+            fragment.text.text = Res.string.beatmap_downloader_connecting.toString()
 
             fragment.button.visibility = View.VISIBLE
-            fragment.button.text = context.getString(string.beatmap_downloader_cancel)
+            fragment.button.text = Res.string.beatmap_downloader_cancel.toString()
 
             downloader.observer = this@BeatmapDownloader
 
@@ -65,7 +64,7 @@ object BeatmapDownloader : IFileRequestObserver {
                 downloader.execute()
 
                 mainThread {
-                    fragment.text.text = StringTable.format(string.beatmap_downloader_downloading, currentFilename)
+                    fragment.text.text = Res.string.beatmap_downloader_downloading.format(currentFilename).toString()
                 }
             }
 
@@ -83,7 +82,7 @@ object BeatmapDownloader : IFileRequestObserver {
             fragment.progressBar.isIndeterminate = true
             fragment.progressBar.visibility = View.VISIBLE
 
-            fragment.text.text = StringTable.format(string.beatmap_downloader_importing, currentFilename)
+            fragment.text.text = Res.string.beatmap_downloader_importing.format(currentFilename).toString()
             fragment.button.visibility = View.GONE
         }
 
@@ -130,9 +129,7 @@ object BeatmapDownloader : IFileRequestObserver {
         val info = "\n%.3f mb/s (%d%%)".format(downloader.speedKbps / 1024, downloader.progress.toInt())
 
         mainThread {
-            fragment.text.text = context.getString(string.beatmap_downloader_downloading).format(
-                currentFilename
-            ) + info
+            fragment.text.text = Res.string.beatmap_downloader_downloading.format(currentFilename).toString() + info
             fragment.progressBar.isIndeterminate = false
             fragment.progressBar.progress = downloader.progress.toInt()
         }

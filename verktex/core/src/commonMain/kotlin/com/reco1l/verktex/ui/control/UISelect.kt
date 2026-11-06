@@ -68,7 +68,7 @@ open class UISelect<T : Any>(initialValues: List<T> = emptyList()) : UIControl<L
     /**
      * The text displayed on the button when no option is selected.
      */
-    var placeholder = "Choose an option"
+    var placeholder: CharSequence = "Choose an option"
         set(value) {
             if (field != value) {
                 field = value
@@ -152,7 +152,11 @@ open class UISelect<T : Any>(initialValues: List<T> = emptyList()) : UIControl<L
             SelectionMode.Multiple -> options.filter { it.value in value }
         }
 
-        button.text = if (selectedOptions.isEmpty()) placeholder else selectedOptions.joinToString { it.text }
+        button.text = when (selectedOptions.size) {
+            0 -> placeholder
+            1 -> selectedOptions[0].text
+            else -> selectedOptions.joinToString { it.text }
+        }
     }
 
     override fun onValueChanged() {
@@ -178,7 +182,7 @@ open class UISelect<T : Any>(initialValues: List<T> = emptyList()) : UIControl<L
         /**
          * The text displayed for this option.
          */
-        val text: String,
+        val text: CharSequence,
 
         /**
          * The color of the option text and icons.

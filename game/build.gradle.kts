@@ -24,7 +24,8 @@ dependencies {
 }
 
 /**
- * Generates Res, the keys of the strings and string arrays of the language pack.
+ * Generates Res, the keys of the strings and string arrays of the language pack, and the strings of
+ * each of its languages as `strings/<locale>.json` assets, which Verktex's Localization reads.
  */
 abstract class GenerateStringResources : DefaultTask() {
 
@@ -32,7 +33,7 @@ abstract class GenerateStringResources : DefaultTask() {
     abstract val languagePack: ConfigurableFileCollection
 
     /**
-     * Resource files with strings that aren't in the language pack yet.
+     * English resource files with strings that aren't in the language pack yet.
      */
     @get:InputFiles
     abstract val extraStrings: ConfigurableFileCollection
@@ -40,29 +41,48 @@ abstract class GenerateStringResources : DefaultTask() {
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
 
+    @get:OutputDirectory
+    abstract val assetsDirectory: DirectoryProperty
+
+    private class Strings {
+        val strings = sortedMapOf<String, String>()
+        val arrays = sortedMapOf<String, List<String>>()
+    }
+
     @TaskAction
     fun generate() {
-        val strings = sortedSetOf<String>()
-        val arrays = sortedSetOf<String>()
+        val locales = sortedMapOf<String, Strings>()
 
-        fun read(input: java.io.InputStream) {
+        fun read(input: java.io.InputStream, into: Strings) {
             val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(input)
             val resources = document.documentElement.childNodes
 
             for (i in 0 until resources.length) {
                 val node = resources.item(i) as? Element ?: continue
+                val name = node.getAttribute("name")
                 when (node.tagName) {
-                    "string" -> strings += node.getAttribute("name")
-                    "string-array" -> arrays += node.getAttribute("name")
+                    "string" -> into.strings[name] = unescape(node.textContent)
+                    "string-array" -> {
+                        val items = node.getElementsByTagName("item")
+                        into.arrays[name] = List(items.length) { unescape(items.item(it).textContent) }
+                    }
                 }
             }
         }
 
-        ZipFile(languagePack.singleFile).use { zip ->
-            zip.getInputStream(zip.getEntry("res/values/values.xml")).use(::read)
-        }
+        val english = locales.getOrPut("en") { Strings() }
 
-        extraStrings.forEach { file -> file.inputStream().use(::read) }
+        // The language pack's strings replace the ones not in it yet, as Android resolves them.
+        extraStrings.forEach { file -> file.inputStream().use { read(it, english) } }
+
+        ZipFile(languagePack.singleFile).use { zip ->
+            val folder = Regex("^res/values(-[^/]+)?/[^/]+\\.xml$")
+            for (entry in zip.entries()) {
+                val match = folder.matchEntire(entry.name) ?: continue
+                val locale = match.groupValues[1].removePrefix("-").ifEmpty { "en" }.replace("-r", "-")
+                zip.getInputStream(entry).use { read(it, locales.getOrPut(locale) { Strings() }) }
+            }
+        }
 
         val file = outputDirectory.get().file("com/osudroid/resources/Res.kt").asFile
         file.parentFile.mkdirs()
@@ -70,24 +90,70 @@ abstract class GenerateStringResources : DefaultTask() {
             appendLine("// Generated from the language pack by :game:generateStringResources, don't edit.")
             appendLine("package com.osudroid.resources")
             appendLine()
+            appendLine("import com.reco1l.verktex.localization.LocalizedString")
+            appendLine("import com.reco1l.verktex.localization.LocalizedStringArray")
+            appendLine("import kotlin.jvm.JvmField")
+            appendLine()
             appendLine("@Suppress(\"ClassName\", \"ObjectPropertyName\", \"SpellCheckingInspection\")")
             appendLine("object Res {")
             appendLine("    object string {")
-            strings.forEach { appendLine("        val `$it` = StringResource(\"$it\")") }
+            english.strings.keys.forEach { appendLine("        @JvmField val `$it` = LocalizedString(\"$it\")") }
             appendLine("    }")
             appendLine()
             appendLine("    object array {")
-            arrays.forEach { appendLine("        val `$it` = StringArrayResource(\"$it\")") }
+            english.arrays.keys.forEach { appendLine("        @JvmField val `$it` = LocalizedStringArray(\"$it\")") }
             appendLine("    }")
             appendLine("}")
         })
+
+        val strings = assetsDirectory.get().dir("strings").asFile
+        strings.deleteRecursively()
+        strings.mkdirs()
+        for ((locale, values) in locales) {
+            val content = sortedMapOf<String, Any>()
+            content.putAll(values.strings)
+            content.putAll(values.arrays)
+            strings.resolve("$locale.json").writeText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(content)))
+        }
     }
+
+    // Android's rules for string resources: quotes keep whitespace and aren't shown, whitespace
+    // outside them collapses into a space, and backslashes escape characters.
+    private fun unescape(text: String) = buildString {
+        var inQuotes = false
+        var i = 0
+        while (i < text.length) {
+            val c = text[i]
+            when {
+                c == '"' -> inQuotes = !inQuotes
+
+                c == '\\' && i + 1 < text.length -> {
+                    i++
+                    when (val next = text[i]) {
+                        'n' -> append('\n')
+                        't' -> append('\t')
+                        'u' -> if (i + 4 < text.length) {
+                            append(text.substring(i + 1, i + 5).toInt(16).toChar())
+                            i += 4
+                        }
+                        else -> append(next)
+                    }
+                }
+
+                c.isWhitespace() && !inQuotes -> if (isNotEmpty() && last() != ' ') append(' ')
+
+                else -> append(c)
+            }
+            i++
+        }
+    }.trim(' ')
 }
 
 val generateStringResources by tasks.registering(GenerateStringResources::class) {
     languagePack.from(configurations.named("languagePack"))
     extraStrings.from(rootProject.layout.projectDirectory.file("res/values/strings_temporary_for_locals.xml"))
     outputDirectory.set(layout.buildDirectory.dir("generated/resources/commonMain/kotlin"))
+    assetsDirectory.set(layout.buildDirectory.dir("generated/resources/assets"))
 }
 
 kotlin {

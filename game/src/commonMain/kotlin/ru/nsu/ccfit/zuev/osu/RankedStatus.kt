@@ -1,7 +1,7 @@
 package ru.nsu.ccfit.zuev.osu
 
 import com.osudroid.resources.Res
-import com.osudroid.resources.StringResource
+import com.reco1l.verktex.localization.LocalizedString
 import kotlin.jvm.JvmStatic
 
 
@@ -9,7 +9,7 @@ enum class RankedStatus(
     /**
      * The string resource of the status name, recommended to use this rather than name().
      */
-    val stringId: StringResource
+    val stringId: LocalizedString
 ) {
 
     ranked(Res.string.ranked_status_ranked),

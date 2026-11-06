@@ -67,7 +67,7 @@ open class UIToast : UILinearContainer() {
     /**
      * The title above the text, none if empty.
      */
-    var title: String = ""
+    var title: CharSequence = ""
         set(value) {
             field = value
             titleText.text = value
@@ -128,7 +128,7 @@ open class UIToast : UILinearContainer() {
      * Shows a button labeled [text] at the end of the toast, which calls [onClick], or removes it
      * when [text] is null.
      */
-    fun setAction(text: String?, onClick: () -> Unit = {}) {
+    fun setAction(text: CharSequence?, onClick: () -> Unit = {}) {
         actionButton.isVisible = text != null
         actionButton.text = text ?: ""
         actionButton.onActionUp = { onClick() }

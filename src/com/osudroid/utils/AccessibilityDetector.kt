@@ -1,6 +1,5 @@
 package com.osudroid.utils
 
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
@@ -109,7 +108,7 @@ object AccessibilityDetector {
 
         val message = buildString {
 
-            append(StringTable.get(Res.string.accessibility_detector_message))
+            append(Res.string.accessibility_detector_message)
             appendLine()
 
             for (service in services) service.resolveInfo.serviceInfo.let {
@@ -118,20 +117,20 @@ object AccessibilityDetector {
             }
         }
 
-        setTitle(StringTable.get(Res.string.accessibility_detector_title))
+        setTitle(Res.string.accessibility_detector_title.toString())
         setMessage(message)
         setAllowDismiss(false)
 
         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
 
         if (intent.resolveActivity(context.packageManager) != null) {
-            addButton(StringTable.get(Res.string.accessibility_detector_settings)) {
+            addButton(Res.string.accessibility_detector_settings.toString()) {
                 context.startActivity(intent)
                 alert = null
             }
         }
 
-        addButton(StringTable.get(Res.string.accessibility_detector_exit)) {
+        addButton(Res.string.accessibility_detector_exit.toString()) {
             context.forcedExit()
             it.dismiss()
         }

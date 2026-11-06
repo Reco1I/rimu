@@ -1,6 +1,5 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.beatmaps.IBeatmap
@@ -315,10 +314,10 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
         } catch (e: EOFException) {
             Debug.e("O_o eof...")
             Debug.e(e)
-            Toasts.showLong(StringTable.get(Res.string.replay_corrupted))
+            Toasts.showLong(Res.string.replay_corrupted)
             return false
         } catch (e: Exception) {
-            Toasts.showLong(StringTable.get(Res.string.replay_corrupted))
+            Toasts.showLong(Res.string.replay_corrupted)
             Debug.e("Cannot load replay: " + e.message, e)
             return false
         }

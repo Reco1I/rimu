@@ -8,7 +8,6 @@ import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*
 import com.osudroid.resources.Res
-import com.osudroid.ui.v2.setText
 import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
@@ -39,7 +38,6 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import ru.nsu.ccfit.zuev.osu.*
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import java.util.LinkedList
 import com.reco1l.verktex.ui.themed
 
@@ -140,7 +138,7 @@ class RoomChat : UILinearContainer() {
                     textButton {
                         trailingIcon = faSolidIcon(FAIcon.PaperPlane)
                         variant = UIButton.Variant.Solid
-                        setText(Res.string.multiplayer_room_chat_send)
+                        text = Res.string.multiplayer_room_chat_send
                         onActionUp = { sendMessage() }
                     }
                 }
@@ -163,10 +161,7 @@ class RoomChat : UILinearContainer() {
                 RoomAPI.sendMessage(text)
             } catch (e: Exception) {
                 onSystemChatMessage(
-                    StringTable.format(
-                        Res.string.multiplayer_room_chat_error,
-                        e.message
-                    ), "#FFBFBF"
+                    Res.string.multiplayer_room_chat_error.format(e.message), "#FFBFBF"
                 )
                 e.printStackTrace()
             }
@@ -234,7 +229,8 @@ class RoomChat : UILinearContainer() {
         )
     }
 
-    fun onSystemChatMessage(message: String, color: String) = updateThread {
+    fun onSystemChatMessage(text: CharSequence, color: String) = updateThread {
+        val message = text.toString()
         Multiplayer.log("System message: $message")
 
         appendMessage(
@@ -324,12 +320,12 @@ class RoomChat : UILinearContainer() {
                 space(8f.dip)
 
                 if (isExpanded || lastMessage == null) {
-                    +StringTable.get(Res.string.multiplayer_room_chat)
+                    +Res.string.multiplayer_room_chat.toString()
                 } else if (lastMessage is PlayerMessage) {
                     color(getPlayerTagColor(lastMessage.player)) { +"${lastMessage.player.name}: " }
                     +lastMessage.content.substringBefore('\n')
                 } else {
-                    +"${StringTable.get(Res.string.multiplayer_room_chat_system)}: "
+                    +"${Res.string.multiplayer_room_chat_system}: "
                     +lastMessage.content.substringBefore('\n')
                 }
             }

@@ -13,7 +13,6 @@ import com.osudroid.data.BeatmapSetInfo
 import com.osudroid.data.DatabaseManager
 import com.osudroid.resources.Res
 import com.reco1l.verktex.Logger
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.ExecutorService
@@ -44,7 +43,7 @@ object LibraryManager : MusicService.Playlist {
         if (!directory.exists()) {
 
             if (!directory.mkdir()) {
-                Toasts.showLong(StringTable.format(Res.string.message_error_createdir, directory.path))
+                Toasts.showLong(Res.string.message_error_createdir.format(directory.path))
                 return false
             }
 

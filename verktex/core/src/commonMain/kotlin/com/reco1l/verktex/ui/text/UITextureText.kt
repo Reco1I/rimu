@@ -5,6 +5,7 @@ import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.localization.Localized
 import com.reco1l.verktex.ui.UICanvas
 import kotlin.math.*
 
@@ -25,15 +26,27 @@ open class UITextureText(val characters: Map<Char, GraphicsTexture.Region?>) : U
         }
 
     /**
-     * The text to display.
+     * The text to display. A [Localized] text is shown in the current locale and again whenever it
+     * changes.
      */
-    var text = ""
+    var text: CharSequence
+        get() = localizedText ?: displayedText
         set(value) {
-            if (field != value) {
-                field = value
-                invalidateMeasure()
+            if (value is Localized) {
+                localizedText = value
+                bindLocale(this) { setDisplayedText(value.toString()) }
+            } else {
+                if (localizedText != null) {
+                    localizedText = null
+                    unbindLocale(this)
+                }
+                setDisplayedText(value.toString())
             }
         }
+
+    private var displayedText = ""
+
+    private var localizedText: Localized? = null
 
     /**
      * The scale of the textures on the x-axis.
@@ -95,6 +108,13 @@ open class UITextureText(val characters: Map<Char, GraphicsTexture.Region?>) : U
     }
 
 
+    private fun setDisplayedText(value: String) {
+        if (displayedText != value) {
+            displayedText = value
+            invalidateMeasure()
+        }
+    }
+
     fun setTextureScale(scale: Float) {
         textureScaleX = scale
         textureScaleY = scale
@@ -119,7 +139,7 @@ open class UITextureText(val characters: Map<Char, GraphicsTexture.Region?>) : U
 
 
     override fun onMeasure(parentConstraints: LayoutConstraints, contentConstraints: LayoutConstraints): Vec2 {
-        val measured = measureText ?: text
+        val measured = measureText ?: displayedText
         val height = measured.maxOfOrNull { char -> characters[char]?.height ?: 0f } ?: 0f
 
         return parentConstraints.constrain(Vec2(measureWidth(measured), height * textureScaleY))
@@ -130,9 +150,9 @@ open class UITextureText(val characters: Map<Char, GraphicsTexture.Region?>) : U
             TextAlign.Left -> 0f
             TextAlign.Center -> 0.5f
             TextAlign.Right -> 1f
-        } * (bounds.width - measureWidth(text))
+        } * (bounds.width - measureWidth(displayedText))
 
-        for (char in text) {
+        for (char in displayedText) {
             val region = characters[char] ?: continue
             val textureWidth = region.width * textureScaleX
             val cellWidth = cellWidth(char, region)

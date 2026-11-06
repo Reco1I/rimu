@@ -2,8 +2,8 @@ package com.osudroid.ui.v2.settings
 
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
-import com.osudroid.resources.StringArrayResource
-import com.osudroid.resources.StringResource
+import com.reco1l.verktex.localization.LocalizedStringArray
+import com.reco1l.verktex.localization.LocalizedString
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
@@ -42,7 +42,6 @@ import kotlin.math.ceil
 import kotlin.math.log10
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
-import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import com.reco1l.verktex.ui.themed
 
 
@@ -63,7 +62,7 @@ data class CategoryInfo(
     /**
      * The title of the category.
      */
-    val title: String,
+    val title: CharSequence,
 
     /**
      * The options that will be displayed in the category.
@@ -100,12 +99,12 @@ data class OptionInfo(
     /**
      * The title of the option.
      */
-    val title: Any,
+    val title: CharSequence,
 
     /**
      * The summary of the option.
      */
-    val summary: Any? = null,
+    val summary: CharSequence? = null,
 
     /**
      * The default value that will be used if no value is stored for this option.
@@ -135,14 +134,14 @@ data class OptionInfo(
      *
      * This property is only used in [OptionType.Select] preferences.
      */
-    val entries: StringArrayResource? = null,
+    val entries: LocalizedStringArray? = null,
 
     /**
      * The entry values of the select.
      *
      * This property is only used in [OptionType.Select] preferences.
      */
-    val entryValues: StringArrayResource? = null,
+    val entryValues: LocalizedStringArray? = null,
 
     // FormSlider props
 
@@ -364,10 +363,7 @@ class SettingsMenu : UIScene() {
                     }
 
                     category.options.forEach { option ->
-                        val title = when (option.title) {
-                            is StringResource -> StringTable.get(option.title)
-                            else -> option.title.toString()
-                        }
+                        val title = option.title
 
                         if (option.type == OptionType.Button) {
                             val button = UITextButton().apply {
@@ -411,11 +407,7 @@ class SettingsMenu : UIScene() {
     }
 
     private fun UILinearContainer.addSummary(option: OptionInfo) {
-        val summary = when (option.summary) {
-            null -> return
-            is StringResource -> StringTable.get(option.summary)
-            else -> option.summary.toString()
-        }
+        val summary = option.summary ?: return
 
         text {
             width = fill()
@@ -452,12 +444,12 @@ class SettingsMenu : UIScene() {
         }
 
         if (control is FormSelect<*> && option.entries != null && option.entryValues != null) {
-            val entries = StringTable.getArray(option.entries)
-            val values = StringTable.getArray(option.entryValues)
+            val entries = option.entries
+            val values = option.entryValues
 
             if (entries.size == values.size) {
                 @Suppress("UNCHECKED_CAST")
-                (control as FormSelect<String>).options = entries.mapIndexed { i, entry -> UISelect.Option(values[i], entry) }
+                (control as FormSelect<String>).options = entries.values.mapIndexed { i, entry -> UISelect.Option(values[i], entry) }
             }
         }
 
