@@ -89,7 +89,14 @@ A Vulkan backend roadmap lives in `docs/vulkan-backend.md`. How the frame rate i
 
 ### UI Tests
 
-Verktex's abstract `UITestActivity` (`verktex/.../android/`) browses `UITestSuite`s (`verktex/.../testing/`) to try components in isolation; `VerktexUITests` covers the engine components. The app's `OsuUITestActivity` (`com/osudroid/ui/v2/test/`) adds `OsuUITests`. It's enabled only in debug builds and runs in its own `:uitest` process. Open a test directly with:
+Verktex's abstract `UITestActivity` (`verktex/.../android/`) and `UITestApplication` (`verktex/.../desktop/testing/`) browse `UITestSuite`s (`verktex/.../testing/`) to try components in isolation; `VerktexUITests` covers the engine components. The game's suites (`OsuUITests`, `OsuSceneUITests`, `OsuGameplayUITests`) are in `:game` (`com/osudroid/ui/v2/test/`), with `TestGameContext` standing in for the game. Each browser has a run configuration:
+
+- **Verktex: UI Tests (Android)**: the app's `VerktexUITestActivity`, Verktex's suites only.
+- **Verktex: UI Tests (Desktop)**: `./gradlew :verktex:desktop:run`.
+- **osu!droid: UI Tests (Android)**: the app's `OsuUITestActivity`, every suite.
+- **osu!droid: UI Tests (Desktop)**: `./gradlew :game-desktop:runUITests`, every suite.
+
+The Android browsers are enabled only in debug builds and run in their own processes. Open a test directly with:
 
 ```bash
 adb shell am start -S -n ru.nsu.ccfit.zuev.osuplus.debug/com.osudroid.ui.v2.test.OsuUITestActivity --es test "'osu!/Hit circles'"
@@ -97,11 +104,14 @@ adb shell am start -S -n ru.nsu.ccfit.zuev.osuplus.debug/com.osudroid.ui.v2.test
 
 Add `--es backend <name>` (a `GraphicsBackend`: `OpenGLES3`, `OpenGLES2`, `Vulkan`) to open it with another graphics backend.
 
-Verktex's own tests also run on desktop, without a device (the "UI Tests (Desktop)" run configuration). `--screenshot <file.png>` saves a frame and exits:
+On desktop, `--test` opens a test and `--screenshot <file.png>` saves a frame and exits:
 
 ```bash
 ./gradlew :verktex:desktop:run --args="--test 'Verktex/Text' --screenshot build/text.png"
+./gradlew :game-desktop:runUITests --args="--test 'osu!/Hit circles' --screenshot build/hit-circles.png"
 ```
+
+The game itself runs with **osu!droid: Game (Android)** and **osu!droid: Game (Desktop)** (`./gradlew :game-desktop:run`).
 
 ### Asset / Resource Loading
 

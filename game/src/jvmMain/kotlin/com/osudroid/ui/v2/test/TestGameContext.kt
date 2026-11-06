@@ -1,17 +1,12 @@
 package com.osudroid.ui.v2.test
 
-import com.osudroid.android.AndroidGame
-import com.osudroid.android.AndroidToasts
-import android.app.Activity
 import com.osudroid.MusicManager
-import com.osudroid.data.AndroidDatabase
 import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.testing.UITestStage
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.LibraryManager
-import ru.nsu.ccfit.zuev.osu.ToastLogger
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
 
@@ -40,19 +35,17 @@ object TestGameContext {
 
 
     /**
-     * Must run before any component is built, some of them keep the song service they first see.
+     * Must run before any component is built, some of them keep the song service they first see. The
+     * platform sets up the toasts before, and [loadInMemoryDatabase] opens an empty database kept in
+     * memory, so the game's own is never touched.
      */
-    fun install(activity: Activity) {
+    fun install(loadInMemoryDatabase: () -> Unit) {
         val global = GlobalManager.getInstance()
-
-        // The activity is the context of the game here, it can start other activities too.
-        AndroidGame.context = activity
-        ToastLogger.init(AndroidToasts(activity))
 
         // The skins of the skin folder, for the settings.
         Config.loadSkins()
 
-        AndroidDatabase.loadInMemory(activity)
+        loadInMemoryDatabase()
         seedDatabase()
         LibraryManager.loadLibrary()
 

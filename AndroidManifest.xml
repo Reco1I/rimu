@@ -110,6 +110,20 @@
             </intent-filter>
         </activity>
 
+        <!-- The UI test browser of Verktex's components only, also enabled in debug builds only. -->
+        <activity
+            android:name="com.osudroid.ui.v2.test.VerktexUITestActivity"
+            android:theme="@style/AppTheme"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:screenOrientation="sensorLandscape"
+            android:windowSoftInputMode="adjustPan"
+            android:label="Verktex UI tests"
+            android:process=":verktexuitest"
+            android:taskAffinity=".verktexuitest"
+            android:enabled="${uiTestsEnabled}"
+            android:exported="true"
+            tools:ignore="LockedOrientationActivity" />
+
         <activity
             android:name="ru.nsu.ccfit.zuev.osu.PermissionActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"
