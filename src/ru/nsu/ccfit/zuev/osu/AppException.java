@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.osudroid.android.AndroidGame;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -233,7 +234,7 @@ public class AppException extends Exception implements Thread.UncaughtExceptionH
             return false;
         }
 
-        final Context context = GlobalManager.getInstance().getMainActivity();
+        final Context context = AndroidGame.getMainActivity();
 
         if (context == null) {
             return false;

@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.osudroid.android.AndroidGame;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -19,7 +20,7 @@ public class ConfigBackup {
 
     public static boolean exportPreferences() {
         try {
-            Context context = GlobalManager.getInstance().getMainActivity();
+            Context context = AndroidGame.getMainActivity();
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             
             JSONObject json = new JSONObject();
@@ -65,7 +66,7 @@ public class ConfigBackup {
             
             String jsonString = jsonBuilder.toString();
             JSONObject json = new JSONObject(jsonString);
-            Context context = GlobalManager.getInstance().getMainActivity();
+            Context context = AndroidGame.getMainActivity();
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             SharedPreferences.Editor editor = prefs.edit();
 

@@ -1,5 +1,7 @@
 package com.osudroid.beatmaplisting
 
+import com.osudroid.android.AndroidGame
+import com.osudroid.OsuPlatform
 import java.io.File
 import android.os.Environment.DIRECTORY_DOWNLOADS
 import android.view.View
@@ -26,7 +28,7 @@ object BeatmapDownloader : IFileRequestObserver {
     private lateinit var currentFilename: String
 
 
-    private val context = GlobalManager.getInstance().mainActivity
+    private val context = AndroidGame.mainActivity!!
 
     // TODO: We should adapt the system to allow multiple downloads at a time.
     private var isDownloading = false
@@ -101,7 +103,7 @@ object BeatmapDownloader : IFileRequestObserver {
                     return
                 }
 
-                GlobalManager.getInstance().mainActivity.loadBeatmapLibrary()
+                OsuPlatform.implementation.loadBeatmapLibrary()
             }
         } catch (e: IOException) {
             ToastLogger.showText("Import failed:" + e.message, true)

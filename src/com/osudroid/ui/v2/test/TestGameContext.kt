@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.android.AndroidGame
 import com.osudroid.android.AndroidToasts
 import android.app.Activity
 import com.osudroid.MusicManager
@@ -45,7 +46,7 @@ object TestGameContext {
         val global = GlobalManager.getInstance()
 
         // The activity is the context of the game here, it can start other activities too.
-        global.setContext(activity)
+        AndroidGame.context = activity
         ToastLogger.init(AndroidToasts(activity))
 
         // The skins of the skin folder, for the settings.

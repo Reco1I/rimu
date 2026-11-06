@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.audio.serviceAudio;
 
+import com.osudroid.android.AndroidGame;
 import android.app.Application;
 
 import ru.nsu.ccfit.zuev.osu.AppException;
@@ -10,8 +11,8 @@ public class SaveServiceObject extends Application {
     static private SongService songService;
 
     public static void finishAllActivities() {
-        if (GlobalManager.getInstance().getMainActivity() != null)
-            GlobalManager.getInstance().getMainActivity().finish();
+        if (AndroidGame.getMainActivity() != null)
+            AndroidGame.getMainActivity().finish();
     }
 
     public SongService getSongService() {

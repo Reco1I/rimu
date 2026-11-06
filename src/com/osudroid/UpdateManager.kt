@@ -1,5 +1,6 @@
 package com.osudroid
 
+import com.osudroid.android.AndroidGame
 import com.osudroid.utils.getLong
 import com.osudroid.utils.getString
 import android.content.*
@@ -29,7 +30,7 @@ object UpdateManager: IFileRequestObserver
     @JvmStatic
     fun onActivityStart() = mainThread {
 
-        val activity = GlobalManager.getInstance().mainActivity
+        val activity = AndroidGame.mainActivity!!
 
         // -1 indicates the first run of the game.
         val version = Config.getLong("version", -1)
@@ -44,7 +45,7 @@ object UpdateManager: IFileRequestObserver
                     it.dismiss()
 
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://osudroid.moe/changelog/latest"))
-                    GlobalManager.getInstance().mainActivity.startActivity(intent)
+                    AndroidGame.mainActivity!!.startActivity(intent)
                 }
                 .addButton("No", clickListener = MessageDialog::dismiss)
                 .show()
@@ -82,7 +83,7 @@ object UpdateManager: IFileRequestObserver
                     val newVersion = response.getLong("version_code")
                     val link = response.getString("link")
 
-                    if (newVersion <= GlobalManager.getInstance().mainActivity.versionCode) {
+                    if (newVersion <= AndroidGame.mainActivity!!.versionCode) {
                         if (!silently) {
                             ToastLogger.showText(Res.string.update_info_latest, false)
                         }
@@ -142,7 +143,7 @@ object UpdateManager: IFileRequestObserver
     override fun onDownloadEnd(request: FileRequest) {
         mainThread { progressDialog?.dismiss() }
 
-        val activity = GlobalManager.getInstance().mainActivity
+        val activity = AndroidGame.mainActivity!!
         val uri = FileProvider.getUriForFile(activity, "${BuildConfig.APPLICATION_ID}.fileProvider", File(request.path))
 
         val intent = Intent(Intent.ACTION_VIEW)

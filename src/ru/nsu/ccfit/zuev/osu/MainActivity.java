@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu;
 
+import com.osudroid.android.AndroidGame;
 import com.osudroid.OsuPlatform;
 import com.osudroid.android.AndroidOsuPlatform;
 import com.osudroid.android.OkHttpClientImplementation;
@@ -178,6 +179,12 @@ public class MainActivity extends AndroidGameHost {
         Verktex.pushScene(SplashScene.INSTANCE);
 
         Execution.async(() -> {
+            AndroidDatabase.load(this);
+            AndroidGame.setSaveServiceObject((SaveServiceObject) getApplication());
+            var boundSongService = AndroidGame.getSaveServiceObject().getSongService();
+            if (boundSongService != null) {
+                GlobalManager.getInstance().setSongService(boundSongService);
+            }
             GlobalManager.getInstance().init();
 
             // The "Show FPS" setting shows the engine's performance overlay.
@@ -512,7 +519,8 @@ public class MainActivity extends AndroidGameHost {
     protected void onCreate(Bundle pSavedInstanceState) {
         // Some components may already start using this class when onCreate is called. An example
         // is when the game is restoring after being killed by system due to low system memory.
-        GlobalManager.getInstance().setMainActivity(this);
+        AndroidGame.setMainActivity(this);
+        GlobalManager.getInstance().setHeadless(false);
 
         // The engine picks its graphics backend when the host is created, Config isn't loaded yet.
         Settings.INSTANCE.set(VerktexSettings.GraphicsBackend, PreferenceManager.getDefaultSharedPreferences(this)
@@ -559,8 +567,10 @@ public class MainActivity extends AndroidGameHost {
 
             bindService(new Intent(MainActivity.this, AndroidSongService.class), connection, BIND_AUTO_CREATE);
         }
-        GlobalManager.getInstance().setSongService(songService);
-        GlobalManager.getInstance().setSaveServiceObject(saveServiceObject);
+        if (songService != null) {
+            GlobalManager.getInstance().setSongService(songService);
+        }
+        AndroidGame.setSaveServiceObject(saveServiceObject);
     }
 
     @Override
@@ -644,7 +654,7 @@ public class MainActivity extends AndroidGameHost {
 
             if (roomInviteLink != null) {
                 Execution.updateThread(() -> {
-                    var gameScene = globalManager.getGameScene();
+                    var gameScene = globalManager.getGameSceneOrNull();
 
                     // Ensure gameplay is cleaned up before joining the lobby to prevent any potential issues with
                     // lingering game state.
@@ -788,7 +798,7 @@ public class MainActivity extends AndroidGameHost {
             return true;
         }
 
-        var gameScene = GlobalManager.getInstance().getGameScene();
+        var gameScene = GlobalManager.getInstance().getGameSceneOrNull();
 
         if (gameScene != null && currentScene == gameScene.getScene() &&
                 (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU)) {
@@ -804,7 +814,7 @@ public class MainActivity extends AndroidGameHost {
             return false;
         }
 
-        var scoringScene = GlobalManager.getInstance().getScoring();
+        var scoringScene = GlobalManager.getInstance().getScoringOrNull();
 
         if (scoringScene != null && currentScene == scoringScene.getScene()) {
             scoringScene.back();
@@ -867,9 +877,9 @@ public class MainActivity extends AndroidGameHost {
 
     public void forcedExit() {
         Execution.updateThread(() -> {
-            var gameScene = GlobalManager.getInstance().getGameScene();
+            var gameScene = GlobalManager.getInstance().getGameSceneOrNull();
 
-            if (Verktex.getScene() == gameScene.getScene()) {
+            if (gameScene != null && Verktex.getScene() == gameScene.getScene()) {
                 gameScene.quit();
             }
 

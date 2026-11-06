@@ -173,7 +173,7 @@ class ExoPlayerVideo(source: String) : UIVideo() {
 
         fun createPlayer(): ExoPlayer {
             // The game's activity, or the context of a process without it (e.g. the UI tests).
-            val context = GlobalManager.getInstance().context.applicationContext
+            val context = AndroidGame.context.applicationContext
 
             // The extension mode finds the FFmpeg audio renderer by itself, but the video one has to be added
             // by hand as the default factory looks for it under its former name.
