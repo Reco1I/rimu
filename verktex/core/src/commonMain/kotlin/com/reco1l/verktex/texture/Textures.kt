@@ -224,6 +224,8 @@ object Textures {
         }
 
         val texture = Verktex.graphics.createTexture(width = source.width, height = source.height)
+        // The region fills the texture, there's no room for a gutter and clamping to the edge does its job.
+        texture.regionPadding = 0
         val region = texture.addSource(source)
 
         if (region == null) {

@@ -22,6 +22,11 @@ class FontPagesTest {
 
     private class FakeTexture(override val width: Float, override val height: Float) : GraphicsTexture() {
         var disposed = false
+
+        // Glyphs tile the page exactly, so the paging is easy to follow.
+        init {
+            regionPadding = 0
+        }
         override fun onCreateTexture() = Unit
         override fun onBindTexture() = Unit
         override fun onWritePixels(x: Int, y: Int, width: Int, height: Int, pixels: com.reco1l.verktex.graphics.PixelBuffer) = Unit
