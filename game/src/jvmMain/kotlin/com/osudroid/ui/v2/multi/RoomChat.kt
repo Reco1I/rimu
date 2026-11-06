@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.multi
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.ui.text.spans
 import com.osudroid.ui.v2.SkinSounds
-import android.icu.text.SimpleDateFormat
+import java.text.SimpleDateFormat
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*

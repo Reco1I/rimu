@@ -24,7 +24,6 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
-import kotlin.reflect.full.primaryConstructor
 
 class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGameplayEvents {
 
@@ -36,7 +35,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
         get() = translationX.resolve(0f) >= 0f
 
 
-    private val elements = HUDElements.entries.map { it.type.primaryConstructor!!.call() }
+    private val elements = HUDElements.entries.map { it.create() }
 
     private val elementList = UIScrollableContainer().apply {
 

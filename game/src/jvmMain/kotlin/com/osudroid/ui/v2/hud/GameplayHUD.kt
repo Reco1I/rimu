@@ -33,7 +33,6 @@ import ru.nsu.ccfit.zuev.osu.scoring.*
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import ru.nsu.ccfit.zuev.skins.SkinJsonReader
 import java.io.File
-import kotlin.reflect.full.primaryConstructor
 import ru.nsu.ccfit.zuev.osu.helper.StringTable
 import kotlin.reflect.*
 
@@ -111,8 +110,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
      */
     fun addElement(data: HUDElementSkinData, inEditMode: Boolean = isInEditMode) {
         // Skins may name element types this version doesn't have.
-        val type = HUDElements[data.type]?.type ?: return
-        val element = type.primaryConstructor!!.call()
+        val element = HUDElements[data.type]?.create?.invoke() ?: return
 
         // In edit mode, all elements should be shown.
         if (!inEditMode && !element.shouldBeShown) {

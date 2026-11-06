@@ -47,7 +47,6 @@ import com.reco1l.verktex.ui.text.UIText
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import org.apache.commons.io.FilenameUtils
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService
 import ru.nsu.ccfit.zuev.osu.Config
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
@@ -533,7 +532,7 @@ class ScoringScene(pGame: GameScene) {
                 return
             }
 
-            stat.replayFilename = FilenameUtils.getName(replayPath)
+            stat.replayFilename = replayPath?.let { java.io.File(it).name }.orEmpty()
             stat.beatmapMD5 = beatmap.md5
 
             try {

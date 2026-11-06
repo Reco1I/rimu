@@ -1,6 +1,6 @@
 package com.osudroid.multiplayer
 
-import android.text.format.DateFormat
+import com.osudroid.OsuPlatform
 import com.reco1l.verktex.Logger
 import java.io.BufferedWriter
 import java.io.File
@@ -11,7 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import ru.nsu.ccfit.zuev.osu.Config
-import ru.nsu.ccfit.zuev.osu.MainActivity
 import java.util.Date
 
 /**
@@ -42,7 +41,7 @@ class MultiplayerLogger : AutoCloseable {
             }
         }.bufferedWriter()
 
-        write("[${DateFormat.format("yyyy/MM/dd hh:mm:ss", Date())}] Client ${MainActivity.versionName} started.")
+        write("[${SimpleDateFormat("yyyy/MM/dd hh:mm:ss").format(Date())}] Client ${OsuPlatform.implementation.versionName} started.")
     }
 
     /**
