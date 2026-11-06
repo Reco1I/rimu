@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.settings
 
+import com.osudroid.android.AndroidGame
 import android.net.Uri
 import com.reco1l.verktex.Logger
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,7 +18,7 @@ import java.io.File
  * Asks the user for replay files and imports them.
  */
 fun pickAndImportReplays() = mainThread {
-    val activity = GlobalManager.getInstance().mainActivity
+    val activity = AndroidGame.mainActivity ?: return@mainThread
 
     // Registered here since scenes aren't tied to the activity lifecycle.
     val launcher = activity.activityResultRegistry.register(
@@ -33,7 +34,7 @@ private fun importReplays(uris: List<Uri>) {
     loading.show()
 
     async {
-        val context = GlobalManager.getInstance().mainActivity
+        val context = AndroidGame.mainActivity!!
         val decorView = context.window.decorView
         var importedCount = 0
         var tempFile: File? = null

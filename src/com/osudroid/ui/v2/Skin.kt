@@ -57,7 +57,7 @@ object Skin {
             return null
         }
 
-        GlobalManager.getInstance().setInfo("Reading skin.ini...")
+        GlobalManager.getInstance().info = ("Reading skin.ini...")
 
         val json = try {
             IniReader(iniFile.path).use { convertToJson(it) }

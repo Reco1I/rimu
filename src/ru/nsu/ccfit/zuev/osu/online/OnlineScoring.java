@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.online;
 
+import com.osudroid.android.AndroidGame;
 import android.content.Intent;
 import android.net.Uri;
 
@@ -71,7 +72,7 @@ public class OnlineScoring {
                     OnlineManager.getInstance().setStayOnline(false);
 
                     if (OnlineManager.getInstance().getFailMessage().equals("Cannot connect to server")) {
-                        var mainActivity = GlobalManager.getInstance().getMainActivity();
+                        var mainActivity = AndroidGame.getMainActivity();
                         if (mainActivity == null) {
                             return;
                         }
@@ -86,7 +87,7 @@ public class OnlineScoring {
                             snackbar.setAction("Check", (v) -> {
                                 var intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://neroyuki.github.io/osudroid-guide/help/login_fail"));
 
-                                GlobalManager.getInstance().getMainActivity().startActivity(intent);
+                                AndroidGame.getMainActivity().startActivity(intent);
                             });
 
                             snackbar.show();
