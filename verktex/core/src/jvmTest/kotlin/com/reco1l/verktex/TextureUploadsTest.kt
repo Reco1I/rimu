@@ -50,7 +50,28 @@ class TextureUploadsTest {
 
         assertEquals(GraphicsResource.State.Loaded, texture.state)
         assertEquals(0, texture.binds)
-        assertEquals(listOf(listOf(region.x.toInt(), region.y.toInt(), 8, 8, 8 * 8 * 4)), texture.writes)
+        // The region is written with its one pixel gutter.
+        assertEquals(listOf(listOf(region.x.toInt() - 1, region.y.toInt() - 1, 10, 10, 10 * 10 * 4)), texture.writes)
+    }
+
+    @Test
+    fun regionsKeepAGutterAndItRepeatsTheirEdges() {
+        val texture = RecordingTexture()
+        val first = texture.addSource(SolidSource(8))!!
+        val second = texture.addSource(SolidSource(8))!!
+
+        val gap = maxOf(second.x - (first.x + first.width), second.y - (first.y + first.height), first.x - (second.x + second.width), first.y - (second.y + second.height))
+        assertEquals(2f, gap)
+
+        // Two by two pixels, 1 2 / 3 4, extruded by one pixel.
+        val pixels = java.nio.ByteBuffer.allocateDirect(16).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        pixels.asIntBuffer().put(intArrayOf(1, 2, 3, 4))
+
+        val extruded = com.reco1l.verktex.graphics.extrudePixels(pixels, 2, 2, 1).order(java.nio.ByteOrder.LITTLE_ENDIAN).asIntBuffer()
+        val result = IntArray(16).also { extruded.get(it) }
+
+        assertEquals(listOf(1, 1, 2, 2, 1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 4, 4), result.toList())
+        assertEquals(0, pixels.position())
     }
 
     @Test

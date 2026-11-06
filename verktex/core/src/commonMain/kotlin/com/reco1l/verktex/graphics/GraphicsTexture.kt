@@ -34,6 +34,16 @@ abstract class GraphicsTexture : GraphicsResource() {
     open val isExternal: Boolean get() = false
 
     /**
+     * The pixels kept free around each region, filled with the region's edge pixels when it's written.
+     * Linear filtering reads the texels next to a region's edges, without this gutter they would be
+     * the neighbouring region's (or uninitialized) pixels and show as a border around the sprite.
+     *
+     * Only read when regions are allocated, so it must be set before the first [addSource]. Textures
+     * holding a single region of their own size, where clamping to the edge does the same, use 0.
+     */
+    var regionPadding = 1
+
+    /**
      * The column-major 4x4 matrix applied to texture coordinates when sampling an external texture,
      * null for regular textures.
      */
@@ -67,7 +77,7 @@ abstract class GraphicsTexture : GraphicsResource() {
      */
     open fun fitsSource(source: Source): Boolean = synchronized(lock) {
         ensureFreeRegions()
-        packingAlgorithm.fits(source.width, source.height, freeRegions)
+        packingAlgorithm.fits(source.width + 2 * regionPadding, source.height + 2 * regionPadding, freeRegions)
     }
 
     /**
@@ -86,8 +96,9 @@ abstract class GraphicsTexture : GraphicsResource() {
 
         ensureFreeRegions()
 
-        val node = packingAlgorithm.allocate(source.width, source.height, freeRegions) ?: return null
-        val region = Region(this, source, node.x, node.y, source.width, source.height)
+        val padding = regionPadding.toFloat()
+        val node = packingAlgorithm.allocate(source.width + 2 * padding, source.height + 2 * padding, freeRegions) ?: return null
+        val region = Region(this, source, node.x + padding, node.y + padding, source.width, source.height)
 
         regions += region
         pendingUploads += region
@@ -108,13 +119,14 @@ abstract class GraphicsTexture : GraphicsResource() {
         if (regions.remove(region)) {
             freeRegionsInitialized = true
 
-            if (packingAlgorithm.pack(regions, freeRegions, width, height)) {
+            if (packingAlgorithm.pack(regions, freeRegions, width, height, regionPadding)) {
                 pendingUploads.clear()
                 pendingUploads += regions
             } else {
                 pendingUploads.remove(region)
                 // The removed rectangle was a used one, and MaxRects keeps free rectangles disjoint from used ones, so giving it back cannot create overlaps.
-                freeRegions += Vec4(region.x, region.y, region.x + region.width, region.y + region.height)
+                val padding = regionPadding.toFloat()
+                freeRegions += Vec4(region.x - padding, region.y - padding, region.x + region.width + padding, region.y + region.height + padding)
             }
         }
     }
@@ -152,12 +164,25 @@ abstract class GraphicsTexture : GraphicsResource() {
         if (pendingUploads.isEmpty()) return
 
         for (region in pendingUploads) {
-            region.source.writePixels(pixelTarget, region.x.toInt(), region.y.toInt())
+            val regionX = region.x.toInt()
+            val regionY = region.y.toInt()
+            val regionWidth = region.width.toInt()
+            val regionHeight = region.height.toInt()
+            val padding = regionPadding
+
+            region.source.writePixels({ x, y, width, height, pixels ->
+                // The pixels covering the whole region also fill its gutter. Parts of a source written
+                // separately can't, a part's edge isn't necessarily the region's.
+                if (padding > 0 && width > 0 && height > 0 && x == regionX && y == regionY && width == regionWidth && height == regionHeight) {
+                    val extruded = extrudePixels(pixels, width, height, padding)
+                    onWritePixels(x - padding, y - padding, width + 2 * padding, height + 2 * padding, extruded)
+                } else {
+                    onWritePixels(x, y, width, height, pixels)
+                }
+            }, regionX, regionY)
         }
         pendingUploads.clear()
     }
-
-    private val pixelTarget = PixelTarget(::onWritePixels)
 
     /**
      * Called while the pending sources are written, see [flushUploads], with the pixels of a
