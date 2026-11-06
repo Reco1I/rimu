@@ -35,8 +35,9 @@ import com.edlplan.ui.fragment.BaseFragment
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.audio.AudioStream
-import com.reco1l.framework.net.IFileRequestObserver
-import com.reco1l.framework.net.JsonArrayRequest
+import com.osudroid.online.OsuHttp
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel.OrderType
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel.SortType
 import com.osudroid.ui.OsuColors
@@ -58,7 +59,6 @@ import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.GlobalManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osuplus.R
-import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 import kotlinx.coroutines.CancellationException
@@ -66,7 +66,6 @@ import ru.nsu.ccfit.zuev.osu.RankedStatus
 
 
 class BeatmapListing : BaseFragment(),
-    IFileRequestObserver,
     OnEditorActionListener,
     OnKeyListener,
     FrameCallback {
@@ -247,28 +246,25 @@ class BeatmapListing : BaseFragment(),
 
             ensureActive()
 
-            JsonArrayRequest(
-                mirror.search.request(
-                    query = searchBox.text.toString(),
-                    offset = offset,
-                    limit = 50,
-                    sort = filtersFragment.sortType,
-                    order = filtersFragment.orderType,
-                    status = filtersFragment.rankedStatus
-                )
-            ).use { request ->
+            val url = mirror.search.request(
+                query = searchBox.text.toString(),
+                offset = offset,
+                limit = 50,
+                sort = filtersFragment.sortType,
+                order = filtersFragment.orderType,
+                status = filtersFragment.rankedStatus
+            )
 
-                request.buildRequest { header("User-Agent", "Chrome/Android") }
-                ensureActive()
+            val json = OsuHttp.getJsonArray(url) { header(HttpHeaders.UserAgent, OsuHttp.MIRROR_USER_AGENT) }
+            ensureActive()
 
-                val beatmapSets = mirror.search.response(request.execute().json)
-                ensureActive()
+            val beatmapSets = mirror.search.response(json)
+            ensureActive()
 
-                mainThread {
-                    adapter.data.addAll(beatmapSets)
-                    adapter.notifyItemRangeInserted(offset, beatmapSets.size)
-                    indicator.visibility = GONE
-                }
+            mainThread {
+                adapter.data.addAll(beatmapSets)
+                adapter.notifyItemRangeInserted(offset, beatmapSets.size)
+                indicator.visibility = GONE
             }
 
             pendingRequest = null
@@ -639,13 +635,12 @@ class BeatmapSetViewHolder(itemView: View, private val mediaScope: CoroutineScop
             coverJob = mediaScope.launch {
 
                 try {
-                    URL(beatmapSet.thumbnail).openStream().use {
-                        ensureActive()
+                    val bytes = OsuHttp.getBytes(beatmapSet.thumbnail!!)
+                    ensureActive()
 
-                        val bitmap = BitmapFactory.decodeStream(it)
+                    val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
 
-                        mainThread { cover.setImageBitmap(bitmap) }
-                    }
+                    mainThread { cover.setImageBitmap(bitmap) }
 
                 } catch (e: Exception) {
                     mainThread { cover.setImageDrawable(null) }

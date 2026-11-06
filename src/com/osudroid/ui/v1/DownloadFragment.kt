@@ -6,7 +6,7 @@ import android.widget.Button
 import android.widget.TextView
 import com.edlplan.ui.fragment.LoadingFragment
 import com.google.android.material.progressindicator.CircularProgressIndicator
-import com.reco1l.framework.net.FileRequest
+import kotlinx.coroutines.Job
 import com.reco1l.framework.android.cornerRadius
 import com.reco1l.framework.android.dp
 import ru.nsu.ccfit.zuev.osuplus.R
@@ -16,7 +16,8 @@ class DownloadFragment : LoadingFragment() {
     override val layoutID = R.layout.download_fragment
 
 
-    private lateinit var downloader: FileRequest
+    // The download shown, cancelled with the back button while it runs.
+    private var download: Job? = null
 
     private lateinit var onLoad: Runnable
 
@@ -44,9 +45,15 @@ class DownloadFragment : LoadingFragment() {
     }
 
 
-    fun setDownloader(downloader: FileRequest, onLoad: Runnable) {
+    fun setOnLoad(onLoad: Runnable) {
         this.onLoad = onLoad
-        this.downloader = downloader
+    }
+
+    /**
+     * Shows [download], which the back button cancels.
+     */
+    fun setDownload(download: Job) {
+        this.download = download
     }
 
     fun setText(content: String) {
@@ -56,8 +63,9 @@ class DownloadFragment : LoadingFragment() {
 
 
     override fun callDismissOnBackPress() {
-        if (downloader.isDownloading) {
-            downloader.cancel()
+        val download = download
+        if (download != null && download.isActive) {
+            download.cancel()
             return
         }
 

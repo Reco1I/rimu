@@ -8,10 +8,8 @@ import com.reco1l.verktex.ui.toast.Toasts;
 import com.osudroid.android.AndroidGame;
 import com.osudroid.OsuPlatform;
 import com.osudroid.android.AndroidOsuPlatform;
-import com.reco1l.framework.net.OkHttpClientImplementation;
 import com.osudroid.android.SocketIORoomSocket;
 import com.osudroid.multiplayer.api.RoomSocket;
-import com.reco1l.framework.net.Http;
 
 import android.Manifest;
 import android.app.ActivityManager;
@@ -124,7 +122,6 @@ public class MainActivity extends AndroidGameHost {
         reportGlesVersion();
 
         OsuPlatform.INSTANCE.setImplementation(new AndroidOsuPlatform(this));
-        Http.INSTANCE.setImplementation(new OkHttpClientImplementation());
         RoomSocket.Companion.setFactory(SocketIORoomSocket.factory);
         OsuSettings.load();
         initialGameDirectory();

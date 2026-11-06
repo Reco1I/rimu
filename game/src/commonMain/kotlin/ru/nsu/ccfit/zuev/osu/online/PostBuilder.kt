@@ -1,9 +1,8 @@
 package ru.nsu.ccfit.zuev.osu.online
 
-import com.osudroid.utils.sleepBlocking
-import com.reco1l.framework.net.Http
-import com.reco1l.framework.net.HttpBody
-import com.reco1l.framework.net.HttpRequestBuilder
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import ru.nsu.ccfit.zuev.osu.SecurityUtils
 
 import ru.nsu.ccfit.zuev.osu.helper.Debug
@@ -22,7 +21,7 @@ abstract class PostBuilder {
     }
 
     @Throws(RequestException::class)
-    fun requestWithAttempts(scriptUrl: String, attempts: Int): ArrayList<String> {
+    suspend fun requestWithAttempts(scriptUrl: String, attempts: Int): ArrayList<String> {
         var response: ArrayList<String>? = null
         val signature = SecurityUtils.signRequest(values.toString())
 
@@ -43,7 +42,7 @@ abstract class PostBuilder {
 
             if (response == null || response.isEmpty() || response[0].isEmpty()
                     || !(response[0] == "FAIL" || response[0] == "SUCCESS")) {
-                sleepBlocking(3000)
+                delay(3.seconds)
                 continue
             }
             break
@@ -58,27 +57,22 @@ abstract class PostBuilder {
     }
 
     @Throws(RequestException::class)
-    private fun request(scriptUrl: String): ArrayList<String> {
+    private suspend fun request(scriptUrl: String): ArrayList<String> {
         val response = ArrayList<String>()
 
-        val request = HttpRequestBuilder(scriptUrl)
-            .post(getRequestBody())
-            .build()
-
         try {
-            Http.newCall(request).execute().use { resp ->
+            val text = post(scriptUrl)
 
-                if (resp.isSuccessful) {
-                    Debug.i("request url=$scriptUrl")
-                    Debug.i("request --------Content---------")
-                    for (line in readLines(resp.body.readUtf8())) {
-                        Debug.i("request [${response.size}]: $line")
-                        response.add(line)
-                    }
-                    Debug.i("request url=$scriptUrl")
-                    Debug.i("request -----End of content-----")
-                }
+            Debug.i("request url=$scriptUrl")
+            Debug.i("request --------Content---------")
+            for (line in readLines(text)) {
+                Debug.i("request [${response.size}]: $line")
+                response.add(line)
             }
+            Debug.i("request url=$scriptUrl")
+            Debug.i("request -----End of content-----")
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Debug.e(e.message, e)
         }
@@ -91,7 +85,10 @@ abstract class PostBuilder {
 
     protected abstract fun addParamInternal(key: String, value: String)
 
-    protected abstract fun getRequestBody(): HttpBody
+    /**
+     * Posts the parameters to [url], returning the response's text.
+     */
+    protected abstract suspend fun post(url: String): String
 
     class RequestException(cause: Throwable) : Exception(cause)
 

@@ -57,6 +57,9 @@ dependencies {
 
     api(project(":verktex:core"))
 
+    // The HTTP engine of Network.
+    implementation("io.ktor:ktor-client-okhttp:3.1.3")
+
     // Shader translation and uniform layouts, shared with the build that compiles the Vulkan shaders.
     implementation(project(":verktex:shadertools"))
 

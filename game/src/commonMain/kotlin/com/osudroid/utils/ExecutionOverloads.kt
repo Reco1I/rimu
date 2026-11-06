@@ -43,9 +43,10 @@ private val executionScope = CoroutineScope(SupervisorJob() + Dispatchers.Defaul
 fun async(block: Runnable) = executionScope.launch { block.run() }
 
 /**
- * Run a task on asynchronous using [executionScope].
+ * Run a task on asynchronous using [executionScope]. The block is a coroutine, it can call suspend
+ * functions such as the network requests of [com.osudroid.online.OsuHttp].
  */
-fun async(block: CoroutineScope.() -> Unit) = executionScope.launch(block = block)
+fun async(block: suspend CoroutineScope.() -> Unit) = executionScope.launch(block = block)
 
 /**
  * Run a task on asynchronous using [executionScope].
@@ -74,7 +75,7 @@ fun delayed(time: Long, block: Runnable) = executionScope.launch {
 /**
  * Run a delayed task on asynchronous using [executionScope].
  */
-fun delayed(time: Long, block: CoroutineScope.() -> Unit) = executionScope.launch {
+fun delayed(time: Long, block: suspend CoroutineScope.() -> Unit) = executionScope.launch {
     delay(time.milliseconds)
     block()
 }

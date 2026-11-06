@@ -36,6 +36,9 @@ kotlin {
             // Multiplatform locks.
             implementation("org.jetbrains.kotlinx:atomicfu:0.33.0")
 
+            // HTTP, see Network. Each platform provides its engine.
+            api("io.ktor:ktor-client-core:3.1.3")
+
             // JSON, e.g. the strings of the localizations and the settings, whose keys expose
             // their serializer.
             api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")

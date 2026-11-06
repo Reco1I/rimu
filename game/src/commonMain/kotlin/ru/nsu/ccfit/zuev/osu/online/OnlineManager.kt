@@ -1,5 +1,8 @@
 package ru.nsu.ccfit.zuev.osu.online
 
+import com.osudroid.online.OsuHttp
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -10,8 +13,6 @@ import com.osudroid.utils.LenientJson
 import com.reco1l.verktex.Platform
 import com.osudroid.utils.optInt
 import com.osudroid.utils.sha256Checksum
-import com.reco1l.framework.net.Http
-import com.reco1l.framework.net.HttpRequestBuilder
 
 import ru.nsu.ccfit.zuev.osu.helper.Debug
 
@@ -20,8 +21,6 @@ import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.json.JsonObject
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 import okio.IOException
 import okio.Path.Companion.toPath
 
@@ -32,7 +31,7 @@ import ru.nsu.ccfit.zuev.osu.online.PostBuilder.RequestException
 import ru.nsu.ccfit.zuev.osu.scoring.BeatmapLeaderboardScoringMode
 
 class OnlineManager {
-    private val lock = SynchronizedObject()
+    private val loginMutex = Mutex()
 
     var failMessage = ""
         private set
@@ -75,7 +74,7 @@ class OnlineManager {
     }
 
     @Throws(OnlineManagerException::class)
-    private fun sendRequest(post: PostBuilder, url: String): ArrayList<String>? {
+    private suspend fun sendRequest(post: PostBuilder, url: String): ArrayList<String>? {
         val response: ArrayList<String>
         try {
             response = post.requestWithAttempts(url, 3)
@@ -114,18 +113,18 @@ class OnlineManager {
     }
 
     @Throws(OnlineManagerException::class)
-    fun logIn(): Boolean {
+    suspend fun logIn(): Boolean {
         return logIn(username, password)
     }
 
     @Throws(OnlineManagerException::class)
-    fun logIn(username: String?): Boolean {
+    suspend fun logIn(username: String?): Boolean {
         return logIn(username, password)
     }
 
     @Throws(OnlineManagerException::class)
-    fun logIn(username: String?, password: String?): Boolean {
-        return synchronized(lock) {
+    suspend fun logIn(username: String?, password: String?): Boolean {
+        return loginMutex.withLock {
             this.username = username ?: ""
             this.password = password ?: ""
 
@@ -175,7 +174,7 @@ class OnlineManager {
     }
 
     @Throws(OnlineManagerException::class)
-    internal fun tryToLogIn(): Boolean {
+    internal suspend fun tryToLogIn(): Boolean {
         if (logIn(username, password) == false) {
             isStayOnline = false
             return false
@@ -184,7 +183,7 @@ class OnlineManager {
     }
 
     @Throws(OnlineManagerException::class)
-    fun sendRecord(beatmap: BeatmapInfo, scoreData: String, replayPath: String): Boolean {
+    suspend fun sendRecord(beatmap: BeatmapInfo, scoreData: String, replayPath: String): Boolean {
         Debug.i("Sending record...")
 
         val replayFile = replayPath.toPath()
@@ -240,7 +239,7 @@ class OnlineManager {
     }
 
     @Throws(OnlineManagerException::class)
-    fun getTop(hash: String): ArrayList<String> {
+    suspend fun getTop(hash: String): ArrayList<String> {
         val post: PostBuilder = URLEncodedPostBuilder()
         post.addParam("hash", hash)
         post.addParam("uid", userId.toString())
@@ -263,18 +262,10 @@ class OnlineManager {
     }
 
     @Throws(OnlineManagerException::class)
-    fun getBeatmapStatus(md5: String): RankedStatus? {
-        val builder = HttpRequestBuilder("https://osu.direct/api/v2/md5/$md5")
-        val request = builder.build()
-
+    suspend fun getBeatmapStatus(md5: String): RankedStatus? {
         try {
-            Http.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    val json = LenientJson.parseToJsonElement(response.body.readUtf8()) as? JsonObject
-                        ?: throw JsonException("Response is not a JSON object")
-                    return RankedStatus.valueOf(json.optInt("ranked"))
-                }
-            }
+            val json = OsuHttp.getJsonObject("https://osu.direct/api/v2/md5/$md5")
+            return RankedStatus.valueOf(json.optInt("ranked"))
         } catch (e: IOException) {
             Debug.e("getBeatmapStatus IOException " + e.message, e)
         } catch (e: JsonException) {
@@ -288,17 +279,17 @@ class OnlineManager {
         return null
     }
 
-    fun loadAvatarToTextureManager(): Boolean {
+    suspend fun loadAvatarToTextureManager(): Boolean {
         return loadAvatarToTextureManager(avatarURL)
     }
 
-    fun loadProfileBannerToTextureManager(): Boolean {
+    suspend fun loadProfileBannerToTextureManager(): Boolean {
         return loadProfileBannerToTextureManager(profileBannerURL)
     }
 
     // The textures are only loaded from files that are valid images, which replaces checking their
     // size with Android's BitmapFactory.
-    fun loadAvatarToTextureManager(avatarURL: String?): Boolean {
+    suspend fun loadAvatarToTextureManager(avatarURL: String?): Boolean {
         if (avatarURL == null || avatarURL.isEmpty()) return false
 
         val filename = MD5Calculator.getStringMD5(avatarURL)
@@ -330,7 +321,7 @@ class OnlineManager {
         return false
     }
 
-    fun loadProfileBannerToTextureManager(bannerURL: String?): Boolean {
+    suspend fun loadProfileBannerToTextureManager(bannerURL: String?): Boolean {
         if (bannerURL == null || bannerURL.isEmpty()) return false
 
         if (CachedTextures[bannerURL] != null) {
@@ -350,7 +341,7 @@ class OnlineManager {
     }
 
     @Throws(OnlineManagerException::class)
-    fun getScorePack(playid: Int): String {
+    suspend fun getScorePack(playid: Int): String {
         val post: PostBuilder = URLEncodedPostBuilder()
         post.addParam("playID", playid.toString())
 

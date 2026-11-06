@@ -5,7 +5,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 
 import com.osudroid.online.model.*
-import com.reco1l.framework.net.*
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
 /**
@@ -19,25 +18,19 @@ object IBanchoAPI {
     private val HOSTNAME = "https://test.osudroid.moe/api"
 
 
-    fun getBeatmapLeaderboard(hash: String, type: String = "pp"): List<BeatmapScoreModel> {
+    suspend fun getBeatmapLeaderboard(hash: String, type: String = "pp"): List<BeatmapScoreModel> {
 
-        JsonObjectRequest("${HOSTNAME}/getrank.php").use { request ->
-            request.buildUrl {
-                addQueryParameter("hash", hash)
-                addQueryParameter("uid", OnlineManager.getInstance().userId.toString())
-                addQueryParameter("type", type)
+        val json = OsuHttp.getJsonObject("${HOSTNAME}/getrank.php") {
+            url {
+                parameters.append("hash", hash)
+                parameters.append("uid", OnlineManager.getInstance().userId.toString())
+                parameters.append("type", type)
             }
-
-            val list = mutableListOf<BeatmapScoreModel>()
-
-            val leaderboard = request.execute().json.getJsonArray("Leaderboard")
-
-            for (i in 0 until leaderboard.size) {
-                list.add(BeatmapScore(leaderboard.getJsonObject(i)))
-            }
-
-            return list
         }
+
+        val leaderboard = json.getJsonArray("Leaderboard")
+
+        return List(leaderboard.size) { i -> BeatmapScore(leaderboard.getJsonObject(i)) }
     }
 
 }

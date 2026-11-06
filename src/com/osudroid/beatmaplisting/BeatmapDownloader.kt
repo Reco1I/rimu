@@ -7,8 +7,12 @@ import java.io.File
 import android.os.Environment.DIRECTORY_DOWNLOADS
 import android.view.View
 import com.osudroid.resources.Res
-import com.reco1l.framework.net.FileRequest
-import com.reco1l.framework.net.IFileRequestObserver
+import com.osudroid.online.DownloadProgress
+import com.osudroid.online.OsuHttp
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
+import kotlinx.coroutines.CancellationException
+import okio.Path.Companion.toOkioPath
 import com.osudroid.utils.mainThread
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.ui.v1.DownloadFragment
@@ -19,7 +23,7 @@ import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils
 import java.io.IOException
 
-object BeatmapDownloader : IFileRequestObserver {
+object BeatmapDownloader {
 
 
     private lateinit var fragment: DownloadFragment
@@ -46,11 +50,8 @@ object BeatmapDownloader : IFileRequestObserver {
 
         val file = context.getExternalFilesDir(DIRECTORY_DOWNLOADS)!!.resolve("$currentFilename.osz")
 
-        val downloader = FileRequest(file.path, url)
-        downloader.buildRequest { header("User-Agent", "Chrome/Android") }
-
         fragment = DownloadFragment()
-        fragment.setDownloader(downloader) {
+        fragment.setOnLoad {
 
             fragment.text.visibility = View.VISIBLE
             fragment.text.text = Res.string.beatmap_downloader_connecting.toString()
@@ -58,25 +59,34 @@ object BeatmapDownloader : IFileRequestObserver {
             fragment.button.visibility = View.VISIBLE
             fragment.button.text = Res.string.beatmap_downloader_cancel.toString()
 
-            downloader.observer = this@BeatmapDownloader
-
-            async {
-                downloader.execute()
-
+            val download = async {
                 mainThread {
                     fragment.text.text = Res.string.beatmap_downloader_downloading.format(currentFilename).toString()
                 }
+
+                try {
+                    OsuHttp.download(url, file.toOkioPath(), configure = {
+                        header(HttpHeaders.UserAgent, OsuHttp.MIRROR_USER_AGENT)
+                    }, onProgress = ::onDownloadUpdate)
+                } catch (e: CancellationException) {
+                    onDownloadCancel()
+                    throw e
+                } catch (e: Exception) {
+                    onDownloadFail(e)
+                    return@async
+                }
+
+                onDownloadEnd(file)
             }
 
-            fragment.button.setOnClickListener {
-                downloader.cancel()
-            }
+            fragment.setDownload(download)
+            fragment.button.setOnClickListener { download.cancel() }
         }
         fragment.show()
     }
 
 
-    override fun onDownloadEnd(downloader: FileRequest) {
+    private fun onDownloadEnd(file: File) {
         mainThread {
             fragment.progressBar.visibility = View.GONE
             fragment.progressBar.isIndeterminate = true
@@ -85,8 +95,6 @@ object BeatmapDownloader : IFileRequestObserver {
             fragment.text.text = Res.string.beatmap_downloader_importing.format(currentFilename).toString()
             fragment.button.visibility = View.GONE
         }
-
-        val file = File(downloader.path)
 
         try {
             ZipFile(file).use {
@@ -117,25 +125,25 @@ object BeatmapDownloader : IFileRequestObserver {
         }
     }
 
-    override fun onDownloadCancel(downloader: FileRequest) {
+    private fun onDownloadCancel() {
         Toasts.showLong("Download canceled.")
 
         mainThread(fragment::dismiss)
         isDownloading = false
     }
 
-    override fun onDownloadUpdate(downloader: FileRequest) {
-
-        val info = "\n%.3f mb/s (%d%%)".format(downloader.speedKbps / 1024, downloader.progress.toInt())
+    private fun onDownloadUpdate(download: DownloadProgress) {
+        val progress = download.percentage.toInt()
+        val info = "\n%.3f mb/s (%d%%)".format(download.speedKbps / 1024, progress.coerceAtLeast(0))
 
         mainThread {
             fragment.text.text = Res.string.beatmap_downloader_downloading.format(currentFilename).toString() + info
-            fragment.progressBar.isIndeterminate = false
-            fragment.progressBar.progress = downloader.progress.toInt()
+            fragment.progressBar.isIndeterminate = progress < 0
+            fragment.progressBar.progress = progress.coerceAtLeast(0)
         }
     }
 
-    override fun onDownloadFail(downloader: FileRequest, exception: Exception) {
+    private fun onDownloadFail(exception: Exception) {
         Toasts.showLong("Download failed. " + exception.message)
 
         mainThread(fragment::dismiss)

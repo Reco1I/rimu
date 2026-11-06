@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.online
 
-import com.reco1l.framework.net.HttpBody
+import com.osudroid.online.OsuHttp
 
 class URLEncodedPostBuilder : PostBuilder() {
     private val fields = mutableListOf<Pair<String, String>>()
@@ -9,7 +9,5 @@ class URLEncodedPostBuilder : PostBuilder() {
         fields += key to value
     }
 
-    override fun getRequestBody(): HttpBody {
-        return HttpBody.Form(fields.toList())
-    }
+    override suspend fun post(url: String) = OsuHttp.postForm(url, fields.toList())
 }

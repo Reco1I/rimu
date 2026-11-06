@@ -21,7 +21,7 @@ import java.util.HashMap;
 import ru.nsu.ccfit.zuev.osu.MainActivity;
 import ru.nsu.ccfit.zuev.osuplus.R;
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator;
-import ru.nsu.ccfit.zuev.osu.online.OnlineFileOperator;
+import ru.nsu.ccfit.zuev.osu.online.OnlineFiles;
 
 /**
  * @author kairusds
@@ -54,7 +54,8 @@ public class PushNotificationService extends FirebaseMessagingService {
 
             if(!imageUrl.isEmpty()) {
                 String filePath = getCacheDir().getPath() + "/" + MD5Calculator.getStringMD5("osuplus" + imageUrl);
-                boolean downloaded = OnlineFileOperator.downloadFile(imageUrl, filePath);
+                // Firebase calls this on a background thread, which waits for the image.
+                boolean downloaded = OnlineFiles.downloadFileBlocking(imageUrl, filePath);
                 if(downloaded) {
                     Bitmap bitmap = BitmapFactory.decodeFile(filePath);
                     notificationBuilder.setLargeIcon(bitmap)

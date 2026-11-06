@@ -1,22 +1,24 @@
 package ru.nsu.ccfit.zuev.osu.online
 
+import com.osudroid.online.OsuHttp
 import com.reco1l.verktex.Platform
-import com.reco1l.framework.net.Http
-import com.reco1l.framework.net.HttpRequestBuilder
-import kotlin.jvm.JvmOverloads
+import io.ktor.client.request.header
 import kotlin.jvm.JvmStatic
+import kotlinx.coroutines.CancellationException
 import okio.IOException
 import okio.Path.Companion.toPath
-import okio.buffer
-import okio.use
 
 import ru.nsu.ccfit.zuev.osu.helper.Debug
 
 object OnlineFileOperator {
 
-    @JvmStatic
-    @JvmOverloads
-    fun downloadFile(urlstr: String, filename: String, checkModificationDate: Boolean = false): Boolean {
+    /**
+     * Downloads [urlstr] into [filename], unless it exists. With [checkModificationDate] an existing
+     * file is downloaded again if the server has a newer one.
+     *
+     * @return Whether the file is there, downloaded or not.
+     */
+    suspend fun downloadFile(urlstr: String, filename: String, checkModificationDate: Boolean = false): Boolean {
         Debug.i("Starting download $urlstr")
         val file = filename.toPath()
         try {
@@ -30,22 +32,15 @@ object OnlineFileOperator {
             // Cheching for errors
             Debug.i("Connected to $urlstr")
 
-            val builder = HttpRequestBuilder(urlstr)
-
-            if (checkModificationDate && exists) {
-                builder.addHeader("If-Modified-Since", formatHttpDate(lastModified ?: 0L))
-            }
-
-            val request = builder.build()
-            Http.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    Platform.fileSystem.sink(file).buffer().use { sink ->
-                        sink.writeAll(response.body)
-                    }
+            OsuHttp.download(urlstr, file, configure = {
+                if (checkModificationDate && exists) {
+                    header("If-Modified-Since", formatHttpDate(lastModified ?: 0L))
                 }
-            }
+            })
 
             return true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: IOException) {
             Debug.e("downloadFile IOException " + e.message, e)
             return false
