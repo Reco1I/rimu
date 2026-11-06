@@ -568,8 +568,12 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
     (`LeaderboardResponse`), the beatmap status, the banners, the update check, room creation (its
     request too) and the mirrors' searches (`MirrorBeatmapSet`, shared by both mirrors, read by the
     `BeatmapMirrorSearchResponseModel`s from the `HttpResponse`). The lobby's rooms stay a
-    `JsonArray`, since `Room` is made from JSON objects as the socket's events make it. Forms use
-    `submitForm`/`submitFormWithBinaryData` in the post builders.
+    `JsonArray`, since `Room` is made from JSON objects as the socket's events make it.
+  - The post builders (`PostBuilder`, `URLEncodedPostBuilder`, `FormDataPostBuilder`) are gone: Ktor
+    builds the forms. What they added for the osu!droid server is `OnlineManager.post`: it signs the
+    URL-encoded values joined with `_`, sends them with `submitForm` (or `submitFormWithBinaryData`
+    with the replay of a score), and tries up to 3 times, 3 s apart, until the first line is
+    `SUCCESS` or `FAIL`. The unused `getTop` went with them (the leaderboard is `IBanchoAPI`'s).
   - `downloadTo` is the one helper: an `HttpClient` extension streaming `bodyAsChannel()` into an
     Okio sink with a `DownloadProgress` callback. It deletes the file if it doesn't finish, and
     returns false for a `304` (for `If-Modified-Since`).
@@ -577,8 +581,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
     replaced by the above.
   - `async {}` and `delayed {}` take a `suspend` block, so their bodies call the requests directly.
   - Suspend now: `OnlineManager`'s requests (login, score submission, leaderboards, beatmap status,
-    avatar and banner downloads; the login lock is a `Mutex`), `PostBuilder.requestWithAttempts`
-    (with `delay` between attempts), `OnlineFileOperator.downloadFile`, `IBanchoAPI`, `LobbyAPI`
+    avatar and banner downloads; the login lock is a `Mutex`), `OnlineFileOperator.downloadFile`, `IBanchoAPI`, `LobbyAPI`
     and `BannerManager.loadBannerSprite`. `OnlineScoring` uses a `Mutex` and `delay` instead of
     `synchronized` and `Thread.sleep`.
   - The mirrors build their URLs with Ktor's `URLBuilder`. It writes a space in a query as `+`
@@ -597,7 +600,8 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 - Tests: `UrlParametersTest` replaces `HttpUrlBuilderTest`. `HttpClientTest` checks the client's
   configuration over Ktor's `MockEngine`: JSON as `text/html`, unknown fields, coerced nulls, a
   number read as a string, nulls left out of requests, failures, the leaderboard and mirror shapes,
-  and downloads with a `304`.
+  and downloads with a `304`. `ServerRequestTest` checks `OnlineManager.post`: the form and its
+  signature, the multipart replay, and trying again after a failed answer.
 - Checked: the core, desktop and game tests, the app's unit tests compiling, the common checks and
   `assembleDebug`. Not run against the servers: login, score submission, leaderboards, the beatmap
   listing, downloads and updates weren't tried.

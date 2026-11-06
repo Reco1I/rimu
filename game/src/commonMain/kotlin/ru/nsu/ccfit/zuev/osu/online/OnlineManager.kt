@@ -1,5 +1,17 @@
 package ru.nsu.ccfit.zuev.osu.online
 
+import io.ktor.client.HttpClient
+import ru.nsu.ccfit.zuev.osu.SecurityUtils
+import okio.Path
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
+import io.ktor.http.Parameters
+import io.ktor.http.HttpHeaders
+import io.ktor.http.Headers
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.request.forms.submitFormWithBinaryData
+import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.forms.formData
 import com.osudroid.online.httpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -25,7 +37,6 @@ import okio.Path.Companion.toPath
 import com.osudroid.ui.v2.CachedTextures
 import ru.nsu.ccfit.zuev.osu.RankedStatus
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
-import ru.nsu.ccfit.zuev.osu.online.PostBuilder.RequestException
 import ru.nsu.ccfit.zuev.osu.scoring.BeatmapLeaderboardScoringMode
 
 class OnlineManager {
@@ -71,16 +82,58 @@ class OnlineManager {
         this.deviceID = OsuSettings.installId
     }
 
-    @Throws(OnlineManagerException::class)
-    private suspend fun sendRequest(post: PostBuilder, url: String): ArrayList<String>? {
-        val response: ArrayList<String>
-        try {
-            response = post.requestWithAttempts(url, 3)
-        } catch (e: RequestException) {
-            Debug.e(e.message, e)
-            failMessage = "Cannot connect to server"
-            throw OnlineManagerException("Cannot connect to server", e)
+    /**
+     * Posts [fields] to [url] as the osu!droid server expects them: their values are signed (see
+     * [SecurityUtils.signRequest]) and the request is tried up to [REQUEST_ATTEMPTS] times, three
+     * seconds apart, until the server answers `SUCCESS` or `FAIL` on its first line. With a [replay],
+     * it's sent as a multipart form along with the fields.
+     *
+     * @param client The client, another one only in tests.
+     * @return The lines of the last response, a single empty one if none came.
+     */
+    internal suspend fun post(url: String, fields: List<Pair<String, String>>, replay: Path? = null, client: HttpClient = httpClient): List<String> {
+        val signature = SecurityUtils.signRequest(fields.joinToString("_") { urlEncode(it.second) })
+        val signedFields = if (signature != null) fields + ("sign" to signature) else fields
+
+        var lines = emptyList<String>()
+
+        for (attempt in 1..REQUEST_ATTEMPTS) {
+            lines = try {
+                val response = if (replay == null) {
+                    client.submitForm(url, Parameters.build { signedFields.forEach { (name, value) -> append(name, value) } })
+                } else {
+                    client.submitFormWithBinaryData(url, formData {
+                        signedFields.forEach { (name, value) -> append(name, value) }
+                        append("replayFile", Platform.fileSystem.read(replay) { readByteArray() }, Headers.build {
+                            append(HttpHeaders.ContentType, "application/octet-stream")
+                            append(HttpHeaders.ContentDisposition, "filename=\"${replay.name}\"")
+                        })
+                    })
+                }
+                readLines(response.bodyAsText())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Debug.e("request $url failed: " + e.message, e)
+                emptyList()
+            }
+
+            Debug.i("request url=$url")
+            lines.forEachIndexed { i, line -> Debug.i("request [$i]: $line") }
+
+            if (lines.firstOrNull() == "SUCCESS" || lines.firstOrNull() == "FAIL") {
+                break
+            }
+            if (attempt < REQUEST_ATTEMPTS) {
+                delay(3.seconds)
+            }
         }
+
+        return lines.ifEmpty { listOf("") }
+    }
+
+    private suspend fun sendRequest(url: String, fields: List<Pair<String, String>>, replay: Path? = null): List<String>? {
+        val response = post(url, fields, replay)
         failMessage = ""
 
         //TODO debug code
@@ -131,12 +184,11 @@ class OnlineManager {
                 return false
             }
 
-            val post: PostBuilder = URLEncodedPostBuilder()
-            post.addParam("username", username)
-            post.addParam("password", MD5Calculator.getStringMD5(password.trim() + "taikotaiko"))
-            post.addParam("version", onlineVersion)
-
-            val response = sendRequest(post, endpoint + "login.php")
+            val response = sendRequest(endpoint + "login.php", listOf(
+                "username" to username,
+                "password" to MD5Calculator.getStringMD5(password.trim() + "taikotaiko"),
+                "version" to onlineVersion,
+            ))
 
             if (response == null) {
                 return false
@@ -191,23 +243,19 @@ class OnlineManager {
             return false
         }
 
-        val post = FormDataPostBuilder()
-        post.addParam("userID", userId.toString())
-        post.addParam("ssid", ssid)
-        post.addParam("filename", beatmap.fullBeatmapName.trim())
-        post.addParam("hash", beatmap.md5)
-        post.addParam("data", scoreData)
-        post.addParam("version", onlineVersion)
-
-        post.addParam("cs", beatmap.circleSize.toString())
-        post.addParam("ar", beatmap.approachRate.toString())
-        post.addParam("od", beatmap.overallDifficulty.toString())
-        post.addParam("hp", beatmap.hpDrainRate.toString())
-
-        post.addParam("replayFile", replayFile.name, "application/octet-stream", replayPath)
-        post.addParam("replayFileChecksum", sha256Checksum(replayPath))
-
-        val response = sendRequest(post, endpoint + "submit.php")
+        val response = sendRequest(endpoint + "submit.php", listOf(
+            "userID" to userId.toString(),
+            "ssid" to ssid,
+            "filename" to beatmap.fullBeatmapName.trim(),
+            "hash" to beatmap.md5,
+            "data" to scoreData,
+            "version" to onlineVersion,
+            "cs" to beatmap.circleSize.toString(),
+            "ar" to beatmap.approachRate.toString(),
+            "od" to beatmap.overallDifficulty.toString(),
+            "hp" to beatmap.hpDrainRate.toString(),
+            "replayFileChecksum" to sha256Checksum(replayPath),
+        ), replay = replayFile)
 
         if (response == null) {
             return false
@@ -236,28 +284,9 @@ class OnlineManager {
         return true
     }
 
-    @Throws(OnlineManagerException::class)
-    suspend fun getTop(hash: String): ArrayList<String> {
-        val post: PostBuilder = URLEncodedPostBuilder()
-        post.addParam("hash", hash)
-        post.addParam("uid", userId.toString())
-
-        if (OsuSettings.beatmapLeaderboardScoringMode == BeatmapLeaderboardScoringMode.PP) {
-            post.addParam("type", "pp")
-        } else {
-            post.addParam("type", "score")
-        }
-
-        val response = sendRequest(post, endpoint + "getrank.php")
-
-        if (response == null) {
-            return ArrayList()
-        }
-
-        response.removeAt(0)
-
-        return response
-    }
+    // How the leaderboards are ranked, as the server takes it.
+    private fun scoringType() =
+        if (OsuSettings.beatmapLeaderboardScoringMode == BeatmapLeaderboardScoringMode.PP) "pp" else "score"
 
     /**
      * The ranked status of a beatmap on osu.direct, as it answers it.
@@ -341,16 +370,10 @@ class OnlineManager {
 
     @Throws(OnlineManagerException::class)
     suspend fun getScorePack(playid: Int): String {
-        val post: PostBuilder = URLEncodedPostBuilder()
-        post.addParam("playID", playid.toString())
-
-        if (OsuSettings.beatmapLeaderboardScoringMode == BeatmapLeaderboardScoringMode.PP) {
-            post.addParam("type", "pp")
-        } else {
-            post.addParam("type", "score")
-        }
-
-        val response = sendRequest(post, endpoint + "gettop.php")
+        val response = sendRequest(endpoint + "gettop.php", listOf(
+            "playID" to playid.toString(),
+            "type" to scoringType(),
+        ))
 
         if (response == null || response.size < 2) {
             return ""
@@ -366,6 +389,42 @@ class OnlineManager {
     }
 
     companion object {
+        private const val REQUEST_ATTEMPTS = 3
+
+        private const val HEX = "0123456789ABCDEF"
+
+        /**
+         * Encodes [value] as `java.net.URLEncoder` does with UTF-8: letters, digits and `.-*_` are kept,
+         * a space becomes `+`, and everything else is percent-encoded. The values are signed encoded so.
+         */
+        @JvmStatic
+        fun urlEncode(value: String) = buildString {
+            for (byte in value.encodeToByteArray()) {
+                val c = byte.toInt() and 0xFF
+                when {
+                    c in 'a'.code..'z'.code || c in 'A'.code..'Z'.code || c in '0'.code..'9'.code
+                        || c == '.'.code || c == '-'.code || c == '*'.code || c == '_'.code -> append(c.toChar())
+                    c == ' '.code -> append('+')
+                    else -> {
+                        append('%')
+                        append(HEX[c shr 4])
+                        append(HEX[c and 0x0F])
+                    }
+                }
+            }
+        }
+
+        /**
+         * Splits [text] in lines as `BufferedReader.readLine` does.
+         */
+        private fun readLines(text: String): List<String> {
+            if (text.isEmpty()) {
+                return emptyList()
+            }
+            val lines = text.lines()
+            return if (text.endsWith('\n') || text.endsWith('\r')) lines.dropLast(1) else lines
+        }
+
         const val hostname = "osudroid.moe"
         const val endpoint = "https://$hostname/api/"
         const val updateEndpoint = endpoint + "update.php?lang="
