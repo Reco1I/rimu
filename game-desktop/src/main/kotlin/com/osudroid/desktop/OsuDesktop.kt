@@ -25,8 +25,14 @@ import java.io.File
 
 /**
  * The game's window on desktop, which starts the game as `MainActivity` does on Android.
+ *
+ * @param screenshot When set, the frame shown [screenshotDelaySeconds] after starting is saved to this
+ * PNG and the window closes, e.g. for smoke checks.
  */
-class OsuDesktop : DesktopGameHost(title = "osu!droid", vsync = true) {
+class OsuDesktop(
+    private val screenshot: File? = null,
+    private val screenshotDelaySeconds: Double = 10.0,
+) : DesktopGameHost(title = "osu!droid", vsync = true) {
 
     override fun onEngineInitialized() {
         OsuPlatform.implementation = DesktopOsuPlatform()
@@ -47,6 +53,10 @@ class OsuDesktop : DesktopGameHost(title = "osu!droid", vsync = true) {
 
     override fun onEngineStarted() {
         Verktex.pushScene(SplashScene)
+
+        if (screenshot != null) {
+            captureScreenshot(screenshot, screenshotDelaySeconds)
+        }
 
         async {
             GlobalManager.getInstance().init()
@@ -79,6 +89,31 @@ class OsuDesktop : DesktopGameHost(title = "osu!droid", vsync = true) {
     }
 }
 
-fun main() {
-    OsuDesktop().run()
+/**
+ * Starts the game on desktop:
+ *
+ * ```
+ * ./gradlew :game-desktop:run --args="--screenshot build/game.png --delay 10"
+ * ```
+ *
+ * `--screenshot` saves the frame shown `--delay` seconds (10 by default) after starting and exits.
+ */
+fun main(args: Array<String>) {
+    var screenshot: File? = null
+    var delay = 10.0
+
+    var i = 0
+    while (i < args.size) {
+        when (args[i]) {
+            "--screenshot" -> screenshot = args.getOrNull(++i)?.let(::File)
+            "--delay" -> delay = args.getOrNull(++i)?.toDoubleOrNull() ?: delay
+            else -> {
+                System.err.println("Unknown argument: ${args[i]}. Usage: [--screenshot <file.png>] [--delay <seconds>]")
+                kotlin.system.exitProcess(2)
+            }
+        }
+        i++
+    }
+
+    OsuDesktop(screenshot, delay).run()
 }

@@ -227,3 +227,8 @@ application {
         applicationDefaultJvmArgs = listOf("-XstartOnFirstThread")
     }
 }
+
+tasks.named<JavaExec>("run") {
+    // Relative paths given in --args, e.g. --screenshot, resolve against where Gradle was started.
+    workingDir = rootProject.projectDir
+}
