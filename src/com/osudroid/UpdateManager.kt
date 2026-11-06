@@ -1,19 +1,23 @@
 package com.osudroid
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+import io.ktor.client.request.parameter
+import io.ktor.client.request.get
+import io.ktor.client.call.body
+import com.osudroid.online.downloadTo
+import com.osudroid.online.httpClient
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.settings.OsuSettings
 import com.osudroid.settings.GameFolders
 import com.reco1l.verktex.ui.toast.Toasts
 import com.osudroid.android.AndroidGame
-import com.osudroid.utils.getLong
-import com.osudroid.utils.getString
 import android.content.*
 import android.net.*
 import android.util.*
 import androidx.core.content.*
 import com.osudroid.resources.Res
 import com.osudroid.utils.*
-import com.osudroid.online.OsuHttp
 import kotlinx.coroutines.CancellationException
 import okio.Path.Companion.toOkioPath
 import com.reco1l.osu.ui.*
@@ -25,6 +29,13 @@ import java.io.*
 
 object UpdateManager
 {
+
+    /**
+     * The latest version of the game, as the server sends it.
+     */
+    @Serializable
+    private class UpdateInfo(@SerialName("version_code") val versionCode: Long, val link: String)
+
 
     private val apksDirectory = File(GameFolders.cachePath, "updates").apply(File::mkdirs)
 
@@ -77,15 +88,13 @@ object UpdateManager
             apksDirectory.listFiles()?.forEach { it.delete() }
 
             try {
-                val response = OsuHttp.getJsonObject(OnlineManager.updateEndpoint) {
-                    url {
-                        parameters.append("applicationId", BuildConfig.APPLICATION_ID)
-                        parameters.append("buildType", BuildConfig.BUILD_TYPE)
-                    }
-                }
+                val response = httpClient.get(OnlineManager.updateEndpoint) {
+                    parameter("applicationId", BuildConfig.APPLICATION_ID)
+                    parameter("buildType", BuildConfig.BUILD_TYPE)
+                }.body<UpdateInfo>()
 
-                val newVersion = response.getLong("version_code")
-                val link = response.getString("link")
+                val newVersion = response.versionCode
+                val link = response.link
 
                 if (newVersion <= AndroidGame.mainActivity!!.versionCode) {
                     if (!silently) {
@@ -130,7 +139,7 @@ object UpdateManager
 
     private suspend fun downloadUpdate(link: String, file: File) {
         try {
-            OsuHttp.download(link, file.toOkioPath(), onProgress = { download ->
+            httpClient.downloadTo(link, file.toOkioPath(), onProgress = { download ->
                 val progress = download.percentage.toInt()
 
                 mainThread {

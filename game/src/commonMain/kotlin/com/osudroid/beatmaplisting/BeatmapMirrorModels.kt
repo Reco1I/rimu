@@ -1,8 +1,6 @@
 package com.osudroid.beatmaplisting
 
-import com.osudroid.utils.*
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
+import io.ktor.client.statement.HttpResponse
 
 import ru.nsu.ccfit.zuev.osu.RankedStatus
 
@@ -59,9 +57,14 @@ fun interface BeatmapMirrorPreviewRequestModel {
 
 // Response
 
-fun interface BeatmapMirrorSearchResponseModel {
+interface BeatmapMirrorSearchResponseModel {
     /**
-     * @return The list of beatmap sets.
+     * Reads the beatmap sets of the response to a search.
      */
-    operator fun invoke(response: Any): MutableList<BeatmapSetModel>
+    suspend operator fun invoke(response: HttpResponse): MutableList<BeatmapSetModel>
 }
+
+/**
+ * The user agent the mirrors are asked with.
+ */
+const val MIRROR_USER_AGENT = "Chrome/Android"

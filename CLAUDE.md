@@ -139,7 +139,7 @@ Settings go through Verktex's `Settings` (`verktex/core/.../settings/`), a typed
 
 ### Multiplayer
 
-Socket.IO for real-time room events, through `KtorRoomSocket`: a Socket.IO v4 client over Ktor WebSockets, in common code (`KtorRoomSocketTest` runs against a server given with `-PsocketIoTestUrl`). HTTP requests go through Ktor: Verktex's `Network` creates clients over the platform's engine (`Platform.Implementation.httpEngine`, OkHttp on Android and desktop), and the game's `OsuHttp` (`com/osudroid/online/`) has its client and suspend helpers (`getJsonObject`, `postForm`, `download`…), called from coroutines such as `async {}` blocks. Firebase Messaging handles push notifications. Multiplayer logic lives in `com/osudroid/multiplayer/`.
+Socket.IO for real-time room events, through `KtorRoomSocket`: a Socket.IO v4 client over Ktor WebSockets, in common code (`KtorRoomSocketTest` runs against a server given with `-PsocketIoTestUrl`). HTTP requests go through Ktor: Verktex's `Network` creates clients over the platform's engine (`Platform.Implementation.httpEngine`, OkHttp on Android and desktop), and the game's `httpClient` (`com/osudroid/online/HttpClient.kt`) is one over it with content negotiation: requests use Ktor directly (`httpClient.get(url) { parameter(...) }.body<T>()`) with `@Serializable` responses read leniently whatever their content type, and unsuccessful responses throw. `downloadTo` streams a download with progress. They're called from coroutines such as `async {}` blocks. Firebase Messaging handles push notifications. Multiplayer logic lives in `com/osudroid/multiplayer/`.
 
 ## Key Conventions
 

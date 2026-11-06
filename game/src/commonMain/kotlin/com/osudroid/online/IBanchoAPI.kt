@@ -1,8 +1,8 @@
 package com.osudroid.online
 
-import com.osudroid.utils.*
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 
 import com.osudroid.online.model.*
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -19,18 +19,13 @@ object IBanchoAPI {
 
 
     suspend fun getBeatmapLeaderboard(hash: String, type: String = "pp"): List<BeatmapScoreModel> {
+        val response = httpClient.get("${HOSTNAME}/getrank.php") {
+            parameter("hash", hash)
+            parameter("uid", OnlineManager.getInstance().userId)
+            parameter("type", type)
+        }.body<LeaderboardResponse>()
 
-        val json = OsuHttp.getJsonObject("${HOSTNAME}/getrank.php") {
-            url {
-                parameters.append("hash", hash)
-                parameters.append("uid", OnlineManager.getInstance().userId.toString())
-                parameters.append("type", type)
-            }
-        }
-
-        val leaderboard = json.getJsonArray("Leaderboard")
-
-        return List(leaderboard.size) { i -> BeatmapScore(leaderboard.getJsonObject(i)) }
+        return response.leaderboard.map(LeaderboardScore::toModel)
     }
 
 }

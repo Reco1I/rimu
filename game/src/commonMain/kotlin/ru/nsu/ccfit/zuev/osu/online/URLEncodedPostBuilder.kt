@@ -1,6 +1,9 @@
 package ru.nsu.ccfit.zuev.osu.online
 
-import com.osudroid.online.OsuHttp
+import com.osudroid.online.httpClient
+import io.ktor.client.request.forms.submitForm
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.Parameters
 
 class URLEncodedPostBuilder : PostBuilder() {
     private val fields = mutableListOf<Pair<String, String>>()
@@ -9,5 +12,8 @@ class URLEncodedPostBuilder : PostBuilder() {
         fields += key to value
     }
 
-    override suspend fun post(url: String) = OsuHttp.postForm(url, fields.toList())
+    override suspend fun post(url: String): String {
+        val parameters = Parameters.build { fields.forEach { (name, value) -> append(name, value) } }
+        return httpClient.submitForm(url, parameters).bodyAsText()
+    }
 }

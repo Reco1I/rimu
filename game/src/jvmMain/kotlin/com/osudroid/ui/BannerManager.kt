@@ -1,12 +1,14 @@
 package com.osudroid.ui
 
-import com.osudroid.online.OsuHttp
+import com.osudroid.online.httpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.coroutines.CancellationException
 import com.osudroid.settings.GameFolders
 import com.reco1l.verktex.Platform
 import com.osudroid.utils.*
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
 
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.ui.UISprite
@@ -19,11 +21,19 @@ import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.scaleTo
-import ru.nsu.ccfit.zuev.osu.GlobalManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import java.io.File
 
 object BannerManager {
+
+    /**
+     * A banner, as the server sends it.
+     */
+    @Serializable
+    private class BannerResponse(
+        @SerialName("Url") val url: String,
+        @SerialName("ImageLink") val imageLink: String,
+    )
 
     private const val BANNER_DURATION = 10f // Seconds
 
@@ -39,20 +49,15 @@ object BannerManager {
                 mkdirs()
             }
 
-            val json = OsuHttp.getJsonArray(OnlineManager.endpoint + "game/banner.php")
+            val responses = httpClient.get(OnlineManager.endpoint + "game/banner.php").body<List<BannerResponse>>()
 
-            for (i in 0 until json.size) {
+            for ((i, banner) in responses.withIndex()) {
 
                 try {
-                    val banner = json.getJsonObject(i)
-
-                    val url = banner.getString("Url")
-                    val imageLink = banner.getString("ImageLink")
-
                     val bannerFile = File(bannersFolder, "${i}.png")
-                    bannerFile.writeBytes(OsuHttp.getBytes(imageLink))
+                    bannerFile.writeBytes(httpClient.get(banner.imageLink).body<ByteArray>())
 
-                    banners.add(Banner(url, Textures.load("banner@${i}", bannerFile.absolutePath, isInternal = false)))
+                    banners.add(Banner(banner.url, Textures.load("banner@${i}", bannerFile.absolutePath, isInternal = false)))
 
                 } catch (e: CancellationException) {
                     throw e
