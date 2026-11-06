@@ -14,3 +14,6 @@ include ':verktex:desktop'
 
 // The platform independent part of the game, see docs/multiplatform-game.md.
 include ':game'
+
+// The desktop launcher of the game, over :verktex:desktop.
+include ':game-desktop'
