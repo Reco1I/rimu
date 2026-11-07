@@ -12,6 +12,8 @@ uniform vec2 uSize;
 
 out vec4 fragColor;
 
+// Colours given to shaders have straight alpha, textures and the output are premultiplied.
+
 // Signed distance to a rounded box centered at the origin, in pixels.
 float roundedBoxSDF(vec2 p, vec2 halfSize, float r) {
     vec2 q = abs(p) - halfSize + r;
@@ -30,5 +32,5 @@ void main() {
 
     vec4 finalColor = mix(uColor * vColor, uBorderColor, border);
     finalColor.a *= alpha;
-    fragColor = finalColor;
+    fragColor = vec4(finalColor.rgb * finalColor.a, finalColor.a);
 }

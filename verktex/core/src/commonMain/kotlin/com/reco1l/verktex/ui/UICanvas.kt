@@ -33,9 +33,9 @@ abstract class UICanvas : UIComponent() {
      */
     var clearDepthBeforeDraw = false
 
-    // Opaque and multiplied draws write their colour whatever the alpha.
+    // Opaque draws write their colour whatever the alpha.
     override val drawsWhenTransparent: Boolean
-        get() = blendMode == BlendMode.Opaque || blendMode == BlendMode.Multiply
+        get() = blendMode == BlendMode.Opaque
 
 
     override fun drawContent(renderer: GraphicsRenderer) {

@@ -301,7 +301,7 @@ abstract class GraphicsTexture : GraphicsResource() {
 
         /**
          * Writes the [width] x [height] rectangle at ([x], [y]) of the texture. [pixels] holds RGBA8
-         * with straight alpha, rows tightly packed from the top, between its position and limit.
+         * with premultiplied alpha, rows tightly packed from the top, between its position and limit.
          * The buffer is only read during the call.
          */
         fun write(x: Int, y: Int, width: Int, height: Int, pixels: PixelBuffer)

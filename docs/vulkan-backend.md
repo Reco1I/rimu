@@ -120,7 +120,7 @@ render pass, then blit to the swapchain image and present.
    are closed; for gap 4 only the default uniforms moved, the reflection is phase 3.
    - Replace `Source.uploadToHardware(x, y)` with a pixel-providing API (e.g.
      `writePixels(target: ByteBuffer)` / `pixelFormat`), moving the GL upload into `ESTexture`.
-     Keep the unpremultiply/pack logic of `AndroidTextureSource` (it's backend-neutral) and its tests.
+     Keep the premultiply/pack logic of `AndroidTextureSource` (it's backend-neutral) and its tests.
    - Split `GraphicsTexture.onBind` into "flush uploads" (backend) and "bind".
    - Move default-uniform injection from `ESCommandExecutor` into `GraphicsRenderer`/a shared helper.
    - Rename `ESWindow` → `android/AndroidWindow`; change `GraphicsContext` to `acquireFrame`/`present`.
