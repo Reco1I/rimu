@@ -309,7 +309,7 @@ All four steps are done, and the game starts on desktop: the main menu and the s
   picker, `createVideo` (`UIVideo` is abstract, `ExoPlayerVideo` is Android's), vibrations, file
   integrity, updates, the preferences backup, the language, the clipboard, the changelog, the skin
   texture checks and the login failure message. Settings hide the categories a platform lacks, and
-  `RoomSocket.isAvailable` hides multiplayer. Verktex has `Platform.openUrl` for links.
+  every platform has multiplayer. Verktex has `Platform.openUrl` for links.
 - `GlobalManager`, `LibraryManager`, `ScoreBoardItem` and `OnlineScoring` are Kotlin. The activity,
   its context and the application are in the app's `AndroidGame`.
 - 82 files moved to `game/src/jvmMain/` (all the game's scenes and UI). HUD elements are created by

@@ -554,8 +554,8 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 
 ### Phase 6: Ktor networking
 
-- Verktex core has Ktor's client (`api`, 3.1.3). `Platform.Implementation.httpEngine` is the engine,
-  OkHttp on Android and desktop (`ktor-client-okhttp` in each platform module), null by default.
+- Verktex core has Ktor's client (`api`, 3.1.3). The engine is Ktor's default, found on the classpath:
+  OkHttp on Android and desktop (`ktor-client-okhttp` in each platform module). It was `Platform.Implementation.httpEngine` first.
   `Network.createClient(configure)` builds a client over it, and `Network.client` is a shared default.
 - In the game:
   - The game uses Ktor directly. `httpClient` (`com/osudroid/online/HttpClient.kt`) is the game's
@@ -618,8 +618,8 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
   - Listeners get strings, numbers (an `Int` when it fits, as the Java client gave), booleans, null,
     `JsonObject`s and `JsonArray`s, as they did. They're called from the connection's coroutine in
     order.
-  - It's `RoomSocket.factory` by default, and `RoomSocket.isAvailable` is whether the platform has an
-    HTTP engine. So desktop shows multiplayer now; it connects, but nothing beyond the socket was
+  - It's `RoomSocket.factory` by default, so desktop shows multiplayer now (`RoomSocket.isAvailable`, which hid it
+    without an HTTP engine, is gone); it connects, but nothing beyond the socket was
     tried.
   - Deleted: `SocketIORoomSocket`, its setup in `MainActivity` and `OsuUITestActivity`, and
     `socket.io-client`. OkHttp now remains only as Ktor's engine.
