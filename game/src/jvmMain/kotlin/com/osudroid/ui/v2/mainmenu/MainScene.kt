@@ -27,18 +27,17 @@ import kotlin.random.Random
 import kotlinx.coroutines.Job
 import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.Platform
-import com.reco1l.verktex.Logger
 import com.reco1l.verktex.ui.UIParticleSystem
 import com.reco1l.verktex.ui.particleSystem
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.data.pct
+import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.FloatInterpolation
 import com.reco1l.verktex.texture.Textures
@@ -64,6 +63,8 @@ import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.rotateTo
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.box
+import com.reco1l.verktex.ui.spans
+import com.reco1l.verktex.ui.text.buildSpannedText
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
@@ -78,6 +79,7 @@ object MainScene : UIScene() {
 
     private lateinit var playerButton: PlayerButton
     private lateinit var musicButton: UITextButton
+
     // Animated instead of the button, which drives its own alpha.
     private lateinit var musicButtonHolder: UIContainer
     private lateinit var musicPlayer: MusicPlayer
@@ -113,6 +115,7 @@ object MainScene : UIScene() {
 
     private const val BACKGROUND_FADE_DURATION = 1.5f
     private const val KIAI_PARTICLE_DURATION = 2f
+
     // Stars per second from each corner.
     private const val KIAI_PARTICLE_RATE = 40f
 
@@ -283,9 +286,10 @@ object MainScene : UIScene() {
 
         }
 
+        // Top bar
         container {
-            width = Dimension.FillAvailable
-            padding = Padding(top = 8f.dip, bottom = 8f.dip)
+            width = fill()
+            padding = Padding(16f.dip)
 
             +PlayerButton().apply {
                 anchor = Anchor.TopLeft
@@ -312,25 +316,6 @@ object MainScene : UIScene() {
                 musicPlayer = MusicPlayer(musicButton)
             }
         }
-
-        clickableContainer {
-            anchor = Anchor.BottomLeft
-            origin = Anchor.BottomLeft
-            paddingBottom = 16f.dip
-
-            text {
-                text = "osu!droid ${Platform.application.versionName}"
-                backgroundColor = Color4.Black.alpha(0.5f)
-                padding = Padding(8f.dip, 4f.dip)
-                radius = themed { radius.md }
-                fontSize = themed { typography.smallBody.size }
-            }
-
-            onActionUp = {
-                BuildInformationDialog().show()
-            }
-        }
-
 
         RythimManager.addOnBeatChangeListener(this) {
             if (!RythimManager.isKiai) {
@@ -468,7 +453,8 @@ object MainScene : UIScene() {
         // A song left playing (e.g. by song select) goes on, it's the selection's.
         if (!music.isPlaying) {
             // Null with an empty library, the menu stays silent.
-            val beatmap = BeatmapSelection.beatmap ?: LibraryManager.getLibrary().randomOrNull()?.beatmaps?.randomOrNull()
+            val beatmap = BeatmapSelection.beatmap ?: LibraryManager.getLibrary()
+                .randomOrNull()?.beatmaps?.randomOrNull()
             beatmap?.let { music.play(it) }
         }
 
@@ -477,7 +463,8 @@ object MainScene : UIScene() {
 
     private fun updateMusicButton() {
         val beatmap = BeatmapSelection.beatmap
-        musicButton.text = if (beatmap != null) "${beatmap.titleText} - ${beatmap.artistText}" else ""
+        musicButton.text =
+            if (beatmap != null) "${beatmap.titleText} - ${beatmap.artistText}" else ""
         lastMusicChange = System.currentTimeMillis()
     }
 
@@ -560,13 +547,14 @@ object MainScene : UIScene() {
     }
 
     // A menu button that clicks and keeps the menu expanded before running its action.
-    private fun menuButton(icon: Int, title: String, action: () -> Unit) = MenuButton(icon, title).apply {
-        onActionUp = {
-            SkinSounds["menuhit"].play()
-            onMenuInteraction()
-            action()
+    private fun menuButton(icon: Int, title: String, action: () -> Unit) =
+        MenuButton(icon, title).apply {
+            onActionUp = {
+                SkinSounds["menuhit"].play()
+                onMenuInteraction()
+                action()
+            }
         }
-    }
 
 
     override fun onUpdate(clock: FrameClock) {
@@ -582,37 +570,104 @@ object MainScene : UIScene() {
             }
         }
 
-        logo.scale = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), logo.scaleX, if (isMenuExpanded) 1f else 1.3f, 0f, 0.1f)
+        logo.scale = FloatInterpolation.floatAt(
+            deltaTimeSec.coerceIn(0f, 0.1f),
+            logo.scaleX,
+            if (isMenuExpanded) 1f else 1.3f,
+            0f,
+            0.1f
+        )
 
         // Music button
-        val mightShowMusicButton = isMenuExpanded || musicPlayer.isShown || System.currentTimeMillis() - lastMusicChange < 3000
+        val mightShowMusicButton =
+            isMenuExpanded || musicPlayer.isShown || System.currentTimeMillis() - lastMusicChange < 3000
 
-        musicButtonTranslation = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButtonTranslation, if (mightShowMusicButton) 0f else 32f.dip.toPixels(), 0f, 0.05f)
+        musicButtonTranslation = FloatInterpolation.floatAt(
+            deltaTimeSec.coerceIn(0f, 0.05f),
+            musicButtonTranslation,
+            if (mightShowMusicButton) 0f else 32f.dip.toPixels(),
+            0f,
+            0.05f
+        )
         musicButtonHolder.translationX = musicButtonTranslation.px
-        musicButtonHolder.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), musicButtonHolder.alpha, if (mightShowMusicButton) 1f else 0f, 0f, 0.05f)
+        musicButtonHolder.alpha = FloatInterpolation.floatAt(
+            deltaTimeSec.coerceIn(0f, 0.05f),
+            musicButtonHolder.alpha,
+            if (mightShowMusicButton) 1f else 0f,
+            0f,
+            0.05f
+        )
 
         updateKiaiParticles(deltaTimeSec)
 
         // Beat animations
-        val beatLengthSeconds = RythimManager.beatLength.toFloat() / 1000f * (if (RythimManager.isKiai) 1f else RythimManager.beatSignature.toFloat())
-        leftFlash.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, beatLengthSeconds), leftFlash.alpha, 0f, 0f, beatLengthSeconds)
-        rightFlash.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, beatLengthSeconds), rightFlash.alpha, 0f, 0f, beatLengthSeconds)
+        val beatLengthSeconds =
+            RythimManager.beatLength.toFloat() / 1000f * (if (RythimManager.isKiai) 1f else RythimManager.beatSignature.toFloat())
+        leftFlash.alpha = FloatInterpolation.floatAt(
+            deltaTimeSec.coerceIn(0f, beatLengthSeconds),
+            leftFlash.alpha,
+            0f,
+            0f,
+            beatLengthSeconds
+        )
+        rightFlash.alpha = FloatInterpolation.floatAt(
+            deltaTimeSec.coerceIn(0f, beatLengthSeconds),
+            rightFlash.alpha,
+            0f,
+            0f,
+            beatLengthSeconds
+        )
 
         // Menu expansion animations
         // The content is measured by itself, inside the container it would be limited to the width being animated.
         if (menuContentWidth <= 0f && menuContainer.childCount > 0) {
-            val unbounded = LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
-            menuContentWidth = menuContainer[0].measure(unbounded).x + menuContainer.paddingLeft.toPixels()
+            val unbounded =
+                LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
+            menuContentWidth =
+                menuContainer[0].measure(unbounded).x + menuContainer.paddingLeft.toPixels()
         }
 
-        menuWidth = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), menuWidth, if (isMenuExpanded) menuContentWidth else 0f, 0f, 0.2f, Easing.OutQuint)
+        menuWidth = FloatInterpolation.floatAt(
+            deltaTimeSec.coerceIn(0f, 0.2f),
+            menuWidth,
+            if (isMenuExpanded) menuContentWidth else 0f,
+            0f,
+            0.2f,
+            Easing.OutQuint
+        )
         menuContainer.width = menuWidth.px
-        menuContainer.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.2f), menuContainer.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.2f, Easing.OutQuint)
-        menuGradientBox.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.4f), menuGradientBox.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.4f, Easing.OutQuint)
+        menuContainer.alpha = FloatInterpolation.floatAt(
+            deltaTimeSec.coerceIn(0f, 0.2f),
+            menuContainer.alpha,
+            if (isMenuExpanded) 1f else 0f,
+            0f,
+            0.2f,
+            Easing.OutQuint
+        )
+        menuGradientBox.alpha = FloatInterpolation.floatAt(
+            deltaTimeSec.coerceIn(0f, 0.4f),
+            menuGradientBox.alpha,
+            if (isMenuExpanded) 1f else 0f,
+            0f,
+            0.4f,
+            Easing.OutQuint
+        )
 
-        playerButtonTranslation = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), playerButtonTranslation, if (isMenuExpanded) 0f else (-32f).dip.toPixels(), 0f, 0.05f)
+        playerButtonTranslation = FloatInterpolation.floatAt(
+            deltaTimeSec.coerceIn(0f, 0.05f),
+            playerButtonTranslation,
+            if (isMenuExpanded) 0f else (-32f).dip.toPixels(),
+            0f,
+            0.05f
+        )
         playerButton.translationX = playerButtonTranslation.px
-        playerButton.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.05f), playerButton.alpha, if (isMenuExpanded) 1f else 0f, 0f, 0.05f)
+        playerButton.alpha = FloatInterpolation.floatAt(
+            deltaTimeSec.coerceIn(0f, 0.05f),
+            playerButton.alpha,
+            if (isMenuExpanded) 1f else 0f,
+            0f,
+            0.05f
+        )
 
         super.onUpdate(clock)
     }
@@ -620,23 +675,21 @@ object MainScene : UIScene() {
 
 private fun Random.nextFloat(from: Float, until: Float) = from + nextFloat() * (until - from)
 
-class MenuButton(icon: Int, title: String) : UIButton() {
+class MenuButton(icon: Int, title: String) : UITextButton() {
 
     init {
         width = 256f.dip
-        height = Dimension.WrapContent
+        height = wrap()
         radius = 10.4f.dip
         backgroundColor = themed { palette.buttonBackgroundSurface.alpha(0.6f) }
+        density = Density.Large
         padding = Padding(24f.dip)
 
-        text {
-            width = Dimension.FillAvailable
-            fontSize = 16f.dip
-            spans {
-                size(20f.dip) { icon(icon) }
-                space(16f.dip)
-                +title
-            }
+        textComponent.alignment = Anchor.CenterLeft
+        spannedText = buildSpannedText {
+            size(20f.dip) { icon(icon) }
+            space(16f.dip)
+            +title
         }
     }
 
@@ -670,111 +723,4 @@ class CarrouselLinearContainer(private val logo: OsuLogo) : UILinearContainer() 
         super.onUpdate(clock)
     }
 
-}
-
-
-class BuildInformationDialog : UIDialog<UIScrollableContainer>(UIScrollableContainer().apply {
-    width = Dimension.FillAvailable
-    clipping = ClipMode.Bounds
-    scrollAxes = Axis.Y
-    maxHeight = 0.7f.pct
-}) {
-    init {
-        title = "About"
-
-        innerContent.apply {
-
-            linearContainer {
-                width = Dimension.FillAvailable
-                orientation = UILinearContainer.Orientation.Vertical
-                spacing = 16f.dip
-                paddingTop = 16f.dip
-                paddingBottom = 16f.dip
-
-                text {
-                    text = "osu!droid"
-                    anchor = Anchor.TopCenter
-                    origin = Anchor.TopCenter
-                    fontSettings = themed { typography.h2 }
-                }
-
-                text {
-                    anchor = Anchor.TopCenter
-                    origin = Anchor.TopCenter
-                    text = "Version: ${Platform.application.versionName}"
-                    fontSize = 16f.dip
-                }
-
-                text {
-                    anchor = Anchor.TopCenter
-                    origin = Anchor.TopCenter
-                    alignment = Anchor.TopCenter
-                    text = "Made by the osu!droid team\nosu! is © peppy 2007-2026"
-                }
-
-
-                fun goToLink(link: String) {
-                    hide()
-                    Platform.openUrl(link)
-                }
-
-                textButton {
-                    anchor = Anchor.TopCenter
-                    origin = Anchor.TopCenter
-                    scaleOrigin = Anchor.Center
-                    variant = UIButton.Variant.Ghost
-                    trailingIcon = faSolidIcon(FAIcon.ArrowUpRightFromSquare)
-                    text = "Visit official osu! website"
-                    onActionUp = {
-                        goToLink("https://osu.ppy.sh")
-                    }
-                }
-
-                textButton {
-                    anchor = Anchor.TopCenter
-                    origin = Anchor.TopCenter
-                    scaleOrigin = Anchor.Center
-                    variant = UIButton.Variant.Ghost
-                    trailingIcon = faSolidIcon(FAIcon.ArrowUpRightFromSquare)
-                    text = "Visit official osu!droid website"
-                    onActionUp = {
-                        goToLink("https://osudroid.moe")
-                    }
-                }
-
-                textButton {
-                    anchor = Anchor.TopCenter
-                    origin = Anchor.TopCenter
-                    scaleOrigin = Anchor.Center
-                    variant = UIButton.Variant.Ghost
-                    trailingIcon = faSolidIcon(FAIcon.ArrowUpRightFromSquare)
-                    text = "Join the official Discord server"
-                    onActionUp = {
-                        goToLink("https://discord.gg/nyD92cE")
-                    }
-                }
-
-            }
-        }
-
-        addButton {
-            text = "Changelog"
-            onActionUp = {
-                hide()
-
-                try {
-                    OsuGameHost.current.openChangelog()
-                } catch (e: Exception) {
-                    Logger.e("MainScene", "Failed to load changelog", e)
-                }
-            }
-        }
-
-        addButton {
-            text = "Close"
-            onActionUp = {
-                hide()
-            }
-        }
-    }
 }
