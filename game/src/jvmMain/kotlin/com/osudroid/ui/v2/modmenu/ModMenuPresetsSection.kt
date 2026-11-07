@@ -15,6 +15,7 @@ import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.dialog.UIMessageDialog
 import com.reco1l.verktex.ui.text.faSolidIcon
@@ -60,7 +61,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
     }
 
     fun loadPresets() {
-        toggleContainer.filter { it is ModPresetToggle }.forEach { it.removeSelf() }
+        toggleContainer.filterIsInstance<ModPresetToggle>().forEach { it.removeSelf() }
 
         modPresets = DatabaseManager.modPresetTable.getAll()
 
@@ -98,6 +99,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
             width = fill()
             height = wrap()
             padding = Padding(12f.dip)
+            tintChildren = false
 
             onActionUp = {
                 if (isSelected) {

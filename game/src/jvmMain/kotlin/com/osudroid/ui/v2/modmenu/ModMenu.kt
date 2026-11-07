@@ -72,6 +72,9 @@ import java.util.concurrent.CancellationException
 import kotlin.math.roundToInt
 import kotlin.reflect.KClass
 import com.osudroid.utils.createModInstance
+import com.reco1l.verktex.data.Border
+import com.reco1l.verktex.ui.container.UIIgnoreParentPaddingContainer
+import com.reco1l.verktex.ui.container.captureContainer
 import com.reco1l.verktex.ui.themed
 
 object ModMenu : UICaptureContainer() {
@@ -113,24 +116,28 @@ object ModMenu : UICaptureContainer() {
 
 
     init {
-        blurRadius = 12f.dip
+        width = fill()
+        height = fill()
+        blurRadius = 8f.dip
+        backgroundColor = themed {
+            palette.accent.shade(0.15f).alpha(0.5f)
+        }
 
-        extendIntoSafeAreaContainer {
+        linearContainer {
             width = fill()
             height = fill()
-            padding = horizontalPadding(8f.dip)
-            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.75f) }
+            orientation = Orientation.Vertical
 
-            linearContainer {
+            // TopBar
+            extendIntoSafeAreaContainer {
                 width = fill()
-                height = fill()
-                orientation = Orientation.Vertical
+                backgroundColor = themed { palette.accent.shade(0.5f).alpha(0.1f) }
+                border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
 
-                // TopBar
                 linearContainer {
                     width = fill()
                     height = wrap()
-                    padding = verticalPadding(8f.dip)
+                    padding = Padding(16f.dip)
                     spacing = 4f.dip
 
                     // Left side
@@ -203,8 +210,13 @@ object ModMenu : UICaptureContainer() {
                     }
                     +searchInput
                 }
+            }
 
-                // Sections container
+            // Sections container
+            extendIntoSafeAreaContainer {
+                width = fill()
+                height = fill()
+
                 scrollableContainer {
                     width = fill()
                     height = fill()
@@ -214,6 +226,7 @@ object ModMenu : UICaptureContainer() {
                         orientation = Orientation.Horizontal
                         width = wrap()
                         height = fill()
+                        padding = horizontalPadding(16f.dip)
                         spacing = 16f.dip
 
                         modPresetsSection = ModMenuPresetsSection()
@@ -240,11 +253,18 @@ object ModMenu : UICaptureContainer() {
                         }
                     }
                 }
+            }
+
+            // Bottom bar
+            extendIntoSafeAreaContainer {
+                width = fill()
+                backgroundColor = themed { palette.accent.shade(0.5f).alpha(0.1f) }
+                border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
 
                 container {
                     width = fill()
                     height = wrap()
-                    padding = Padding(8f.dip)
+                    padding = Padding(16f.dip)
 
                     linearContainer {
                         orientation = Orientation.Horizontal
@@ -290,7 +310,9 @@ object ModMenu : UICaptureContainer() {
                         origin = Anchor.CenterRight
                         spacing = 8f.dip
 
-                        starRatingBadge = StarRatingBadge()
+                        starRatingBadge = StarRatingBadge().apply {
+                            height = fill()
+                        }
                         +starRatingBadge
 
                         rankedBadge = badge {
@@ -308,11 +330,11 @@ object ModMenu : UICaptureContainer() {
                     }
                 }
             }
-
-            // Customizations menu
-            customizationMenu = ModCustomizationMenu(customizeButton)
-            +customizationMenu
         }
+
+        // Customizations menu
+        customizationMenu = ModCustomizationMenu(customizeButton)
+        +customizationMenu
 
         modPresetsSection.loadPresets()
     }

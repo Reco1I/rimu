@@ -29,6 +29,7 @@ import okio.Path.Companion.toOkioPath
  */
 class AndroidPlatform(private val context: Context) : Platform.Implementation {
 
+    override val target = Platform.Target.Android
     override val provider = AndroidProvider(context)
     override val audioDriver by lazy { BASSAudioDriver() }
     override val usesVirtualKeyboard = true

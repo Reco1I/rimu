@@ -342,7 +342,6 @@ open class Theme(
     open class FontSettings(
         val size: Dimension.Fixed,
         val family: String,
-        val color: Color4 = Color4.White,
         val weight: Font.Weight = Font.Weight.Normal,
         val style: Font.Style = Font.Style.Normal
     ) : ThemeDependent<FontSettings> {

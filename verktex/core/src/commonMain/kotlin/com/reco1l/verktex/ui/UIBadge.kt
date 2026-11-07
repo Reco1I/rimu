@@ -40,6 +40,7 @@ open class UIBadge : UIText() {
 
 
     init {
+        alignment = Anchor.Center
         color = themed { if (variant == Variant.Solid) palette.contentOnSolid else palette.accent }
 
         backgroundColor = themed {
