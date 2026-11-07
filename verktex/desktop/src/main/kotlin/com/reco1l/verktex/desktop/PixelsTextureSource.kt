@@ -7,7 +7,7 @@ import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 
 /**
- * A texture source over RGBA8 pixels with straight alpha, rows tightly packed from the top.
+ * A texture source over premultiplied RGBA8 pixels, rows tightly packed from the top.
  */
 class PixelsTextureSource(
     private val pixelWidth: Int,
@@ -39,7 +39,7 @@ class PixelsTextureSource(
             val height = stack.mallocInt(1)
             val channels = stack.mallocInt(1)
 
-            // stb_image doesn't premultiply, the pixels have straight alpha as textures expect.
+            // stb_image gives straight alpha, the pixels are premultiplied below as textures expect.
             val decoded = STBImage.stbi_load_from_memory(input, width, height, channels, 4) ?: return null
 
             // Copied to memory the garbage collector owns, so the source needs no explicit release. The copy
@@ -47,8 +47,24 @@ class PixelsTextureSource(
             val pixels = ByteBuffer.allocateDirect(decoded.remaining()).order(ByteOrder.nativeOrder())
             pixels.put(decoded.duplicate()).flip()
             STBImage.stbi_image_free(decoded)
+            premultiply(pixels)
 
             PixelsTextureSource(width[0], height[0], pixels)
+        }
+
+        /**
+         * Premultiplies the RGBA8 [pixels] between the buffer's position and limit in place.
+         */
+        fun premultiply(pixels: ByteBuffer) {
+            for (offset in pixels.position() until pixels.limit() - 3 step 4) {
+                val alpha = pixels.get(offset + 3).toInt() and 0xFF
+                if (alpha == 255) continue
+
+                for (channel in 0 until 3) {
+                    val value = pixels.get(offset + channel).toInt() and 0xFF
+                    pixels.put(offset + channel, ((value * alpha + 127) / 255).toByte())
+                }
+            }
         }
     }
 }

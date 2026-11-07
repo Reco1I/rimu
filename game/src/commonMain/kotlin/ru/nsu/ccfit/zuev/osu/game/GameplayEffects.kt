@@ -98,7 +98,8 @@ class GameplayEffects {
             // Reference https://github.com/ppy/osu/blob/a7e110f6693beca6f6e6a20efb69a6913d58550e/osu.Game.Rulesets.Osu/Objects/Drawables/DrawableOsuJudgement.cs#L71-L88
 
             val light = GameObjectPool.getInstance().getEffect("lighting")
-            light.setBlendMode(BlendMode.Custom(BlendFactor.SrcAlpha, BlendFactor.DstAlpha, BlendFactor.SrcAlpha, BlendFactor.DstAlpha))
+            // The colour is premultiplied, so One weighs it by its alpha as SrcAlpha would with straight alpha.
+            light.setBlendMode(BlendMode.Custom(BlendFactor.One, BlendFactor.DstAlpha, BlendFactor.SrcAlpha, BlendFactor.DstAlpha))
             light.setColor(color)
             light.init(
                 background!!,

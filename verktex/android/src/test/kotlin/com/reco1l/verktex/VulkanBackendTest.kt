@@ -158,7 +158,7 @@ class VulkanBackendTest {
     @Test
     fun blendModesMapToVulkanFactors() {
         // SRC_ALPHA and ONE_MINUS_SRC_ALPHA.
-        assertArrayEquals(intArrayOf(6, 7, 6, 7), VKPipelineState.blendFactors(BlendMode.Alpha))
+        assertArrayEquals(intArrayOf(1, 7, 1, 7), VKPipelineState.blendFactors(BlendMode.Alpha))
         assertArrayEquals(intArrayOf(1, 0, 1, 0), VKPipelineState.blendFactors(BlendMode.Opaque))
     }
 

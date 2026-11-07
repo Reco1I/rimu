@@ -167,8 +167,8 @@ class DesktopFont(
 
     private class GlyphBitmap(val coverage: ByteBuffer, val width: Int, val height: Int, val left: Int) {
 
-        // White with the coverage as straight alpha, as the Android platform draws glyphs, inside a
-        // transparent border of BORDER pixels.
+        // White with the coverage as alpha, premultiplied as textures are, inside a transparent border
+        // of BORDER pixels.
         fun toTextureSource(): PixelsTextureSource {
             val outerWidth = width + 2 * BORDER
             val outerHeight = height + 2 * BORDER
@@ -178,10 +178,11 @@ class DesktopFont(
             for (y in 0 until height) {
                 for (x in 0 until width) {
                     val offset = ((y + BORDER) * outerWidth + x + BORDER) * 4
-                    pixels.put(offset, 0xFF.toByte())
-                    pixels.put(offset + 1, 0xFF.toByte())
-                    pixels.put(offset + 2, 0xFF.toByte())
-                    pixels.put(offset + 3, coverage.get(y * width + x))
+                    val alpha = coverage.get(y * width + x)
+                    pixels.put(offset, alpha)
+                    pixels.put(offset + 1, alpha)
+                    pixels.put(offset + 2, alpha)
+                    pixels.put(offset + 3, alpha)
                 }
             }
             return PixelsTextureSource(outerWidth, outerHeight, pixels)

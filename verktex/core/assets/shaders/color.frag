@@ -11,6 +11,9 @@ uniform vec4 uColor;
 
 out vec4 fragColor;
 
+// Colours given to shaders have straight alpha, textures and the output are premultiplied.
+
 void main() {
-    fragColor = uColor * vColor;
+    vec4 color = uColor * vColor;
+    fragColor = vec4(color.rgb * color.a, color.a);
 }

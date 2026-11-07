@@ -8,6 +8,8 @@ uniform sampler2D uTexture;
 
 out vec4 fragColor;
 
+// Colours given to shaders have straight alpha, textures and the output are premultiplied.
+
 void main() {
-    fragColor = texture(uTexture, vUV) * vColor;
+    fragColor = texture(uTexture, vUV) * vec4(vColor.rgb * vColor.a, vColor.a);
 }

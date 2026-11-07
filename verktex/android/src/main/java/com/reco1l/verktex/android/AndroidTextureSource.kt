@@ -5,7 +5,6 @@ import com.reco1l.verktex.graphics.GraphicsTexture
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.IntBuffer
-import kotlin.math.min
 
 class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
 
@@ -30,9 +29,9 @@ class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
         bitmap.copyPixelsToBuffer(buffer)
         buffer.rewind()
 
-        // Blending uses straight alpha, so premultiplied bitmaps are un-premultiplied first.
-        if (bitmap.isPremultiplied && bitmap.hasAlpha()) {
-            unpremultiplyRows(buffer.asIntBuffer(), width, height, rowStride)
+        // Textures are premultiplied, as bitmaps are unless told otherwise.
+        if (!bitmap.isPremultiplied && bitmap.hasAlpha()) {
+            premultiplyRows(buffer.asIntBuffer(), width, height, rowStride)
         }
 
         // Targets take tightly packed rows, OpenGL ES 2.0 has no GL_UNPACK_ROW_LENGTH to skip the padding.
@@ -68,13 +67,13 @@ class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
         }
 
         /**
-         * Un-premultiplies [height] rows of [width] pixels in place, each row starting [rowStride]
+         * Premultiplies [height] rows of [width] pixels in place, each row starting [rowStride]
          * pixels after the previous one. The padding past [width] in a row is left untouched.
          *
-         * Read as little-endian ints the pixels are ABGR, alpha stays in the top byte as [unpremultiply]
+         * Read as little-endian ints the pixels are ABGR, alpha stays in the top byte as [premultiply]
          * expects and the colour channels are converted the same way regardless of their order.
          */
-        fun unpremultiplyRows(pixels: IntBuffer, width: Int, height: Int, rowStride: Int) {
+        fun premultiplyRows(pixels: IntBuffer, width: Int, height: Int, rowStride: Int) {
             require(rowStride >= width) { "The row stride $rowStride is smaller than the width $width." }
 
             val row = IntArray(width)
@@ -86,7 +85,7 @@ class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
                 pixels.get(row)
 
                 for (i in row.indices) {
-                    row[i] = unpremultiply(row[i])
+                    row[i] = premultiply(row[i])
                 }
 
                 pixels.position(offset)
@@ -116,15 +115,15 @@ class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
         }
 
         /**
-         * Converts a premultiplied ARGB pixel to straight alpha.
+         * Converts an ARGB pixel with straight alpha to premultiplied alpha.
          */
-        fun unpremultiply(argb: Int): Int {
+        fun premultiply(argb: Int): Int {
             val alpha = argb ushr 24
 
             if (alpha == 0) return 0
             if (alpha == 255) return argb
 
-            fun channel(value: Int) = min(255, (value * 255 + alpha / 2) / alpha)
+            fun channel(value: Int) = (value * alpha + 127) / 255
 
             val red = channel((argb ushr 16) and 0xFF)
             val green = channel((argb ushr 8) and 0xFF)

@@ -14,7 +14,7 @@ import java.nio.ByteOrder
 import java.nio.IntBuffer
 
 /**
- * Textures are stored with straight alpha, so premultiplied bitmaps are un-premultiplied on upload.
+ * Textures are stored premultiplied, so bitmaps that aren't are premultiplied on upload.
  */
 @RunWith(RobolectricTestRunner::class)
 class AndroidTextureSourceTest {
@@ -28,20 +28,18 @@ class AndroidTextureSourceTest {
     }
 
     @Test
-    fun unpremultiplyLeavesOpaquePixelsAndClearsTransparentOnes() {
-        assertEquals(0xFFFF8000.toInt(), AndroidTextureSource.unpremultiply(0xFFFF8000.toInt()))
-        assertEquals(0, AndroidTextureSource.unpremultiply(0x00123456))
-        assertChannelsNear(0x80FF0000.toInt(), AndroidTextureSource.unpremultiply(0x80800000.toInt()))
+    fun premultiplyLeavesOpaquePixelsAndClearsTransparentOnes() {
+        assertEquals(0xFFFF8000.toInt(), AndroidTextureSource.premultiply(0xFFFF8000.toInt()))
+        assertEquals(0, AndroidTextureSource.premultiply(0x00123456))
+        assertChannelsNear(0x80800000.toInt(), AndroidTextureSource.premultiply(0x80FF0000.toInt()))
     }
 
     @Test
-    fun unpremultiplyNeverExceeds255() {
+    fun premultipliedChannelsNeverExceedAlpha() {
         for (alpha in 1..255) {
-            // Channels larger than alpha are invalid premultiplied data, they must still clamp.
-            val argb = (alpha shl 24) or 0xFFFFFF
-            val result = AndroidTextureSource.unpremultiply(argb)
+            val result = AndroidTextureSource.premultiply((alpha shl 24) or 0xFFFFFF)
             assertEquals(alpha, result ushr 24)
-            assertEquals(0xFFFFFF, result and 0xFFFFFF)
+            assertEquals((alpha shl 16) or (alpha shl 8) or alpha, result and 0xFFFFFF)
         }
     }
 
@@ -109,22 +107,22 @@ class AndroidTextureSourceTest {
     }
 
     @Test
-    fun unpremultiplyRowsSkipsTheRowPadding() {
+    fun premultiplyRowsSkipsTheRowPadding() {
         // Two rows of two pixels, padded to a stride of three, the padding holds a sentinel.
         val padding = 0x40FFFFFF
         val pixels = IntBuffer.wrap(intArrayOf(
-            0x80800000.toInt(), 0xFF102030.toInt(), padding,
-            0x00123456, 0x80008000.toInt(), padding,
+            0x80FF0000.toInt(), 0xFF102030.toInt(), padding,
+            0x00123456, 0x8000FF00.toInt(), padding,
         ))
 
-        AndroidTextureSource.unpremultiplyRows(pixels, 2, 2, 3)
+        AndroidTextureSource.premultiplyRows(pixels, 2, 2, 3)
 
         val result = pixels.array()
-        assertChannelsNear(0x80FF0000.toInt(), result[0])
+        assertChannelsNear(0x80800000.toInt(), result[0])
         assertEquals(0xFF102030.toInt(), result[1])
         assertEquals(padding, result[2])
         assertEquals(0, result[3])
-        assertChannelsNear(0x8000FF00.toInt(), result[4])
+        assertChannelsNear(0x80008000.toInt(), result[4])
         assertEquals(padding, result[5])
     }
 

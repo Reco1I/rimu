@@ -31,16 +31,11 @@ class BlendModeTest {
     }
 
     @Test
-    fun existingModesKeepTheirFactors() {
+    fun modesBlendPremultipliedColours() {
         assertFactors(BlendMode.Opaque, BlendFactor.One, BlendFactor.Zero)
-        assertFactors(BlendMode.Alpha, BlendFactor.SrcAlpha, BlendFactor.OneMinusSrcAlpha)
-        assertFactors(BlendMode.Additive, BlendFactor.SrcAlpha, BlendFactor.One)
-        assertFactors(BlendMode.Multiply, BlendFactor.DstColor, BlendFactor.Zero)
-    }
-
-    @Test
-    fun premultipliedAlphaIsOneOneMinusSrcAlpha() {
-        assertFactors(BlendMode.PremultipliedAlpha, BlendFactor.One, BlendFactor.OneMinusSrcAlpha)
+        assertFactors(BlendMode.Alpha, BlendFactor.One, BlendFactor.OneMinusSrcAlpha)
+        assertFactors(BlendMode.Additive, BlendFactor.One, BlendFactor.One, BlendFactor.SrcAlpha, BlendFactor.One)
+        assertFactors(BlendMode.Multiply, BlendFactor.DstColor, BlendFactor.OneMinusSrcAlpha)
     }
 
     @Test
