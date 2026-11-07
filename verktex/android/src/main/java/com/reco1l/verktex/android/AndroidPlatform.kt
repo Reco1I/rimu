@@ -36,7 +36,6 @@ class AndroidPlatform(private val context: Context) : Platform.Implementation {
     override val systemLocale: String
         get() = java.util.Locale.getDefault().toLanguageTag()
 
-    override val httpEngine = io.ktor.client.engine.okhttp.OkHttp
 
     override val storage: Platform.Storage
         get() = Platform.Storage(

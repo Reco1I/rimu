@@ -1,16 +1,12 @@
 package com.osudroid.multiplayer.api
 
-import com.reco1l.verktex.Platform
-import io.ktor.client.engine.okhttp.OkHttp
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
-import kotlin.time.Duration
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import okio.Path.Companion.toPath
 import org.junit.Assert.assertEquals
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -31,19 +27,6 @@ class KtorRoomSocketTest {
     @Before
     fun setUp() {
         assumeTrue("No Socket.IO server given", serverUrl != null)
-
-        Platform.implementation = object : Platform.Implementation {
-            override val provider get() = throw UnsupportedOperationException()
-            override val audioDriver get() = throw UnsupportedOperationException()
-            override val storage = Platform.Storage("/tmp".toPath(), "/tmp".toPath(), null)
-            override val currentDisplay = Platform.Display(1f)
-            override val usesVirtualKeyboard = false
-            override val uptimeMillis = 0L
-            override val httpEngine = OkHttp
-            override fun createLoopWorker(name: String, minimumInterval: Duration, onLoop: () -> Unit) = throw UnsupportedOperationException()
-            override fun openWebPage(url: String, userAgent: String?) = Unit
-            override fun openUrl(url: String) = Unit
-        }
     }
 
     private fun socket(uid: String) = KtorRoomSocket("$serverUrl/123", mapOf("uid" to uid, "gameSessionID" to "abc")).apply {

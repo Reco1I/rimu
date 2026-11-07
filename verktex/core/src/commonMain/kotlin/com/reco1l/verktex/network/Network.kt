@@ -1,11 +1,11 @@
 package com.reco1l.verktex.network
 
-import com.reco1l.verktex.Platform
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 
 /**
- * HTTP clients over the platform's engine ([Platform.Implementation.httpEngine]).
+ * HTTP clients over Ktor's default engine for the target: on the JVM the one on the classpath (OkHttp,
+ * brought by the platform modules), found through `ServiceLoader`.
  */
 object Network {
 
@@ -15,13 +15,10 @@ object Network {
     val client: HttpClient by lazy { createClient() }
 
     /**
-     * Creates a client over the platform's engine, configured with [configure], e.g. to install
+     * Creates a client over the default engine, configured with [configure], e.g. to install
      * plugins. Clients hold connections and threads, so create one per use and keep it.
      *
-     * @throws IllegalStateException If the platform has no HTTP engine.
+     * @throws IllegalStateException If there's no engine on the classpath.
      */
-    fun createClient(configure: HttpClientConfig<*>.() -> Unit = {}): HttpClient {
-        val engine = Platform.implementation.httpEngine ?: throw IllegalStateException("The platform has no HTTP engine")
-        return HttpClient(engine, configure)
-    }
+    fun createClient(configure: HttpClientConfig<*>.() -> Unit = {}): HttpClient = HttpClient(configure)
 }

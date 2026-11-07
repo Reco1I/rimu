@@ -1,7 +1,5 @@
 package com.osudroid.multiplayer.api
 
-import com.reco1l.verktex.Platform
-
 /**
  * A Socket.IO connection to a multiplayer room, see [KtorRoomSocket].
  *
@@ -49,11 +47,5 @@ interface RoomSocket {
          * The factory of the sockets, replaced in tests.
          */
         var factory: Factory = KtorRoomSocket.factory
-
-        /**
-         * Whether the platform can connect to rooms, which needs networking.
-         */
-        val isAvailable
-            get() = Platform.implementation.httpEngine != null
     }
 }
