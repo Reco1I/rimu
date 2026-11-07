@@ -39,4 +39,9 @@ data class Border(
      */
     val isVisible: Boolean
         get() = width.value > 0f && (color.alpha > 0f || colorBottom.alpha > 0f)
+
+
+    companion object {
+        val None = Border(0f.px, Color4.Transparent)
+    }
 }

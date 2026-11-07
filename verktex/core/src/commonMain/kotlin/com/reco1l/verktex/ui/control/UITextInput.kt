@@ -307,7 +307,7 @@ open class UITextInput(initialValue: String = "") : UIControl<String>(initialVal
      */
     open fun notifyInputError() {
         errorColor = ERROR_COLOR
-        border = border?.copy(color = ERROR_COLOR, colorBottom = ERROR_COLOR)
+        border = border.copy(color = ERROR_COLOR, colorBottom = ERROR_COLOR)
     }
 
     //endregion

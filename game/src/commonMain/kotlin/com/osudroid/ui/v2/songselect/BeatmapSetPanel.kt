@@ -245,7 +245,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
         button.apply {
             borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
-            shadow = if (buttonGlow > 0f) Shadow(accent.alpha(GLOW_ALPHA * buttonGlow), blur = GLOW_BLUR.dip, cutout = true) else null
+            shadow = if (buttonGlow > 0f) Shadow(accent.alpha(GLOW_ALPHA * buttonGlow), blur = GLOW_BLUR.dip, cutout = true) else Shadow.None
         }
         updateTranslation()
 

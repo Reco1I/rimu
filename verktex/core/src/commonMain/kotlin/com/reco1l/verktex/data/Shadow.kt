@@ -34,8 +34,20 @@ data class Shadow(
     override val isThemed: Boolean
         get() = color.isThemed || offsetY.isThemed || blur.isThemed
 
+
+    /**
+     * Whether the Shadow is visible at all.
+     */
+    val isVisible
+        get() = color.alpha > 0f && blur.toPixels() > 0f
+
+
     override fun resolve(theme: Theme): Shadow {
         if (!isThemed) return this
         return copy(color = color.resolve(theme), offsetY = offsetY.resolve(theme), blur = blur.resolve(theme))
+    }
+
+    companion object {
+        val None = Shadow(Color4.Transparent)
     }
 }

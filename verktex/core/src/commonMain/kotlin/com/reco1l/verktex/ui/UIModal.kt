@@ -31,7 +31,8 @@ open class UIModal(
         clipping = ClipMode.Bounds
         backgroundColor = themed { palette.surface }
         radius = themed { radius.lg }
-        applyElevation { cardStyle.elevation }
+        border = themed { cardStyle.elevation.border }
+        shadow = themed { cardStyle.elevation.shadow }
     }
 
 ) : UIIgnoreParentPaddingContainer() {
