@@ -1,7 +1,6 @@
 package com.reco1l.verktex.android
 
 import android.graphics.Bitmap
-import com.reco1l.verktex.graphics.AlphaBleeding
 import com.reco1l.verktex.graphics.GraphicsTexture
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -31,41 +30,15 @@ class AndroidTextureSource(source: Bitmap) : GraphicsTexture.Source {
         bitmap.copyPixelsToBuffer(buffer)
         buffer.rewind()
 
-        if (bitmap.hasAlpha()) {
-            target.write(x, y, width, height, prepareTranslucent(buffer, width, height, rowStride, bitmap.isPremultiplied))
-            return
+        // Blending uses straight alpha, so premultiplied bitmaps are un-premultiplied first.
+        if (bitmap.isPremultiplied && bitmap.hasAlpha()) {
+            unpremultiplyRows(buffer.asIntBuffer(), width, height, rowStride)
         }
 
         // Targets take tightly packed rows, OpenGL ES 2.0 has no GL_UNPACK_ROW_LENGTH to skip the padding.
         val pixels = if (rowStride == width) buffer else packRows(buffer, width, height, rowStride)
 
         target.write(x, y, width, height, pixels)
-    }
-
-    /**
-     * Packs the rows of [buffer], un-premultiplies them when [premultiplied] (blending uses straight
-     * alpha) and bleeds their colour into the transparent pixels, see [AlphaBleeding]. The result is
-     * written back to the start of [buffer], which is returned.
-     */
-    private fun prepareTranslucent(buffer: ByteBuffer, width: Int, height: Int, rowStride: Int, premultiplied: Boolean): ByteBuffer {
-        val source = buffer.asIntBuffer()
-        val pixels = IntArray(width * height)
-
-        for (row in 0 until height) {
-            source.position(row * rowStride)
-            source.get(pixels, row * width, width)
-        }
-
-        if (premultiplied) {
-            for (i in pixels.indices) pixels[i] = unpremultiply(pixels[i])
-        }
-
-        AlphaBleeding.bleed(pixels, width, height)
-
-        // The packed pixels fit in the padded ones, so they're written over them.
-        buffer.clear().limit(width * height * 4)
-        buffer.asIntBuffer().put(pixels)
-        return buffer
     }
 
     companion object {
