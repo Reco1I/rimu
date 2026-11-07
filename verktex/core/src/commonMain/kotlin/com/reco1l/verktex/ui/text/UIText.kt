@@ -408,7 +408,9 @@ open class UIText : UICanvas() {
             val kerning = if (index > lineStart && cellSpan[index] == cellSpan[index - 1]) cellKerning[index] else 0f
             val newWidth = lineWidth + kerning + cellAdvance[index]
 
-            if (newWidth > maxWidth && index > lineStart) {
+            // The tolerance absorbs float error: a container wrapping this text gives back its width
+            // after adding and removing its padding, which can come out slightly smaller.
+            if (newWidth > maxWidth + LINE_BREAK_TOLERANCE && index > lineStart) {
                 if (lastSpace > lineStart) {
                     // The space itself is dropped.
                     lineRanges += intArrayOf(lineStart, lastSpace)
@@ -636,6 +638,9 @@ open class UIText : UICanvas() {
 private const val CELL_TEXT = 0
 private const val CELL_SPACE = 1
 private const val CELL_NEWLINE = 2
+
+// How far, in pixels, a line can go past the available width before it breaks.
+private const val LINE_BREAK_TOLERANCE = 0.01f
 
 fun faRegularIcon(code: Int) = UIText.IconLookup(code, BuiltIn.Fonts.FontAwesomeIconRegular)
 fun faSolidIcon(code: Int) = UIText.IconLookup(code, BuiltIn.Fonts.FontAwesomeIconSolid)
