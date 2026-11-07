@@ -11,6 +11,7 @@ import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.verticalPadding
 import com.reco1l.verktex.ui.UIButton
 import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
@@ -19,38 +20,32 @@ import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.themed
 
 @Suppress("LeakingThis")
-open class ModMenuSection(name: String, private val toggles: List<UIButton> = listOf()) : UILinearContainer() {
+open class ModMenuSection(name: String, private val toggles: List<UIButton> = listOf()) : UIScrollableContainer() {
 
-    protected lateinit var toggleContainer: UILinearContainer
+    protected val toggleContainer: UILinearContainer
 
 
     init {
-        height = fill()
+        scrollAxes = Axis.Y
         width = 220f.dip
-        orientation = Orientation.Vertical
+        height = fill()
+        clipping = ClipMode.Bounds
 
-        text {
+        toggleContainer = linearContainer {
             width = fill()
-            text = name.uppercase()
-            alignment = Anchor.Center
-            padding = Padding(8f.dip)
-            fontSettings = themed { typography.smallCaption }
-        }
+            orientation = Orientation.Vertical
+            spacing = 8f.dip
+            padding = verticalPadding(8f.dip)
 
-        scrollableContainer {
-            scrollAxes = Axis.Y
-            width = fill()
-            height = fill()
-            clipping = ClipMode.Bounds
-
-            toggleContainer = linearContainer {
+            text {
                 width = fill()
-                orientation = Orientation.Vertical
-                padding = verticalPadding(8f.dip)
-                spacing = 8f.dip
-
-                toggles.forEachTolerant { +it }
+                text = name.uppercase()
+                alignment = Anchor.Center
+                padding = Padding(8f.dip, 8f.dip, 8f.dip, 2f.dip)
+                fontSettings = themed { typography.smallCaption }
             }
+
+            toggles.forEachTolerant { +it }
         }
 
         updateVisibility()

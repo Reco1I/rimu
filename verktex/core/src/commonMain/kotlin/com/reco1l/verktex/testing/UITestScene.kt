@@ -2,6 +2,7 @@ package com.reco1l.verktex.testing
 
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Logger
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.ui.container.container
@@ -32,6 +33,8 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.data.oklch
+import com.reco1l.verktex.data.wrap
+import com.reco1l.verktex.ui.themed
 import kotlin.random.Random
 
 /**
@@ -61,11 +64,11 @@ class UITestScene(
             }
 
             // Only what the test shows is outlined, not the browser.
-            UIComponent.isOutliningBoundaries = true
+            isOutliningBoundaries = true
             try {
                 super.drawContent(renderer)
             } finally {
-                UIComponent.isOutliningBoundaries = false
+                isOutliningBoundaries = false
             }
         }
 
@@ -91,7 +94,7 @@ class UITestScene(
      * they do in the game. Its height fills the area, scaled the same. Otherwise it's laid out at
      * the size it has, as components are.
      */
-    private var isFittingWindow = true
+    private var isFittingWindow = Platform.target == Platform.Target.Android
 
     /**
      * Whether the scenes of the stage keep the safe area of the window, as they do in the game.
@@ -162,21 +165,21 @@ class UITestScene(
                         text {
                             text = suite.name
                             fontSettings = flatTheme.typography.caption
-                            color = Color4(1f, 1f, 1f, 0.5f)
+                            color = themed { palette.accent.alpha(0.9f) }
                             padding = Padding(8f.dip, 12f.dip, 8f.dip, 4f.dip)
                         }
 
                         for (test in suite.tests) {
-                            val button = UITextButton().apply {
+                            testButtons[test] = textButton {
                                 text = test.name
                                 width = fill()
                                 alignment = Anchor.CenterLeft
                                 variant = UIButton.Variant.Surface
                                 density = UIButton.Density.Small
+                                height = wrap()
+                                padding = Padding(8f.dip, 6f.dip)
                                 onActionUp = { select(suite, test) }
                             }
-                            testButtons[test] = button
-                            +button
                         }
                     }
                 }
@@ -521,7 +524,7 @@ class UITestScene(
         fun idOf(suite: UITestSuite, test: UITest) = "${suite.name}/${test.name}"
 
         private fun Theme.Typography.withFamily(family: String): Theme.Typography {
-            fun Theme.FontSettings.withFamily() = Theme.FontSettings(size, family, color, weight, style)
+            fun Theme.FontSettings.withFamily() = Theme.FontSettings(size, family, weight, style)
             return Theme.Typography(
                 h1 = h1.withFamily(),
                 h2 = h2.withFamily(),

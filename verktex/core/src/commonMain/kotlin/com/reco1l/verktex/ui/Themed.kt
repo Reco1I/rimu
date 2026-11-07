@@ -203,7 +203,6 @@ class ThemedFontSettings private constructor(
 ) : Theme.FontSettings(
     size = snapshot.size,
     family = snapshot.family,
-    color = snapshot.color,
     weight = snapshot.weight,
     style = snapshot.style,
 ) {

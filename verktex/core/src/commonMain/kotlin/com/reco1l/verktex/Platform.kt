@@ -16,6 +16,14 @@ object Platform {
 
     lateinit var implementation: Implementation
 
+    /**
+     * The execution target of this platform.
+     */
+    val target: Target
+        get() {
+            checkImplementation()
+            return implementation.target
+        }
 
     /**
      * The provider used to load physical resources from the platform.
@@ -253,6 +261,12 @@ object Platform {
 
 
     interface Implementation {
+
+        /**
+         * The execution target of this platform.
+         */
+        val target: Target
+
         /**
          * The source provider used to load physical resources from the platform.
          */
@@ -470,4 +484,9 @@ object Platform {
          */
         val height: Int = 0
     )
+
+    enum class Target {
+        Android,
+        Desktop
+    }
 }

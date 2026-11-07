@@ -26,6 +26,7 @@ class DesktopPlatform(
     private val onExit: () -> Unit = {},
 ) : Platform.Implementation {
 
+    override val target = Platform.Target.Desktop
     override val provider = DesktopProvider()
     override val audioDriver by lazy { BASSAudioDriver() }
     override val currentDisplay = Platform.Display(density = density, width = width, height = height)

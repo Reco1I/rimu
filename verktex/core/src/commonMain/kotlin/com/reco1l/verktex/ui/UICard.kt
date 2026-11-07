@@ -103,7 +103,6 @@ open class UICard : UILinearContainer() {
         rotationOrigin = Anchor.Center
 
         iconSize = themed { typography.caption.size }
-        color = themed { typography.caption.color }
     }
 
     val content = linearContainer {

@@ -30,7 +30,9 @@ open class UITextButton : UIButton() {
         anchor = Anchor.Center
         origin = Anchor.Center
 
-        color = themed { if (variant == Variant.Solid) palette.contentOnSolid else palette.accent }
+        // Tint by Button color
+        color = Color4.White
+
         fontSettings = themed { typography.body }
         fontSize = themed { buttonStyle[density].fontSize }
         iconSpacing = themed { buttonStyle[density].iconSpacing }

@@ -7,6 +7,7 @@ import com.osudroid.utils.searchContiguously
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
@@ -37,13 +38,11 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
         }
 
 
-    private lateinit var metadata: UIText
-
-
     init {
         width = fill()
         height = wrap()
         padding = Padding(14f.dip)
+        tintChildren = false
 
         linearContainer {
             width = fill()
@@ -56,13 +55,15 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
                 height = 21.6f.dip
             }
 
-            metadata = text {
+            text {
                 text = mod.name
                 width = fill()
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
                 spans {
                     font(BuiltIn.Fonts.Torus) { +mod.name }
+                    +"\n"
+                    size(Verktex.theme.typography.smallCaption.size) { +mod.description }
                 }
             }
         }
@@ -74,18 +75,6 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
             } else {
                 ModMenu.addMod(mod)
                 SkinSounds["check-on"].play()
-            }
-
-            if (isSelected) {
-                metadata.spans {
-                    font(BuiltIn.Fonts.Torus) { +mod.name }
-                    +"\n"
-                    size(Verktex.theme.typography.smallCaption.size) { +mod.description }
-                }
-            } else {
-                metadata.spans {
-                    font(BuiltIn.Fonts.Torus) { +mod.name }
-                }
             }
         }
 

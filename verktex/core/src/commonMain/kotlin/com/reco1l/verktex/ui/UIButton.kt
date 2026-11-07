@@ -17,7 +17,6 @@ import com.reco1l.verktex.time.FrameClock
 
 fun UIContainer.button(builder: UIButton.() -> Unit) = UIButton().apply(builder).also { +it }
 
-@Suppress("LeakingThis")
 open class UIButton : UIClickableContainer() {
 
     var density = Density.Medium
@@ -77,12 +76,13 @@ open class UIButton : UIClickableContainer() {
         height = themed { buttonStyle[density].height }
         padding = horizontalPadding(themed { buttonStyle[density].horizontalPadding })
         radius = themed { buttonStyle[density].radius }
-        color = themed { if (variant == Variant.Solid) palette.contentOnSolid else Color4.White }
+        color = themed { if (variant == Variant.Solid) palette.contentOnSolid else palette.accent }
         border = themed {
-            if (variant == Variant.Solid || variant == Variant.Soft || variant == Variant.Surface)
-                buttonStyle.elevation.border
-            else
-                Border.None
+            when (variant) {
+                Variant.Solid, Variant.Soft, Variant.Surface -> buttonStyle.elevation.border
+                Variant.Outline -> Border(1.5f.dip, palette.accent)
+                else -> Border.None
+            }
         }
         shadow = themed {
             if (variant == Variant.Solid || variant == Variant.Soft || variant == Variant.Surface)
@@ -90,7 +90,6 @@ open class UIButton : UIClickableContainer() {
             else
                 Shadow.None
         }
-
     }
 
     override fun onUpdate(clock: FrameClock) {

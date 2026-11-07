@@ -16,7 +16,7 @@ data class Border(
     /**
      * The color of the border, at the top when [colorBottom] differs.
      */
-    val color: Color4,
+    val color: Color4 = Color4.Transparent,
 
     /**
      * The color of the border at the bottom, it fades from [color] at the top, e.g. a bezel lighter
