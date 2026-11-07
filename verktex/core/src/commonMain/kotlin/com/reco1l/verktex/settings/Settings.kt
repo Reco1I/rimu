@@ -240,6 +240,11 @@ object Settings {
         isLoadedFromStorage = false
     }
 
+    /**
+     * The folder the file is saved in instead of the platform's data directory. Only for tests.
+     */
+    internal var directory: Path? = null
+
     private fun markDirty() {
         isDirty = true
         lastChange = TimeSource.Monotonic.markNow()
@@ -247,7 +252,7 @@ object Settings {
 
     // The file, or null without a platform to tell where it goes.
     private fun file(): Path? = try {
-        Platform.storage.dataDirectory / FILE_NAME
+        (directory ?: Platform.storage.dataDirectory) / FILE_NAME
     } catch (_: IllegalStateException) {
         null
     }

@@ -11,7 +11,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import kotlin.time.Duration
 
 class SettingsTest {
 
@@ -24,17 +23,7 @@ class SettingsTest {
     @Before
     fun setUp() {
         directory = Files.createTempDirectory("settings").toOkioPath()
-        Platform.implementation = object : Platform.Implementation {
-            override val provider get() = throw UnsupportedOperationException()
-            override val audioDriver get() = throw UnsupportedOperationException()
-            override val storage = Platform.Storage(directory, directory, null)
-            override val currentDisplay = Platform.Display(1f)
-            override val usesVirtualKeyboard = false
-            override val uptimeMillis = 0L
-            override fun createLoopWorker(name: String, minimumInterval: Duration, onLoop: () -> Unit) = throw UnsupportedOperationException()
-            override fun openWebPage(url: String, userAgent: String?) = Unit
-            override fun openUrl(url: String) = Unit
-        }
+        Settings.directory = directory
         Settings.reset()
         Settings.isReadOnly = false
     }
@@ -42,6 +31,7 @@ class SettingsTest {
     @After
     fun tearDown() {
         Settings.reset()
+        Settings.directory = null
         Platform.fileSystem.deleteRecursively(directory)
     }
 
