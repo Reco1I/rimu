@@ -1,6 +1,5 @@
 package com.reco1l.verktex.desktop
 
-import com.reco1l.verktex.graphics.AlphaBleeding
 import com.reco1l.verktex.graphics.GraphicsTexture
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -48,12 +47,6 @@ class PixelsTextureSource(
             val pixels = ByteBuffer.allocateDirect(decoded.remaining()).order(ByteOrder.nativeOrder())
             pixels.put(decoded.duplicate()).flip()
             STBImage.stbi_image_free(decoded)
-
-            // Read as little-endian ints the RGBA bytes keep alpha in the top byte, as bleeding expects.
-            val ints = pixels.duplicate().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer()
-            val array = IntArray(ints.remaining()).also { ints.get(it) }
-            AlphaBleeding.bleed(array, width[0], height[0])
-            pixels.duplicate().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().put(array)
 
             PixelsTextureSource(width[0], height[0], pixels)
         }
