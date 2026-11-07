@@ -25,7 +25,6 @@ open class UIBadge : UIText() {
         set(value) {
             if (field == value) return
             field = value
-            updateBorder()
             restyle()
         }
 
@@ -56,14 +55,8 @@ open class UIBadge : UIText() {
         padding = themed { badgeStyle[density].padding }
         iconSpacing = themed { badgeStyle[density].iconSpacing }
         radius = themed { badgeStyle[density].radius }
-
-        updateBorder()
+        border = themed { if (variant == Variant.Outline) Border(1.5f.dip, palette.badgeBackgroundSolid) else Border.None }
     }
-
-    private fun updateBorder() {
-        border = if (variant == Variant.Outline) Border(1.5f.dip, themed { palette.badgeBackgroundSolid }) else null
-    }
-
 
     /**
      * The variants of the button.

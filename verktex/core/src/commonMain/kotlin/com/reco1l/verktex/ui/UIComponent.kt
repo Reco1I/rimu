@@ -481,12 +481,12 @@ abstract class UIComponent {
     /**
      * The border drawn along the inner edge of this component. Null for none.
      */
-    var border: Border? by themeable(null)
+    var border: Border by themeable(Border.None)
 
     /**
      * The shadow drawn below this component, following its shape.
      */
-    var shadow: Shadow? by themeable(null)
+    var shadow: Shadow by themeable(Shadow.None)
 
     /**
      * The radius of the corners of this component. If the radius is greater than 0, the component will be drawn with rounded corners.
@@ -795,7 +795,7 @@ abstract class UIComponent {
         renderer.pushColor(color)
 
         val shadow = shadow
-        if (shadow != null && shadow.color.alpha > 0f) {
+        if (shadow.isVisible && shadow.color.alpha > 0f) {
             val blur = shadow.blur.toPixels()
 
             // Grown by the blur, so the soft edge fits around the component's shape.
@@ -814,18 +814,18 @@ abstract class UIComponent {
         }
 
         // The background is drawn before clipping, padding clipping must only affect the content.
-        val border = border?.takeIf { it.isVisible }
-        if (backgroundColor.alpha > 0f || border != null) {
+        val border = border
+        if (backgroundColor.alpha > 0f || border.isVisible) {
             renderer.drawRect(
                 x = 0f,
                 y = 0f,
                 width = bounds.width,
                 height = bounds.height,
                 color = backgroundColor,
-                borderWidth = border?.width?.toPixels() ?: 0f,
-                borderColor = border?.color ?: Color4.Transparent,
+                borderWidth = border.width.toPixels(),
+                borderColor = border.color,
                 radius = radius.toPixels(),
-                borderColorBottom = border?.colorBottom?.takeIf { it != border.color }
+                borderColorBottom = border.colorBottom.takeIf { it != border.color }
             )
         }
 
@@ -1225,9 +1225,9 @@ abstract class UIComponent {
  * single color, creating a border without width if there was none.
  */
 var UIComponent.borderColor: Color4
-    get() = border?.color ?: Color4.Transparent
+    get() = border.color
     set(value) {
-        border = border?.copy(color = value, colorBottom = value) ?: Border(Dimension.Zero, value)
+        border = border.copy(color = value, colorBottom = value)
     }
 
 /**
@@ -1235,9 +1235,9 @@ var UIComponent.borderColor: Color4
  * if there was none.
  */
 var UIComponent.borderWidth: Dimension.Fixed
-    get() = border?.width ?: Dimension.Zero
+    get() = border.width
     set(value) {
-        border = border?.copy(width = value) ?: Border(value, Color4.Transparent)
+        border = border.copy(width = value)
     }
 
 //endregion

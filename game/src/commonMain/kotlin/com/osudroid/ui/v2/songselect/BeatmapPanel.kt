@@ -94,7 +94,7 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         updateTranslation()
 
         glow = clock.interpolateWithSnap(0.1f, glow, if (isExpanded) 1f else 0f, 0.01f)
-        shadow = if (glow > 0f) Shadow(accent.alpha(GLOW_ALPHA * glow), blur = GLOW_BLUR.dip, cutout = true) else null
+        shadow = if (glow > 0f) Shadow(accent.alpha(GLOW_ALPHA * glow), blur = GLOW_BLUR.dip, cutout = true) else Shadow.None
 
         super.onUpdate(clock)
     }

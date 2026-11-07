@@ -8,6 +8,7 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.horizontalPadding
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.ui.container.UIContainer
@@ -31,7 +32,6 @@ open class UIButton : UIClickableContainer() {
         set(value) {
             if (field != value) {
                 field = value
-                updateBorder()
                 restyle()
             }
         }
@@ -78,20 +78,20 @@ open class UIButton : UIClickableContainer() {
         padding = horizontalPadding(themed { buttonStyle[density].horizontalPadding })
         radius = themed { buttonStyle[density].radius }
         color = themed { if (variant == Variant.Solid) palette.contentOnSolid else Color4.White }
-
-        updateBorder()
-    }
-
-    private fun updateBorder() {
-        // Only filled buttons look raised, a shadow would show through transparent ones.
-        if (variant == Variant.Solid || variant == Variant.Soft || variant == Variant.Surface) {
-            applyElevation { buttonStyle.elevation }
-        } else {
-            applyElevation(null)
-            border = if (variant == Variant.Outline) Border(1.5f.dip, themed { palette.buttonBackgroundSolid }) else null
+        border = themed {
+            if (variant == Variant.Solid || variant == Variant.Soft || variant == Variant.Surface)
+                buttonStyle.elevation.border
+            else
+                Border.None
         }
-    }
+        shadow = themed {
+            if (variant == Variant.Solid || variant == Variant.Soft || variant == Variant.Surface)
+                buttonStyle.elevation.shadow
+            else
+                Shadow.None
+        }
 
+    }
 
     override fun onUpdate(clock: FrameClock) {
 

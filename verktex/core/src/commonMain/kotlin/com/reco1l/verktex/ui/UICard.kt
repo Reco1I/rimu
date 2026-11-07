@@ -1,6 +1,5 @@
 package com.reco1l.verktex.ui
 
-import com.reco1l.verktex.*
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.data.Anchor
@@ -124,7 +123,8 @@ open class UICard : UILinearContainer() {
         orientation = Orientation.Vertical
         backgroundColor = themed { palette.surface }
         radius = themed { radius.md }
-        applyElevation { cardStyle.elevation }
+        border = themed { cardStyle.elevation.border }
+        shadow = themed { cardStyle.elevation.shadow }
 
         titleBar += titleText
         titleBar += chevron

@@ -113,7 +113,7 @@ open class Theme(
             radius = radius.lg,
         ),
         elevation = Elevation(
-            bezel = Border(
+            border = Border(
                 width = 1f.px,
                 color = Color4.White.alpha(0.06f),
                 colorBottom = Color4.Black.alpha(0.2f),
@@ -131,7 +131,7 @@ open class Theme(
      */
     val cardStyle: CardStyle = CardStyle(
         elevation = Elevation(
-            bezel = Border(
+            border = Border(
                 width = 1f.px,
                 color = Color4.White.alpha(0.06f),
                 colorBottom = Color4.Black.alpha(0.2f),
@@ -185,7 +185,7 @@ open class Theme(
         /**
          * How cards look raised. Null for flat cards.
          */
-        val elevation: Elevation? = null,
+        val elevation: Elevation = Elevation.None,
     ) {
 
         /**
@@ -202,13 +202,17 @@ open class Theme(
         /**
          * The border, usually lighter on top and darker at the bottom. Null for none.
          */
-        val bezel: Border? = null,
+        val border: Border = Border.None,
 
         /**
          * The shadow below the component. Null for none.
          */
-        val shadow: Shadow? = null,
-    )
+        val shadow: Shadow = Shadow.None,
+    ) {
+        companion object {
+            val None = Elevation()
+        }
+    }
 
     /**
      * A class that holds button style information, with a [Size] for each [UIButton.Density].
@@ -221,7 +225,7 @@ open class Theme(
         /**
          * How filled buttons look raised. Null for flat buttons.
          */
-        val elevation: Elevation? = null,
+        val elevation: Elevation = Elevation.None,
     ) {
 
         /**
@@ -274,7 +278,7 @@ open class Theme(
             val fontSize: Dimension.Fixed,
             val padding: Padding,
             val iconSpacing: Dimension.Fixed,
-            val radius: Dimension.Fixed,
+            val radius: Dimension.Fixed
         )
     }
 
@@ -358,28 +362,3 @@ open class Theme(
         val DEFAULT_ACCENT_COLOR = Color4(0xFFC2CAFF)
     }
 }
-
-
-/**
- * Makes this component look raised with the given [elevation], setting its border to the bezel and
- * its shadow. A null elevation only removes the shadow, leaving the border as it is.
- */
-fun UIComponent.applyElevation(elevation: Theme.Elevation?) {
-    unbindTheme(ElevationBinding)
-    setElevation(elevation)
-}
-
-/**
- * Makes this component look raised with the elevation taken from its theme, see the other overload.
- * Inside the block, `this` is the theme of the component, and it's applied again when it changes.
- */
-fun UIComponent.applyElevation(block: Theme.() -> Theme.Elevation?) {
-    bindTheme(ElevationBinding, block) { setElevation(it) }
-}
-
-private fun UIComponent.setElevation(elevation: Theme.Elevation?) {
-    elevation?.bezel?.let { border = it }
-    shadow = elevation?.shadow
-}
-
-private object ElevationBinding
