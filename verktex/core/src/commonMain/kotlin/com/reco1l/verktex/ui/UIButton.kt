@@ -85,16 +85,16 @@ open class UIButton : UIClickableContainer() {
             }
         }
         shadow = themed {
-            if (variant == Variant.Solid || variant == Variant.Soft || variant == Variant.Surface)
-                buttonStyle.elevation.shadow
-            else
-                Shadow.None
+            when (variant) {
+                Variant.Solid, Variant.Soft, Variant.Surface -> buttonStyle.elevation.shadow
+                else -> Shadow.None
+            }
         }
     }
 
     override fun onUpdate(clock: FrameClock) {
 
-        val targetScale = if (isPressed) 0.9f else 1f
+        val targetScale = if (isPressed) 0.95f else 1f
         val targetAlpha = if (isEnabled) 1f else 0.5f
 
         alpha = clock.interpolateFloat(0.2f, alpha, targetAlpha)
