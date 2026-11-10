@@ -39,22 +39,17 @@ import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import kotlin.coroutines.cancellation.CancellationException
 
-
-object SongSelect : UIScene() {
-
-    /**
-     * The scores currently shown in the leaderboard, in the format used by the gameplay leaderboard.
-     */
-    val scoreBoardItems: List<ScoreBoardItem>
-        get() = leaderboard.scoreBoardItems
+/**
+ * Song select, created each time it's opened. Its sort order and grouping are settings, and it
+ * opens on the selected beatmap; the rest of the filter and the solo mods start over.
+ */
+class SongSelect : UIScene() {
 
     /**
      * Whether the leaderboard is showing online scores.
      */
-    val isLeaderboardOnline
+    private val isLeaderboardOnline
         get() = leaderboard.leaderboardType == LeaderboardType.Global
-
-
 
     /**
      * The mods the player selected for solo play.
@@ -224,6 +219,7 @@ object SongSelect : UIScene() {
         cancelJobs()
 
         Verktex.withTreeLock { Verktex.popScene() }
+        beatmapLoadingScope.cancel()
 
         if (Multiplayer.isMultiplayer) {
             if (resetMultiplayerBeatmap) {
@@ -262,6 +258,8 @@ object SongSelect : UIScene() {
         val gameScene = OsuGame.gameScene
 
         gameScene.setOldScene(this)
+        gameScene.leaderboardItems = { leaderboard.scoreBoardItems }
+        gameScene.isLeaderboardOnline = isLeaderboardOnline
         gameScene.startGame(beatmapInfo, null, mods)
     }
 
@@ -293,7 +291,8 @@ object SongSelect : UIScene() {
 
 
     /**
-     * Loads the beatmap sets from the database, showing the ones passing the filter.
+     * Loads the beatmap sets from the database, showing the ones passing the filter. Called before
+     * it's shown, and again when the library changes.
      */
     fun loadBeatmaps() {
         beatmapSets = DatabaseManager.beatmapInfoTable.getBeatmapSetList()

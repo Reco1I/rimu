@@ -204,7 +204,7 @@ object Multiplayer {
         finalData = null
 
         // Avoiding data parsing if user left from ScoringScene
-        if (Verktex.scene == roomScene || Verktex.scene == SongSelect) {
+        if (Verktex.scene == roomScene || Verktex.scene is SongSelect) {
             return
         }
 

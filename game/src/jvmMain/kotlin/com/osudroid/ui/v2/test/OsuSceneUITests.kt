@@ -90,8 +90,7 @@ object OsuSceneUITests : UITestSuite("Scenes") {
 
         test("Song select") {
             useGameContext()
-            SongSelect.loadBeatmaps()
-            scene(SongSelect)
+            scene(SongSelect().apply { loadBeatmaps() })
         }
 
         test("Mod menu") {

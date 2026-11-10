@@ -74,7 +74,7 @@ object QuickPlay {
         BeatmapSelection.beatmap = beatmap
         // Song select loads it otherwise, the game scene expects it.
         beatmap.backgroundPath?.let { Textures.load("::background", it) }
-        OsuGame.gameScene.setOldScene(SongSelect)
+        OsuGame.gameScene.setOldScene(SongSelect().apply { loadBeatmaps() })
         OsuGame.gameScene.startGame(beatmap, null, mods)
         return true
     }

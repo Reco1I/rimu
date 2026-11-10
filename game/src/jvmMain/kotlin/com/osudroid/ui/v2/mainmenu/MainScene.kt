@@ -219,7 +219,8 @@ class MainScene : UIScene() {
                             OsuGameHost.current.loadBeatmapLibrary()
 
                             // Song select opens on the beatmap playing in the menu, the selection.
-                            SongSelect.loadBeatmaps()
+                            val songSelect = SongSelect()
+                            songSelect.loadBeatmaps()
 
                             if (LibraryManager.getLibrary().isEmpty()) {
                                 Verktex.withTreeLock { Verktex.popScene() }
@@ -227,7 +228,7 @@ class MainScene : UIScene() {
                             } else {
                                 Verktex.withTreeLock {
                                     Verktex.popScene()
-                                    Verktex.pushScene(SongSelect)
+                                    Verktex.pushScene(songSelect)
                                 }
 
                                 // After the menu was entered again by removing the loader, which resets it.
@@ -249,8 +250,6 @@ class MainScene : UIScene() {
 
                             OsuGameHost.current.checkNewSkins()
                             OsuGameHost.current.loadBeatmapLibrary()
-
-                            SongSelect.loadBeatmaps()
 
                             Verktex.withTreeLock {
                                 Verktex.popScene()

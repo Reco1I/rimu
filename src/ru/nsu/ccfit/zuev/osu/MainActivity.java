@@ -150,7 +150,6 @@ public class MainActivity extends AndroidOsuGameHost {
                 // The splash can't be gone back to.
                 mainScene = new MainScene();
                 Verktex.resetScenes(mainScene);
-                SongSelect.INSTANCE.loadBeatmaps();
 
                 availableInternalMemory();
                 Platform.INSTANCE.setForceMaxRefreshRate(Settings.get(OsuSettings.ForceMaxRefreshRate));
@@ -612,7 +611,7 @@ public class MainActivity extends AndroidOsuGameHost {
 
         if (!hasFocus) {
             if (Multiplayer.isConnected()
-                    && (Verktex.getScene() == Multiplayer.roomScene || Verktex.getScene() == SongSelect.INSTANCE)) {
+                    && (Verktex.getScene() == Multiplayer.roomScene || Verktex.getScene() instanceof SongSelect)) {
                 Execution.async(() -> Execution.runSafe(Multiplayer.roomScene::invalidateStatus));
             }
         }
@@ -686,8 +685,8 @@ public class MainActivity extends AndroidOsuGameHost {
             return true;
         }
 
-        if (currentScene == SongSelect.INSTANCE) {
-            SongSelect.INSTANCE.back();
+        if (currentScene instanceof SongSelect songSelect) {
+            songSelect.back();
             return true;
         }
 

@@ -151,6 +151,18 @@ open class GameScene : GameObjectListener {
     private lateinit var mgScene: UIContainer
     private lateinit var fgScene: UIContainer
     private var oldScene: UIScene? = null
+
+    /**
+     * The scores of the leaderboard shown during gameplay, given by song select with the play.
+     */
+    @JvmField
+    var leaderboardItems: () -> List<ScoreBoardItem> = { emptyList() }
+
+    /**
+     * Whether [leaderboardItems] are online scores.
+     */
+    @JvmField
+    var isLeaderboardOnline = false
     private var failAnimation: FailAnimation? = null
     private var pauseMenu: PauseMenu? = null
     private var replayText: UIText? = null

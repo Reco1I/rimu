@@ -337,8 +337,10 @@ class RoomScene(
                                             OsuGameHost.current.showBeatmapListing()
                                         }
 
-                                        SongSelect.loadBeatmaps()
-                                        SongSelect.show()
+                                        SongSelect().apply {
+                                            loadBeatmaps()
+                                            show()
+                                        }
 
                                         // We notify all clients that the host is changing beatmap
                                         RoomAPI.changeBeatmap()

@@ -1,5 +1,6 @@
 package com.osudroid.beatmaps
 
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.settings.SettingKey
 import com.reco1l.verktex.settings.Settings
@@ -154,7 +155,8 @@ object DifficultyCalculationManager {
                     badge?.dismiss()
                     badge = null
                 }
-                SongSelect.loadBeatmaps()
+                // Song select shows the new star ratings, the next one loads them anyway.
+                (Verktex.scene as? SongSelect)?.loadBeatmaps()
 
             } catch (e: InterruptedException) {
                 Logger.e("DifficultyCalculation", "Failed while waiting for executor termination.", e)

@@ -32,7 +32,7 @@ class HUDLeaderboard : HUDElement() {
 
     private val isReplaying = replayId != -1
 
-    private val isGlobalLeaderboard = SongSelect.isLeaderboardOnline
+    private val isGlobalLeaderboard = OsuGame.gameScene.isLeaderboardOnline
 
 
     init {
@@ -45,7 +45,7 @@ class HUDLeaderboard : HUDElement() {
         super.onUpdate(clock)
 
         if (!Multiplayer.isMultiplayer) {
-            val items = SongSelect.scoreBoardItems.takeIf { it.isNotEmpty() }
+            val items = OsuGame.gameScene.leaderboardItems().takeIf { it.isNotEmpty() }
 
             // We consider that if it's in replay mode the length should be the same, in case it's not then the
             // length should be +1 greater (because of the new score).

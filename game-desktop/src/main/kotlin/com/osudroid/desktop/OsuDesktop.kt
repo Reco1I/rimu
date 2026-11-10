@@ -85,7 +85,6 @@ class OsuDesktop(
                 SplashScene.progress = 100
                 // The splash can't be gone back to.
                 Verktex.resetScenes(MainScene())
-                SongSelect.loadBeatmaps()
             }
         }
     }
