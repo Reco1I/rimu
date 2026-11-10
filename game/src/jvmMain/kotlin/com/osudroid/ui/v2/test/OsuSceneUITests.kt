@@ -45,7 +45,7 @@ object OsuSceneUITests : UITestSuite("Scenes") {
     init {
         test("Main menu") {
             useGameContext()
-            scene(MainScene)
+            scene(MainScene())
         }
 
         test("Music panel") {

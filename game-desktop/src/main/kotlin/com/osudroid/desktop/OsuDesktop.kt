@@ -57,7 +57,8 @@ class OsuDesktop(
     }
 
     override fun onEngineStarted() {
-        Verktex.pushScene(SplashScene)
+        val splashScene = SplashScene()
+        Verktex.pushScene(splashScene)
 
         if (screenshot != null) {
             captureScreenshot(screenshot, screenshotDelaySeconds)
@@ -77,12 +78,13 @@ class OsuDesktop(
             DifficultyCalculationManager.checkForOutdatedStarRatings()
             OsuGameHost.current.loadBeatmapLibrary()
 
-            SplashScene.playWelcomeAnimation()
+            splashScene.playWelcomeAnimation()
 
             delayed(2500) {
                 SplashScene.info = ""
                 SplashScene.progress = 100
-                Verktex.pushScene(MainScene)
+                // The splash can't be gone back to.
+                Verktex.resetScenes(MainScene())
                 SongSelect.loadBeatmaps()
             }
         }

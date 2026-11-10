@@ -13,23 +13,26 @@ import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.text.UIText
 
 /**
- * The scene shown while the game is loading.
+ * The scene shown while the game is loading, created by the host when it starts.
  */
-object SplashScene : UIScene() {
+class SplashScene : UIScene() {
 
-    /**
-     * How far the game's startup is, from 0 to 100, shown below the logo.
-     */
-    @JvmStatic
-    @Volatile
-    var progress = 0
+    companion object {
 
-    /**
-     * What the startup is doing, shown below the progress, nothing if null.
-     */
-    @JvmStatic
-    @Volatile
-    var info: String? = null
+        /**
+         * How far the game's startup is, from 0 to 100, shown below the logo.
+         */
+        @JvmStatic
+        @Volatile
+        var progress = 0
+
+        /**
+         * What the startup is doing, shown below the progress, nothing if null.
+         */
+        @JvmStatic
+        @Volatile
+        var info: String? = null
+    }
 
     private val loading = UISprite(SkinTextures["loading_start"]).also {
         it.anchor = Anchor.Center

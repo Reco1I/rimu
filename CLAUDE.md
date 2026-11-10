@@ -63,7 +63,7 @@ The codebase is split across multiple main package roots, each in `game/src/{com
 
 ### Game Loop
 
-`MainActivity` extends Verktex's `AndroidGameHost`. Scenes are kept in a stack through `Verktex.pushScene` and `Verktex.popScene`. The scene flow for singleplayer is:
+`MainActivity` extends Verktex's `AndroidGameHost`. Scenes are kept in a stack through `Verktex.pushScene` and `Verktex.popScene`, and `Verktex.resetScenes` replaces the whole stack (the hosts do it with the main menu once the splash ends). The scene flow for singleplayer is:
 
 ```
 SplashScene → LoadingScreen → MainScene (menu hub)

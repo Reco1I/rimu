@@ -355,7 +355,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 5. Settings replace `Config` | Done |
 | 6. Ktor networking | Done |
 | 7. Split `OsuPlatform` | Done |
-| 8. No `GlobalManager` | In progress: `OsuGame`, `BeatmapSelection` and the selected mods done |
+| 8. No `GlobalManager` | In progress: song select and the gameplay scenes left |
 | 9. Database in Verktex | Not started |
 | 10. `Path` and `UIPath` | Not started |
 | 11. Video | Not started |
@@ -713,18 +713,31 @@ Done in steps, each committed on its own.
   the `Scenes/Mod menu` UI test on desktop with mods selected before it opened. Not run on a device
   or in a room. The app's `MigrationTest` fails on Firebase not being initialized, unrelated.
 
+**Step 3: `SplashScene`, `CalibrationScene` and `MainScene` as classes.**
+- The hosts create them. `SplashScene.progress`/`info` are in its companion, since the startup
+  code reports to them before and without the scene.
+- `Verktex.resetScenes(scene)` replaces the whole stack (through `SceneHost.resetScenes` when a
+  host is set). The hosts reset it to the main menu once the splash ends, so the splash no longer
+  stays below it, and `forcedExit` does too instead of pushing the menu a second time.
+- `MainActivity` keeps the `MainScene` it created, for the exit dialog and `forcedExit`.
+  `MainScene.watchReplay` is in its companion, since it doesn't need the menu.
+- `MainScene` follows the selected beatmap only while it's the current scene, and catches up on
+  enter. Its background texture key index is in its companion, so that a new menu doesn't load
+  over a texture an old one may still show.
+- `CalibrationScene(offsetMin, offsetMax)` takes its range instead of the settings setting it on
+  the object. Its BPM resets to 60 each time it's opened.
+- The HUD editor returns to the scene under the settings rather than to `MainScene`.
+- Checked: the game and desktop tests, the common check, `assembleDebug`, and the desktop game
+  reaching the menu with the beatmap's background. The engine's `ColorInheritanceTest` and
+  `PointerEventTest` fail before and after this step. Calibration wasn't opened.
+
 What's left, cheapest first:
-- `SplashScene`, `CalibrationScene` and `MainScene` as classes created when pushed. Few outside users:
-  - `MainScene.watchReplay`, `exit` and `showExitDialog`, which reach the scene in the stack;
-  - `CalibrationScene.OFFSET`/`show`;
-  - `SplashScene`'s `progress`/`info`/`playWelcomeAnimation`, which move to its companion.
-  - `MainScene`'s background index moves out.
 - `SongSelect` as a class. Its filter, sort and scroll position move out, and `loadBeatmaps`,
   `setStarRatingDisplay`, `setDifficultyStatistics`, `scoreBoardItems` and `isLeaderboardOnline`
   get a home outside the scene. This needs the plan's measurement, the time to open song select
   with a large library before and after, which wasn't possible while the machine only ran silent
   checks. If it regresses, the carousel data stays in a driver object.
-- Step 3: `GameScene` and `ScoringScene` created per play by `GameLoaderScene`, with
+- `GameScene` and `ScoringScene` created per play by `GameLoaderScene`, with
   `sliderRenderPaths` moving to the loader's result. `OsuGame.gameScene`/`scoring` then go away. It's
   the riskiest step, best checked on a device right after.
 

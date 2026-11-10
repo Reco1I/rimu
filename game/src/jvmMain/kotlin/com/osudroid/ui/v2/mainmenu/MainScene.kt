@@ -75,7 +75,10 @@ import kotlin.math.*
 import com.reco1l.verktex.ui.themed
 
 
-object MainScene : UIScene() {
+/**
+ * The main menu, created by the host once the game has started.
+ */
+class MainScene : UIScene() {
 
     private lateinit var playerButton: PlayerButton
     private lateinit var musicButton: UITextButton
@@ -100,24 +103,15 @@ object MainScene : UIScene() {
 
     private var lastMusicChange = System.currentTimeMillis()
 
-    // The texture key the next background is loaded under. It alternates as the crossfade sprite
-    // does, so the background still shown while fading isn't released.
-    private var backgroundKeyIndex = 0
     private var backgroundLoadJob: Job? = null
+
+    // The beatmap whose background is shown, which follows the selection while this is the current scene.
+    private var backgroundBeatmap: BeatmapInfo? = null
 
     // Seconds left emitting stars after a kiai section started, and the emission not done yet.
     private var kiaiParticleTime = 0f
     private var kiaiParticleBacklog = 0f
     private var wasKiai = false
-
-    // Seconds the expanded menu waits without being used before folding back.
-    private const val MENU_IDLE_TIMEOUT = 10f
-
-    private const val BACKGROUND_FADE_DURATION = 1.5f
-    private const val KIAI_PARTICLE_DURATION = 2f
-
-    // Stars per second from each corner.
-    private const val KIAI_PARTICLE_RATE = 40f
 
     private var menuWidth = 0f
     private var menuContentWidth = 0f
@@ -333,12 +327,6 @@ object MainScene : UIScene() {
             }
 
         }
-
-        BeatmapSelection.addListener(this) { beatmap ->
-            changeBackground(beatmap)
-
-            updateMusicButton()
-        }
     }
 
 
@@ -355,36 +343,6 @@ object MainScene : UIScene() {
             text = Res.string.dialog_exit_message
             onConfirm = { exit() }
         }.show()
-    }
-
-    /**
-     * Sets the beatmap being played in the menu.
-     */
-    fun setBeatmap(beatmapInfo: BeatmapInfo) {
-        // Which selects it too.
-        OsuGame.music.play(beatmapInfo)
-    }
-
-    /**
-     * Shows the results screen of a replay file.
-     */
-    fun watchReplay(replayFile: String) {
-        val replay = Replay()
-
-        if (!replay.load(replayFile, false) || replay.replayVersion < 3) {
-            return
-        }
-
-        val beatmap = LibraryManager.findBeatmapByMD5(replay.md5) ?: return
-
-        setBeatmap(beatmap)
-
-        val stat = replay.stat!!
-        stat.migrateLegacyMods(beatmap.getBeatmapDifficulty())
-        stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
-
-        OsuGame.scoring.load(stat, null, OsuGame.music, replayFile, null, beatmap)
-        Verktex.pushScene(OsuGame.scoring.scene!!)
     }
 
     /**
@@ -436,6 +394,17 @@ object MainScene : UIScene() {
         // Songs end on their own in the menu instead of stopping as in gameplay.
         OsuGame.music.isGaming = false
 
+        BeatmapSelection.addListener(this) { beatmap ->
+            changeBackground(beatmap)
+            updateMusicButton()
+        }
+
+        // The selection may have changed while another scene was shown.
+        val selectedBeatmap = BeatmapSelection.beatmap
+        if (selectedBeatmap != null && selectedBeatmap != backgroundBeatmap) {
+            changeBackground(selectedBeatmap)
+        }
+
         if (!hasEntered) {
             hasEntered = true
 
@@ -461,6 +430,11 @@ object MainScene : UIScene() {
         updateMusicButton()
     }
 
+    override fun onLeave() {
+        super.onLeave()
+        BeatmapSelection.removeListener(this)
+    }
+
     private fun updateMusicButton() {
         val beatmap = BeatmapSelection.beatmap
         musicButton.text =
@@ -474,6 +448,7 @@ object MainScene : UIScene() {
      */
     private fun changeBackground(beatmap: BeatmapInfo?) {
         backgroundLoadJob?.cancel()
+        backgroundBeatmap = beatmap
 
         val path = beatmap?.backgroundPath
         if (path == null || Settings[OsuSettings.SafeBeatmapBackground]) {
@@ -670,6 +645,48 @@ object MainScene : UIScene() {
         )
 
         super.onUpdate(clock)
+    }
+
+
+    companion object {
+
+        // Seconds the expanded menu waits without being used before folding back.
+        private const val MENU_IDLE_TIMEOUT = 10f
+
+        private const val BACKGROUND_FADE_DURATION = 1.5f
+        private const val KIAI_PARTICLE_DURATION = 2f
+
+        // Stars per second from each corner.
+        private const val KIAI_PARTICLE_RATE = 40f
+
+        // The texture key the next background is loaded under. It alternates as the crossfade sprite
+        // does, so the background still shown while fading isn't released. Kept here so that a new
+        // menu doesn't load over the key of the background an old one may still show.
+        private var backgroundKeyIndex = 0
+
+        /**
+         * Shows the results screen of a replay file.
+         */
+        @JvmStatic
+        fun watchReplay(replayFile: String) {
+            val replay = Replay()
+
+            if (!replay.load(replayFile, false) || replay.replayVersion < 3) {
+                return
+            }
+
+            val beatmap = LibraryManager.findBeatmapByMD5(replay.md5) ?: return
+
+            // Which selects it too.
+            OsuGame.music.play(beatmap)
+
+            val stat = replay.stat!!
+            stat.migrateLegacyMods(beatmap.getBeatmapDifficulty())
+            stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
+
+            OsuGame.scoring.load(stat, null, OsuGame.music, replayFile, null, beatmap)
+            Verktex.pushScene(OsuGame.scoring.scene!!)
+        }
     }
 }
 

@@ -51,17 +51,14 @@ import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.audio.Status
 import com.reco1l.verktex.ui.themed
 
-object CalibrationScene : UIScene() {
-    internal var OFFSET_MIN = -500
-    internal var OFFSET_MAX = 500
-
-    private const val APPROACH_SCALE_START = 3f
-    private const val CIRCLE_DIAMETER = 130f
-    private const val STEP_MS = 1
-    private const val STEP_MS_LONG = 10
-    private const val STEP_BPM = 1
-    private const val STEP_BPM_LONG = 10
-    private const val MAX_TAP_SAMPLES = 20
+/**
+ * Measures the player's audio offset by tapping to a metronome, between [offsetMin] and [offsetMax]
+ * milliseconds. Created when shown with [show].
+ */
+class CalibrationScene(
+    private val offsetMin: Int = -500,
+    private val offsetMax: Int = 500
+) : UIScene() {
 
     private var currentBpm = 60
 
@@ -76,11 +73,6 @@ object CalibrationScene : UIScene() {
     private val tapOffsets = mutableListOf<Double>()
     private var wasMusicPlaying = false
     private var successfulTapStreak = 0
-
-    /**
-     * Invoked on the main thread after the overlay closes (Back or SET).
-     * Set by the caller so that the current settings can re-show itself (e.g. Settings → Audio).
-     */
 
     private lateinit var approachCircle: UIBox
     private lateinit var hitCircleFill: UICircle
@@ -644,7 +636,7 @@ object CalibrationScene : UIScene() {
 
     private fun changeOffset(delta: Int) {
         tapOffsets.clear()
-        pendingOffset = (pendingOffset + delta).coerceIn(OFFSET_MIN, OFFSET_MAX)
+        pendingOffset = (pendingOffset + delta).coerceIn(offsetMin, offsetMax)
         updateOffsetDisplay()
         updateTapFeedback()
         playShortClickSound()
@@ -668,7 +660,7 @@ object CalibrationScene : UIScene() {
                     text = "OK"
                     onActionUp = {
                         val newValue = value.toIntOrNull() ?: pendingOffset
-                        pendingOffset = newValue.coerceIn(OFFSET_MIN, OFFSET_MAX)
+                        pendingOffset = newValue.coerceIn(offsetMin, offsetMax)
 
                         tapOffsets.clear()
                         updateOffsetDisplay()
@@ -754,6 +746,16 @@ object CalibrationScene : UIScene() {
             offset *= exp(-0.0116 * (unstableRate - 90))
         }
 
-        return offset.roundToInt().coerceIn(OFFSET_MIN, OFFSET_MAX)
+        return offset.roundToInt().coerceIn(offsetMin, offsetMax)
+    }
+
+    private companion object {
+        const val APPROACH_SCALE_START = 3f
+        const val CIRCLE_DIAMETER = 130f
+        const val STEP_MS = 1
+        const val STEP_MS_LONG = 10
+        const val STEP_BPM = 1
+        const val STEP_BPM_LONG = 10
+        const val MAX_TAP_SAMPLES = 20
     }
 }

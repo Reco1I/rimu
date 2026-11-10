@@ -27,7 +27,6 @@ import com.osudroid.multiplayer.api.data.RoomTeam
 import com.osudroid.multiplayer.api.data.TeamMode
 import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.multiplayer.api.RoomAPI
-import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.data.DatabaseManager
 import com.osudroid.multiplayer.Multiplayer
@@ -449,7 +448,7 @@ val gameplaySection = listOf(
                         // The editor returns to the menu, as the settings closed before it.
                         (Verktex.scene as? SettingsMenu)?.back()
 
-                        OsuGame.gameScene.setOldScene(MainScene)
+                        OsuGame.gameScene.setOldScene(Verktex.scene)
                         OsuGame.gameScene.startGame(selectedBeatmap, null, modMap, true)
                     }
                 }
@@ -868,9 +867,7 @@ val audioSection = listOf(
                 title = Res.string.opt_offset_calibration_title,
                 summary = Res.string.opt_offset_calibration_summary,
                 onClick = {
-                    CalibrationScene.OFFSET_MIN = -750
-                    CalibrationScene.OFFSET_MAX = 750
-                    CalibrationScene.show()
+                    CalibrationScene(offsetMin = -750, offsetMax = 750).show()
                 }
             ),
             OptionInfo(

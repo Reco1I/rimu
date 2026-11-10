@@ -86,6 +86,9 @@ public class MainActivity extends AndroidOsuGameHost {
     private FirebaseAnalytics analytics;
     private FirebaseCrashlytics crashlytics;
     private boolean willReplay = false;
+
+    // The main menu, null until the game has started.
+    private MainScene mainScene;
     private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> logFlushFuture;
     private MessageDialog multiWindowAlert;
@@ -115,7 +118,8 @@ public class MainActivity extends AndroidOsuGameHost {
         OnlineManager.getInstance().init();
         crashlytics.setUserId(OsuSettings.getInstallId());
 
-        Verktex.pushScene(SplashScene.INSTANCE);
+        var splashScene = new SplashScene();
+        Verktex.pushScene(splashScene);
 
         Execution.async(() -> {
             AndroidDatabase.load(this);
@@ -134,7 +138,7 @@ public class MainActivity extends AndroidOsuGameHost {
             DifficultyCalculationManager.checkForOutdatedStarRatings();
             loadBeatmapLibrary();
 
-            SplashScene.INSTANCE.playWelcomeAnimation();
+            splashScene.playWelcomeAnimation();
 
             Execution.delayed(2500, () -> {
 
@@ -142,7 +146,10 @@ public class MainActivity extends AndroidOsuGameHost {
                 AndroidDatabase.notifyIfResetDueToDowngrade();
                 SplashScene.setInfo("");
                 SplashScene.setProgress(100);
-                Verktex.pushScene(MainScene.INSTANCE);
+
+                // The splash can't be gone back to.
+                mainScene = new MainScene();
+                Verktex.resetScenes(mainScene);
                 SongSelect.INSTANCE.loadBeatmaps();
 
                 availableInternalMemory();
@@ -162,7 +169,7 @@ public class MainActivity extends AndroidOsuGameHost {
                     roomInviteLink = null;
                     Multiplayer.connectFromLink(inviteLink.getPathSegments());
                 } else if (willReplay) {
-                    MainScene.INSTANCE.watchReplay(fileToAdd);
+                    MainScene.watchReplay(fileToAdd);
                     fileToAdd = null;
                     willReplay = false;
                 }
@@ -538,7 +545,7 @@ public class MainActivity extends AndroidOsuGameHost {
                     final String replayFile = fileToAdd;
 
                     Execution.updateThread(() -> {
-                        MainScene.INSTANCE.watchReplay(replayFile);
+                        MainScene.watchReplay(replayFile);
                         fileToAdd = null;
                         willReplay = false;
                     });
@@ -705,7 +712,9 @@ public class MainActivity extends AndroidOsuGameHost {
             }
         }
 
-        MainScene.INSTANCE.showExitDialog();
+        if (mainScene != null) {
+            mainScene.showExitDialog();
+        }
         return true;
     }
 
@@ -731,11 +740,16 @@ public class MainActivity extends AndroidOsuGameHost {
                 gameScene.quit();
             }
 
-            if (Verktex.getScene() != MainScene.INSTANCE) {
-                Verktex.pushScene(MainScene.INSTANCE);
+            if (mainScene == null) {
+                Platform.INSTANCE.exit();
+                return;
             }
 
-            MainScene.INSTANCE.exit();
+            if (Verktex.getScene() != mainScene) {
+                Verktex.resetScenes(mainScene);
+            }
+
+            mainScene.exit();
         });
     }
 
