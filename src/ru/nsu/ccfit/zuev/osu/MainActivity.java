@@ -680,8 +680,8 @@ public class MainActivity extends AndroidOsuGameHost {
             return true;
         }
 
-        if (ModMenu.INSTANCE.isShown()) {
-            ModMenu.INSTANCE.back();
+        if (ModMenu.isShown()) {
+            ModMenu.back();
             return true;
         }
 

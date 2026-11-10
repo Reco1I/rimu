@@ -1,6 +1,9 @@
 package com.osudroid
 
 import com.osudroid.audio.MusicService
+import com.osudroid.mods.ModNightCore
+import com.osudroid.mods.ModSelection
+import com.osudroid.utils.calculateRate
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.ui.v2.Skin
 import com.osudroid.ui.v2.SkinSounds
@@ -54,6 +57,15 @@ object OsuGame {
     val scoringOrNull: ScoringScene?
         get() = if (::scoring.isInitialized) scoring else null
 
+
+    /**
+     * Plays [music] at the speed and pitch of the selected mods.
+     */
+    @JvmStatic
+    fun applyModsToMusic() {
+        music.speed = ModSelection.mods.values.calculateRate(Double.POSITIVE_INFINITY)
+        music.setAdjustPitch(ModNightCore::class in ModSelection.mods)
+    }
 
     /**
      * Loads the skin and creates the gameplay scenes. The host opens the database before.

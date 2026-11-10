@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.mods.ModSelection
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.Logger
 import com.osudroid.GameMode
@@ -258,7 +259,7 @@ class BeatmapInfoLayout : UILinearContainer() {
         slidersBadge.value = beatmapInfo.sliderCount.toString()
         spinnersBadge.value = beatmapInfo.spinnerCount.toString()
 
-        val mods = ModMenu.enabledMods
+        val mods = ModSelection.mods
         val totalSpeedMultiplier = mods.values.calculateRate(Double.POSITIVE_INFINITY)
 
         val difficulty = beatmapInfo.getBeatmapDifficulty()

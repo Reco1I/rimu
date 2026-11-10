@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.osudroid.mods.ModSelection
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.control.UIControl
@@ -58,7 +59,7 @@ sealed class ModSettingComponent<TSettingValue, TControlValue : Any>(
 
         onValueChanged = {
             setting.value = convertControlValue(it)
-            ModMenu.queueModChange(mod)
+            ModSelection.notifyChanged(mod)
         }
     }
 

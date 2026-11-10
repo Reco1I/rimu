@@ -70,10 +70,10 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
 
         onActionUp = {
             if (isSelected) {
-                ModMenu.removeMod(mod)
+                ModSelection.remove(mod)
                 SkinSounds["check-off"].play()
             } else {
-                ModMenu.addMod(mod)
+                ModSelection.add(mod)
                 SkinSounds["check-on"].play()
             }
         }

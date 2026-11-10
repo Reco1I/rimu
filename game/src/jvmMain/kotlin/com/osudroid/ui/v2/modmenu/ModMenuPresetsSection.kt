@@ -2,8 +2,8 @@ package com.osudroid.ui.v2.modmenu
 
 import com.osudroid.data.*
 import com.osudroid.ui.v2.*
-import com.osudroid.ui.v2.modmenu.ModMenu.addMod
-import com.osudroid.ui.v2.modmenu.ModMenu.removeMod
+import com.osudroid.mods.ModSelection
+import com.osudroid.multiplayer.clearPlayerMods
 import com.osudroid.utils.*
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
@@ -21,7 +21,7 @@ import com.reco1l.verktex.ui.dialog.UIMessageDialog
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 
-class ModMenuPresetsSection : ModMenuSection("Presets") {
+class ModMenuPresetsSection(private val menu: ModMenu) : ModMenuSection("Presets") {
 
 
     private val addButton: UITextButton
@@ -52,7 +52,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
         val modPreset = ModPreset(
             name = name,
-            serializedMods = ModMenu.enabledMods.serializeMods(includeIrrelevantMods = true)
+            serializedMods = ModSelection.mods.serializeMods(includeIrrelevantMods = true)
         )
 
         DatabaseManager.modPresetTable.insert(modPreset)
@@ -74,7 +74,7 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
 
     fun onModsChanged() {
-        val enabledMods = ModMenu.enabledMods
+        val enabledMods = ModSelection.mods
 
         addButton.isEnabled = enabledMods.isNotEmpty()
 
@@ -103,16 +103,16 @@ class ModMenuPresetsSection : ModMenuSection("Presets") {
 
             onActionUp = {
                 if (isSelected) {
-                    ModMenu.clear()
+                    ModSelection.clearPlayerMods()
                 } else {
-                    ModMenu.modToggles.forEach { toggle ->
+                    menu.modToggles.forEach { toggle ->
                         val presetMod = preset.mods[toggle.mod::class]
 
                         if (presetMod != null) {
                             // Prevent operations from modifying mods in the preset.
-                            addMod(presetMod.deepCopy())
+                            ModSelection.add(presetMod.deepCopy())
                         } else {
-                            removeMod(toggle.mod)
+                            ModSelection.remove(toggle.mod)
                         }
                     }
                 }

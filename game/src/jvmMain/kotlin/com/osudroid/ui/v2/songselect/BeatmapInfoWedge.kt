@@ -207,7 +207,7 @@ class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
             return
         }
 
-        val mods = ModMenu.enabledMods
+        val mods = ModSelection.mods
         val isPreciseMod = ModPrecise::class in mods
         val totalSpeedMultiplier = mods.values.calculateRate(Double.POSITIVE_INFINITY)
 

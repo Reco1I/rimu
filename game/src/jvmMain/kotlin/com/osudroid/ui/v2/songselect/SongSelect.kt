@@ -218,7 +218,7 @@ object SongSelect : UIScene() {
         val gameScene = OsuGame.gameScene
 
         gameScene.setOldScene(this)
-        gameScene.startGame(beatmapInfo, null, ModMenu.enabledMods)
+        gameScene.startGame(beatmapInfo, null, ModSelection.mods)
     }
 
     private fun resetMultiplayerRoomBeatmap() {
@@ -419,7 +419,7 @@ object SongSelect : UIScene() {
                 music.preLoad(beatmapInfo.audioPath)
 
                 ensureActive()
-                updateMusicEffects()
+                OsuGame.applyModsToMusic()
 
                 val previewTime = if (beatmapInfo.previewTime >= 0)
                     beatmapInfo.previewTime
@@ -459,7 +459,7 @@ object SongSelect : UIScene() {
                 ensureActive()
                 updateThread { beatmapInfoWedge.setDifficultyStatistics(beatmapInfo) }
 
-                val mods = ModMenu.enabledMods.deepCopy().values
+                val mods = ModSelection.mods.deepCopy().values
 
                 ensureActive()
                 val attributes = when (OsuSettings.difficultyAlgorithm) {
@@ -473,8 +473,11 @@ object SongSelect : UIScene() {
         }
     }
 
-    fun onModsChanged() {
-        modsIndicator.mods = ModMenu.enabledMods.values.toList()
+    init {
+        modsIndicator.mods = ModSelection.mods.values.toList()
+        ModSelection.addListener(this) {
+            updateThread { modsIndicator.mods = ModSelection.mods.values.toList() }
+        }
     }
 
     fun setDifficultyStatistics(beatmapInfo: BeatmapInfo?) = updateThread {
@@ -483,14 +486,6 @@ object SongSelect : UIScene() {
 
     fun setStarRatingDisplay(starRating: Double) = updateThread {
         beatmapInfoWedge.setStarRatingDisplay(starRating)
-    }
-
-    fun updateMusicEffects() {
-        val speed = ModMenu.enabledMods.values.calculateRate(Double.POSITIVE_INFINITY)
-        val adjustPitch = ModNightCore::class in ModMenu.enabledMods
-
-        OsuGame.music.speed = speed
-        OsuGame.music.setAdjustPitch(adjustPitch)
     }
 
     // Scenes are never attached to a parent, onAttached doesn't run for them.

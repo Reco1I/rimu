@@ -355,7 +355,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 5. Settings replace `Config` | Done |
 | 6. Ktor networking | Done |
 | 7. Split `OsuPlatform` | Done |
-| 8. No `GlobalManager` | In progress: step 1 (`OsuGame`, `BeatmapSelection`) done, paused |
+| 8. No `GlobalManager` | In progress: `OsuGame`, `BeatmapSelection` and `ModSelection` done |
 | 9. Database in Verktex | Not started |
 | 10. `Path` and `UIPath` | Not started |
 | 11. Video | Not started |
@@ -695,9 +695,25 @@ Done in steps, each committed on its own.
 - Checked: the game tests, the common check, the app's unit tests compiling and `assembleDebug`. Not
   seen on screen.
 
-**Paused after step 1.** What's left, cheapest first:
-- `ModSelection` for the selected mods. `ModMenu.enabledMods` has 13 users, plus `setMods`,
-  `addMod`, `removeMod` and `clear`.
+**Step 2: `ModSelection`.**
+- `ModSelection` (common) is the single owner of the selected mods (`mods`, `add`, `remove`,
+  `clear(keep)`), with listeners called with the mods that changed. `notifyChanged(mod)` is for a
+  mod whose settings changed.
+- The room rules are extensions in `multiplayer/RoomModSelection.kt`: `clearPlayerMods()` keeps
+  what only the host can change and ScoreV2; `setRoomMods(mods, isFreeMod)` replaces
+  `ModMenu.setMods`.
+- `ModMenu` is a class created by `ModMenu.show()` and dropped by `ModMenu.back()`, both on its
+  companion with `current`/`isShown`. It follows `ModSelection` while shown: the toggles and the
+  customization sections are synced from it on the update thread, so changes from other threads
+  (the room socket) are safe. Its search term isn't kept between shows.
+- `back()` still sends the mods to the room when no menu is shown, as before.
+- Song select's mods indicator listens to `ModSelection`; `SongSelect.updateMusicEffects` became
+  `OsuGame.applyModsToMusic`.
+- Checked: the game tests (with `ModSelectionTest`), the common check, `assembleDebug` and the
+  `Scenes/Mod menu` UI test on desktop with mods selected before it opened. Not run on a device or
+  in a room. The app's `MigrationTest` fails on Firebase not being initialized, unrelated.
+
+What's left, cheapest first:
 - `SplashScene`, `CalibrationScene` and `MainScene` as classes created when pushed. Few outside users:
   - `MainScene.watchReplay`, `exit` and `showExitDialog`, which reach the scene in the stack;
   - `CalibrationScene.OFFSET`/`show`;

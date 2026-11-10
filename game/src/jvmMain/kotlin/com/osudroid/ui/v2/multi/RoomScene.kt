@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.mods.ModSelection
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
@@ -31,6 +32,8 @@ import com.osudroid.ui.v2.GameLoaderScene
 import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.ModsIndicator
 import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.multiplayer.clearPlayerMods
+import com.osudroid.multiplayer.setRoomMods
 import com.osudroid.ui.v2.modmenu.ModMenu
 import com.osudroid.ui.v2.settings.SettingsMenu
 import com.osudroid.ui.v2.songselect.SongSelect
@@ -821,12 +824,12 @@ class RoomScene(
             chat.onSystemChatMessage(Res.string.multiplayer_room_welcome, "#459FFF")
         }
 
-        ModMenu.clear()
-        ModMenu.setMods(newRoom.mods, newRoom.gameplaySettings.isFreeMod)
+        ModSelection.clearPlayerMods()
+        ModSelection.setRoomMods(newRoom.mods, newRoom.gameplaySettings.isFreeMod)
 
         isWaitingForModsChange.set(true)
 
-        RoomAPI.setPlayerMods(ModMenu.enabledMods.serializeMods())
+        RoomAPI.setPlayerMods(ModSelection.mods.serializeMods())
 
         updateInformation()
         updatePlayerList()
@@ -960,8 +963,6 @@ class RoomScene(
 
         updateThread {
             ModMenu.back(false)
-            ModMenu.updateModButtonVisibility()
-            ModMenu.updateCustomizationMenuEnabledStates()
             updateButtons()
         }
 
@@ -982,11 +983,11 @@ class RoomScene(
         isWaitingForModsChange.set(true)
 
         updateThread {
-            // Apply the new room mods to ModMenu first so that enabledMods is up-to-date
-            // before we serialize and emit to the server.  Serializing before setMods() runs
-            // would send the previous (stale) mods payload to the server.
-            ModMenu.setMods(mods, room.gameplaySettings.isFreeMod)
-            RoomAPI.setPlayerMods(ModMenu.enabledMods.serializeMods())
+            // Select the new room mods first, so that the mods sent to the server aren't the
+            // previous ones.
+            ModSelection.setRoomMods(mods, room.gameplaySettings.isFreeMod)
+            ModMenu.current?.updateModButtonVisibility()
+            RoomAPI.setPlayerMods(ModSelection.mods.serializeMods())
             updateInformation()
         }
     }
@@ -1004,10 +1005,6 @@ class RoomScene(
             updateButtons()
             updateInformation()
             ModMenu.back(false)
-
-            if (wasFreeMod != settings.isFreeMod) {
-                ModMenu.updateModButtonVisibility()
-            }
         }
 
         invalidateStatus()
@@ -1096,7 +1093,7 @@ class RoomScene(
 
                 allowAutomaticPlaybackRestart = false
                 OsuGame.music.stop()
-                OsuGame.gameScene.startGame(BeatmapSelection.beatmap, null, ModMenu.enabledMods)
+                OsuGame.gameScene.startGame(BeatmapSelection.beatmap, null, ModSelection.mods)
 
             }
         }
