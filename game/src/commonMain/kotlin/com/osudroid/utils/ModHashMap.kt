@@ -23,6 +23,19 @@ open class ModHashMap() : MutableMap<KClass<out Mod>, Mod> {
 
     @Volatile
     private var map: Map<KClass<out Mod>, Mod> = emptyMap()
+        set(value) {
+            field = value
+            version++
+        }
+
+    /**
+     * Increases on every change of the [Mod]s in this [ModHashMap], so that a component showing them
+     * can tell when they changed by comparing it with the one it showed. Changing the settings of a
+     * [Mod] doesn't change it.
+     */
+    @Volatile
+    var version = 0
+        private set
 
     constructor(map: Map<out KClass<out Mod>, Mod>) : this() {
         putAll(map)

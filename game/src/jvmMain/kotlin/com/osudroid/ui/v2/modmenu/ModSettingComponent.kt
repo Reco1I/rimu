@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.osudroid.mods.ModSelection
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.control.UIControl
@@ -46,6 +45,11 @@ sealed class ModSettingComponent<TSettingValue, TControlValue : Any>(
     final override val setting: ModSetting<TSettingValue>
 ) : UIContainer(), IModSettingComponent<TSettingValue> {
     /**
+     * Called when the user changes the value of [setting].
+     */
+    var onChanged: (Mod) -> Unit = {}
+
+    /**
      * The [FormControl] that is used to display this [ModSettingComponent].
      */
     protected val control = createControl().apply {
@@ -59,7 +63,7 @@ sealed class ModSettingComponent<TSettingValue, TControlValue : Any>(
 
         onValueChanged = {
             setting.value = convertControlValue(it)
-            ModSelection.notifyChanged(mod)
+            onChanged(mod)
         }
     }
 

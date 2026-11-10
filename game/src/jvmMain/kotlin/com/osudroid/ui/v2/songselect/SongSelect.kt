@@ -15,6 +15,7 @@ import com.osudroid.ui.v2.*
 import com.osudroid.ui.v2.modmenu.*
 import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.ui.control.UIDropdown
@@ -55,12 +56,28 @@ object SongSelect : UIScene() {
 
 
 
+    /**
+     * The mods the player selected for solo play.
+     */
+    private val soloMods = ModHashMap()
+
+    /**
+     * The mods song select rates the beatmaps with and plays: the room's in multiplayer.
+     */
+    val mods: ModHashMap
+        get() = Multiplayer.roomScene?.mods ?: soloMods
+
+    private var modMenu: ModMenu? = null
+
+    // The version of the mods the mods indicator shows.
+    private var shownModsVersion = -1
+
     private val beatmapLoadingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private val filterBar = SongSelectFilterBar()
     private val leaderboard = SongSelectLeaderboard()
     private val beatmapCarrousel = BeatmapCarrousel()
-    private val beatmapInfoWedge = BeatmapInfoWedge()
+    private val beatmapInfoWedge = BeatmapInfoWedge { mods }
     private val backgroundSprite: UISprite
 
     private lateinit var modsIndicator: ModsIndicator
@@ -136,7 +153,7 @@ object SongSelect : UIScene() {
             textButton {
                 text = "Mods"
                 leadingIcon = faSolidIcon(FAIcon.Sliders)
-                onActionUp = { ModMenu.show() }
+                onActionUp = { showModMenu() }
             }
 
             modsIndicator = ModsIndicator().apply {
@@ -174,7 +191,34 @@ object SongSelect : UIScene() {
     /**
      * Leaves this scene without changing the beatmap of the multiplayer room.
      */
-    fun back() = back(true)
+    fun back() {
+        val modMenu = modMenu
+
+        if (modMenu != null && modMenu.isShown) {
+            modMenu.onBack()
+        } else {
+            back(true)
+        }
+    }
+
+    private fun showModMenu() {
+        val mods = mods
+
+        // A room's mods go to its server when the menu closes.
+        val menu = modMenu?.takeIf { it.mods === mods } ?: ModMenu(mods).apply {
+            onDifficultyCalculated = { beatmapInfo, starRating ->
+                setDifficultyStatistics(beatmapInfo)
+                setStarRatingDisplay(starRating)
+            }
+            onBack = {
+                hide()
+                Multiplayer.roomScene?.sendMods()
+            }
+        }
+
+        modMenu = menu
+        menu.show()
+    }
 
     private fun back(resetMultiplayerBeatmap: Boolean) {
         cancelJobs()
@@ -218,7 +262,7 @@ object SongSelect : UIScene() {
         val gameScene = OsuGame.gameScene
 
         gameScene.setOldScene(this)
-        gameScene.startGame(beatmapInfo, null, ModSelection.mods)
+        gameScene.startGame(beatmapInfo, null, mods)
     }
 
     private fun resetMultiplayerRoomBeatmap() {
@@ -419,7 +463,7 @@ object SongSelect : UIScene() {
                 music.preLoad(beatmapInfo.audioPath)
 
                 ensureActive()
-                OsuGame.applyModsToMusic()
+                OsuGame.applyModsToMusic(mods)
 
                 val previewTime = if (beatmapInfo.previewTime >= 0)
                     beatmapInfo.previewTime
@@ -459,7 +503,7 @@ object SongSelect : UIScene() {
                 ensureActive()
                 updateThread { beatmapInfoWedge.setDifficultyStatistics(beatmapInfo) }
 
-                val mods = ModSelection.mods.deepCopy().values
+                val mods = mods.deepCopy().values
 
                 ensureActive()
                 val attributes = when (OsuSettings.difficultyAlgorithm) {
@@ -473,11 +517,15 @@ object SongSelect : UIScene() {
         }
     }
 
-    init {
-        modsIndicator.mods = ModSelection.mods.values.toList()
-        ModSelection.addListener(this) {
-            updateThread { modsIndicator.mods = ModSelection.mods.values.toList() }
+    override fun onUpdate(clock: FrameClock) {
+        val mods = mods
+
+        if (mods.version != shownModsVersion) {
+            shownModsVersion = mods.version
+            modsIndicator.mods = mods.values.toList()
         }
+
+        super.onUpdate(clock)
     }
 
     fun setDifficultyStatistics(beatmapInfo: BeatmapInfo?) = updateThread {

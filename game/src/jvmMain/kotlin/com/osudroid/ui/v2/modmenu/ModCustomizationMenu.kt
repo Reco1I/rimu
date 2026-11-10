@@ -24,7 +24,10 @@ import com.reco1l.verktex.ui.text.UIText
 import kotlin.reflect.KClass
 import com.reco1l.verktex.ui.themed
 
-class ModCustomizationMenu(private val trigger: UIButton) : UIModal(
+class ModCustomizationMenu(
+    private val trigger: UIButton,
+    private val onSettingChanged: (Mod) -> Unit
+) : UIModal(
 
     card = UIScrollableContainer().apply {
         scrollAxes = Axis.Y
@@ -130,6 +133,7 @@ class ModCustomizationMenu(private val trigger: UIButton) : UIModal(
             else -> throw IllegalArgumentException("Unsupported mod setting type: ${setting::class.java.simpleName}")
         }
 
+        component.onChanged = onSettingChanged
         modSettingComponents.add(component)
         component.update()
 

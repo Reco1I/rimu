@@ -2,7 +2,6 @@ package com.osudroid.ui.v2.modmenu
 
 import com.osudroid.data.*
 import com.osudroid.ui.v2.*
-import com.osudroid.mods.ModSelection
 import com.osudroid.multiplayer.clearPlayerMods
 import com.osudroid.utils.*
 import com.reco1l.verktex.data.Dimension
@@ -21,7 +20,7 @@ import com.reco1l.verktex.ui.dialog.UIMessageDialog
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 
-class ModMenuPresetsSection(private val menu: ModMenu) : ModMenuSection("Presets") {
+class ModMenuPresetsSection(val menu: ModMenu) : ModMenuSection("Presets") {
 
 
     private val addButton: UITextButton
@@ -52,7 +51,7 @@ class ModMenuPresetsSection(private val menu: ModMenu) : ModMenuSection("Presets
 
         val modPreset = ModPreset(
             name = name,
-            serializedMods = ModSelection.mods.serializeMods(includeIrrelevantMods = true)
+            serializedMods = menu.mods.serializeMods(includeIrrelevantMods = true)
         )
 
         DatabaseManager.modPresetTable.insert(modPreset)
@@ -74,7 +73,7 @@ class ModMenuPresetsSection(private val menu: ModMenu) : ModMenuSection("Presets
 
 
     fun onModsChanged() {
-        val enabledMods = ModSelection.mods
+        val enabledMods = menu.mods
 
         addButton.isEnabled = enabledMods.isNotEmpty()
 
@@ -103,16 +102,16 @@ class ModMenuPresetsSection(private val menu: ModMenu) : ModMenuSection("Presets
 
             onActionUp = {
                 if (isSelected) {
-                    ModSelection.clearPlayerMods()
+                    menu.mods.clearPlayerMods()
                 } else {
                     menu.modToggles.forEach { toggle ->
                         val presetMod = preset.mods[toggle.mod::class]
 
                         if (presetMod != null) {
                             // Prevent operations from modifying mods in the preset.
-                            ModSelection.add(presetMod.deepCopy())
+                            menu.mods.put(presetMod.deepCopy())
                         } else {
-                            ModSelection.remove(toggle.mod)
+                            menu.mods.remove(toggle.mod::class)
                         }
                     }
                 }

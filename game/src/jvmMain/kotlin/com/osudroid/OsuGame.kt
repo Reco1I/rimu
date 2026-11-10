@@ -2,7 +2,7 @@ package com.osudroid
 
 import com.osudroid.audio.MusicService
 import com.osudroid.mods.ModNightCore
-import com.osudroid.mods.ModSelection
+import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.calculateRate
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.ui.v2.Skin
@@ -59,12 +59,12 @@ object OsuGame {
 
 
     /**
-     * Plays [music] at the speed and pitch of the selected mods.
+     * Plays [music] at the speed and pitch of [mods].
      */
     @JvmStatic
-    fun applyModsToMusic() {
-        music.speed = ModSelection.mods.values.calculateRate(Double.POSITIVE_INFINITY)
-        music.setAdjustPitch(ModNightCore::class in ModSelection.mods)
+    fun applyModsToMusic(mods: ModHashMap) {
+        music.speed = mods.values.calculateRate(Double.POSITIVE_INFINITY)
+        music.setAdjustPitch(ModNightCore::class in mods)
     }
 
     /**

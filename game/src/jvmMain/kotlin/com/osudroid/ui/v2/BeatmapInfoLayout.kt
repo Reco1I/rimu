@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2
 
-import com.osudroid.mods.ModSelection
+import com.osudroid.utils.ModHashMap
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.Logger
 import com.osudroid.GameMode
@@ -36,7 +36,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
 import com.reco1l.verktex.ui.themed
 
-class BeatmapInfoLayout : UILinearContainer() {
+class BeatmapInfoLayout(
+    /**
+     * Returns the mods to show the beatmap with.
+     */
+    private val mods: () -> ModHashMap
+) : UILinearContainer() {
 
 
     private lateinit var titleText: UIText
@@ -259,7 +264,7 @@ class BeatmapInfoLayout : UILinearContainer() {
         slidersBadge.value = beatmapInfo.sliderCount.toString()
         spinnersBadge.value = beatmapInfo.spinnerCount.toString()
 
-        val mods = ModSelection.mods
+        val mods = mods()
         val totalSpeedMultiplier = mods.values.calculateRate(Double.POSITIVE_INFINITY)
 
         val difficulty = beatmapInfo.getBeatmapDifficulty()

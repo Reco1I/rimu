@@ -52,7 +52,6 @@ import com.osudroid.multiplayer.Multiplayer;
 import com.osudroid.UpdateManager;
 import com.osudroid.ui.v2.multi.LobbyScene;
 
-import com.osudroid.ui.v2.modmenu.ModMenu;
 import com.osudroid.ui.v2.settings.SettingsMenu;
 import com.reco1l.osu.ui.MessageDialog;
 import com.osudroid.difficulty.BeatmapDifficultyCalculator;
@@ -680,11 +679,6 @@ public class MainActivity extends AndroidOsuGameHost {
             return true;
         }
 
-        if (ModMenu.isShown()) {
-            ModMenu.back();
-            return true;
-        }
-
         if (currentScene == SongSelect.INSTANCE) {
             SongSelect.INSTANCE.back();
             return true;
@@ -706,7 +700,7 @@ public class MainActivity extends AndroidOsuGameHost {
             }
 
             if (currentScene == Multiplayer.roomScene) {
-                runOnUiThread(Multiplayer.roomScene.getLeaveDialog()::show);
+                runOnUiThread(Multiplayer.roomScene::onBackPressed);
                 return true;
             }
         }

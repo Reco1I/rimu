@@ -15,15 +15,13 @@ import com.osudroid.mods.Mod
 import com.osudroid.mods.ModDifficultyAdjust
 import com.osudroid.mods.ModType
 import com.osudroid.multiplayer.Multiplayer
-import com.osudroid.multiplayer.api.RoomAPI.setPlayerMods
-import com.osudroid.multiplayer.api.RoomAPI.setRoomMods
 import com.osudroid.scoring.ScoreMultiplierCalculator
 import com.osudroid.ui.v2.ModsIndicator
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.StarRatingBadge
-import com.osudroid.ui.v2.songselect.SongSelect
-import com.osudroid.mods.ModSelection
 import com.osudroid.multiplayer.clearPlayerMods
+import com.osudroid.utils.ModHashMap
+import kotlin.concurrent.Volatile
 import com.osudroid.utils.allModsInstances
 import com.osudroid.utils.applyMods
 import com.osudroid.utils.async
@@ -63,7 +61,6 @@ import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.droid
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.standard
 import java.io.IOException
-import java.util.LinkedList
 import java.util.concurrent.CancellationException
 import kotlin.math.roundToInt
 import kotlin.reflect.KClass
@@ -74,10 +71,20 @@ import com.reco1l.verktex.ui.container.captureContainer
 import com.reco1l.verktex.ui.themed
 
 /**
- * The mod menu, shown over the scene it was opened from with [ModMenu.show]. It shows and changes
- * [ModSelection], and a new one is created each time it's shown.
+ * The mod menu, shown over the scene it was opened from. It shows and changes [mods], which its
+ * owner keeps: song select's for solo play, the room's in multiplayer.
  */
-class ModMenu private constructor() : UICaptureContainer() {
+class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
+
+    /**
+     * Called by the back button. Hides the menu by default.
+     */
+    var onBack: () -> Unit = { hide() }
+
+    /**
+     * Called with the beatmap and its star rating with [mods] once calculated, on any thread.
+     */
+    var onDifficultyCalculated: (beatmapInfo: BeatmapInfo, starRating: Double) -> Unit = { _, _ -> }
 
     /**
      * List of all mod sections.
@@ -90,7 +97,13 @@ class ModMenu private constructor() : UICaptureContainer() {
     val modToggles = mutableListOf<ModMenuToggle>()
 
 
-    private val modChangeQueue = LinkedList<Mod>()
+    /**
+     * The [ModHashMap.version] of [mods] this menu shows.
+     */
+    private var shownVersion = -1
+
+    @Volatile
+    private var hasSettingsChanged = false
 
     private lateinit var modPresetsSection: ModMenuPresetsSection
     private lateinit var customizeButton: UITextButton
@@ -109,7 +122,7 @@ class ModMenu private constructor() : UICaptureContainer() {
     private var calculationJob: Job? = null
 
     /**
-     * The mods whose settings [customizationMenu] shows, which follow [ModSelection].
+     * The mods whose settings [customizationMenu] shows, which follow [mods].
      */
     private val customizedMods = mutableMapOf<KClass<out Mod>, Mod>()
 
@@ -152,7 +165,7 @@ class ModMenu private constructor() : UICaptureContainer() {
                             leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
                             onActionUp = {
                                 SkinSounds["click-short-confirm"].play()
-                                back()
+                                onBack()
                             }
                             onActionCancel = { SkinSounds["click-short"].play() }
                         }
@@ -179,7 +192,7 @@ class ModMenu private constructor() : UICaptureContainer() {
                             leadingIcon = faSolidIcon(FAIcon.DeleteLeft)
                             onActionUp = {
                                 SkinSounds["click-short-confirm"].play()
-                                ModSelection.clearPlayerMods()
+                                mods.clearPlayerMods()
                             }
                             onActionCancel = { SkinSounds["click-short"].play() }
                         }
@@ -237,7 +250,7 @@ class ModMenu private constructor() : UICaptureContainer() {
                             val sectionName = type.stringId.toString()
                             val sectionToggles = mods
                                 .filter { it !is IMigratableMod && it.isUserPlayable && it.type == type }
-                                .map { ModMenuToggle(it) }
+                                .map { ModMenuToggle(it, this@ModMenu.mods) }
 
                             if (sectionToggles.isEmpty()) {
                                 return@forEach
@@ -332,13 +345,10 @@ class ModMenu private constructor() : UICaptureContainer() {
         }
 
         // Customizations menu
-        customizationMenu = ModCustomizationMenu(customizeButton)
+        customizationMenu = ModCustomizationMenu(customizeButton, ::onModSettingChanged)
         +customizationMenu
 
         modPresetsSection.loadPresets()
-
-        // Shows the mods that were selected before it was created.
-        onModsChanged(emptyList())
     }
 
 
@@ -369,7 +379,7 @@ class ModMenu private constructor() : UICaptureContainer() {
             }
 
             if (beatmap == null) {
-                SongSelect.setStarRatingDisplay(0.0)
+                onDifficultyCalculated(selectedBeatmap, 0.0)
                 return@scope
             }
 
@@ -380,12 +390,12 @@ class ModMenu private constructor() : UICaptureContainer() {
             }
 
             // This is needed to give the mod a reference to the beatmap's default difficulty values.
-            ModSelection.mods.ofType<ModDifficultyAdjust>()?.setDefaultDifficulty(beatmap.difficulty)
+            this@ModMenu.mods.ofType<ModDifficultyAdjust>()?.setDefaultDifficulty(beatmap.difficulty)
 
             customizationMenu.updateComponents()
 
             // Copy the mods to avoid concurrent modification
-            val mods = ModSelection.mods.deepCopy().values
+            val mods = this@ModMenu.mods.deepCopy().values
             val difficulty = beatmap.difficulty.clone()
             val rate = mods.calculateRate(Double.POSITIVE_INFINITY)
 
@@ -405,7 +415,7 @@ class ModMenu private constructor() : UICaptureContainer() {
 
                 scoreMultiplierBadge.updateValue(
                     1f,
-                    ScoreMultiplierCalculator(beatmap.difficulty).calculateFor(ModSelection.mods.values)
+                    ScoreMultiplierCalculator(beatmap.difficulty).calculateFor(mods)
                         .toFloat()
                 )
             }
@@ -420,8 +430,7 @@ class ModMenu private constructor() : UICaptureContainer() {
             ensureActive()
 
             starRatingBadge.rating = attributes.starRating
-            SongSelect.setDifficultyStatistics(selectedBeatmap)
-            SongSelect.setStarRatingDisplay(attributes.starRating)
+            onDifficultyCalculated(selectedBeatmap, attributes.starRating)
         }
     }
 
@@ -429,10 +438,20 @@ class ModMenu private constructor() : UICaptureContainer() {
 
     //region Visibility
 
-    private fun open() {
+    /**
+     * Whether this menu is shown.
+     */
+    val isShown
+        get() = parent != null
+
+    /**
+     * Shows this menu over the current scene.
+     */
+    fun show() {
         // An overlay because the scene it was opened from stays visible behind it.
-        Verktex.addOverlay(this)
-        ModSelection.addListener(this) { changed -> queueModChanges(changed) }
+        if (!isShown) {
+            Verktex.addOverlay(this)
+        }
 
         // Do not show mod presets in multiplayer.
         modPresetsSection.isVisible = !Multiplayer.isMultiplayer
@@ -445,12 +464,12 @@ class ModMenu private constructor() : UICaptureContainer() {
         updateModButtonVisibility()
         updateCustomizationMenuEnabledStates()
 
-        // Only parsing to update mod's specific settings defaults, specially those which rely on the original beatmap data.
-        parseBeatmap()
+        // The mods may have changed while it was hidden, and the beatmap is parsed again to update the
+        // settings defaults that rely on the original beatmap data.
+        shownVersion = -1
     }
 
-    private fun close() {
-        ModSelection.removeListener(this)
+    fun hide() {
         cancelCalculationJob()
         Verktex.removeOverlay(this)
     }
@@ -474,31 +493,36 @@ class ModMenu private constructor() : UICaptureContainer() {
     }
 
     /**
-     * Queues the mods [ModSelection] changed, which can be on any thread, to show them on the update
-     * thread.
+     * Called when a setting of [mod], one of [mods], changed.
      */
-    private fun queueModChanges(mods: List<Mod>) = synchronized(modChangeQueue) {
-        mods.forEach { mod ->
-            modChangeQueue.remove(mod)
-            modChangeQueue.addFirst(mod)
+    private fun onModSettingChanged(mod: Mod) {
+        hasSettingsChanged = true
+
+        if (mod is IModApplicableToTrackRate) {
+            OsuGame.applyModsToMusic(mods)
         }
     }
 
     override fun onUpdate(clock: FrameClock) {
 
-        val changed = synchronized(modChangeQueue) {
-            modChangeQueue.toList().also { modChangeQueue.clear() }
-        }
+        // The mods can change on other threads (the room's socket), so they're shown here rather than
+        // where they're changed.
+        val version = mods.version
 
-        if (changed.isNotEmpty()) {
-            onModsChanged(changed)
+        if (version != shownVersion) {
+            shownVersion = version
+            hasSettingsChanged = false
+            onModsChanged()
+        } else if (hasSettingsChanged) {
+            hasSettingsChanged = false
+            parseBeatmap()
         }
 
         super.onUpdate(clock)
     }
 
-    private fun onModsChanged(changed: List<Mod>) {
-        val enabledMods = ModSelection.mods.values.toList()
+    private fun onModsChanged() {
+        val enabledMods = mods.values.toList()
         val isRanked = enabledMods.isEmpty() || enabledMods.none { !it.isRanked }
 
         updateToggles()
@@ -533,13 +557,8 @@ class ModMenu private constructor() : UICaptureContainer() {
 
         customizeButton.isEnabled = !customizationMenu.isEmpty()
 
-        if (changed.any { it is IModApplicableToTrackRate }) {
-            OsuGame.applyModsToMusic()
-        }
-
-        if (changed.isNotEmpty()) {
-            parseBeatmap()
-        }
+        OsuGame.applyModsToMusic(mods)
+        parseBeatmap()
 
         selectedModsIndicator.mods = enabledMods
         modPresetsSection.onModsChanged()
@@ -551,7 +570,7 @@ class ModMenu private constructor() : UICaptureContainer() {
      */
     private fun updateToggles() {
         modToggles.forEach { toggle ->
-            val selected = ModSelection.mods[toggle.mod::class]
+            val selected = mods[toggle.mod::class]
 
             if (selected != null) {
                 toggle.mod = selected
@@ -568,13 +587,13 @@ class ModMenu private constructor() : UICaptureContainer() {
      */
     private fun updateCustomizations() {
         for ((modClass, mod) in customizedMods.toList()) {
-            if (ModSelection.mods[modClass] !== mod) {
+            if (mods[modClass] !== mod) {
                 customizationMenu.onModRemoved(mod)
                 customizedMods.remove(modClass)
             }
         }
 
-        for ((modClass, mod) in ModSelection.mods) {
+        for ((modClass, mod) in mods) {
             if (modClass !in customizedMods) {
                 customizationMenu.onModAdded(mod)
                 customizedMods[modClass] = mod
@@ -626,61 +645,6 @@ class ModMenu private constructor() : UICaptureContainer() {
 
     //endregion
 
-
-    companion object {
-
-        /**
-         * The mod menu being shown, or null.
-         */
-        @JvmStatic
-        var current: ModMenu? = null
-            private set
-
-        @JvmStatic
-        val isShown
-            get() = current != null
-
-        /**
-         * Shows a new mod menu over the current scene, unless one is shown already.
-         */
-        @JvmStatic
-        fun show() {
-            if (current == null) {
-                current = ModMenu().also { it.open() }
-            }
-        }
-
-        /**
-         * Hides the mod menu. In a room, it sends the selected mods to the server: as the room's mods
-         * for the host, and as the player's mods otherwise when [updatePlayerMods] is true.
-         */
-        @JvmStatic
-        @JvmOverloads
-        fun back(updatePlayerMods: Boolean = true) {
-
-            if (Multiplayer.isConnected) {
-                val gameScene = OsuGame.gameSceneOrNull
-                val isInGameplay = gameScene != null && Verktex.scene == gameScene.scene
-
-                if (!isInGameplay) {
-                    Multiplayer.roomScene?.chat?.show()
-                    Multiplayer.roomScene?.isWaitingForModsChange?.set(true)
-
-                    // The room mods are the same as the host mods
-                    if (Multiplayer.isRoomHost) {
-                        setRoomMods(ModSelection.mods.serializeMods())
-                    } else if (updatePlayerMods) {
-                        setPlayerMods(ModSelection.mods.serializeMods())
-                    } else {
-                        Multiplayer.roomScene?.isWaitingForModsChange?.set(false)
-                    }
-                }
-            }
-
-            current?.close()
-            current = null
-        }
-    }
 
 }
 

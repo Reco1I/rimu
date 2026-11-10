@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.songselect
 
+import com.osudroid.utils.ModHashMap
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.*
 import com.osudroid.beatmaps.DroidHitWindow.Companion.hitWindow300ToOverallDifficulty
@@ -33,7 +34,12 @@ import java.util.*
 import kotlin.math.roundToInt
 import com.reco1l.verktex.ui.themed
 
-class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
+class BeatmapInfoWedge(
+    /**
+     * Returns the mods to show the beatmap with.
+     */
+    private val mods: () -> ModHashMap
+) : UIExtendIntoSafeAreaContainer() {
 
 
     private lateinit var titleText: UIText
@@ -207,7 +213,7 @@ class BeatmapInfoWedge : UIExtendIntoSafeAreaContainer() {
             return
         }
 
-        val mods = ModSelection.mods
+        val mods = mods()
         val isPreciseMod = ModPrecise::class in mods
         val totalSpeedMultiplier = mods.values.calculateRate(Double.POSITIVE_INFINITY)
 

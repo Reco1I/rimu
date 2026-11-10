@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.osudroid.mods.ModSelection
 import com.osudroid.ui.v2.*
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.container.UILinearContainer
@@ -30,7 +29,7 @@ class ModPresetsForm(section: ModMenuPresetsSection) : UIDialog<UILinearContaine
             +nameInput
 
             +ModsIndicator().apply {
-                mods = ModSelection.mods.values
+                mods = section.menu.mods.values
                 padding = Padding(24f.px, 24f.px, 24f.px, 12f.px)
             }
         }

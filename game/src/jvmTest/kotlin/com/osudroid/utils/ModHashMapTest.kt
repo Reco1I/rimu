@@ -148,4 +148,29 @@ class ModHashMapTest {
             Assert.assertNotNull(remove(firstMod))
         }
     }
+
+    @Test
+    fun `Test version changes with the mods`() {
+        val map = ModHashMap()
+        var version = map.version
+
+        fun assertChanged(changed: Boolean) {
+            Assert.assertEquals(changed, map.version != version)
+            version = map.version
+        }
+
+        map.put(ModHidden())
+        assertChanged(true)
+
+        map.remove(ModHardRock::class)
+        assertChanged(false)
+
+        map.remove(ModHidden::class)
+        assertChanged(true)
+
+        map.put(ModDoubleTime())
+        map.clear()
+        assertChanged(true)
+    }
+
 }

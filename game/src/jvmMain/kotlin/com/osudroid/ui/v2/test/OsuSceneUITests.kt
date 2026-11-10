@@ -98,9 +98,10 @@ object OsuSceneUITests : UITestSuite("Scenes") {
             useGameContext()
             BeatmapSelection.beatmap = firstBeatmap()
 
-            showModMenuButton()
-            onDispose { ModMenu.back(false) }
-            ModMenu.show()
+            val modMenu = ModMenu(ModHashMap())
+            showModMenuButton(modMenu)
+            onDispose { modMenu.hide() }
+            modMenu.show()
         }
 
         test("Mod menu (multiplayer)") {
@@ -117,9 +118,10 @@ object OsuSceneUITests : UITestSuite("Scenes") {
                 addPlayer(TestData.roomPlayer(player.id + 1))
             }
 
-            showModMenuButton()
-            onDispose { ModMenu.back(false) }
-            ModMenu.show()
+            val modMenu = ModMenu(ModHashMap())
+            showModMenuButton(modMenu)
+            onDispose { modMenu.hide() }
+            modMenu.show()
         }
 
         test("Lobby") {
@@ -206,11 +208,11 @@ object OsuSceneUITests : UITestSuite("Scenes") {
     private fun firstBeatmap() = LibraryManager.getLibrary().firstOrNull()?.beatmaps?.firstOrNull()
 
     // The mod menu covers the stage, the button opens it again after it's closed.
-    private fun UITestStage.showModMenuButton() = textButton {
+    private fun UITestStage.showModMenuButton(modMenu: ModMenu) = textButton {
         anchor = Anchor.Center
         origin = Anchor.Center
         text = "Mods"
-        onActionUp = { ModMenu.show() }
+        onActionUp = { modMenu.show() }
     }
 
     // Events the server would send to the room, sent straight to the room scene.

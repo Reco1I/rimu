@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.osudroid.utils.ModHashMap
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.mods.*
 import com.osudroid.multiplayer.*
@@ -24,7 +25,7 @@ import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.*
 
 
-class ModMenuToggle(var mod: Mod) : UIButton() {
+class ModMenuToggle(var mod: Mod, private val selectedMods: ModHashMap) : UIButton() {
 
     /**
      * Whether the [Mod] represented by this [ModMenuToggle] is incompatible with one or more enabled [Mod]s.
@@ -70,10 +71,10 @@ class ModMenuToggle(var mod: Mod) : UIButton() {
 
         onActionUp = {
             if (isSelected) {
-                ModSelection.remove(mod)
+                selectedMods.remove(mod::class)
                 SkinSounds["check-off"].play()
             } else {
-                ModSelection.add(mod)
+                selectedMods.put(mod)
                 SkinSounds["check-on"].play()
             }
         }

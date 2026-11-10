@@ -355,7 +355,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 5. Settings replace `Config` | Done |
 | 6. Ktor networking | Done |
 | 7. Split `OsuPlatform` | Done |
-| 8. No `GlobalManager` | In progress: `OsuGame`, `BeatmapSelection` and `ModSelection` done |
+| 8. No `GlobalManager` | In progress: `OsuGame`, `BeatmapSelection` and the selected mods done |
 | 9. Database in Verktex | Not started |
 | 10. `Path` and `UIPath` | Not started |
 | 11. Video | Not started |
@@ -695,23 +695,23 @@ Done in steps, each committed on its own.
 - Checked: the game tests, the common check, the app's unit tests compiling and `assembleDebug`. Not
   seen on screen.
 
-**Step 2: `ModSelection`.**
-- `ModSelection` (common) is the single owner of the selected mods (`mods`, `add`, `remove`,
-  `clear(keep)`), with listeners called with the mods that changed. `notifyChanged(mod)` is for a
-  mod whose settings changed.
-- The room rules are extensions in `multiplayer/RoomModSelection.kt`: `clearPlayerMods()` keeps
-  what only the host can change and ScoreV2; `setRoomMods(mods, isFreeMod)` replaces
-  `ModMenu.setMods`.
-- `ModMenu` is a class created by `ModMenu.show()` and dropped by `ModMenu.back()`, both on its
-  companion with `current`/`isShown`. It follows `ModSelection` while shown: the toggles and the
-  customization sections are synced from it on the update thread, so changes from other threads
-  (the room socket) are safe. Its search term isn't kept between shows.
-- `back()` still sends the mods to the room when no menu is shown, as before.
-- Song select's mods indicator listens to `ModSelection`; `SongSelect.updateMusicEffects` became
-  `OsuGame.applyModsToMusic`.
-- Checked: the game tests (with `ModSelectionTest`), the common check, `assembleDebug` and the
-  `Scenes/Mod menu` UI test on desktop with mods selected before it opened. Not run on a device or
-  in a room. The app's `MigrationTest` fails on Firebase not being initialized, unrelated.
+**Step 2: the selected mods without a singleton.**
+- The selected mods are a plain `ModHashMap` kept by who selects them: song select's for solo play
+  (`SongSelect.mods`, which is the room's in multiplayer) and `RoomScene.mods` in a room.
+  `GameScene` gets them in `startGame`, which copies them. Once song select is created when pushed,
+  the solo mods reset each time it's opened, which the user accepted.
+- `ModHashMap.version` increases on every change of its mods, and what shows them (the mod menu,
+  song select's mods indicator) compares it each frame instead of listening. This also makes the
+  changes from the room's socket thread safe to show.
+- The room rules are extensions in `multiplayer/PlayerMods.kt`: `clearPlayerMods()` keeps what
+  only the host can change and ScoreV2; `setRoomMods(mods, isFreeMod)` replaces `ModMenu.setMods`.
+- `ModMenu(mods)` is created by its owner, which sets `onBack` and `onDifficultyCalculated`. The
+  room's `closeModMenu`/`sendMods` replace the room code `ModMenu.back` had, and the back key goes
+  through `SongSelect.back` and `RoomScene.onBackPressed`. `SongSelect.updateMusicEffects` became
+  `OsuGame.applyModsToMusic(mods)`.
+- Checked: the game tests (with a `ModHashMap.version` test), the common check, `assembleDebug` and
+  the `Scenes/Mod menu` UI test on desktop with mods selected before it opened. Not run on a device
+  or in a room. The app's `MigrationTest` fails on Firebase not being initialized, unrelated.
 
 What's left, cheapest first:
 - `SplashScene`, `CalibrationScene` and `MainScene` as classes created when pushed. Few outside users:

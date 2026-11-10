@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.multi
 
-import com.osudroid.mods.ModSelection
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
@@ -109,6 +108,13 @@ class RoomScene(
      * The room chat.
      */
     val chat: RoomChat
+
+    /**
+     * The mods the player selected in this room.
+     */
+    val mods = ModHashMap()
+
+    private var modMenu: ModMenu? = null
 
     /**
      * The leave dialog that will be shown when the player tries to leave the room.
@@ -299,7 +305,7 @@ class RoomScene(
 
                     Section(Res.string.multiplayer_room_beatmap) {
 
-                        +BeatmapInfoLayout().apply {
+                        +BeatmapInfoLayout { mods }.apply {
                             padding = Padding(12f.dip)
                             radius = themed { radius.md }
                             backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.5f) }
@@ -370,7 +376,7 @@ class RoomScene(
                         modsButton = textButton {
                             leadingIcon = faSolidIcon(FAIcon.Sliders)
                             text = Res.string.multiplayer_room_mods
-                            onActionUp = { ModMenu.show() }
+                            onActionUp = { showModMenu() }
                         }
                     }
 
@@ -717,6 +723,59 @@ class RoomScene(
         chat.hide()
     }
 
+    /**
+     * Closes the mod menu if it's shown, or asks to leave the room otherwise.
+     */
+    fun onBackPressed() {
+        if (modMenu?.isShown == true) {
+            closeModMenu()
+        } else {
+            leaveDialog.show()
+        }
+    }
+
+    private fun showModMenu() {
+        val menu = modMenu ?: ModMenu(mods).apply { onBack = { closeModMenu() } }
+
+        modMenu = menu
+        menu.show()
+    }
+
+    /**
+     * Hides the mod menu if it's shown, and sends the mods to the server with [sendMods].
+     */
+    fun closeModMenu(updatePlayerMods: Boolean = true) {
+        modMenu?.hide()
+        sendMods(updatePlayerMods)
+    }
+
+    /**
+     * Sends the selected mods to the server, unless playing: as the room's mods for the host, and as
+     * the player's mods otherwise when [updatePlayerMods] is true.
+     */
+    fun sendMods(updatePlayerMods: Boolean = true) {
+        if (!Multiplayer.isConnected) {
+            return
+        }
+
+        val gameScene = OsuGame.gameSceneOrNull
+        if (gameScene != null && Verktex.scene == gameScene.scene) {
+            return
+        }
+
+        chat.show()
+        isWaitingForModsChange.set(true)
+
+        // The room mods are the same as the host mods
+        if (Multiplayer.isRoomHost) {
+            RoomAPI.setRoomMods(mods.serializeMods())
+        } else if (updatePlayerMods) {
+            RoomAPI.setPlayerMods(mods.serializeMods())
+        } else {
+            isWaitingForModsChange.set(false)
+        }
+    }
+
     fun back() {
         teardownSession()
 
@@ -824,12 +883,12 @@ class RoomScene(
             chat.onSystemChatMessage(Res.string.multiplayer_room_welcome, "#459FFF")
         }
 
-        ModSelection.clearPlayerMods()
-        ModSelection.setRoomMods(newRoom.mods, newRoom.gameplaySettings.isFreeMod)
+        mods.clearPlayerMods()
+        mods.setRoomMods(newRoom.mods, newRoom.gameplaySettings.isFreeMod)
 
         isWaitingForModsChange.set(true)
 
-        RoomAPI.setPlayerMods(ModSelection.mods.serializeMods())
+        RoomAPI.setPlayerMods(mods.serializeMods())
 
         updateInformation()
         updatePlayerList()
@@ -962,7 +1021,7 @@ class RoomScene(
         chat.onSystemChatMessage(Res.string.multiplayer_room_new_host.format(newHostName), "#459FFF")
 
         updateThread {
-            ModMenu.back(false)
+            closeModMenu(false)
             updateButtons()
         }
 
@@ -985,9 +1044,9 @@ class RoomScene(
         updateThread {
             // Select the new room mods first, so that the mods sent to the server aren't the
             // previous ones.
-            ModSelection.setRoomMods(mods, room.gameplaySettings.isFreeMod)
-            ModMenu.current?.updateModButtonVisibility()
-            RoomAPI.setPlayerMods(ModSelection.mods.serializeMods())
+            this.mods.setRoomMods(mods, room.gameplaySettings.isFreeMod)
+            modMenu?.updateModButtonVisibility()
+            RoomAPI.setPlayerMods(this.mods.serializeMods())
             updateInformation()
         }
     }
@@ -1004,7 +1063,7 @@ class RoomScene(
         updateThread {
             updateButtons()
             updateInformation()
-            ModMenu.back(false)
+            closeModMenu(false)
         }
 
         invalidateStatus()
@@ -1093,7 +1152,7 @@ class RoomScene(
 
                 allowAutomaticPlaybackRestart = false
                 OsuGame.music.stop()
-                OsuGame.gameScene.startGame(BeatmapSelection.beatmap, null, ModSelection.mods)
+                OsuGame.gameScene.startGame(BeatmapSelection.beatmap, null, mods)
 
             }
         }
