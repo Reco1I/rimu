@@ -485,6 +485,29 @@ object Verktex {
         return scene
     }
 
+    /**
+     * Replaces every scene in the stack with [scene], so that none of them can be gone back to, like a
+     * splash screen once the game has started.
+     */
+    @JvmStatic
+    fun resetScenes(scene: UIScene): Unit = treeLock.withLock {
+        sceneHost?.let {
+            it.resetScenes(scene)
+            return
+        }
+
+        val previousScene = sceneStack.last()
+
+        // The scenes below the topmost one already left when they were covered.
+        while (sceneStack.size > 1) {
+            sceneStack.removeLast()
+        }
+        sceneStack.addLast(scene)
+
+        previousScene.onLeave()
+        scene.onEnter()
+    }
+
     private fun topmostCapture(): UICaptureContainer? {
         for (index in overlayContainer.childCount - 1 downTo 0) {
             val overlay = overlayContainer[index]
@@ -657,4 +680,14 @@ interface SceneHost {
      * Removes the topmost scene and returns it, or null if the host has no scenes.
      */
     fun popScene(): UIScene?
+
+    /**
+     * Replaces every scene of the host with [scene]. By default, pops them all and pushes it.
+     */
+    fun resetScenes(scene: UIScene) {
+        while (popScene() != null) {
+            continue
+        }
+        pushScene(scene)
+    }
 }

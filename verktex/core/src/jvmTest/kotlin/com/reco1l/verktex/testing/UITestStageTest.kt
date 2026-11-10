@@ -103,4 +103,23 @@ class UITestStageTest {
         assertNull(stage.currentScene)
         assertEquals(listOf("scene enter", "scene leave", "second dispose", "first dispose"), events)
     }
+
+    @Test
+    fun `Resetting the scenes replaces the host scenes`() {
+        stage.allowsNavigation = true
+        val first = RecordingScene(events, "first")
+        val second = RecordingScene(events, "second")
+        val third = RecordingScene(events, "third")
+        Verktex.pushScene(first)
+        Verktex.pushScene(second)
+        events.clear()
+
+        Verktex.resetScenes(third)
+
+        assertSame(third, Verktex.scene)
+        assertSame(stage, third.parent)
+        assertNull(first.parent)
+        assertNull(second.parent)
+    }
+
 }
