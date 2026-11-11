@@ -372,9 +372,9 @@ JVM and moved to `commonMain` (the `jvm` group of the source set hierarchy went 
 - Replays are JSON (`ReplayData.kt`, version 10) instead of Java's object serialization in a zip.
   Older replays aren't read; the server has to accept and serve the new format for online scores and
   online replays.
-- What blocks stays at the platforms' edges: `LibraryManager.scanDirectory` suspends, and
-  `MainActivity` (through `LibraryScanning.scanBeatmapDirectoryBlocking`) and `OsuDesktop` block on it;
-  `downloadFileBlocking` is in `androidMain`, for `PushNotificationService`.
+- What blocks stays at the platforms' edges: `LibraryManager.scanDirectory` suspends, and so does
+  `OsuGameHost.loadBeatmapLibrary`; `downloadFileBlocking` is in `androidMain`, for
+  `PushNotificationService`, whose notification is built before Firebase's callback returns.
 - No weak references in common code: `GameScene`'s last started play is a strong reference cleared
   when it quits, and `RippleVisualizer` removes its listener when detached.
 
@@ -403,3 +403,14 @@ and everything is drawn with Verktex.
   generated suspend DAOs and their blocking adapters are removed. Callers on the update thread read
   in a coroutine and come back with `updateThread`; the game loader reads the beatmap's options
   itself and passes its offset to `GameScene.start`.
+- **One startup.** `OsuGame.start` starts the game on both platforms: the settings, the folders, the
+  splash, then in the background the database (`OsuGameHost.openDatabase`), the skin, the star
+  ratings and the library, and the main menu, after which the host gets `onGameStarted`.
+  `MainActivity` only launches the game: `AndroidOsuGameHost` (Kotlin, in `:shared`) has its
+  lifecycle, what the game was opened with and the Android features, and `MainActivity` opens the
+  permission screen. Nothing blocks on the startup any more (`LibraryScanning` is removed).
+- **Back is the scenes'.** Verktex's hosts have no unhandled-key hook: key presses go through
+  `onInputEvent` like any input, and each scene handles back (`KeyboardEvent.isBackPress`: Android's
+  back button or Escape) once its components didn't. On Android a press no scene consumes goes to
+  the activity, where back finishes it, so every game scene consumes it. The GLES version report to
+  Firebase is removed: Verktex falls back to OpenGL ES 2.

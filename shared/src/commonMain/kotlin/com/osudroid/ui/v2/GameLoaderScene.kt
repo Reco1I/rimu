@@ -57,8 +57,22 @@ import com.osudroid.utils.currentTimeMillis
 import com.reco1l.verktex.localization.formatString
 import com.osudroid.utils.async
 import com.osudroid.utils.updateThread
+import com.reco1l.verktex.input.KeyboardEvent
 
 class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : UIScene() {
+
+    // Back cancels the play, once no component consumed it.
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
+            return true
+        }
+
+        if (event is KeyboardEvent && event.isBackPress) {
+            cancel()
+            return true
+        }
+        return false
+    }
 
     private var lastTimeTouched = currentTimeMillis()
     private var isStarting = false

@@ -47,9 +47,24 @@ import com.reco1l.verktex.ui.textButton
 import kotlin.math.ceil
 import kotlin.math.log10
 import com.reco1l.verktex.ui.themed
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.KeyboardEvent
 
 
 class SettingsMenu : UIScene() {
+
+    // Back goes back a section or leaves the settings, once no component consumed it.
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
+            return true
+        }
+
+        if (event is KeyboardEvent && event.isBackPress) {
+            back()
+            return true
+        }
+        return false
+    }
 
     private var selectedSection = SettingsSection.General
 

@@ -74,12 +74,27 @@ import ru.nsu.ccfit.zuev.osu.online.*
 import kotlin.math.*
 import com.reco1l.verktex.ui.themed
 import com.osudroid.utils.currentTimeMillis
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.KeyboardEvent
 
 
 /**
  * The main menu, created by the host once the game has started.
  */
 class MainScene : UIScene() {
+
+    // Back asks to leave the game, once no component consumed it.
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
+            return true
+        }
+
+        if (event is KeyboardEvent && event.isBackPress) {
+            showExitDialog()
+            return true
+        }
+        return false
+    }
 
     private lateinit var playerButton: PlayerButton
     private lateinit var musicButton: UITextButton

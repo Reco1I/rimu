@@ -12,11 +12,25 @@ import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.text.UIText
 import kotlin.concurrent.Volatile
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.KeyboardEvent
 
 /**
  * The scene shown while the game is loading, created by the host when it starts.
  */
 class SplashScene : UIScene() {
+
+    // Back does nothing while the game starts, once no component consumed it.
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
+            return true
+        }
+
+        if (event is KeyboardEvent && event.isBackPress) {
+            return true
+        }
+        return false
+    }
 
     companion object {
 

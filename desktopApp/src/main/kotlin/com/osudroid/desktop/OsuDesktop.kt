@@ -1,31 +1,15 @@
 package com.osudroid.desktop
 
 import com.osudroid.OsuGame
-import ru.nsu.ccfit.zuev.osu.LibraryManager
-import com.reco1l.verktex.PlatformApplication
-import com.reco1l.verktex.Platform
 import com.osudroid.OsuGameHost
-import com.osudroid.settings.GameFolders
-import com.osudroid.settings.OsuSettings
-import com.osudroid.ui.v2.SkinFolders
-import com.osudroid.beatmaps.DifficultyCalculationManager
-import com.osudroid.ui.v2.SplashScene
-import com.osudroid.ui.v2.mainmenu.MainScene
-import com.osudroid.ui.v2.songselect.SongSelect
-import com.osudroid.utils.async
-import com.osudroid.utils.delayed
-import kotlinx.coroutines.runBlocking
-import com.reco1l.verktex.Verktex
-import com.reco1l.verktex.desktop.DesktopGameHost
-import com.reco1l.verktex.settings.Settings
-import com.reco1l.verktex.settings.VerktexSettings
-import ru.nsu.ccfit.zuev.osu.online.OnlineManager
-import java.io.File
-import com.osudroid.debug.QuickPlay
 import com.osudroid.beatmaps.LibraryImport
+import com.osudroid.debug.QuickPlay
+import com.reco1l.verktex.PlatformApplication
+import com.reco1l.verktex.desktop.DesktopGameHost
+import java.io.File
 
 /**
- * The game's window on desktop, which starts the game as `MainActivity` does on Android.
+ * The game's window on desktop, which starts the game ([OsuGame.start]).
  *
  * @param screenshot When set, the frame shown [screenshotDelaySeconds] after starting is saved to this
  * PNG and the window closes, e.g. for smoke checks.
@@ -41,63 +25,26 @@ class OsuDesktop(
 
     override val application = DESKTOP_APPLICATION
 
-    // It runs on a background thread, which waits for the import and the scan.
-    override fun loadBeatmapLibrary() = runBlocking { LibraryImport.loadLibrary() }
+    override fun openDatabase() = DesktopDatabase.load()
+
+    override suspend fun loadBeatmapLibrary() = LibraryImport.loadLibrary()
 
     override fun checkNewSkins() = LibraryImport.importSkins()
 
     override val downloadsFolder: String?
         get() = File(System.getProperty("user.home"), "Downloads").takeIf { it.isDirectory }?.path
 
-    override fun onEngineInitialized() {
-        OsuSettings.load()
-
-        createGameDirectories()
-        OnlineManager.getInstance().init()
-        DesktopDatabase.load()
-
-        OsuGame.isHeadless = false
-    }
+    override fun onEngineInitialized() = OsuGame.start()
 
     override fun onEngineStarted() {
-        val splashScene = SplashScene()
-        Verktex.pushScene(splashScene)
-
         if (screenshot != null) {
             captureScreenshot(screenshot, screenshotDelaySeconds)
         }
-
-        async {
-            OsuGame.init()
-
-            // The "Show FPS" setting shows the engine's performance overlay.
-            Settings[VerktexSettings.ShowPerformanceOverlay] = Settings[OsuSettings.ShowFps]
-
-            // The resolution scale setting is stored as a percentage.
-            Settings[VerktexSettings.ResolutionScale] = Settings[OsuSettings.ResolutionScale] / 100f
-
-            SplashScene.progress = 50
-            SkinFolders.load()
-            DifficultyCalculationManager.checkForOutdatedStarRatings()
-            OsuGameHost.current.loadBeatmapLibrary()
-
-            splashScene.playWelcomeAnimation()
-
-            delayed(2500) {
-                SplashScene.info = ""
-                SplashScene.progress = 100
-                // The splash can't be gone back to.
-                Verktex.resetScenes(MainScene())
-
-                // TEMPORARY: debug shortcut straight into gameplay.
-                quickPlay?.let { QuickPlay.start(it, quickPlayAutoplay) }
-            }
-        }
     }
 
-    private fun createGameDirectories() {
-        File(GameFolders.beatmapPath).mkdirs()
-        File(SkinFolders.topPath).mkdirs()
+    override fun onGameStarted() {
+        // TEMPORARY: debug shortcut straight into gameplay.
+        quickPlay?.let { QuickPlay.start(it, quickPlayAutoplay) }
     }
 }
 

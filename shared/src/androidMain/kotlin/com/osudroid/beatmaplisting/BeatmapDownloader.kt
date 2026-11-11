@@ -71,7 +71,7 @@ object BeatmapDownloader {
     }
 
 
-    private fun onDownloadEnd(toast: Toasts.Toast, filename: String, file: File) {
+    private suspend fun onDownloadEnd(toast: Toasts.Toast, filename: String, file: File) {
         toast.setAction(null)
         toast.isIndeterminate = true
         toast.text = Res.string.beatmap_downloader_importing.format(filename)

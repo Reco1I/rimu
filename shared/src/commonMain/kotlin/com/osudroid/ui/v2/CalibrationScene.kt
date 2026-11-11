@@ -50,6 +50,7 @@ import kotlin.math.exp
 import kotlin.math.roundToInt
 import ru.nsu.ccfit.zuev.audio.Status
 import com.reco1l.verktex.ui.themed
+import com.reco1l.verktex.input.KeyboardEvent
 
 /**
  * Measures the player's audio offset by tapping to a metronome, between [offsetMin] and [offsetMax]
@@ -59,6 +60,19 @@ class CalibrationScene(
     private val offsetMin: Int = -500,
     private val offsetMax: Int = 500
 ) : UIScene() {
+
+    // Back leaves the calibration, once no component consumed it.
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
+            return true
+        }
+
+        if (event is KeyboardEvent && event.isBackPress) {
+            back()
+            return true
+        }
+        return false
+    }
 
     private var currentBpm = 60
 

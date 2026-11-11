@@ -77,6 +77,8 @@ import ru.nsu.ccfit.zuev.audio.Status
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.ui.themed
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.KeyboardEvent
 
 class RoomScene(
     /**
@@ -85,6 +87,19 @@ class RoomScene(
      */
     var room: Room
 ) : UIScene(), IRoomEventListener, IPlayerEventListener {
+
+    // Back closes the mod menu or asks to leave the room, once no component consumed it.
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
+            return true
+        }
+
+        if (event is KeyboardEvent && event.isBackPress) {
+            onBackPressed()
+            return true
+        }
+        return false
+    }
     /**
      * Indicates that the host can change beatmap. **This must be `false` when waiting for a beatmap change request**.
      *

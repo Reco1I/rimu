@@ -40,12 +40,27 @@ import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import kotlin.coroutines.cancellation.CancellationException
 import com.osudroid.data.BeatmapSetInfo
 import com.osudroid.utils.updateThread
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.KeyboardEvent
 
 /**
  * Song select, created each time it's opened. Its sort order and grouping are settings, and it
  * opens on the selected beatmap; the rest of the filter and the solo mods start over.
  */
 class SongSelect : UIScene() {
+
+    // Back leaves song select, once no component consumed it.
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
+            return true
+        }
+
+        if (event is KeyboardEvent && event.isBackPress) {
+            back()
+            return true
+        }
+        return false
+    }
 
     /**
      * Whether the leaderboard is showing online scores.

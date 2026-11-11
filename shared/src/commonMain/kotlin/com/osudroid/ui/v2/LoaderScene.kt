@@ -12,8 +12,22 @@ import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.sprite
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.KeyboardEvent
 
 class LoaderScene : UIScene() {
+
+    // Back does nothing while loading, once no component consumed it.
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
+            return true
+        }
+
+        if (event is KeyboardEvent && event.isBackPress) {
+            return true
+        }
+        return false
+    }
 
     init {
         background = UIContainer().apply {

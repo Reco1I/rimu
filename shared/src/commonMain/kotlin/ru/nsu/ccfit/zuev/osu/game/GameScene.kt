@@ -140,6 +140,7 @@ import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import com.osudroid.utils.currentTimeMillis
 import kotlin.concurrent.Volatile
+import com.reco1l.verktex.input.KeyboardEvent
 
 /**
  * A play of one beatmap: its gameplay, its retries and the replays watched from its [scoring] scene.
@@ -3875,7 +3876,18 @@ open class GameScene : GameObjectListener {
                 return Verktex.withTreeLock { onPointerEvent(event) }
             }
 
-            return super.onInputEvent(event)
+            if (super.onInputEvent(event)) {
+                return true
+            }
+
+            // Back and the menu key pause the play, or resume it, from the update thread, which owns the
+            // gameplay state.
+            if (event is KeyboardEvent && (event.isBackPress ||
+                    event.action == KeyboardEvent.Action.Down && event.key == KeyboardEvent.Key.Menu)) {
+                updateThread { if (game.isPaused) game.resume() else game.pause() }
+                return true
+            }
+            return false
         }
 
         override fun onUpdate(clock: FrameClock) {

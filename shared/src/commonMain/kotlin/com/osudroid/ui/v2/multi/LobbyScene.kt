@@ -26,8 +26,23 @@ import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import kotlin.coroutines.cancellation.CancellationException
 import com.osudroid.utils.currentTimeMillis
+import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.input.KeyboardEvent
 
 class LobbyScene : UIScene() {
+
+    // Back leaves the lobby, once no component consumed it.
+    override fun onInputEvent(event: InputEvent): Boolean {
+        if (super.onInputEvent(event)) {
+            return true
+        }
+
+        if (event is KeyboardEvent && event.isBackPress) {
+            back()
+            return true
+        }
+        return false
+    }
 
     private var isFetching = false
     private var shouldFetch = true

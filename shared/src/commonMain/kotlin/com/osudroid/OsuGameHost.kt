@@ -9,7 +9,7 @@ import com.reco1l.verktex.ui.ITextInput
  * Each feature defaults to what a host without it does: the game hides what opens it, or does
  * without it.
  *
- * The game's hosts implement it (Android's `MainActivity`, desktop's `OsuDesktop`, the UI test
+ * The game's hosts implement it (Android's `AndroidOsuGameHost`, desktop's `OsuDesktop`, the UI test
  * browsers), and the game reaches it through [current].
  */
 interface OsuGameHost : GameHost {
@@ -31,10 +31,21 @@ interface OsuGameHost : GameHost {
     fun logAnalyticsEvent(name: String, parameters: Map<String, String>) = Unit
 
     /**
+     * Opens the game's database, in the background while the game starts ([OsuGame.start]).
+     */
+    fun openDatabase() = Unit
+
+    /**
+     * Called once the game has started and shows the main menu, for what the host does then, such as
+     * playing a file the game was opened with.
+     */
+    fun onGameStarted() = Unit
+
+    /**
      * Imports the beatmap sets waiting to be imported (`.osz` files in the game's folders, or opened
      * with the game) and loads the library.
      */
-    fun loadBeatmapLibrary() = Unit
+    suspend fun loadBeatmapLibrary() = Unit
 
     /**
      * Imports the skins waiting to be imported (`.osk` files in the game's folders).

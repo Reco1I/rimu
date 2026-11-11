@@ -59,6 +59,7 @@ import com.osudroid.utils.formatDateTime
 import com.reco1l.verktex.localization.formatString
 import okio.Path.Companion.toPath
 import com.osudroid.utils.async
+import com.reco1l.verktex.input.KeyboardEvent
 
 class ScoringScene(pGame: GameScene) {
     private val game: GameScene = pGame
@@ -627,6 +628,19 @@ class ScoringScene(pGame: GameScene) {
     private inner class ResultsUIScene : UIScene() {
         val scoring
             get() = this@ScoringScene
+
+        // Back leaves the results, once no component consumed it.
+        override fun onInputEvent(event: InputEvent): Boolean {
+            if (super.onInputEvent(event)) {
+                return true
+            }
+
+            if (event is KeyboardEvent && event.isBackPress) {
+                back()
+                return true
+            }
+            return false
+        }
     }
 
     companion object {
