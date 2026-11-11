@@ -1,7 +1,6 @@
 buildscript {
     ext {
         kotlin_version = '2.4.10'
-        room_version = '2.7.2'
     }
     repositories {
         google()
@@ -14,13 +13,7 @@ buildscript {
         classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
-        classpath "androidx.room:room-gradle-plugin:$room_version"
     }
-}
-
-plugins {
-    id "org.jetbrains.kotlin.kapt" version "2.4.10"
-    id 'com.android.built-in-kotlin' version '9.2.1' apply false
 }
 
 allprojects {
@@ -52,22 +45,25 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.newDataInputStream())
 }
 
+// The Android application: a shell around :game, whose Android target has the game's code, resources
+// and manifest. Here is what an application decides: its id, version, signing and build types, and
+// the Firebase plugins, which only apply to applications.
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
-apply plugin: 'kotlin-android'
-apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
-apply plugin: 'androidx.room'
 
 android {
-    namespace 'ru.nsu.ccfit.zuev.osuplus'
+    // The game has the namespace the application had (ru.nsu.ccfit.zuev.osuplus), for its resources,
+    // so the application takes another one and sets its id itself.
+    namespace 'ru.nsu.ccfit.zuev.osuplus.app'
     compileSdk {
         version = release(36) { minorApiLevel = 1 }
     }
     ndkVersion '22.1.7171670'
 
     defaultConfig {
-        manifestPlaceholders = [uiTestsEnabled: "false", profileable: "false"]
+        applicationId 'ru.nsu.ccfit.zuev.osuplus'
+        manifestPlaceholders = [profileable: "false", buildType: "release"]
         minSdkVersion 24
         targetSdkVersion 29
         versionCode getReleaseVersionCode()
@@ -81,10 +77,6 @@ android {
         resources {
             excludes += ['META-INF/proguard/coroutines.pro']
         }
-    }
-
-    room {
-        schemaDirectory "$projectDir/schemas"
     }
 
     signingConfigs {
@@ -111,7 +103,9 @@ android {
         debug {
             resValue "string", "app_name", "osu!droid-debug"
             applicationIdSuffix '.debug'
-            manifestPlaceholders = [uiTestsEnabled: "true", profileable: "false"]
+            // The UI test browsers, see ui_tests_enabled in the game's resources.
+            resValue "bool", "ui_tests_enabled", "true"
+            manifestPlaceholders = [profileable: "false", buildType: "debug"]
             firebaseCrashlytics {
                 mappingFileUploadEnabled false
             }
@@ -119,6 +113,7 @@ android {
 
         release {
             resValue "string", "app_name", "osu!droid"
+            manifestPlaceholders = [profileable: "false", buildType: "release"]
 //            minifyEnabled true
 //            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
             signingConfig signingConfigs.release
@@ -133,13 +128,14 @@ android {
             initWith debug
             debuggable false
             matchingFallbacks = ['release']
-            manifestPlaceholders = [uiTestsEnabled: "true", profileable: "true"]
+            manifestPlaceholders = [profileable: "true", buildType: "profile"]
             signingConfig signingConfigs.debug
         }
 
         pre_release {
             matchingFallbacks = ['release']
             resValue "string", "app_name", "osu!droid"
+            manifestPlaceholders = [profileable: "false", buildType: "pre_release"]
 //            minifyEnabled true
 //            debuggable true
 //            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
@@ -153,49 +149,20 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src']
-            res.srcDirs = ['res']
-            // The game's strings, generated from the language pack, see :game:generateStringResources.
-            assets.srcDirs = ['assets', "${project(':game').projectDir}/build/generated/resources/assets"]
-            jniLibs.srcDirs = ['libs']
+            java.srcDirs = []
+            res.srcDirs = []
         }
-        test.setRoot("$projectDir/tests/test")
-
-        // We need to add the Room schemas not as a *test* resource, but as a build asset.
-        // See https://github.com/robolectric/robolectric/issues/3928#issuecomment-395309991 for more details.
-        debug.assets.srcDirs += files("$projectDir/schemas".toString())
-        release.assets.srcDirs += files("$projectDir/schemas".toString())
-        pre_release.assets.srcDirs += files("$projectDir/schemas".toString())
-        profile.assets.srcDirs += files("$projectDir/schemas".toString())
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-        kotlinOptions {
-            jvmTarget = '17'
-            freeCompilerArgs += ['-Xjvm-default=all']
-        }
     }
 
-    useLibrary 'org.apache.http.legacy'
     lint {
         abortOnError true
         disable 'MissingTranslation', 'ExpiredTargetSdkVersion', 'ProtectedPermissions', 'AppLinkUrlError'
         ignoreWarnings true
-    }
-    buildFeatures {
-        buildConfig true
-    }
-
-    testOptions {
-        unitTests {
-            includeAndroidResources true
-        }
-    }
-
-    kotlinOptions {
-        freeCompilerArgs = ['-XXLanguage:+ExplicitBackingFields']
     }
 
     android.applicationVariants.configureEach { variant ->
@@ -207,45 +174,5 @@ android {
 }
 
 dependencies {
-    implementation 'com.reco1l.verktex:verktex'
     implementation project(':game')
-
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'com.google.firebase:firebase-crashlytics:19.4.0'
-    implementation 'com.google.firebase:firebase-analytics:22.2.0'
-    implementation 'com.google.firebase:firebase-messaging:24.1.0'
-
-    implementation 'com.google.code.gson:gson:2.12.1'
-    implementation 'pub.devrel:easypermissions:3.0.0'
-    implementation 'net.lingala.zip4j:zip4j:2.11.5'
-
-    // Only its easings, used by the Android views until they're rewritten on Verktex.
-    implementation 'com.github.EdrowsLuo.EdlGameFramework:EdlJavaExt:d91c53fcff'
-
-    // Localizations
-    implementation "com.github.osudroid:language-pack:$languagePackVersion"
-
-    // Tools
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0"
-    implementation 'commons-io:commons-io:2.18.0'
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.robolectric:robolectric:4.14.1'
-
-    // Multiplayer
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1'
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-
-    // Room
-    implementation "androidx.room:room-runtime:$room_version"
-    annotationProcessor "androidx.room:room-compiler:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
-    kapt "org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.10"
-    implementation "androidx.room:room-ktx:$room_version"
-    testImplementation "androidx.room:room-testing:$room_version"
-}
-
-// The game's strings are generated assets, see :game:generateStringResources.
-tasks.named('preBuild') {
-    dependsOn ':game:generateStringResources'
 }

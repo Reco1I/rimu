@@ -7,8 +7,10 @@ import org.w3c.dom.Element
 
 // The game: gameplay, beatmaps, difficulty, mods, scoring and UI, with the targets of Verktex, see
 // docs/multiplatform-game.md. commonMain is common Kotlin, which can't depend on Android or the JVM,
-// and jvmMain is what still needs a JVM, shared by the Android and desktop targets. desktopMain is
-// the desktop launcher, which the run and runUITests tasks start.
+// and jvmMain is what still needs a JVM, shared by the Android and desktop targets. androidMain is
+// the Android side of the game (MainActivity, the services, the database, the views), which the
+// application module packages, and desktopMain the desktop launcher, which the run and runUITests
+// tasks start.
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.kotlin.multiplatform.library")
@@ -156,7 +158,7 @@ abstract class GenerateStringResources : DefaultTask() {
 
 val generateStringResources by tasks.registering(GenerateStringResources::class) {
     languagePack.from(configurations.named("languagePack"))
-    extraStrings.from(rootProject.layout.projectDirectory.file("res/values/strings_temporary_for_locals.xml"))
+    extraStrings.from(layout.projectDirectory.file("src/androidMain/res/values/strings_temporary_for_locals.xml"))
     outputDirectory.set(layout.buildDirectory.dir("generated/resources/commonMain/kotlin"))
     assetsDirectory.set(layout.buildDirectory.dir("generated/resources/assets"))
 }
@@ -325,14 +327,34 @@ kotlin {
     }
 
     android {
-        namespace = "com.osudroid.game"
+        // The namespace of the resources (R), the one the application had before the game moved
+        // here. The application keeps its id.
+        namespace = "ru.nsu.ccfit.zuev.osuplus"
         compileSdk {
             version = release(36) { minorApiLevel = 1 }
         }
         minSdk = 24
 
+        // MainActivity and other legacy classes are Java.
+        withJava()
+
+        androidResources {
+            enable = true
+        }
+
+        lint {
+            abortOnError = true
+            disable += listOf("MissingTranslation", "ExpiredTargetSdkVersion", "ProtectedPermissions", "AppLinkUrlError")
+            ignoreWarnings = true
+        }
+
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
+
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
+            freeCompilerArgs.add("-jvm-default=no-compatibility")
         }
     }
 
@@ -391,6 +413,37 @@ kotlin {
             }
         }
 
+        androidMain.dependencies {
+            implementation("androidx.legacy:legacy-support-v4:1.0.0")
+            implementation("com.google.android.material:material:1.11.0")
+            implementation("com.google.firebase:firebase-crashlytics:19.4.0")
+            implementation("com.google.firebase:firebase-analytics:22.2.0")
+            implementation("com.google.firebase:firebase-messaging:24.1.0")
+
+            implementation("com.google.code.gson:gson:2.12.1")
+            implementation("pub.devrel:easypermissions:3.0.0")
+            implementation("net.lingala.zip4j:zip4j:2.11.5")
+
+            // Only its easings, used by the Android views until they're rewritten on Verktex.
+            implementation("com.github.EdrowsLuo.EdlGameFramework:EdlJavaExt:d91c53fcff")
+
+            // Localizations
+            implementation("com.github.osudroid:language-pack:${providers.gradleProperty("languagePackVersion").get()}")
+
+            implementation("commons-io:commons-io:2.18.0")
+            implementation(kotlin("reflect"))
+
+            // The database: Room over Android's SQLite.
+            implementation("androidx.room:room-runtime:$roomVersion")
+            implementation("androidx.room:room-ktx:$roomVersion")
+        }
+
+        getByName("androidHostTest").dependencies {
+            implementation("junit:junit:4.13.2")
+            implementation("org.robolectric:robolectric:4.14.1")
+            implementation("androidx.room:room-testing:$roomVersion")
+        }
+
         getByName("desktopMain") {
             // The DAOs Room implements on desktop, see GenerateSuspendDaos.
             kotlin.srcDir(generateSuspendDaos)
@@ -426,11 +479,28 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    add("kspAndroid", "androidx.room:room-compiler:$roomVersion")
     add("kspDesktop", "androidx.room:room-compiler:$roomVersion")
 }
 
 ksp {
     arg("room.generateKotlin", "true")
+
+    // The schemas of the Android database, which its migrations are tested against. The desktop
+    // one exports none.
+    arg("room.schemaLocation", layout.projectDirectory.dir("schemas").asFile.path)
+}
+
+androidComponents {
+    onVariants { variant ->
+        // The game's assets (the default skin, sounds, fonts) and its strings.
+        variant.sources.assets?.addStaticSourceDirectory(rootProject.layout.projectDirectory.dir("assets").asFile.path)
+        variant.sources.assets?.addGeneratedSourceDirectory(generateStringResources, GenerateStringResources::assetsDirectory)
+
+        // The Room schemas aren't added as a test resource but as an asset, see
+        // https://github.com/robolectric/robolectric/issues/3928#issuecomment-395309991
+        variant.sources.assets?.addStaticSourceDirectory(layout.projectDirectory.dir("schemas").asFile.path)
+    }
 }
 
 // The desktop launcher. Relative paths given in --args, e.g. --screenshot, resolve against the

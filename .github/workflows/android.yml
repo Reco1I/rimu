@@ -61,7 +61,7 @@ jobs:
       uses: ./.github/actions/setup-java-gradle
 
     - name: Run tests
-      run: ./gradlew testDebugUnitTest
+      run: ./gradlew :game:testAndroidHostTest
 
     - name: Upload test results
       if: ${{ always() }}

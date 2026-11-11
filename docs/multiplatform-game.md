@@ -6,6 +6,8 @@
 > its tests in `src/desktopTest` (`:game:desktopTest`). Where the text below says `:verktex:core`,
 > `:verktex:android`, `:verktex:desktop`, `Platform.Implementation` or `jvmTest`, read those.
 > `:game-desktop` is now `:game`'s `src/desktopMain` source set, run with `:game:run` and `:game:runUITests`.
+> The Android app's code, resources and tests are `:game`'s `src/androidMain` and `src/androidHostTest`; the
+> root module is only the application shell (id, signing, build types, Firebase plugins).
 
 ## Context
 

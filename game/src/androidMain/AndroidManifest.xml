@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- What the game declares for any application built from it. The application module declares
+         the application itself, see the root AndroidManifest.xml. -->
+    <application>
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/notify_inso"/>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/colorAccent"/>
+
+        <service
+            android:name="ru.nsu.ccfit.zuev.push.PushNotificationService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
+
+        <activity
+            android:name="com.edlplan.ui.ImportReplayActivity"
+            android:label="@string/act_import_replay"
+            android:exported="true">
+
+            <!-- firefox and file explorer -->
+            <intent-filter android:label="@string/act_import_replay">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" android:mimeType="application/zip" android:pathPattern=".*\\.edr" />
+                <data android:scheme="file" android:mimeType="application/x-zip-compressed" android:pathPattern=".*\\.edr" />
+                <data android:scheme="file" android:mimeType="application/octet-stream" android:pathPattern=".*\\.edr" />
+            </intent-filter>
+
+            <!-- content:// URIs matched by .edr extension (modern file managers / browsers) -->
+            <intent-filter android:label="@string/act_import_replay">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.edr" />
+            </intent-filter>
+
+            <!-- content:// URIs matched by generic archive MIME type and .edr path -->
+            <intent-filter android:label="@string/act_import_replay">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:host="*" android:mimeType="application/zip" android:pathPattern=".*\\.edr" />
+                <data android:scheme="content" android:host="*" android:mimeType="application/x-zip-compressed" android:pathPattern=".*\\.edr" />
+                <data android:scheme="content" android:host="*" android:mimeType="application/octet-stream" android:pathPattern=".*\\.edr" />
+            </intent-filter>
+
+        </activity>
+
+        <!-- The UI test browser, only enabled where the application's build type sets
+             ui_tests_enabled (debug and profile builds), see res/values/build.xml. It runs in its own process since the
+             engine is a singleton shared with the game. -->
+        <activity
+            android:name="com.osudroid.ui.v2.test.OsuUITestActivity"
+            android:theme="@style/AppTheme"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:screenOrientation="sensorLandscape"
+            android:windowSoftInputMode="adjustPan"
+            android:label="osu!droid UI tests"
+            android:process=":uitest"
+            android:taskAffinity=".uitest"
+            android:enabled="@bool/ui_tests_enabled"
+            android:exported="true"
+            tools:ignore="LockedOrientationActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- The UI test browser of Verktex's components only, enabled with it. -->
+        <activity
+            android:name="com.osudroid.ui.v2.test.VerktexUITestActivity"
+            android:theme="@style/AppTheme"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:screenOrientation="sensorLandscape"
+            android:windowSoftInputMode="adjustPan"
+            android:label="Verktex UI tests"
+            android:process=":verktexuitest"
+            android:taskAffinity=".verktexuitest"
+            android:enabled="@bool/ui_tests_enabled"
+            android:exported="true"
+            tools:ignore="LockedOrientationActivity" />
+
+        <activity
+            android:name="ru.nsu.ccfit.zuev.osu.PermissionActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:launchMode="singleInstance"
+            android:screenOrientation="sensorLandscape"
+            android:label="@string/app_name"
+            android:exported="false"
+            tools:ignore="LockedOrientationActivity"/>
+
+        <activity
+            android:name="ru.nsu.ccfit.zuev.osu.MainActivity"
+            android:theme="@style/AppTheme"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:launchMode="singleInstance"
+            android:screenOrientation="sensorLandscape"
+            android:windowSoftInputMode="adjustPan"
+            android:label="@string/app_name"
+            android:exported="true"
+            tools:ignore="LockedOrientationActivity">
+
+            <!--Multiplayer invite link-->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!--We keep the scheme, so it can be treated as URL in other apps such as Discord-->
+                <data android:scheme="https" android:host="odmp"/>
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- file:// URIs matched by .osz extension -->
+            <intent-filter android:label="@string/act_import_beatmap">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" android:host="*" android:mimeType="application/octet-stream" android:pathPattern=".*\\.osz" />
+                <data android:scheme="file" android:host="*" android:mimeType="application/zip" android:pathPattern=".*\\.osz" />
+                <data android:scheme="file" android:host="*" android:mimeType="application/x-zip-compressed" android:pathPattern=".*\\.osz" />
+            </intent-filter>
+
+            <!-- file:// URIs matched by .osk extension -->
+            <intent-filter android:label="@string/act_import_skin">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" android:host="*" android:mimeType="application/octet-stream" android:pathPattern=".*\\.osk" />
+                <data android:scheme="file" android:host="*" android:mimeType="application/zip" android:pathPattern=".*\\.osk" />
+                <data android:scheme="file" android:host="*" android:mimeType="application/x-zip-compressed" android:pathPattern=".*\\.osk" />
+            </intent-filter>
+
+            <!-- file:// URIs matched by .odr extension -->
+            <intent-filter android:label="@string/act_import_replay">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" android:host="*" android:mimeType="application/octet-stream" android:pathPattern=".*\\.odr" />
+            </intent-filter>
+
+            <!-- content:// URIs matched by .osz extension (modern file managers / browsers) -->
+            <intent-filter android:label="@string/act_import_beatmap">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.osz" />
+            </intent-filter>
+
+            <!-- content:// URIs matched by .osk extension (modern file managers / browsers) -->
+            <intent-filter android:label="@string/act_import_skin">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.osk" />
+            </intent-filter>
+
+            <!-- content:// URIs matched by .odr extension (modern file managers / browsers) -->
+            <intent-filter android:label="@string/act_import_replay">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.odr" />
+            </intent-filter>
+
+            <!-- content:// URIs matched by osu beatmap MIME type -->
+            <intent-filter android:label="@string/act_import_beatmap">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:mimeType="application/x-osu-beatmap-archive" />
+            </intent-filter>
+
+            <!-- content:// URIs matched by osu skin MIME type -->
+            <intent-filter android:label="@string/act_import_skin">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:mimeType="application/x-osu-skin-archive" />
+            </intent-filter>
+
+            <!--
+                Fallback for content:// URIs with generic archive MIME types and opaque paths
+                (e.g. Downloads provider: content://downloads/public_downloads/1234).
+                Path-pattern filters above cannot match these since the URI contains no filename.
+                The label is intentionally generic — the file type cannot be determined until the
+                activity reads the display name at runtime via OpenableColumns.DISPLAY_NAME.
+            -->
+            <intent-filter android:label="@string/act_import_file">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:mimeType="application/zip" />
+                <data android:scheme="content" android:mimeType="application/octet-stream" />
+                <data android:scheme="content" android:mimeType="application/download" />
+                <data android:scheme="content" android:mimeType="application/x-zip" />
+                <data android:scheme="content" android:mimeType="application/x-zip-compressed" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+
+    </application>
+</manifest>

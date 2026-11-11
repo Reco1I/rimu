@@ -14,11 +14,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Assemble release APK
 ./gradlew assembleRelease
 
-# Run all unit tests
-./gradlew test
+# Run the game's tests (desktopTest: the common and JVM ones, testAndroidHostTest: Robolectric)
+./gradlew :game:desktopTest :game:testAndroidHostTest
 
 # Run a single test class
-./gradlew test --tests "com.osudroid.beatmaps.BeatmapTest"
+./gradlew :game:desktopTest --tests "com.osudroid.beatmaps.BeatmapTest"
 
 # Run Android Lint
 ./gradlew lint
@@ -30,21 +30,22 @@ Requires **Java 17**, **Android NDK 22.1.7171670** and the **android-36.1** SDK 
 - `:verktex:android-natives`: what the Android platform needs from the NDK: the native library of the Vulkan backend, and the tasks that compile the shaders to SPIR-V and package the validation layer.
 - `:verktex:shadertools`: the shader translator, used by the Vulkan backend and by the build.
 
-Engine tests live in `verktex/verktex/src/desktopTest/` (the common and desktop ones) and `src/androidHostTest/` (Robolectric), and run with `./gradlew :verktex:verktex:desktopTest :verktex:verktex:testAndroidHostTest :verktex:shadertools:test`. The app's tests live under `tests/test/kotlin/` (not the standard `src/test/`).
+Engine tests live in `verktex/verktex/src/desktopTest/` (the common and desktop ones) and `src/androidHostTest/` (Robolectric), and run with `./gradlew :verktex:verktex:desktopTest :verktex:verktex:testAndroidHostTest :verktex:shadertools:test`.
 
-The game is split in two modules, see `docs/multiplatform-game.md`:
+The game is one module and an application shell, see `docs/multiplatform-game.md`:
 
 - `:game` (`game/`): the game itself, Kotlin Multiplatform with the targets of Verktex, `android` and `desktop`: the app gets its Android variant, and the desktop one has the launcher. What doesn't depend on the JVM is in `src/commonMain/` and is checked with `./gradlew -Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs`. What still does (the scenes, `GameScene`, `OsuGame`, `LibraryManager`, most of the UI) is in `src/jvmMain/`, shared by both targets, until it's rewritten as common code. What it needs from the platform goes through Verktex's `Platform` (clipboard, haptics, file picking, refresh rate…), and what only the game's hosts provide through `OsuGameHost` (`OsuGameHost.current`), implemented by `MainActivity` (over `AndroidOsuGameHost`), `OsuDesktop` and the UI test browsers; its optional features (the beatmap listing, updates…) default to "not available". Videos are Verktex's `UIVideo`, over the platform's decoder (ExoPlayer on Android, FFmpeg on desktop). Its tests are in `src/desktopTest/` and run with `./gradlew :game:desktopTest`.
-- The root module (`src/`): the Android app, a shell around `:game`: `MainActivity`, the services, Firebase, the Android database, the platform implementations and the features only Android has so far (the beatmap listing, the block area editor, the old fragments and dialogs).
+- `:game`'s `src/androidMain/` is the Android side of the game: `MainActivity`, the services, Firebase, the Android database, the platform implementations and the features only Android has so far (the beatmap listing, the block area editor, the old fragments and dialogs), with its resources (`res/`), its manifest and its tests in `src/androidHostTest/` (`./gradlew :game:testAndroidHostTest`).
+- The root module is the Android application, a shell around `:game` with no code: the Kotlin Multiplatform Android plugin only builds libraries, so what an application decides stays here: its id, version, signing, build types (`debug`, `release`, `pre_release`, `profile`), the Firebase plugins, and a manifest with the `<application>` element and what depends on the build type. The game reads the build type from the `com.osudroid.buildType` meta-data it declares, through `AppBuild` (`com/osudroid/android/`), which stands in for `BuildConfig`.
 - The desktop launcher is `:game`'s `src/desktopMain/` (`OsuDesktop`, `DesktopDatabase`, the UI test browser). Run it with `./gradlew :game:run`; `--args="--screenshot build/game.png --delay 10"` saves a frame after the delay and exits. It has no beatmap listing yet (multiplayer connects but is untried), plays videos with FFmpeg libraries `:verktex:verktex:prepareFFmpeg` downloads (see `verktex/docs/desktop-platform.md`), and its database is recreated instead of migrated.
 
 ## Architecture Overview
 
 ### Package Structure
 
-The codebase is split across multiple main package roots, each in `game/src/{commonMain,jvmMain}/kotlin/` and, for its Android parts, in `src/`:
+The codebase is split across multiple main package roots, each in `game/src/{commonMain,jvmMain}/kotlin/` and, for its Android parts, in `game/src/androidMain/{kotlin,java}/`:
 
-- **`ru/nsu/ccfit/zuev/osu/`** — Legacy code, mostly converted to Kotlin: `GameScene`, `ScoringScene` and `LibraryManager` are in `:game`, `MainActivity` (still Java) in the app. Most subsystems here are singletons.
+- **`ru/nsu/ccfit/zuev/osu/`** — Legacy code, mostly converted to Kotlin: `GameScene`, `ScoringScene` and `LibraryManager` are in `:game`, `MainActivity` (still Java) in `androidMain`. Most subsystems here are singletons.
 - **`com/acivev/`** — Vibration and haptic feedback management (`VibratorManager`, `VibratorCheckUtils`, etc.) as well as snow effects (`ui/Effect.kt`).
 - **`legacy/storyboard/`** — The storyboard renderer, outside the source set until it's rewritten on Verktex.
 - **`com/edlplan/replay/`** — Replay imports and exports.
@@ -54,8 +55,8 @@ The codebase is split across multiple main package roots, each in `game/src/{com
 - **`com/reco1l/framework/`** — Kotlin extensions for some Android classes and existing classes, such as bitmaps and easing. 
 - **`com/reco1l/osu/ui`** — New UI components, primarily dialogs and settings preferences.
 - **`com/rian/framework/`** — A couple of utility classes such as `RollingNumber`.
-- **`tests/test/kotlin/`** — Unit tests for beatmap parsing, difficulty calculation, and other core logic.
-- **`tests/test/resources/`** — Resources for unit tests, such as beatmap and storyboard files.
+- **`game/src/desktopTest/`** — Unit tests for beatmap parsing, difficulty calculation, and other core logic, with their resources (beatmap and storyboard files).
+- **`game/src/androidHostTest/`** — Robolectric tests of the Android side, such as the database migrations.
 
 ### Game Loop
 
@@ -129,7 +130,7 @@ Mods are defined in `com/osudroid/mods/`. Each mod implements modifier interface
 
 ### Data Persistence
 
-Room database accessed via `DatabaseManager`. DAOs and entities are under `com/osudroid/data/`. Schemas are versioned in `schemas/`.
+Room database accessed via `DatabaseManager`. DAOs and entities are under `com/osudroid/data/`. Schemas are versioned in `game/schemas/`, exported by Room's KSP processor.
 
 Settings go through Verktex's `Settings` (`verktex/verktex/.../settings/`), a typed store saved as `settings.json` in the data directory. Each setting is a `SettingKey` (`setting(name, default)`), read with `Settings[key]` and written with `Settings[key] = value`. The engine's are in `VerktexSettings`, the game's in `OsuSettings` (`com/osudroid/settings/`) under the names the old preferences had, with helpers for the ones read in other units (e.g. `OsuSettings.musicVolume`). The folders are in `GameFolders` and `SkinFolders`, and the viewport size in `GameResolution`.
 
@@ -142,7 +143,8 @@ Socket.IO for real-time room events, through `KtorRoomSocket`: a Socket.IO v4 cl
 - New gameplay/beatmap/difficulty code goes in `com/osudroid/` (Kotlin).
 - Generic UI components belong in Verktex's `commonMain`, and game-specific ones in `com/osudroid/ui/v2/` (Kotlin).
 - Verktex never depends on the game, and its `commonMain` never depends on Android or the JVM (including `org.json`, which ships with the Android SDK). What it needs from a platform is expected there and actual in each target's source set, as `Platform` is (an `expect object`, attached to its host by `AndroidGameHost` and `DesktopGameHost`); interfaces are kept for what has several implementations on one platform (`GraphicsRenderer`, `AudioDriver`, `Logger.Implementation`). Everything else comes from multiplatform libraries; see `verktex/docs/extraction.md`. Its build never refers to the game's: no `rootProject` paths outside `verktex/`, and its versions are in `verktex/gradle/libs.versions.toml`.
-- Legacy Java files in `ru/nsu/ccfit/zuev/osu/` are modified in-place; avoid moving them.
+- Legacy Java files in `ru/nsu/ccfit/zuev/osu/` are modified in-place; avoid moving them. They're in `game/src/androidMain/java/`, apart from the Kotlin sources in `kotlin/`.
+- `:game` is a library with a single variant: it has no `BuildConfig`. What depends on the application (its id, its build type, whether it's debuggable) comes from `AppBuild`, and what depends on a build type is declared by the root module.
 - Game code goes in `:game`, never depending on Android. What any platform could do goes through Verktex's `Platform`; what's specific to the game's hosts through `OsuGameHost`, with a default for hosts that don't have it.
 
 @CLAUDE.local.md
