@@ -17,7 +17,9 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.InputEvent
@@ -28,6 +30,7 @@ import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UILoadingIndicator
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.UISprite.ScaleType
 import com.reco1l.verktex.ui.card
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.UIContainer
@@ -68,39 +71,36 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
     init {
         background = UIContainer().apply {
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
+            width = fill()
+            height = fill()
 
             sprite {
-                width = Dimension.FillAvailable
-                height = Dimension.FillAvailable
-                scaleType = UISprite.ScaleType.Crop
+                width = fill()
+                height = fill()
+                scaleType = ScaleType.Crop
                 textureRegion = if (Settings[OsuSettings.SafeBeatmapBackground]) SkinTextures["menu-background"] else Textures["::background"]
             }
 
             dimBox = box {
-                width = Dimension.FillAvailable
-                height = Dimension.FillAvailable
+                width = fill()
+                height = fill()
                 backgroundColor = Color4.Black
                 alpha = 0.7f
             }
         }
 
         mainContainer = container {
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
+            width = fill()
+            height = fill()
             alpha = 0f
             scaleX = 0.9f
             scaleY = 0.9f
             scaleOrigin = Anchor.Center
-            padding = com.reco1l.verktex.data.Padding(
-                top = 16f.dip,
-                bottom = (16f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
-            )
+            padding = Padding(16f.dip)
 
             container {
                 width = 0.67f.pct
-                height = Dimension.FillAvailable
+                height = fill()
 
                 if (beatmapInfo.epilepsyWarning) {
                     text {
@@ -113,14 +113,14 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 }
 
                 linearContainer {
-                    width = Dimension.FillAvailable
+                    width = fill()
                     orientation = UILinearContainer.Orientation.Vertical
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
                     spacing = 8f.dip
 
                     text {
-                        width = Dimension.FillAvailable
+                        width = fill()
                         wrapText = true
                         text = beatmapInfo.titleText
                         fontSize = themed { typography.h2.size }
@@ -128,7 +128,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     }
 
                     text {
-                        width = Dimension.FillAvailable
+                        width = fill()
                         wrapText = true
                         text = beatmapInfo.version
                         fontSize = themed { typography.h2.size }
@@ -136,7 +136,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     }
 
                     text {
-                        width = Dimension.FillAvailable
+                        width = fill()
                         wrapText = true
                         text = "by ${beatmapInfo.artistText}"
                         fontSize = themed { typography.h3.size }
@@ -257,19 +257,19 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
         init {
             width = 0.3f.pct
-            height = Dimension.FillAvailable
+            height = fill()
             anchor = Anchor.TopRight
             origin = Anchor.TopRight
             scrollAxes = Axis.Y
             alpha = 0.5f
 
             linearContainer {
-                width = Dimension.FillAvailable
+                width = fill()
                 orientation = UILinearContainer.Orientation.Vertical
                 spacing = 16f.dip
 
                 card {
-                    width = Dimension.FillAvailable
+                    width = fill()
                     title = "Beatmap"
                     isCollapsible = true
 
@@ -320,7 +320,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 }
 
                 card {
-                    width = Dimension.FillAvailable
+                    width = fill()
                     title = "Settings"
                     isCollapsible = true
 
