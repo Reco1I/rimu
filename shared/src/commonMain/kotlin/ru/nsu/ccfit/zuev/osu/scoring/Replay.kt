@@ -9,10 +9,8 @@ import com.osudroid.beatmaps.hitobjects.sliderobject.SliderHead
 import com.osudroid.beatmaps.hitobjects.sliderobject.SliderRepeat
 import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTick
 import com.osudroid.math.Vector2
-import com.osudroid.mods.LegacyModConverter
 import com.osudroid.mods.ModHardRock
 import com.osudroid.mods.ModPrecise
-import com.osudroid.mods.ModReplayV6
 import com.osudroid.resources.Res
 import com.osudroid.utils.BitSet
 import com.osudroid.utils.ModHashMap
@@ -24,10 +22,10 @@ import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlin.math.min
 import okio.use
-import okio.EOFException
 import okio.IOException
 import okio.Path.Companion.toPath
 import okio.Source
+import okio.buffer
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.helper.Debug
@@ -127,51 +125,40 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
         Debug.i("Replay contains " + objectData!!.size + " objects")
 
         try {
-            openReplayOutput(filename).use { os ->
-                os.writeObject(ReplayVersion())
-                os.writeObject(beatmapsetName)
-                os.writeObject(beatmapName)
-                os.writeObject(md5)
+            val stat = stat
+            val file = ReplayFile(
+                version = ReplayFormatVersion,
+                beatmapsetName = beatmapsetName,
+                beatmapName = beatmapName,
+                md5 = md5,
+                stat = stat?.let {
+                    ReplayStatistics(
+                        time = it.time,
+                        hit300k = it.hit300k,
+                        hit300 = it.hit300,
+                        hit100k = it.hit100k,
+                        hit100 = it.hit100,
+                        hit50 = it.hit50,
+                        misses = it.misses,
+                        totalScore = it.totalScore,
+                        maxCombo = it.scoreMaxCombo,
+                        playerName = it.playerName,
+                        mods = ReplayJson.parseToJsonElement(it.mod.serializeMods()),
+                    )
+                },
+                cursors = cursorMoves.map { it.toCursor() },
+                objects = objectData!!.map { data ->
+                    val tickSet = data?.tickSet
+                    ReplayObject(
+                        accuracy = data?.accuracy ?: 0,
+                        ticks = if (tickSet == null || tickSet.isEmpty()) null else (0 until tickSet.length()).filter { tickSet[it] },
+                        result = data?.result ?: 0,
+                    )
+                },
+            )
 
-                val stat = stat
-                if (stat != null) {
-                    os.writeLong(stat.time)
-                    os.writeInt(stat.hit300k)
-                    os.writeInt(stat.hit300)
-                    os.writeInt(stat.hit100k)
-                    os.writeInt(stat.hit100)
-                    os.writeInt(stat.hit50)
-                    os.writeInt(stat.misses)
-                    os.writeLong(stat.totalScore)
-                    os.writeInt(stat.scoreMaxCombo)
-                    os.writeObject(stat.playerName)
-                    os.writeObject(stat.mod.serializeMods())
-                }
-
-                os.writeInt(cursorMoves.size)
-                //Storing all moves
-                for (move in cursorMoves) {
-                    move.writeTo(os)
-                }
-                os.writeInt(objectData!!.size)
-                for (objectData in objectData!!) {
-                    val data = objectData ?: ReplayObjectData()
-                    os.writeShort(data.accuracy.toInt())
-                    val tickSet = data.tickSet
-                    if (tickSet == null || tickSet.isEmpty()) {
-                        os.writeByte(0)
-                    } else {
-                        val bytes = ByteArray((tickSet.length() + 7) / 8)
-                        for (i in 0 until tickSet.length()) {
-                            if (tickSet[i]) {
-                                bytes[bytes.size - i / 8 - 1] = (bytes[bytes.size - i / 8 - 1].toInt() or (1 shl (i % 8))).toByte()
-                            }
-                        }
-                        os.writeByte(bytes.size)
-                        os.write(bytes)
-                    }
-                    os.writeByte(data.result.toInt())
-                }
+            Platform.fileSystem.write(filename.toPath()) {
+                writeUtf8(ReplayJson.encodeToString(ReplayFile.serializer(), file))
             }
         } catch (e: IOException) {
             Debug.e("IOException: " + e.message, e)
@@ -195,127 +182,61 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
 
     fun load(source: Source, replayFilename: String, withGameplayData: Boolean): Boolean {
         try {
-            openReplayInput(source).use { os ->
-                cursorMoves.clear()
-                var version = 0
+            val file = ReplayJson.decodeFromString(ReplayFile.serializer(), source.buffer().readUtf8())
 
-                val mBeatmapsetName: String
-                val firstObject = os.readObject()
-                Debug.i("Read object: " + firstObject!!::class.simpleName)
-                if (firstObject::class == ReplayVersion::class) {
-                    Debug.i("Other replay version")
-                    version = (firstObject as ReplayVersion).version
-                    replayVersion = version
-                    mBeatmapsetName = os.readObject() as String
-                } else {
-                    mBeatmapsetName = firstObject as String
-                }
-                val mBeatmapName = os.readObject() as String
-                val mMD5 = os.readObject() as String
+            cursorMoves.clear()
+            replayVersion = file.version
+            beatmapsetName = file.beatmapsetName
+            beatmapName = file.beatmapName
+            md5 = file.md5
 
-                beatmapsetName = mBeatmapsetName
-                beatmapName = mBeatmapName
-                md5 = mMD5
+            val fileStat = file.stat
+            if (fileStat != null) {
+                val stat = StatisticV2()
+                this.stat = stat
+                stat.replayFilename = replayFilename
+                stat.beatmapMD5 = md5
+                stat.time = fileStat.time
+                stat.hit300k = fileStat.hit300k
+                stat.hit300 = fileStat.hit300
+                stat.hit100k = fileStat.hit100k
+                stat.hit100 = fileStat.hit100
+                stat.hit50 = fileStat.hit50
+                stat.misses = fileStat.misses
+                stat.totalScore = fileStat.totalScore
+                stat.scoreMaxCombo = fileStat.maxCombo
+                stat.playerName = fileStat.playerName
+                stat.mod = deserializeMods(fileStat.mods.toString())
+            }
 
-                if (version >= 3) {
-                    val stat = StatisticV2()
-                    this.stat = stat
-                    stat.replayFilename = replayFilename
-                    stat.beatmapMD5 = md5
-                    stat.time = os.readLong()
-                    stat.hit300k = os.readInt()
-                    stat.hit300 = os.readInt()
-                    stat.hit100k = os.readInt()
-                    stat.hit100 = os.readInt()
-                    stat.hit50 = os.readInt()
-                    stat.misses = os.readInt()
+            if (withGameplayData) {
+                val mods = stat?.mod ?: ModHashMap()
 
-                    if (version >= 9) {
-                        stat.totalScore = os.readLong()
-                    } else if (version == 8) {
-                        stat.totalScore = os.readInt().toLong()
-                    } else {
-                        stat.setForcedScore(os.readInt().toLong())
-                    }
+                cursorIndex = IntArray(file.cursors.size)
+                lastMoveIndex = IntArray(file.cursors.size)
 
-                    stat.scoreMaxCombo = os.readInt()
-
-                    if (version < 6) {
-                        // Consume `accuracy` in replays older than v6 (which is not used anymore as the result is derived from hit results)
-                        os.readFloat()
-
-                        // Consume `perfect` in replays older than v6 (which is not used anymore as the result is derived from hit results)
-                        os.readBoolean()
-                    }
-
-                    stat.playerName = os.readObject() as String
-
-                    if (version >= 7) {
-                        val modJsonStr = os.readObject() as String
-                        stat.mod = deserializeMods(modJsonStr)
-                    } else {
-                        val mod = asGameModSet(os.readObject())
-                        var extraModString = ""
-
-                        if (version >= 4) {
-                            extraModString = os.readObject() as String
-                        }
-
-                        stat.mod = LegacyModConverter.convert(mod, extraModString)
-                        stat.mod.put(ModReplayV6())
-                    }
+                for (i in file.cursors.indices) {
+                    cursorMoves.add(MoveArray.fromCursor(file.cursors[i], mods))
+                    cursorIndex[i] = 0
+                    lastMoveIndex[i] = -1
                 }
 
-                if (withGameplayData) {
-                    val msize = os.readInt()
-                    cursorIndex = IntArray(msize)
-                    lastMoveIndex = IntArray(msize)
+                val objectData = objectData!!
+                require(file.objects.size >= objectData.size) {
+                    "The replay has ${file.objects.size} objects, the beatmap ${objectData.size}"
+                }
 
-                    for (i in 0 until msize) {
-                        cursorMoves.add(MoveArray.readFrom(os, this, stat!!.mod))
-                        cursorIndex[i] = 0
-                        lastMoveIndex[i] = -1
-                    }
-
-                    os.readInt()
-                    val objectData = objectData!!
-                    for (i in objectData.indices) {
-                        val data = ReplayObjectData()
-                        data.accuracy = os.readShort()
-                        val len = os.readByte().toInt()
-                        if (len > 0) {
-                            val tickSet = BitSet()
-                            data.tickSet = tickSet
-                            val bytes = ByteArray(len)
-                            var remainingLen = len
-
-                            while (remainingLen > 0) {
-                                val readBytes = os.read(bytes, len - remainingLen, remainingLen)
-
-                                if (readBytes < 0) {
-                                    throw EOFException("EOF reached when reading tickset with $remainingLen bytes left to read")
-                                }
-
-                                remainingLen -= readBytes
-                            }
-
-                            for (j in 0 until len * 8) {
-                                tickSet.set(j, (bytes[len - j / 8 - 1].toInt() and (1 shl (j % 8))) != 0)
-                            }
-                        }
-                        if (version >= 1) {
-                            data.result = os.readByte()
-                        }
-                        objectData[i] = data
-                    }
+                for (i in objectData.indices) {
+                    val fileObject = file.objects[i]
+                    val data = ReplayObjectData()
+                    data.accuracy = fileObject.accuracy
+                    data.tickSet = fileObject.ticks?.let { ticks -> BitSet().also { set -> ticks.forEach { set.set(it) } } }
+                    data.result = fileObject.result
+                    objectData[i] = data
                 }
             }
-        } catch (e: EOFException) {
-            Debug.e("O_o eof...")
-            Debug.e(e)
-            Toasts.showLong(Res.string.replay_corrupted)
-            return false
         } catch (e: Exception) {
+            // Including replays written before version 10, which aren't JSON.
             Toasts.showLong(Res.string.replay_corrupted)
             Debug.e("Cannot load replay: " + e.message, e)
             return false
@@ -444,7 +365,7 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
     }
 
     /*
-        Object used to store data about current replay version for compatibility purposes.
+        The versions of replays, for compatibility purposes.
         Version 4: Adds ExtraModString's save and load in save()/load()/loadInfo()
         Version 5: Changes coordinates to use the float primitive type
         Version 6: Removed accuracy and perfect, slider ends no longer give combo when not hit
@@ -453,16 +374,8 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
         Version 8: Slider head hit window is extended to its 50 hit window;
                    score stored as raw totalScore instead of totalScoreWithMultiplier
         Version 9: score stored as long
+        Version 10: stored as JSON (see ReplayFile) instead of Java's object serialization; older replays aren't read
      */
-    class ReplayVersion : ReplaySerializable {
-        // Written as it is into replays, so its name and type must not change.
-        @JvmField
-        var version = 9
-
-        companion object {
-            private const val serialVersionUID = 4643121693566795335L
-        }
-    }
 
     class ReplayObjectData {
         @JvmField
@@ -548,49 +461,49 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
             size++
         }
 
-        fun writeTo(os: ReplayOutput) {
-            os.writeInt(size)
+        /**
+         * The movements of this array, as a replay file stores them.
+         */
+        internal fun toCursor(): ReplayCursor {
+            val time = IntArray(size)
+            val x = FloatArray(size)
+            val y = FloatArray(size)
+            val type = ByteArray(size)
+
             for (i in 0 until size) {
                 val movement = movements[i]
-                os.writeInt((movement.time shl 2) + movement.touchType!!.id)
+                time[i] = movement.time
+                type[i] = movement.touchType!!.id
                 if (movement.touchType != TouchType.UP) {
-                    os.writeFloat(movement.x)
-                    os.writeFloat(movement.y)
+                    x[i] = movement.x
+                    y[i] = movement.y
                 }
             }
+
+            return ReplayCursor(time, x, y, type)
         }
 
         companion object {
-            private fun readTouchPoint(`is`: ReplayInput, replay: Replay): Float {
-                return if (replay.replayVersion < 5) `is`.readShort().toFloat() else `is`.readFloat()
-            }
-
-            @JvmStatic
-            fun readFrom(`is`: ReplayInput, replay: Replay, mods: ModHashMap): MoveArray {
+            /**
+             * Reads the movements of a cursor of a replay file, converting their positions from the
+             * playfield's coordinates they were recorded in.
+             */
+            internal fun fromCursor(cursor: ReplayCursor, mods: ModHashMap): MoveArray {
                 val isHardRock = ModHardRock::class in mods
-                val size = `is`.readInt()
+                val size = cursor.time.size
+                require(cursor.x.size == size && cursor.y.size == size && cursor.type.size == size) {
+                    "The arrays of a cursor have different sizes"
+                }
+
                 val array = MoveArray(size)
                 array.size = size
                 for (i in 0 until size) {
                     val movement = ReplayMovement()
                     array.movements[i] = movement
-                    movement.time = `is`.readInt()
-                    movement.touchType = TouchType.getByID((movement.time and 3).toByte())
-                    movement.time = movement.time shr 2
+                    movement.time = cursor.time[i]
+                    movement.touchType = requireNotNull(TouchType.getByID(cursor.type[i])) { "Unknown touch type ${cursor.type[i]}" }
                     if (movement.touchType != TouchType.UP) {
-                        val baseX = readTouchPoint(`is`, replay)
-                        val baseY = readTouchPoint(`is`, replay)
-                        val gamePoint = Vector2(
-                            baseX / 1,
-                            baseY / 1
-                        )
-                        val realPoint = if (replay.replayVersion > 1)
-                            Utils.trackToRealCoords(gamePoint, isHardRock)
-                        else
-                            Utils.trackToRealCoords(
-                                Utils.realToTrackCoords(gamePoint, 1024f, 600f, true),
-                                isHardRock
-                            )
+                        val realPoint = Utils.trackToRealCoords(Vector2(cursor.x[i], cursor.y[i]), isHardRock)
                         movement.x = realPoint.x
                         movement.y = realPoint.y
                     }
@@ -602,6 +515,11 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
     }
 
     companion object {
+        /**
+         * The version replays are written in, see the versions above.
+         */
+        const val ReplayFormatVersion = 10
+
         /**
          * The amount of cursors replays record, as many as the game tracks.
          */
