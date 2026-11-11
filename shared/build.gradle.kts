@@ -224,7 +224,7 @@ kotlin {
         }
 
         commonMain.dependencies {
-            api("com.reco1l.verktex:verktex")
+            api("com.reco1l.verktex:shared")
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
             api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 

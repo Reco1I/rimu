@@ -6,7 +6,7 @@
 > (`:shared:desktopTest`) and `src/androidHostTest`. The applications are `:androidApp` (the Android
 > entry points, manifest, signing, build types and Firebase plugins) and `:desktopApp` (what was
 > `:game-desktop`, run with `:desktopApp:run` and `:desktopApp:runUITests`). Verktex is one module,
-> `com.reco1l.verktex:verktex`, in its own repository, a git submodule in `verktex/`; `Platform` is
+> `com.reco1l.verktex:shared`, in its own repository, a git submodule in `verktex/`; `Platform` is
 > an `expect object` instead of an implementation interface, and the `checkCommon` JavaScript
 > targets were removed. Where the text below says `:verktex:core`, `:verktex:android`,
 > `:verktex:desktop`, `Platform.Implementation`, `jvmTest` or the root module, read those.

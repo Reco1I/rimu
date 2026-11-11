@@ -25,7 +25,7 @@ val roomVersion = "2.7.2"
 
 dependencies {
     implementation(project(":shared"))
-    implementation("com.reco1l.verktex:verktex")
+    implementation("com.reco1l.verktex:shared")
 
     // The database: Room on the JVM, over the bundled SQLite.
     implementation("androidx.room:room-runtime:$roomVersion")
@@ -208,13 +208,13 @@ application {
 }
 
 // FFmpeg's libraries for videos, downloaded by Verktex's desktop platform.
-val ffmpegDirectory = rootProject.layout.projectDirectory.dir("verktex/verktex/build/ffmpeg").asFile.absolutePath
+val ffmpegDirectory = rootProject.layout.projectDirectory.dir("verktex/shared/build/ffmpeg").asFile.absolutePath
 
 tasks.named<JavaExec>("run") {
     // Relative paths given in --args, e.g. --screenshot, resolve against where Gradle was started.
     workingDir = rootProject.projectDir
 
-    dependsOn(gradle.includedBuild("verktex").task(":verktex:prepareFFmpeg"))
+    dependsOn(gradle.includedBuild("verktex").task(":shared:prepareFFmpeg"))
     systemProperty("verktex.ffmpeg.path", ffmpegDirectory)
 }
 
@@ -227,6 +227,6 @@ tasks.register<JavaExec>("runUITests") {
     jvmArgs = application.applicationDefaultJvmArgs.toList()
     workingDir = rootProject.projectDir
 
-    dependsOn(gradle.includedBuild("verktex").task(":verktex:prepareFFmpeg"))
+    dependsOn(gradle.includedBuild("verktex").task(":shared:prepareFFmpeg"))
     systemProperty("verktex.ffmpeg.path", ffmpegDirectory)
 }
