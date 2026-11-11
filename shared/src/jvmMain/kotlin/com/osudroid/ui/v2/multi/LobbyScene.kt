@@ -1,48 +1,30 @@
 package com.osudroid.ui.v2.multi
 
 import com.osudroid.OsuGame
-import com.osudroid.settings.OsuSettings
-import com.reco1l.verktex.settings.Settings
-import com.reco1l.verktex.Logger
-import com.osudroid.multiplayer.*
+import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.resources.Res.string
+import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.utils.updateThread
+import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
-import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.data.ClipMode
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.data.Padding
-import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.*
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.ui.UILoadingIndicator
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.UITextButton
-import com.reco1l.verktex.ui.clearTransforms
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.container
-import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.container.scrollableContainer
-import com.reco1l.verktex.ui.control.UITextInput
-import com.reco1l.verktex.ui.fadeIn
-import com.reco1l.verktex.ui.fadeOut
-import com.reco1l.verktex.ui.scaleTo
+import com.reco1l.verktex.ui.*
+import com.reco1l.verktex.ui.UISprite.ScaleType
+import com.reco1l.verktex.ui.container.*
+import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
+import com.reco1l.verktex.ui.control.textInput
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
-import com.reco1l.verktex.ui.textButton
+import com.reco1l.verktex.ui.toast.Toasts
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.SecurityUtils
-import com.reco1l.verktex.ui.toast.Toasts
-import kotlin.coroutines.cancellation.CancellationException
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
-import com.reco1l.verktex.ui.themed
+import kotlin.coroutines.cancellation.CancellationException
 
 class LobbyScene : UIScene() {
 
@@ -68,9 +50,9 @@ class LobbyScene : UIScene() {
 
     init {
         background = UISprite().apply {
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
-            scaleType = UISprite.ScaleType.Crop
+            width = fill()
+            height = fill()
+            scaleType = ScaleType.Crop
             textureRegion = SkinTextures["menu-background"]
 
             if (!Settings[OsuSettings.SafeBeatmapBackground]) {
@@ -79,19 +61,22 @@ class LobbyScene : UIScene() {
         }
 
         linearContainer {
-            orientation = UILinearContainer.Orientation.Vertical
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
-            spacing = 16f.dip
-            padding = Padding(top = 8f.dip, bottom = 8f.dip)
-            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.9f) }
+            width = fill()
+            height = fill()
+            orientation = Orientation.Vertical
+            backgroundColor = themed { palette.accent.shade(0.1f).alpha(0.9f) }
 
-            container {
-                width = Dimension.FillAvailable
-                padding = Padding(0f.dip, 16f.dip)
+            // Top bar
+            extendIntoSafeAreaContainer {
+                width = fill()
+                backgroundColor = themed { palette.accent.shade(0.5f).alpha(0.1f) }
+                border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
+                padding = Padding(16f.dip)
 
                 linearContainer {
-                    orientation = UILinearContainer.Orientation.Horizontal
+                    anchor = Anchor.CenterLeft
+                    origin = Anchor.CenterLeft
+                    orientation = Orientation.Horizontal
                     spacing = 8f.dip
 
                     textButton {
@@ -115,39 +100,28 @@ class LobbyScene : UIScene() {
                     }
                 }
 
-                container {
-                    anchor = Anchor.TopRight
-                    origin = Anchor.TopRight
-                    height = Dimension.FillAvailable
-
-                    +UITextInput("").apply {
-                        key = "search"
-                        width = 208f.dip
-                        height = Dimension.FillAvailable
-                        placeholder = string.multiplayer_lobby_search_rooms
-                        onValueChange = { value ->
-                            searchQuery = value
-                        }
-                    }
-
-                    container {
-                        anchor = Anchor.CenterRight
-                        origin = Anchor.CenterRight
-                        padding = Padding(8f.dip, 0f.dip)
-
-                        +UIIcon(FAIcon.MagnifyingGlass).apply {
-                            color = themed { palette.accent }
-                        }
+                textInput {
+                    minWidth = 160f.dip
+                    maxWidth = 320f.dip
+                    height = fill()
+                    anchor = Anchor.CenterRight
+                    origin = Anchor.CenterRight
+                    key = "search"
+                    placeholder = string.multiplayer_lobby_search_rooms
+                    trailingIcon = faSolidIcon(FAIcon.MagnifyingGlass)
+                    onValueChange = { value ->
+                        searchQuery = value
                     }
                 }
             }
 
-            container {
-                width = Dimension.FillAvailable
-                height = Dimension.FillAvailable
+            // Room list
+            extendIntoSafeAreaContainer {
+                width = fill()
+                height = fill()
 
                 messageContainer = linearContainer {
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = Orientation.Vertical
                     anchor = Anchor.Center
                     origin = Anchor.Center
                     spacing = 8f.dip
@@ -155,14 +129,15 @@ class LobbyScene : UIScene() {
 
                 scrollableContainer {
                     scrollAxes = Axis.Y
-                    width = Dimension.FillAvailable
-                    height = Dimension.FillAvailable
+                    width = fill()
+                    height = fill()
                     clipping = ClipMode.Bounds
 
                     roomContainer = linearContainer {
-                        width = Dimension.FillAvailable
-                        orientation = UILinearContainer.Orientation.Vertical
+                        width = fill()
+                        orientation = Orientation.Vertical
                         scaleOrigin = Anchor.Center
+                        padding = Padding(16f.dip)
                         spacing = 6f.dip
                     }
                 }
@@ -234,7 +209,6 @@ class LobbyScene : UIScene() {
 
                     text {
                         fontSize = themed { typography.smallBody.size }
-                        color = themed { palette.accent }
                         text = string.multiplayer_lobby_fetch_error
                     }
                 }
@@ -276,7 +250,6 @@ class LobbyScene : UIScene() {
 
                         text {
                             fontSize = themed { typography.smallBody.size }
-                            color = themed { palette.accent }
                             text = if (searchQuery.isNullOrEmpty()) string.multiplayer_lobby_no_rooms else string.multiplayer_lobby_no_results
                         }
                     }

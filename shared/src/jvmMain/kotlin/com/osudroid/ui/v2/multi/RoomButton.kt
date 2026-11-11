@@ -1,42 +1,36 @@
 package com.osudroid.ui.v2.multi
 
-import com.reco1l.verktex.ui.toast.Toasts
-import com.reco1l.verktex.ui.text.spans
+import com.osudroid.multiplayer.Multiplayer
+import com.osudroid.multiplayer.api.RoomAPI
+import com.osudroid.multiplayer.api.data.Room
+import com.osudroid.multiplayer.api.data.RoomStatus
+import com.osudroid.multiplayer.api.data.TeamMode
+import com.osudroid.multiplayer.api.data.WinCondition
 import com.osudroid.resources.Res.string
-import com.osudroid.multiplayer.*
-import com.osudroid.multiplayer.api.*
-import com.osudroid.multiplayer.api.data.*
-import com.osudroid.ui.v2.*
+import com.osudroid.ui.v2.LoaderScene
+import com.osudroid.ui.v2.ModsIndicator
 import com.osudroid.utils.async
 import com.reco1l.verktex.Verktex
-import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.data.Padding
-import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.data.fill
-import com.reco1l.verktex.data.px
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIBadge
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UITextButton
-import com.reco1l.verktex.ui.badge
+import com.reco1l.verktex.data.*
+import com.reco1l.verktex.ui.*
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.dialog.UIDialog
-import com.reco1l.verktex.ui.form.*
-import com.reco1l.verktex.ui.labeledBadge
+import com.reco1l.verktex.ui.form.FormContainer
+import com.reco1l.verktex.ui.form.FormInput
+import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.ui.text.text
-import ru.nsu.ccfit.zuev.osu.*
-import ru.nsu.ccfit.zuev.osu.helper.*
-import ru.nsu.ccfit.zuev.osu.online.*
-import com.reco1l.verktex.ui.themed
+import com.reco1l.verktex.ui.toast.Toasts
+import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
 class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
 
     init {
         width = fill()
-        height = Dimension.WrapContent
-        backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.8f) }
+        height = wrap()
+        backgroundColor = themed { palette.accent.shade(0.2f).alpha(0.4f) }
         padding = Padding(12f.dip)
+        tintChildren = false
 
         linearContainer {
             orientation = UILinearContainer.Orientation.Vertical
@@ -49,7 +43,6 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
 
                 text {
                     width = fill()
-                    color = themed { palette.accent }
                     spans {
                         icon(if (room.isLocked) FAIcon.Lock else FAIcon.LockOpen)
                         space(8f.dip)
@@ -60,7 +53,6 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 text {
                     scale = 0.85f
                     fontSize = themed { typography.smallBody.size }
-                    color = themed { palette.accent }
                     text = when (room.status) {
                         RoomStatus.ChangingBeatmap -> string.multiplayer_room_status_changing_beatmap
                         RoomStatus.Playing -> string.multiplayer_room_status_playing
@@ -83,9 +75,9 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 badge {
                     density = UIBadge.Density.Small
                     text = when (room.teamMode) {
-                            TeamMode.HeadToHead -> string.multiplayer_room_head_to_head
-                            TeamMode.TeamVS -> string.multiplayer_room_team_versus
-                        }
+                        TeamMode.HeadToHead -> string.multiplayer_room_head_to_head
+                        TeamMode.TeamVS -> string.multiplayer_room_team_versus
+                    }
                 }
 
                 badge {
@@ -146,7 +138,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
 
                         addButton(UITextButton().apply {
                             text = string.multiplayer_lobby_join_room_accept
-                            variant = UIButton.Variant.Solid
+                            variant = Variant.Solid
                             onActionUp = { form.submit() }
                         })
 
