@@ -1,0 +1,4 @@
+[submodule "verktex"]
+	path = verktex
+	url = https://github.com/Reco1I/verktex.git
+	branch = main

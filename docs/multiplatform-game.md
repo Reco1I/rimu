@@ -8,6 +8,8 @@
 > `:game-desktop` is now `:game`'s `src/desktopMain` source set, run with `:game:run` and `:game:runUITests`.
 > The Android app's code, resources and tests are `:game`'s `src/androidMain` and `src/androidHostTest`; the
 > root module is only the application shell (id, signing, build types, Firebase plugins).
+> Verktex is its own repository, a git submodule in `verktex/`, and the `checkCommon` JavaScript targets
+> were removed.
 
 ## Context
 

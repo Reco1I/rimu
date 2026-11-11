@@ -5,7 +5,8 @@ pluginManagement  {
     }
 }
 
-// Verktex, the engine, is its own build (see verktex/docs/extraction.md), included here so that
+// Verktex, the engine, is its own repository, a git submodule in verktex/ (git submodule update
+// --init), and its own build (see verktex/docs/extraction.md), included here so that
 // com.reco1l.verktex:verktex resolves to its project, whose Android or desktop variant each module
 // of the game gets. Its tasks run as :verktex:<project>:<task>.
 //

@@ -18,7 +18,7 @@ it's playable and fun!
 Clone the repository:
 
 ```sh
-git clone https://github.com/osudroid/osu-droid.git
+git clone --recurse-submodules https://github.com/osudroid/osu-droid.git
 ```
 Open the folder in Android Studio.
 
@@ -26,6 +26,7 @@ To update the source code to the latest commit, run the following command inside
 
 ```she
 git pull
+git submodule update --init
 ```
 
 ### Building
