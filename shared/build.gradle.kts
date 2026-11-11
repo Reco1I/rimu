@@ -161,6 +161,77 @@ val generateStringResources by tasks.registering(GenerateStringResources::class)
     assetsDirectory.set(layout.buildDirectory.dir("generated/resources/assets"))
 }
 
+/**
+ * Fails when common code uses the JVM. Both targets are JVMs, so the compiler lets commonMain see
+ * the JDK; this catches what it doesn't: Java imports and the stdlib members only the JVM has.
+ * Comments are skipped.
+ */
+abstract class CheckCommonSources : DefaultTask() {
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val sources: ConfigurableFileCollection
+
+    @get:OutputFile
+    abstract val report: RegularFileProperty
+
+    private val forbidden = mapOf(
+        Regex("""^\s*import (java|javax)\.""") to "a Java import",
+        Regex("""\bjava\.(lang|util|io|text|net|nio|math|time)\.""") to "a Java class",
+        Regex("""\bString\.format\b|\.format\(Locale|"\.format\(""") to "String.format, use formatString",
+        Regex("""\bSystem\.(currentTimeMillis|nanoTime|getProperty|getenv|exit|arraycopy)\b""") to "System, use kotlin.time or Platform",
+        Regex("""\.javaClass\b|::class\.java\b""") to "a Java class reference, use ::class",
+        Regex("""\bDispatchers\.IO\b""") to "Dispatchers.IO, which isn't common",
+        Regex("""\brunBlocking\b""") to "runBlocking, which isn't common",
+        Regex("""\bkotlin\.jvm\.(Volatile|Synchronized|Throws|Strictfp|Transient)\b|@Synchronized\b""") to "a JVM-only annotation",
+        Regex("""\bkotlinx\.coroutines\.future\b""") to "CompletableFuture interop",
+    )
+
+    @TaskAction
+    fun check() {
+        val problems = mutableListOf<String>()
+
+        sources.asFileTree.matching { include("**/*.kt") }.forEach { file ->
+            var inBlockComment = false
+            file.readLines().forEachIndexed { index, raw ->
+                var line = raw
+                if (inBlockComment) {
+                    val end = line.indexOf("*/")
+                    if (end < 0) return@forEachIndexed
+                    line = line.substring(end + 2)
+                    inBlockComment = false
+                }
+                val blockStart = line.indexOf("/*")
+                if (blockStart >= 0) {
+                    inBlockComment = line.indexOf("*/", blockStart + 2) < 0
+                    line = line.substring(0, blockStart)
+                }
+                line = line.substringBefore("//")
+
+                for ((pattern, reason) in forbidden) {
+                    if (pattern.containsMatchIn(line)) {
+                        problems += "${file.path}:${index + 1}: $reason: ${raw.trim()}"
+                    }
+                }
+            }
+        }
+
+        report.get().asFile.writeText(problems.joinToString("\n"))
+        if (problems.isNotEmpty()) {
+            throw GradleException("commonMain uses the JVM:\n" + problems.joinToString("\n"))
+        }
+    }
+}
+
+val checkCommonSources by tasks.registering(CheckCommonSources::class) {
+    sources.from(layout.projectDirectory.dir("src/commonMain/kotlin"))
+    report.set(layout.buildDirectory.file("reports/checkCommonSources.txt"))
+}
+
+tasks.matching { it.name == "check" || it.name == "desktopTest" }.configureEach {
+    dependsOn(checkCommonSources)
+}
+
 val roomVersion = "2.7.2"
 
 kotlin {
@@ -216,6 +287,8 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexplicit-backing-fields")
         optIn.add("kotlin.uuid.ExperimentalUuidApi")
+        optIn.add("kotlin.concurrent.atomics.ExperimentalAtomicApi")
+        optIn.add("kotlin.time.ExperimentalTime")
     }
 
     sourceSets {
@@ -237,6 +310,9 @@ kotlin {
 
             // Multiplatform locks and atomics.
             api("org.jetbrains.kotlinx:atomicfu:0.33.0")
+
+            // Dates and times in a time zone, and their formats.
+            api("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
 
             // Room's annotations, so the entities and DAOs can be declared in common code. The
             // database itself, which Room generates, is built by each platform that has one.

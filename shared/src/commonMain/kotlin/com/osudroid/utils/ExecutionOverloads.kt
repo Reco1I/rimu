@@ -8,11 +8,16 @@ import com.reco1l.verktex.Verktex
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -96,3 +101,13 @@ fun mainThread(block: Runnable) {
 fun updateThread(block: Runnable) {
     Verktex.scheduleOnUpdate { block.run() }
 }
+
+/**
+ * Cancels this [Job] and waits for it to finish, asynchronously.
+ *
+ * Returns a [Deferred] that completes once the job is canceled and joined, already complete if
+ * there's no job or it has finished.
+ */
+fun Job?.stopAsync(): Deferred<Unit> =
+    if (this?.isCompleted == false) executionScope.async { this@stopAsync.cancelAndJoin() }
+    else CompletableDeferred(Unit)

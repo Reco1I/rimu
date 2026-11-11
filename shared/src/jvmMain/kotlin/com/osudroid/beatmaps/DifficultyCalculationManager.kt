@@ -13,6 +13,7 @@ import com.osudroid.utils.async
 import com.osudroid.data.DatabaseManager
 import com.osudroid.utils.mainThread
 import com.osudroid.utils.stopAsync
+import kotlinx.coroutines.future.asCompletableFuture
 import com.osudroid.beatmaps.parser.BeatmapParser
 import com.osudroid.difficulty.calculator.DroidDifficultyCalculator
 import com.osudroid.difficulty.calculator.StandardDifficultyCalculator
@@ -168,5 +169,5 @@ object DifficultyCalculationManager {
 
 
     @JvmStatic
-    fun stopCalculation(): CompletableFuture<Unit> = job.stopAsync().thenApply { job = null }
+    fun stopCalculation(): CompletableFuture<Unit> = job.stopAsync().asCompletableFuture().thenApply { job = null }
 }

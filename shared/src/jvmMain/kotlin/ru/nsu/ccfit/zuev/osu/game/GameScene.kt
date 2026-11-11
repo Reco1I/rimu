@@ -80,6 +80,7 @@ import com.osudroid.utils.calculateRate
 import com.osudroid.utils.async
 import com.osudroid.utils.runSafe
 import com.osudroid.utils.stopAsync
+import kotlinx.coroutines.future.asCompletableFuture
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
@@ -1073,9 +1074,9 @@ open class GameScene : GameObjectListener {
         this.ppCalculationJob = null
 
         val jobCancellation = CompletableFuture.allOf(
-            gameLoadingJob.stopAsync(),
-            videoLoadingJob.stopAsync(),
-            ppCalculationJob.stopAsync()
+            gameLoadingJob.stopAsync().asCompletableFuture(),
+            videoLoadingJob.stopAsync().asCompletableFuture(),
+            ppCalculationJob.stopAsync().asCompletableFuture()
         )
 
         @Suppress("UNCHECKED_CAST")
