@@ -31,11 +31,6 @@ interface OsuGameHost : GameHost {
     fun logAnalyticsEvent(name: String, parameters: Map<String, String>) = Unit
 
     /**
-     * Opens the game's database, in the background while the game starts ([OsuGame.start]).
-     */
-    fun openDatabase() = Unit
-
-    /**
      * Called once the game has started and shows the main menu, for what the host does then, such as
      * playing a file the game was opened with.
      */

@@ -2,6 +2,7 @@ package com.osudroid
 
 import com.osudroid.audio.MusicService
 import com.osudroid.beatmaps.DifficultyCalculationManager
+import com.osudroid.data.DatabaseManager
 import com.osudroid.mods.ModNightCore
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.resources.Res
@@ -95,7 +96,7 @@ object OsuGame {
         Verktex.pushScene(splashScene)
 
         async {
-            host.openDatabase()
+            DatabaseManager.open()
             init()
 
             // The "Show FPS" setting shows the engine's performance overlay.

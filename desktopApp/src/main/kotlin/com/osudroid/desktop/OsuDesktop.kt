@@ -25,8 +25,6 @@ class OsuDesktop(
 
     override val application = DESKTOP_APPLICATION
 
-    override fun openDatabase() = DesktopDatabase.load()
-
     override suspend fun loadBeatmapLibrary() = LibraryImport.loadLibrary()
 
     override fun checkNewSkins() = LibraryImport.importSkins()

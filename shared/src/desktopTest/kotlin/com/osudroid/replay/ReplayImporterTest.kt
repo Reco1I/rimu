@@ -1,10 +1,8 @@
 package com.osudroid.replay
 
-import androidx.room.Room
 import com.osudroid.data.DatabaseManager
 import com.osudroid.data.OsuDatabase
 import com.osudroid.data.ScoreInfo
-import com.osudroid.data.buildOsuDatabase
 import com.osudroid.math.Vector2
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -38,8 +36,8 @@ class ReplayImporterTest {
         previousCorePath = Settings[OsuSettings.CorePath]
         Settings[OsuSettings.CorePath] = folder.path + "/"
 
-        database = Room.inMemoryDatabaseBuilder<OsuDatabase>().buildOsuDatabase()
-        DatabaseManager.database = database
+        DatabaseManager.openInMemory()
+        database = DatabaseManager.database
     }
 
     @After

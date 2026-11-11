@@ -31,7 +31,7 @@ class OsuUITestsDesktop(initialTest: String?, screenshot: File?) : UITestApplica
 
         // Before any suite is created, the components under test reach the game through it.
         // Before the suites are created, which read the database it seeds.
-        runBlocking { TestGameContext.install { DesktopDatabase.loadInMemory() } }
+        runBlocking { TestGameContext.install() }
     }
 
     override fun createSuites() = listOf(VerktexUITests, OsuUITests, OsuSceneUITests, OsuGameplayUITests)

@@ -8,7 +8,6 @@ import com.reco1l.verktex.Platform
 import com.osudroid.android.AppBuild
 import java.io.File
 import com.osudroid.android.AndroidGame
-import com.osudroid.data.AndroidDatabase
 import com.google.firebase.FirebaseApp
 import com.osudroid.ui.v2.Skin
 import com.reco1l.verktex.android.UITestActivity
@@ -43,7 +42,7 @@ class OsuUITestActivity : UITestActivity(), OsuGameHost {
 
         // Before any suite is created, the components under test reach the game through it.
         // Before the suites are created, which read the database it seeds.
-        runBlocking { TestGameContext.install { AndroidDatabase.loadInMemory(this@OsuUITestActivity) } }
+        runBlocking { TestGameContext.install() }
     }
 
     override fun createSuites() = listOf(VerktexUITests, OsuUITests, OsuSceneUITests, OsuGameplayUITests)

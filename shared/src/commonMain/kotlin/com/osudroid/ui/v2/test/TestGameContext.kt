@@ -36,15 +36,15 @@ object TestGameContext {
 
     /**
      * Must run before any component is built, some of them keep the music service they first see. The
-     * platform sets up the toasts before, and [loadInMemoryDatabase] opens an empty database kept in
-     * memory, so the game's own is never touched.
+     * platform sets up the toasts before. The database is an empty one kept in memory, so the game's
+     * own is never touched.
      */
-    suspend fun install(loadInMemoryDatabase: () -> Unit) {
+    suspend fun install() {
 
         // The skins of the skin folder, for the settings.
         SkinFolders.load()
 
-        loadInMemoryDatabase()
+        DatabaseManager.openInMemory()
         seedDatabase()
         LibraryManager.loadLibrary()
 

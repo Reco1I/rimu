@@ -4,16 +4,17 @@ import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.osudroid.OsuGameHost
 import com.osudroid.settings.GameFolders
+import com.reco1l.verktex.database.Databases
 import kotlin.jvm.JvmStatic
+import okio.Path.Companion.toPath
 
 // Ported from rimu! project
 
 /**
  * The current schema version of the database. A database of another version is recreated: there
- * are no migrations, see [buildOsuDatabase].
+ * are no migrations, see [DatabaseManager.open].
  */
 const val DATABASE_VERSION = 5
 
@@ -57,15 +58,6 @@ abstract class OsuDatabase : RoomDatabase() {
 expect object OsuDatabaseConstructor : RoomDatabaseConstructor<OsuDatabase> {
     override fun initialize(): OsuDatabase
 }
-
-/**
- * Finishes building the database, the same way on every platform: over the bundled SQLite, and
- * recreated if it's of another version, as there are no migrations.
- */
-fun RoomDatabase.Builder<OsuDatabase>.buildOsuDatabase(): OsuDatabase =
-    setDriver(BundledSQLiteDriver())
-        .fallbackToDestructiveMigration(dropAllTables = true)
-        .build()
 
 /**
  * The osu!droid database manager.
@@ -115,16 +107,34 @@ object DatabaseManager {
         get() = database.getModPresetTable()
 
     /**
-     * The path to the database file.
+     * The path to the database file. It's kept in the game's folder rather than in the data
+     * directory, where the installs before the engine opened databases had it.
      */
     @JvmStatic
     val databasePath: String
         get() = "${GameFolders.corePath}databases/room-${OsuGameHost.current.buildType}.db"
 
     /**
-     * The database, set by the platform once it's open.
+     * The database, set once it's open, see [open].
      */
     @JvmStatic
     lateinit var database: OsuDatabase
+
+    /**
+     * Opens the database file, recreated if it's of another version, as there are no migrations.
+     */
+    fun open() {
+        database = Databases.open(OsuDatabaseConstructor, databasePath.toPath()) {
+            fallbackToDestructiveMigration(dropAllTables = true)
+        }
+    }
+
+    /**
+     * Opens an empty database kept in memory instead of the database file, so the real one is never
+     * touched, e.g. in tests and the UI test browsers.
+     */
+    fun openInMemory() {
+        database = Databases.openInMemory(OsuDatabaseConstructor)
+    }
 
 }

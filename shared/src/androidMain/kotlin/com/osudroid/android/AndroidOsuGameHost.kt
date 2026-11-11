@@ -23,7 +23,6 @@ import com.osudroid.OsuGameHost
 import com.osudroid.UpdateManager
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.beatmaps.LibraryImport
-import com.osudroid.data.AndroidDatabase
 import com.osudroid.debug.QuickPlay
 import com.osudroid.difficulty.BeatmapDifficultyCalculator
 import com.osudroid.multiplayer.Multiplayer
@@ -458,8 +457,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
     override val buildType: String
         get() = AppBuild.buildType
-
-    override fun openDatabase() = AndroidDatabase.load(this)
 
     override fun checkNewSkins() = LibraryImport.importSkins()
 
