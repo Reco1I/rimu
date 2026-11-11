@@ -55,6 +55,13 @@ abstract class GraphicsBuffer : GraphicsResource() {
     internal var isRecorded = false
 
     /**
+     * Increases every time the buffer is cleared. Data is only ever appended otherwise, so with
+     * [wordCount] it tells a backend whether the data changed since it uploaded it.
+     */
+    var clearCount = 0
+        private set
+
+    /**
      * Discards the written data, so the buffer can be filled again.
      */
     fun clear() {
@@ -66,6 +73,7 @@ abstract class GraphicsBuffer : GraphicsResource() {
         _wordCount = 0
         pendingBytes = 0
         pendingByteCount = 0
+        clearCount++
     }
 
     fun requireCapacity(requiredBytes: Int) {

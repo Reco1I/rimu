@@ -11,6 +11,10 @@ class ESBuffer : GraphicsBuffer() {
 
     private var uploadBuffer = allocateDirect(capacity).order(ByteOrder.nativeOrder()).asIntBuffer()
 
+    // What was last uploaded to the GL buffer, so a buffer unchanged since isn't uploaded again.
+    private var uploadedClearCount = -1
+    private var uploadedWordCount = -1
+
 
     /**
      * Uploads the written vertex data to the GPU. The buffer is left bound.
@@ -19,6 +23,13 @@ class ESBuffer : GraphicsBuffer() {
      * flight and the buffer can be rewritten in the next frame.
      */
     override fun uploadDataToGPU() {
+        if (uploadedClearCount == clearCount && uploadedWordCount == wordCount) {
+            GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, id)
+            return
+        }
+        uploadedClearCount = clearCount
+        uploadedWordCount = wordCount
+
         if (uploadBuffer.capacity() < wordCount) {
             uploadBuffer = allocateDirect(capacity).order(ByteOrder.nativeOrder()).asIntBuffer()
         }
@@ -46,11 +57,13 @@ class ESBuffer : GraphicsBuffer() {
             GLESHelper.glDeleteBuffers(id)
             id = 0
         }
+        uploadedClearCount = -1
     }
 
     override fun onContextLost() {
         super.onContextLost()
         // The GL buffer went away with the context, a new one is generated on the next load.
         id = 0
+        uploadedClearCount = -1
     }
 }

@@ -200,6 +200,48 @@ abstract class GraphicsRenderer {
     }
 
     /**
+     * Records a draw of [vertexCount] vertices of [buffer] from [firstVertex], as triangles. The
+     * buffer is owned by the caller, and like for [drawInstanced] it must keep its data until the
+     * frame is executed. A buffer that isn't written again between frames isn't uploaded again by
+     * the backends that keep vertex data on the GPU.
+     *
+     * The vertices aren't transformed, the shader applies [currentTransform] if it needs it.
+     */
+    fun drawVertices(
+        shader: GraphicsShader,
+        buffer: GraphicsBuffer,
+        vertexLayout: VertexLayout,
+        firstVertex: Int,
+        vertexCount: Int,
+        uniformSet: GraphicsShader.UniformSet,
+        texture: GraphicsTexture? = null
+    ) {
+        require(firstVertex >= 0 && vertexCount >= 0) { "Invalid vertex range $firstVertex, $vertexCount." }
+        require((firstVertex + vertexCount) * vertexLayout.stride <= buffer.position) {
+            "The buffer doesn't hold ${firstVertex + vertexCount} vertices of the given layout."
+        }
+
+        if (vertexCount == 0) {
+            return
+        }
+
+        buffer.isRecorded = true
+
+        commandBatch.addLast(DrawCommand(
+            buffer = buffer,
+            shader = shaderStack.lastOrNull() ?: shader,
+            texture = texture,
+            scissor = scissorStack.lastOrNull(),
+            blendMode = blendModeStack.lastOrNull() ?: BlendMode.Alpha,
+            depthState = depthStateStack.lastOrNull() ?: DepthState.Default,
+            uniformSet = uniformSet,
+            vertexLayout = vertexLayout,
+            firstVertex = firstVertex,
+            vertexCount = vertexCount
+        ))
+    }
+
+    /**
      * The transformation currently applied to what gets drawn.
      */
     val currentTransform: Mat2

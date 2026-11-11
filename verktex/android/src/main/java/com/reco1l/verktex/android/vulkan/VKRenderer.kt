@@ -110,7 +110,14 @@ class VKRenderer(
         }
 
         val ring = context.ring
-        val vertexOffset = ring.writeWords(buffer.words, buffer.wordCount)
+        // Only the drawn vertices are copied, a range draw then starts at the ring offset.
+        val vertexCount = command.drawnVertexCount()
+        val strideWords = command.vertexLayout.stride / 4
+        val vertexOffset = if (command.vertexCount >= 0) {
+            ring.writeWords(buffer.words, command.firstVertex * strideWords, vertexCount * strideWords)
+        } else {
+            ring.writeWords(buffer.words, buffer.wordCount)
+        }
 
         val instanceBuffer = command.instanceBuffer
         val instanceOffset = if (instanceBuffer != null) ring.writeWords(instanceBuffer.words, instanceBuffer.wordCount) else 0
@@ -131,7 +138,6 @@ class VKRenderer(
         }
 
         val scissor = command.scissor
-        val vertexCount = buffer.position / command.vertexLayout.stride
 
         context.encoder.draw(
             pipeline = pipeline,

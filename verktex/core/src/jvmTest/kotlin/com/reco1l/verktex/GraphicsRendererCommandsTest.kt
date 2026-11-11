@@ -11,6 +11,7 @@ import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.graphics.GraphicsShader
 import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.graphics.GraphicsWindow
+import com.reco1l.verktex.graphics.VertexLayout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -228,4 +229,37 @@ class GraphicsRendererCommandsTest {
     private companion object {
         const val VERTICES_PER_RECT = 6
     }
+
+    @Test
+    fun drawVerticesRecordsTheRangeAndIsNeverMerged() {
+        val renderer = RecordingRenderer()
+        val layout = VertexLayout(listOf(VertexLayout.Attribute(0, 3)))
+        val buffer = FakeBuffer().apply { repeat(9 * 3) { putFloat(it.toFloat()) } }
+
+        renderer.begin()
+        renderer.drawVertices(solidQuad, buffer, layout, 3, 6, GraphicsShader.UniformSet())
+        renderer.drawVertices(solidQuad, buffer, layout, 0, 3, GraphicsShader.UniformSet())
+        renderer.drawRect(0f, 0f, 10f, 10f)
+        renderer.end()
+
+        val commands = renderer.commands
+        assertEquals(3, commands.size)
+        assertEquals(3, commands[0].firstVertex)
+        assertEquals(6, commands[0].drawnVertexCount())
+        assertEquals(0, commands[1].firstVertex)
+        assertEquals(3, commands[1].drawnVertexCount())
+    }
+
+    @Test
+    fun clearingABufferChangesItsClearCount() {
+        val buffer = FakeBuffer()
+        val before = buffer.clearCount
+
+        buffer.putFloat(1f)
+        assertEquals(before, buffer.clearCount)
+
+        buffer.clear()
+        assertEquals(before + 1, buffer.clearCount)
+    }
+
 }

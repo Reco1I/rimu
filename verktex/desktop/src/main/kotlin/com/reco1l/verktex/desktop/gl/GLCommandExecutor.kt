@@ -192,7 +192,7 @@ class GLCommandExecutor {
 
         applyUniforms(shader as GLShader, command.uniformSet, defaultUniforms.forViewport(viewportWidth, viewportHeight))
 
-        val vertexCount = buffer.position / command.vertexLayout.stride
+        val vertexCount = command.drawnVertexCount()
 
         val instanceBuffer = command.instanceBuffer
         val instanceLayout = command.instanceLayout
@@ -209,7 +209,7 @@ class GLCommandExecutor {
                 bindQuadIndices(quadCount)
                 glDrawElements(GL_TRIANGLES, quadCount * 6, GL_UNSIGNED_INT, 0L)
             } else {
-                glDrawArrays(GL_TRIANGLES, 0, vertexCount)
+                glDrawArrays(GL_TRIANGLES, command.firstVertex, vertexCount)
             }
         } else {
             instanceBuffer.bind()

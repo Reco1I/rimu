@@ -80,7 +80,29 @@ data class DrawCommand(
      * Like a depth clear, it carries no buffer or shader and is never merged with other commands.
      */
     val captureTexture: GraphicsTexture? = null,
+
+    /**
+     * The first vertex of [buffer] drawn.
+     */
+    val firstVertex: Int = 0,
+
+    /**
+     * The number of vertices of [buffer] drawn from [firstVertex], or -1 for all of them. A command
+     * drawing a range is never merged with other commands.
+     */
+    val vertexCount: Int = -1,
 ) {
+
+    /**
+     * The number of vertices this command draws from [firstVertex].
+     */
+    fun drawnVertexCount(): Int {
+        if (vertexCount >= 0) {
+            return vertexCount
+        }
+        val buffer = buffer ?: return 0
+        return buffer.position / vertexLayout.stride - firstVertex
+    }
 
     /**
      * Whether a draw with the given state can be appended to this command instead of starting a new one.
@@ -97,6 +119,8 @@ data class DrawCommand(
     ): Boolean {
         return !clearDepth &&
                 captureTexture == null &&
+                vertexCount < 0 &&
+                firstVertex == 0 &&
                 this.isQuads == isQuads &&
                 instanceBuffer == null &&
                 this.vertexLayout === vertexLayout &&

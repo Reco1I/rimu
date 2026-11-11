@@ -190,7 +190,7 @@ abstract class ESCommandExecutor {
 
         applyUniforms(shader, command.uniformSet, defaultUniforms.forViewport(viewportWidth, viewportHeight))
 
-        val vertexCount = buffer.position / command.vertexLayout.stride
+        val vertexCount = command.drawnVertexCount()
 
         if (command.instanceBuffer == null || command.instanceLayout == null) {
             if (command.isQuads) {
@@ -213,7 +213,7 @@ abstract class ESCommandExecutor {
         applyLayout(command.vertexLayout)
         disableAttributesExcept(command.vertexLayout.locationMask)
 
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount)
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, command.firstVertex, vertexCount)
     }
 
     /**

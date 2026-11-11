@@ -46,11 +46,16 @@ class VKFrameRing(buffer: ByteBuffer) {
     /**
      * Copies the first [count] [words] into the ring, returning their offset, or -1 when it's full.
      */
-    fun writeWords(words: IntArray, count: Int): Int {
+    fun writeWords(words: IntArray, count: Int): Int = writeWords(words, 0, count)
+
+    /**
+     * Copies [count] [words] from [start] into the ring, returning their offset, or -1 when it's full.
+     */
+    fun writeWords(words: IntArray, start: Int, count: Int): Int {
         val offset = allocate(count * 4, 4)
         if (offset >= 0) {
             ints.position(offset / 4)
-            ints.put(words, 0, count)
+            ints.put(words, start, count)
         }
         return offset
     }
