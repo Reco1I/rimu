@@ -14,7 +14,6 @@ public class MainActivity extends AndroidOsuGameHost {
     @Override
     protected void openPermissionScreen() {
         startActivity(new Intent(this, PermissionActivity.class));
-        overridePendingTransition(R.anim.fast_activity_swap, R.anim.fast_activity_swap);
         finish();
     }
 }
