@@ -1001,8 +1001,10 @@ val librarySection = listOf(
                 title = Res.string.opt_clear_title,
                 summary = Res.string.opt_clear_summary,
                 onClick = {
-                    LibraryManager.clearDatabase()
-                    Toasts.showLong(Res.string.library_cleared)
+                    async {
+                        LibraryManager.clearDatabase()
+                        Toasts.showLong(Res.string.library_cleared)
+                    }
                 }
             ),
             SettingsOption(
@@ -1011,7 +1013,7 @@ val librarySection = listOf(
                 title = Res.string.opt_clearprops_title,
                 summary = Res.string.opt_clearprops_summary,
                 onClick = {
-                    DatabaseManager.beatmapOptionsTable.deleteAll()
+                    async { DatabaseManager.beatmapOptionsTable.deleteAll() }
                 }
             )
         )

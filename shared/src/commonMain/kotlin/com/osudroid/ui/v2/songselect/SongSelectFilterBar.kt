@@ -21,6 +21,8 @@ import com.reco1l.verktex.ui.iconButton
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.themed
 import com.osudroid.utils.currentTimeMillis
+import com.osudroid.utils.async
+import com.osudroid.utils.updateThread
 
 class SongSelectFilterBar : UILinearContainer() {
 
@@ -176,11 +178,17 @@ class SongSelectFilterBar : UILinearContainer() {
     }
 
     /**
-     * Updates the collections the user can choose from, they can change from the beatmap options.
+     * Updates the collections the user can choose from, they can change from the beatmap options. They're
+     * read in the background and shown on the update thread.
      */
     fun updateCollections() {
-        val collections = DatabaseManager.beatmapCollectionsTable.getCollections()
+        async {
+            val collections = DatabaseManager.beatmapCollectionsTable.getCollections()
+            updateThread { showCollections(collections) }
+        }
+    }
 
+    private fun showCollections(collections: List<String>) {
         collectionSelect.options = listOf(UISelect.Option(ALL_COLLECTIONS, "All collections", leadingIcon = faSolidIcon(FAIcon.FolderOpen))) +
             collections.map { UISelect.Option(it, it, leadingIcon = faSolidIcon(FAIcon.FolderOpen)) }
 

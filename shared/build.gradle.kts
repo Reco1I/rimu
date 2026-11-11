@@ -299,9 +299,10 @@ kotlin {
             // Dates and times in a time zone, and their formats.
             api("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
 
-            // Room's annotations, so the entities and DAOs can be declared in common code. The
-            // database itself, which Room generates, is built by each platform that has one.
-            api("androidx.room:room-common:2.7.2")
+            // The database, the same on every platform: Room over the bundled SQLite, see
+            // com.osudroid.data.OsuDatabase. KSP generates its implementation for each target.
+            api("androidx.room:room-runtime:$roomVersion")
+            api("androidx.sqlite:sqlite-bundled:2.5.1")
         }
 
         androidMain.dependencies {
@@ -314,10 +315,6 @@ kotlin {
 
             // Localizations
             implementation("com.github.osudroid:language-pack:${providers.gradleProperty("languagePackVersion").get()}")
-
-            // The database: Room over Android's SQLite.
-            implementation("androidx.room:room-runtime:$roomVersion")
-            implementation("androidx.room:room-ktx:$roomVersion")
         }
 
         getByName("desktopTest").dependencies {
@@ -340,6 +337,7 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     add("kspAndroid", "androidx.room:room-compiler:$roomVersion")
+    add("kspDesktop", "androidx.room:room-compiler:$roomVersion")
 }
 
 ksp {

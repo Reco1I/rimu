@@ -71,8 +71,7 @@ object LibraryManager : MusicService.Playlist {
     }
 
 
-    @JvmStatic
-    fun loadLibrary() {
+    suspend fun loadLibrary() {
 
         library = ArrayList()
 
@@ -116,15 +115,13 @@ object LibraryManager : MusicService.Playlist {
     }
 
 
-    @JvmStatic
-    fun clearDatabase() {
+    suspend fun clearDatabase() {
         DatabaseManager.beatmapInfoTable.deleteAll()
         loadLibrary()
         currentIndex = 0
     }
 
-    @JvmStatic
-    fun deleteBeatmapSet(beatmapSet: BeatmapSetInfo) {
+    suspend fun deleteBeatmapSet(beatmapSet: BeatmapSetInfo) {
         // Headless, the beatmap sets don't come from the beatmap folder, don't touch any file.
         if (!OsuGame.isHeadless) {
             deleteRecursivelySafely(beatmapSet.path.toPath())
@@ -316,11 +313,13 @@ object LibraryManager : MusicService.Playlist {
                 }
             }
 
+            // Taken under the lock, inserted outside it: the insert suspends.
+            val scanned = synchronized(pendingBeatmapsLock) {
+                pendingBeatmaps.toList().also { pendingBeatmaps.clear() }
+            }
+
             try {
-                synchronized(pendingBeatmapsLock) {
-                    DatabaseManager.beatmapInfoTable.insertAll(pendingBeatmaps)
-                    pendingBeatmaps.clear()
-                }
+                DatabaseManager.beatmapInfoTable.insertAll(scanned)
             } catch (e: Exception) {
                 Logger.e("LibraryManager", "Failed to insert beatmaps into database.", e)
                 return

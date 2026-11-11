@@ -55,6 +55,8 @@ import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.ui.themed
 import com.osudroid.utils.currentTimeMillis
 import com.reco1l.verktex.localization.formatString
+import com.osudroid.utils.async
+import com.osudroid.utils.updateThread
 
 class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : UIScene() {
 
@@ -65,8 +67,13 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     private val dimBox: UIBox
     private val mainContainer: UIContainer
 
-    private val beatmapOptions = DatabaseManager.beatmapOptionsTable.getOptions(beatmapInfo.setDirectory)
-        ?: BeatmapOptions(beatmapInfo.setDirectory)
+    // The options of the beatmap set, read from the database once the scene opens. Gameplay starts
+    // once they're read, with their offset.
+    private var beatmapOptions = BeatmapOptions(beatmapInfo.setDirectory)
+    private var isBeatmapOptionsLoaded = false
+
+    // Shows the offset of the options once they're read.
+    private var offsetSlider: FormSlider? = null
 
     private var fadeTimeout = if (isRestart) 500L else 2000L
     private var minimumTimeout = if (isRestart) 500L else 2000L
@@ -204,6 +211,23 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
         mainContainer.scaleTo(1f, 0.2f, Easing.OutCubic)
     }
 
+    init {
+        async {
+            val options = DatabaseManager.beatmapOptionsTable.getOptions(beatmapInfo.setDirectory)
+
+            updateThread {
+                if (options != null) {
+                    beatmapOptions = options
+                    offsetSlider?.apply {
+                        value = options.offset.toFloat()
+                        defaultValue = options.offset.toFloat()
+                    }
+                }
+                isBeatmapOptionsLoaded = true
+            }
+        }
+    }
+
     override fun onUpdate(clock: FrameClock) {
 
         if (!isStarting) {
@@ -219,7 +243,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 }
             }
 
-            if (gameScene.isReadyToStart) {
+            if (gameScene.isReadyToStart && isBeatmapOptionsLoaded) {
 
                 // Multiplayer will skip the minimum timeout if it's ready to start.
                 if (currentTimeMillis() - lastTimeTouched > minimumTimeout || Multiplayer.isMultiplayer) {
@@ -242,7 +266,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                             fadeIn(0.1f, Easing.OutExpo)
                         }
 
-                        gameScene.start()
+                        gameScene.start(beatmapOptions.offset)
                     }
                 }
 
@@ -285,11 +309,16 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                             valueFormatter = { "${it.roundToInt()}ms" }
 
                             onValueChanged = {
-                                beatmapOptions.offset = it.roundToInt()
-                                DatabaseManager.beatmapOptionsTable.upsert(beatmapOptions)
+                                // Not before the options are read, which would replace them.
+                                if (isBeatmapOptionsLoaded) {
+                                    beatmapOptions.offset = it.roundToInt()
+                                    val options = beatmapOptions
+                                    async { DatabaseManager.beatmapOptionsTable.upsert(options) }
+                                }
                             }
                         }
                         +offsetSlider
+                        this@GameLoaderScene.offsetSlider = offsetSlider
 
                         linearContainer {
                             anchor = Anchor.TopCenter

@@ -36,18 +36,18 @@ interface IBlockAreaDAO {
 
     // Sorting because this will affect the attachment order, newer areas will be on top.
     @Query("SELECT * FROM BlockArea")
-    fun getAll(): List<BlockArea>
+    suspend fun getAll(): List<BlockArea>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(blockArea: BlockArea): Long
+    suspend fun insert(blockArea: BlockArea): Long
 
     @Update
-    fun update(blockArea: BlockArea)
+    suspend fun update(blockArea: BlockArea)
 
     @Delete
-    fun delete(blockArea: BlockArea)
+    suspend fun delete(blockArea: BlockArea)
 
     @Query("DELETE FROM BlockArea")
-    fun deleteAll()
+    suspend fun deleteAll()
 
 }

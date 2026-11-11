@@ -506,35 +506,35 @@ fun BeatmapInfo(data: Beatmap, lastModified: Long, calculateDifficulty: Boolean,
 @Dao interface IBeatmapInfoDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(beatmapInfo: List<BeatmapInfo>)
+    suspend fun insertAll(beatmapInfo: List<BeatmapInfo>)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    fun update(beatmapInfo: BeatmapInfo)
+    suspend fun update(beatmapInfo: BeatmapInfo)
 
     @Query("UPDATE BeatmapInfo SET droidStarRating = null")
-    fun resetDroidStarRatings()
+    suspend fun resetDroidStarRatings()
 
     @Query("UPDATE BeatmapInfo SET standardStarRating = null")
-    fun resetStandardStarRatings()
+    suspend fun resetStandardStarRatings()
 
     @Query("DELETE FROM BeatmapInfo WHERE setDirectory = :directory")
-    fun deleteBeatmapSet(directory: String)
+    suspend fun deleteBeatmapSet(directory: String)
 
     @Query("DELETE FROM BeatmapInfo WHERE setDirectory IN (:directories)")
-    fun deleteAllBeatmapSets(directories: List<String>)
+    suspend fun deleteAllBeatmapSets(directories: List<String>)
 
     @Transaction
     @Query("SELECT DISTINCT setDirectory, setId FROM BeatmapInfo")
-    fun getBeatmapSetList() : List<BeatmapSetInfo>
+    suspend fun getBeatmapSetList() : List<BeatmapSetInfo>
 
     @Query("SELECT DISTINCT setDirectory FROM BeatmapInfo")
-    fun getBeatmapSetPaths() : List<String>
+    suspend fun getBeatmapSetPaths() : List<String>
 
     @Query("SELECT EXISTS(SELECT setDirectory FROM BeatmapInfo WHERE setDirectory = :directory LIMIT 1)")
-    fun isBeatmapSetImported(directory: String): Boolean
+    suspend fun isBeatmapSetImported(directory: String): Boolean
 
     @Query("DELETE FROM BeatmapInfo")
-    fun deleteAll()
+    suspend fun deleteAll()
 }
 
 

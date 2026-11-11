@@ -13,6 +13,7 @@ import com.google.firebase.FirebaseApp
 import com.osudroid.ui.v2.Skin
 import com.reco1l.verktex.android.UITestActivity
 import com.reco1l.verktex.testing.VerktexUITests
+import kotlinx.coroutines.runBlocking
 
 /**
  * The UI test browser of osu!droid. It runs in its own process, so the game itself is never started
@@ -49,7 +50,8 @@ class OsuUITestActivity : UITestActivity(), OsuGameHost {
         AndroidGame.context = this
 
         // Before any suite is created, the components under test reach the game through it.
-        TestGameContext.install { AndroidDatabase.loadInMemory(this) }
+        // Before the suites are created, which read the database it seeds.
+        runBlocking { TestGameContext.install { AndroidDatabase.loadInMemory(this@OsuUITestActivity) } }
     }
 
     override fun createSuites() = listOf(VerktexUITests, OsuUITests, OsuSceneUITests, OsuGameplayUITests)

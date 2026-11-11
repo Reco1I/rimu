@@ -6,16 +6,17 @@ import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.ui.toast.Toasts
 import okio.Path
+import com.osudroid.utils.async
 
 /**
  * Asks the user for replay files and imports them.
  */
 fun pickAndImportReplays() {
-    Platform.pickFiles("application/octet-stream", ::importReplays)
+    Platform.pickFiles("application/octet-stream") { files -> async { importReplays(files) } }
 }
 
-// Called on a background thread with copies of the picked files, deleted once imported.
-private fun importReplays(files: List<Path>) {
+// Called in a coroutine with copies of the picked files, deleted once imported.
+private suspend fun importReplays(files: List<Path>) {
     val progress = Toasts.showPersistent(Res.string.replay_import_result.format(0, files.size), isIndeterminate = true)
     var importedCount = 0
 

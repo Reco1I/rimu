@@ -33,25 +33,25 @@ data class BeatmapOptions(
 @Dao interface IBeatmapOptionsDAO {
 
     @Query("SELECT * FROM BeatmapOptions WHERE setDirectory = :setDirectory")
-    fun getOptions(setDirectory: String): BeatmapOptions?
+    suspend fun getOptions(setDirectory: String): BeatmapOptions?
 
     @Query("SELECT setDirectory FROM BeatmapOptions WHERE isFavorite = 1")
-    fun getFavoriteDirectories(): List<String>
+    suspend fun getFavoriteDirectories(): List<String>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(options: BeatmapOptions)
+    suspend fun insert(options: BeatmapOptions)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertAll(options: List<BeatmapOptions>)
+    suspend fun insertAll(options: List<BeatmapOptions>)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    fun update(options: BeatmapOptions)
+    suspend fun update(options: BeatmapOptions)
 
     @Upsert
-    fun upsert(options: BeatmapOptions)
+    suspend fun upsert(options: BeatmapOptions)
 
     @Query("DELETE FROM BeatmapOptions")
-    fun deleteAll()
+    suspend fun deleteAll()
 
 }
 

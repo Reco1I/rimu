@@ -39,24 +39,15 @@ object DifficultyCalculationManager {
 
 
     /**
-     * Resets the star ratings calculated by older versions of the calculators, once the running
-     * calculation stops. If there's none, they're reset before this returns.
+     * Stops the running calculation, then resets the star ratings calculated by older versions of the
+     * calculators.
      */
-    @JvmStatic
-    fun checkForOutdatedStarRatings() {
-        val stopping = stopCalculation()
-
-        if (stopping.isCompleted) {
-            resetOutdatedStarRatings()
-        } else {
-            async {
-                stopping.await()
-                resetOutdatedStarRatings()
-            }
-        }
+    suspend fun checkForOutdatedStarRatings() {
+        stopCalculation().await()
+        resetOutdatedStarRatings()
     }
 
-    private fun resetOutdatedStarRatings() {
+    private suspend fun resetOutdatedStarRatings() {
         if (Settings[OsuSettings.DroidStarRatingVersion] < DroidDifficultyCalculator.VERSION) {
             DatabaseManager.beatmapInfoTable.resetDroidStarRatings()
             Settings[OsuSettings.DroidStarRatingVersion] = DroidDifficultyCalculator.VERSION

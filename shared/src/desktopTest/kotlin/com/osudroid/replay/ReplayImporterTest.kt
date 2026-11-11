@@ -1,17 +1,16 @@
 package com.osudroid.replay
 
+import androidx.room.Room
 import com.osudroid.data.DatabaseManager
-import com.osudroid.data.GameDatabase
-import com.osudroid.data.IScoreInfoDAO
+import com.osudroid.data.OsuDatabase
 import com.osudroid.data.ScoreInfo
+import com.osudroid.data.buildOsuDatabase
 import com.osudroid.math.Vector2
-import com.osudroid.settings.GameFolders
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import java.io.File
-import java.lang.reflect.Proxy
 import java.nio.file.Files
-import kotlin.reflect.KClass
+import kotlinx.coroutines.runBlocking
 import okio.FileNotFoundException
 import okio.Path.Companion.toOkioPath
 import org.junit.After
@@ -27,18 +26,8 @@ class ReplayImporterTest {
 
     private lateinit var folder: File
     private var previousCorePath = ""
-    private var previousDatabase: GameDatabase? = null
+    private lateinit var database: OsuDatabase
 
-    // What the importer inserts.
-    private val insertedScores = mutableListOf<ScoreInfo>()
-
-
-    // A DAO that only records the scores inserted into it.
-    @Suppress("UNCHECKED_CAST")
-    private fun <T : Any> fake(type: KClass<T>, handler: (String, Array<Any?>?) -> Any?): T =
-        Proxy.newProxyInstance(type.java.classLoader, arrayOf(type.java)) { _, method, args ->
-            handler(method.name, args)
-        } as T
 
     @Before
     fun setUp() {
@@ -47,39 +36,30 @@ class ReplayImporterTest {
 
         // The setting itself: the folder it resolves to without one needs a host.
         previousCorePath = Settings[OsuSettings.CorePath]
-        GameFolders.corePath = folder.path + "/"
+        Settings[OsuSettings.CorePath] = folder.path + "/"
 
-        previousDatabase = runCatching { DatabaseManager.database }.getOrNull()
-
-        val scores = fake(IScoreInfoDAO::class) { name, args ->
-            when (name) {
-                "insertScore" -> {
-                    insertedScores += args!![0] as ScoreInfo
-                    insertedScores.size.toLong()
-                }
-                else -> throw UnsupportedOperationException(name)
-            }
-        }
-
-        DatabaseManager.database = fake(GameDatabase::class) { name, _ ->
-            when (name) {
-                "getScoreInfoTable" -> scores
-                else -> throw UnsupportedOperationException(name)
-            }
-        }
+        database = Room.inMemoryDatabaseBuilder<OsuDatabase>().buildOsuDatabase()
+        DatabaseManager.database = database
     }
 
     @After
     fun tearDown() {
+        database.close()
         Settings[OsuSettings.CorePath] = previousCorePath
-        previousDatabase?.let { DatabaseManager.database = it }
         folder.deleteRecursively()
     }
 
 
+    // The scores the importer stored, of the beatmap the replays are of.
+    private fun storedScores(): List<ScoreInfo> = runBlocking {
+        DatabaseManager.scoreInfoTable.getBeatmapScores(MD5)
+    }
+
+    private fun import(file: File) = runBlocking { ReplayImporter.import(file.toOkioPath()) }
+
     private fun savedReplay(name: String): File {
         val replay = Replay(true)
-        replay.setBeatmap("Artist - Title", "Hard", "0123456789abcdef0123456789abcdef")
+        replay.setBeatmap("Artist - Title", "Hard", MD5)
         replay.setObjectCount(1)
         replay.addPress(100, Vector2(10f, 20f), 0)
         replay.addUp(200, 0)
@@ -100,13 +80,11 @@ class ReplayImporterTest {
     fun testImportsReplay() {
         val file = savedReplay("my replay.odr")
 
-        ReplayImporter.import(file.toOkioPath())
+        import(file)
 
-        assertEquals(1, insertedScores.size)
-        val score = insertedScores[0]
+        val score = storedScores().single()
         assertEquals("player", score.playerName)
         assertEquals(300L, score.score)
-        assertEquals("0123456789abcdef0123456789abcdef", score.beatmapMD5)
         assertEquals("my replay.odr", score.replayFilename)
 
         // Copied into the scores folder, the original kept.
@@ -118,9 +96,9 @@ class ReplayImporterTest {
     fun testNamesTemporaryFilesAfterThePlay() {
         val file = savedReplay("picked123.tmp")
 
-        ReplayImporter.import(file.toOkioPath())
+        import(file)
 
-        val name = insertedScores.single().replayFilename
+        val name = storedScores().single().replayFilename
         assertTrue(name, name.startsWith("player_Artist - Title_Hard_") && name.endsWith(".odr"))
         assertTrue(File(folder, "Scores/$name").isFile)
     }
@@ -129,25 +107,29 @@ class ReplayImporterTest {
     fun testDoesNotCopyAReplayAlreadyInTheScoresFolder() {
         val file = savedReplay("Scores/already.odr")
 
-        ReplayImporter.import(file.toOkioPath())
+        import(file)
 
-        assertEquals("already.odr", insertedScores.single().replayFilename)
+        assertEquals("already.odr", storedScores().single().replayFilename)
         assertTrue(file.isFile)
     }
 
     @Test(expected = FileNotFoundException::class)
     fun testMissingFile() {
-        ReplayImporter.import(File(folder, "missing.odr").toOkioPath())
+        import(File(folder, "missing.odr"))
     }
 
     @Test
     fun testRejectsOtherFiles() {
         val file = File(folder, "notes.odr").apply { writeText("not a replay") }
 
-        val error = runCatching { ReplayImporter.import(file.toOkioPath()) }.exceptionOrNull()
+        val error = runCatching { import(file) }.exceptionOrNull()
 
         assertTrue(error.toString(), error is IllegalArgumentException)
-        assertFalse(insertedScores.isNotEmpty())
+        assertTrue(storedScores().isEmpty())
         assertFalse(File(folder, "Scores/notes.odr").exists())
+    }
+
+    private companion object {
+        const val MD5 = "0123456789abcdef0123456789abcdef"
     }
 }

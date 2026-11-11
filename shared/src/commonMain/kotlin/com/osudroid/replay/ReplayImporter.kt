@@ -25,8 +25,7 @@ object ReplayImporter {
      * @throws IllegalArgumentException If it isn't a replay, or it doesn't record a score.
      * @throws IllegalStateException If the score can't be added to the database.
      */
-    @JvmStatic
-    fun import(path: Path) {
+    suspend fun import(path: Path) {
         val fileSystem = Platform.fileSystem
         val metadata = fileSystem.metadataOrNull(path) ?: throw FileNotFoundException("File does not exist: $path")
 

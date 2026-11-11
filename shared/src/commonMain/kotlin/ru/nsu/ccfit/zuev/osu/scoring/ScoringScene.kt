@@ -58,6 +58,7 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
 import com.osudroid.utils.formatDateTime
 import com.reco1l.verktex.localization.formatString
 import okio.Path.Companion.toPath
+import com.osudroid.utils.async
 
 class ScoringScene(pGame: GameScene) {
     private val game: GameScene = pGame
@@ -537,10 +538,14 @@ class ScoringScene(pGame: GameScene) {
             stat.replayFilename = replayPath?.toPath()?.name.orEmpty()
             stat.beatmapMD5 = beatmap.md5
 
-            try {
-                DatabaseManager.scoreInfoTable.insertScore(stat.toScoreInfo())
-            } catch (e: Exception) {
-                Logger.e("GameScene", "Failed to save score to database", e)
+            val scoreInfo = stat.toScoreInfo()
+
+            async {
+                try {
+                    DatabaseManager.scoreInfoTable.insertScore(scoreInfo)
+                } catch (e: Exception) {
+                    Logger.e("GameScene", "Failed to save score to database", e)
+                }
             }
 
             // Upload score

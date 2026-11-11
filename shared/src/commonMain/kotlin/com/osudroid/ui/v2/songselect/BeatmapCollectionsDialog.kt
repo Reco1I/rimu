@@ -21,6 +21,9 @@ import com.reco1l.verktex.ui.dialog.UIPromptDialog
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.themed
+import com.osudroid.utils.async
+import com.osudroid.utils.updateThread
+import kotlin.concurrent.Volatile
 
 /**
  * Lists the beatmap collections to add the beatmap set in [directory] to or remove it from, and to
@@ -48,6 +51,8 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
         spacing = themed { gap.xs }
     }
 
+    // Also set by the coroutines that write the changes.
+    @Volatile
     private var hasChanges = false
 
 
@@ -71,10 +76,26 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
     }
 
 
-    private fun loadCollections() {
-        list.clearChildren()
+    // What a row shows of a collection.
+    private class CollectionState(val name: String, val count: Int, val containsSet: Boolean)
 
-        val collections = DatabaseManager.beatmapCollectionsTable.getCollections().sorted()
+    private suspend fun readCollection(name: String): CollectionState {
+        val table = DatabaseManager.beatmapCollectionsTable
+        return CollectionState(name, table.getBeatmaps(name)?.size ?: 0, table.inCollection(name, directory))
+    }
+
+    /**
+     * Reads the collections from the database and shows them.
+     */
+    private fun loadCollections() {
+        async {
+            val collections = DatabaseManager.beatmapCollectionsTable.getCollections().sorted().map { readCollection(it) }
+            updateThread { showCollections(collections) }
+        }
+    }
+
+    private fun showCollections(collections: List<CollectionState>) {
+        list.clearChildren()
 
         if (collections.isEmpty()) {
             list += UIText().apply {
@@ -101,11 +122,16 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
                 onActionUp = {
                     val name = value.trim()
 
-                    if (name.isNotEmpty() && name != string.favorite_default.toString() &&
-                        !DatabaseManager.beatmapCollectionsTable.collectionExists(name)) {
-                        DatabaseManager.beatmapCollectionsTable.insertCollection(name)
-                        hasChanges = true
-                        loadCollections()
+                    if (name.isNotEmpty() && name != string.favorite_default.toString()) {
+                        async {
+                            val table = DatabaseManager.beatmapCollectionsTable
+
+                            if (!table.collectionExists(name)) {
+                                table.insertCollection(name)
+                                hasChanges = true
+                                loadCollections()
+                            }
+                        }
                     }
                     hide()
                 }
@@ -128,7 +154,9 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
     }
 
 
-    private inner class CollectionRow(private val name: String) : UILinearContainer() {
+    private inner class CollectionRow(state: CollectionState) : UILinearContainer() {
+
+        private val name = state.name
 
         private val countText = UIText().apply {
             fontSettings = themed { typography.smallBody }
@@ -140,15 +168,21 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
             origin = Anchor.CenterLeft
             variant = UIButton.Variant.Ghost
             onActionUp = {
-                val table = DatabaseManager.beatmapCollectionsTable
-
-                if (table.inCollection(name, directory)) {
-                    table.removeBeatmap(name, directory)
-                } else {
-                    table.addBeatmap(name, directory)
-                }
+                // Before the change is written, so that closing the dialog right away still reports it.
                 hasChanges = true
-                update()
+
+                async {
+                    val table = DatabaseManager.beatmapCollectionsTable
+
+                    if (table.inCollection(name, directory)) {
+                        table.removeBeatmap(name, directory)
+                    } else {
+                        table.addBeatmap(name, directory)
+                    }
+
+                    val state = readCollection(name)
+                    updateThread { show(state) }
+                }
             }
         }
 
@@ -179,16 +213,13 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
                 onActionUp = { confirmDeletion() }
             }
 
-            update()
+            show(state)
         }
 
 
-        private fun update() {
-            val table = DatabaseManager.beatmapCollectionsTable
-            val count = table.getBeatmaps(name)?.size ?: 0
-
-            toggleButton.icon = if (table.inCollection(name, directory)) FAIcon.Check else FAIcon.Plus
-            countText.text = if (count == 1) "1 beatmap set" else "$count beatmap sets"
+        private fun show(state: CollectionState) {
+            toggleButton.icon = if (state.containsSet) FAIcon.Check else FAIcon.Plus
+            countText.text = if (state.count == 1) "1 beatmap set" else "${state.count} beatmap sets"
         }
 
         private fun confirmDeletion() {
@@ -196,10 +227,13 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
                 title = "Delete collection"
                 text = "Delete the collection \"$name\"? ${string.favorite_ensure}"
                 onConfirm = {
-                    DatabaseManager.beatmapCollectionsTable.clearCollection(name)
-                    DatabaseManager.beatmapCollectionsTable.deleteCollection(name)
                     hasChanges = true
-                    loadCollections()
+
+                    async {
+                        DatabaseManager.beatmapCollectionsTable.clearCollection(name)
+                        DatabaseManager.beatmapCollectionsTable.deleteCollection(name)
+                        loadCollections()
+                    }
                 }
             }.show()
         }

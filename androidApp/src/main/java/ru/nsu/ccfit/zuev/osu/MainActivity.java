@@ -132,7 +132,7 @@ public class MainActivity extends AndroidOsuGameHost {
             SplashScene.setProgress(50);
             checkNewSkins();
             SkinFolders.load();
-            DifficultyCalculationManager.checkForOutdatedStarRatings();
+            LibraryScanning.checkForOutdatedStarRatingsBlocking();
             loadBeatmapLibrary();
 
             splashScene.playWelcomeAnimation();

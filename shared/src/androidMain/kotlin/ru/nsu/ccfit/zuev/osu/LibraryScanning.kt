@@ -2,6 +2,7 @@
 
 package ru.nsu.ccfit.zuev.osu
 
+import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.beatmaps.LibraryImport
 import kotlinx.coroutines.runBlocking
 
@@ -11,4 +12,12 @@ import kotlinx.coroutines.runBlocking
  */
 fun loadLibraryBlocking(openedFile: String?) = runBlocking {
     LibraryImport.loadLibrary(openedFile)
+}
+
+/**
+ * Resets the outdated star ratings as [DifficultyCalculationManager.checkForOutdatedStarRatings] does,
+ * blocking the calling thread until it's done, for `MainActivity`'s startup on a background thread.
+ */
+fun checkForOutdatedStarRatingsBlocking() = runBlocking {
+    DifficultyCalculationManager.checkForOutdatedStarRatings()
 }

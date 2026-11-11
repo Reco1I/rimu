@@ -13,7 +13,6 @@ import androidx.room.Query
 import androidx.room.Update
 import com.osudroid.beatmaps.sections.BeatmapDifficulty
 import com.osudroid.mods.ModDifficultyAdjust
-import com.osudroid.scoring.LegacyScoreMultiplierCalculator
 import com.osudroid.scoring.ScoreMultiplierCalculator
 import com.osudroid.utils.deserializeMods
 import kotlin.math.roundToLong
@@ -211,72 +210,30 @@ data class ScoreInfo @JvmOverloads constructor(
 
 }
 
-/**
- * A [ScoreInfo] paired with its precomputed effective score, as returned by [IScoreInfoDAO.getBeatmapLeaderboard].
- */
-data class ScoredScoreInfo(val scoreInfo: ScoreInfo, val effectiveScore: Long)
-
 @Dao
 interface IScoreInfoDAO {
 
     @Query("SELECT * FROM ScoreInfo WHERE beatmapMD5 = :beatmapMD5")
-    fun getBeatmapScores(beatmapMD5: String): List<ScoreInfo>
-
-    fun getBeatmapLeaderboard(beatmapMD5: String, difficulty: BeatmapDifficulty) =
-        getBeatmapScores(beatmapMD5)
-            .map { ScoredScoreInfo(it, it.calculateEffectiveScore(difficulty)) }
-            .sortedByDescending { it.effectiveScore }
+    suspend fun getBeatmapScores(beatmapMD5: String): List<ScoreInfo>
 
     @Query("SELECT * FROM ScoreInfo WHERE id = :id")
-    fun getScore(id: Int): ScoreInfo?
-
-    fun getBestMark(beatmapMD5: String, difficulty: BeatmapDifficulty) =
-        getBeatmapScores(beatmapMD5).maxByOrNull { it.calculateEffectiveScore(difficulty) }?.mark
+    suspend fun getScore(id: Int): ScoreInfo?
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    fun insertScore(score: ScoreInfo): Long
+    suspend fun insertScore(score: ScoreInfo): Long
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    fun insertScores(scores: List<ScoreInfo>)
+    suspend fun insertScores(scores: List<ScoreInfo>)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    fun updateScore(score: ScoreInfo)
+    suspend fun updateScore(score: ScoreInfo)
 
     @Query("DELETE FROM ScoreInfo WHERE id = :id")
-    fun deleteScore(id: Int): Int
+    suspend fun deleteScore(id: Int): Int
 
     @Query("SELECT EXISTS(SELECT 1 FROM ScoreInfo WHERE id = :id)")
-    fun scoreExists(id: Long): Boolean
+    suspend fun scoreExists(id: Long): Boolean
 
-    @Query("SELECT * FROM ScoreInfo WHERE beatmapMD5 = :beatmapMD5 AND needsScoreMigration = 1")
-    fun getScoresNeedingMigration(beatmapMD5: String): List<ScoreInfo>
-
-    /**
-     * Completes pending score migrations for a beatmap.
-     *
-     * Scores flagged with [ScoreInfo.needsScoreMigration] still hold the old [StatisticV2.totalScoreWithMultiplier]
-     * value because their beatmap was absent during the database migration. Now that [difficulty] is available, the
-     * correct mod multiplier can be computed and the raw [StatisticV2.totalScore] stored.
-     *
-     * Call this whenever the beatmap becomes available before displaying scores.
-     */
-    fun migrateScores(beatmapMD5: String, difficulty: BeatmapDifficulty) {
-        val pending = getScoresNeedingMigration(beatmapMD5)
-
-        if (pending.isEmpty()) {
-            return
-        }
-
-        for (scoreInfo in pending) {
-            val mods = deserializeMods(scoreInfo.mods)
-
-            updateScore(scoreInfo.copy(
-                score = (scoreInfo.score / LegacyScoreMultiplierCalculator(difficulty).calculateFor(mods.values)).roundToLong(),
-                mods = mods.serializeMods(),
-                needsScoreMigration = false
-            ))
-        }
-    }
 }
 
 /**

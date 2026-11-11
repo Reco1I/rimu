@@ -38,6 +38,8 @@ import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import kotlin.coroutines.cancellation.CancellationException
+import com.osudroid.data.BeatmapSetInfo
+import com.osudroid.utils.updateThread
 
 /**
  * Song select, created each time it's opened. Its sort order and grouping are settings, and it
@@ -294,8 +296,10 @@ class SongSelect : UIScene() {
      * it's shown, and again when the library changes.
      */
     fun loadBeatmaps() {
-        beatmapSets = DatabaseManager.beatmapInfoTable.getBeatmapSetList()
-        applyFilter()
+        beatmapLoadingScope.launch {
+            beatmapSets = DatabaseManager.beatmapInfoTable.getBeatmapSetList()
+            applyFilter()
+        }
     }
 
     /**
@@ -344,23 +348,34 @@ class SongSelect : UIScene() {
     private fun showBeatmapSetOptions(panel: BeatmapSetPanel) {
         val beatmapSetInfo = panel.boundData?.beatmapSetInfo ?: return
         val directory = beatmapSetInfo.directory
+
+        // The options of the set decide what the dropdown offers.
+        beatmapLoadingScope.launch {
+            val options = DatabaseManager.beatmapOptionsTable.getOptions(directory) ?: BeatmapOptions(directory)
+            updateThread { showBeatmapSetOptions(panel, beatmapSetInfo, options) }
+        }
+    }
+
+    private fun showBeatmapSetOptions(panel: BeatmapSetPanel, beatmapSetInfo: BeatmapSetInfo, options: BeatmapOptions) {
+        val directory = beatmapSetInfo.directory
         val title = beatmapSetInfo.beatmaps.firstOrNull()?.titleText ?: directory
 
         UIDropdown(panel.button).apply dropdown@{
             maxWidth = 320f.dip
-
-            val options = DatabaseManager.beatmapOptionsTable.getOptions(directory) ?: BeatmapOptions(directory)
 
             addButton {
                 text = if (options.isFavorite) "Remove from favorites" else "Add to favorites"
                 leadingIcon = faSolidIcon(FAIcon.Star)
                 onActionUp = {
                     options.isFavorite = !options.isFavorite
-                    DatabaseManager.beatmapOptionsTable.upsert(options)
                     this@dropdown.hide()
 
-                    if (filterBar.filter.favoritesOnly) {
-                        applyFilter()
+                    beatmapLoadingScope.launch {
+                        DatabaseManager.beatmapOptionsTable.upsert(options)
+
+                        if (filterBar.filter.favoritesOnly) {
+                            applyFilter()
+                        }
                     }
                 }
             }

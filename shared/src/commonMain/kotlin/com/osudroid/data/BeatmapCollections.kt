@@ -27,30 +27,30 @@ data class BeatmapSetCollection_BeatmapSetInfo(
 interface IBeatmapCollectionsDAO {
 
     @Query("SELECT name FROM BeatmapSetCollection")
-    fun getCollections(): List<String>
+    suspend fun getCollections(): List<String>
 
     @Query("INSERT OR IGNORE INTO BeatmapSetCollection (name) VALUES (:name)")
-    fun insertCollection(name: String): Long
+    suspend fun insertCollection(name: String): Long
 
     @Query("DELETE FROM BeatmapSetCollection WHERE name = :name")
-    fun deleteCollection(name: String)
+    suspend fun deleteCollection(name: String)
 
     @Query("DELETE FROM BeatmapSetCollection_BeatmapSetInfo WHERE collectionName = :collectionName")
-    fun clearCollection(collectionName: String)
+    suspend fun clearCollection(collectionName: String)
 
     @Query("SELECT EXISTS(SELECT name FROM BeatmapSetCollection WHERE name = :name)")
-    fun collectionExists(name: String): Boolean
+    suspend fun collectionExists(name: String): Boolean
 
 
     @Query("SELECT setDirectory FROM BeatmapSetCollection_BeatmapSetInfo WHERE collectionName = :collectionName")
-    fun getBeatmaps(collectionName: String): List<String>?
+    suspend fun getBeatmaps(collectionName: String): List<String>?
 
     @Query("INSERT OR IGNORE INTO BeatmapSetCollection_BeatmapSetInfo (collectionName, setDirectory) VALUES (:collectionName, :setDirectory)")
-    fun addBeatmap(collectionName: String, setDirectory: String): Long
+    suspend fun addBeatmap(collectionName: String, setDirectory: String): Long
 
     @Query("DELETE FROM BeatmapSetCollection_BeatmapSetInfo WHERE collectionName = :collectionName AND setDirectory = :setDirectory")
-    fun removeBeatmap(collectionName: String, setDirectory: String)
+    suspend fun removeBeatmap(collectionName: String, setDirectory: String)
 
     @Query("SELECT EXISTS(SELECT setDirectory FROM BeatmapSetCollection_BeatmapSetInfo WHERE collectionName = :collectionName AND setDirectory = :setDirectory)")
-    fun inCollection(collectionName: String, setDirectory: String): Boolean
+    suspend fun inCollection(collectionName: String, setDirectory: String): Boolean
 }

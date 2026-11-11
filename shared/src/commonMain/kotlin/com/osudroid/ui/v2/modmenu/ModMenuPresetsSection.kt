@@ -19,6 +19,8 @@ import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.dialog.UIMessageDialog
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
+import com.osudroid.utils.async
+import com.osudroid.utils.updateThread
 
 class ModMenuPresetsSection(val menu: ModMenu) : ModMenuSection("Presets") {
 
@@ -54,20 +56,31 @@ class ModMenuPresetsSection(val menu: ModMenu) : ModMenuSection("Presets") {
             serializedMods = menu.mods.serializeMods(includeIrrelevantMods = true)
         )
 
-        DatabaseManager.modPresetTable.insert(modPreset)
-        loadPresets()
-        onModsChanged()
+        async {
+            DatabaseManager.modPresetTable.insert(modPreset)
+            loadPresets()
+        }
     }
 
+    /**
+     * Reads the presets from the database and shows them, then updates which one is selected.
+     */
     fun loadPresets() {
-        toggleContainer.filterIsInstance<ModPresetToggle>().forEach { it.removeSelf() }
+        async {
+            val presets = DatabaseManager.modPresetTable.getAll()
+            presets.forEach { it.mods = deserializeMods(it.serializedMods) }
 
-        modPresets = DatabaseManager.modPresetTable.getAll()
+            updateThread {
+                toggleContainer.filterIsInstance<ModPresetToggle>().forEach { it.removeSelf() }
 
-        for (preset in modPresets) {
+                modPresets = presets
 
-            preset.mods = deserializeMods(preset.serializedMods)
-            toggleContainer += ModPresetToggle(preset)
+                for (preset in presets) {
+                    toggleContainer += ModPresetToggle(preset)
+                }
+
+                onModsChanged()
+            }
         }
     }
 
@@ -127,8 +140,10 @@ class ModMenuPresetsSection(val menu: ModMenu) : ModMenuSection("Presets") {
                         variant = Variant.Solid
                         onActionUp = {
                             hide()
-                            DatabaseManager.modPresetTable.delete(preset)
-                            loadPresets()
+                            async {
+                                DatabaseManager.modPresetTable.delete(preset)
+                                loadPresets()
+                            }
                         }
                     })
 

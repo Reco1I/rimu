@@ -37,20 +37,20 @@ data class ModPreset(
 @Dao
 interface IModPresetDAO {
     @Query("SELECT * FROM ModPreset")
-    fun getAll(): List<ModPreset>
+    suspend fun getAll(): List<ModPreset>
 
     @Query("SELECT * FROM ModPreset WHERE id = :id")
-    fun getById(id: Long): ModPreset?
+    suspend fun getById(id: Long): ModPreset?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(modPreset: ModPreset): Long
+    suspend fun insert(modPreset: ModPreset): Long
 
     @Update
-    fun update(modPreset: ModPreset)
+    suspend fun update(modPreset: ModPreset)
 
     @Delete
-    fun delete(modPreset: ModPreset)
+    suspend fun delete(modPreset: ModPreset)
 
     @Query("DELETE FROM ModPreset")
-    fun deleteAll()
+    suspend fun deleteAll()
 }

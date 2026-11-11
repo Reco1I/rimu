@@ -1130,7 +1130,7 @@ open class GameScene : GameObjectListener {
         }
     }
 
-    private fun prepareScene() {
+    private suspend fun prepareScene() {
         val playableBeatmap = this.playableBeatmap ?: return
         val parsedBeatmap = parsedBeatmap!!
         val lastMods = lastMods!!
@@ -1412,8 +1412,10 @@ open class GameScene : GameObjectListener {
 
     /**
      * Starts gameplay. This is used by the game loader once all necessary preprocessing is done.
+     *
+     * @param beatmapOffset The offset of the beatmap set, in milliseconds, from its options.
      */
-    fun start() {
+    fun start(beatmapOffset: Int) {
         val playableBeatmap = this.playableBeatmap ?: return
         val hud = hud!!
 
@@ -1425,9 +1427,8 @@ open class GameScene : GameObjectListener {
         }
 
         // Ensure user-defined offset has time to be applied.
-        val props = DatabaseManager.beatmapOptionsTable.getOptions(lastBeatmapInfo!!.setDirectory)
         gameplayClock.userGlobalOffset = OsuSettings.offset / 1000
-        gameplayClock.userBeatmapOffset = if (props != null) props.offset / 1000f else 0f
+        gameplayClock.userBeatmapOffset = beatmapOffset / 1000f
 
         val firstObjectTimePreempt = playableBeatmap.hitObjects.objects[0].timePreempt.toFloat() / 1000
         gameplayClock.seek(min(gameplayClock.time, firstObjectStartTime - firstObjectTimePreempt))
@@ -3133,10 +3134,14 @@ open class GameScene : GameObjectListener {
                 stat.replayFilename = odrFilename
                 stat.beatmapMD5 = lastBeatmapInfo!!.md5
 
-                try {
-                    DatabaseManager.scoreInfoTable.insertScore(stat.toScoreInfo())
-                } catch (e: Exception) {
-                    Logger.e("GameScene", "Failed to save score to database", e)
+                val scoreInfo = stat.toScoreInfo()
+
+                async {
+                    try {
+                        DatabaseManager.scoreInfoTable.insertScore(scoreInfo)
+                    } catch (e: Exception) {
+                        Logger.e("GameScene", "Failed to save score to database", e)
+                    }
                 }
             }
 

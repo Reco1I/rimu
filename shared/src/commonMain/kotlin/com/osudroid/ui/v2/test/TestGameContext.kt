@@ -39,7 +39,7 @@ object TestGameContext {
      * platform sets up the toasts before, and [loadInMemoryDatabase] opens an empty database kept in
      * memory, so the game's own is never touched.
      */
-    fun install(loadInMemoryDatabase: () -> Unit) {
+    suspend fun install(loadInMemoryDatabase: () -> Unit) {
 
         // The skins of the skin folder, for the settings.
         SkinFolders.load()
@@ -76,7 +76,7 @@ object TestGameContext {
     }
 
 
-    private fun seedDatabase() {
+    private suspend fun seedDatabase() {
         val beatmapSets = TestData.beatmapSets()
         val beatmaps = beatmapSets.flatMap { it.beatmaps }
 

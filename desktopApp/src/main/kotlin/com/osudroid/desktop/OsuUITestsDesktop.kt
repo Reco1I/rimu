@@ -12,6 +12,7 @@ import com.reco1l.verktex.desktop.testing.UITestApplication
 import com.reco1l.verktex.testing.VerktexUITests
 import java.io.File
 import kotlin.system.exitProcess
+import kotlinx.coroutines.runBlocking
 
 /**
  * The UI test browser of osu!droid on desktop, the counterpart of Android's `OsuUITestActivity`:
@@ -29,7 +30,8 @@ class OsuUITestsDesktop(initialTest: String?, screenshot: File?) : UITestApplica
         Skin.load(SkinFolders.path)
 
         // Before any suite is created, the components under test reach the game through it.
-        TestGameContext.install { DesktopDatabase.loadInMemory() }
+        // Before the suites are created, which read the database it seeds.
+        runBlocking { TestGameContext.install { DesktopDatabase.loadInMemory() } }
     }
 
     override fun createSuites() = listOf(VerktexUITests, OsuUITests, OsuSceneUITests, OsuGameplayUITests)
