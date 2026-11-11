@@ -1,5 +1,8 @@
 package com.reco1l.verktex.desktop
 
+import com.reco1l.verktex.desktop.video.FFmpeg
+import com.reco1l.verktex.desktop.video.FFmpegVideoDecoder
+import com.reco1l.verktex.video.VideoDecoder
 import kotlin.time.Duration
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.desktop.bass.BASSAudioDriver
@@ -61,6 +64,12 @@ class DesktopPlatform(
     }
 
     override fun exit() = onExit()
+
+    // Videos are decoded with FFmpeg, when its libraries could be loaded.
+    override val canPlayVideos: Boolean
+        get() = FFmpeg.libraries != null
+
+    override fun createVideoDecoder(path: String): VideoDecoder = FFmpegVideoDecoder(path)
 
     override fun createLoopWorker(name: String, minimumInterval: Duration, onLoop: () -> Unit): LoopWorker {
         return object : ThreadLoopWorker(name, minimumInterval) {

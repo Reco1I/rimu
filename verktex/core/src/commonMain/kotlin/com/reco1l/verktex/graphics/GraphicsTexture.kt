@@ -132,6 +132,17 @@ abstract class GraphicsTexture : GraphicsResource() {
     }
 
 
+    /**
+     * Writes the pixels of [region]'s source again the next time the texture is bound, for a source
+     * whose pixels changed, e.g. a video frame. Can be called from any thread.
+     */
+    fun invalidateRegion(region: Region) = synchronized(lock) {
+        if (region in regions && region !in pendingUploads) {
+            pendingUploads += region
+        }
+    }
+
+
     final override fun onLoad() {
         synchronized(lock) {
             onCreateTexture()

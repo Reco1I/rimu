@@ -206,9 +206,15 @@ application {
     }
 }
 
+// FFmpeg's libraries for videos, downloaded by Verktex's desktop platform.
+val ffmpegDirectory = rootProject.layout.projectDirectory.dir("verktex/desktop/build/ffmpeg").asFile.absolutePath
+
 tasks.named<JavaExec>("run") {
     // Relative paths given in --args, e.g. --screenshot, resolve against where Gradle was started.
     workingDir = rootProject.projectDir
+
+    dependsOn(":verktex:desktop:prepareFFmpeg")
+    systemProperty("verktex.ffmpeg.path", ffmpegDirectory)
 }
 
 // The UI test browser of osu!droid, with Verktex's suites too.
@@ -219,4 +225,7 @@ tasks.register<JavaExec>("runUITests") {
     mainClass.set("com.osudroid.desktop.OsuUITestsDesktopKt")
     jvmArgs = application.applicationDefaultJvmArgs.toList()
     workingDir = rootProject.projectDir
+
+    dependsOn(":verktex:desktop:prepareFFmpeg")
+    systemProperty("verktex.ffmpeg.path", ffmpegDirectory)
 }

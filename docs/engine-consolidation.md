@@ -358,7 +358,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 8. No `GlobalManager` | Done |
 | 9. Database in Verktex | Not started |
 | 10. `Path` and `UIPath` | Done (done before phase 9, as the user asked) |
-| 11. Video | Not started |
+| 11. Video | Done |
 
 ### Phase 10: `Path` and `UIPath`
 
@@ -400,6 +400,29 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
   40,000 differ by 1 or 2 (colours now come as float uniforms instead of 8-bit vertex colours) and 2
   by more, at triangle edges. **Not measured on the Adreno 610**, the plan's back-to-back A/B of
   profile builds is still to do, and the GL ES and Vulkan backends weren't seen on a device.
+
+### Phase 11: video
+
+- Verktex's `UIVideo` (`ui/UIVideo.kt`) is a concrete component over the platform's `VideoDecoder`
+  (`video/VideoDecoder.kt`, from `Platform.createVideoDecoder`, null where `Platform.canPlayVideos`
+  is false). It keeps the old API (`videoWidth`/`videoHeight`, `setOnReady`, `play`, `pause`,
+  `seekTo`, `setPlaybackSpeed`, `release`) and `isAvailable`.
+  - **Changed from the plan:** it isn't driven by a `Clock`. `GameScene` keeps driving it as it did
+    (play, pause and speed by the gameplay, seek on restart), which works and was left alone.
+- Android: `ExoPlayerVideoDecoder` in `verktex:android`, the former `ExoPlayerVideo`, decoding in
+  hardware into an external texture. The FFmpeg extension's AAR is in a local Maven repository
+  (`libs/maven`, `com.osudroid.thirdparty:media3-decoder-ffmpeg:1.4.1`), since a library module
+  can't depend on a bare AAR. `AndroidPlatform.canPlayVideos` is whether the backend shows external
+  textures (not Vulkan before Android 10).
+- Desktop: `FFmpegVideoDecoder` over FFmpeg 8.1 through JNA, with the LGPL shared libraries
+  downloaded at build time (as the user chose), see `docs/desktop-platform.md`. The decoder converts
+  to RGBA with `sws_scale` (the plan's first step), uploaded into a plain texture: no YUV shader yet.
+- Deleted: `OsuGameHost.createVideo`, `ExoPlayerVideo` and the game's abstract `UIVideo`.
+- Checked: the game tests, the common checks, `assembleDebug` (with the FFmpeg extension's natives
+  for the 4 ABIs), `prepareFFmpeg` on Windows, and the `osu!/Video` UI test on desktop with a
+  generated MPEG-4 clip: it plays in real time with the right colours, and seeks and plays at half
+  speed. Not checked: a beatmap with a video in gameplay (none in the desktop library), Linux, and
+  Android on a device.
 
 ### Known regressions
 

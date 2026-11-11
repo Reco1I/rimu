@@ -45,9 +45,24 @@ Found while checking, in the core and so on every platform:
   folder, not a resources directory of the core, so the core's jar (and the APK) doesn't carry a
   second copy. Android packages it as assets, desktop as classpath resources.
 - **Same shaders.** The GLSL ES 3.00 shaders are rewritten at load time to `#version 330 core`.
-  `samplerExternalOES` becomes `sampler2D`, so `video.frag` compiles, though desktop has no video yet.
+  `samplerExternalOES` becomes `sampler2D`, so `video.frag` compiles, though desktop videos don't use it.
 - **BASS natives committed**, as the Android ones are: Windows, Linux and macOS, from un4seen
   (bass24 and bass_fx24), laid out the way JNA extracts them from the classpath.
+- **Video with FFmpeg, downloaded at build time.** `FFmpegVideoDecoder` decodes with FFmpeg's shared
+  libraries through JNA (`desktop/video/FFmpeg.kt`) on a thread of its own, pacing the frames by the
+  video's clock (play, pause, speed and seek), converting the ones it shows to RGBA with `sws_scale`
+  and having the texture upload the newest one when it's next drawn (`GraphicsTexture.invalidateRegion`).
+  - The libraries are LGPL shared builds of [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds),
+    pinned with their checksums for Windows and Linux (x64 and arm64). `prepareFFmpeg` downloads the
+    one of the host into Gradle's cache and extracts avutil, swresample, swscale, avcodec and avformat
+    to `build/ffmpeg/<platform>`, and the run tasks pass that folder as `verktex.ffmpeg.path`. They're
+    loaded by full path, each after the ones it needs. Elsewhere (macOS), or without that property,
+    the system's FFmpeg of the same versions is used, if there is one.
+  - Committing them like BASS was the alternative: 30 to 90 MB a platform.
+  - Structs are read at the offsets of FFmpeg 8.1 (avformat 62, avcodec 62, avutil 60), found with
+    `offsetof` on its headers, and the decoder refuses other versions. Pinning a newer build of
+    another major version means finding the offsets again.
+  - The dated autobuilds get pruned. When the download fails, pin a newer one of the same versions.
 - **X11 on Wayland sessions.** When XWayland is available, GLFW uses X11. On Wayland, GLFW draws
   the window's title bar and buttons through libdecor, whose GTK plugin only runs on the process's
   first thread (it compares `getpid()` and `gettid()`). Java's `main` never runs on it, and GNOME
@@ -97,7 +112,8 @@ Found while checking, in the core and so on every platform:
    - The draw thread is the only one calling GL, which never happens in a constructor. So the
      version and capabilities are read once the context is current.
    - `GLSL330Translator` rewrites the shaders.
-   - There are no external textures (video) and no GPU timer yet.
+   - There are no external textures, videos go through plain textures (see Decisions), and no
+     GPU timer yet.
 7. **BASS** (`desktop/bass/`):
    - JNA direct-mapped bindings for the functions the Android driver uses, plus `BASS_FX_TempoCreate`
      (`BassNative`, imported as `BASS` so the code reads like the Android one).
@@ -136,7 +152,9 @@ Found while checking, in the core and so on every platform:
 
 ## What's left
 
-- Video (external textures) and the GPU timer.
+- The GPU timer.
+- Packaging the FFmpeg libraries with a desktop distribution, which doesn't exist yet: only the run
+  tasks pass them.
 - Font weights and italics of bundled fonts, which would need FreeType or separate font files.
   System fonts already use a file per weight.
 - Sharing the GL logic with the Android OpenGL ES backends.

@@ -34,7 +34,7 @@ class GLDevice : GraphicsDevice {
 
     override fun createTexture(width: Float, height: Float): GraphicsTexture = GLTexture(width, height)
 
-    // There's no video on desktop yet: a plain texture that is never fed, which callers leave out
-    // as the capabilities say external textures aren't supported.
+    // Desktop has no external textures, its video decoder writes frames into a plain texture (see
+    // FFmpegVideoDecoder). This one is never fed, which callers know from the capabilities.
     override fun createExternalTexture(width: Float, height: Float): GraphicsTexture = GLTexture(width, height)
 }
