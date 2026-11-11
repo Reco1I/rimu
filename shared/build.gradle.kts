@@ -182,6 +182,7 @@ abstract class CheckCommonSources : DefaultTask() {
         Regex("""\bSystem\.(currentTimeMillis|nanoTime|getProperty|getenv|exit|arraycopy)\b""") to "System, use kotlin.time or Platform",
         Regex("""\.javaClass\b|::class\.java\b""") to "a Java class reference, use ::class",
         Regex("""\bDispatchers\.IO\b""") to "Dispatchers.IO, which isn't common",
+        Regex("""(?<![.\w])Math\.[a-zA-Z]""") to "java.lang.Math, use kotlin.math",
         Regex("""\brunBlocking\b""") to "runBlocking, which isn't common",
         Regex("""\bkotlin\.jvm\.(Volatile|Synchronized|Throws|Strictfp|Transient)\b|@Synchronized\b""") to "a JVM-only annotation",
         Regex("""\bkotlinx\.coroutines\.future\b""") to "CompletableFuture interop",
@@ -226,6 +227,13 @@ abstract class CheckCommonSources : DefaultTask() {
 val checkCommonSources by tasks.registering(CheckCommonSources::class) {
     sources.from(layout.projectDirectory.dir("src/commonMain/kotlin"))
     report.set(layout.buildDirectory.file("reports/checkCommonSources.txt"))
+}
+
+// The same check over jvmMain, whose code is rewritten as common code before it moves to commonMain.
+// It isn't part of check: it lists what's left.
+val checkJvmMainSources by tasks.registering(CheckCommonSources::class) {
+    sources.from(layout.projectDirectory.dir("src/jvmMain/kotlin"))
+    report.set(layout.buildDirectory.file("reports/checkJvmMainSources.txt"))
 }
 
 tasks.matching { it.name == "check" || it.name == "desktopTest" }.configureEach {

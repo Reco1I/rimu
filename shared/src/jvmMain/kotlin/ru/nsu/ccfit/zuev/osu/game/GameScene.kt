@@ -139,6 +139,8 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.osu.scoring.TouchType
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.utils.currentTimeMillis
+import kotlin.concurrent.Volatile
 
 /**
  * A play of one beatmap: its gameplay, its retries and the replays watched from its [scoring] scene.
@@ -1007,7 +1009,7 @@ open class GameScene : GameObjectListener {
 
         val pipeline = cancelLoading(false)
             .thenCompose { previousGame?.cancelLoading(false) ?: CompletableFuture.completedFuture(Unit) }
-            .thenCompose { DifficultyCalculationManager.stopCalculation() }
+            .thenCompose { DifficultyCalculationManager.stopCalculation().asCompletableFuture() }
             .thenRun {
                 if (requestId != loadingRequestId.get()) {
                     return@thenRun
@@ -1958,9 +1960,9 @@ open class GameScene : GameObjectListener {
             sliderPaths = null
             sliderRenderPaths = null
             var replayPath: String? = null
-            stat.time = System.currentTimeMillis()
+            stat.time = currentTimeMillis()
             if (replay != null && !replaying) {
-                val ctime = System.currentTimeMillis().toString()
+                val ctime = currentTimeMillis().toString()
                 replayPath = GameFolders.corePath + "Scores/" +
                     MD5Calculator.getStringMD5(lastBeatmapInfo!!.filename + ctime) +
                     ctime.substring(0, min(3, ctime.length)) + ".odr"
@@ -3073,7 +3075,7 @@ open class GameScene : GameObjectListener {
     }
 
     fun saveFailedReplay(): Boolean {
-        stat.time = System.currentTimeMillis()
+        stat.time = currentTimeMillis()
         if (replay != null && !replaying) {
             val replay = replay!!
             val objects = objects!!
@@ -3089,7 +3091,7 @@ open class GameScene : GameObjectListener {
                 replay.addObjectScore(++lastObjectId, ResultType.MISS)
             }
 
-            val currentTime = System.currentTimeMillis().toString()
+            val currentTime = currentTimeMillis().toString()
             val odrFilename = MD5Calculator.getStringMD5(lastBeatmapInfo!!.filename + currentTime) + currentTime.substring(0, min(3, currentTime.length)) + ".odr"
 
             replayFilePath = GameFolders.scorePath + odrFilename

@@ -313,7 +313,7 @@ public class MainActivity extends AndroidOsuGameHost {
             }
         }
 
-        LibraryManager.scanDirectory(forceImportedBeatmaps);
+        LibraryScanning.scanBeatmapDirectoryBlocking(forceImportedBeatmaps);
         LibraryManager.loadLibrary();
     }
 

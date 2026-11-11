@@ -31,6 +31,10 @@ import kotlinx.coroutines.launch
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
+import com.osudroid.utils.currentTimeMillis
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import kotlin.concurrent.Volatile
 
 object Multiplayer {
 
@@ -127,7 +131,7 @@ object Multiplayer {
     @Volatile
     private var attemptStartTimeMS = 0L
 
-    private val abandonReconnectionLock = Any()
+    private val abandonReconnectionLock = SynchronizedObject()
 
     //region Connection
 
@@ -164,7 +168,7 @@ object Multiplayer {
                 )
 
             } catch (e: Exception) {
-                Toasts.showLong("Failed to connect to the room: ${e.javaClass} - ${e.message}")
+                Toasts.showLong("Failed to connect to the room: ${e::class.simpleName} - ${e.message}")
                 Logger.e("LobbyScene", "Failed to connect to room.", e)
 
                 updateThread { Verktex.pushScene(LobbyScene()) }
@@ -299,7 +303,7 @@ object Multiplayer {
 
     fun onReconnectAttempt(success: Boolean) {
 
-        lastAttemptResponseTimeMS = System.currentTimeMillis()
+        lastAttemptResponseTimeMS = currentTimeMillis()
 
         if (success) {
             isReconnecting = false
@@ -333,13 +337,13 @@ object Multiplayer {
         reconnectionScope = scope
 
         attemptCount = 0
-        reconnectionStartTimeMS = System.currentTimeMillis()
+        reconnectionStartTimeMS = currentTimeMillis()
         lastAttemptResponseTimeMS = 0L
 
         reconnectionJob = scope.launch {
 
             while (isReconnecting) {
-                val currentTime = System.currentTimeMillis()
+                val currentTime = currentTimeMillis()
 
                 // Absolute timeout exceeded — delegate to the shared exit path.
                 if (currentTime - reconnectionStartTimeMS >= 30000) {
@@ -385,7 +389,7 @@ object Multiplayer {
                     )
 
                     isWaitingAttemptResponse = true
-                    attemptStartTimeMS = System.currentTimeMillis()
+                    attemptStartTimeMS = currentTimeMillis()
                 } catch (e: Exception) {
                     log(e)
 

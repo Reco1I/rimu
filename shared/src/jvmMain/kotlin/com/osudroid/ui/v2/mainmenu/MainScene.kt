@@ -73,6 +73,7 @@ import ru.nsu.ccfit.zuev.osu.helper.*
 import ru.nsu.ccfit.zuev.osu.online.*
 import kotlin.math.*
 import com.reco1l.verktex.ui.themed
+import com.osudroid.utils.currentTimeMillis
 
 
 /**
@@ -101,7 +102,7 @@ class MainScene : UIScene() {
     // Seconds the menu has been expanded without being used.
     private var menuIdleTime = 0f
 
-    private var lastMusicChange = System.currentTimeMillis()
+    private var lastMusicChange = currentTimeMillis()
 
     private var backgroundLoadJob: Job? = null
 
@@ -438,7 +439,7 @@ class MainScene : UIScene() {
         val beatmap = BeatmapSelection.beatmap
         musicButton.text =
             if (beatmap != null) "${beatmap.titleText} - ${beatmap.artistText}" else ""
-        lastMusicChange = System.currentTimeMillis()
+        lastMusicChange = currentTimeMillis()
     }
 
     /**
@@ -554,7 +555,7 @@ class MainScene : UIScene() {
 
         // Music button
         val mightShowMusicButton =
-            isMenuExpanded || musicPlayer.isShown || System.currentTimeMillis() - lastMusicChange < 3000
+            isMenuExpanded || musicPlayer.isShown || currentTimeMillis() - lastMusicChange < 3000
 
         musicButtonTranslation = FloatInterpolation.floatAt(
             deltaTimeSec.coerceIn(0f, 0.05f),

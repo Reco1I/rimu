@@ -24,6 +24,7 @@ import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
+import kotlin.concurrent.Volatile
 
 object RoomAPI {
 
@@ -337,7 +338,7 @@ object RoomAPI {
             // operations to the update thread.
             updateThread { scene.onRoomConnect(room) }
         } catch (e: Exception) {
-            Multiplayer.log("ERROR: initialConnection handler threw an exception: ${e.javaClass.simpleName} — ${e.message}")
+            Multiplayer.log("ERROR: initialConnection handler threw an exception: ${e::class.simpleName} — ${e.message}")
             Multiplayer.log(e)
 
             roomEventListener?.onRoomConnectFail("Unexpected error processing server room state: ${e.message}")

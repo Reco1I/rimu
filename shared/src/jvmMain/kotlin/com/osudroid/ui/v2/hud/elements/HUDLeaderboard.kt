@@ -16,6 +16,7 @@ import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.text.UIText
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
+import com.osudroid.utils.currentTimeMillis
 
 class HUDLeaderboard(private val game: GameScene) : HUDElement() {
 
@@ -74,7 +75,7 @@ class HUDLeaderboard(private val game: GameScene) : HUDElement() {
         player.apply {
 
             // Animating rank change
-            val elapsed = (System.currentTimeMillis() - lastTimeDataChange) * 0.001f
+            val elapsed = (currentTimeMillis() - lastTimeDataChange) * 0.001f
 
             when {
                 elapsed < 1 -> setColor(
@@ -121,7 +122,7 @@ class HUDLeaderboard(private val game: GameScene) : HUDElement() {
                     sprite.updateRank()
                     player.updateRank()
 
-                    lastTimeDataChange = System.currentTimeMillis()
+                    lastTimeDataChange = currentTimeMillis()
                 }
                 --i
             }
@@ -244,13 +245,13 @@ class HUDLeaderboard(private val game: GameScene) : HUDElement() {
                 // This is only used for multiplayer when the list gets invalidated we try to figure if the rank was
                 // changed by referencing the old player sprite.
                 if (playerSprite?.data?.rank != it.rank) {
-                    lastTimeDataChange = System.currentTimeMillis()
+                    lastTimeDataChange = currentTimeMillis()
                 }
 
                 // Determining if the player 'isAlive' was changed from the last time the leaderboard was invalidated,
                 // this is only used for multiplayer.
                 if (playerSprite?.data?.isAlive != it.isAlive) {
-                    lastTimeDataChange = System.currentTimeMillis()
+                    lastTimeDataChange = currentTimeMillis()
                 }
 
                 playerSprite = sprite

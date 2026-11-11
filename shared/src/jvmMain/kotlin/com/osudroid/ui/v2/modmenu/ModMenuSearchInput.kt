@@ -5,6 +5,7 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.control.UITextInput
 import com.reco1l.verktex.ui.text.faSolidIcon
+import com.osudroid.utils.currentTimeMillis
 
 /**
  * A search input field for filtering mods and mod presets in the mod menu.
@@ -25,12 +26,12 @@ class ModMenuSearchInput : UITextInput("") {
     }
 
     override fun onValueChanged() {
-        lastValueChange = System.currentTimeMillis()
+        lastValueChange = currentTimeMillis()
         super.onValueChanged()
     }
 
     override fun onUpdate(clock: FrameClock) {
-        if (lastValueChange != Long.MAX_VALUE && System.currentTimeMillis() - lastValueChange >= DEBOUNCE_MS) {
+        if (lastValueChange != Long.MAX_VALUE && currentTimeMillis() - lastValueChange >= DEBOUNCE_MS) {
             onSearchTermUpdate(value)
             lastValueChange = Long.MAX_VALUE
         }

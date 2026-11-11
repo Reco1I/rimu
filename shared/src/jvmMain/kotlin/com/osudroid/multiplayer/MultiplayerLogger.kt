@@ -3,46 +3,51 @@ package com.osudroid.multiplayer
 import com.reco1l.verktex.Platform
 import com.osudroid.settings.GameFolders
 import com.reco1l.verktex.Logger
-import java.io.BufferedWriter
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.TimeZone
+import kotlin.concurrent.Volatile
+import kotlin.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.util.Date
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
+import okio.BufferedSink
+import okio.Path.Companion.toPath
+import okio.buffer
 
 /**
  * Logger for multiplayer events.
  */
 class MultiplayerLogger : AutoCloseable {
-    private val dispatcher = Dispatchers.IO.limitedParallelism(1)
+    // One at a time, so the entries are written in order.
+    private val dispatcher = Dispatchers.Default.limitedParallelism(1)
     private val scope = CoroutineScope(dispatcher + SupervisorJob())
 
     @Volatile
     private var isClosed = false
 
-    private var writer: BufferedWriter? = null
-
-    private val timestampFormat = SimpleDateFormat("HH:mm:ss").apply {
-        timeZone = TimeZone.getTimeZone("GMT+0")
-    }
+    private var writer: BufferedSink? = null
 
     /**
      * Initializes the logger by creating the log file and writing the initial log entry.
      */
     fun init() {
-        writer = File("${GameFolders.defaultCorePath}/Log", "multi_log.txt").apply {
-            parentFile?.mkdirs()
+        val file = "${GameFolders.defaultCorePath}/Log".toPath() / "multi_log.txt"
+        file.parent?.let { Platform.fileSystem.createDirectories(it) }
 
-            if (!exists()) {
-                createNewFile()
-            }
-        }.bufferedWriter()
+        // Replaces the log of the previous session.
+        writer = Platform.fileSystem.sink(file).buffer()
 
-        write("[${SimpleDateFormat("yyyy/MM/dd hh:mm:ss").format(Date())}] Client ${Platform.application.versionName} started.")
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        write("[${now.format(startFormat)}] Client ${Platform.application.versionName} started.")
     }
+
+    // The time of an entry, in UTC.
+    private fun timestamp() = Clock.System.now().toLocalDateTime(TimeZone.UTC).time.format(timestampFormat)
 
     /**
      * Logs a message to the log file.
@@ -54,7 +59,7 @@ class MultiplayerLogger : AutoCloseable {
             return
         }
 
-        val timestamp = timestampFormat.format(System.currentTimeMillis())
+        val timestamp = timestamp()
 
         Logger.i("Multiplayer", text)
         write("\n[$timestamp] $text")
@@ -70,11 +75,11 @@ class MultiplayerLogger : AutoCloseable {
             return
         }
 
-        val time = timestampFormat.format(System.currentTimeMillis())
+        val time = timestamp()
         val stacktrace = e.stackTraceToString()
 
         Logger.e("Multiplayer", "An exception has been thrown.", e)
-        write("\n[$time] EXCEPTION: ${e.javaClass.simpleName}\n$stacktrace")
+        write("\n[$time] EXCEPTION: ${e::class.simpleName}\n$stacktrace")
     }
 
     /**
@@ -101,7 +106,7 @@ class MultiplayerLogger : AutoCloseable {
 
         scope.launch {
             try {
-                writer?.write(str)
+                writer?.writeUtf8(str)
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
@@ -122,6 +127,20 @@ class MultiplayerLogger : AutoCloseable {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    private companion object {
+        // yyyy/MM/dd hh:mm:ss, with a 12-hour clock.
+        val startFormat = LocalDateTime.Format {
+            year(); char('/'); monthNumber(); char('/'); day()
+            char(' ')
+            amPmHour(); char(':'); minute(); char(':'); second()
+        }
+
+        // HH:mm:ss
+        val timestampFormat = LocalTime.Format {
+            hour(); char(':'); minute(); char(':'); second()
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.osudroid.multiplayer.api.data
 
 import com.osudroid.multiplayer.Multiplayer
+import kotlin.concurrent.Volatile
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 
 data class Room(
 
@@ -65,6 +68,11 @@ data class Room(
     val sessionID: String? = null
 ) {
     /**
+     * Guards [players] and what's derived from it. It's reentrant.
+     */
+    private val lock = SynchronizedObject()
+
+    /**
      * The players in this [Room]. `null` values are empty slots. The array size corresponds to [maxPlayers].
      *
      * Slot indices mirror the server's layout exactly: index `i` here corresponds to slot `i` on the
@@ -72,11 +80,11 @@ data class Room(
      *
      * Marked [Volatile] so that when [resizePlayers] replaces the array reference, all threads immediately see the new
      * reference without a stale cached copy. **Compound read-modify-write operations must still go through a
-     * [synchronized] method** (see [addPlayer], [removePlayer], and [resizePlayers]).
+     * method that holds [lock]** (see [addPlayer], [removePlayer], and [resizePlayers]).
      */
     @Volatile
     var players: Array<RoomPlayer?> = arrayOfNulls(maxPlayers)
-        @Synchronized set(value) {
+        set(value) = synchronized(lock) {
             field = value
             _playersMap = null
         }
@@ -109,20 +117,21 @@ data class Room(
      * Besides [players] it provides an array trimmed with no empty slots.
      */
     val activePlayers
-        @Synchronized get() = players.filterNotNull()
+        get() = synchronized(lock) { players.filterNotNull() }
 
     /**
      * Returns an array of all players that are in READY status.
      */
     val readyPlayers
-        @Synchronized get() = activePlayers.filter { it.status == PlayerStatus.Ready }
+        get() = synchronized(lock) { activePlayers.filter { it.status == PlayerStatus.Ready } }
 
     /**
      * All players in this [Room], mapped by their user ID.
      */
     val playersMap
-        @Synchronized get() = _playersMap
-            ?: players.filterNotNull().associateByTo(HashMap()) { it.id }.also { _playersMap = it }
+        get() = synchronized(lock) {
+            _playersMap ?: players.filterNotNull().associateByTo(HashMap()) { it.id }.also { _playersMap = it }
+        }
 
     @Volatile
     private var _playersMap: Map<Long, RoomPlayer>? = null
@@ -131,7 +140,7 @@ data class Room(
      * All [players] in this [Room], grouped by their team.
      */
     val teamMap
-        @Synchronized get() = activePlayers.groupBy { it.team }
+        get() = synchronized(lock) { activePlayers.groupBy { it.team } }
 
     /**
      * Whether this [Room] is in Team VS mode.
@@ -148,8 +157,7 @@ data class Room(
      * @return `true` if it was successfully added, `false` it if wasn't or if it was already in [players] (this can
      * happen due to reconnection).
      */
-    @Synchronized
-    fun addPlayer(player: RoomPlayer): Boolean {
+    fun addPlayer(player: RoomPlayer): Boolean = synchronized(lock) {
         /** @see [RoomPlayer.equals] */
         var index = players.indexOf(player)
         val wasAlready = index in players.indices
@@ -168,7 +176,7 @@ data class Room(
 
         players[index] = player
         _playersMap = null
-        return !wasAlready
+        !wasAlready
     }
 
     /**
@@ -179,8 +187,7 @@ data class Room(
      *
      * @return The removed player, or `null` if it wasn't in [players].
      */
-    @Synchronized
-    fun removePlayer(uid: Long): RoomPlayer? {
+    fun removePlayer(uid: Long): RoomPlayer? = synchronized(lock) {
         val index = players.indexOfFirst { it != null && it.id == uid }
         val removed = players.getOrNull(index)
 
@@ -191,7 +198,7 @@ data class Room(
             Multiplayer.log("WARNING: Tried to remove a player with invalid index: $index")
         }
 
-        return removed
+        removed
     }
 
     /**
@@ -202,10 +209,9 @@ data class Room(
      * this method — see [com.osudroid.ui.v2.multi.RoomScene.onRoomMaxPlayersChange].
      *
      * Callers outside this class must use this instead of assigning [players] directly so the
-     * operation is covered by the same monitor that guards [addPlayer] / [removePlayer].
+     * operation is covered by the same lock that guards [addPlayer] / [removePlayer].
      */
-    @Synchronized
-    fun resizePlayers(newSize: Int) {
+    fun resizePlayers(newSize: Int) = synchronized(lock) {
         players = players.copyOf(newSize)
     }
 }

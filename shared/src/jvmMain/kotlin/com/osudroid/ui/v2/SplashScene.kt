@@ -11,6 +11,7 @@ import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.text.UIText
+import kotlin.concurrent.Volatile
 
 /**
  * The scene shown while the game is loading, created by the host when it starts.

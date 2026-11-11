@@ -15,6 +15,7 @@ import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.async
 import com.osudroid.utils.delayed
+import kotlinx.coroutines.runBlocking
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.desktop.DesktopGameHost
 import com.reco1l.verktex.settings.Settings
@@ -43,7 +44,8 @@ class OsuDesktop(
 
     // Beatmap sets are imported from their folders only, .osz files aren't extracted yet.
     override fun loadBeatmapLibrary() {
-        LibraryManager.scanDirectory(emptySet())
+        // It runs on a background thread, which waits for the scan.
+        runBlocking { LibraryManager.scanDirectory(emptySet()) }
         LibraryManager.loadLibrary()
     }
 

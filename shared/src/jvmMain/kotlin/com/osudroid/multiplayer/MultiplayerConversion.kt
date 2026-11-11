@@ -11,6 +11,7 @@ import com.osudroid.multiplayer.api.data.WinCondition
 import com.osudroid.utils.deserializeMods
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
+import com.osudroid.utils.currentTimeMillis
 
 
 // Statistics
@@ -35,7 +36,7 @@ fun jsonToStatistic(json: JsonObject) = StatisticV2().apply {
     uid = json.optLong("uid", -1L)
     playerName = json.getString("username")
     setForcedScore(json.getLong("score"))
-    time = System.currentTimeMillis()
+    time = currentTimeMillis()
     mod = deserializeMods(json.optJsonArray("mods")?.toString() ?: "")
     scoreMaxCombo = json.optInt("maxCombo")
     hit300k = json.optInt("geki")

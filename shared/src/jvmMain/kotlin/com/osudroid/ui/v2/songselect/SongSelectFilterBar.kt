@@ -20,6 +20,7 @@ import com.reco1l.verktex.ui.form.FormCheckbox
 import com.reco1l.verktex.ui.iconButton
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.themed
+import com.osudroid.utils.currentTimeMillis
 
 class SongSelectFilterBar : UILinearContainer() {
 
@@ -82,13 +83,13 @@ class SongSelectFilterBar : UILinearContainer() {
 
                     override fun onValueChanged() {
                         super.onValueChanged()
-                        lastValueChangeMillis = System.currentTimeMillis()
+                        lastValueChangeMillis = currentTimeMillis()
                     }
 
                     override fun onUpdate(clock: FrameClock) {
                         super.onUpdate(clock)
 
-                        if (lastValueChangeMillis > 0L && System.currentTimeMillis() - lastValueChangeMillis > 300) {
+                        if (lastValueChangeMillis > 0L && currentTimeMillis() - lastValueChangeMillis > 300) {
                             submit()
                         }
                     }

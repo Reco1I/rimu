@@ -42,6 +42,7 @@ import com.reco1l.verktex.ui.textButton
 import ru.nsu.ccfit.zuev.osu.*
 import java.util.LinkedList
 import com.reco1l.verktex.ui.themed
+import com.osudroid.utils.currentTimeMillis
 
 /**
  * Because we're pros we want to highlight us.
@@ -445,14 +446,14 @@ data class PlayerMessage(
     val player: RoomPlayer,
 
     override val content: String,
-    override val time: Long = System.currentTimeMillis(),
+    override val time: Long = currentTimeMillis(),
 ) : Message
 
 data class SystemMessage(
     val color: Color4,
 
     override val content: String,
-    override val time: Long = System.currentTimeMillis(),
+    override val time: Long = currentTimeMillis(),
 ) : Message
 
 //endregion

@@ -170,7 +170,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                     roomPassword = password
                 )
             } catch (e: Exception) {
-                Toasts.showLong("Failed to connect to the room: ${e.javaClass} - ${e.message}")
+                Toasts.showLong("Failed to connect to the room: ${e::class.simpleName} - ${e.message}")
                 Multiplayer.log(e)
 
                 // Removes the loader scene, leaving the lobby.

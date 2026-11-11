@@ -53,10 +53,11 @@ import kotlin.math.*
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.ui.themed
+import com.osudroid.utils.currentTimeMillis
 
 class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : UIScene() {
 
-    private var lastTimeTouched = System.currentTimeMillis()
+    private var lastTimeTouched = currentTimeMillis()
     private var isStarting = false
     private var multiplayerLoadElapsed = 0f
 
@@ -220,7 +221,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             if (gameScene.isReadyToStart) {
 
                 // Multiplayer will skip the minimum timeout if it's ready to start.
-                if (System.currentTimeMillis() - lastTimeTouched > minimumTimeout || Multiplayer.isMultiplayer) {
+                if (currentTimeMillis() - lastTimeTouched > minimumTimeout || Multiplayer.isMultiplayer) {
                     isStarting = true
 
                     val backgroundBrightness = Settings[OsuSettings.BackgroundBrightness]
@@ -245,7 +246,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 }
 
             } else {
-                lastTimeTouched = System.currentTimeMillis()
+                lastTimeTouched = currentTimeMillis()
             }
         }
 
@@ -380,7 +381,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
         override fun onInputEvent(event: InputEvent): Boolean {
             alpha = 1f
-            lastTimeTouched = System.currentTimeMillis()
+            lastTimeTouched = currentTimeMillis()
 
             // When the player is restarting, and they touch the layout, assume they want to change settings.
             // In that case, show this loading scene longer.
@@ -394,7 +395,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
         override fun onUpdate(clock: FrameClock) {
 
-            val elapsed = System.currentTimeMillis() - lastTimeTouched
+            val elapsed = currentTimeMillis() - lastTimeTouched
 
             if (alpha > 0.5f && elapsed > fadeTimeout) {
                 alpha -= clock.elapsedFrameTime * 1.5f

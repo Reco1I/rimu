@@ -5,11 +5,10 @@ import com.osudroid.multiplayer.api.data.WinCondition
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import java.text.NumberFormat
-import java.util.Formatter
-import java.util.Locale
+import com.osudroid.utils.formatNumber
+import com.reco1l.verktex.localization.formatString
 
-open class ScoreBoardItem() : Cloneable {
+open class ScoreBoardItem() {
 
     @JvmField
     var userName: String? = null
@@ -63,13 +62,12 @@ open class ScoreBoardItem() : Cloneable {
 
 
     fun get(): String {
-        var text = userName + "\n" + NUMBER_FORMAT.format(playScore) + "\n"
+        var text = userName + "\n" + formatNumber(playScore) + "\n"
 
         if (Multiplayer.isConnected && Multiplayer.room!!.winCondition == WinCondition.Accuracy) {
-            accSb.setLength(0)
-            text += DECIMAL_FORMAT.format("%2.2f%%", accuracy * 100f)
+            text += formatString("%2.2f%%", accuracy * 100f)
         } else
-            text += NUMBER_FORMAT.format(maxCombo) + "x"
+            text += formatNumber(maxCombo) + "x"
 
         return text
     }
@@ -110,15 +108,13 @@ open class ScoreBoardItem() : Cloneable {
         return result
     }
 
-    public override fun clone(): ScoreBoardItem {
-        return super.clone() as ScoreBoardItem
-    }
-
-
-    private companion object {
-        val NUMBER_FORMAT: NumberFormat = NumberFormat.getNumberInstance(Locale.US)
-
-        val accSb = StringBuilder()
-        val DECIMAL_FORMAT = Formatter(accSb, Locale.ENGLISH)
+    /**
+     * A copy of this item.
+     */
+    fun clone(): ScoreBoardItem {
+        val copy = ScoreBoardItem(userName, playScore, maxCombo, accuracy, isAlive)
+        copy.scoreId = scoreId
+        copy.rank = rank
+        return copy
     }
 }

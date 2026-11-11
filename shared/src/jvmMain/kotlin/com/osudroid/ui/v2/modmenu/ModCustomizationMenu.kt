@@ -130,7 +130,7 @@ class ModCustomizationMenu(
 
             is EnumModSetting<*> -> ModSettingEnum(mod, setting as EnumModSetting<Enum<*>>)
 
-            else -> throw IllegalArgumentException("Unsupported mod setting type: ${setting::class.java.simpleName}")
+            else -> throw IllegalArgumentException("Unsupported mod setting type: ${setting::class.simpleName}")
         }
 
         component.onChanged = onSettingChanged

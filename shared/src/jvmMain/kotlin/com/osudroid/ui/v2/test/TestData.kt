@@ -13,6 +13,7 @@ import com.osudroid.multiplayer.api.data.RoomMods
 import com.osudroid.multiplayer.api.data.RoomPlayer
 import com.osudroid.utils.ModHashMap
 import kotlin.random.Random
+import com.osudroid.utils.currentTimeMillis
 
 /**
  * Made up data for the UI tests, so components can be tried without a library, scores or a server.
@@ -74,7 +75,7 @@ object TestData {
                 hit100 = hit100,
                 hit50 = index,
                 misses = misses,
-                time = System.currentTimeMillis() - index * 86_400_000L,
+                time = currentTimeMillis() - index * 86_400_000L,
                 sliderHeadHits = null,
                 sliderTickHits = null,
                 sliderRepeatHits = null,

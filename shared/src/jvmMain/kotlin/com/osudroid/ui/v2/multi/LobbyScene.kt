@@ -25,6 +25,7 @@ import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import kotlin.coroutines.cancellation.CancellationException
+import com.osudroid.utils.currentTimeMillis
 
 class LobbyScene : UIScene() {
 
@@ -36,7 +37,7 @@ class LobbyScene : UIScene() {
         set(value) {
             if (field != value) {
                 field = value
-                lastTimeUpdateMillis = System.currentTimeMillis()
+                lastTimeUpdateMillis = currentTimeMillis()
                 shouldFetch = true
             }
         }
@@ -149,7 +150,7 @@ class LobbyScene : UIScene() {
 
     override fun onUpdate(clock: FrameClock) {
 
-        val currentTimeMillis = System.currentTimeMillis()
+        val currentTimeMillis = currentTimeMillis()
 
         refreshButton.isEnabled = !isFetching && currentTimeMillis - lastTimeUpdateMillis > FETCH_TIMEOUT
 
