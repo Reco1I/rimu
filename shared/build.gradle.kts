@@ -312,8 +312,6 @@ kotlin {
             implementation("com.google.firebase:firebase-analytics:22.2.0")
             implementation("com.google.firebase:firebase-messaging:24.1.0")
 
-            implementation("net.lingala.zip4j:zip4j:2.11.5")
-
             // Localizations
             implementation("com.github.osudroid:language-pack:${providers.gradleProperty("languagePackVersion").get()}")
 

@@ -22,6 +22,7 @@ import com.reco1l.verktex.settings.VerktexSettings
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import java.io.File
 import com.osudroid.debug.QuickPlay
+import com.osudroid.beatmaps.LibraryImport
 
 /**
  * The game's window on desktop, which starts the game as `MainActivity` does on Android.
@@ -40,12 +41,13 @@ class OsuDesktop(
 
     override val application = DESKTOP_APPLICATION
 
-    // Beatmap sets are imported from their folders only, .osz files aren't extracted yet.
-    override fun loadBeatmapLibrary() {
-        // It runs on a background thread, which waits for the scan.
-        runBlocking { LibraryManager.scanDirectory(emptySet()) }
-        LibraryManager.loadLibrary()
-    }
+    // It runs on a background thread, which waits for the import and the scan.
+    override fun loadBeatmapLibrary() = runBlocking { LibraryImport.loadLibrary() }
+
+    override fun checkNewSkins() = LibraryImport.importSkins()
+
+    override val downloadsFolder: String?
+        get() = File(System.getProperty("user.home"), "Downloads").takeIf { it.isDirectory }?.path
 
     override fun onEngineInitialized() {
         OsuSettings.load()

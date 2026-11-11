@@ -15,6 +15,8 @@ import com.reco1l.verktex.android.AndroidGameHost
 import com.reco1l.verktex.settings.Settings
 import java.io.File
 import ru.nsu.ccfit.zuev.osu.AndroidSecurityUtils
+import android.os.Environment
+import com.osudroid.beatmaps.LibraryImport
 
 /**
  * The game's host on Android: the activity running the engine, with the features of the game only
@@ -34,6 +36,11 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
     override val buildType: String
         get() = AppBuild.buildType
+
+    override val downloadsFolder: String?
+        get() = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)?.path
+
+    override fun checkNewSkins() = LibraryImport.importSkins()
 
     override fun setAnnouncementsSubscribed(subscribed: Boolean) {
         if (subscribed) {

@@ -117,7 +117,7 @@ BASS native library, bundled in Verktex's Android target and reached through its
 
 ### Beatmaps & Difficulty
 
-Beatmap files are parsed in `com/osudroid/beatmaps/`. Difficulty calculation (star rating and PP) lives in `com/osudroid/difficulty/` and implements both the osu!droid and osu!standard algorithms. `BeatmapDifficultyCalculator` is the main entry point.
+Beatmap files are parsed in `com/osudroid/beatmaps/`. Beatmap set (`.osz`) and skin (`.osk`) archives are extracted by `LibraryImport` (Okio's `openZip`), from the game's folders, the host's downloads folder (`OsuGameHost.downloadsFolder`) or a file the game was opened with, on both platforms; `LibraryManager` then scans the beatmaps folder into the database. Difficulty calculation (star rating and PP) lives in `com/osudroid/difficulty/` and implements both the osu!droid and osu!standard algorithms. `BeatmapDifficultyCalculator` is the main entry point.
 
 ### Mod System
 

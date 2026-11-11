@@ -8,18 +8,15 @@ import com.osudroid.online.DownloadProgress
 import com.osudroid.online.downloadTo
 import com.osudroid.online.httpClient
 import com.osudroid.resources.Res
-import com.osudroid.settings.GameFolders
 import com.osudroid.utils.async
 import com.reco1l.verktex.localization.formatString
 import com.reco1l.verktex.ui.toast.Toasts
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import java.io.File
-import java.io.IOException
 import kotlinx.coroutines.CancellationException
-import net.lingala.zip4j.ZipFile
 import okio.Path.Companion.toOkioPath
-import ru.nsu.ccfit.zuev.osu.helper.FileUtils
+import com.osudroid.beatmaps.LibraryImport
 
 /**
  * Downloads beatmap sets and imports them, showing the progress in a toast.
@@ -80,21 +77,12 @@ object BeatmapDownloader {
         toast.text = Res.string.beatmap_downloader_importing.format(filename)
 
         try {
-            ZipFile(file).use {
-                if (!it.isValidZipFile) {
-                    Toasts.showLong("Import failed, invalid ZIP file.")
-                    return
-                }
-
-                if (!FileUtils.extractZip(file.path, GameFolders.beatmapPath)) {
-                    Toasts.showLong("Import failed, failed to extract ZIP file.")
-                    return
-                }
-
-                OsuGameHost.current.loadBeatmapLibrary()
+            if (LibraryImport.importBeatmapSet(file.toOkioPath()) == null) {
+                Toasts.showLong("Import failed, failed to extract ZIP file.")
+                return
             }
-        } catch (e: IOException) {
-            Toasts.showLong("Import failed:" + e.message)
+
+            OsuGameHost.current.loadBeatmapLibrary()
         } finally {
             toast.dismiss()
 

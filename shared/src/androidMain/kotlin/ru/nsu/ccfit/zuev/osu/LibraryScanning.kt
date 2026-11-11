@@ -2,12 +2,13 @@
 
 package ru.nsu.ccfit.zuev.osu
 
+import com.osudroid.beatmaps.LibraryImport
 import kotlinx.coroutines.runBlocking
 
 /**
- * Scans the beatmap directory as [LibraryManager.scanDirectory] does, blocking the calling thread
- * until it's done, for `MainActivity`, which loads the library on a background thread.
+ * Imports the archives waiting and loads the library as [LibraryImport.loadLibrary] does, blocking the
+ * calling thread until it's done, for `MainActivity`, which loads the library on a background thread.
  */
-fun scanBeatmapDirectoryBlocking(forceUpdateDirectories: Collection<String>?) = runBlocking {
-    LibraryManager.scanDirectory(forceUpdateDirectories)
+fun loadLibraryBlocking(openedFile: String?) = runBlocking {
+    LibraryImport.loadLibrary(openedFile)
 }

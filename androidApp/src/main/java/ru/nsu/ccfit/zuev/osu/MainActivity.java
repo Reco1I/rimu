@@ -55,7 +55,6 @@ import com.osudroid.android.MultiWindowAlert;
 import com.osudroid.difficulty.BeatmapDifficultyCalculator;
 import com.reco1l.verktex.Verktex;
 
-import net.lingala.zip4j.ZipFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,7 +68,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import okio.Okio;
-import ru.nsu.ccfit.zuev.osu.helper.FileUtils;
 import ru.nsu.ccfit.zuev.osu.helper.Debug;
 import com.osudroid.ui.v2.SplashScene;
 import ru.nsu.ccfit.zuev.osu.game.GameScene;
@@ -233,145 +231,24 @@ public class MainActivity extends AndroidOsuGameHost {
     }
 
     public void loadBeatmapLibrary() {
-        SplashScene.setInfo("Checking for new maps...");
         if (contentUriToAdd != null) {
             fileToAdd = copyContentUriToCache(contentUriToAdd);
             contentUriToAdd = null;
         }
-        final File mainDir = new File(GameFolders.getCorePath());
-        final HashSet<String> forceImportedBeatmaps = new HashSet<>();
-        if (fileToAdd != null) {
-            File file = new File(fileToAdd);
-            if (file.getName().toLowerCase().endsWith(".osz")) {
-                Toasts.show(Res.string.library_importing);
 
-                FileUtils.extractBeatmapset(fileToAdd, GameFolders.getBeatmapPath());
-                forceImportedBeatmaps.add(file.getName().substring(0, file.getName().length() - 4)
-                        .replaceAll("(?i) \\[no video]$", ""));
-                // LibraryManager.INSTANCE.sort();
-                fileToAdd = null;
-            } else if (file.getName().toLowerCase().endsWith(".osk")) {
-                Toasts.show(Res.string.library_skin_importing);
-                FileUtils.extractZip(fileToAdd, SkinFolders.getTopPath());
-                fileToAdd = null;
-            } else if (file.getName().toLowerCase().endsWith(".odr")) {
+        // A file the game was opened with: an archive is imported instead of the ones in the
+        // folders, a replay is played once the game has started.
+        final String openedFile = fileToAdd;
+
+        if (openedFile != null) {
+            if (openedFile.toLowerCase().endsWith(".odr")) {
                 willReplay = true;
             } else {
                 fileToAdd = null;
             }
-        } else if (mainDir.exists() && mainDir.isDirectory()) {
-            File[] filelist = FileUtils.listFiles(mainDir, ".osz");
-            final ArrayList<String> beatmaps = new ArrayList<>();
-            for (final File file : filelist) {
-                try (var zip = new ZipFile(file)) {
-                    if (zip.isValidZipFile()) {
-                        beatmaps.add(file.getPath());
-                    }
-                } catch (IOException ignored) {
-                }
-            }
-
-            File beatmapDir = new File(GameFolders.getBeatmapPath());
-            if (beatmapDir.exists()
-                    && beatmapDir.isDirectory()) {
-                filelist = FileUtils.listFiles(beatmapDir, ".osz");
-                for (final File file : filelist) {
-                    try (var zip = new ZipFile(file)) {
-                        if (zip.isValidZipFile()) {
-                            beatmaps.add(file.getPath());
-                            forceImportedBeatmaps.add(file.getName().substring(0, file.getName().length() - 4)
-                                    .replaceAll("(?i) \\[no video]$", ""));
-                        }
-                    } catch (IOException ignored) {
-                    }
-                }
-            }
-
-            File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if (Settings.get(OsuSettings.ScanDownload)
-                    && downloadDir.exists()
-                    && downloadDir.isDirectory()) {
-                filelist = FileUtils.listFiles(downloadDir, ".osz");
-                for (final File file : filelist) {
-                    try (var zip = new ZipFile(file)) {
-                        if (zip.isValidZipFile()) {
-                            beatmaps.add(file.getPath());
-                            forceImportedBeatmaps.add(file.getName().substring(0, file.getName().length() - 4)
-                                    .replaceAll("(?i) \\[no video]$", ""));
-                        }
-                    } catch (IOException ignored) {
-                    }
-                }
-            }
-
-            if (beatmaps.size() > 0) {
-                // final boolean deleteOsz = Settings.get(OsuSettings.DeleteOsz);
-                // Settings.set(OsuSettings.DeleteOsz, true);
-                Toasts.show(Res.string.library_importing_several.format(beatmaps.size()));
-                for (final String beatmap : beatmaps) {
-                    FileUtils.extractBeatmapset(beatmap, GameFolders.getBeatmapPath());
-                }
-                // Settings.set(OsuSettings.DeleteOsz, deleteOsz);
-
-                // LibraryManager.INSTANCE.sort();
-            }
         }
 
-        LibraryScanning.scanBeatmapDirectoryBlocking(forceImportedBeatmaps);
-        LibraryManager.loadLibrary();
-    }
-
-    public void checkNewSkins() {
-        SplashScene.setInfo("Checking new skins...");
-
-        final ArrayList<String> skins = new ArrayList<>();
-
-        // Scanning skin directory
-        final File skinDir = new File(SkinFolders.getTopPath());
-
-        if (skinDir.exists() && skinDir.isDirectory()) {
-            final File[] files = FileUtils.listFiles(skinDir, ".osk");
-
-            for (final File file : files) {
-                try (var zip = new ZipFile(file)) {
-                    if (zip.isValidZipFile()) {
-                        skins.add(file.getPath());
-                    }
-                } catch (IOException ignored) {
-                }
-            }
-        }
-
-        // Scanning download directory
-        final File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-
-        if (Settings.get(OsuSettings.ScanDownload)
-                && downloadDir.exists()
-                && downloadDir.isDirectory()) {
-            final File[] files = FileUtils.listFiles(downloadDir, ".osk");
-
-            for (final File file : files) {
-                try (var zip = new ZipFile(file)) {
-                    if (zip.isValidZipFile()) {
-                        skins.add(file.getPath());
-                    }
-                } catch (IOException ignored) {
-                }
-            }
-        }
-
-        if (skins.size() > 0) {
-            Toasts.show(Res.string.library_skin_importing_several.format(skins.size()));
-
-            for (final String skin : skins) {
-                if (FileUtils.extractZip(skin, SkinFolders.getTopPath())) {
-                    String folderName = skin.substring(0, skin.length() - 4);
-                    // We have imported the skin!
-                    Toasts.showLong(Res.string.library_imported.format(folderName));
-                    SkinFolders.add(folderName.substring(folderName.lastIndexOf("/") + 1), skin);
-                }
-            }
-        }
+        LibraryScanning.loadLibraryBlocking(openedFile);
     }
 
     /**

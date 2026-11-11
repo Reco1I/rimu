@@ -395,3 +395,6 @@ and everything is drawn with Verktex.
   `androidHostTest`) and the exported schemas are removed, and so are the import of upstream's
   preferences (`legacyPreferences`), `LegacyModConverter` and `GameMod`. The base folder of the game's
   files may change later to separate them from upstream's.
+- **Imports in common code.** `.osz` and `.osk` archives are extracted by the common `LibraryImport`
+  over Okio's `openZip`, instead of `MainActivity` with zip4j, so desktop imports them too (from its
+  folders and the user's `Downloads`). `FileUtils` and zip4j are removed.
