@@ -28,14 +28,6 @@ class OsuUITestActivity : UITestActivity(), OsuGameHost {
         get() = AppBuild.buildType
 
 
-    override fun checkSkinTexture(path: String, optional: Boolean) {
-        if (optional) {
-            com.osudroid.ui.skinning.ensureOptionalTexture(File(path))
-        } else {
-            com.osudroid.ui.skinning.ensureTexture(File(path))
-        }
-    }
-
     override fun onEngineInitialized() {
         // Firebase only initializes itself in the main process, the configuration subscribes to topics.
         FirebaseApp.initializeApp(this)

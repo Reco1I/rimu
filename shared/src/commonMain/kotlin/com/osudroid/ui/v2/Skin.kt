@@ -67,13 +67,6 @@ object Skin {
             null
         }
 
-        OsuGameHost.current.checkSkinTexture((folder / "sliderendcircle.png").toString(), optional = true)
-        OsuGameHost.current.checkSkinTexture((folder / "sliderendcircleoverlay.png").toString(), optional = true)
-
-        OsuGameHost.current.checkSkinTexture((folder / "selection-mods.png").toString(), optional = false)
-        OsuGameHost.current.checkSkinTexture((folder / "selection-random.png").toString(), optional = false)
-        OsuGameHost.current.checkSkinTexture((folder / "selection-options.png").toString(), optional = false)
-
         return json
     }
 }

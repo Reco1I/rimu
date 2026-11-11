@@ -477,15 +477,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         FirebaseAnalytics.getInstance(this).logEvent(name, bundle)
     }
 
-    override fun checkSkinTexture(path: String, optional: Boolean) {
-        if (optional) {
-            com.osudroid.ui.skinning.ensureOptionalTexture(File(path))
-        } else {
-            com.osudroid.ui.skinning.ensureTexture(File(path))
-        }
-    }
-
-
     override fun verifyFileIntegrity() = AndroidSecurityUtils.verifyFileIntegrity(this)
 
     override val canCheckForUpdates: Boolean

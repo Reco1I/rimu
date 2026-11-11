@@ -53,13 +53,6 @@ interface OsuGameHost : GameHost {
     fun checkNewSkins() = Unit
 
     /**
-     * Checks a texture of a skin folder: an [optional] one is created transparent when it's missing,
-     * other ones are deleted when they're empty or transparent, so the default skin's are used
-     * instead. Hosts that can't read images leave them as they are.
-     */
-    fun checkSkinTexture(path: String, optional: Boolean) = Unit
-
-    /**
      * Whether [showBeatmapListing] is available.
      */
     val hasBeatmapListing: Boolean
