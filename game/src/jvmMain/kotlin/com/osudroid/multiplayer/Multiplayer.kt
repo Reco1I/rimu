@@ -1,5 +1,6 @@
 package com.osudroid.multiplayer
 
+import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.OsuGameHost
 import com.osudroid.settings.OsuSettings
@@ -179,11 +180,7 @@ object Multiplayer {
 
     fun onLiveLeaderboard(array: JsonArray) {
 
-        if (Verktex.scene != OsuGame.gameScene.scene) {
-            return
-        }
-
-        val hud = OsuGame.gameScene.hud ?: return
+        val hud = GameScene.current?.hud ?: return
 
         if (hud.hasElement(HUDLeaderboard::class)) {
 
@@ -226,7 +223,7 @@ object Multiplayer {
 
         // Replace server statistics with local in Head-to-Head mode.
         if (room?.isTeamVersus == false) {
-            val ownScore = OsuGame.gameScene.stat
+            val ownScore = roomScene?.game?.stat
             val ownScoreIndex = list.indexOfFirst { it.uid == OnlineManager.getInstance().userId }.takeUnless { it == -1 }
 
             if (ownScore != null) {
@@ -246,7 +243,7 @@ object Multiplayer {
         finalData = list.toTypedArray()
 
         // Reloading results screen
-        OsuGame.scoring.updateLeaderboard()
+        roomScene?.game?.scoring?.updateLeaderboard()
     }
 
 
@@ -294,8 +291,7 @@ object Multiplayer {
 
             // Do not interrupt an active game session; the teardown will happen naturally
             // when the player finishes (or abandons) the game.
-            val gameScene = OsuGame.gameScene
-            if (gameScene == null || Verktex.scene != gameScene.scene) {
+            if (GameScene.current == null) {
                 updateThread { roomScene?.back() }
             }
         }

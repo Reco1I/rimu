@@ -150,7 +150,7 @@ class ScoringScene(pGame: GameScene) {
         val wasShown = scene != null && Verktex.scene === scene
         val previousScene = scene
 
-        val scene = UIScene()
+        val scene = ResultsUIScene()
         this.scene = scene
         music = player
         currentStatistic = stat
@@ -575,7 +575,7 @@ class ScoringScene(pGame: GameScene) {
                 updateThread { oldSelector.removeSelf() }
             }
 
-            selector = StatisticSelector(Multiplayer.finalData!!)
+            selector = StatisticSelector(this, Multiplayer.finalData!!)
 
             if (scene != null) {
                 content!! += selector!!
@@ -618,5 +618,20 @@ class ScoringScene(pGame: GameScene) {
             music!!.preLoad(beatmapInfo!!.audioPath)
             music!!.play()
         }
+    }
+
+    private inner class ResultsUIScene : UIScene() {
+        val scoring
+            get() = this@ScoringScene
+    }
+
+    companion object {
+
+        /**
+         * The results shown in the current scene, null when they aren't the current scene.
+         */
+        @JvmStatic
+        val current: ScoringScene?
+            get() = (Verktex.scene as? ResultsUIScene)?.scoring
     }
 }

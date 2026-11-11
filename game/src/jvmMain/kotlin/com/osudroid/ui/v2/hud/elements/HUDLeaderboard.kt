@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.hud.elements
 
+import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.ui.v2.SkinTextures
@@ -16,7 +17,7 @@ import com.reco1l.verktex.ui.text.UIText
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
-class HUDLeaderboard : HUDElement() {
+class HUDLeaderboard(private val game: GameScene) : HUDElement() {
 
     var nextItems: List<ScoreBoardItem>? = null
 
@@ -26,13 +27,13 @@ class HUDLeaderboard : HUDElement() {
     private var lastTimeDataChange = 0L
 
 
-    private val stats: StatisticV2 = OsuGame.gameScene.stat
+    private val stats: StatisticV2 = game.stat
 
-    private val replayId = OsuGame.scoring.replayID
+    private val replayId = game.scoring.replayID
 
     private val isReplaying = replayId != -1
 
-    private val isGlobalLeaderboard = OsuGame.gameScene.isLeaderboardOnline
+    private val isGlobalLeaderboard = game.isLeaderboardOnline
 
 
     init {
@@ -45,7 +46,7 @@ class HUDLeaderboard : HUDElement() {
         super.onUpdate(clock)
 
         if (!Multiplayer.isMultiplayer) {
-            val items = OsuGame.gameScene.leaderboardItems().takeIf { it.isNotEmpty() }
+            val items = game.leaderboardItems().takeIf { it.isNotEmpty() }
 
             // We consider that if it's in replay mode the length should be the same, in case it's not then the
             // length should be +1 greater (because of the new score).

@@ -683,8 +683,10 @@ class MainScene : UIScene() {
             stat.migrateLegacyMods(beatmap.getBeatmapDifficulty())
             stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
 
-            OsuGame.scoring.load(stat, null, OsuGame.music, replayFile, null, beatmap)
-            Verktex.pushScene(OsuGame.scoring.scene!!)
+            // The replay is played by this game when asked from the results.
+            val scoring = OsuGame.createGameScene().scoring
+            scoring.load(stat, null, OsuGame.music, replayFile, null, beatmap)
+            Verktex.pushScene(scoring.scene!!)
         }
     }
 }

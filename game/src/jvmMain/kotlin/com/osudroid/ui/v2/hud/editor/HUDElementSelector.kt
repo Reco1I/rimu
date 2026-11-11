@@ -35,7 +35,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
         get() = translationX.resolve(0f) >= 0f
 
 
-    private val elements = HUDElements.entries.map { it.create() }
+    private val elements = HUDElements.entries.map { it.create(hud.game) }
 
     private val elementList = UIScrollableContainer().apply {
 

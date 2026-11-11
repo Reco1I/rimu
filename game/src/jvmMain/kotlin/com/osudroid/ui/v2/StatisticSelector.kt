@@ -19,14 +19,18 @@ import java.text.NumberFormat.getNumberInstance
 import java.util.Locale.ENGLISH
 import java.util.Locale.US
 import kotlin.math.hypot
+import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * The list of scores of a multiplayer match shown in the results screen.
  */
-class StatisticSelector(stats: Array<StatisticV2>?) : UIScrollableContainer() {
+class StatisticSelector(
+    private val scoring: ScoringScene,
+    stats: Array<StatisticV2>?
+) : UIScrollableContainer() {
 
-    private val selected: StatisticV2? = OsuGame.scoring.currentStatistic
+    private val selected: StatisticV2? = scoring.currentStatistic
 
 
     init {
@@ -51,7 +55,7 @@ class StatisticSelector(stats: Array<StatisticV2>?) : UIScrollableContainer() {
         }
 
 
-        OsuGame.scoring.load(stat, OsuGame.scoring.beatmapInfo, OsuGame.music, null, null, null)
+        scoring.load(stat, scoring.beatmapInfo, OsuGame.music, null, null, null)
     }
 
 

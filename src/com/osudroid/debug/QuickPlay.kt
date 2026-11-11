@@ -5,7 +5,6 @@ import com.osudroid.BeatmapSelection
 import android.content.Intent
 import com.reco1l.verktex.Logger
 import com.osudroid.mods.ModAutoplay
-import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.ModHashMap
 import com.reco1l.verktex.texture.Textures
 import ru.nsu.ccfit.zuev.osu.LibraryManager
@@ -74,8 +73,7 @@ object QuickPlay {
         BeatmapSelection.beatmap = beatmap
         // Song select loads it otherwise, the game scene expects it.
         beatmap.backgroundPath?.let { Textures.load("::background", it) }
-        OsuGame.gameScene.setOldScene(SongSelect().apply { loadBeatmaps() })
-        OsuGame.gameScene.startGame(beatmap, null, mods)
+        OsuGame.createGameScene().startGame(beatmap, null, mods)
         return true
     }
 }

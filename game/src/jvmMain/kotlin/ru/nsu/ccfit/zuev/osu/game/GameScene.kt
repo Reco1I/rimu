@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import java.lang.ref.WeakReference
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
@@ -138,6 +139,10 @@ import ru.nsu.ccfit.zuev.osu.scoring.TouchType
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 
+/**
+ * A play of one beatmap: its gameplay, its retries and the replays watched from its [scoring] scene.
+ * Created with [com.osudroid.OsuGame.createGameScene] by whoever starts the play.
+ */
 open class GameScene : GameObjectListener {
     private val maximumActiveCursorCount = 3
     private var cursors = arrayOfNulls<Cursor>(CursorCount)
@@ -150,7 +155,6 @@ open class GameScene : GameObjectListener {
     private lateinit var bgScene: UIContainer
     private lateinit var mgScene: UIContainer
     private lateinit var fgScene: UIContainer
-    private var oldScene: UIScene? = null
 
     /**
      * The scores of the leaderboard shown during gameplay, given by song select with the play.
@@ -174,7 +178,6 @@ open class GameScene : GameObjectListener {
     var playableBeatmap: DroidPlayableBeatmap? = null
         private set
     private var lastBeatmapInfo: BeatmapInfo? = null
-    private var scoringScene: ScoringScene? = null
     private var timingControlPoints: Array<TimingControlPoint>? = null
     private var timingControlPointIndex = 0
     private var effectControlPoints: Array<EffectControlPoint>? = null
@@ -407,13 +410,10 @@ open class GameScene : GameObjectListener {
         return layer
     }
 
-    fun setScoringScene(sc: ScoringScene?) {
-        scoringScene = sc
-    }
-
-    fun setOldScene(oscene: UIScene?) {
-        oldScene = oscene
-    }
+    /**
+     * The results of this play.
+     */
+    val scoring: ScoringScene by lazy { ScoringScene(this) }
 
     private fun loadBackground() {
         if (dimRectangle != null) {
@@ -997,7 +997,13 @@ open class GameScene : GameObjectListener {
 
         SkinSounds.get("failsound")!!.stop()
 
+        // A play loading while another starts is stopped first, the loads share global state (the
+        // object pool, GameHelper).
+        val previousGame = lastStartedGame?.get()?.takeIf { it !== this }
+        lastStartedGame = WeakReference(this)
+
         val pipeline = cancelLoading(false)
+            .thenCompose { previousGame?.cancelLoading(false) ?: CompletableFuture.completedFuture(Unit) }
             .thenCompose { DifficultyCalculationManager.stopCalculation() }
             .thenRun {
                 if (requestId != loadingRequestId.get()) {
@@ -1230,7 +1236,7 @@ open class GameScene : GameObjectListener {
             hud!!.removeSelf()
         }
 
-        val hud = GameplayHUD()
+        val hud = GameplayHUD(this)
         this.hud = hud
 
         if (!replaying && !GameHelper.isAutoplay()) {
@@ -1293,7 +1299,7 @@ open class GameScene : GameObjectListener {
 
         if (GameHelper.isAutoplay() || replaying) {
             val metadata = playableBeatmap.metadata
-            playname = if (replaying) OsuGame.scoring.replayStat!!.playerName else "osu!"
+            playname = if (replaying) scoring.replayStat!!.playerName else "osu!"
 
             if (!Settings[OsuSettings.HideReplayMarquee]) {
                 val replayText = UIText()
@@ -1961,8 +1967,8 @@ open class GameScene : GameObjectListener {
             resetPlayfieldSizeScale()
             cancelVideoLoading()
 
-            val scoringScene = scoringScene
-            if (scoringScene != null && !startedFromHUDEditor) {
+            val scoringScene = scoring
+            if (!startedFromHUDEditor) {
                 if (replaying)
                     scoringScene.load(scoringScene.replayStat!!, null, OsuGame.music, replayPath, null, lastBeatmapInfo)
                 else {
@@ -2921,7 +2927,7 @@ open class GameScene : GameObjectListener {
             }
 
             if (replaying) {
-                scoringScene!!.replayStat!!.addHitOffset(acc)
+                scoring.replayStat!!.addHitOffset(acc)
             }
         }
 
@@ -3821,6 +3827,9 @@ open class GameScene : GameObjectListener {
     //endregion
 
     private inner class GameUIScene : UIScene() {
+        val game
+            get() = this@GameScene
+
         private val stopwatch = Stopwatch()
         private var lastRootWidth = 0f
         private var areModIconsAnimated = false
@@ -3903,5 +3912,16 @@ open class GameScene : GameObjectListener {
 
     companion object {
         const val CursorCount = Replay.CursorCount
+
+        // The play started last, whose loading a new play stops first.
+        @Volatile
+        private var lastStartedGame: WeakReference<GameScene>? = null
+
+        /**
+         * The play shown in the current scene, null when gameplay isn't the current scene.
+         */
+        @JvmStatic
+        val current: GameScene?
+            get() = (Verktex.scene as? GameUIScene)?.game
     }
 }

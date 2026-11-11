@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
@@ -115,6 +116,12 @@ class RoomScene(
     val mods = ModHashMap()
 
     private var modMenu: ModMenu? = null
+
+    /**
+     * The match started last, kept for its results.
+     */
+    var game: GameScene? = null
+        private set
 
     /**
      * The leave dialog that will be shown when the player tries to leave the room.
@@ -760,8 +767,7 @@ class RoomScene(
             return
         }
 
-        val gameScene = OsuGame.gameSceneOrNull
-        if (gameScene != null && Verktex.scene == gameScene.scene) {
+        if (GameScene.current != null) {
             return
         }
 
@@ -1145,7 +1151,7 @@ class RoomScene(
 
         updateThread {
 
-            if (player.status != PlayerStatus.MissingBeatmap && Verktex.scene != OsuGame.gameScene.scene) {
+            if (player.status != PlayerStatus.MissingBeatmap && GameScene.current == null) {
 
                 if (BeatmapSelection.beatmap == null) {
                     Multiplayer.log("WARNING: Attempt to start match with null track.")
@@ -1154,7 +1160,7 @@ class RoomScene(
 
                 allowAutomaticPlaybackRestart = false
                 OsuGame.music.stop()
-                OsuGame.gameScene.startGame(BeatmapSelection.beatmap, null, mods)
+                game = OsuGame.createGameScene().apply { startGame(BeatmapSelection.beatmap, null, mods) }
 
             }
         }
@@ -1165,7 +1171,7 @@ class RoomScene(
     override fun onRoomMatchStart() {
         updateThread {
             if (Verktex.scene is GameLoaderScene) {
-                OsuGame.gameScene.isReadyToStart = true
+                game?.isReadyToStart = true
             }
         }
 
@@ -1175,11 +1181,7 @@ class RoomScene(
     override fun onRoomMatchSkip() {
 
         updateThread {
-            if (Verktex.scene != OsuGame.gameScene.scene) {
-                return@updateThread
-            }
-
-            OsuGame.gameScene.skip()
+            GameScene.current?.skip()
         }
     }
 
@@ -1228,7 +1230,7 @@ class RoomScene(
             Multiplayer.log("Kicked from room.")
 
             updateThread {
-                if (Verktex.scene == OsuGame.gameScene.scene) {
+                if (GameScene.current != null) {
                     // Kicked while a game is in progress. We cannot navigate away from the
                     // game scene immediately — doing so would abruptly interrupt gameplay.
                     // Instead:

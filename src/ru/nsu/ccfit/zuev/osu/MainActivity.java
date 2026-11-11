@@ -74,6 +74,8 @@ import okio.Okio;
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils;
 import ru.nsu.ccfit.zuev.osu.helper.Debug;
 import com.osudroid.ui.v2.SplashScene;
+import ru.nsu.ccfit.zuev.osu.game.GameScene;
+import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene;
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager;
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
 import com.osudroid.debug.QuickPlay;
@@ -522,11 +524,11 @@ public class MainActivity extends AndroidOsuGameHost {
         if (parseIntent(intent)) {
             if (roomInviteLink != null) {
                 Execution.updateThread(() -> {
-                    var gameScene = OsuGame.getGameSceneOrNull();
+                    var gameScene = GameScene.getCurrent();
 
                     // Ensure gameplay is cleaned up before joining the lobby to prevent any potential issues with
                     // lingering game state.
-                    if (gameScene != null && Verktex.getScene() == gameScene.getScene()) {
+                    if (gameScene != null) {
                         gameScene.quit();
                     }
 
@@ -657,9 +659,9 @@ public class MainActivity extends AndroidOsuGameHost {
             return true;
         }
 
-        var gameScene = OsuGame.getGameSceneOrNull();
+        var gameScene = GameScene.getCurrent();
 
-        if (gameScene != null && currentScene == gameScene.getScene() &&
+        if (gameScene != null &&
                 (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU)) {
             if (gameScene.isPaused()) {
                 Execution.updateThread(gameScene::resume);
@@ -673,9 +675,9 @@ public class MainActivity extends AndroidOsuGameHost {
             return false;
         }
 
-        var scoringScene = OsuGame.getScoringOrNull();
+        var scoringScene = ScoringScene.getCurrent();
 
-        if (scoringScene != null && currentScene == scoringScene.getScene()) {
+        if (scoringScene != null) {
             scoringScene.back();
             return true;
         }
@@ -733,9 +735,9 @@ public class MainActivity extends AndroidOsuGameHost {
 
     public void forcedExit() {
         Execution.updateThread(() -> {
-            var gameScene = OsuGame.getGameSceneOrNull();
+            var gameScene = GameScene.getCurrent();
 
-            if (gameScene != null && Verktex.getScene() == gameScene.getScene()) {
+            if (gameScene != null) {
                 gameScene.quit();
             }
 

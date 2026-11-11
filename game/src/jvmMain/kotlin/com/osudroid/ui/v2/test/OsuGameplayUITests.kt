@@ -143,7 +143,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                             clipping = ClipMode.Bounds
 
                             val element = try {
-                                entry.create()
+                                entry.create(TestGameContext.gameScene)
                             } catch (e: Exception) {
                                 text {
                                     width = fill()

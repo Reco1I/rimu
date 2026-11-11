@@ -182,7 +182,7 @@ object OsuSceneUITests : UITestSuite("Scenes") {
         val gameScene = TestGameContext.gameScene
         gameScene.isReadyToStart = false
         // Faded in by the loader once loading is done.
-        gameScene.hud = gameScene.hud ?: GameplayHUD()
+        gameScene.hud = gameScene.hud ?: GameplayHUD(gameScene)
         onDispose { gameScene.isReadyToStart = false }
 
         val mods = ModHashMap().apply {

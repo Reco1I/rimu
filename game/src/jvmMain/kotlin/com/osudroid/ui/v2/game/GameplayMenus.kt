@@ -65,7 +65,7 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : UICo
             }
 
             +MenuItem("pause-back") {
-                OsuGame.scoring.replayID = -1
+                game.scoring.replayID = -1
                 SkinSounds["menuback"].play()
                 game.quit()
             }

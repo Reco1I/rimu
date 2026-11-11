@@ -28,27 +28,27 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
  * List all the elements that can be added to the HUD.
  */
 @Suppress("EnumEntryName")
-enum class HUDElements(val type: KClass<out HUDElement>, val create: () -> HUDElement) {
+enum class HUDElements(val type: KClass<out HUDElement>, val create: (GameScene) -> HUDElement) {
 
-    accuracy_counter(HUDAccuracyCounter::class, ::HUDAccuracyCounter),
-    combo_counter(HUDComboCounter::class, ::HUDComboCounter),
-    health_bar(HUDHealthBar::class, ::HUDHealthBar),
-    pie_song_progress(HUDPieSongProgress::class, ::HUDPieSongProgress),
-    pp_counter(HUDPPCounter::class, ::HUDPPCounter),
-    score_counter(HUDScoreCounter::class, ::HUDScoreCounter),
-    ur_counter(HUDUnstableRateCounter::class, ::HUDUnstableRateCounter),
-    avg_offset_counter(HUDAverageOffsetCounter::class, ::HUDAverageOffsetCounter),
+    accuracy_counter(HUDAccuracyCounter::class, { HUDAccuracyCounter() }),
+    combo_counter(HUDComboCounter::class, { HUDComboCounter() }),
+    health_bar(HUDHealthBar::class, { HUDHealthBar() }),
+    pie_song_progress(HUDPieSongProgress::class, { HUDPieSongProgress() }),
+    pp_counter(HUDPPCounter::class, { HUDPPCounter() }),
+    score_counter(HUDScoreCounter::class, { HUDScoreCounter() }),
+    ur_counter(HUDUnstableRateCounter::class, { HUDUnstableRateCounter() }),
+    avg_offset_counter(HUDAverageOffsetCounter::class, { HUDAverageOffsetCounter() }),
     hit_error_meter(HUDBarHitErrorMeter::class, ::HUDBarHitErrorMeter),
     color_hit_error_meter(HUDColorHitErrorMeter::class, ::HUDColorHitErrorMeter),
-    aim_error_meter(HUDAimErrorMeter::class, ::HUDAimErrorMeter),
-    linear_song_progress(HUDLinearSongProgress::class, ::HUDLinearSongProgress),
-    great_counter(HUDGreatCounter::class, ::HUDGreatCounter),
-    ok_counter(HUDOkCounter::class, ::HUDOkCounter),
-    meh_counter(HUDMehCounter::class, ::HUDMehCounter),
-    miss_counter(HUDMissCounter::class, ::HUDMissCounter),
-    bpm_counter(HUDBPMCounter::class, ::HUDBPMCounter),
-    notes_per_second_counter(HUDNotesPerSecondCounter::class, ::HUDNotesPerSecondCounter),
-    taps_per_second_counter(HUDTapsPerSecondCounter::class, ::HUDTapsPerSecondCounter),
+    aim_error_meter(HUDAimErrorMeter::class, { HUDAimErrorMeter() }),
+    linear_song_progress(HUDLinearSongProgress::class, { HUDLinearSongProgress() }),
+    great_counter(HUDGreatCounter::class, { HUDGreatCounter() }),
+    ok_counter(HUDOkCounter::class, { HUDOkCounter() }),
+    meh_counter(HUDMehCounter::class, { HUDMehCounter() }),
+    miss_counter(HUDMissCounter::class, { HUDMissCounter() }),
+    bpm_counter(HUDBPMCounter::class, { HUDBPMCounter() }),
+    notes_per_second_counter(HUDNotesPerSecondCounter::class, { HUDNotesPerSecondCounter() }),
+    taps_per_second_counter(HUDTapsPerSecondCounter::class, { HUDTapsPerSecondCounter() }),
     back_button(HUDBackButton::class, ::HUDBackButton),
     leaderboard(HUDLeaderboard::class, ::HUDLeaderboard);
 

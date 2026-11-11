@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.ui.text.spans
@@ -171,7 +172,7 @@ class RoomChat : UILinearContainer() {
 
     private fun appendMessage(message: Message) {
 
-        if (Verktex.scene != OsuGame.gameScene.scene) {
+        if (GameScene.current == null) {
             SkinSounds["heartbeat"].play(0.75f)
         }
 

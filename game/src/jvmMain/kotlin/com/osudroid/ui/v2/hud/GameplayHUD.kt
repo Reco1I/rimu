@@ -35,7 +35,12 @@ import ru.nsu.ccfit.zuev.skins.SkinJsonReader
 import java.io.File
 import kotlin.reflect.*
 
-class GameplayHUD : UIContainer(), IGameplayEvents {
+class GameplayHUD(
+    /**
+     * The play this HUD shows.
+     */
+    val game: GameScene
+) : UIContainer(), IGameplayEvents {
 
     /**
      * The currently selected element.
@@ -77,7 +82,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
 
 
     override fun onUpdate(clock: FrameClock) {
-        if (Verktex.scene != OsuGame.gameScene?.scene) {
+        if (Verktex.scene != game.scene) {
             // Detach on the next tick to ensure that parent's entity list stays stable throughout this tick.
             updateThread { removeSelf() }
             return
@@ -109,7 +114,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
      */
     fun addElement(data: HUDElementSkinData, inEditMode: Boolean = isInEditMode) {
         // Skins may name element types this version doesn't have.
-        val element = HUDElements[data.type]?.create?.invoke() ?: return
+        val element = HUDElements[data.type]?.create?.invoke(game) ?: return
 
         // In edit mode, all elements should be shown.
         if (!inEditMode && !element.shouldBeShown) {
@@ -262,7 +267,7 @@ class GameplayHUD : UIContainer(), IGameplayEvents {
      */
     fun setEditMode(value: Boolean) {
         isInEditMode = value
-        OsuGame.gameScene.isHUDEditorMode = value
+        game.isHUDEditorMode = value
 
         if (value) {
             elementSelector = HUDElementSelector(this)

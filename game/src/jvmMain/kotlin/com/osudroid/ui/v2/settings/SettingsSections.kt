@@ -448,8 +448,7 @@ val gameplaySection = listOf(
                         // The editor returns to the menu, as the settings closed before it.
                         (Verktex.scene as? SettingsMenu)?.back()
 
-                        OsuGame.gameScene.setOldScene(Verktex.scene)
-                        OsuGame.gameScene.startGame(selectedBeatmap, null, modMap, true)
+                        OsuGame.createGameScene().startGame(selectedBeatmap, null, modMap, true)
                     }
                 }
             ),

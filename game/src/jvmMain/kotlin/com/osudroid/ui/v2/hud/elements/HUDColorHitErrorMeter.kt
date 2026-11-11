@@ -1,12 +1,13 @@
 package com.osudroid.ui.v2.hud.elements
 
+import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.GraphicsRenderer
 
 import com.reco1l.verktex.data.Color4
 import com.osudroid.beatmaps.constants.HitObjectType
 
-class HUDColorHitErrorMeter : HUDHitErrorMeter() {
+class HUDColorHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
     private val indicators = MutableList(20) { Indicator(it, 0f, Color4.Black) }
     private var currentIndicatorIndex = 0
 

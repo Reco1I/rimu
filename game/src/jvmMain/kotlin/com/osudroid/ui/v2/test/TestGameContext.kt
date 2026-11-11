@@ -52,9 +52,7 @@ object TestGameContext {
         OsuGame.music = music
 
         gameScene = FakeGameScene()
-        OsuGame.gameScene = gameScene
-        OsuGame.scoring = ScoringScene(gameScene)
-        gameScene.setScoringScene(OsuGame.scoring)
+        OsuGame.createGameScene = { gameScene }
 
         // It's on until the account is loaded, which is never done here.
         OnlineManager.getInstance().isStayOnline = false

@@ -12,7 +12,6 @@ import com.reco1l.verktex.Platform
 import kotlin.jvm.JvmStatic
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import ru.nsu.ccfit.zuev.osu.game.GameScene
-import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
 
 /**
  * The game: its startup and the services every scene shares.
@@ -37,25 +36,12 @@ object OsuGame {
     @JvmStatic
     var isHeadless = true
 
-    @JvmStatic
-    lateinit var gameScene: GameScene
-
-    @JvmStatic
-    lateinit var scoring: ScoringScene
-
     /**
-     * The [gameScene], or null before [init] created it.
+     * Creates the [GameScene] of a new play. Replaced by the UI test browser with one that plays
+     * nothing.
      */
     @JvmStatic
-    val gameSceneOrNull: GameScene?
-        get() = if (::gameScene.isInitialized) gameScene else null
-
-    /**
-     * The [scoring] scene, or null before [init] created it.
-     */
-    @JvmStatic
-    val scoringOrNull: ScoringScene?
-        get() = if (::scoring.isInitialized) scoring else null
+    var createGameScene: () -> GameScene = ::GameScene
 
 
     /**
@@ -68,7 +54,7 @@ object OsuGame {
     }
 
     /**
-     * Loads the skin and creates the gameplay scenes. The host opens the database before.
+     * Loads the skin. The host opens the database before.
      */
     @JvmStatic
     fun init() {
@@ -77,11 +63,7 @@ object OsuGame {
         SplashScene.info = "Loading skin..."
         Skin.load(SkinFolders.path)
         SkinSounds.preload()
-        SplashScene.progress = 30
-        gameScene = GameScene()
         SplashScene.progress = 40
-        scoring = ScoringScene(gameScene)
-        gameScene.setScoringScene(scoring)
         music.stop()
     }
 }

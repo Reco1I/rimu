@@ -355,7 +355,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 5. Settings replace `Config` | Done |
 | 6. Ktor networking | Done |
 | 7. Split `OsuPlatform` | Done |
-| 8. No `GlobalManager` | In progress: song select and the gameplay scenes left |
+| 8. No `GlobalManager` | Done |
 | 9. Database in Verktex | Not started |
 | 10. `Path` and `UIPath` | Not started |
 | 11. Video | Not started |
@@ -676,7 +676,7 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
   `assembleDebug`. Not run on a device or desktop: vibrations, the refresh rate, exiting, the
   clipboard and the low-end effects weren't seen.
 
-### Phase 8: no `GlobalManager`, no singleton scenes (in progress)
+### Phase 8: no `GlobalManager`, no singleton scenes
 
 Done in steps, each committed on its own.
 
@@ -731,13 +731,37 @@ Done in steps, each committed on its own.
   reaching the menu with the beatmap's background. The engine's `ColorInheritanceTest` and
   `PointerEventTest` fail before and after this step. Calibration wasn't opened.
 
-What's left, cheapest first:
-- `SongSelect` as a class. Its filter, sort and scroll position move out, and `loadBeatmaps`,
-  `setStarRatingDisplay`, `setDifficultyStatistics`, `scoreBoardItems` and `isLeaderboardOnline`
-  get a home outside the scene. This needs the plan's measurement, the time to open song select
-  with a large library before and after, which wasn't possible while the machine only ran silent
-  checks. If it regresses, the carousel data stays in a driver object.
-- `GameScene` and `ScoringScene` created per play by `GameLoaderScene`, with
-  `sliderRenderPaths` moving to the loader's result. `OsuGame.gameScene`/`scoring` then go away. It's
-  the riskiest step, best checked on a device right after.
+**Step 4: `SongSelect` as a class.**
+- Created when opened (by the menu and the room), with `loadBeatmaps()` called by its
+  creator as before. The startup no longer preloads one.
+- What it keeps across visits is what the settings and the selection already kept: the sort
+  order, the grouping and the selected beatmap, which it scrolls to when opened. The search text,
+  the favourites and collection filters and the solo mods start over.
+- It hands its leaderboard to the play (`GameScene.leaderboardItems`/`isLeaderboardOnline`) instead
+  of the HUD reading song select. `DifficultyCalculationManager` reloads the shown song select only.
+- Measured on desktop with 21 beatmap sets: creating it takes about 7 ms warm (115 ms the first
+  time, class loading) and `loadBeatmaps` about 1.5 ms, the filter running off the update thread as
+  before. Not measured on a device or with a large library.
+
+**Step 5: `GameScene` and `ScoringScene` per play.**
+- `OsuGame.gameScene` and `OsuGame.scoring` are gone. Who starts a play (song select, the room, the
+  HUD editor, `QuickPlay`, `MainScene.watchReplay`) creates its `GameScene` with
+  `OsuGame.createGameScene()`, which the UI test browser replaces with its `FakeGameScene`.
+- A `GameScene` is one play of a beatmap with its retries and the replays watched from its results,
+  since it keeps the parsed beatmap and the slider caches for them. Its `ScoringScene` is its
+  `scoring`. So `sliderRenderPaths` stays in the scene instead of moving to the loader.
+- `GameScene.current` and `ScoringScene.current` are the play and the results of the current scene,
+  read from `Verktex.scene`, for the activity's keys, the chat and multiplayer events. The room
+  keeps the match it started (`RoomScene.game`) for its final leaderboard.
+- The HUD takes its game, and so do the elements that need it (`HUDElements.create(game)`): the
+  hit error meters, the back button and the leaderboard.
+- A new play stops the loading of the play started before it, which the shared scene used to do
+  for itself: both loads use global state (the object pool, `GameHelper`).
+- `GameScene.setOldScene` is removed, nothing read it.
+- `ScoringScene.replayID` (the score being replayed, left out of the HUD leaderboard) is never set
+  since the port to Verktex, as before this step.
+- Checked: the game and desktop tests, the common check, `assembleDebug`, an autoplay on desktop
+  with its HUD, and the HUD elements UI test. Not checked: the results screen, retries, replays,
+  multiplayer and anything on a device.
+
 

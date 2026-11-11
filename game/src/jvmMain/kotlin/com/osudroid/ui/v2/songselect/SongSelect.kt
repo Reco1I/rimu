@@ -255,9 +255,8 @@ class SongSelect : UIScene() {
             return
         }
 
-        val gameScene = OsuGame.gameScene
+        val gameScene = OsuGame.createGameScene()
 
-        gameScene.setOldScene(this)
         gameScene.leaderboardItems = { leaderboard.scoreBoardItems }
         gameScene.isLeaderboardOnline = isLeaderboardOnline
         gameScene.startGame(beatmapInfo, null, mods)
