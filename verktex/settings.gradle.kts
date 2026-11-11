@@ -11,8 +11,8 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
-        // Libraries the Android platform uses that are published nowhere, see android/maven/README.md.
-        maven { url = uri(rootDir.resolve("android/maven")) }
+        // Libraries the Android platform uses that are published nowhere, see maven/README.md.
+        maven { url = uri(rootDir.resolve("maven")) }
         google()
         mavenCentral()
     }
@@ -20,14 +20,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "verktex"
 
-// Everything platform independent.
-include(":core")
+// The engine, with a target per platform.
+include(":verktex")
 
-// The Android platform, which brings the core with it.
-include(":android")
-
-// The desktop platform, which also runs the UI tests.
-include(":desktop")
+// The native code and the compiled shaders of the Android platform.
+include(":android-natives")
 
 // The shader translator, used by the Vulkan backend and by the build.
 include(":shadertools")

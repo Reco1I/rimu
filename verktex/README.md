@@ -6,34 +6,33 @@ settings, localization, networking and video.
 
 | Module | |
 | --- | --- |
-| `:core` | Everything platform independent, common Kotlin. |
-| `:android` | The Android platform. Brings `:core`. |
-| `:desktop` | The desktop platform (LWJGL), which also runs the UI test browser. |
+| `:verktex` | The engine, with an `android` and a `desktop` target over common code. |
+| `:android-natives` | The native code of the Android platform, and its compiled shaders. |
 | `:shadertools` | The shader translator, used by the Vulkan backend and by the build. |
 
 ## Building
 
-Requires Java 17, and for `:android` the Android SDK (platform `android-36.1`) and NDK
+Requires Java 17, and for the Android target the Android SDK (platform `android-36.1`) and NDK
 `22.1.7171670`, with the SDK's path in `local.properties` (`sdk.dir=…`) or in `ANDROID_HOME`.
 
 ```bash
 ./gradlew build
 
 # Tests
-./gradlew :core:jvmTest :android:testDebugUnitTest :shadertools:test :desktop:test
+./gradlew :verktex:desktopTest :verktex:testAndroidHostTest :shadertools:test
 
-# The core compiles as common code, without the JVM's API
-./gradlew -Pverktex.checkCommon :core:compileKotlinJs
+# The common code compiles without the JVM's API
+./gradlew -Pverktex.checkCommon :verktex:compileKotlinJs
 
 # The UI test browser, on desktop
-./gradlew :desktop:run
-./gradlew :desktop:run --args="--test 'Verktex/Text' --screenshot build/text.png"
+./gradlew :verktex:run
+./gradlew :verktex:run --args="--test 'Verktex/Text' --screenshot build/text.png"
 ```
 
 ## Using it
 
-Applications include this build and depend on `com.reco1l.verktex:android` or
-`com.reco1l.verktex:desktop`, see [docs/extraction.md](docs/extraction.md).
+Applications include this build and depend on `com.reco1l.verktex:verktex`, whose Android or
+desktop variant Gradle picks for each of their modules, see [docs/extraction.md](docs/extraction.md).
 
 ## Documentation
 

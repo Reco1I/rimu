@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":verktex:desktop:run" />
+          <option value=":verktex:verktex:run" />
         </list>
       </option>
       <option name="vmOptions" />

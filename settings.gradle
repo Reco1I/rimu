@@ -6,8 +6,8 @@ pluginManagement  {
 }
 
 // Verktex, the engine, is its own build (see verktex/docs/extraction.md), included here so that
-// com.reco1l.verktex:<module> resolves to its projects: the app uses :android, the game :core and
-// the desktop launcher :desktop. Its tasks run as :verktex:<project>:<task>.
+// com.reco1l.verktex:verktex resolves to its project, whose Android or desktop variant each module
+// of the game gets. Its tasks run as :verktex:<project>:<task>.
 //
 // It reads the SDK's path from its own local.properties, which is copied from the game's when
 // it's missing.
@@ -22,5 +22,5 @@ includeBuild('verktex')
 // The platform independent part of the game, see docs/multiplatform-game.md.
 include ':game'
 
-// The desktop launcher of the game, over :verktex:desktop.
+// The desktop launcher of the game, over Verktex's desktop target.
 include ':game-desktop'

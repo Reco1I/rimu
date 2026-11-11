@@ -3,6 +3,7 @@ package com.osudroid.desktop
 import com.osudroid.OsuGame
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import java.util.prefs.Preferences
+import com.reco1l.verktex.PlatformApplication
 import com.reco1l.verktex.Platform
 import com.osudroid.OsuGameHost
 import com.osudroid.settings.GameFolders
@@ -107,7 +108,7 @@ class OsuDesktop(
 /**
  * The game on desktop: a debug build, without a version of its own.
  */
-internal val DESKTOP_APPLICATION = Platform.Application(versionName = "desktop", isDebug = true)
+internal val DESKTOP_APPLICATION = PlatformApplication(versionName = "desktop", isDebug = true)
 
 fun main(args: Array<String>) {
     var screenshot: File? = null

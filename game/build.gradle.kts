@@ -1,13 +1,15 @@
 import java.util.zip.ZipFile
 import javax.xml.parsers.DocumentBuilderFactory
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.w3c.dom.Element
 
-// The platform independent part of the game: gameplay, beatmaps, difficulty, mods, scoring and UI.
-// Its code is common Kotlin, so it can't depend on Android or the JVM, the platforms provide what it
-// needs, see docs/multiplatform-game.md. Only the JVM is targeted for now, which Android uses as well.
+// The game: gameplay, beatmaps, difficulty, mods, scoring and UI, with the targets of Verktex, see
+// docs/multiplatform-game.md. commonMain is common Kotlin, which can't depend on Android or the JVM,
+// and jvmMain is what still needs a JVM, shared by the Android and desktop targets.
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
+    id("com.android.kotlin.multiplatform.library")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
@@ -157,13 +159,36 @@ val generateStringResources by tasks.registering(GenerateStringResources::class)
 }
 
 kotlin {
-    jvm {
+    // The default hierarchy, with a source set between the common one and the JVM platforms.
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    applyDefaultHierarchyTemplate {
+        common {
+            group("jvm") {
+                withJvm()
+                withCompilations { it.target.name == "android" }
+            }
+        }
+    }
+
+    android {
+        namespace = "com.osudroid.game"
+        compileSdk {
+            version = release(36) { minorApiLevel = 1 }
+        }
+        minSdk = 24
+
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
-    // With the JVM as the only target the common code could still use the JVM's API. Building with
+    jvm("desktop") {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
+    }
+
+    // With only JVM targets the common code could still use the JVM's API. Building with
     // -Pgame.checkCommon adds a JavaScript target, which compiles it as common code against a platform
     // without it. Verktex needs its own check enabled too, for its JavaScript variant:
     // ./gradlew -Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs
@@ -184,7 +209,7 @@ kotlin {
         }
 
         commonMain.dependencies {
-            api("com.reco1l.verktex:core")
+            api("com.reco1l.verktex:verktex")
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
             api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
@@ -209,7 +234,7 @@ kotlin {
             }
         }
 
-        jvmTest.dependencies {
+        getByName("desktopTest").dependencies {
             implementation("junit:junit:4.13.2")
 
             // An HTTP engine for the tests that connect, see KtorRoomSocketTest.
@@ -222,7 +247,7 @@ kotlin {
 }
 
 // KtorRoomSocketTest connects to the Socket.IO server at this URL, and is skipped without one:
-// ./gradlew :game:jvmTest -PsocketIoTestUrl=http://localhost:3000
+// ./gradlew :game:desktopTest -PsocketIoTestUrl=http://localhost:3000
 tasks.withType<Test>().configureEach {
     providers.gradleProperty("socketIoTestUrl").orNull?.let { systemProperty("socketIoTestUrl", it) }
 }

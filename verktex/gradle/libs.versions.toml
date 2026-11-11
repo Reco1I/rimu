@@ -26,6 +26,6 @@ robolectric = "org.robolectric:robolectric:4.14.1"
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }
-android-builtInKotlin = { id = "com.android.built-in-kotlin", version.ref = "agp" }
+android-kotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
