@@ -410,9 +410,10 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
   - **Changed from the plan:** it isn't driven by a `Clock`. `GameScene` keeps driving it as it did
     (play, pause and speed by the gameplay, seek on restart), which works and was left alone.
 - Android: `ExoPlayerVideoDecoder` in `verktex:android`, the former `ExoPlayerVideo`, decoding in
-  hardware into an external texture. The FFmpeg extension's AAR is in a local Maven repository
-  (`libs/maven`, `com.osudroid.thirdparty:media3-decoder-ffmpeg:1.4.1`), since a library module
-  can't depend on a bare AAR. `AndroidPlatform.canPlayVideos` is whether the backend shows external
+  hardware into an external texture. The FFmpeg extension's AAR is in a local Maven repository of
+  the engine (`verktex/android/maven`, under Media3's own coordinates
+  `androidx.media3:media3-decoder-ffmpeg:1.4.1`, which Google doesn't publish), since a library
+  module can't depend on a bare AAR. `AndroidPlatform.canPlayVideos` is whether the backend shows external
   textures (not Vulkan before Android 10).
 - Desktop: `FFmpegVideoDecoder` over FFmpeg 8.1 through JNA, with the LGPL shared libraries
   downloaded at build time (as the user chose), see `docs/desktop-platform.md`. The decoder converts

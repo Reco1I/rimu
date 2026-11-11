@@ -25,8 +25,8 @@ plugins {
 
 allprojects {
     repositories {
-        // Libraries published nowhere, see libs/maven/README.md.
-        maven { url "$rootDir/libs/maven" }
+        // Libraries Verktex uses that are published nowhere, see verktex/android/maven/README.md.
+        maven { url "$rootDir/verktex/android/maven" }
         maven { url 'https://jitpack.io' }
         google()
         mavenCentral()

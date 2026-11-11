@@ -60,9 +60,9 @@ dependencies {
     // The HTTP engine of Network.
     implementation("io.ktor:ktor-client-okhttp:3.1.3")
 
-    // Video playback, with FFmpeg for the codecs the device lacks (see libs/maven/README.md).
+    // Video playback, with FFmpeg for the codecs the device lacks (see maven/README.md).
     implementation("androidx.media3:media3-exoplayer:1.4.1")
-    implementation("com.osudroid.thirdparty:media3-decoder-ffmpeg:1.4.1")
+    implementation("androidx.media3:media3-decoder-ffmpeg:1.4.1")
 
     // Shader translation and uniform layouts, shared with the build that compiles the Vulkan shaders.
     implementation(project(":verktex:shadertools"))
