@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="osu!droid: Game (Android)" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
+  <configuration default="false" name="osu!droid: UI Tests (Android)" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
+    <module name="osu-droid.androidApp" />
     <option name="ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" value="1" />
     <option name="DEPLOY" value="true" />
     <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
@@ -11,7 +12,7 @@
     <option name="ALLOW_ASSUME_VERIFIED" value="false" />
     <option name="CLEAR_APP_STORAGE" value="false" />
     <option name="DYNAMIC_FEATURES_DISABLED_LIST" value="" />
-    <option name="ACTIVITY_EXTRA_FLAGS" value="" />
+    <option name="ACTIVITY_EXTRA_FLAGS" value="--es &quot;backend&quot; &quot;Vulkan&quot;" />
     <option name="MODE" value="default_activity" />
     <option name="RESTORE_ENABLED" value="false" />
     <option name="RESTORE_FILE" value="" />
@@ -33,7 +34,7 @@
     </Profilers>
     <option name="DEEP_LINK" value="" />
     <option name="ACTIVITY" value="" />
-    <option name="ACTIVITY_CLASS" value="" />
+    <option name="ACTIVITY_CLASS" value="com.osudroid.ui.v2.test.OsuUITestActivity" />
     <option name="SEARCH_ACTIVITY_IN_GLOBAL_SCOPE" value="false" />
     <option name="SKIP_ACTIVITY_VALIDATION" value="false" />
     <method v="2">
