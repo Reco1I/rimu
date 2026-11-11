@@ -14,6 +14,7 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
@@ -65,12 +66,12 @@ class SettingsMenu : UIScene() {
             width = fill()
             height = fill()
             orientation = Orientation.Horizontal
-            spacing = themed { gap.sm }
 
             // Sections
             scrollableContainer {
                 scrollAxes = Axis.Y
                 height = fill()
+                padding = Padding(16f.dip)
                 backgroundColor = themed { palette.buttonBackgroundSurface }
 
                 linearContainer {
