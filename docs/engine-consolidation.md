@@ -360,6 +360,15 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 10. `Path` and `UIPath` | Not started |
 | 11. Video | Not started |
 
+### Known regressions
+
+Found along the way, not fixed yet:
+- The HUD leaderboard doesn't leave out the score whose replay is watched:
+  `ScoringScene.replayID` hasn't been set since the port to Verktex (it was set when a replay was
+  opened from a leaderboard score), so it's always -1.
+- The engine's `ColorInheritanceTest` (a child gets a different colour than expected) and
+  `PointerEventTest` ("Platform implementation not initialized") fail, since before phase 8.
+
 ### Phase 1: file system and buffers
 
 - DitchOoM's buffer is gone. Textures take a `PixelBuffer`, an `expect sealed class` that is
@@ -758,8 +767,7 @@ Done in steps, each committed on its own.
 - A new play stops the loading of the play started before it, which the shared scene used to do
   for itself: both loads use global state (the object pool, `GameHelper`).
 - `GameScene.setOldScene` is removed, nothing read it.
-- `ScoringScene.replayID` (the score being replayed, left out of the HUD leaderboard) is never set
-  since the port to Verktex, as before this step.
+- `ScoringScene.replayID` is never set since the port to Verktex, see the known regressions.
 - Checked: the game and desktop tests, the common check, `assembleDebug`, an autoplay on desktop
   with its HUD, and the HUD elements UI test. Not checked: the results screen, retries, replays,
   multiplayer and anything on a device.
