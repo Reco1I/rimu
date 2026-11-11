@@ -370,15 +370,16 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
   again only when it was cleared or written since (`GraphicsBuffer.clearCount` with the word count),
   so a mesh that doesn't change stays on the GPU. Vulkan has no buffers of its own, it copies only
   the drawn range into its frame ring; device-local static buffers there are left for later.
-- Verktex `ui/UIPath` (`halfWidth`, `borderWidth`, `hintWidth`, the three colours, `startLength`,
-  `endLength`): one mesh with round caps and joins, triangulated as `DrawLinePath` did, every vertex
-  carrying its distance from the centre line.
-  - **Changed from the plan:** it doesn't draw in one pass with the depth equal to the distance.
-    That draws a pixel twice wherever a later triangle is nearer the centre line (the inside of
-    every bend), which shows on a translucent body. Instead the hint, the body and the border are
-    passes over the same mesh (`shaders/path.frag` discards beyond each band's width), all at the
-    same depth with `Less`, which is what the three `UITriangleMesh` layers did: each pixel is drawn
-    once, by the innermost band.
+- Verktex `ui/UIPath` (`halfWidth`, `borderWidth`, `hintWidth`, `shadowWidth`, the colours with a
+  `bodyCenterColor` for a gradient, `startLength`, `endLength`): one mesh with round caps and joins,
+  triangulated as `DrawLinePath` did, every vertex carrying its distance from the centre line.
+  - The distance is the depth, as the plan said, but drawn in two passes over the mesh: the first
+    only writes the depth (`Less`, no colour), keeping the part nearest to the centre line at every
+    pixel, and the second draws with `LessEqual` so only that part colours it, the band and the
+    gradient picked by its distance (`shaders/path.frag`). A single pass would blend a translucent
+    body twice wherever a later triangle is nearer (the inside of every bend); drawing the bands at
+    one depth, as the old layers did, shows seams in a gradient where the path crosses itself.
+    Checked on a translucent self-crossing path: only its 3 colours, no holes or double blends.
   - Snaking draws a range of the mesh plus a rebuilt piece (the partial segments, their caps and
     joins), in every direction, replacing the `tryBuildFast*` paths and the full rebuilds.
 - Game: `GameHelper.createRenderPath(slider)` makes the body's `Path` in osu!pixels from the
@@ -388,8 +389,12 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
   first draws.
 - Deleted: `SliderBody`, `DrawLinePath`, `TriangleBuilder`, `UITriangleMesh`, `LinePath`,
   `FloatArraySlice` and their tests. `PathTest` and `UIPathTest` cover what they did.
-- Checked: the engine, desktop and game tests, the common checks, `assembleDebug`, the SPIR-V of the
-  new shaders, the `Verktex/Paths` UI test, slider bodies in an autoplay on desktop, and an A/B of the
+- Slider bodies are drawn as osu!stable draws them (osu!lazer's `LegacySliderBody`), always: a
+  gradient from the body colour darkened by 10% at the border to it lightened at the centre (in
+  linear light), at the skin's body alpha, and a shadow outside the border, 25% black fading out,
+  taking 5/64 of the whole width. The skin's slider hint options are no longer used.
+- Checked (before the gradient): the engine, desktop and game tests, the common checks,
+  `assembleDebug`, the SPIR-V of the new shaders, the `Verktex/Paths` UI test, slider bodies in an autoplay on desktop, and an A/B of the
   old and new bodies drawn side by side for the same paths (a wave, a self-crossing loop with a
   translucent body, sharp angles, a dot, snaking in and out): out of about 300,000 pixels, about
   40,000 differ by 1 or 2 (colours now come as float uniforms instead of 8-bit vertex colours) and 2

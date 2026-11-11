@@ -14,11 +14,12 @@ out float vDistance;
 void main() {
     vec4 transformed = uTransform * vec4(aPosition, 0.0, 1.0);
 
-    // Every vertex has the same depth, so that the first pass drawing a pixel keeps it.
+    // The depth is the distance, so that where parts of the path overlap the one nearest to its
+    // centre line is kept. Halved to stay below the cleared depth on every backend.
     gl_Position = vec4(
         (transformed.x / uViewportSize.x) * 2.0 - 1.0,
         1.0 - (transformed.y / uViewportSize.y) * 2.0,
-        0.0,
+        aDistance * 0.5,
         1.0
     );
 

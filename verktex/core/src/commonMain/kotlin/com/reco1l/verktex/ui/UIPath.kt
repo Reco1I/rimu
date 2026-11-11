@@ -2,6 +2,8 @@ package com.reco1l.verktex.ui
 
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.graphics.BlendFactor
+import com.reco1l.verktex.graphics.BlendMode
 import com.reco1l.verktex.graphics.CompareFunction
 import com.reco1l.verktex.graphics.DepthState
 import com.reco1l.verktex.graphics.GraphicsBuffer
@@ -22,15 +24,19 @@ import kotlin.math.sin
 
 /**
  * Draws a [path] stroked [halfWidth] away from it on each side, with round caps and joins, in up to
- * three bands from the centre out: a hint, the body and a border. Only the part between
- * [startLength] and [endLength] along the path is drawn, e.g. to snake it in or out.
+ * four bands from the centre out: a hint, the body, a border and, outside [halfWidth], a shadow. The
+ * body can be a gradient from [bodyCenterColor] at the centre line to [bodyColor] at the border, and
+ * the shadow fades from [shadowColor] to transparent. Only the part between [startLength] and
+ * [endLength] along the path is drawn, e.g. to snake it in or out.
  *
  * The path is triangulated once, every vertex carrying its distance from the centre line, and the
- * mesh stays on the GPU between frames. Each band is a pass over that mesh discarding what's
- * farther than its width. All of them draw at the same depth with [DepthState] testing for less, so
- * every pixel is drawn once, by the innermost band covering it: overlapping parts of a translucent
- * path don't blend twice. Moving [startLength] or [endLength] draws a range of the mesh plus a small
- * rebuilt piece for the partial segments and their caps.
+ * mesh stays on the GPU between frames. The distance is also the depth: a first pass over the mesh
+ * only writes it, keeping the part of the path nearest to its centre line at every pixel, and the
+ * second draws only that part, picking the band and the gradient by its distance. So every pixel is
+ * drawn once, overlapping parts of a translucent path don't blend twice, and where the path bends
+ * or crosses itself the bands follow the distance to the nearest part. Moving [startLength] or
+ * [endLength] draws a range of the mesh plus a small rebuilt piece for the partial segments and
+ * their caps.
  */
 class UIPath : UICanvas() {
 
@@ -62,13 +68,39 @@ class UIPath : UICanvas() {
     var borderWidth = 0f
 
     /**
+     * The width of the shadow drawn outside [halfWidth], none at 0.
+     */
+    var shadowWidth = 0f
+        set(value) {
+            if (field != value) {
+                field = value
+                isMeshDirty = true
+            }
+        }
+
+    /**
      * The width of the hint, the innermost band, out of [halfWidth]. No hint is drawn at 0.
      */
     var hintWidth = 0f
 
+    /**
+     * The colour of the body at the border, and everywhere without a [bodyCenterColor].
+     */
     var bodyColor = Color4.White
+
+    /**
+     * The colour of the body at the centre line, it fades to [bodyColor] at the border in linear
+     * light. The body is all [bodyColor] when null.
+     */
+    var bodyCenterColor: Color4? = null
+
     var borderColor = Color4.White
     var hintColor = Color4.White
+
+    /**
+     * The colour of the shadow next to the border, it fades to transparent at its outer edge.
+     */
+    var shadowColor = Color4(0f, 0f, 0f, 0.25f)
 
     /**
      * Where the drawn part starts along the path.
@@ -121,6 +153,10 @@ class UIPath : UICanvas() {
             return Triple(rangeStart, rangeEnd, piece.vertexCount)
         }
 
+    // How far the mesh reaches from the centre line: the path and its shadow.
+    private val meshRadius
+        get() = halfWidth + max(0f, shadowWidth)
+
     // The path without points closer than MERGE_DISTANCE, a zero length line has no direction.
     private var meshPath = Path.Empty
 
@@ -147,7 +183,6 @@ class UIPath : UICanvas() {
 
     init {
         clearDepthBeforeDraw = true
-        depthState = DEPTH_LESS
     }
 
 
@@ -187,38 +222,49 @@ class UIPath : UICanvas() {
             transform.tx, transform.ty, 0f, 1f
         )
 
-        val outerWidth = halfWidth
-        val clampedBorder = borderWidth.coerceIn(0f, outerWidth)
-        val bodyWidth = outerWidth - clampedBorder
+        // The bands, as distances from the centre line out of the mesh's radius.
+        val radius = meshRadius
+        val clampedBorder = borderWidth.coerceIn(0f, halfWidth)
+        val bodyWidth = halfWidth - clampedBorder
         val clampedHint = hintWidth.coerceIn(0f, bodyWidth)
 
         val content = contentColor
 
-        fun pass(color: Color4, maxDistance: Float) {
-            val uniforms = GraphicsShader.UniformSet().apply {
-                set("uTransform", matrix)
-                set("uMaxDistance", maxDistance)
-                set("uColor", renderer.transformColor(Color4(
-                    color.red * content.red,
-                    color.green * content.green,
-                    color.blue * content.blue,
-                    color.alpha
-                )))
-            }
+        fun shaderColor(color: Color4) = renderer.transformColor(Color4(
+            color.red * content.red,
+            color.green * content.green,
+            color.blue * content.blue,
+            color.alpha
+        ))
 
+        val uniforms = GraphicsShader.UniformSet().apply {
+            set("uTransform", matrix)
+            set("uHintEnd", clampedHint / radius)
+            set("uBodyEnd", bodyWidth / radius)
+            set("uBorderEnd", halfWidth / radius)
+            set("uHintColor", shaderColor(hintColor))
+            set("uBodyCenterColor", shaderColor(bodyCenterColor ?: bodyColor))
+            set("uBodyColor", shaderColor(bodyColor))
+            set("uBorderColor", shaderColor(borderColor))
+            set("uShadowColor", shaderColor(shadowColor))
+        }
+
+        fun draw() {
             renderer.drawVertices(BuiltIn.Shaders.Path, meshBuffer, LAYOUT, rangeStart, rangeEnd - rangeStart, uniforms)
             renderer.drawVertices(BuiltIn.Shaders.Path, pieceBuffer, LAYOUT, 0, piece.vertexCount, uniforms)
         }
 
-        if (clampedHint > 0f) {
-            pass(hintColor, clampedHint / outerWidth)
-        }
-        if (bodyWidth > 0f) {
-            pass(bodyColor, bodyWidth / outerWidth)
-        }
-        if (clampedBorder > 0f) {
-            pass(borderColor, 1f)
-        }
+        // The depth is the distance from the centre line, so this keeps the nearest one at every pixel.
+        renderer.pushBlendMode(NO_COLOR)
+        renderer.pushDepthState(DEPTH_NEAREST)
+        draw()
+        renderer.popDepthState()
+        renderer.popBlendMode()
+
+        // Then only the nearest part of the path draws each pixel, once.
+        renderer.pushDepthState(DEPTH_EQUAL)
+        draw()
+        renderer.popDepthState()
     }
 
 
@@ -255,29 +301,29 @@ class UIPath : UICanvas() {
 
         if (points == 1) {
             quadStarts = IntArray(0)
-            mesh.addCap(path.x(0), path.y(0), PI_F, PI_F, halfWidth)
+            mesh.addCap(path.x(0), path.y(0), PI_F, PI_F, meshRadius)
             endCapStart = mesh.vertexCount
-            mesh.addCap(path.x(0), path.y(0), 0f, PI_F, halfWidth)
+            mesh.addCap(path.x(0), path.y(0), 0f, PI_F, meshRadius)
             return
         }
 
         segmentAngles = FloatArray(segments) { atan2(path.y(it + 1) - path.y(it), path.x(it + 1) - path.x(it)) }
         quadStarts = IntArray(segments)
 
-        mesh.addCap(path.x(0), path.y(0), segmentAngles[0] + HALF_PI_F, PI_F, halfWidth)
+        mesh.addCap(path.x(0), path.y(0), segmentAngles[0] + HALF_PI_F, PI_F, meshRadius)
 
         for (segment in 0 until segments) {
             if (segment > 0) {
                 val previous = segmentAngles[segment - 1]
-                mesh.addCap(path.x(segment), path.y(segment), previous - HALF_PI_F, segmentAngles[segment] - previous, halfWidth)
+                mesh.addCap(path.x(segment), path.y(segment), previous - HALF_PI_F, segmentAngles[segment] - previous, meshRadius)
             }
 
             quadStarts[segment] = mesh.vertexCount
-            mesh.addQuad(path.x(segment), path.y(segment), path.x(segment + 1), path.y(segment + 1), halfWidth)
+            mesh.addQuad(path.x(segment), path.y(segment), path.x(segment + 1), path.y(segment + 1), meshRadius)
         }
 
         endCapStart = mesh.vertexCount
-        mesh.addCap(path.x(points - 1), path.y(points - 1), segmentAngles[segments - 1] - HALF_PI_F, PI_F, halfWidth)
+        mesh.addCap(path.x(points - 1), path.y(points - 1), segmentAngles[segments - 1] - HALF_PI_F, PI_F, meshRadius)
     }
 
     private fun quadStartOrEndCap(segment: Int) = if (segment < quadStarts.size) quadStarts[segment] else endCapStart
@@ -320,24 +366,24 @@ class UIPath : UICanvas() {
         val endPoint = path.pointAt(end)
 
         if (!isStartWhole) {
-            piece.addCap(startPoint.x, startPoint.y, segmentAngles[startSegment] + HALF_PI_F, PI_F, halfWidth)
+            piece.addCap(startPoint.x, startPoint.y, segmentAngles[startSegment] + HALF_PI_F, PI_F, meshRadius)
         }
 
         // The partial segment the drawn part starts on, up to its end point and its join.
         fun addStartSegment() {
             val next = startSegment + 1
-            piece.addQuadIfLong(startPoint.x, startPoint.y, path.x(next), path.y(next), halfWidth)
+            piece.addQuadIfLong(startPoint.x, startPoint.y, path.x(next), path.y(next), meshRadius)
 
             if (next < segments) {
                 val angle = segmentAngles[startSegment]
-                piece.addCap(path.x(next), path.y(next), angle - HALF_PI_F, segmentAngles[next] - angle, halfWidth)
+                piece.addCap(path.x(next), path.y(next), angle - HALF_PI_F, segmentAngles[next] - angle, meshRadius)
             }
         }
 
         // The partial segment the drawn part ends on, from its start point, and the end cap.
         fun addEndSegment(fromX: Float, fromY: Float) {
-            piece.addQuadIfLong(fromX, fromY, endPoint.x, endPoint.y, halfWidth)
-            piece.addCap(endPoint.x, endPoint.y, segmentAngles[endSegment] - HALF_PI_F, PI_F, halfWidth)
+            piece.addQuadIfLong(fromX, fromY, endPoint.x, endPoint.y, meshRadius)
+            piece.addCap(endPoint.x, endPoint.y, segmentAngles[endSegment] - HALF_PI_F, PI_F, meshRadius)
         }
 
         when {
@@ -463,6 +509,10 @@ class UIPath : UICanvas() {
             VertexLayout.Attribute(1, 1)
         ))
 
-        private val DEPTH_LESS = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
+        private val DEPTH_NEAREST = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
+
+        private val DEPTH_EQUAL = DepthState(enabled = true, writeEnabled = false, function = CompareFunction.LessEqual)
+
+        private val NO_COLOR = BlendMode.Custom(BlendFactor.Zero, BlendFactor.One)
     }
 }

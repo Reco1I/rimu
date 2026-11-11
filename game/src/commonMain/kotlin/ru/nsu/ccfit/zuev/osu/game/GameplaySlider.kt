@@ -378,9 +378,6 @@ class GameplaySlider : GameObject() {
 
         val sliderBodyWidth = OsuSkin.get().sliderBodyWidth * scale / widthScale
         val sliderBorderWidth = OsuSkin.get().sliderBorderWidth * scale / widthScale
-        val sliderHintWidth = OsuSkin.get().sliderHintWidth * scale / widthScale
-        val isHintVisible = OsuSkin.get().isSliderHintEnable &&
-            beatmapSlider.distance > OsuSkin.get().sliderHintShowMinLength
 
         sliderBody.path = renderPath
         sliderBody.setPosition(stackedPosition.x, stackedPosition.y)
@@ -397,18 +394,19 @@ class GameplaySlider : GameObject() {
         superPath = renderPath
         superPathMaxLength = sliderBody.length
 
-        // Head circle not being visible means Traceable is applied to this slider
-        sliderBody.bodyColor = if (GameHelper.isTraceable() && !headCirclePiece.isVisible) {
-            Color4(0f, 0f, 0f, 0f)
-        } else {
-            bodyColor.alpha(OsuSkin.get().sliderBodyBaseAlpha)
-        }
+        // The body as osu!stable draws it (see osu!lazer's LegacySliderBody): a gradient from the colour
+        // darkened at the border to it lightened at the centre, and a shadow outside the border taking
+        // the outer 5/64 of the whole width.
+        sliderBody.shadowWidth = sliderBodyWidth * SHADOW_PORTION / (1 - SHADOW_PORTION)
 
-        if (isHintVisible) {
-            sliderBody.hintWidth = sliderHintWidth
-            sliderBody.hintColor = (OsuSkin.get().sliderHintColor ?: bodyColor).alpha(OsuSkin.get().sliderHintAlpha)
+        // Head circle not being visible means Traceable is applied to this slider
+        if (GameHelper.isTraceable() && !headCirclePiece.isVisible) {
+            sliderBody.bodyColor = Color4(0f, 0f, 0f, 0f)
+            sliderBody.bodyCenterColor = null
         } else {
-            sliderBody.hintWidth = 0f
+            val bodyAlpha = OsuSkin.get().sliderBodyBaseAlpha
+            sliderBody.bodyColor = darken(bodyColor, 0.1f).alpha(bodyAlpha)
+            sliderBody.bodyCenterColor = lighten(bodyColor, 0.5f).alpha(bodyAlpha)
         }
 
         scene.add(0, tickContainer)
@@ -1439,6 +1437,27 @@ class GameplaySlider : GameObject() {
     }
 
     companion object {
+
+        // The part of the whole width of the body that its shadow takes, as osu!lazer's LegacySliderBody.
+        private const val SHADOW_PORTION = 5f / 64f
+
+        /**
+         * Darkens [color] by [amount] as osu!framework does.
+         */
+        private fun darken(color: Color4, amount: Float): Color4 {
+            val scalar = max(1f, 1f + amount)
+            return Color4(color.red / scalar, color.green / scalar, color.blue / scalar, color.alpha)
+        }
+
+        /**
+         * Lightens [color] in a way friendlier to dark or strong colours, as osu!lazer's LegacySliderBody.
+         */
+        private fun lighten(color: Color4, amount: Float): Color4 {
+            val half = amount * 0.5f
+            fun channel(value: Float) = min(1f, value * (1 + 0.5f * half) + half)
+            return Color4(channel(color.red), channel(color.green), channel(color.blue), color.alpha)
+        }
+
         private const val sliderStartCircleTexture = "sliderstartcircle"
         private const val sliderStartCircleOverlayTexture = "sliderstartcircleoverlay"
         private const val sliderEndCircleTexture = "sliderendcircle"

@@ -542,6 +542,25 @@ object VerktexUITests : UITestSuite("Verktex") {
                     pathCell { path(Path.of(0f, 40f, 200f, 40f)) { borderWidth = 14f } }
                 }
 
+                section("Gradient and shadow") {
+                    pathCell {
+                        path(wave()) {
+                            hintWidth = 0f
+                            shadowWidth = 3f
+                            bodyColor = Color4.Pink600.alpha(0.7f)
+                            bodyCenterColor = Color4.Pink200.alpha(0.7f)
+                        }
+                    }
+                    pathCell {
+                        path(loop()) {
+                            hintWidth = 0f
+                            shadowWidth = 3f
+                            bodyColor = Color4.Blue600.alpha(0.7f)
+                            bodyCenterColor = Color4.Blue200.alpha(0.7f)
+                        }
+                    }
+                }
+
                 section("Snaking") {
                     pathCell { snakingIn += path(wave()) }
                     pathCell { snakingOut += path(wave()) }
