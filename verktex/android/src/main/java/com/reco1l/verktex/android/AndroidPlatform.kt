@@ -1,5 +1,8 @@
 package com.reco1l.verktex.android
 
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.android.video.ExoPlayerVideoDecoder
+import com.reco1l.verktex.video.VideoDecoder
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.ClipData
@@ -190,4 +193,10 @@ class AndroidPlatform(private val context: Context) : Platform.Implementation {
         intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
     }
+
+    // External textures are what the decoder draws into, some backends can't show them (e.g. Vulkan before Android 10).
+    override val canPlayVideos: Boolean
+        get() = Verktex.graphics.device.capabilities.supportsExternalTextures
+
+    override fun createVideoDecoder(path: String): VideoDecoder = ExoPlayerVideoDecoder(context, path)
 }

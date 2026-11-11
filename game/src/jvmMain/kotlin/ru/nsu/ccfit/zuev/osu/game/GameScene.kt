@@ -59,7 +59,7 @@ import com.osudroid.resources.Res
 import com.osudroid.ui.v2.GameLoaderScene
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
-import com.osudroid.ui.v2.UIVideo
+import com.reco1l.verktex.ui.UIVideo
 import com.osudroid.ui.v2.game.AutoCursor
 import com.osudroid.ui.v2.game.BreakAnimator
 import com.osudroid.ui.v2.game.ComboBurst
@@ -460,8 +460,8 @@ open class GameScene : GameObjectListener {
         // updated value from the brightness slider.
         val brightness = OsuSettings.backgroundBrightness
         val videoFilename = playableBeatmap.events.videoFilename
-        // Some graphics backends can't show video frames on some devices (e.g. Vulkan before Android 10).
-        val videosSupported = Verktex.graphics.device.capabilities.supportsExternalTextures
+        // Some platforms can't play videos, e.g. Vulkan before Android 10 can't show their frames.
+        val videosSupported = Platform.canPlayVideos
         videoEnabled = brightness > 0.02f && Settings[OsuSettings.EnableVideo] && videoFilename != null && videosSupported
 
         if (!videoEnabled) {
@@ -487,16 +487,18 @@ open class GameScene : GameObjectListener {
 
         videoLoadingJob = async {
             try {
-                val video = OsuGameHost.current.createVideo(beatmapInfo.absoluteSetDirectory + "/" + videoFilename)
-                    ?: return@async
+                val video = UIVideo(beatmapInfo.absoluteSetDirectory + "/" + videoFilename)
+                if (!video.isAvailable) {
+                    return@async
+                }
                 video.alpha = 0f
 
                 ensureActive()
 
                 this@GameScene.video = video
 
-                // applyBackground is called from the onReady callback once ExoPlayer reports the video dimensions via
-                // onVideoSizeChanged, rather than blocking here.
+                // applyBackground is called from the onReady callback once the decoder reports the video
+                // dimensions, rather than blocking here.
                 // If dimensions are already known (fast local file), the callback fires immediately.
                 video.setOnReady { updateThread { applyBackground() } }
             } catch (e: Exception) {

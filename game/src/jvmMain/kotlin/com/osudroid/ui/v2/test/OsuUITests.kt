@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.test
 
+import com.reco1l.verktex.ui.UIVideo
+import com.reco1l.verktex.Platform
 import com.osudroid.OsuGameHost
 import com.osudroid.settings.GameFolders
 import com.osudroid.mods.ModDoubleTime
@@ -241,7 +243,16 @@ object OsuUITests : UITestSuite("osu!") {
 
             log("Loading ${file.parentFile?.name}/${file.name}")
 
-            val video = (OsuGameHost.current.createVideo(file.path) ?: return@test).apply {
+            if (!Platform.canPlayVideos) {
+                text {
+                    anchor = Anchor.Center
+                    origin = Anchor.Center
+                    text = "This platform can't play videos"
+                }
+                return@test
+            }
+
+            val video = UIVideo(file.path).apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
             }

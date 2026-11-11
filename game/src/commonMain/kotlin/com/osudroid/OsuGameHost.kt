@@ -1,6 +1,5 @@
 package com.osudroid
 
-import com.osudroid.ui.v2.UIVideo
 import com.reco1l.verktex.GameHost
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.ui.ITextInput
@@ -93,10 +92,6 @@ interface OsuGameHost : GameHost {
      */
     fun showBlockAreaEditor() = Unit
 
-    /**
-     * Creates the video of the file at [path], or returns null where videos can't be played.
-     */
-    fun createVideo(path: String): UIVideo? = null
 
     /**
      * Whether the file of the game wasn't modified. Hosts that can't tell return true.

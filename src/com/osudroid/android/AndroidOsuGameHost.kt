@@ -79,7 +79,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         mainThread { BlockAreaEditorFragment().show() }
     }
 
-    override fun createVideo(path: String) = ExoPlayerVideo(path)
 
     override fun verifyFileIntegrity() = AndroidSecurityUtils.verifyFileIntegrity(this)
 

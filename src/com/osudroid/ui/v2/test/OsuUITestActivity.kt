@@ -3,7 +3,6 @@ package com.osudroid.ui.v2.test
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.OsuGameHost
-import com.osudroid.android.ExoPlayerVideo
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig
@@ -26,7 +25,6 @@ class OsuUITestActivity : UITestActivity(), OsuGameHost {
 
     override val buildType: String = BuildConfig.BUILD_TYPE
 
-    override fun createVideo(path: String) = ExoPlayerVideo(path)
 
     override fun checkSkinTexture(path: String, optional: Boolean) {
         if (optional) {

@@ -1,5 +1,6 @@
 package com.reco1l.verktex
 
+import com.reco1l.verktex.video.VideoDecoder
 import kotlin.time.Duration
 import kotlin.concurrent.Volatile
 import com.reco1l.verktex.audio.AudioDriver
@@ -253,6 +254,24 @@ object Platform {
     }
 
 
+    /**
+     * Whether videos can be played, see [createVideoDecoder].
+     */
+    val canPlayVideos: Boolean
+        get() {
+            checkImplementation()
+            return implementation.canPlayVideos
+        }
+
+    /**
+     * Creates a decoder for the video file at [path], or null where videos can't be played.
+     */
+    fun createVideoDecoder(path: String): VideoDecoder? {
+        checkImplementation()
+        return if (implementation.canPlayVideos) implementation.createVideoDecoder(path) else null
+    }
+
+
     private fun checkImplementation() {
         if (!::implementation.isInitialized) {
             throw IllegalStateException("Platform implementation not initialized")
@@ -377,6 +396,17 @@ object Platform {
          * Copies [text] to the clipboard. Does nothing by default.
          */
         fun copyToClipboard(text: String, label: String) = Unit
+
+        /**
+         * Whether videos can be played, see [Platform.createVideoDecoder].
+         */
+        val canPlayVideos: Boolean
+            get() = false
+
+        /**
+         * Creates a decoder for a video file, see [Platform.createVideoDecoder].
+         */
+        fun createVideoDecoder(path: String): VideoDecoder? = null
 
 
         /**
