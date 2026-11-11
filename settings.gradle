@@ -19,8 +19,5 @@ if (!verktexProperties.exists() && gameProperties.exists()) {
 
 includeBuild('verktex')
 
-// The platform independent part of the game, see docs/multiplatform-game.md.
+// The game, with its desktop launcher, see docs/multiplatform-game.md.
 include ':game'
-
-// The desktop launcher of the game, over Verktex's desktop target.
-include ':game-desktop'

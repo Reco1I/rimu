@@ -32,11 +32,11 @@ Requires **Java 17**, **Android NDK 22.1.7171670** and the **android-36.1** SDK 
 
 Engine tests live in `verktex/verktex/src/desktopTest/` (the common and desktop ones) and `src/androidHostTest/` (Robolectric), and run with `./gradlew :verktex:verktex:desktopTest :verktex:verktex:testAndroidHostTest :verktex:shadertools:test`. The app's tests live under `tests/test/kotlin/` (not the standard `src/test/`).
 
-The game is split in three modules, see `docs/multiplatform-game.md`:
+The game is split in two modules, see `docs/multiplatform-game.md`:
 
-- `:game` (`game/`): the game itself, Kotlin Multiplatform with the targets of Verktex, `android` and `desktop`: the app gets its Android variant and the desktop launcher its desktop one. What doesn't depend on the JVM is in `src/commonMain/` and is checked with `./gradlew -Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs`. What still does (the scenes, `GameScene`, `OsuGame`, `LibraryManager`, most of the UI) is in `src/jvmMain/`, shared by both targets, until it's rewritten as common code. What it needs from the platform goes through Verktex's `Platform` (clipboard, haptics, file picking, refresh rate…), and what only the game's hosts provide through `OsuGameHost` (`OsuGameHost.current`), implemented by `MainActivity` (over `AndroidOsuGameHost`), `OsuDesktop` and the UI test browsers; its optional features (the beatmap listing, updates…) default to "not available". Videos are Verktex's `UIVideo`, over the platform's decoder (ExoPlayer on Android, FFmpeg on desktop). Its tests are in `src/desktopTest/` and run with `./gradlew :game:desktopTest`.
+- `:game` (`game/`): the game itself, Kotlin Multiplatform with the targets of Verktex, `android` and `desktop`: the app gets its Android variant, and the desktop one has the launcher. What doesn't depend on the JVM is in `src/commonMain/` and is checked with `./gradlew -Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs`. What still does (the scenes, `GameScene`, `OsuGame`, `LibraryManager`, most of the UI) is in `src/jvmMain/`, shared by both targets, until it's rewritten as common code. What it needs from the platform goes through Verktex's `Platform` (clipboard, haptics, file picking, refresh rate…), and what only the game's hosts provide through `OsuGameHost` (`OsuGameHost.current`), implemented by `MainActivity` (over `AndroidOsuGameHost`), `OsuDesktop` and the UI test browsers; its optional features (the beatmap listing, updates…) default to "not available". Videos are Verktex's `UIVideo`, over the platform's decoder (ExoPlayer on Android, FFmpeg on desktop). Its tests are in `src/desktopTest/` and run with `./gradlew :game:desktopTest`.
 - The root module (`src/`): the Android app, a shell around `:game`: `MainActivity`, the services, Firebase, the Android database, the platform implementations and the features only Android has so far (the beatmap listing, the block area editor, the old fragments and dialogs).
-- `:game-desktop`: the desktop launcher, over Verktex's desktop target. Run it with `./gradlew :game-desktop:run`; `--args="--screenshot build/game.png --delay 10"` saves a frame after the delay and exits. It has no beatmap listing yet (multiplayer connects but is untried), plays videos with FFmpeg libraries `:verktex:verktex:prepareFFmpeg` downloads (see `verktex/docs/desktop-platform.md`), and its database is recreated instead of migrated.
+- The desktop launcher is `:game`'s `src/desktopMain/` (`OsuDesktop`, `DesktopDatabase`, the UI test browser). Run it with `./gradlew :game:run`; `--args="--screenshot build/game.png --delay 10"` saves a frame after the delay and exits. It has no beatmap listing yet (multiplayer connects but is untried), plays videos with FFmpeg libraries `:verktex:verktex:prepareFFmpeg` downloads (see `verktex/docs/desktop-platform.md`), and its database is recreated instead of migrated.
 
 ## Architecture Overview
 
@@ -90,7 +90,7 @@ Verktex's abstract `UITestActivity` (`verktex/.../android/`) and `UITestApplicat
 - **Verktex: UI Tests (Android)**: the app's `VerktexUITestActivity`, Verktex's suites only.
 - **Verktex: UI Tests (Desktop)**: `./gradlew :verktex:verktex:run`.
 - **osu!droid: UI Tests (Android)**: the app's `OsuUITestActivity`, every suite.
-- **osu!droid: UI Tests (Desktop)**: `./gradlew :game-desktop:runUITests`, every suite.
+- **osu!droid: UI Tests (Desktop)**: `./gradlew :game:runUITests`, every suite.
 
 The Android browsers are enabled only in debug builds and run in their own processes. Open a test directly with:
 
@@ -104,10 +104,10 @@ On desktop, `--test` opens a test and `--screenshot <file.png>` saves a frame an
 
 ```bash
 ./gradlew :verktex:verktex:run --args="--test 'Verktex/Text' --screenshot build/text.png"
-./gradlew :game-desktop:runUITests --args="--test 'osu!/Hit circles' --screenshot build/hit-circles.png"
+./gradlew :game:runUITests --args="--test 'osu!/Hit circles' --screenshot build/hit-circles.png"
 ```
 
-The game itself runs with **osu!droid: Game (Android)** and **osu!droid: Game (Desktop)** (`./gradlew :game-desktop:run`).
+The game itself runs with **osu!droid: Game (Android)** and **osu!droid: Game (Desktop)** (`./gradlew :game:run`).
 
 ### Asset / Resource Loading
 

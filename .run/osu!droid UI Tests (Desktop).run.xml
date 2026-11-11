@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":game-desktop:runUITests" />
+          <option value=":game:runUITests" />
         </list>
       </option>
       <option name="vmOptions" />

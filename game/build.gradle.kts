@@ -2,14 +2,17 @@ import java.util.zip.ZipFile
 import javax.xml.parsers.DocumentBuilderFactory
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJvmCompilation
 import org.w3c.dom.Element
 
 // The game: gameplay, beatmaps, difficulty, mods, scoring and UI, with the targets of Verktex, see
 // docs/multiplatform-game.md. commonMain is common Kotlin, which can't depend on Android or the JVM,
-// and jvmMain is what still needs a JVM, shared by the Android and desktop targets.
+// and jvmMain is what still needs a JVM, shared by the Android and desktop targets. desktopMain is
+// the desktop launcher, which the run and runUITests tasks start.
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.kotlin.multiplatform.library")
+    id("com.google.devtools.ksp") version "2.3.12"
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
@@ -158,6 +161,157 @@ val generateStringResources by tasks.registering(GenerateStringResources::class)
     assetsDirectory.set(layout.buildDirectory.dir("generated/resources/assets"))
 }
 
+/**
+ * Generates suspend copies of the game's DAOs, and adapters that implement the game's DAOs over them.
+ *
+ * Room only accepts suspend DAO functions outside Android, while the game calls its DAOs blocking. Each
+ * `@Dao` interface of the game's data files is copied with its abstract functions made `suspend`, for
+ * Room to implement, and its adapter blocks on them. The functions with a body come from the game's
+ * interface, so the queries stay defined once.
+ */
+abstract class GenerateSuspendDaos : DefaultTask() {
+
+    @get:InputFiles
+    abstract val sources: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    private class Function(val name: String, val parameters: String, val returnType: String?)
+
+    @TaskAction
+    fun generate() {
+        val interfaces = StringBuilder()
+        val adapters = StringBuilder()
+
+        sources.files.sortedBy { it.name }.forEach { file ->
+            val text = file.readText()
+            var start = text.indexOf("@Dao")
+
+            while (start >= 0) {
+                val name = Regex("""interface\s+(\w+)""").find(text, start)!!.groupValues[1]
+                val open = text.indexOf('{', start)
+                val body = text.substring(open + 1, matchingBrace(text, open))
+                val suspendName = "Suspend" + name.removePrefix("I")
+
+                val functions = mutableListOf<Function>()
+                interfaces.appendLine("@Dao").appendLine("interface $suspendName {")
+
+                val lines = body.lines()
+                val annotations = mutableListOf<String>()
+                var i = 0
+
+                while (i < lines.size) {
+                    val line = lines[i].trim()
+
+                    when {
+                        line.startsWith("@") -> annotations += line
+
+                        line.startsWith("fun ") -> {
+                            val signature = Regex("""fun\s+(\w+)\((.*)\)\s*(?::\s*([^={]+?))?\s*(=|\{)?\s*$""").find(line)!!
+
+                            if (signature.groupValues[4].isEmpty()) {
+                                val function = Function(signature.groupValues[1], signature.groupValues[2], signature.groupValues[3].ifBlank { null })
+                                functions += function
+
+                                annotations.forEach { interfaces.appendLine("    $it") }
+                                interfaces.appendLine("    suspend $line").appendLine()
+                            } else if (signature.groupValues[4] == "{") {
+                                // Skip the body, the adapter inherits it.
+                                var depth = 0
+                                do {
+                                    depth += lines[i].count { it == '{' } - lines[i].count { it == '}' }
+                                    i++
+                                } while (depth > 0 && i < lines.size)
+                                i--
+                            } else {
+                                // An expression body, up to the next blank line.
+                                while (i + 1 < lines.size && lines[i + 1].isNotBlank()) i++
+                            }
+
+                            annotations.clear()
+                        }
+                    }
+                    i++
+                }
+
+                interfaces.appendLine("}").appendLine()
+
+                adapters.appendLine("class ${suspendName}Adapter(private val dao: $suspendName) : $name {")
+                functions.forEach { function ->
+                    val arguments = splitParameters(function.parameters).joinToString(", ") { it.substringBefore(':').trim() }
+                    val call = "runBlocking { dao.${function.name}($arguments) }"
+
+                    if (function.returnType != null) {
+                        adapters.appendLine("    override fun ${function.name}(${function.parameters}): ${function.returnType.trim()} = $call")
+                    } else {
+                        adapters.appendLine("    override fun ${function.name}(${function.parameters}) { $call }")
+                    }
+                }
+                adapters.appendLine("}").appendLine()
+
+                start = text.indexOf("@Dao", open)
+            }
+        }
+
+        val output = outputDirectory.get().file("com/osudroid/desktop/data/SuspendDaos.kt").asFile
+        output.parentFile.mkdirs()
+        output.writeText(buildString {
+            appendLine("// Generated from the game's DAOs by :game-desktop:generateSuspendDaos, don't edit.")
+            appendLine("package com.osudroid.desktop.data")
+            appendLine()
+            appendLine("import androidx.room.*")
+            appendLine("import com.osudroid.data.*")
+            appendLine("import kotlinx.coroutines.runBlocking")
+            appendLine()
+            append(interfaces)
+            append(adapters)
+        })
+    }
+
+    private fun matchingBrace(text: String, open: Int): Int {
+        var depth = 0
+        for (i in open until text.length) {
+            when (text[i]) {
+                '{' -> depth++
+                '}' -> if (--depth == 0) return i
+            }
+        }
+        error("Unbalanced braces")
+    }
+
+    // Splits at the commas outside of type arguments.
+    private fun splitParameters(parameters: String): List<String> {
+        if (parameters.isBlank()) return emptyList()
+
+        val result = mutableListOf<String>()
+        var depth = 0
+        var start = 0
+
+        parameters.forEachIndexed { i, c ->
+            when (c) {
+                '<' -> depth++
+                '>' -> depth--
+                ',' -> if (depth == 0) {
+                    result += parameters.substring(start, i)
+                    start = i + 1
+                }
+            }
+        }
+        result += parameters.substring(start)
+        return result
+    }
+}
+
+val generateSuspendDaos by tasks.registering(GenerateSuspendDaos::class) {
+    sources.from(fileTree(layout.projectDirectory.dir("src/commonMain/kotlin/com/osudroid/data")) {
+        include("*.kt")
+    })
+    outputDirectory.set(layout.buildDirectory.dir("generated/daos"))
+}
+
+val roomVersion = "2.7.2"
+
 kotlin {
     // The default hierarchy, with a source set between the common one and the JVM platforms.
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -185,6 +339,9 @@ kotlin {
     jvm("desktop") {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
+
+            // The launcher is a host of the engine.
+            optIn.add("com.reco1l.verktex.VerktexPlatformApi")
         }
     }
 
@@ -234,6 +391,22 @@ kotlin {
             }
         }
 
+        getByName("desktopMain") {
+            // The DAOs Room implements on desktop, see GenerateSuspendDaos.
+            kotlin.srcDir(generateSuspendDaos)
+
+            // The game's assets (the default skin, sounds, fonts) and its strings, which Android
+            // packages as its assets, load from the classpath.
+            resources.srcDir(generateStringResources.map { it.assetsDirectory })
+            resources.srcDir(rootProject.layout.projectDirectory.dir("assets"))
+
+            dependencies {
+                // The database: Room on the JVM, over the bundled SQLite.
+                implementation("androidx.room:room-runtime:$roomVersion")
+                implementation("androidx.sqlite:sqlite-bundled:2.5.1")
+            }
+        }
+
         getByName("desktopTest").dependencies {
             implementation("junit:junit:4.13.2")
 
@@ -250,4 +423,44 @@ kotlin {
 // ./gradlew :game:desktopTest -PsocketIoTestUrl=http://localhost:3000
 tasks.withType<Test>().configureEach {
     providers.gradleProperty("socketIoTestUrl").orNull?.let { systemProperty("socketIoTestUrl", it) }
+}
+
+dependencies {
+    add("kspDesktop", "androidx.room:room-compiler:$roomVersion")
+}
+
+ksp {
+    arg("room.generateKotlin", "true")
+}
+
+// The desktop launcher. Relative paths given in --args, e.g. --screenshot, resolve against the
+// root of the project.
+fun JavaExec.desktopLauncher(main: String) {
+    group = "application"
+
+    val compilation = kotlin.targets.getByName("desktop").compilations.getByName("main") as KotlinJvmCompilation
+    classpath = files(compilation.output.allOutputs, compilation.runtimeDependencyFiles)
+    mainClass.set(main)
+
+    // GLFW has to run on the first thread on macOS.
+    if (System.getProperty("os.name").lowercase().contains("mac")) {
+        jvmArgs("-XstartOnFirstThread")
+    }
+
+    workingDir = rootProject.projectDir
+
+    // FFmpeg's libraries for videos, downloaded by Verktex's desktop platform.
+    dependsOn(gradle.includedBuild("verktex").task(":verktex:prepareFFmpeg"))
+    systemProperty("verktex.ffmpeg.path", rootProject.layout.projectDirectory.dir("verktex/verktex/build/ffmpeg").asFile.absolutePath)
+}
+
+tasks.register<JavaExec>("run") {
+    description = "Runs osu!droid on desktop."
+    desktopLauncher("com.osudroid.desktop.OsuDesktopKt")
+}
+
+// With Verktex's suites too.
+tasks.register<JavaExec>("runUITests") {
+    description = "Runs the UI test browser of osu!droid on desktop."
+    desktopLauncher("com.osudroid.desktop.OsuUITestsDesktopKt")
 }

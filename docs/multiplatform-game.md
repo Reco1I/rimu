@@ -5,6 +5,7 @@
 > implementation interface. `:game` has the same two targets, with `src/jvmMain` shared by both and
 > its tests in `src/desktopTest` (`:game:desktopTest`). Where the text below says `:verktex:core`,
 > `:verktex:android`, `:verktex:desktop`, `Platform.Implementation` or `jvmTest`, read those.
+> `:game-desktop` is now `:game`'s `src/desktopMain` source set, run with `:game:run` and `:game:runUITests`.
 
 ## Context
 
