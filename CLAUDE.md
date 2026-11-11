@@ -86,14 +86,12 @@ A Vulkan backend roadmap lives in `verktex/docs/vulkan-backend.md`. How the fram
 
 ### UI Tests
 
-Verktex's abstract `UITestActivity` (`verktex/.../android/`) and `UITestApplication` (`verktex/.../desktop/testing/`) browse `UITestSuite`s (`verktex/.../testing/`) to try components in isolation; `VerktexUITests` covers the engine components. The game's suites (`OsuUITests`, `OsuSceneUITests`, `OsuGameplayUITests`) are in `:game` (`com/osudroid/ui/v2/test/`), with `TestGameContext` standing in for the game. Each browser has a run configuration:
+Verktex's abstract `UITestActivity` (`verktex/.../android/`) and `UITestApplication` (`verktex/.../desktop/testing/`) browse `UITestSuite`s (`verktex/.../testing/`) to try components in isolation; `VerktexUITests` covers the engine components, and the engine's repository has the run configuration of its own desktop browser (`./gradlew :verktex:verktex:run` from here). The game's suites (`OsuUITests`, `OsuSceneUITests`, `OsuGameplayUITests`) are in `:game` (`com/osudroid/ui/v2/test/`), with `TestGameContext` standing in for the game. Each browser has a run configuration:
 
-- **Verktex: UI Tests (Android)**: the app's `VerktexUITestActivity`, Verktex's suites only.
-- **Verktex: UI Tests (Desktop)**: `./gradlew :verktex:verktex:run`.
-- **osu!droid: UI Tests (Android)**: the app's `OsuUITestActivity`, every suite.
-- **osu!droid: UI Tests (Desktop)**: `./gradlew :game:runUITests`, every suite.
+- **osu!droid: UI Tests (Android)**: the app's `OsuUITestActivity`, every suite, Verktex's included.
+- **osu!droid: UI Tests (Desktop)**: `./gradlew :game:runUITests`, every suite, Verktex's included.
 
-The Android browsers are enabled only in debug builds and run in their own processes. Open a test directly with:
+The Android browser is enabled only in debug and profile builds and runs in its own process. Open a test directly with:
 
 ```bash
 adb shell am start -S -n ru.nsu.ccfit.zuev.osuplus.debug/com.osudroid.ui.v2.test.OsuUITestActivity --es test "'osu!/Hit circles'"
@@ -112,7 +110,7 @@ The game itself runs with **osu!droid: Game (Android)** and **osu!droid: Game (D
 
 ### Asset / Resource Loading
 
-`SkinTextures` and `SkinSounds` look up skin assets, preferring the beatmap skin, then the custom skin folder, then the default skin. `Skin` loads the configuration of a skin folder. Other textures and sounds go through Verktex's `Textures` and `Sounds`.
+`SkinTextures` and `SkinSounds` look up skin assets, preferring the beatmap skin, then the custom skin folder, then the default skin. `Skin` loads the configuration of a skin folder. Other textures and sounds go through Verktex's `Textures` and `Sounds`. The game's own assets (the default skin, sounds, fonts) are in `game/assets/`, which Android packages as assets and desktop loads from the classpath.
 
 Text goes through Verktex's `Localization` (`verktex/verktex/.../localization/`). `:game:generateStringResources` turns the language pack into `strings/<locale>.json` assets and the generated `Res`, whose `Res.string.*` are `LocalizedString`s: a `CharSequence` that components such as `UIText` show in the current language and re-resolve when it changes. Format one with `Res.string.x.format(args)`, and use `toString()` where a `String` is needed.
 

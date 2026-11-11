@@ -435,7 +435,7 @@ kotlin {
             // The game's assets (the default skin, sounds, fonts) and its strings, which Android
             // packages as its assets, load from the classpath.
             resources.srcDir(generateStringResources.map { it.assetsDirectory })
-            resources.srcDir(rootProject.layout.projectDirectory.dir("assets"))
+            resources.srcDir(layout.projectDirectory.dir("assets"))
 
             dependencies {
                 // The database: Room on the JVM, over the bundled SQLite.
@@ -478,7 +478,7 @@ ksp {
 androidComponents {
     onVariants { variant ->
         // The game's assets (the default skin, sounds, fonts) and its strings.
-        variant.sources.assets?.addStaticSourceDirectory(rootProject.layout.projectDirectory.dir("assets").asFile.path)
+        variant.sources.assets?.addStaticSourceDirectory(layout.projectDirectory.dir("assets").asFile.path)
         variant.sources.assets?.addGeneratedSourceDirectory(generateStringResources, GenerateStringResources::assetsDirectory)
 
         // The Room schemas aren't added as a test resource but as an asset, see
