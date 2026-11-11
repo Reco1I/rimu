@@ -5,6 +5,12 @@ import com.osudroid.online.httpClient
 import com.reco1l.verktex.Platform
 import io.ktor.client.request.header
 import kotlin.jvm.JvmStatic
+import kotlin.time.Instant
+import kotlinx.datetime.format
+import kotlinx.datetime.format.DateTimeComponents
+import kotlinx.datetime.format.DayOfWeekNames
+import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.format.char
 import kotlinx.coroutines.CancellationException
 import okio.IOException
 import okio.Path.Companion.toPath
@@ -51,32 +57,26 @@ object OnlineFileOperator {
         }
     }
 
-    private val DAYS = arrayOf("Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed")
-    private val MONTHS = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+    private val HTTP_DATE = DateTimeComponents.Format {
+        dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
+        chars(", ")
+        day()
+        char(' ')
+        monthName(MonthNames.ENGLISH_ABBREVIATED)
+        char(' ')
+        year()
+        char(' ')
+        hour()
+        char(':')
+        minute()
+        char(':')
+        second()
+        chars(" GMT")
+    }
 
     /**
      * Formats [millis] since the epoch as an HTTP date, such as `Thu, 01 Jan 1970 00:00:00 GMT`.
      */
     @JvmStatic
-    fun formatHttpDate(millis: Long): String {
-        val seconds = millis.floorDiv(1000L)
-        val days = seconds.floorDiv(86400L)
-        val secondOfDay = seconds.mod(86400L)
-
-        // Converts days since the epoch to a civil date, see http://howardhinnant.github.io/date_algorithms.html.
-        val z = days + 719468
-        val era = z.floorDiv(146097L)
-        val doe = z - era * 146097
-        val yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
-        val doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
-        val mp = (5 * doy + 2) / 153
-        val day = doy - (153 * mp + 2) / 5 + 1
-        val month = if (mp < 10) mp + 3 else mp - 9
-        val year = yoe + era * 400 + if (month <= 2) 1 else 0
-
-        fun pad(value: Long) = value.toString().padStart(2, '0')
-
-        return "${DAYS[days.mod(7L).toInt()]}, ${pad(day)} ${MONTHS[(month - 1).toInt()]} $year " +
-            "${pad(secondOfDay / 3600)}:${pad(secondOfDay % 3600 / 60)}:${pad(secondOfDay % 60)} GMT"
-    }
+    fun formatHttpDate(millis: Long): String = Instant.fromEpochMilliseconds(millis).format(HTTP_DATE)
 }
