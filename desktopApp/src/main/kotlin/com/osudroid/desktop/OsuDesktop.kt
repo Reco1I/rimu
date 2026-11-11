@@ -31,9 +31,6 @@ class OsuDesktop(
 
     override fun checkNewSkins() = LibraryImport.importSkins()
 
-    override val downloadsFolder: String?
-        get() = File(System.getProperty("user.home"), "Downloads").takeIf { it.isDirectory }?.path
-
     override fun onEngineInitialized() = OsuGame.start()
 
     override fun onEngineStarted() {

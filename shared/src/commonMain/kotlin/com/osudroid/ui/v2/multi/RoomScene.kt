@@ -4,6 +4,7 @@ import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
+import com.osudroid.beatmaplisting.BeatmapDownloader
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.utils.*
@@ -643,7 +644,7 @@ class RoomScene(
         downloadBeatmapButton.apply {
             val beatmapInfo = BeatmapSelection.beatmap
 
-            if (beatmapInfo == null && OsuGameHost.current.canDownloadBeatmapSets) {
+            if (beatmapInfo == null) {
                 isVisible = true
 
                 if (roomBeatmap.parentSetID == null) {
@@ -659,7 +660,7 @@ class RoomScene(
                 onActionUp = {
                     async {
                         try {
-                            OsuGameHost.current.downloadBeatmapSet(
+                            BeatmapDownloader.downloadBeatmapSet(
                                 roomBeatmap.parentSetID!!,
                                 "${roomBeatmap.parentSetID} ${roomBeatmap.artist} - ${roomBeatmap.title}"
                             )

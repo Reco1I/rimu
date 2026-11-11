@@ -21,8 +21,6 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.osudroid.OsuGame
 import com.osudroid.OsuGameHost
 import com.osudroid.UpdateManager
-import com.osudroid.beatmaplisting.BeatmapDownloader
-import com.osudroid.beatmaplisting.BeatmapMirror
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.data.AndroidDatabase
@@ -43,7 +41,6 @@ import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.android.AndroidGameHost
 import com.reco1l.verktex.localization.formatString
-import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
 import java.io.File
 import java.io.IOException
@@ -462,9 +459,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
     override val buildType: String
         get() = AppBuild.buildType
 
-    override val downloadsFolder: String?
-        get() = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)?.path
-
     override fun openDatabase() = AndroidDatabase.load(this)
 
     override fun checkNewSkins() = LibraryImport.importSkins()
@@ -489,14 +483,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         } else {
             com.osudroid.ui.skinning.ensureTexture(File(path))
         }
-    }
-
-    override val canDownloadBeatmapSets: Boolean
-        get() = true
-
-    override fun downloadBeatmapSet(setId: Long, filename: String) {
-        val url = BeatmapMirror.selected.download.request(setId, !Settings[OsuSettings.PreferNoVideoDownloads]).toString()
-        BeatmapDownloader.download(url, filename)
     }
 
 

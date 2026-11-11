@@ -1,6 +1,5 @@
 package com.osudroid.beatmaps
 
-import com.osudroid.OsuGameHost
 import com.osudroid.resources.Res
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.OsuSettings
@@ -23,7 +22,7 @@ import ru.nsu.ccfit.zuev.osu.LibraryManager
  * own, named as the archive, in the beatmaps or the skins folder.
  *
  * Archives are found in the game's folders and, with [OsuSettings.ScanDownload], in the host's
- * [OsuGameHost.downloadsFolder]. One that isn't a valid archive is renamed to `<name>.badzip`, and one
+ * [downloads directory][com.reco1l.verktex.PlatformStorage.downloadsDirectory]. One that isn't a valid archive is renamed to `<name>.badzip`, and one
  * that fails to extract to `<name>.bad<extension>`, so they aren't tried again.
  */
 object LibraryImport {
@@ -211,7 +210,7 @@ object LibraryImport {
         if (!Settings[OsuSettings.ScanDownload]) {
             return null
         }
-        return OsuGameHost.current.downloadsFolder?.toPath()
+        return Platform.storage.downloadsDirectory
     }
 
     private fun deleteSafely(file: Path) = try {

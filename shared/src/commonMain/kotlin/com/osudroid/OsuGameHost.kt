@@ -53,13 +53,6 @@ interface OsuGameHost : GameHost {
     fun checkNewSkins() = Unit
 
     /**
-     * The folder the device's downloads are saved in, where [com.osudroid.beatmaps.LibraryImport] also
-     * looks for archives, `null` if there's none.
-     */
-    val downloadsFolder: String?
-        get() = null
-
-    /**
      * Checks a texture of a skin folder: an [optional] one is created transparent when it's missing,
      * other ones are deleted when they're empty or transparent, so the default skin's are used
      * instead. Hosts that can't read images leave them as they are.
@@ -76,17 +69,6 @@ interface OsuGameHost : GameHost {
      * Shows the listing to search and download beatmaps.
      */
     fun showBeatmapListing() = Unit
-
-    /**
-     * Whether [downloadBeatmapSet] is available.
-     */
-    val canDownloadBeatmapSets: Boolean
-        get() = false
-
-    /**
-     * Downloads and imports the beatmap set with [setId], saving it as [filename].
-     */
-    fun downloadBeatmapSet(setId: Long, filename: String) = Unit
 
     /**
      * Whether [showBlockAreaEditor] is available.
