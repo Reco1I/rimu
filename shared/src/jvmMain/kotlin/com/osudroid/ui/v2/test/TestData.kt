@@ -101,8 +101,8 @@ object TestData {
     fun roomPlayer(id: Long, status: PlayerStatus = PlayerStatus.NotReady) = RoomPlayer(
         id = id,
         // The id of the guest is negative.
-        name = PLAYERS[Math.floorMod(id, PLAYERS.size)],
-        rank = Math.floorMod(id * 137, 10_000) + 1,
+        name = PLAYERS[id.mod(PLAYERS.size)],
+        rank = (id * 137).mod(10_000) + 1,
         status = status,
         team = null,
         mods = RoomMods()

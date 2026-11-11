@@ -37,7 +37,7 @@ import com.reco1l.verktex.ui.control.slider
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import ru.nsu.ccfit.zuev.skins.OsuSkin
-import java.io.File
+import okio.Path.Companion.toPath
 
 /**
  * Tests for the osu!droid components.
@@ -224,12 +224,13 @@ object OsuUITests : UITestSuite("osu!") {
 
         test("Video") {
             // The first beatmap video found, there's none bundled.
-            val file = File(GameFolders.beatmapPath).listFiles().orEmpty()
-                .filter { it.isDirectory }
-                .flatMap { it.listFiles().orEmpty().asList() }
-                .filter { it.extension.lowercase() in VIDEO_EXTENSIONS }
+            val fileSystem = Platform.fileSystem
+            val file = fileSystem.listOrNull(GameFolders.beatmapPath.toPath()).orEmpty()
+                .filter { fileSystem.metadataOrNull(it)?.isDirectory == true }
+                .flatMap { fileSystem.listOrNull(it).orEmpty() }
+                .filter { it.name.substringAfterLast('.', "").lowercase() in VIDEO_EXTENSIONS }
                 // MP4 first, it's what the decoders support best, then by name so it's always the same.
-                .sortedWith(compareBy({ it.extension.lowercase() != "mp4" }, { it.path }))
+                .sortedWith(compareBy({ it.name.substringAfterLast('.', "").lowercase() != "mp4" }, { it.toString() }))
                 .firstOrNull()
 
             if (file == null) {
@@ -241,7 +242,7 @@ object OsuUITests : UITestSuite("osu!") {
                 return@test
             }
 
-            log("Loading ${file.parentFile?.name}/${file.name}")
+            log("Loading ${file.parent?.name}/${file.name}")
 
             if (!Platform.canPlayVideos) {
                 text {
@@ -252,7 +253,7 @@ object OsuUITests : UITestSuite("osu!") {
                 return@test
             }
 
-            val video = UIVideo(file.path).apply {
+            val video = UIVideo(file.toString()).apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
             }

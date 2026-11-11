@@ -1,12 +1,10 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.reco1l.verktex.math.Path
-import java.lang.ref.WeakReference
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
 import com.osudroid.game.GameplayVibrations
-import kotlinx.coroutines.runBlocking
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
@@ -75,12 +73,12 @@ import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
 import com.osudroid.ui.v2.modmenu.ModIcon
 import com.osudroid.ui.v2.multi.LobbyScene
 import com.osudroid.utils.BitSet
+import com.osudroid.utils.DoubleMinHeap
 import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.calculateRate
 import com.osudroid.utils.async
 import com.osudroid.utils.runSafe
 import com.osudroid.utils.stopAsync
-import kotlinx.coroutines.future.asCompletableFuture
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
@@ -107,14 +105,15 @@ import com.reco1l.verktex.ui.choreographNow
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.text.UIText
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.util.Collections
-import java.util.IdentityHashMap
-import java.util.concurrent.CancellationException
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicInteger
+import okio.FileNotFoundException
+import okio.Path.Companion.toPath
+import okio.IOException
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.incrementAndFetch
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.awaitAll
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
@@ -197,7 +196,8 @@ open class GameScene : GameObjectListener {
     private var comboWas100 = false
     private var activeObjects: ArrayList<GameObject>? = null
     private var expiredObjects: ArrayList<GameObject>? = null
-    private val processedExpiredObjects: MutableSet<GameObject> = Collections.newSetFromMap(IdentityHashMap())
+    // By identity: GameObject doesn't override equals or hashCode.
+    private val processedExpiredObjects: MutableSet<GameObject> = HashSet()
     private var judgeableObject: GameObject? = null
     private var breakPeriods: Array<BreakPeriod>? = null
     private var breakPeriodIndex = 0
@@ -237,8 +237,8 @@ open class GameScene : GameObjectListener {
     private val effects = GameplayEffects()
     private var lastMods: ModHashMap? = null
 
-    private val loadingRequestId = AtomicInteger(0)
-    private var loadingPipeline: CompletableFuture<*>? = null
+    private val loadingRequestId = AtomicInt(0)
+    private var loadingPipeline: Job? = null
     private var gameLoadingJob: Job? = null
 
     private var performanceAttributes: PerformanceAttributes? = null
@@ -482,9 +482,9 @@ open class GameScene : GameObjectListener {
         }
 
         // Check if video file exists before attempting to load.
-        val videoFile = File(beatmapInfo.absoluteSetDirectory + "/" + videoFilename)
+        val videoFile = (beatmapInfo.absoluteSetDirectory + "/" + videoFilename).toPath()
 
-        if (!videoFile.exists()) {
+        if (!Platform.fileSystem.exists(videoFile)) {
             return
         }
 
@@ -602,6 +602,22 @@ open class GameScene : GameObjectListener {
         // Storyboards are drawn here once they're available again, on top of the background and below the playfield.
     }
 
+    /**
+     * Downloads the online replay at [url] into the cache, returning the file it was saved to, or
+     * `null` if it couldn't be downloaded.
+     */
+    private suspend fun downloadReplay(url: String): String? {
+        val path = GameFolders.cachePath + "/" + MD5Calculator.getStringMD5(url) + ".odr"
+        Logger.i("GameScene", "ReplayFile = $path")
+
+        if (!OnlineFileOperator.downloadFile(url, path)) {
+            Toasts.showLong(Res.string.replay_cantdownload)
+            return null
+        }
+
+        return path
+    }
+
     private fun loadGame(beatmapInfo: BeatmapInfo, rFile: String?, mods: ModHashMap, scope: CoroutineScope?): Boolean {
         if (!OsuGameHost.current.verifyFileIntegrity()) {
             Toasts.showLong(Res.string.file_integrity_tampered)
@@ -610,17 +626,8 @@ open class GameScene : GameObjectListener {
 
         scope?.ensureActive()
 
-        if (rFile != null && rFile.startsWith("https://")) {
-            this.replayFilePath = GameFolders.cachePath + "/" +
-                MD5Calculator.getStringMD5(rFile) + ".odr"
-            Logger.i("GameScene", "ReplayFile = $replayFilePath")
-            // Loading runs on a background thread, which waits for the download.
-            if (!runBlocking { OnlineFileOperator.downloadFile(rFile, replayFilePath!!) }) {
-                Toasts.showLong(Res.string.replay_cantdownload)
-                return false
-            }
-        } else
-            this.replayFilePath = rFile
+        // An online replay was downloaded before, see downloadReplay.
+        this.replayFilePath = rFile
 
         scope?.ensureActive()
 
@@ -737,13 +744,13 @@ open class GameScene : GameObjectListener {
         }
 
         try {
-            val musicFile = File(beatmapInfo.audioPath)
+            val musicFile = beatmapInfo.audioPath.toPath()
 
-            if (!musicFile.exists()) {
-                throw FileNotFoundException(musicFile.path)
+            if (!Platform.fileSystem.exists(musicFile)) {
+                throw FileNotFoundException(musicFile.toString())
             }
 
-            audioFilePath = musicFile.path
+            audioFilePath = musicFile.toString()
 
         } catch (e: Exception) {
             Logger.e("GameScene", "Load Music: " + e.message)
@@ -982,7 +989,7 @@ open class GameScene : GameObjectListener {
         modIcons.clear()
 
         val rfile = if (beatmapInfo != null) replayFile else this.replayFilePath
-        val requestId = loadingRequestId.incrementAndGet()
+        val requestId = loadingRequestId.incrementAndFetch()
 
         val beatmapToUse = beatmapInfo ?: lastBeatmapInfo
         val isRestart = beatmapInfo == null && replayFile == null && mods == null
@@ -1004,66 +1011,83 @@ open class GameScene : GameObjectListener {
 
         // A play loading while another starts is stopped first, the loads share global state (the
         // object pool, GameHelper).
-        val previousGame = lastStartedGame?.get()?.takeIf { it !== this }
-        lastStartedGame = WeakReference(this)
+        val previousGame = lastStartedGame?.takeIf { it !== this }
+        lastStartedGame = this
 
-        val pipeline = cancelLoading(false)
-            .thenCompose { previousGame?.cancelLoading(false) ?: CompletableFuture.completedFuture(Unit) }
-            .thenCompose { DifficultyCalculationManager.stopCalculation().asCompletableFuture() }
-            .thenRun {
-                if (requestId != loadingRequestId.get()) {
-                    return@thenRun
-                }
+        val stopping = cancelLoading(false)
 
-                gameLoadingJob = async {
-                    var succeeded = false
-                    var cancelled = false
+        val pipeline = async {
+            stopping.await()
+            previousGame?.cancelLoading(false)?.await()
+            DifficultyCalculationManager.stopCalculation().await()
 
-                    try {
-                        if (requestId != loadingRequestId.get()) {
-                            return@async
+            if (requestId != loadingRequestId.load()) {
+                return@async
+            }
+
+            // Not a child of the pipeline (com.osudroid.utils.async, not CoroutineScope.async):
+            // the pipeline completes once the loading has started, as before.
+            gameLoadingJob = com.osudroid.utils.async {
+                var succeeded = false
+                var cancelled = false
+
+                try {
+                    if (requestId != loadingRequestId.load()) {
+                        return@async
+                    }
+
+                    // Online replays are downloaded first, loadGame reads a file.
+                    val replayToLoad = if (rfile != null && rfile.startsWith("https://")) {
+                        downloadReplay(rfile) ?: return@async
+                    } else rfile
+
+                    if (requestId != loadingRequestId.load()) {
+                        return@async
+                    }
+
+                    succeeded = loadGame(beatmapToUse!!, replayToLoad, modsToUse!!, this)
+
+                    if (succeeded && requestId == loadingRequestId.load()) {
+                        prepareScene()
+                    }
+                } catch (e: Exception) {
+                    if (e is CancellationException) {
+                        cancelled = true
+                        throw e
+                    }
+
+                    Logger.e("GameScene", "Failed to load gameplay", e)
+                } finally {
+                    if (requestId == loadingRequestId.load()) {
+                        if (!succeeded && !cancelled) {
+                            updateThread { quit() }
                         }
 
-                        succeeded = loadGame(beatmapToUse!!, rfile, modsToUse!!, this)
-
-                        if (succeeded && requestId == loadingRequestId.get()) {
-                            prepareScene()
-                        }
-                    } catch (e: Exception) {
-                        if (e is CancellationException) {
-                            cancelled = true
-                            throw e
-                        }
-
-                        Logger.e("GameScene", "Failed to load gameplay", e)
-                    } finally {
-                        if (requestId == loadingRequestId.get()) {
-                            if (!succeeded && !cancelled) {
-                                updateThread { quit() }
-                            }
-
-                            gameLoadingJob = null
-                        }
+                        gameLoadingJob = null
                     }
                 }
             }
+        }
 
         loadingPipeline = pipeline
 
-        pipeline.whenComplete { _, _ ->
+        pipeline.invokeOnCompletion {
             if (loadingPipeline === pipeline) {
                 loadingPipeline = null
             }
         }
     }
 
-    fun cancelLoading(): CompletableFuture<Unit> {
+    /**
+     * Stops loading this play. The returned [Deferred] completes once every loading job has stopped.
+     */
+    fun cancelLoading(): Deferred<Unit> {
         return cancelLoading(true)
     }
 
-    private fun cancelLoading(invalidatePendingStart: Boolean): CompletableFuture<Unit> {
+    private fun cancelLoading(invalidatePendingStart: Boolean): Deferred<Unit> {
         if (invalidatePendingStart) {
-            loadingRequestId.incrementAndGet()
+            loadingRequestId.incrementAndFetch()
         }
 
         val gameLoadingJob = this.gameLoadingJob
@@ -1075,19 +1099,22 @@ open class GameScene : GameObjectListener {
         this.videoLoadingJob = null
         this.ppCalculationJob = null
 
-        val jobCancellation = CompletableFuture.allOf(
-            gameLoadingJob.stopAsync().asCompletableFuture(),
-            videoLoadingJob.stopAsync().asCompletableFuture(),
-            ppCalculationJob.stopAsync().asCompletableFuture()
+        val jobCancellation = listOf(
+            gameLoadingJob.stopAsync(),
+            videoLoadingJob.stopAsync(),
+            ppCalculationJob.stopAsync()
         )
 
-        @Suppress("UNCHECKED_CAST")
-        val pipelineDrain: CompletableFuture<*> = if (loadingPipeline != null)
-            (loadingPipeline as CompletableFuture<Any?>).exceptionally { null }
-        else
-            CompletableFuture.completedFuture(Unit)
+        val stopped = CompletableDeferred<Unit>()
 
-        return CompletableFuture.allOf(jobCancellation, pipelineDrain).thenApply { Unit }
+        async {
+            jobCancellation.awaitAll()
+            // Whether it completed, failed or was cancelled.
+            loadingPipeline?.join()
+            stopped.complete(Unit)
+        }
+
+        return stopped
     }
 
     private fun replaceCurrentScene(newScene: UIScene) {
@@ -2178,6 +2205,10 @@ open class GameScene : GameObjectListener {
     }
 
     fun quit() {
+        if (lastStartedGame === this) {
+            lastStartedGame = null
+        }
+
         // Disable historical event processing for more efficient ACTION_MOVE reports, since frequent reports are
         Input.dispatchHistoricalMoves = false
 
@@ -3213,7 +3244,7 @@ open class GameScene : GameObjectListener {
 
         // Estimate the maximum number of simultaneously active objects to pre-size the lists and minimize
         // array reallocations.
-        val lifetimeEnds = java.util.PriorityQueue<Double>(max(1, objects.size / 4))
+        val lifetimeEnds = DoubleMinHeap(max(1, objects.size / 4))
         var estimatedMaxActiveObjects = 0
 
         for (`object` in objects) {
@@ -3904,9 +3935,10 @@ open class GameScene : GameObjectListener {
     companion object {
         const val CursorCount = Replay.CursorCount
 
-        // The play started last, whose loading a new play stops first.
+        // The play started last, whose loading a new play stops first. Quitting it clears it, otherwise
+        // it's kept until the next play starts.
         @Volatile
-        private var lastStartedGame: WeakReference<GameScene>? = null
+        private var lastStartedGame: GameScene? = null
 
         /**
          * The play shown in the current scene, null when gameplay isn't the current scene.

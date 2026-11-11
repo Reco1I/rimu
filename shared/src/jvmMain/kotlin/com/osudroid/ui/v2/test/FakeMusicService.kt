@@ -4,6 +4,8 @@ import com.osudroid.audio.MusicService
 import kotlin.math.abs
 import kotlin.math.sin
 import ru.nsu.ccfit.zuev.audio.Status
+import kotlin.time.DurationUnit
+import kotlin.time.TimeSource
 
 /**
  * A music service that plays nothing but keeps the position as if it did, so the music controls,
@@ -17,7 +19,7 @@ class FakeMusicService : MusicService() {
 
     // Position in milliseconds at the last change, and the time it was taken at.
     private var basePosition = 0.0
-    private var baseNanos = System.nanoTime()
+    private var baseMark = TimeSource.Monotonic.markNow()
 
 
     override fun preLoad(filePath: String?, speed: Float, adjustPitch: Boolean, isLoop: Boolean): Boolean {
@@ -85,10 +87,10 @@ class FakeMusicService : MusicService() {
 
     private fun setPosition(position: Double) {
         basePosition = position.coerceIn(0.0, SONG_LENGTH.toDouble())
-        baseNanos = System.nanoTime()
+        baseMark = TimeSource.Monotonic.markNow()
     }
 
-    private fun elapsedPosition() = basePosition + (System.nanoTime() - baseNanos) / 1_000_000.0 * speed
+    private fun elapsedPosition() = basePosition + baseMark.elapsedNow().toDouble(DurationUnit.MILLISECONDS) * speed
 
     // A made up spectrum moving with the position, louder in the bass as music usually is.
     private fun level(index: Int, count: Int): Float {

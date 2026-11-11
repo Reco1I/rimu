@@ -48,9 +48,6 @@ import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.text.UIText
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import com.reco1l.verktex.ui.toast.Toasts
@@ -58,6 +55,9 @@ import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
+import com.osudroid.utils.formatDateTime
+import com.reco1l.verktex.localization.formatString
+import okio.Path.Companion.toPath
 
 class ScoringScene(pGame: GameScene) {
     private val game: GameScene = pGame
@@ -109,7 +109,7 @@ class ScoringScene(pGame: GameScene) {
         return region?.height?.toFloat() ?: 0f
     }
 
-    private fun createButton(texture: String, onClick: Runnable): UISprite {
+    private fun createButton(texture: String, onClick: () -> Unit): UISprite {
         return object : UISprite(SkinTextures.get(texture)) {
             private var isPressed = false
 
@@ -127,7 +127,7 @@ class ScoringScene(pGame: GameScene) {
 
                 if (isPressed && event.action == PointerEvent.Action.Up) {
                     isPressed = false
-                    onClick.run()
+                    onClick()
                     return true
                 }
 
@@ -136,12 +136,12 @@ class ScoringScene(pGame: GameScene) {
         }
     }
 
-    private fun leaveAndRun(action: Runnable) {
+    private fun leaveAndRun(action: () -> Unit) {
         Verktex.withTreeLock {
             Verktex.popScene()
         }
 
-        action.run()
+        action()
     }
 
     fun load(stat: StatisticV2, beatmap: BeatmapInfo?,
@@ -253,7 +253,7 @@ class ScoringScene(pGame: GameScene) {
             Utils.toRes(332 + y + 38).toFloat(), stat.scoreMaxCombo.toString() + "x", 1f,
             false)
         scaledContainer += maxCombo
-        val accStr = String.format(Locale.ENGLISH, "%2.2f%%", stat.accuracy * 100)
+        val accStr = formatString("%2.2f%%", stat.accuracy * 100)
         val accuracy = ScoreNumber(Utils.toRes(260 + x).toFloat(),
             Utils.toRes(332 + y + 38).toFloat(), accStr, 1f, false)
         scaledContainer += accuracy
@@ -321,8 +321,8 @@ class ScoringScene(pGame: GameScene) {
 
         var mapperStr = "Beatmap by " + beatmapInfo.creator
         var playerStr = "Played by " + stat.playerName + " on " +
-            SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault()).format(Date(stat.time))
-        playerStr += String.format("  %s(%s)", Platform.application.versionName, OsuGameHost.current.buildType)
+            formatDateTime(stat.time)
+        playerStr += formatString("  %s(%s)", Platform.application.versionName, OsuGameHost.current.buildType)
         if (ModCustomSpeed::class in mods ||
             ModDifficultyAdjust::class in mods ||
             (ModFlashlight::class in mods && !mods.ofType(ModFlashlight::class)!!.usesDefaultSettings)) {
@@ -333,34 +333,34 @@ class ScoringScene(pGame: GameScene) {
 
             mapperStr += " ["
             if (customSpeed != null && customSpeed.trackRateMultiplier != 1f) {
-                mapperStr += String.format(Locale.ENGLISH, "%.2fx,", customSpeed.trackRateMultiplier)
+                mapperStr += formatString("%.2fx,", customSpeed.trackRateMultiplier)
             }
 
             if (difficultyAdjust != null) {
                 if (difficultyAdjust.ar != null) {
-                    mapperStr += String.format(Locale.ENGLISH, "AR%.1f,", difficultyAdjust.ar)
+                    mapperStr += formatString("AR%.1f,", difficultyAdjust.ar)
                 }
 
                 if (difficultyAdjust.od != null) {
-                    mapperStr += String.format(Locale.ENGLISH, "OD%.1f,", difficultyAdjust.od)
+                    mapperStr += formatString("OD%.1f,", difficultyAdjust.od)
                 }
 
                 if (difficultyAdjust.cs != null) {
-                    mapperStr += String.format(Locale.ENGLISH, "CS%.1f,", difficultyAdjust.cs)
+                    mapperStr += formatString("CS%.1f,", difficultyAdjust.cs)
                 }
 
                 if (difficultyAdjust.hp != null) {
-                    mapperStr += String.format(Locale.ENGLISH, "HP%.1f,", difficultyAdjust.hp)
+                    mapperStr += formatString("HP%.1f,", difficultyAdjust.hp)
                 }
             }
 
             if (flashlight != null && !flashlight.usesDefaultSettings) {
                 if (flashlight.followDelay != ModFlashlight.DEFAULT_FOLLOW_DELAY) {
-                    mapperStr += String.format(Locale.ENGLISH, "FLD%.2f,", flashlight.followDelay)
+                    mapperStr += formatString("FLD%.2f,", flashlight.followDelay)
                 }
 
                 if (flashlight.sizeMultiplier != ModFlashlight.DEFAULT_SIZE_MULTIPLIER) {
-                    mapperStr += String.format(Locale.ENGLISH, "%.2fx,", flashlight.sizeMultiplier)
+                    mapperStr += formatString("%.2fx,", flashlight.sizeMultiplier)
                 }
             }
 
@@ -478,9 +478,8 @@ class ScoringScene(pGame: GameScene) {
                     )
                 }
 
-                ppinfo.append(String.format(
-                    Locale.ENGLISH,
-                    "%.2f★ | %.2f/%.2f" + (if (OsuSettings.difficultyAlgorithm == DifficultyAlgorithm.droid) "dpp" else "pp"),
+                ppinfo.append(formatString(
+                    "%.2f★ | %.2f/%.2f" +(if (OsuSettings.difficultyAlgorithm == DifficultyAlgorithm.droid) "dpp" else "pp"),
                     difficultyAttributes.starRating,
                     performanceAttributes!!.total,
                     maxPerformanceAttributes.total
@@ -491,9 +490,9 @@ class ScoringScene(pGame: GameScene) {
                 if (beatmapData != null) {
                     ppinfo.append("\n")
                 }
-                ppinfo.append(String.format(Locale.ENGLISH, "Error: %.2fms - %.2fms avg", stat.negativeHitError, stat.positiveHitError))
+                ppinfo.append(formatString("Error: %.2fms - %.2fms avg", stat.negativeHitError, stat.positiveHitError))
                 ppinfo.append("\n")
-                ppinfo.append(String.format(Locale.ENGLISH, "Unstable Rate: %.2f", stat.unstableRate))
+                ppinfo.append(formatString("Unstable Rate: %.2f", stat.unstableRate))
             }
 
             val ppInfo = createText(ppinfo.toString(), 21f)
@@ -535,7 +534,7 @@ class ScoringScene(pGame: GameScene) {
                 return
             }
 
-            stat.replayFilename = replayPath?.let { java.io.File(it).name }.orEmpty()
+            stat.replayFilename = replayPath?.toPath()?.name.orEmpty()
             stat.beatmapMD5 = beatmap.md5
 
             try {

@@ -3,6 +3,7 @@ package com.osudroid.utils
 import com.reco1l.verktex.localization.formatString
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -24,6 +25,18 @@ fun formatTimeOfDay(epochMillis: Long): String =
     Instant.fromEpochMilliseconds(epochMillis).toLocalDateTime(TimeZone.currentSystemDefault()).time.format(timeOfDayFormat)
 
 private val timeOfDayFormat = LocalTime.Format {
+    hour(); char(':'); minute(); char(':'); second()
+}
+
+/**
+ * Formats the date and time of [epochMillis] in the device's time zone, as `yyyy/MM/dd HH:mm:ss`.
+ */
+fun formatDateTime(epochMillis: Long): String =
+    Instant.fromEpochMilliseconds(epochMillis).toLocalDateTime(TimeZone.currentSystemDefault()).format(dateTimeFormat)
+
+private val dateTimeFormat = LocalDateTime.Format {
+    year(); char('/'); monthNumber(); char('/'); day()
+    char(' ')
     hour(); char(':'); minute(); char(':'); second()
 }
 
