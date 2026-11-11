@@ -1,5 +1,14 @@
 package com.reco1l.verktex.testing
 
+import com.reco1l.verktex.data.Padding
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.PI
+import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.UIPath
+import com.reco1l.verktex.math.Path
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
@@ -486,6 +495,70 @@ object VerktexUITests : UITestSuite("Verktex") {
                         radius = 12f.dip
                         border = Border(2f.dip, Color4.White)
                     }
+                }
+            }
+        }
+
+        test("Paths") {
+            // A wave and a loop crossing itself, in the colours of a slider body.
+            fun wave() = Path.Builder().apply {
+                for (i in 0..40) add(i * 6f, 40f + sin(i / 40f * 2f * PI.toFloat()) * 30f)
+            }.build()
+
+            fun loop() = Path.Builder().apply {
+                for (i in 0..60) {
+                    val t = i / 60f * 2f * PI.toFloat()
+                    add(110f + cos(t) * 70f - t * 12f, 50f + sin(t) * 40f)
+                }
+            }.build()
+
+            fun UIContainer.path(path: Path, block: UIPath.() -> Unit = {}) = UIPath().apply {
+                this.path = path
+                halfWidth = 14f
+                borderWidth = 2.5f
+                hintWidth = 4f
+                bodyColor = Color4.Pink400.alpha(0.7f)
+                borderColor = Color4.White
+                hintColor = Color4.Pink200.alpha(0.5f)
+                block()
+            }.also { this += it }
+
+            fun UIContainer.pathCell(block: UIContainer.() -> Unit) = container {
+                width = 260f.dip
+                height = 110f.dip
+                padding = Padding(12f.dip)
+                block()
+            }
+
+            val snakingIn = mutableListOf<UIPath>()
+            val snakingOut = mutableListOf<UIPath>()
+            val snakingBoth = mutableListOf<UIPath>()
+
+            column {
+                section("Static") {
+                    pathCell { path(wave()) }
+                    pathCell { path(loop()) { hintWidth = 0f } }
+                    pathCell { path(Path.of(20f, 40f)) }
+                    pathCell { path(Path.of(0f, 40f, 200f, 40f)) { borderWidth = 14f } }
+                }
+
+                section("Snaking") {
+                    pathCell { snakingIn += path(wave()) }
+                    pathCell { snakingOut += path(wave()) }
+                    pathCell { snakingBoth += path(loop()) }
+                }
+            }
+
+            var time = 0f
+            onEachFrame { clock ->
+                time = (time + clock.elapsedFrameTime) % 2f
+                val progress = min(1f, time)
+
+                snakingIn.forEach { it.endLength = it.length * progress }
+                snakingOut.forEach { it.startLength = it.length * progress }
+                snakingBoth.forEach {
+                    it.startLength = it.length * max(0f, progress - 0.4f)
+                    it.endLength = it.length * min(1f, progress + 0.2f)
                 }
             }
         }

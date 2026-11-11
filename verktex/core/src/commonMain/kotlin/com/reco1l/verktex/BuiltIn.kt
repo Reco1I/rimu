@@ -50,6 +50,11 @@ object BuiltIn {
          */
         lateinit var Particle: GraphicsShader
 
+        /**
+         * A shader for the bands of a path, see [com.reco1l.verktex.ui.UIPath].
+         */
+        lateinit var Path: GraphicsShader
+
 
         /**
          * The sources of a built-in shader in the assets and the property it's stored in once created.
@@ -71,6 +76,7 @@ object BuiltIn {
             Program("shaders/main.vert", "shaders/video.frag") { Video = it },
             Program("shaders/main.vert", "shaders/blur.frag") { Blur = it },
             Program("shaders/particle.vert", "shaders/particle.frag") { Particle = it },
+            Program("shaders/path.vert", "shaders/path.frag") { Path = it },
         )
     }
 
