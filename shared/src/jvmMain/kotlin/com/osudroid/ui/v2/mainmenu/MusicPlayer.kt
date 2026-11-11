@@ -22,6 +22,7 @@ import com.reco1l.verktex.ui.iconButton
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.themed
+import com.reco1l.verktex.localization.formatString
 
 class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
@@ -192,7 +193,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
             val minutes = totalSeconds / 60 % 60
             val seconds = totalSeconds % 60
 
-            return if (showHours) "%d:%02d:%02d".format(hours, minutes, seconds) else "%02d:%02d".format(totalSeconds / 60, seconds)
+            return if (showHours) formatString("%d:%02d:%02d", hours, minutes, seconds) else formatString("%02d:%02d", totalSeconds / 60, seconds)
         }
     }
 }

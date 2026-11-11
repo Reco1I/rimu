@@ -29,12 +29,11 @@ import com.osudroid.utils.applyMods
 import com.osudroid.utils.calculateRate
 import kotlinx.coroutines.Job
 import ru.nsu.ccfit.zuev.osu.*
-import java.text.*
-import java.util.*
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
 import com.reco1l.verktex.ui.themed
+import com.osudroid.utils.formatDuration
 
 class BeatmapInfoLayout(
     /**
@@ -275,9 +274,7 @@ class BeatmapInfoLayout(
         val commonBpm = (beatmapInfo.mostCommonBPM * totalSpeedMultiplier).roundToInt()
         val length = (beatmapInfo.length / totalSpeedMultiplier).toLong()
 
-        val sdf = SimpleDateFormat(if (length > 3600 * 1000) "HH:mm:ss" else "mm:ss")
-        sdf.timeZone = TimeZone.getTimeZone("GMT+0")
-        lengthBadge.text = sdf.format(length)
+        lengthBadge.text = formatDuration(length)
 
         bpmBadge.text = if (minBpm == maxBpm) commonBpm.toString() else "$minBpm-$maxBpm ($commonBpm)"
 

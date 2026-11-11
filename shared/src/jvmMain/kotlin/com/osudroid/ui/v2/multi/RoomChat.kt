@@ -5,7 +5,6 @@ import com.osudroid.OsuGame
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.ui.text.spans
 import com.osudroid.ui.v2.SkinSounds
-import java.text.SimpleDateFormat
 import com.osudroid.multiplayer.*
 import com.osudroid.multiplayer.api.*
 import com.osudroid.multiplayer.api.data.*
@@ -40,9 +39,9 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import ru.nsu.ccfit.zuev.osu.*
-import java.util.LinkedList
 import com.reco1l.verktex.ui.themed
 import com.osudroid.utils.currentTimeMillis
+import com.osudroid.utils.formatTimeOfDay
 
 /**
  * Because we're pros we want to highlight us.
@@ -73,8 +72,7 @@ class RoomChat : UILinearContainer() {
             }
         }
 
-    private val messages = LinkedList<Message>()
-    private val timestampFormat = SimpleDateFormat("HH:mm:ss")
+    private val messages = ArrayDeque<Message>()
 
     private val button = ChatButton()
 
@@ -179,7 +177,7 @@ class RoomChat : UILinearContainer() {
 
         messages.add(message)
         if (messages.size > MAX_MESSAGES) {
-            messages.pollFirst()
+            messages.removeFirstOrNull()
         }
 
         button.updateState()
@@ -316,7 +314,7 @@ class RoomChat : UILinearContainer() {
 
 
         fun updateState() {
-            val lastMessage = messages.peekLast()
+            val lastMessage = messages.lastOrNull()
 
             summaryText.spans {
                 icon(FAIcon.Message)
@@ -398,7 +396,7 @@ class RoomChat : UILinearContainer() {
                             anchor = Anchor.CenterLeft
                             origin = Anchor.CenterLeft
                             color = themed { palette.accent.shade(0.5f) }
-                            text = timestampFormat.format(message.time)
+                            text = formatTimeOfDay(message.time)
                         }
 
                         if (showSender) {

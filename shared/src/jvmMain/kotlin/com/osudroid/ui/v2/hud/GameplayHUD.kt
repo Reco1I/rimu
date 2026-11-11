@@ -32,8 +32,9 @@ import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.*
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import ru.nsu.ccfit.zuev.skins.SkinJsonReader
-import java.io.File
 import kotlin.reflect.*
+import com.reco1l.verktex.Platform
+import okio.Path.Companion.toPath
 
 class GameplayHUD(
     /**
@@ -183,20 +184,19 @@ class GameplayHUD(
 
         val data = getSkinData()
 
-        val jsonFile = File(SkinFolders.path, "skin.json")
+        val fileSystem = Platform.fileSystem
+        val jsonFile = SkinFolders.path.toPath() / "skin.json"
         var json: JsonObject
 
-        if (jsonFile.exists()) {
-            json = LenientJson.parseToJsonElement(jsonFile.reader().readText()).jsonObject
+        if (fileSystem.exists(jsonFile)) {
+            json = LenientJson.parseToJsonElement(fileSystem.read(jsonFile) { readUtf8() }).jsonObject
         } else {
-            jsonFile.createNewFile()
-
             // We use the current skin data as a base to avoid losing any other skin data.
             json = SkinJsonReader.getReader().currentData
         }
 
         json = JsonObject(json + ("HUD" to HUDSkinData.writeToJSON(data)))
-        jsonFile.writeText(prettyJson.encodeToString(JsonObject.serializer(), json))
+        fileSystem.write(jsonFile) { writeUtf8(prettyJson.encodeToString(JsonObject.serializer(), json)) }
 
         SkinJsonReader.getReader().currentData = json
         OsuSkin.get().hudSkinData = data

@@ -286,9 +286,9 @@ object Multiplayer {
             // Release UI await-locks so the room scene is interactive after the error toast,
             // even when navigation is deferred because a game session is still active.
             roomScene?.apply {
-                isWaitingForBeatmapChange.set(false)
-                isWaitingForStatusChange.set(false)
-                isWaitingForModsChange.set(false)
+                isWaitingForBeatmapChange.store(false)
+                isWaitingForStatusChange.store(false)
+                isWaitingForModsChange.store(false)
             }
 
             Toasts.showLong("The connection to server has been lost, please check your internet connection.")

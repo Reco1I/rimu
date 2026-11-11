@@ -46,7 +46,9 @@ import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
-import java.io.File
+import com.reco1l.verktex.localization.formatString
+import okio.IOException
+import okio.Path.Companion.toPath
 
 
 /**
@@ -411,11 +413,11 @@ val gameplaySection = listOf(
                 // stored as SkinFolders has it rather than through the setting.
                 initialValue = { SkinFolders.path },
                 onAttach = {
-                    val skinMain = File(SkinFolders.topPath)
+                    val skinMain = SkinFolders.topPath.toPath()
                     val skins = SkinFolders.skins.map { skin ->
                         UISelect.Option(skin.value.withTrailingSlash(), skin.key)
                     }.sortedBy { it.text.toString() }.toMutableList()
-                    skins.add(0, UISelect.Option(skinMain.path.withTrailingSlash(), skinMain.name + " (Default)"))
+                    skins.add(0, UISelect.Option(skinMain.toString().withTrailingSlash(), skinMain.name + " (Default)"))
 
                     @Suppress("UNCHECKED_CAST")
                     (it as FormSelect<String>).options = skins
@@ -497,7 +499,7 @@ val gameplaySection = listOf(
                 min = 0f,
                 max = 100f,
                 step = 0.1f,
-                valueFormatter = { "%.1f%%".format(it) }
+                valueFormatter = { formatString("%.1f%%", it) }
             ),
             SettingsOption(
                 type = Type.Checkbox,
@@ -823,7 +825,7 @@ val audioSection = listOf(
                 min = 0f,
                 max = 100f,
                 step = 0.1f,
-                valueFormatter = { "%.1f%%".format(it) },
+                valueFormatter = { formatString("%.1f%%", it) },
                 onChange = { value ->
                     OsuGame.music.volume = value as Float / 100f
                 }
@@ -837,7 +839,7 @@ val audioSection = listOf(
                 min = 0f,
                 max = 100f,
                 step = 0.1f,
-                valueFormatter = { "%.1f%%".format(it) },
+                valueFormatter = { formatString("%.1f%%", it) },
                 onChange = {
                     // Use the sound when the osu! cookie is clicked since it is guaranteed to be available and not
                     // skinnable (which means the player cannot silence it via skins).
@@ -1132,9 +1134,15 @@ val advancedSection = listOf(
                         return@SettingsOption
                     }
 
-                    val file = File(newValue)
+                    val folder = newValue.toPath()
+                    val exists = try {
+                        Platform.fileSystem.createDirectories(folder)
+                        true
+                    } catch (e: IOException) {
+                        false
+                    }
 
-                    if (!file.exists() && !file.mkdirs()) {
+                    if (!exists) {
                         Toasts.showLong(Res.string.message_error_dir_not_found)
                         return@SettingsOption
                     }

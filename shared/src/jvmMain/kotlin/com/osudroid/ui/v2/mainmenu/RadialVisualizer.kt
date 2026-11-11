@@ -52,7 +52,7 @@ class RadialVisualizer : UICanvas() {
         visualizerRadius = min(measuredSize.x, measuredSize.y) / 2f
 
         // Circumference = 2 * PI * radius
-        val circumference = 2f * Math.PI.toFloat() * visualizerRadius
+        val circumference = 2f * PI.toFloat() * visualizerRadius
         val barCount = (circumference / (barThickness.toPixels() + gap.toPixels())).toInt()
 
         bars = MutableList(barCount) { i ->

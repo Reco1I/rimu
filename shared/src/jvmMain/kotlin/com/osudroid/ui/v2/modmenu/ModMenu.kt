@@ -60,8 +60,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.droid
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.standard
-import java.io.IOException
-import java.util.concurrent.CancellationException
+import okio.IOException
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.roundToInt
 import kotlin.reflect.KClass
 import com.osudroid.utils.createModInstance
@@ -69,6 +69,7 @@ import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.ui.container.UIIgnoreParentPaddingContainer
 import com.reco1l.verktex.ui.container.captureContainer
 import com.reco1l.verktex.ui.themed
+import com.reco1l.verktex.localization.formatString
 
 /**
  * The mod menu, shown over the scene it was opened from. It shows and changes [mods], which its
@@ -333,7 +334,7 @@ class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
                             color = Color4(0xFF161622)
                         }
 
-                        scoreMultiplierBadge = StatisticsBadge { "%.2fx".format(it) }.apply {
+                        scoreMultiplierBadge = StatisticsBadge { formatString("%.2fx", it) }.apply {
                             label = "Score"
                             value = "1.00x"
                         }
@@ -606,7 +607,7 @@ class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
     //region Components
 
     private class StatisticsBadge(
-        private val formatter: (Float) -> String = { "%.2f".format(it) }
+        private val formatter: (Float) -> String = { formatString("%.2f", it) }
     ) : UILabeledBadge() {
         private val counter = RollingFloatCounter(0f).apply {
             rollingEasing = Easing.OutQuint

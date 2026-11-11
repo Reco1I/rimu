@@ -19,6 +19,7 @@ import com.reco1l.verktex.ui.moveTo
 import com.reco1l.verktex.ui.text.UIText
 import kotlin.math.abs
 import kotlin.math.round
+import com.reco1l.verktex.localization.formatString
 
 /**
  * The panel that slides down from the top of the results screen with the changes in the player's ranking.
@@ -102,9 +103,9 @@ class SendingPanel(
 
         accuracyColumn.update(
             when {
-                abs(newAccuracy - accuracy) < 0.0001f -> "%.2f%%".format(newAccuracy * 100f)
-                newAccuracy < accuracy -> "%.2f%%\n(%.2f%%)".format(newAccuracy * 100f, (newAccuracy - accuracy) * 100f)
-                else -> "%.2f%%\n(+%.2f%%)".format(newAccuracy * 100f, (newAccuracy - accuracy) * 100f)
+                abs(newAccuracy - accuracy) < 0.0001f -> formatString("%.2f%%", newAccuracy * 100f)
+                newAccuracy < accuracy -> formatString("%.2f%%\n(%.2f%%)", newAccuracy * 100f, (newAccuracy - accuracy) * 100f)
+                else -> formatString("%.2f%%\n(+%.2f%%)", newAccuracy * 100f, (newAccuracy - accuracy) * 100f)
             },
             newAccuracy - accuracy
         )
@@ -121,8 +122,8 @@ class SendingPanel(
         ppColumn.update(
             // For PP, we only want to show significant changes.
             when {
-                round(newPP) - round(pp) < 1 -> "%.0fpp".format(round(newPP))
-                else -> "%.0fpp\n(+%.0fpp)".format(round(newPP), round(newPP) - round(pp))
+                round(newPP) - round(pp) < 1 -> formatString("%.0fpp", round(newPP))
+                else -> formatString("%.0fpp\n(+%.0fpp)", round(newPP), round(newPP) - round(pp))
             },
             round(newPP - pp)
         )

@@ -9,9 +9,7 @@ import com.reco1l.verktex.ui.text.TextAlign
 import com.rian.framework.RollingFloatCounter
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.skins.OsuSkin
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.Locale
+import com.reco1l.verktex.localization.formatString
 
 class HUDAccuracyCounter : HUDElement() {
 
@@ -32,13 +30,14 @@ class HUDAccuracyCounter : HUDElement() {
         text = "100.00%"
     }
 
-    private val format = DecimalFormat("0.00%", DecimalFormatSymbols(Locale.US))
+    // 0.95 is 95.00%.
+    private fun format(value: Float) = formatString("%.2f%%", value * 100f)
 
     private var value = 0f
         set(value) {
             if (field != value) {
                 field = value
-                sprite.text = format.format(value)
+                sprite.text = format(value)
             }
         }
 

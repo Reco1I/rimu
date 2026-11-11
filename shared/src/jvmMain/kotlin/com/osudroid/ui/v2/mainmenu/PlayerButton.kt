@@ -18,9 +18,9 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
 import com.reco1l.verktex.Platform
 import com.osudroid.resources.Res
 import com.reco1l.verktex.ui.dialog.UIConfirmDialog
-import java.util.Locale
 import kotlin.math.roundToInt
 import com.reco1l.verktex.ui.themed
+import com.reco1l.verktex.localization.formatString
 
 class PlayerButton : UIClickableContainer() {
 
@@ -90,9 +90,7 @@ class PlayerButton : UIClickableContainer() {
 
         // Logged in it shows the player's statistics, otherwise why it isn't.
         if (onlineManager.isStayOnline && onlineManager.userId > 0) {
-            informationText.text = "#%,d · %,dpp · %.2f%%".format(
-                Locale.US,
-                onlineManager.rank,
+            informationText.text = formatString("#%,d · %,dpp · %.2f%%", onlineManager.rank,
                 onlineManager.pp.roundToInt(),
                 onlineManager.accuracy * 100f
             )

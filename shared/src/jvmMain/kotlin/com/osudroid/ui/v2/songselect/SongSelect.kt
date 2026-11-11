@@ -33,7 +33,7 @@ import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.textButton
-import java.io.IOException
+import okio.IOException
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
@@ -67,7 +67,7 @@ class SongSelect : UIScene() {
     // The version of the mods the mods indicator shows.
     private var shownModsVersion = -1
 
-    private val beatmapLoadingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val beatmapLoadingScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     private val filterBar = SongSelectFilterBar()
     private val leaderboard = SongSelectLeaderboard()
@@ -264,7 +264,7 @@ class SongSelect : UIScene() {
 
     private fun resetMultiplayerRoomBeatmap() {
         // Locking host from change beatmap before the server responses to beatmapChange
-        Multiplayer.roomScene?.isWaitingForBeatmapChange?.set(true)
+        Multiplayer.roomScene?.isWaitingForBeatmapChange?.store(true)
 
         if (!Multiplayer.isConnected) {
             return
@@ -281,7 +281,7 @@ class SongSelect : UIScene() {
 
     private fun setMultiplayerRoomBeatmap(beatmapInfo: BeatmapInfo) {
         // Locking host from change beatmap before the server responses to beatmapChange
-        Multiplayer.roomScene?.isWaitingForBeatmapChange?.set(true)
+        Multiplayer.roomScene?.isWaitingForBeatmapChange?.store(true)
 
         if (Multiplayer.isConnected) {
             RoomAPI.changeBeatmap(beatmapInfo.md5, beatmapInfo.title, beatmapInfo.artist, beatmapInfo.version, beatmapInfo.creator)

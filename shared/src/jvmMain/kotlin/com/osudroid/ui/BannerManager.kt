@@ -22,7 +22,7 @@ import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.scaleTo
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
-import java.io.File
+import okio.Path.Companion.toPath
 
 object BannerManager {
 
@@ -44,20 +44,19 @@ object BannerManager {
 
         try {
 
-            val bannersFolder = File(GameFolders.cachePath, "banners").apply {
-                delete()
-                mkdirs()
-            }
+            val bannersFolder = GameFolders.cachePath.toPath() / "banners"
+            Platform.fileSystem.createDirectories(bannersFolder)
 
             val responses = httpClient.get(OnlineManager.endpoint + "game/banner.php").body<List<BannerResponse>>()
 
             for ((i, banner) in responses.withIndex()) {
 
                 try {
-                    val bannerFile = File(bannersFolder, "${i}.png")
-                    bannerFile.writeBytes(httpClient.get(banner.imageLink).body<ByteArray>())
+                    val bannerFile = bannersFolder / "${i}.png"
+                    val bytes = httpClient.get(banner.imageLink).body<ByteArray>()
+                    Platform.fileSystem.write(bannerFile) { write(bytes) }
 
-                    banners.add(Banner(banner.url, Textures.load("banner@${i}", bannerFile.absolutePath, isInternal = false)))
+                    banners.add(Banner(banner.url, Textures.load("banner@${i}", bannerFile.toString(), isInternal = false)))
 
                 } catch (e: CancellationException) {
                     throw e

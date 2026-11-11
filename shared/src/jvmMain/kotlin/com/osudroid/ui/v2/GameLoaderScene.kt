@@ -54,6 +54,7 @@ import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.ui.themed
 import com.osudroid.utils.currentTimeMillis
+import com.reco1l.verktex.localization.formatString
 
 class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : UIScene() {
 
@@ -338,7 +339,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                                     dimBox.fadeTo(0.7f, 0.1f)
                                 }
                             }
-                            valueFormatter = { "%.1f%%".format(it) }
+                            valueFormatter = { formatString("%.1f%%", it) }
                             onValueChanged = {
                                 // Storyboard and video should not be enabled if the background brightness is too low,
                                 // so we trigger a reload when changing brightness.

@@ -8,7 +8,11 @@ import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.UIParticleSystem
 import com.reco1l.verktex.ui.container.UIContainer
-import java.util.Calendar
+import kotlin.time.Clock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlin.random.Random
 
 private fun Random.nextFloat(from: Float, to: Float) = from + nextFloat() * (to - from)
@@ -161,13 +165,12 @@ private class Fireworks(private val isLowEndDevice: Boolean) : UIContainer() {
  * Adds snowfall between December 15 and January 6, excluding the time of the fireworks.
  */
 fun addSnowfallWithPeriod(container: UIContainer) {
-    val calendar = Calendar.getInstance()
-    val month = calendar.get(Calendar.MONTH)
-    val day = calendar.get(Calendar.DAY_OF_MONTH)
-    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+    val now = localNow()
+    val month = now.month
+    val day = now.day
 
-    val isFireworksPeriod = month == Calendar.JANUARY && day == 1 && hour < 20
-    val isSnowfallPeriod = (month == Calendar.DECEMBER && day >= 15) || (month == Calendar.JANUARY && day <= 6)
+    val isFireworksPeriod = isFireworksPeriod(now)
+    val isSnowfallPeriod = (month == Month.DECEMBER && day >= 15) || (month == Month.JANUARY && day <= 6)
 
     if (isSnowfallPeriod && !isFireworksPeriod) {
         container += Snowfall(Platform.isLowEndDevice)
@@ -178,11 +181,12 @@ fun addSnowfallWithPeriod(container: UIContainer) {
  * Adds fireworks during the first 20 hours of January 1st.
  */
 fun addFireworksWithPeriod(container: UIContainer) {
-    val calendar = Calendar.getInstance()
-
-    if (calendar.get(Calendar.MONTH) == Calendar.JANUARY
-        && calendar.get(Calendar.DAY_OF_MONTH) == 1
-        && calendar.get(Calendar.HOUR_OF_DAY) < 20) {
+    if (isFireworksPeriod(localNow())) {
         container += Fireworks(Platform.isLowEndDevice)
     }
 }
+
+// The date and time in the device's time zone.
+private fun localNow() = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+
+private fun isFireworksPeriod(now: LocalDateTime) = now.month == Month.JANUARY && now.day == 1 && now.hour < 20

@@ -15,12 +15,11 @@ import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.text.UIText
-import java.text.NumberFormat.getNumberInstance
-import java.util.Locale.ENGLISH
-import java.util.Locale.US
 import kotlin.math.hypot
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
+import com.reco1l.verktex.localization.formatString
+import com.osudroid.utils.formatNumber
 
 /**
  * The list of scores of a multiplayer match shown in the results screen.
@@ -91,10 +90,10 @@ class StatisticSelector(
                 color = if (stat.isAlive) Color4(0.9f, 0.9f, 0.9f) else Color4(1f, 0.8f, 0.8f)
                 text = listOf(
                     stat.playerName,
-                    getNumberInstance(US).format(stat.totalScoreWithMultiplier),
+                    formatNumber(stat.totalScoreWithMultiplier),
                     when (Multiplayer.room?.winCondition) {
-                        Accuracy -> "%2.2f%%".format(ENGLISH, stat.accuracy * 100f)
-                        else -> "${getNumberInstance(US).format(stat.scoreMaxCombo)}x"
+                        Accuracy -> formatString("%2.2f%%", stat.accuracy * 100f)
+                        else -> "${formatNumber(stat.scoreMaxCombo)}x"
                     }
                 ).joinToString("\n")
             }

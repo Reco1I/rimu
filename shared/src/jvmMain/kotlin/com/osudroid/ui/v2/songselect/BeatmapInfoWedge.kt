@@ -29,10 +29,9 @@ import com.reco1l.verktex.ui.shape.UIWedge
 import com.reco1l.verktex.ui.text.UIText
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
-import java.text.*
-import java.util.*
 import kotlin.math.roundToInt
 import com.reco1l.verktex.ui.themed
+import com.osudroid.utils.formatDuration
 
 class BeatmapInfoWedge(
     /**
@@ -243,9 +242,7 @@ class BeatmapInfoWedge(
         val commonBpm = (beatmapInfo.mostCommonBPM * totalSpeedMultiplier).roundToInt()
         val length = (beatmapInfo.length / totalSpeedMultiplier).toLong()
 
-        val sdf = SimpleDateFormat(if (length > 3600 * 1000) "HH:mm:ss" else "mm:ss")
-        sdf.timeZone = TimeZone.getTimeZone("GMT+0")
-        lengthText.text = sdf.format(length)
+        lengthText.text = formatDuration(length)
 
         bpmText.text = (if (minBpm == maxBpm) commonBpm.toString() else "$minBpm-$maxBpm ($commonBpm)")
 

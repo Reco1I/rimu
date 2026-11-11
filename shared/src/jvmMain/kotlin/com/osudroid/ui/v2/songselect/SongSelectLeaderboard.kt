@@ -37,10 +37,10 @@ import com.reco1l.verktex.ui.text.text
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.online.*
-import java.text.*
-import java.util.*
 import kotlin.coroutines.cancellation.CancellationException
 import com.reco1l.verktex.ui.themed
+import com.reco1l.verktex.localization.formatString
+import com.osudroid.utils.formatNumber
 
 class SongSelectLeaderboard : UILinearContainer() {
 
@@ -73,7 +73,7 @@ class SongSelectLeaderboard : UILinearContainer() {
         }
 
 
-    private val scoreLoadingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val scoreLoadingScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     private val scoresContainer = UIRecyclerContainer<BeatmapScoreModel, LeaderboardItem>(18)
 
@@ -385,9 +385,9 @@ class SongSelectLeaderboard : UILinearContainer() {
                 avatarSprite.textureRegion = (if (avatarUrl != null) CachedTextures[avatarUrl] else null) ?: SkinTextures["offline-avatar"]
             }
 
-            scoreText.text = NumberFormat.getNumberInstance(Locale.US).format(data.score)
+            scoreText.text = formatNumber(data.score)
             maxComboText.text = "${data.maxCombo}x"
-            accuracyText.text = "%.2f%%".format(data.accuracy)
+            accuracyText.text = formatString("%.2f%%", data.accuracy)
 
             rankText.text = if (data.rank > 0) data.rank.toString() else ""
         }

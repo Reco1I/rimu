@@ -4,25 +4,25 @@ import com.reco1l.verktex.data.dip
 
 import com.reco1l.verktex.ui.text.UIText
 import com.osudroid.ui.v2.hud.HUDElement
-import java.text.DecimalFormat
 import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.reco1l.verktex.localization.formatString
 
 class HUDUnstableRateCounter : HUDElement() {
 
     override val name = "Unstable rate counter"
 
-    private val format = DecimalFormat("UR: 0.00")
+    private fun format(value: Double) = formatString("UR: %.2f", value)
 
     private val text = UIText().apply {
         fontSize = 14f.dip
-        text = format.format(0.0)
+        text = format(0.0)
     }
 
     private var value = 0.0
         set(value) {
             if (field != value) {
                 field = value
-                text.text = format.format(value)
+                text.text = format(value)
             }
         }
 

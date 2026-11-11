@@ -6,7 +6,6 @@ import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.GraphicsRenderer
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.UICanvas
-import java.lang.ref.WeakReference
 import kotlin.math.max
 
 class RippleVisualizer : UICanvas() {
@@ -17,15 +16,14 @@ class RippleVisualizer : UICanvas() {
     var rippleThickness: Dimension.Fixed = 2f.px
 
 
-    private val referenceToThis = WeakReference(this)
-
     private var activeRipples = mutableListOf<RippleInfo>()
 
 
     override fun onAttached() {
         super.onAttached()
 
-        RythimManager.addOnBeatChangeListener(referenceToThis) {
+        // Keyed by this visualizer, which removes it once detached.
+        RythimManager.addOnBeatChangeListener(this) {
             if (RythimManager.isKiai) {
                 spawnRipple()
             } else if (RythimManager.beatIndex == 0) {
@@ -66,8 +64,9 @@ class RippleVisualizer : UICanvas() {
         }
     }
 
-    fun finalize() {
-        RythimManager.removeOnBeatChangeListener(referenceToThis)
+    override fun onDetached() {
+        super.onDetached()
+        RythimManager.removeOnBeatChangeListener(this)
     }
 
 

@@ -11,7 +11,7 @@ import kotlinx.serialization.json.JsonArray
 
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.BuildSettings
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.atomics.AtomicBoolean
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.IPlayerEventListener
 import com.osudroid.multiplayer.api.IRoomEventListener
@@ -402,7 +402,7 @@ class RoomScene(
                             text = Res.string.multiplayer_room_start_game
                             onActionUp = callback@{
 
-                                if (isWaitingForStatusChange.get() || !Multiplayer.isRoomHost || Multiplayer.player?.status != PlayerStatus.Ready) {
+                                if (isWaitingForStatusChange.load() || !Multiplayer.isRoomHost || Multiplayer.player?.status != PlayerStatus.Ready) {
                                     return@callback
                                 }
 
@@ -451,7 +451,7 @@ class RoomScene(
                                 // Guard: if back() nulled player between the isWaitingForStatusChange check
                         // and here, reset the flag and exit instead of crashing.
                         val player = Multiplayer.player ?: run {
-                            isWaitingForStatusChange.set(false)
+                            isWaitingForStatusChange.store(false)
                             return@callback
                         }
 
@@ -460,13 +460,13 @@ class RoomScene(
                             PlayerStatus.NotReady -> {
                                 if (room.beatmap == null) {
                                     Toasts.showLong(Res.string.multiplayer_room_cannot_ready_changing_beatmap)
-                                    isWaitingForStatusChange.set(false)
+                                    isWaitingForStatusChange.store(false)
                                     return@callback
                                 }
 
                                 if (room.teamMode == TeamMode.TeamVS && player.team == null) {
                                     Toasts.showLong(Res.string.multiplayer_room_cannot_ready_no_team)
-                                    isWaitingForStatusChange.set(false)
+                                    isWaitingForStatusChange.store(false)
                                     return@callback
                                 }
 
@@ -477,10 +477,10 @@ class RoomScene(
 
                                     PlayerStatus.MissingBeatmap -> {
                                         Toasts.showLong(Res.string.multiplayer_room_cannot_ready_missing_beatmap)
-                                        isWaitingForStatusChange.set(false)
+                                        isWaitingForStatusChange.store(false)
                                     }
 
-                                    else -> isWaitingForStatusChange.set(false) /*This case can never happen, the PLAYING status is set when a game starts*/
+                                    else -> isWaitingForStatusChange.store(false) /*This case can never happen, the PLAYING status is set when a game starts*/
                                 }
                             }
                             statusButton = this
@@ -687,7 +687,7 @@ class RoomScene(
         // Guard: player is nulled by back(); if we race past the reconnecting check, exit cleanly.
         val player = Multiplayer.player ?: return
 
-        isWaitingForStatusChange.set(true)
+        isWaitingForStatusChange.store(true)
 
         var newStatus = PlayerStatus.NotReady
 
@@ -698,7 +698,7 @@ class RoomScene(
         if (player.status != newStatus) {
             RoomAPI.setPlayerStatus(newStatus)
         } else {
-            isWaitingForStatusChange.set(false)
+            isWaitingForStatusChange.store(false)
         }
     }
 
@@ -772,7 +772,7 @@ class RoomScene(
         }
 
         chat.show()
-        isWaitingForModsChange.set(true)
+        isWaitingForModsChange.store(true)
 
         // The room mods are the same as the host mods
         if (Multiplayer.isRoomHost) {
@@ -780,7 +780,7 @@ class RoomScene(
         } else if (updatePlayerMods) {
             RoomAPI.setPlayerMods(mods.serializeMods())
         } else {
-            isWaitingForModsChange.set(false)
+            isWaitingForModsChange.store(false)
         }
     }
 
@@ -820,7 +820,7 @@ class RoomScene(
             return
         }
 
-        if (!isWaitingForBeatmapChange.get()) {
+        if (!isWaitingForBeatmapChange.load()) {
             // onRoomBeatmapChange sets engine.scene = this just above, so it will always
             // find the scene active and call invalidateStatus() internally.  Do NOT call
             // invalidateStatus() again afterwards — that would emit a redundant
@@ -894,7 +894,7 @@ class RoomScene(
         mods.clearPlayerMods()
         mods.setRoomMods(newRoom.mods, newRoom.gameplaySettings.isFreeMod)
 
-        isWaitingForModsChange.set(true)
+        isWaitingForModsChange.store(true)
 
         RoomAPI.setPlayerMods(mods.serializeMods())
 
@@ -933,9 +933,9 @@ class RoomScene(
 
         if (!byUser) {
             // Setting await locks to avoid player emitting events that will be ignored.
-            isWaitingForBeatmapChange.set(true)
-            isWaitingForStatusChange.set(true)
-            isWaitingForModsChange.set(true)
+            isWaitingForBeatmapChange.store(true)
+            isWaitingForStatusChange.store(true)
+            isWaitingForModsChange.store(true)
 
             if (Multiplayer.isReconnecting) {
                 // A reconnection-attempt socket dropped before receiving initialConnection.
@@ -994,7 +994,7 @@ class RoomScene(
 
         if (Verktex.scene != this) {
             updateThread { updateBeatmapInfo() }
-            isWaitingForBeatmapChange.set(false)
+            isWaitingForBeatmapChange.store(false)
             return
         }
 
@@ -1004,7 +1004,7 @@ class RoomScene(
         }
 
         invalidateStatus()
-        isWaitingForBeatmapChange.set(false)
+        isWaitingForBeatmapChange.store(false)
 
         val selectedBeatmap = BeatmapSelection.beatmap
         updateThread {
@@ -1047,7 +1047,7 @@ class RoomScene(
 
         room.mods = mods
 
-        isWaitingForModsChange.set(true)
+        isWaitingForModsChange.store(true)
 
         updateThread {
             // Select the new room mods first, so that the mods sent to the server aren't the
@@ -1066,7 +1066,7 @@ class RoomScene(
 
         updatePlayerList()
 
-        isWaitingForModsChange.set(true)
+        isWaitingForModsChange.store(true)
 
         updateThread {
             updateButtons()
@@ -1090,7 +1090,7 @@ class RoomScene(
 
         val player = Multiplayer.player ?: return
         if (uid == player.id) {
-            isWaitingForModsChange.set(false)
+            isWaitingForModsChange.store(false)
             updateThread { updateBeatmapInfo() }
         }
     }
@@ -1102,7 +1102,7 @@ class RoomScene(
         updateThread { updateInformation() }
         updatePlayerList()
 
-        isWaitingForStatusChange.set(true)
+        isWaitingForStatusChange.store(true)
         invalidateStatus()
     }
 
@@ -1113,7 +1113,7 @@ class RoomScene(
         updateThread { updateInformation() }
 
         if (Multiplayer.isRoomHost) {
-            isWaitingForModsChange.set(true)
+            isWaitingForModsChange.store(true)
 
             // If win condition is Score V2 we add the mod.
             val roomMods = room.mods.apply {
@@ -1283,7 +1283,7 @@ class RoomScene(
 
         val player = Multiplayer.player
         if (player != null && uid == player.id) {
-            isWaitingForStatusChange.set(false)
+            isWaitingForStatusChange.store(false)
         }
 
         updateThread { updateInformation() }

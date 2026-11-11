@@ -4,12 +4,14 @@ import com.osudroid.OsuGameHost
 import com.osudroid.ui.skinning.IniReader
 import com.osudroid.ui.skinning.convertToJson
 import com.osudroid.ui.skinning.mergeMissing
-import java.io.File
 import com.osudroid.utils.LenientJson
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import ru.nsu.ccfit.zuev.skins.SkinJsonReader
+import com.reco1l.verktex.Platform
+import okio.Path
+import okio.Path.Companion.toPath
 
 /**
  * Loads the configuration of a skin folder, its textures and sounds are looked up through [SkinTextures] and
@@ -22,26 +24,27 @@ object Skin {
      */
     @JvmStatic
     fun load(folder: String) {
-        val skinFolder = File(folder)
+        val skinFolder = folder.toPath()
 
-        if (!skinFolder.exists()) {
+        if (!Platform.fileSystem.exists(skinFolder)) {
             return
         }
 
         SkinJsonReader.getReader().supplyJson(readConfiguration(skinFolder) ?: JsonObject(emptyMap()))
     }
 
-    private fun readConfiguration(folder: File): JsonObject? {
-        val jsonFile = File(folder, "skin.json")
-        val iniFile = File(folder, "skin.ini")
+    private fun readConfiguration(folder: Path): JsonObject? {
+        val fileSystem = Platform.fileSystem
+        val jsonFile = folder / "skin.json"
+        val iniFile = folder / "skin.ini"
 
-        if (jsonFile.exists()) {
+        if (fileSystem.exists(jsonFile)) {
             try {
-                val json = LenientJson.parseToJsonElement(OsuSkin.readFull(jsonFile.path)).jsonObject
+                val json = LenientJson.parseToJsonElement(OsuSkin.readFull(jsonFile.toString())).jsonObject
 
                 // Backfill any skin.ini derived keys missing
-                if (iniFile.exists()) {
-                    return IniReader(iniFile.path).use { mergeMissing(json, convertToJson(it)) }
+                if (fileSystem.exists(iniFile)) {
+                    return IniReader(iniFile.toString()).use { mergeMissing(json, convertToJson(it)) }
                 }
 
                 return json
@@ -51,25 +54,25 @@ object Skin {
             }
         }
 
-        if (!iniFile.exists()) {
+        if (!fileSystem.exists(iniFile)) {
             return null
         }
 
         SplashScene.info = ("Reading skin.ini...")
 
         val json = try {
-            IniReader(iniFile.path).use { convertToJson(it) }
+            IniReader(iniFile.toString()).use { convertToJson(it) }
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
 
-        OsuGameHost.current.checkSkinTexture(File(folder, "sliderendcircle.png").path, optional = true)
-        OsuGameHost.current.checkSkinTexture(File(folder, "sliderendcircleoverlay.png").path, optional = true)
+        OsuGameHost.current.checkSkinTexture((folder / "sliderendcircle.png").toString(), optional = true)
+        OsuGameHost.current.checkSkinTexture((folder / "sliderendcircleoverlay.png").toString(), optional = true)
 
-        OsuGameHost.current.checkSkinTexture(File(folder, "selection-mods.png").path, optional = false)
-        OsuGameHost.current.checkSkinTexture(File(folder, "selection-random.png").path, optional = false)
-        OsuGameHost.current.checkSkinTexture(File(folder, "selection-options.png").path, optional = false)
+        OsuGameHost.current.checkSkinTexture((folder / "selection-mods.png").toString(), optional = false)
+        OsuGameHost.current.checkSkinTexture((folder / "selection-random.png").toString(), optional = false)
+        OsuGameHost.current.checkSkinTexture((folder / "selection-options.png").toString(), optional = false)
 
         return json
     }

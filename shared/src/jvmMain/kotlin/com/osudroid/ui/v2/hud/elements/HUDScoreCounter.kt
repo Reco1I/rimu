@@ -7,20 +7,19 @@ import com.osudroid.ui.v2.SpriteFont
 import com.rian.framework.RollingLongCounter
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.skins.OsuSkin
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.Locale
+import com.reco1l.verktex.localization.formatString
 
 class HUDScoreCounter : HUDElement() {
 
     private val sprite = SpriteFont(OsuSkin.get().scorePrefix)
-    private val format = DecimalFormat("00000000", DecimalFormatSymbols(Locale.US))
+    // Eight digits, padded with zeros.
+    private fun format(value: Long) = formatString("%08d", value)
 
     private var value = 0L
         set(value) {
             if (field != value) {
                 field = value
-                sprite.text = format.format(value)
+                sprite.text = format(value)
             }
         }
 
@@ -33,7 +32,7 @@ class HUDScoreCounter : HUDElement() {
         val maxDigitWidth = digitRange.maxOfOrNull { sprite.characters[it]?.width?.toFloat() ?: 0f } ?: 0f
 
         sprite.fixedCharWidths = digitRange.associateWith { maxDigitWidth }
-        sprite.text = format.format(0)
+        sprite.text = format(0)
         +sprite
     }
 
