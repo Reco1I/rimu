@@ -2,7 +2,6 @@ package com.osudroid.desktop
 
 import com.osudroid.OsuGame
 import ru.nsu.ccfit.zuev.osu.LibraryManager
-import java.util.prefs.Preferences
 import com.reco1l.verktex.PlatformApplication
 import com.reco1l.verktex.Platform
 import com.osudroid.OsuGameHost
@@ -40,12 +39,6 @@ class OsuDesktop(
 ) : DesktopGameHost(title = "osu!droid", vsync = true), OsuGameHost {
 
     override val application = DESKTOP_APPLICATION
-
-    // The values are kept as strings, which the settings read as their type.
-    override fun legacyPreferences(): Map<String, Any?> {
-        val node = Preferences.userRoot().node("osu!droid")
-        return node.keys().associateWith { node.get(it, null) }
-    }
 
     // Beatmap sets are imported from their folders only, .osz files aren't extracted yet.
     override fun loadBeatmapLibrary() {

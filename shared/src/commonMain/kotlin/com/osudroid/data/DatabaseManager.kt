@@ -89,12 +89,4 @@ object DatabaseManager {
     @JvmStatic
     lateinit var database: GameDatabase
 
-    /**
-     * `true` if the database was created by a newer, incompatible version of the app and had to be reset.
-     *
-     * When this happens, the previous database file is kept as a backup alongside the new one.
-     */
-    @JvmStatic
-    var wasResetDueToDowngrade = false
-
 }

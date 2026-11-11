@@ -316,25 +316,6 @@ open class ModHashMap() : MutableMap<KClass<out Mod>, Mod> {
     }
 
     /**
-     * Converts this [ModHashMap] to its legacy mod string representation.
-     */
-    fun toLegacyModString() = buildString {
-        modStringOrder.forEach {
-            if (it::class in this@ModHashMap) {
-                for ((k, v) in LegacyModConverter.legacyStorableMods) {
-                    if (v.isInstance(this@ModHashMap[it::class])) {
-                        append(k)
-                        break
-                    }
-                }
-            }
-        }
-
-        append('|')
-        append(getContainerModString())
-    }
-
-    /**
      * Converts this [ModHashMap] to a string representation that can be used to display [Mod]s to the user.
      *
      * @param includeNonUserPlayable Whether to include non-user-playable [Mod]s in the string representation.

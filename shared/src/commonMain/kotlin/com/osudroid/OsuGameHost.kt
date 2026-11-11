@@ -21,12 +21,6 @@ interface OsuGameHost : GameHost {
         get() = "debug"
 
     /**
-     * The preferences the game kept before its settings were stored by Verktex, by name, imported on
-     * the first start with them.
-     */
-    fun legacyPreferences(): Map<String, Any?> = emptyMap()
-
-    /**
      * Subscribes to or unsubscribes from the announcements the game receives as notifications.
      */
     fun setAnnouncementsSubscribed(subscribed: Boolean) = Unit

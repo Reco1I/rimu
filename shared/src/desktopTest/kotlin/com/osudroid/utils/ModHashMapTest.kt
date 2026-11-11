@@ -78,24 +78,6 @@ class ModHashMapTest {
     }
 
     @Test
-    fun `Test legacy mod string conversion`() {
-        ModHashMap().apply {
-            put(ModReallyEasy())
-            put(ModHardRock())
-
-            Assert.assertEquals("rl|", toLegacyModString())
-
-            put(ModCustomSpeed(1.25f))
-
-            Assert.assertEquals("rl|x1.25", toLegacyModString())
-
-            put(ModDifficultyAdjust(cs = 4f, ar = 8f))
-
-            Assert.assertEquals("rl|x1.25|AR8.0|CS4.0", toLegacyModString())
-        }
-    }
-
-    @Test
     fun `Test display mod string conversion with non-user playable`() {
         ModHashMap().apply {
             put(ModHidden())

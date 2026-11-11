@@ -3,12 +3,8 @@ package com.osudroid.settings
 import com.osudroid.OsuGameHost
 import com.osudroid.resources.Languages
 import com.osudroid.ui.v2.SkinFolders
-import com.reco1l.verktex.Logger
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.settings.VerktexSettings
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
 import com.reco1l.verktex.settings.SettingKey
 import com.reco1l.verktex.settings.Settings
 import kotlin.jvm.JvmField
@@ -172,17 +168,6 @@ object OsuSettings {
     @JvmField val DroidStarRatingVersion = key("droidStarRatingVersion", 0L, isSensitive = true)
     @JvmField val StandardStarRatingVersion = key("standardStarRatingVersion", 0L, isSensitive = true)
 
-    /**
-     * The star rating version before each algorithm had its own, see [DroidStarRatingVersion].
-     */
-    @JvmField val LegacyStarRatingVersion = key("starRatingVersion", 0L)
-
-    /**
-     * The name of the graphics backend the game's preferences had, imported into the engine's own
-     * setting, see [importLegacyPreferences].
-     */
-    @JvmField val LegacyGraphicsBackend = key("graphicsBackend", "Auto")
-
     //endregion
 
 
@@ -309,18 +294,11 @@ object OsuSettings {
 
 
     /**
-     * Prepares the settings on start, replacing what `Config.loadConfig` did: on the first start
-     * with them, the preferences kept by the platform before are imported (see
-     * [OsuGameHost.legacyPreferences]), then the language and the viewport follow
-     * them.
+     * Prepares the settings on start: a new installation keeps its folders and gets its identifier,
+     * then the language and the viewport follow the settings.
      */
     @JvmStatic
     fun load() {
-        // Only once: right after, the installation has its identifier.
-        if (Settings.isNew && !Settings.contains(InstallId)) {
-            importLegacyPreferences(OsuGameHost.current.legacyPreferences())
-        }
-
         if (!Settings.contains(InstallId)) {
             // The folders of a new installation are kept, they'd move if the storage changed.
             Settings[CorePath] = GameFolders.corePath
@@ -332,35 +310,6 @@ object OsuSettings {
         GameResolution.measure()
         OsuGameHost.current.setAnnouncementsSubscribed(Settings[ReceiveAnnouncements])
         Languages.apply(Settings[Language])
-    }
-
-    /**
-     * Stores the preferences the game had before keeping its settings in Verktex, by name.
-     */
-    @JvmStatic
-    fun importLegacyPreferences(preferences: Map<String, Any?>) {
-        if (preferences.isEmpty()) return
-
-        Settings.putAll(preferences.mapNotNull { (name, value) -> value?.let { name to toJson(it) } }.toMap())
-
-        // The backend chosen before is the engine's from the next start.
-        if (Settings.contains(LegacyGraphicsBackend)) {
-            Settings[VerktexSettings.GraphicsBackend] = Settings[LegacyGraphicsBackend]
-        }
-
-        Settings.flush()
-        Logger.i("OsuSettings", "Imported ${preferences.size} preferences")
-    }
-
-    /**
-     * [value] as JSON, a value of a preference or of a backup.
-     */
-    internal fun toJson(value: Any): JsonElement = when (value) {
-        is JsonElement -> value
-        is Boolean -> JsonPrimitive(value)
-        is Number -> JsonPrimitive(value)
-        is Collection<*> -> JsonArray(value.filterNotNull().map(::toJson))
-        else -> JsonPrimitive(value.toString())
     }
 }
 

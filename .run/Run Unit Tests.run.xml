@@ -10,7 +10,6 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":shared:testAndroidHostTest" />
           <option value=":shared:desktopTest" />
         </list>
       </option>

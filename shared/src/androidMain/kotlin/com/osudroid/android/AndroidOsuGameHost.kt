@@ -35,10 +35,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
     override val buildType: String
         get() = AppBuild.buildType
 
-    // The default preferences of the application, where the game kept its settings before.
-    override fun legacyPreferences(): Map<String, Any?> =
-        getSharedPreferences("${packageName}_preferences", Context.MODE_PRIVATE).all
-
     override fun setAnnouncementsSubscribed(subscribed: Boolean) {
         if (subscribed) {
             FirebaseMessaging.getInstance().subscribeToTopic("announcements")

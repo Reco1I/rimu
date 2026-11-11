@@ -257,10 +257,6 @@ kotlin {
             ignoreWarnings = true
         }
 
-        withHostTest {
-            isIncludeAndroidResources = true
-        }
-
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
             freeCompilerArgs.add("-jvm-default=no-compatibility")
@@ -321,17 +317,9 @@ kotlin {
             // Localizations
             implementation("com.github.osudroid:language-pack:${providers.gradleProperty("languagePackVersion").get()}")
 
-            implementation("commons-io:commons-io:2.18.0")
-
             // The database: Room over Android's SQLite.
             implementation("androidx.room:room-runtime:$roomVersion")
             implementation("androidx.room:room-ktx:$roomVersion")
-        }
-
-        getByName("androidHostTest").dependencies {
-            implementation("junit:junit:4.13.2")
-            implementation("org.robolectric:robolectric:4.14.1")
-            implementation("androidx.room:room-testing:$roomVersion")
         }
 
         getByName("desktopTest").dependencies {
@@ -358,9 +346,6 @@ dependencies {
 
 ksp {
     arg("room.generateKotlin", "true")
-
-    // The schemas of the Android database, which its migrations are tested against.
-    arg("room.schemaLocation", layout.projectDirectory.dir("schemas").asFile.path)
 }
 
 androidComponents {
@@ -368,9 +353,5 @@ androidComponents {
         // The game's assets (the default skin, sounds, fonts) and its strings.
         variant.sources.assets?.addStaticSourceDirectory(layout.projectDirectory.dir("assets").asFile.path)
         variant.sources.assets?.addGeneratedSourceDirectory(generateStringResources, GenerateStringResources::assetsDirectory)
-
-        // The Room schemas aren't added as a test resource but as an asset, see
-        // https://github.com/robolectric/robolectric/issues/3928#issuecomment-395309991
-        variant.sources.assets?.addStaticSourceDirectory(layout.projectDirectory.dir("schemas").asFile.path)
     }
 }

@@ -36,7 +36,6 @@ import com.osudroid.BuildSettings;
 import com.osudroid.beatmaps.BeatmapCache;
 import com.osudroid.data.AndroidDatabase;
 import com.osudroid.resources.R;
-import com.reco1l.verktex.graphics.GraphicsBackend;
 import com.reco1l.verktex.settings.Settings;
 import com.reco1l.verktex.settings.VerktexSettings;
 import com.osudroid.ui.v2.GameLoaderScene;
@@ -143,7 +142,6 @@ public class MainActivity extends AndroidOsuGameHost {
             Execution.delayed(2500, () -> {
 
                 UpdateManager.onActivityStart();
-                AndroidDatabase.notifyIfResetDueToDowngrade();
                 SplashScene.setInfo("");
                 SplashScene.setProgress(100);
 
@@ -422,14 +420,6 @@ public class MainActivity extends AndroidOsuGameHost {
         // is when the game is restoring after being killed by system due to low system memory.
         AndroidGame.setMainActivity(this);
         OsuGame.setHeadless(false);
-
-        // The engine picks its graphics backend from its settings when the host is created. Until
-        // the settings were imported from the preferences, on the first start with them, the backend
-        // chosen before is taken from there.
-        if (!new File(getFilesDir(), "settings.json").exists()) {
-            Settings.set(VerktexSettings.GraphicsBackend, getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE)
-                .getString(OsuSettings.LegacyGraphicsBackend.getName(), GraphicsBackend.Auto.name()));
-        }
 
         super.onCreate(pSavedInstanceState);
 

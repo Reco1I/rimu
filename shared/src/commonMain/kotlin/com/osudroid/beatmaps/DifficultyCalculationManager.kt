@@ -2,7 +2,6 @@ package com.osudroid.beatmaps
 
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.Platform
-import com.reco1l.verktex.settings.SettingKey
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.ui.toast.Toasts
@@ -58,18 +57,12 @@ object DifficultyCalculationManager {
     }
 
     private fun resetOutdatedStarRatings() {
-        // Before per-star rating versioning, the version was stored in this key.
-        // If both star ratings have been updated after this, this key is no longer needed and can be removed.
-        val oldStarRatingVersion = Settings[OsuSettings.LegacyStarRatingVersion]
-
-        fun storedVersion(key: SettingKey<Long>) = if (Settings.contains(key)) Settings[key] else oldStarRatingVersion
-
-        if (storedVersion(OsuSettings.DroidStarRatingVersion) < DroidDifficultyCalculator.VERSION) {
+        if (Settings[OsuSettings.DroidStarRatingVersion] < DroidDifficultyCalculator.VERSION) {
             DatabaseManager.beatmapInfoTable.resetDroidStarRatings()
             Settings[OsuSettings.DroidStarRatingVersion] = DroidDifficultyCalculator.VERSION
         }
 
-        if (storedVersion(OsuSettings.StandardStarRatingVersion) < StandardDifficultyCalculator.VERSION) {
+        if (Settings[OsuSettings.StandardStarRatingVersion] < StandardDifficultyCalculator.VERSION) {
             DatabaseManager.beatmapInfoTable.resetStandardStarRatings()
             Settings[OsuSettings.StandardStarRatingVersion] = StandardDifficultyCalculator.VERSION
         }

@@ -29,34 +29,6 @@ class OsuSettingsTest {
 
 
     @Test
-    fun `android preferences are imported with their types`() {
-        OsuSettings.importLegacyPreferences(mapOf(
-            "snakingInSliders" to false,
-            "bgmvolume" to 40,
-            "soundvolume" to 55.5f,
-            "spinnerstyle" to "0",
-            "version" to 1234L,
-            "unknown" to "kept",
-        ))
-
-        assertEquals(false, Settings[OsuSettings.SnakingInSliders])
-        assertEquals(40f, Settings[OsuSettings.MusicVolume])
-        assertEquals(0.555f, OsuSettings.soundVolume, 1e-6f)
-        assertEquals(0, OsuSettings.spinnerStyle)
-        assertEquals(1234L, Settings[OsuSettings.Version])
-        assertTrue("unknown" in Settings.toJson())
-    }
-
-    @Test
-    fun `desktop preferences, all strings, are read as their types`() {
-        OsuSettings.importLegacyPreferences(mapOf("snakingInSliders" to "false", "offset" to "-20", "bgbrightness" to "12.5"))
-
-        assertEquals(false, Settings[OsuSettings.SnakingInSliders])
-        assertEquals(-20, Settings[OsuSettings.Offset])
-        assertEquals(12.5f, Settings[OsuSettings.BackgroundBrightness])
-    }
-
-    @Test
     fun `backups leave out sensitive settings and keep numbers in range`() {
         Settings[OsuSettings.OnlinePassword] = "secret"
         Settings[OsuSettings.CursorSize] = 80

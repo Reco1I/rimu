@@ -377,3 +377,21 @@ JVM and moved to `commonMain` (the `jvm` group of the source set hierarchy went 
   `downloadFileBlocking` is in `androidMain`, for `PushNotificationService`.
 - No weak references in common code: `GameScene`'s last started play is a strong reference cleared
   when it quits, and `RippleVisualizer` removes its listener when detached.
+
+## Separate from upstream, and no Android UI
+
+Done on 2026-11-11, after jvmMain moved: the project is treated as separate from upstream osu!droid,
+and everything is drawn with Verktex.
+
+- **No Android UI.** The beatmap listing and the block area editor (Android views) are removed until
+  they're rewritten on Verktex, with the fragments, the old dialogs, the view helpers and their
+  resources. `BeatmapMirror` and the mirror models are common code; set downloads, which multiplayer
+  rooms use, have their own host flag (`canDownloadBeatmapSets`). The update check, the accessibility
+  warning and the multi-window alert are Verktex dialogs.
+- **Replays.** `ReplayImporter` is common code for the JSON replays. Replay packs (`.edr`) and
+  `ImportReplayActivity` are removed. `QuickPlay` is common (`--quickplay` on desktop).
+- **No upstream data.** The database has no migrations: a database of another version is recreated,
+  on Android as on desktop. The legacy score import, the downgrade backup, `MigrationTest` (with
+  `androidHostTest`) and the exported schemas are removed, and so are the import of upstream's
+  preferences (`legacyPreferences`), `LegacyModConverter` and `GameMod`. The base folder of the game's
+  files may change later to separate them from upstream's.
