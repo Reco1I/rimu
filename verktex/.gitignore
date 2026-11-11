@@ -1,1 +1,11 @@
-/build
+build/
+.gradle/
+.kotlin/
+.cxx/
+.externalNativeBuild/
+.idea/
+*.iml
+.DS_Store
+
+# Local configuration (the SDK's path, verktex.validationLayers)
+local.properties

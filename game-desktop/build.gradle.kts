@@ -24,7 +24,7 @@ val roomVersion = "2.7.2"
 
 dependencies {
     implementation(project(":game"))
-    implementation(project(":verktex:desktop"))
+    implementation("com.reco1l.verktex:desktop")
 
     // The database: Room on the JVM, over the bundled SQLite.
     implementation("androidx.room:room-runtime:$roomVersion")
@@ -213,7 +213,7 @@ tasks.named<JavaExec>("run") {
     // Relative paths given in --args, e.g. --screenshot, resolve against where Gradle was started.
     workingDir = rootProject.projectDir
 
-    dependsOn(":verktex:desktop:prepareFFmpeg")
+    dependsOn(gradle.includedBuild("verktex").task(":desktop:prepareFFmpeg"))
     systemProperty("verktex.ffmpeg.path", ffmpegDirectory)
 }
 
@@ -226,6 +226,6 @@ tasks.register<JavaExec>("runUITests") {
     jvmArgs = application.applicationDefaultJvmArgs.toList()
     workingDir = rootProject.projectDir
 
-    dependsOn(":verktex:desktop:prepareFFmpeg")
+    dependsOn(gradle.includedBuild("verktex").task(":desktop:prepareFFmpeg"))
     systemProperty("verktex.ffmpeg.path", ffmpegDirectory)
 }

@@ -1,8 +1,8 @@
 import java.util.Properties
 
 plugins {
-    id("com.android.library")
-    id("com.android.built-in-kotlin")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.builtInKotlin)
 }
 
 kotlin {
@@ -52,24 +52,24 @@ android {
 dependencies {
 
     // Android specific
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core.ktx)
 
-    api(project(":verktex:core"))
+    api(project(":core"))
 
     // The HTTP engine of Network.
-    implementation("io.ktor:ktor-client-okhttp:3.1.3")
+    implementation(libs.ktor.client.okhttp)
 
     // Video playback, with FFmpeg for the codecs the device lacks (see maven/README.md).
-    implementation("androidx.media3:media3-exoplayer:1.4.1")
-    implementation("androidx.media3:media3-decoder-ffmpeg:1.4.1")
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.decoder.ffmpeg)
 
     // Shader translation and uniform layouts, shared with the build that compiles the Vulkan shaders.
-    implementation(project(":verktex:shadertools"))
+    implementation(project(":shadertools"))
 
     //implementation("com.google.android.material:material:1.14.0")
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
     //androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     //androidTestImplementation("androidx.test.ext:junit:1.1.5")
 
@@ -80,7 +80,7 @@ dependencies {
 // The NDK's own (1.2.158) crashes in vkCreateInstance on recent Android versions, so a current build
 // from https://github.com/KhronosGroup/Vulkan-ValidationLayers/releases (android-binaries-*.zip) is
 // used instead: pass its extracted folder, with one folder per ABI, as -Pverktex.validationLayers=<dir>
-// or set verktex.validationLayers in local.properties.
+// or set verktex.validationLayers in the local.properties of Verktex's root.
 abstract class CopyValidationLayers : DefaultTask() {
 
     @get:InputDirectory
@@ -150,12 +150,12 @@ val vulkanShaderTools: Configuration by configurations.creating {
 }
 
 dependencies {
-    vulkanShaderTools(project(":verktex:shadertools"))
+    vulkanShaderTools(project(":shadertools"))
 }
 
 // The engine's built-in shaders and fonts, shared by every platform: a plain folder of the core, so
 // they aren't packaged twice (as assets and as the core's jar resources).
-val sharedAssets: Directory = rootProject.layout.projectDirectory.dir("verktex/core/assets")
+val sharedAssets: Directory = rootProject.layout.projectDirectory.dir("core/assets")
 
 val compileVulkanShaders = tasks.register<CompileVulkanShaders>("compileVulkanShaders") {
     val os = System.getProperty("os.name").lowercase()

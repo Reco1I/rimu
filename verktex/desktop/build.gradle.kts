@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 // The desktop platform: OpenGL 3.3 through LWJGL and GLFW, BASS through JNA. For now it runs
 // Verktex's UI tests, see docs/desktop-platform.md. The game never depends on it.
 plugins {
-    id("org.jetbrains.kotlin.jvm")
+    alias(libs.plugins.kotlin.jvm)
     application
 }
 
@@ -23,16 +23,15 @@ kotlin {
     }
 }
 
-val lwjglVersion = "3.4.3"
 val lwjglNatives = listOf("natives-windows", "natives-linux", "natives-linux-arm64", "natives-macos", "natives-macos-arm64")
 
 dependencies {
-    implementation(project(":verktex:core"))
+    implementation(project(":core"))
 
     // The HTTP engine of Network.
-    implementation("io.ktor:ktor-client-okhttp:3.1.3")
+    implementation(libs.ktor.client.okhttp)
 
-    implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
+    implementation(platform(libs.lwjgl.bom))
     for (module in listOf("lwjgl", "lwjgl-glfw", "lwjgl-opengl", "lwjgl-stb")) {
         implementation("org.lwjgl:$module")
         for (natives in lwjglNatives) {
@@ -40,14 +39,14 @@ dependencies {
         }
     }
 
-    implementation("net.java.dev.jna:jna:5.19.1")
+    implementation(libs.jna)
 
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit)
 }
 
 // The built-in shaders and fonts, shared with the other platforms, load from the classpath.
 sourceSets.main {
-    resources.srcDir(rootProject.layout.projectDirectory.dir("verktex/core/assets"))
+    resources.srcDir(rootProject.layout.projectDirectory.dir("core/assets"))
 }
 
 application {
@@ -160,7 +159,7 @@ val prepareFFmpeg by tasks.registering {
 }
 
 tasks.named<JavaExec>("run") {
-    // Relative paths given in --args, e.g. --screenshot, resolve against where Gradle was started.
+    // Relative paths given in --args, e.g. --screenshot, resolve against Verktex's root.
     workingDir = rootProject.projectDir
 
     dependsOn(prepareFFmpeg)

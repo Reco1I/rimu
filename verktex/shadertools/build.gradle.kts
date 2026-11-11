@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 // Shader tooling shared by the engine at runtime and the build: translating the GLSL ES 3.00
 // shaders for Vulkan and describing their uniform layout. Plain JVM, so the build can run it.
 plugins {
-    id("org.jetbrains.kotlin.jvm")
+    alias(libs.plugins.kotlin.jvm)
 }
 
 java {
@@ -18,5 +18,5 @@ kotlin {
 }
 
 dependencies {
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit)
 }

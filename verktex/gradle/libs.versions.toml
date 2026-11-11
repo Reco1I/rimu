@@ -1,0 +1,31 @@
+[versions]
+agp = "9.2.1"
+kotlin = "2.4.10"
+okio = "3.9.1"
+ktor = "3.1.3"
+atomicfu = "0.33.0"
+serialization = "1.8.0"
+media3 = "1.4.1"
+lwjgl = "3.4.3"
+
+[libraries]
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
+atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+androidx-appcompat = "androidx.appcompat:appcompat:1.7.1"
+androidx-core-ktx = "androidx.core:core-ktx:1.13.1"
+media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
+media3-decoder-ffmpeg = { module = "androidx.media3:media3-decoder-ffmpeg", version.ref = "media3" }
+lwjgl-bom = { module = "org.lwjgl:lwjgl-bom", version.ref = "lwjgl" }
+jna = "net.java.dev.jna:jna:5.19.1"
+junit = "junit:junit:4.13.2"
+robolectric = "org.robolectric:robolectric:4.14.1"
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "agp" }
+android-builtInKotlin = { id = "com.android.built-in-kotlin", version.ref = "agp" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

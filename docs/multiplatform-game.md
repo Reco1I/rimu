@@ -32,7 +32,7 @@ Decisions already made with the user:
 | `io.socket:socket.io-client` | `multiplayer/api/RoomAPI.kt`, `LobbyAPI`, `MockMultiplayer` | A small **Socket.IO v4 client over Ktor WebSockets**. Only connect with auth/query, `emit` and `on` are used, so it's a few hundred lines. |
 | `java.io.File` (32 files), commons-io, `FileUtils.java`, `MD5Calculator.java`, `MessageDigest` | library, skins, replays, DB, downloads | **Okio** (`FileSystem.SYSTEM`, `Path`, `BufferedSource`, `ByteString.md5()`). It's a mature multiplatform FS and also covers hashing. |
 | zip4j, `java.util.zip` | `OsuDroidReplayPack`, `.osz` import (`LibraryManager`, `BeatmapDownloader`) | A small `Archives` expect/actual in the game, with zip4j as the JVM actual. Okio reads zips but can't write them. |
-| `SharedPreferences`/`PreferenceManager` (`Config.java`, `ConfigBackup`, `DifficultyCalculationManager`, `SettingsSections`…) | settings | **multiplatform-settings** (`com.russhwolf:multiplatform-settings`), reached through `OsuPlatform.preferences`: `SharedPreferencesSettings` over the same preferences on Android, so users lose nothing. Verktex's `Settings` is only an in-memory map without typed storage, so it doesn't fit. Since replaced by Verktex's typed, persistent `Settings`, see `engine-consolidation.md`. |
+| `SharedPreferences`/`PreferenceManager` (`Config.java`, `ConfigBackup`, `DifficultyCalculationManager`, `SettingsSections`…) | settings | **multiplatform-settings** (`com.russhwolf:multiplatform-settings`), reached through `OsuPlatform.preferences`: `SharedPreferencesSettings` over the same preferences on Android, so users lose nothing. Verktex's `Settings` is only an in-memory map without typed storage, so it doesn't fit. Since replaced by Verktex's typed, persistent `Settings`, see `../verktex/docs/engine-consolidation.md`. |
 | Room 2.7 (kapt) + `SupportSQLiteDatabase` migrations | `com/osudroid/data/` | **Room KMP** (same 2.7+ artifacts) with **KSP** instead of kapt and `BundledSQLiteDriver`. Port `Migrations.kt` to `Migration.migrate(SQLiteConnection)`. The `getDatabaseBuilder()` stays expect/actual. |
 | `android.util.Log` (33 files), `Debug.java` | everywhere | Verktex **`Logger`**. |
 | `SystemClock`, `java.util.Date/Calendar/TimeZone`, `SimpleDateFormat`, `android.text.format`, `android.icu.text` | cursor, replays, scores, chat, logger | **`kotlin.time`** (`TimeSource.Monotonic`) and **kotlinx-datetime** with its format DSL. |
@@ -174,7 +174,7 @@ The app's tests (`tests/test/kotlin/`) move to `game/src/jvmTest` (JUnit as toda
 - `StringTable` is common: `:game` generates `com.osudroid.resources.Res` (the language pack's string
   and array names) and the platform provides the text (`AndroidStringTable` reads the language pack's
   resources by name, so Android still picks the language). The `Int` overloads stay for app code.
-  Since replaced by Verktex's `Localization`, see `engine-consolidation.md`.
+  Since replaced by Verktex's `Localization`, see `../verktex/docs/engine-consolidation.md`.
 - `ToastLogger` is common, the platform shows the messages (`AndroidToasts`).
 - The mod system has no JVM reflection: `ModHashMap` is a copy-on-write map keyed by `KClass`, settings
   register themselves through `provideDelegate`, and new instances come from `modFactories`.
@@ -209,7 +209,7 @@ Done since the previous notes:
 - The skin assets and the audio are in `:game`: `SkinTextures`, `SkinSounds`, `BeatmapSkinManager`,
   `ISkinnable`, `MD5Calculator`, `BassSoundProvider`, `Metronome`, `Status`, and the music:
   `MusicService` (which merged `SongService`, `SongPlayer` and `MusicManager`) and `MusicClock`. No
-  Android service holds it, see `docs/engine-consolidation.md`.
+  Android service holds it, see `verktex/docs/engine-consolidation.md`.
   Verktex's `Provider.list` lists bundled assets, so `SkinSounds` no longer needs Android's `AssetManager`.
 
 - The gameplay objects are in `:game`: hit objects, slider body, cursors, effects, hit samples and the
@@ -228,7 +228,7 @@ Done since the previous notes:
   are generated into `Res` too); Java still uses `R`.
 
 - Networking is common code over blocking platform clients (since replaced by Ktor, see
-  `engine-consolidation.md`):
+  `../verktex/docs/engine-consolidation.md`):
   - `Http` runs `HttpRequest`s (built with `HttpRequestBuilder`, `HttpUrlBuilder` and `HttpBody`); OkHttp
     implements it on Android (`OkHttpClientImplementation`).
   - `WebRequest`, `JsonRequest` and `FileRequest` read kotlinx JSON, with strict getters
@@ -326,7 +326,7 @@ Left for desktop, roughly in order:
 
 1. Importing `.osz` and `.osk` files (Android's `loadBeatmapLibrary`/`checkNewSkins` use `FileUtils`,
    which is Android code); desktop only scans folders already extracted into `Songs/`.
-2. Toasts: done, Verktex draws them (`Toasts`), see `engine-consolidation.md`.
+2. Toasts: done, Verktex draws them (`Toasts`), see `../verktex/docs/engine-consolidation.md`.
 3. Multiplayer: a `RoomSocket` for desktop (or the planned Socket.IO client over Ktor).
 4. Videos, the beatmap listing, the block area editor and the replay picker, as Verktex rewrites.
 5. Moving `jvmMain` code to `commonMain` as its JVM uses are replaced.
@@ -337,4 +337,4 @@ Left for desktop, roughly in order:
 
 The game's own infrastructure (`Config`, `StringTable`, `ToastLogger`, `Http`, `OsuPlatform` (since split into Verktex's `Platform` and `OsuGameHost`),
 `SongService`, `GlobalManager`, the slider body code, `UIVideo`, the database setup) is being replaced
-by Verktex features, see `engine-consolidation.md`.
+by Verktex features, see `../verktex/docs/engine-consolidation.md`.

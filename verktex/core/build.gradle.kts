@@ -2,9 +2,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // The platform independent part of the engine: scenes, UI, graphics abstractions, audio, input and
 // clocks. Its code is common Kotlin, so it can't depend on Android or the JVM, the platforms implement
-// it, see :verktex:android. Only the JVM is targeted for now, which Android uses as well.
+// it, see :android. Only the JVM is targeted for now, which Android uses as well.
 plugins {
-    id("org.jetbrains.kotlin.multiplatform")
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
 kotlin {
@@ -16,7 +16,7 @@ kotlin {
 
     // With the JVM as the only target the common code could still use the JVM's API. Building with
     // -Pverktex.checkCommon adds a JavaScript target, which compiles it as common code against a
-    // platform without it: ./gradlew -Pverktex.checkCommon :verktex:core:compileKotlinJs
+    // platform without it: ./gradlew -Pverktex.checkCommon :core:compileKotlinJs
     if (providers.gradleProperty("verktex.checkCommon").isPresent) {
         js {
             nodejs()
@@ -31,27 +31,27 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // Files, streams and hashing, see Platform.fileSystem.
-            api("com.squareup.okio:okio:3.9.1")
+            api(libs.okio)
 
             // Multiplatform locks.
-            implementation("org.jetbrains.kotlinx:atomicfu:0.33.0")
+            implementation(libs.atomicfu)
 
             // HTTP, see Network. Each platform provides its engine.
-            api("io.ktor:ktor-client-core:3.1.3")
+            api(libs.ktor.client.core)
 
             // JSON, e.g. the strings of the localizations and the settings, whose keys expose
             // their serializer.
-            api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+            api(libs.kotlinx.serialization.json)
         }
 
         if (providers.gradleProperty("verktex.checkCommon").isPresent) {
             jsMain.dependencies {
-                implementation("com.squareup.okio:okio-nodefilesystem:3.9.1")
+                implementation(libs.okio.nodefilesystem)
             }
         }
 
         jvmTest.dependencies {
-            implementation("junit:junit:4.13.2")
+            implementation(libs.junit)
         }
     }
 }

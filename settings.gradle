@@ -5,12 +5,19 @@ pluginManagement  {
     }
 }
 
-// Verktex, the engine, is meant to become its own project: the game only uses :verktex:android,
-// which brings :verktex:core with it. :verktex:desktop is the desktop platform, used on its own.
-include ':verktex:core'
-include ':verktex:android'
-include ':verktex:shadertools'
-include ':verktex:desktop'
+// Verktex, the engine, is its own build (see verktex/docs/extraction.md), included here so that
+// com.reco1l.verktex:<module> resolves to its projects: the app uses :android, the game :core and
+// the desktop launcher :desktop. Its tasks run as :verktex:<project>:<task>.
+//
+// It reads the SDK's path from its own local.properties, which is copied from the game's when
+// it's missing.
+def verktexProperties = new File(rootDir, 'verktex/local.properties')
+def gameProperties = new File(rootDir, 'local.properties')
+if (!verktexProperties.exists() && gameProperties.exists()) {
+    verktexProperties.bytes = gameProperties.bytes
+}
+
+includeBuild('verktex')
 
 // The platform independent part of the game, see docs/multiplatform-game.md.
 include ':game'
