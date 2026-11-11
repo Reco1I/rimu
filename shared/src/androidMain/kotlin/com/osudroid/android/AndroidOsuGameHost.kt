@@ -9,10 +9,8 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.osudroid.OsuGameHost
 import com.osudroid.UpdateManager
 import com.osudroid.beatmaplisting.BeatmapDownloader
-import com.osudroid.beatmaplisting.BeatmapListing
+import com.osudroid.beatmaplisting.BeatmapMirror
 import com.osudroid.settings.OsuSettings
-import com.osudroid.ui.v1.BlockAreaEditorFragment
-import com.osudroid.utils.mainThread
 import com.reco1l.verktex.android.AndroidGameHost
 import com.reco1l.verktex.settings.Settings
 import java.io.File
@@ -63,15 +61,11 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         }
     }
 
-    override val hasBeatmapListing: Boolean
+    override val canDownloadBeatmapSets: Boolean
         get() = true
 
-    override fun showBeatmapListing() {
-        mainThread { BeatmapListing().show() }
-    }
-
     override fun downloadBeatmapSet(setId: Long, filename: String) {
-        val url = BeatmapListing.mirror.download.request(setId, !Settings[OsuSettings.PreferNoVideoDownloads]).toString()
+        val url = BeatmapMirror.selected.download.request(setId, !Settings[OsuSettings.PreferNoVideoDownloads]).toString()
         BeatmapDownloader.download(url, filename)
     }
 
@@ -80,13 +74,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
     override fun pickAndImportReplays() {
         com.osudroid.ui.v2.settings.pickAndImportReplays()
-    }
-
-    override val hasBlockAreaEditor: Boolean
-        get() = true
-
-    override fun showBlockAreaEditor() {
-        mainThread { BlockAreaEditorFragment().show() }
     }
 
 

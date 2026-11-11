@@ -1,6 +1,5 @@
 package com.osudroid.beatmaplisting
 
-import androidx.annotation.DrawableRes
 import com.osudroid.beatmaplisting.mirrors.CatboyDownloadRequestModel
 import com.osudroid.beatmaplisting.mirrors.CatboyPreviewRequestModel
 import com.osudroid.beatmaplisting.mirrors.CatboySearchRequestModel
@@ -9,7 +8,8 @@ import com.osudroid.beatmaplisting.mirrors.OsuDirectDownloadRequestModel
 import com.osudroid.beatmaplisting.mirrors.OsuDirectPreviewRequestModel
 import com.osudroid.beatmaplisting.mirrors.OsuDirectSearchRequestModel
 import com.osudroid.beatmaplisting.mirrors.OsuDirectSearchResponseModel
-import ru.nsu.ccfit.zuev.osuplus.R
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.Settings
 
 /**
  * Defines a beatmap mirror API and its actions.
@@ -26,12 +26,6 @@ enum class BeatmapMirror(
      * The description of the beatmap mirror.
      */
     val description: String,
-
-    /**
-     * The resource ID of the logo image to be displayed in the UI.
-     */
-    @field:DrawableRes
-    val logoResource: Int,
 
     /**
      * Whether this beatmap mirror supports downloading beatmaps without video. If `false`, the download action will
@@ -66,7 +60,6 @@ enum class BeatmapMirror(
     OSU_DIRECT(
         homeUrl = "https://osu.direct",
         description = "osu.direct",
-        logoResource = R.drawable.osudirect,
         supportsNoVideoDownloads = true,
 
         search = BeatmapMirrorActionWithResponse(
@@ -85,7 +78,6 @@ enum class BeatmapMirror(
     CATBOY(
         homeUrl = "https://catboy.best",
         description = "Mino",
-        logoResource = R.drawable.catboy,
         supportsNoVideoDownloads = false,
 
         search = BeatmapMirrorActionWithResponse(
@@ -94,7 +86,17 @@ enum class BeatmapMirror(
         ),
         download = BeatmapMirrorAction(CatboyDownloadRequestModel()),
         preview = BeatmapMirrorAction(CatboyPreviewRequestModel()),
-    )
+    );
 
+    companion object {
+        /**
+         * The selected beatmap mirror.
+         */
+        var selected
+            get() = entries.getOrElse(Settings[OsuSettings.BeatmapMirror]) { entries[0] }
+            set(value) {
+                Settings[OsuSettings.BeatmapMirror] = value.ordinal
+            }
+    }
 }
 

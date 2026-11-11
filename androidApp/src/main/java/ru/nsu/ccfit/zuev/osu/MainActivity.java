@@ -30,7 +30,6 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.core.content.PermissionChecker;
 
-import com.edlplan.ui.ActivityOverlay;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.osudroid.BuildSettings;
@@ -53,7 +52,7 @@ import com.osudroid.UpdateManager;
 import com.osudroid.ui.v2.multi.LobbyScene;
 
 import com.osudroid.ui.v2.settings.SettingsMenu;
-import com.reco1l.osu.ui.MessageDialog;
+import com.osudroid.android.MultiWindowAlert;
 import com.osudroid.difficulty.BeatmapDifficultyCalculator;
 import com.reco1l.verktex.Verktex;
 
@@ -93,7 +92,6 @@ public class MainActivity extends AndroidOsuGameHost {
     private MainScene mainScene;
     private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> logFlushFuture;
-    private MessageDialog multiWindowAlert;
 
     // Multiplayer
     private Uri roomInviteLink;
@@ -655,10 +653,6 @@ public class MainActivity extends AndroidOsuGameHost {
 
         var currentScene = Verktex.getScene();
 
-        if (keyCode == KeyEvent.KEYCODE_BACK && ActivityOverlay.onBackPress()) {
-            return true;
-        }
-
         var gameScene = GameScene.getCurrent();
 
         if (gameScene != null &&
@@ -790,24 +784,11 @@ public class MainActivity extends AndroidOsuGameHost {
     }
 
     private void showMultiModeWindowAlert() {
-        if (multiWindowAlert == null) {
-            multiWindowAlert = new MessageDialog()
-                .setTitle(Res.string.multi_mode_window_alert_title.toString())
-                .setMessage(Res.string.multi_mode_window_alert_message.toString())
-                .setAllowDismiss(false)
-                .addButton(Res.string.accessibility_detector_exit.toString(), (d) -> {
-                    finish();
-                    return null;
-                });
-        }
-
-        multiWindowAlert.show();
+        MultiWindowAlert.show(this::finish);
     }
 
     private void hideMultiModeWindowAlert() {
-        if (multiWindowAlert != null) {
-            multiWindowAlert.dismiss();
-        }
+        MultiWindowAlert.hide();
     }
 
     private boolean parseIntent(Intent intent) {

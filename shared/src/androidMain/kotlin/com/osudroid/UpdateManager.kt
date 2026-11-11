@@ -1,31 +1,33 @@
 package com.osudroid
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerialName
-import io.ktor.client.request.parameter
-import io.ktor.client.request.get
-import io.ktor.client.call.body
+import android.content.Intent
+import androidx.core.content.FileProvider
+import com.osudroid.android.AndroidGame
+import com.osudroid.android.AppBuild
 import com.osudroid.online.downloadTo
 import com.osudroid.online.httpClient
-import com.reco1l.verktex.settings.Settings
-import com.osudroid.settings.OsuSettings
-import com.osudroid.settings.GameFolders
-import com.reco1l.verktex.ui.toast.Toasts
-import com.osudroid.android.AndroidGame
-import android.content.*
-import android.net.*
-import android.util.*
-import androidx.core.content.*
 import com.osudroid.resources.Res
-import com.osudroid.utils.*
+import com.osudroid.settings.GameFolders
+import com.osudroid.settings.OsuSettings
+import com.osudroid.utils.async
+import com.osudroid.utils.updateThread
+import com.reco1l.verktex.Logger
+import com.reco1l.verktex.Platform
+import com.reco1l.verktex.settings.Settings
+import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.dialog.UIConfirmDialog
+import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.reco1l.verktex.ui.toast.Toasts
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import java.io.File
 import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import okio.Path.Companion.toOkioPath
-import com.reco1l.osu.ui.*
-import ru.nsu.ccfit.zuev.osu.*
-import ru.nsu.ccfit.zuev.osu.helper.*
-import ru.nsu.ccfit.zuev.osu.online.*
-import com.osudroid.android.AppBuild
-import java.io.*
+import ru.nsu.ccfit.zuev.osu.online.OnlineManager
+
 
 object UpdateManager
 {
@@ -40,11 +42,8 @@ object UpdateManager
     private val apksDirectory = File(GameFolders.cachePath, "updates").apply(File::mkdirs)
 
 
-    private var progressDialog: ProgressDialog? = null
-
-
     @JvmStatic
-    fun onActivityStart() = mainThread {
+    fun onActivityStart() {
 
         val activity = AndroidGame.mainActivity!!
 
@@ -53,18 +52,14 @@ object UpdateManager
 
         // Ignoring debug because otherwise every compiled build will show the dialog.
         if (!AppBuild.isDebug && version != -1L && version < activity.versionCode) {
-
-            MessageDialog()
-                .setTitle(Res.string.update_info_updated.toString())
-                .setMessage("Game was updated to a newer version.\nDo you want to see the changelog?")
-                .addButton("Yes") {
-                    it.dismiss()
-
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://osudroid.moe/changelog/latest"))
-                    AndroidGame.mainActivity!!.startActivity(intent)
-                }
-                .addButton("No", clickListener = MessageDialog::dismiss)
-                .show()
+            updateThread {
+                UIConfirmDialog().apply {
+                    title = Res.string.update_info_updated
+                    text = "Game was updated to a newer version.\nDo you want to see the changelog?"
+                    detachOnHide = true
+                    onConfirm = { Platform.openUrl("https://osudroid.moe/changelog/latest") }
+                }.show()
+            }
         }
 
         Settings[OsuSettings.Version] = activity.versionCode
@@ -103,31 +98,31 @@ object UpdateManager
                     return@async
                 }
 
-                MessageDialog()
-                    .setTitle("New update available!")
-                    .setMessage(Res.string.update_dialog_message.toString())
-                    .addButton(Res.string.update_dialog_button_update.toString()) { dialog ->
-                        dialog.dismiss()
+                updateThread {
+                    UIMessageDialog().apply {
+                        title = "New update available!"
+                        text = Res.string.update_dialog_message
+                        detachOnHide = true
 
-                        progressDialog = ProgressDialog().apply {
-                            indeterminate = true
-                            setAllowDismiss(false)
-                            max = 100
-                            title = "Downloading update"
-                            message = Res.string.update_info_downloading.format(0)
-                            show()
+                        addButton {
+                            text = Res.string.update_dialog_button_update
+                            variant = UIButton.Variant.Solid
+                            onActionUp = {
+                                hide()
+                                async { downloadUpdate(link, File(apksDirectory, "${newVersion}.apk")) }
+                            }
                         }
 
-                        async {
-                            downloadUpdate(link, File(apksDirectory, "${newVersion}.apk"))
+                        addButton {
+                            text = "Update later"
+                            onActionUp = { hide() }
                         }
-                    }
-                    .addButton("Update later") { it.dismiss() }
-                    .show()
+                    }.show()
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.e("UpdateManager", "Failed to check for updates.", e)
+                Logger.e("UpdateManager", "Failed to check for updates.", e)
 
                 if (!silently) {
                     Toasts.show(Res.string.update_info_check_failed)
@@ -138,28 +133,32 @@ object UpdateManager
 
 
     private suspend fun downloadUpdate(link: String, file: File) {
+        val progress = Toasts.showPersistent(
+            text = Res.string.update_info_downloading.format(0),
+            title = "Downloading update",
+            isIndeterminate = true
+        )
+
         try {
             httpClient.downloadTo(link, file.toOkioPath(), onProgress = { download ->
-                val progress = download.percentage.toInt()
+                val percentage = download.percentage.toInt()
 
-                mainThread {
-                    progressDialog?.indeterminate = progress < 0
-                    progressDialog?.progress = progress.coerceAtLeast(0)
-                    progressDialog?.setMessage(Res.string.update_info_downloading.format(progress.coerceAtLeast(0)).toString())
-                }
+                progress.isIndeterminate = percentage < 0
+                progress.progress = percentage.coerceAtLeast(0) / 100f
+                progress.text = Res.string.update_info_downloading.format(percentage.coerceAtLeast(0))
             })
         } catch (e: CancellationException) {
+            progress.dismiss()
             Toasts.show(Res.string.update_info_download_canceled)
-            mainThread { progressDialog?.dismiss() }
             throw e
         } catch (e: Exception) {
-            Log.e("UpdateManager", "Failed to download update.", e)
+            Logger.e("UpdateManager", "Failed to download update.", e)
+            progress.dismiss()
             Toasts.show(Res.string.update_info_download_failed)
-            mainThread { progressDialog?.dismiss() }
             return
         }
 
-        mainThread { progressDialog?.dismiss() }
+        progress.dismiss()
 
         val activity = AndroidGame.mainActivity!!
         val uri = FileProvider.getUriForFile(activity, "${AppBuild.applicationId}.fileProvider", file)

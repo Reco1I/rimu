@@ -155,7 +155,7 @@ abstract class GenerateStringResources : DefaultTask() {
 
 val generateStringResources by tasks.registering(GenerateStringResources::class) {
     languagePack.from(configurations.named("languagePack"))
-    extraStrings.from(layout.projectDirectory.file("src/androidMain/res/values/strings_temporary_for_locals.xml"))
+    extraStrings.from(layout.projectDirectory.file("strings/strings_temporary_for_locals.xml"))
     outputDirectory.set(layout.buildDirectory.dir("generated/resources/commonMain/kotlin"))
     assetsDirectory.set(layout.buildDirectory.dir("generated/resources/assets"))
 }
@@ -309,24 +309,19 @@ kotlin {
         }
 
         androidMain.dependencies {
-            implementation("androidx.legacy:legacy-support-v4:1.0.0")
-            implementation("com.google.android.material:material:1.11.0")
+            // The parent of the activities' theme (res/values/styles.xml).
+            implementation("androidx.appcompat:appcompat:1.7.1")
+
             implementation("com.google.firebase:firebase-crashlytics:19.4.0")
             implementation("com.google.firebase:firebase-analytics:22.2.0")
             implementation("com.google.firebase:firebase-messaging:24.1.0")
 
-            implementation("com.google.code.gson:gson:2.12.1")
-            implementation("pub.devrel:easypermissions:3.0.0")
             implementation("net.lingala.zip4j:zip4j:2.11.5")
-
-            // Only its easings, used by the Android views until they're rewritten on Verktex.
-            implementation("com.github.EdrowsLuo.EdlGameFramework:EdlJavaExt:d91c53fcff")
 
             // Localizations
             implementation("com.github.osudroid:language-pack:${providers.gradleProperty("languagePackVersion").get()}")
 
             implementation("commons-io:commons-io:2.18.0")
-            implementation(kotlin("reflect"))
 
             // The database: Room over Android's SQLite.
             implementation("androidx.room:room-runtime:$roomVersion")

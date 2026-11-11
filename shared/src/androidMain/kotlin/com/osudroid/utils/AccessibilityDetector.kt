@@ -9,7 +9,6 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import com.osudroid.resources.Res
-import com.reco1l.osu.ui.MessageDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,8 +16,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.osudroid.android.AndroidOsuGameHost
+import com.reco1l.verktex.ui.dialog.UIMessageDialog
 
 object AccessibilityDetector {
 
@@ -33,7 +32,7 @@ object AccessibilityDetector {
     /**
      * The alert that notifies the user which services are not allowed
      */
-    private var alert: MessageDialog? = null
+    private var alert: UIMessageDialog? = null
 
     private var contentObserver: ContentObserver? = null
     private var scope: CoroutineScope? = null
@@ -90,21 +89,21 @@ object AccessibilityDetector {
 
         isIllegalServiceDetected = illegalServices.isNotEmpty()
 
-        withContext(Dispatchers.Main) {
+        updateThread {
             if (isIllegalServiceDetected) {
                 if (alert == null)
                     alert = showAlert(context, illegalServices)
 
-                return@withContext
+                return@updateThread
             }
 
-            alert?.dismiss()
+            alert?.hide()
             alert = null
         }
     }
 
 
-    private fun showAlert(context: AndroidOsuGameHost, services: List<AccessibilityServiceInfo>) = MessageDialog().apply {
+    private fun showAlert(context: AndroidOsuGameHost, services: List<AccessibilityServiceInfo>) = UIMessageDialog().apply {
 
         val message = buildString {
 
@@ -117,22 +116,30 @@ object AccessibilityDetector {
             }
         }
 
-        setTitle(Res.string.accessibility_detector_title.toString())
-        setMessage(message)
-        setAllowDismiss(false)
+        title = Res.string.accessibility_detector_title
+        text = message
+        // It can't be dismissed, only acted on.
+        staticBackdrop = true
+        detachOnHide = true
 
         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
 
         if (intent.resolveActivity(context.packageManager) != null) {
-            addButton(Res.string.accessibility_detector_settings.toString()) {
-                context.startActivity(intent)
-                alert = null
+            addButton {
+                text = Res.string.accessibility_detector_settings
+                onActionUp = {
+                    context.startActivity(intent)
+                    alert = null
+                }
             }
         }
 
-        addButton(Res.string.accessibility_detector_exit.toString()) {
-            context.forcedExit()
-            it.dismiss()
+        addButton {
+            text = Res.string.accessibility_detector_exit
+            onActionUp = {
+                context.forcedExit()
+                hide()
+            }
         }
 
         show()

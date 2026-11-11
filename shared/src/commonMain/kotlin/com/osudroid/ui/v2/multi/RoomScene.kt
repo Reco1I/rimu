@@ -628,7 +628,7 @@ class RoomScene(
         downloadBeatmapButton.apply {
             val beatmapInfo = BeatmapSelection.beatmap
 
-            if (beatmapInfo == null && OsuGameHost.current.hasBeatmapListing) {
+            if (beatmapInfo == null && OsuGameHost.current.canDownloadBeatmapSets) {
                 isVisible = true
 
                 if (roomBeatmap.parentSetID == null) {

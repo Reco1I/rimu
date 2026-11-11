@@ -55,7 +55,7 @@ interface OsuGameHost : GameHost {
     fun checkSkinTexture(path: String, optional: Boolean) = Unit
 
     /**
-     * Whether [showBeatmapListing] and [downloadBeatmapSet] are available.
+     * Whether [showBeatmapListing] is available.
      */
     val hasBeatmapListing: Boolean
         get() = false
@@ -64,6 +64,12 @@ interface OsuGameHost : GameHost {
      * Shows the listing to search and download beatmaps.
      */
     fun showBeatmapListing() = Unit
+
+    /**
+     * Whether [downloadBeatmapSet] is available.
+     */
+    val canDownloadBeatmapSets: Boolean
+        get() = false
 
     /**
      * Downloads and imports the beatmap set with [setId], saving it as [filename].

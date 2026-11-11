@@ -12,7 +12,8 @@ import com.osudroid.mods.ModReplayV6
 import com.osudroid.scoring.LegacyScoreMultiplierCalculator
 import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.mainThread
-import com.reco1l.osu.ui.MessageDialog
+import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.osudroid.utils.updateThread
 import com.reco1l.framework.iterator
 import org.apache.commons.io.FilenameUtils
 import org.json.JSONObject
@@ -84,16 +85,20 @@ object AndroidDatabase {
             return
         }
 
-        mainThread {
-            MessageDialog()
-                .setTitle("Database reset")
-                .setMessage(
+        updateThread {
+            UIMessageDialog().apply {
+                title = "Database reset"
+                detachOnHide = true
+                text = (
                     "Your local database was created by a newer version of the game and could not be read, " +
                         "so it was reset. This means locally stored scores, favorites, and collections were " +
                         "lost.\n\nA backup of the previous database was saved."
                 )
-                .addButton("OK", clickListener = MessageDialog::dismiss)
-                .show()
+                addButton {
+                    text = "OK"
+                    onActionUp = { hide() }
+                }
+            }.show()
         }
     }
 
