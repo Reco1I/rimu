@@ -7,8 +7,8 @@ import com.reco1l.verktex.settings.SettingKey
 import com.osudroid.settings.OsuSettings
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
-import com.reco1l.verktex.localization.LocalizedStringArray
 import com.osudroid.multiplayer.Multiplayer
+import com.osudroid.ui.v2.settings.SettingsOption.Type
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
@@ -21,13 +21,13 @@ import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.UIButton.Variant
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.transformSequence
 import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
 import com.reco1l.verktex.ui.container.UIScrollableContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
@@ -42,158 +42,15 @@ import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.textButton
 import kotlin.math.ceil
 import kotlin.math.log10
 import com.reco1l.verktex.ui.themed
 
 
-enum class Section {
-    Player,
-    Room,
-    General,
-    Gameplay,
-    Graphics,
-    Audio,
-    Library,
-    Input,
-    Advanced
-}
-
-data class CategoryInfo(
-
-    /**
-     * The title of the category.
-     */
-    val title: CharSequence,
-
-    /**
-     * The options that will be displayed in the category.
-     */
-    val options: List<OptionInfo>,
-
-    /**
-     * Whether the category is shown, false for features the platform doesn't have.
-     */
-    val isVisible: Boolean = true,
-)
-
-enum class OptionType {
-    Checkbox,
-    Input,
-    Select,
-    Button,
-    Slider,
-}
-
-data class OptionInfo(
-    /**
-     * The type of the option.
-     */
-    val type: OptionType,
-
-    // General props
-
-    /**
-     * The key that will be used to store the value of this option.
-     */
-    val key: String,
-
-    /**
-     * The title of the option.
-     */
-    val title: CharSequence,
-
-    /**
-     * The summary of the option.
-     */
-    val summary: CharSequence? = null,
-
-    /**
-     * The setting this option shows and changes, whose type matches [type]: a `Boolean` for a
-     * checkbox, a `String` for an input or a select, an `Int` or a `Float` for a slider. Null for
-     * buttons and the options with an [initialValue].
-     */
-    val setting: SettingKey<*>? = null,
-
-    /**
-     * The action that will be performed when the value of this option changes.
-     */
-    val onChange: ((value: Any) -> Unit)? = null,
-
-    // Button props
-
-    /**
-     * The action that will be performed when the button is clicked.
-     *
-     * This property is only used in [OptionType.Button] preferences.
-     *
-     */
-    val onClick: (() -> Unit)? = null,
-
-
-    // FormSelect props
-
-    /**
-     * The entries of the select.
-     *
-     * This property is only used in [OptionType.Select] preferences.
-     */
-    val entries: LocalizedStringArray? = null,
-
-    /**
-     * The entry values of the select.
-     *
-     * This property is only used in [OptionType.Select] preferences.
-     */
-    val entryValues: LocalizedStringArray? = null,
-
-    // FormSlider props
-
-    /**
-     * The minimum value of the slider.
-     *
-     * This property is only used in [OptionType.Slider] preferences.
-     */
-    val min: Float? = null,
-
-    /**
-     * The maximum value of the slider.
-     *
-     * This property is only used in [OptionType.Slider] preferences.
-     */
-    val max: Float? = null,
-
-    /**
-     * The step of the slider.
-     *
-     * This property is only used in [OptionType.Slider] preferences.
-     */
-    val step: Float? = 0.01f,
-
-
-    /**
-     * The value formatter that will be used to format the value.
-     *
-     * This property is only used in [OptionType.Slider] preferences.
-     */
-    val valueFormatter: ((value: Float) -> String)? = null,
-
-
-    /**
-     * Called when the component is attached to the scene.
-     */
-    val onAttach: (component: UIComponent) -> Unit = { },
-
-    /**
-     * The current value of an option that isn't a preference, e.g. a setting of the multiplayer
-     * room. When set the value is taken from it and not stored, [onChange] applies it.
-     */
-    val initialValue: (() -> Any)? = null,
-)
-
 class SettingsMenu : UIScene() {
 
-    private var selectedSection = Section.General
+    private var selectedSection = SettingsSection.General
 
     private lateinit var sectionScroll: UIScrollableContainer
     private lateinit var sectionContainer: UILinearContainer
@@ -207,25 +64,24 @@ class SettingsMenu : UIScene() {
         linearContainer {
             width = fill()
             height = fill()
-            orientation = UILinearContainer.Orientation.Horizontal
+            orientation = Orientation.Horizontal
             spacing = themed { gap.sm }
 
             // Sections
             scrollableContainer {
                 scrollAxes = Axis.Y
                 height = fill()
-                padding = themed { Padding(gap.lg) }
                 backgroundColor = themed { palette.buttonBackgroundSurface }
 
                 linearContainer {
-                    orientation = UILinearContainer.Orientation.Vertical
+                    width = fill()
+                    orientation = Orientation.Vertical
                     spacing = themed { gap.xs }
 
-                    +UITextButton().apply {
+                   textButton {
                         text = "Back"
                         leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
-                        density = UIButton.Density.Large
-                        variant = UIButton.Variant.Ghost
+                        variant = Variant.Ghost
                         width = SIDEBAR_WIDTH
                         alignment = Anchor.CenterLeft
                         onActionUp = { back() }
@@ -240,23 +96,23 @@ class SettingsMenu : UIScene() {
                     // In a room its settings come first, and the ones only meant for the menu are hidden.
                     if (Multiplayer.isMultiplayer) {
                         sidebarCaption("Multiplayer")
-                        +SectionButton(Section.Player, FAIcon.User)
+                        +SectionButton(SettingsSection.Player, FAIcon.User)
                         if (Multiplayer.isRoomHost) {
-                            +SectionButton(Section.Room, FAIcon.UserGroup)
+                            +SectionButton(SettingsSection.Room, FAIcon.UserGroup)
                         }
                         sidebarCaption("Game")
                     } else {
-                        +SectionButton(Section.General, FAIcon.Gears)
+                        +SectionButton(SettingsSection.General, FAIcon.Gears)
                     }
 
-                    +SectionButton(Section.Gameplay, FAIcon.Gamepad)
-                    +SectionButton(Section.Graphics, FAIcon.Display)
-                    +SectionButton(Section.Audio, FAIcon.Headphones)
+                    +SectionButton(SettingsSection.Gameplay, FAIcon.Gamepad)
+                    +SectionButton(SettingsSection.Graphics, FAIcon.Display)
+                    +SectionButton(SettingsSection.Audio, FAIcon.Headphones)
                     if (!Multiplayer.isMultiplayer) {
-                        +SectionButton(Section.Library, FAIcon.Book)
+                        +SectionButton(SettingsSection.Library, FAIcon.Book)
                     }
-                    +SectionButton(Section.Input, FAIcon.ComputerMouse)
-                    +SectionButton(Section.Advanced, FAIcon.ScrewdriverWrench)
+                    +SectionButton(SettingsSection.Input, FAIcon.ComputerMouse)
+                    +SectionButton(SettingsSection.Advanced, FAIcon.ScrewdriverWrench)
                 }
             }
 
@@ -266,7 +122,7 @@ class SettingsMenu : UIScene() {
                 height = fill()
 
                 sectionContainer = linearContainer {
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = Orientation.Vertical
                     width = fill()
                     spacing = themed { gap.lg }
                     padding = themed { Padding(gap.xl, gap.lg) }
@@ -278,9 +134,9 @@ class SettingsMenu : UIScene() {
         onPlayfieldChanged = { playfieldAreaDisplay.update() }
 
         selectedSection = when {
-            Multiplayer.isRoomHost -> Section.Room
-            Multiplayer.isMultiplayer -> Section.Player
-            else -> Section.General
+            Multiplayer.isRoomHost -> SettingsSection.Room
+            Multiplayer.isMultiplayer -> SettingsSection.Player
+            else -> SettingsSection.General
         }
         // The section is generated in onEnter.
     }
@@ -292,16 +148,16 @@ class SettingsMenu : UIScene() {
         generateSection(contentOf(selectedSection))
     }
 
-    private fun contentOf(section: Section) = when (section) {
-        Section.Player -> playerSection
-        Section.Room -> roomSection
-        Section.General -> generalSection
-        Section.Gameplay -> gameplaySection
-        Section.Graphics -> graphicsSection
-        Section.Audio -> audioSection
-        Section.Library -> librarySection
-        Section.Input -> inputSection
-        Section.Advanced -> advancedSection
+    private fun contentOf(section: SettingsSection) = when (section) {
+        SettingsSection.Player -> playerSection
+        SettingsSection.Room -> roomSection
+        SettingsSection.General -> generalSection
+        SettingsSection.Gameplay -> gameplaySection
+        SettingsSection.Graphics -> graphicsSection
+        SettingsSection.Audio -> audioSection
+        SettingsSection.Library -> librarySection
+        SettingsSection.Input -> inputSection
+        SettingsSection.Advanced -> advancedSection
     }
 
     private fun UILinearContainer.sidebarCaption(caption: String) = text {
@@ -340,7 +196,7 @@ class SettingsMenu : UIScene() {
     }
 
 
-    fun generateSection(content: List<CategoryInfo>) {
+    fun generateSection(content: List<SettingsCategory>) {
         sectionContainer.alpha = 0f
         sectionContainer.clearChildren()
         sectionScroll.scrollY = 0f
@@ -349,7 +205,7 @@ class SettingsMenu : UIScene() {
             content.filter { it.isVisible }.forEachIndexed { index, category ->
 
                 linearContainer {
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = Orientation.Vertical
                     width = fill()
 
                     text {
@@ -362,7 +218,7 @@ class SettingsMenu : UIScene() {
                     category.options.forEach { option ->
                         val title = option.title
 
-                        if (option.type == OptionType.Button) {
+                        if (option.type == Type.Button) {
                             val button = UITextButton().apply {
                                 width = fill()
                                 text = title
@@ -403,7 +259,7 @@ class SettingsMenu : UIScene() {
         }
     }
 
-    private fun UILinearContainer.addSummary(option: OptionInfo) {
+    private fun UILinearContainer.addSummary(option: SettingsOption) {
         val summary = option.summary ?: return
 
         text {
@@ -416,30 +272,30 @@ class SettingsMenu : UIScene() {
         }
     }
 
-    private fun createControl(option: OptionInfo): FormControl<*, *> {
+    private fun createControl(option: SettingsOption): FormControl<*, *> {
         val initialValue = option.initialValue?.invoke()
 
         // Options that aren't preferences show the current value and aren't stored.
         val control = if (initialValue != null) {
             when (option.type) {
-                OptionType.Checkbox -> FormCheckbox(initialValue as Boolean)
-                OptionType.Input -> FormInput(initialValue as String)
-                OptionType.Select -> FormSelect(listOf(initialValue as String))
-                OptionType.Slider -> FormSlider((initialValue as Number).toFloat())
-                OptionType.Button -> error("Buttons are not form controls")
+                Type.Checkbox -> FormCheckbox(initialValue as Boolean)
+                Type.Input -> FormInput(initialValue as String)
+                Type.Select -> FormSelect(listOf(initialValue as String))
+                Type.Slider -> FormSlider((initialValue as Number).toFloat())
+                Type.Button -> error("Buttons are not form controls")
             }.apply { showResetButton = false }
         } else {
             val setting = option.setting ?: error("The option \"${option.key}\" has neither a setting nor an initial value")
 
             @Suppress("UNCHECKED_CAST")
             when (option.type) {
-                OptionType.Checkbox -> PreferenceCheckbox(setting as SettingKey<Boolean>)
-                OptionType.Input -> PreferenceInput(setting as SettingKey<String>)
-                OptionType.Select -> PreferenceSelect(setting as SettingKey<String>)
-                OptionType.Slider ->
+                Type.Checkbox -> PreferenceCheckbox(setting as SettingKey<Boolean>)
+                Type.Input -> PreferenceInput(setting as SettingKey<String>)
+                Type.Select -> PreferenceSelect(setting as SettingKey<String>)
+                Type.Slider ->
                     if (setting.default is Float) FloatPreferenceSlider(setting as SettingKey<Float>)
                     else IntPreferenceSlider(setting as SettingKey<Int>)
-                OptionType.Button -> error("Buttons are not form controls")
+                Type.Button -> error("Buttons are not form controls")
             }
         }
 
@@ -520,7 +376,7 @@ class SettingsMenu : UIScene() {
     }
 
 
-    inner class SectionButton(private val section: Section, icon: Int) : UITextButton() {
+    inner class SectionButton(private val section: SettingsSection, icon: Int) : UITextButton() {
 
         init {
             leadingIcon = faSolidIcon(icon)
