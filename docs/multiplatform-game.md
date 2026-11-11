@@ -1,15 +1,15 @@
 # Making the osu!droid game code platform agnostic
 
-> **Since this plan was written:** Verktex is one Kotlin Multiplatform module, `com.reco1l.verktex:verktex`,
-> with an `android` and a `desktop` target, and `Platform` is an `expect object` instead of an
-> implementation interface. `:game` has the same two targets, with `src/jvmMain` shared by both and
-> its tests in `src/desktopTest` (`:game:desktopTest`). Where the text below says `:verktex:core`,
-> `:verktex:android`, `:verktex:desktop`, `Platform.Implementation` or `jvmTest`, read those.
-> `:game-desktop` is now `:game`'s `src/desktopMain` source set, run with `:game:run` and `:game:runUITests`.
-> The Android app's code, resources and tests are `:game`'s `src/androidMain` and `src/androidHostTest`; the
-> root module is only the application shell (id, signing, build types, Firebase plugins).
-> Verktex is its own repository, a git submodule in `verktex/`, and the `checkCommon` JavaScript targets
-> were removed.
+> **Since this plan was written:** the project follows the structure Kotlin recommends for
+> multiplatform projects. What this document calls `:game` is `:shared` (`shared/`), with an `android`
+> and a `desktop` target, `src/jvmMain` shared by both and its tests in `src/desktopTest`
+> (`:shared:desktopTest`) and `src/androidHostTest`. The applications are `:androidApp` (the Android
+> entry points, manifest, signing, build types and Firebase plugins) and `:desktopApp` (what was
+> `:game-desktop`, run with `:desktopApp:run` and `:desktopApp:runUITests`). Verktex is one module,
+> `com.reco1l.verktex:verktex`, in its own repository, a git submodule in `verktex/`; `Platform` is
+> an `expect object` instead of an implementation interface, and the `checkCommon` JavaScript
+> targets were removed. Where the text below says `:verktex:core`, `:verktex:android`,
+> `:verktex:desktop`, `Platform.Implementation`, `jvmTest` or the root module, read those.
 
 ## Context
 

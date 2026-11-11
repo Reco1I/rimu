@@ -10,8 +10,8 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":game:testAndroidHostTest" />
-          <option value=":game:desktopTest" />
+          <option value=":shared:testAndroidHostTest" />
+          <option value=":shared:desktopTest" />
         </list>
       </option>
       <option name="vmOptions" />

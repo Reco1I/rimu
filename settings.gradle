@@ -20,5 +20,9 @@ if (!verktexProperties.exists() && gameProperties.exists()) {
 
 includeBuild('verktex')
 
-// The game, with its desktop launcher, see docs/multiplatform-game.md.
-include ':game'
+// The game, shared by its applications, see docs/multiplatform-game.md.
+include ':shared'
+
+// The applications: the entry points of the game on each platform.
+include ':androidApp'
+include ':desktopApp'

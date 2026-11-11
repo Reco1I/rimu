@@ -1,0 +1,157 @@
+def getReleaseVersionCode() {
+    def versionCode = (int) (new Date().getTime() / 1000)
+    println('versionCode: ' + versionCode)
+    return versionCode
+}
+
+def getReleaseVersionName() {
+    def subVersion = '0'
+    def versionName = new Date().format('yyyy.Mdd') + '.' + subVersion
+    println('versionName: ' + versionName)
+    return versionName
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = new File(rootDir.getAbsolutePath(), 'local.properties')
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.newDataInputStream())
+}
+
+// The Android application: the entry points of the game on Android (MainActivity, the application
+// class, the other activities and the push service) and what an application decides: its id,
+// version, signing, build types and the Firebase plugins. The game itself is :shared.
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+
+android {
+    // :shared has the namespace the application had (ru.nsu.ccfit.zuev.osuplus), for its resources,
+    // so the application takes another one and sets its id itself.
+    namespace 'ru.nsu.ccfit.zuev.osuplus.app'
+    compileSdk {
+        version = release(36) { minorApiLevel = 1 }
+    }
+    ndkVersion '22.1.7171670'
+
+    defaultConfig {
+        applicationId 'ru.nsu.ccfit.zuev.osuplus'
+        manifestPlaceholders = [uiTestsEnabled: "false", profileable: "false"]
+        minSdkVersion 24
+        targetSdkVersion 29
+        versionCode getReleaseVersionCode()
+        versionName getReleaseVersionName()
+        multiDexEnabled true
+        ndk {
+            abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+        }
+    }
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/proguard/coroutines.pro']
+        }
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file('debug.jks')
+            storePassword "debug.dgsrz.com"
+            keyAlias 'debug.github.dgsrz.com'
+            keyPassword 'debug.github.dgsrz.com'
+        }
+
+        release {
+            try {
+                storeFile file(localProperties.get("RELEASE_KEYSTORE", "debug.jks"))
+                storePassword localProperties.get('RELEASE_KEYSTORE_PASSWORD', "debug.dgsrz.com")
+                keyAlias localProperties.get('RELEASE_KEY_ALIAS', "debug.github.dgsrz.com")
+                keyPassword localProperties.get('RELEASE_KEY_PASSWORD', "debug.github.dgsrz.com")
+            } catch (ignored) {
+                throw new InvalidUserDataException('You should define RELEASE_KEYSTORE_PASSWORD and RELEASE_KEY_PASSWORD in local.properties.', ignored)
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            resValue "string", "app_name", "osu!droid-debug"
+            applicationIdSuffix '.debug'
+            manifestPlaceholders = [uiTestsEnabled: "true", profileable: "false"]
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
+        }
+
+        release {
+            resValue "string", "app_name", "osu!droid"
+//            minifyEnabled true
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
+            signingConfig signingConfigs.release
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
+        }
+
+        // Compiled like a release, so profiles show the real cost instead of the interpreter's, but
+        // profileable from the shell (simpleperf) and with the UI tests. Installs over the debug app.
+        profile {
+            initWith debug
+            debuggable false
+            matchingFallbacks = ['release']
+            manifestPlaceholders = [uiTestsEnabled: "true", profileable: "true"]
+            signingConfig signingConfigs.debug
+        }
+
+        pre_release {
+            matchingFallbacks = ['release']
+            resValue "string", "app_name", "osu!droid"
+//            minifyEnabled true
+//            debuggable true
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
+            signingConfig signingConfigs.release
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        kotlinOptions {
+            jvmTarget = '17'
+            freeCompilerArgs += ['-jvm-default=no-compatibility', '-Xexplicit-backing-fields']
+        }
+    }
+
+    // What the game reads through AppBuild, see SaveServiceObject.
+    buildFeatures {
+        buildConfig true
+    }
+
+    lint {
+        abortOnError true
+        disable 'MissingTranslation', 'ExpiredTargetSdkVersion', 'ProtectedPermissions', 'AppLinkUrlError'
+        ignoreWarnings true
+    }
+
+    android.applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach { output ->
+            def fileName = "osudroid-${defaultConfig.versionName}-${variant.buildType.name}.apk"
+            outputFileName = fileName
+        }
+    }
+}
+
+dependencies {
+    implementation project(':shared')
+
+    // What the entry points use themselves.
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'com.google.firebase:firebase-crashlytics:19.4.0'
+    implementation 'com.google.firebase:firebase-analytics:22.2.0'
+    implementation 'com.google.firebase:firebase-messaging:24.1.0'
+    implementation 'pub.devrel:easypermissions:3.0.0'
+    implementation 'net.lingala.zip4j:zip4j:2.11.5'
+}
