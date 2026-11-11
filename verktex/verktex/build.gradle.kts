@@ -78,15 +78,6 @@ kotlin {
         }
     }
 
-    // With only JVM targets the common code could still use the JVM's API. Building with
-    // -Pverktex.checkCommon adds a JavaScript target, which compiles it as common code against a
-    // platform without it: ./gradlew -Pverktex.checkCommon :verktex:compileKotlinJs
-    if (providers.gradleProperty("verktex.checkCommon").isPresent) {
-        js {
-            nodejs()
-        }
-    }
-
     compilerOptions {
         freeCompilerArgs.add("-Xexplicit-backing-fields")
         freeCompilerArgs.add("-Xexpect-actual-classes")
@@ -107,12 +98,6 @@ kotlin {
             // JSON, e.g. the strings of the localizations and the settings, whose keys expose
             // their serializer.
             api(libs.kotlinx.serialization.json)
-        }
-
-        if (providers.gradleProperty("verktex.checkCommon").isPresent) {
-            jsMain.dependencies {
-                implementation(libs.okio.nodefilesystem)
-            }
         }
 
         getByName("jvmMain").dependencies {

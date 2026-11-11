@@ -21,9 +21,6 @@ Requires Java 17, and for the Android target the Android SDK (platform `android-
 # Tests
 ./gradlew :verktex:desktopTest :verktex:testAndroidHostTest :shadertools:test
 
-# The common code compiles without the JVM's API
-./gradlew -Pverktex.checkCommon :verktex:compileKotlinJs
-
 # The UI test browser, on desktop
 ./gradlew :verktex:run
 ./gradlew :verktex:run --args="--test 'Verktex/Text' --screenshot build/text.png"

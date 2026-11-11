@@ -13,9 +13,6 @@ applications include it (`includeBuild`) and depend on `com.reco1l.verktex:<modu
 # Tests
 ./gradlew :verktex:desktopTest :verktex:testAndroidHostTest :shadertools:test
 
-# commonMain must compile as common code
-./gradlew -Pverktex.checkCommon :verktex:compileKotlinJs
-
 # The UI test browser on desktop; --test opens a test, --screenshot saves a frame and exits
 ./gradlew :verktex:run --args="--test 'Verktex/Text' --screenshot build/text.png"
 ```

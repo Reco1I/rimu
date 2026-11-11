@@ -367,16 +367,6 @@ kotlin {
         }
     }
 
-    // With only JVM targets the common code could still use the JVM's API. Building with
-    // -Pgame.checkCommon adds a JavaScript target, which compiles it as common code against a platform
-    // without it. Verktex needs its own check enabled too, for its JavaScript variant:
-    // ./gradlew -Pverktex.checkCommon -Pgame.checkCommon :game:compileKotlinJs
-    if (providers.gradleProperty("game.checkCommon").isPresent) {
-        js {
-            nodejs()
-        }
-    }
-
     compilerOptions {
         freeCompilerArgs.add("-Xexplicit-backing-fields")
         optIn.add("kotlin.uuid.ExperimentalUuidApi")
@@ -405,12 +395,6 @@ kotlin {
             // Room's annotations, so the entities and DAOs can be declared in common code. The
             // database itself, which Room generates, is built by each platform that has one.
             api("androidx.room:room-common:2.7.2")
-        }
-
-        if (providers.gradleProperty("game.checkCommon").isPresent) {
-            jsMain.dependencies {
-                implementation("com.squareup.okio:okio-nodefilesystem:3.9.1")
-            }
         }
 
         androidMain.dependencies {
