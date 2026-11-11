@@ -77,17 +77,6 @@ interface OsuGameHost : GameHost {
     fun downloadBeatmapSet(setId: Long, filename: String) = Unit
 
     /**
-     * Whether [pickAndImportReplays] is available.
-     */
-    val canImportReplays: Boolean
-        get() = false
-
-    /**
-     * Lets the player pick replay files or replay packs and imports them.
-     */
-    fun pickAndImportReplays() = Unit
-
-    /**
      * Whether [showBlockAreaEditor] is available.
      */
     val hasBlockAreaEditor: Boolean

@@ -159,8 +159,16 @@ public class MainActivity extends AndroidOsuGameHost {
                 logFlushFuture = scheduledExecutor.scheduleAtFixedRate(Multiplayer::flushLog, 0, 5, TimeUnit.SECONDS);
 
                 // TEMPORARY: debug shortcut straight into gameplay, see QuickPlay.
-                if (QuickPlay.startIfRequested(getIntent())) {
-                    return;
+                Intent intent = getIntent();
+                String quickPlay = intent != null ? intent.getStringExtra("quickplay") : null;
+
+                if (quickPlay != null) {
+                    // Once only, not again when the activity is recreated.
+                    intent.removeExtra("quickplay");
+
+                    if (QuickPlay.start(quickPlay, intent.getBooleanExtra("autoplay", true))) {
+                        return;
+                    }
                 }
 
                 if (roomInviteLink != null) {

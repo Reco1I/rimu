@@ -69,13 +69,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         BeatmapDownloader.download(url, filename)
     }
 
-    override val canImportReplays: Boolean
-        get() = Platform.canPickFiles
-
-    override fun pickAndImportReplays() {
-        com.osudroid.ui.v2.settings.pickAndImportReplays()
-    }
-
 
     override fun verifyFileIntegrity() = AndroidSecurityUtils.verifyFileIntegrity(this)
 

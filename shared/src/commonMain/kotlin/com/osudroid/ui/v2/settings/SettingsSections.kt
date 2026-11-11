@@ -973,8 +973,8 @@ val librarySection = listOf(
                 key = "importReplay",
                 title = Res.string.opt_import_replay_title,
                 summary = Res.string.opt_import_replay_summary,
-                onAttach = { it.isVisible = OsuGameHost.current.canImportReplays },
-                onClick = { OsuGameHost.current.pickAndImportReplays() }
+                onAttach = { it.isVisible = Platform.canPickFiles },
+                onClick = { pickAndImportReplays() }
             )
         )
     ),

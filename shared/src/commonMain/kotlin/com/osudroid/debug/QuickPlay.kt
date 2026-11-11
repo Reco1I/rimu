@@ -2,49 +2,44 @@ package com.osudroid.debug
 
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
-import android.content.Intent
-import com.reco1l.verktex.Logger
 import com.osudroid.mods.ModAutoplay
 import com.osudroid.utils.ModHashMap
+import com.reco1l.verktex.Logger
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.texture.Textures
+import kotlin.jvm.JvmStatic
 import ru.nsu.ccfit.zuev.osu.LibraryManager
-import com.osudroid.android.AppBuild
 
 /**
  * TEMPORARY: starts a beatmap right after the game loads, skipping the menus, to test gameplay
  * without navigating the UI. Only in debug builds. Remove once gameplay on Verktex is stable.
  *
+ * Each host passes it what it was started with:
+ *
  * ```
  * adb shell am start -S -n ru.nsu.ccfit.zuev.osuplus.debug/ru.nsu.ccfit.zuev.osu.MainActivity \
  *     --es quickplay "abracadabra normal" [--ez autoplay false]
- * ```
  *
- * The [EXTRA_BEATMAP] query matches every word against "artist - title [version]", ignoring case.
- * Empty, it plays the selected beatmap or the first one of the library. Autoplay is on unless
- * [EXTRA_AUTOPLAY] is false.
+ * ./gradlew :desktopApp:run --args="--quickplay 'abracadabra normal' [--no-autoplay]"
+ * ```
  */
 object QuickPlay {
-
-    const val EXTRA_BEATMAP = "quickplay"
-    const val EXTRA_AUTOPLAY = "autoplay"
 
     private const val TAG = "QuickPlay"
 
 
     /**
-     * Starts the beatmap asked for by [intent], if any.
+     * Starts the beatmap that matches [query]: every word of it against "artist - title [version]",
+     * ignoring case. Empty, it plays the selected beatmap or the first one of the library.
      *
+     * @param autoplay Whether it's played with autoplay.
      * @return Whether a beatmap was started.
      */
     @JvmStatic
-    fun startIfRequested(intent: Intent?): Boolean {
-        if (!AppBuild.isDebug || intent == null) {
+    fun start(query: String, autoplay: Boolean): Boolean {
+        if (!Platform.application.isDebug) {
             return false
         }
-
-        val query = intent.getStringExtra(EXTRA_BEATMAP) ?: return false
-        // Once only, not again when the activity is recreated.
-        intent.removeExtra(EXTRA_BEATMAP)
 
         val beatmaps = LibraryManager.getLibrary().flatMap { it.beatmaps }
         val words = query.lowercase().split(' ').filter { it.isNotBlank() }
@@ -64,7 +59,7 @@ object QuickPlay {
         }
 
         val mods = ModHashMap()
-        if (intent.getBooleanExtra(EXTRA_AUTOPLAY, true)) {
+        if (autoplay) {
             mods.put(ModAutoplay::class)
         }
 

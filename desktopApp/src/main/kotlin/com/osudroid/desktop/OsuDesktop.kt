@@ -22,16 +22,21 @@ import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.VerktexSettings
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import java.io.File
+import com.osudroid.debug.QuickPlay
 
 /**
  * The game's window on desktop, which starts the game as `MainActivity` does on Android.
  *
  * @param screenshot When set, the frame shown [screenshotDelaySeconds] after starting is saved to this
  * PNG and the window closes, e.g. for smoke checks.
+ * @param quickPlay When set, the beatmap it matches is played once the game has started, see
+ * [QuickPlay], with autoplay unless [quickPlayAutoplay] is false.
  */
 class OsuDesktop(
     private val screenshot: File? = null,
     private val screenshotDelaySeconds: Double = 10.0,
+    private val quickPlay: String? = null,
+    private val quickPlayAutoplay: Boolean = true,
 ) : DesktopGameHost(title = "osu!droid", vsync = true), OsuGameHost {
 
     override val application = DESKTOP_APPLICATION
@@ -88,6 +93,9 @@ class OsuDesktop(
                 SplashScene.progress = 100
                 // The splash can't be gone back to.
                 Verktex.resetScenes(MainScene())
+
+                // TEMPORARY: debug shortcut straight into gameplay.
+                quickPlay?.let { QuickPlay.start(it, quickPlayAutoplay) }
             }
         }
     }
@@ -103,9 +111,12 @@ class OsuDesktop(
  *
  * ```
  * ./gradlew :desktopApp:run --args="--screenshot build/game.png --delay 10"
+ * ./gradlew :desktopApp:run --args="--quickplay 'abracadabra normal' --no-autoplay"
  * ```
  *
  * `--screenshot` saves the frame shown `--delay` seconds (10 by default) after starting and exits.
+ * `--quickplay` plays the beatmap that matches its words once the game has started, with autoplay
+ * unless `--no-autoplay` is given, see [QuickPlay].
  */
 /**
  * The game on desktop: a debug build, without a version of its own.
@@ -115,21 +126,28 @@ internal val DESKTOP_APPLICATION = PlatformApplication(versionName = "desktop", 
 fun main(args: Array<String>) {
     var screenshot: File? = null
     var delay = 10.0
+    var quickPlay: String? = null
+    var quickPlayAutoplay = true
 
     var i = 0
     while (i < args.size) {
         when (args[i]) {
             "--screenshot" -> screenshot = args.getOrNull(++i)?.let(::File)
             "--delay" -> delay = args.getOrNull(++i)?.toDoubleOrNull() ?: delay
+            "--quickplay" -> quickPlay = args.getOrNull(++i).orEmpty()
+            "--no-autoplay" -> quickPlayAutoplay = false
             else -> {
-                System.err.println("Unknown argument: ${args[i]}. Usage: [--screenshot <file.png>] [--delay <seconds>]")
+                System.err.println(
+                    "Unknown argument: ${args[i]}. Usage: [--screenshot <file.png>] [--delay <seconds>] " +
+                        "[--quickplay <beatmap words>] [--no-autoplay]"
+                )
                 kotlin.system.exitProcess(2)
             }
         }
         i++
     }
 
-    OsuDesktop(screenshot, delay).run()
+    OsuDesktop(screenshot, delay, quickPlay, quickPlayAutoplay).run()
 
     // Idle connection pools would keep the process alive for a while.
     kotlin.system.exitProcess(0)

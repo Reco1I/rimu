@@ -8,7 +8,7 @@ import com.reco1l.verktex.ui.toast.Toasts
 import okio.Path
 
 /**
- * Asks the user for replay files or replay packs and imports them.
+ * Asks the user for replay files and imports them.
  */
 fun pickAndImportReplays() {
     Platform.pickFiles("application/octet-stream", ::importReplays)
@@ -21,7 +21,7 @@ private fun importReplays(files: List<Path>) {
 
     for ((i, file) in files.withIndex()) {
         try {
-            ReplayImporter.import(file.toString())
+            ReplayImporter.import(file)
             importedCount++
         } catch (e: Exception) {
             Logger.e("ReplayImport", "Failed to import the replay $file", e)
