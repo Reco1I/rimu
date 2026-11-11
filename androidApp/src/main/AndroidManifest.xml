@@ -25,7 +25,7 @@
         android:allowAudioPlaybackCapture="true"
         android:requestLegacyExternalStorage="true"
         android:resizeableActivity="false"
-        android:name="ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject"
+        android:name="com.osudroid.android.OsuApplication"
         tools:ignore="UnusedAttribute">
         <profileable android:shell="${profileable}" tools:targetApi="29"/>
 

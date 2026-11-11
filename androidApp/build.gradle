@@ -124,7 +124,7 @@ android {
         }
     }
 
-    // What the game reads through AppBuild, see SaveServiceObject.
+    // What the game reads through AppBuild, see OsuApplication.
     buildFeatures {
         buildConfig true
     }

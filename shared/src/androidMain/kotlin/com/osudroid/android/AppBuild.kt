@@ -3,7 +3,7 @@ package com.osudroid.android
 /**
  * What the game knows about the application it was built into. This module is a library, with a
  * single variant and no `BuildConfig` of its own, so the application module passes its own when
- * the process starts, see `SaveServiceObject` in `:androidApp`.
+ * the process starts, see `OsuApplication` in `:androidApp`.
  */
 object AppBuild {
 
