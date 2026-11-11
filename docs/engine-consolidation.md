@@ -357,8 +357,44 @@ Updated at the end of every phase: what's done, what's left, and the decisions t
 | 7. Split `OsuPlatform` | Done |
 | 8. No `GlobalManager` | Done |
 | 9. Database in Verktex | Not started |
-| 10. `Path` and `UIPath` | Not started |
+| 10. `Path` and `UIPath` | Done (done before phase 9, as the user asked) |
 | 11. Video | Not started |
+
+### Phase 10: `Path` and `UIPath`
+
+- Verktex `math/Path`: a polyline packed as x, y pairs with the length up to each point, built
+  with `Path.Builder` or `Path.of`. It has `length`, `lengthAt`, `indexAt`, `pointAt`, `cut`,
+  `simplified(minDistance)` (drops points closer than that to the previous one kept) and `bounds`.
+- Renderer: `GraphicsRenderer.drawVertices` draws a range of a buffer the caller keeps between
+  frames, with its own shader and layout, transformed by the shader. GL and GL ES upload a buffer
+  again only when it was cleared or written since (`GraphicsBuffer.clearCount` with the word count),
+  so a mesh that doesn't change stays on the GPU. Vulkan has no buffers of its own, it copies only
+  the drawn range into its frame ring; device-local static buffers there are left for later.
+- Verktex `ui/UIPath` (`halfWidth`, `borderWidth`, `hintWidth`, the three colours, `startLength`,
+  `endLength`): one mesh with round caps and joins, triangulated as `DrawLinePath` did, every vertex
+  carrying its distance from the centre line.
+  - **Changed from the plan:** it doesn't draw in one pass with the depth equal to the distance.
+    That draws a pixel twice wherever a later triangle is nearer the centre line (the inside of
+    every bend), which shows on a translucent body. Instead the hint, the body and the border are
+    passes over the same mesh (`shaders/path.frag` discards beyond each band's width), all at the
+    same depth with `Less`, which is what the three `UITriangleMesh` layers did: each pixel is drawn
+    once, by the innermost band.
+  - Snaking draws a range of the mesh plus a rebuilt piece (the partial segments, their caps and
+    joins), in every direction, replacing the `tryBuildFast*` paths and the full rebuilds.
+- Game: `GameHelper.createRenderPath(slider)` makes the body's `Path` in osu!pixels from the
+  slider's calculated path, thinned out as before. `GameplaySlider` places the `UIPath` at the
+  stacked position scaled to the playfield, so the screen-space render path is gone. The game
+  scene keeps a `Path` per slider instead of a `RenderPathCache`; the mesh is built when the slider
+  first draws.
+- Deleted: `SliderBody`, `DrawLinePath`, `TriangleBuilder`, `UITriangleMesh`, `LinePath`,
+  `FloatArraySlice` and their tests. `PathTest` and `UIPathTest` cover what they did.
+- Checked: the engine, desktop and game tests, the common checks, `assembleDebug`, the SPIR-V of the
+  new shaders, the `Verktex/Paths` UI test, slider bodies in an autoplay on desktop, and an A/B of the
+  old and new bodies drawn side by side for the same paths (a wave, a self-crossing loop with a
+  translucent body, sharp angles, a dot, snaking in and out): out of about 300,000 pixels, about
+  40,000 differ by 1 or 2 (colours now come as float uniforms instead of 8-bit vertex colours) and 2
+  by more, at triangle edges. **Not measured on the Adreno 610**, the plan's back-to-back A/B of
+  profile builds is still to do, and the GL ES and Vulkan backends weren't seen on a device.
 
 ### Known regressions
 

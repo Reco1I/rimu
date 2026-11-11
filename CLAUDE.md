@@ -47,10 +47,7 @@ The codebase is split across multiple main package roots, each in `game/src/{com
 
 - **`ru/nsu/ccfit/zuev/osu/`** — Legacy code, mostly converted to Kotlin: `GameScene`, `ScoringScene` and `LibraryManager` are in `:game`, `MainActivity` (still Java) in the app. Most subsystems here are singletons.
 - **`com/acivev/`** — Vibration and haptic feedback management (`VibratorManager`, `VibratorCheckUtils`, etc.) as well as snow effects (`ui/Effect.kt`).
-- **`com/edlplan/andengine/`** — `TriangleBuilder`, used to build slider body geometry.
-- **`com/edlplan/framework/`** — Math, easing and utility classes.
 - **`legacy/storyboard/`** — The storyboard renderer, outside the source set until it's rewritten on Verktex.
-- **`com/edlplan/osu/`** — Slider body rendering (`AbstractSliderBody`, `DrawLinePath`, `SliderBody`, etc.) and some beatmap parsing.
 - **`com/edlplan/replay/`** — Replay imports and exports.
 - **`com/edlplan/ui/`** — Fragments and utilities to manage their lifecycle (`ActivityOverlay`, `BaseFragment`, `BeatmapPropertiesFragment`, etc.).
 - **`com/osudroid/`** — Modern Kotlin code. Contains beatmap parsing, difficulty calculation, the mod system, multiplayer, Room database, and newer UI scenes.
@@ -83,7 +80,7 @@ SplashScene → LoadingScreen → MainScene (menu hub) → LobbyScene
 
 ### Rendering
 
-Verktex handles all rendering. UI is a tree of `UIComponent`s measured and laid out through `LayoutConstraints`, animated with transforms for UI, and with `Choreography` for anything on the gameplay clock, whose state depends only on the time so that seeking works.
+Verktex handles all rendering. UI is a tree of `UIComponent`s measured and laid out through `LayoutConstraints`, animated with transforms for UI, and with `Choreography` for anything on the gameplay clock, whose state depends only on the time so that seeking works. Slider bodies are Verktex `UIPath`s, a `Path` stroked from a mesh kept on the GPU, in osu!pixels inside the playfield.
 
 A Vulkan backend roadmap lives in `docs/vulkan-backend.md`. How the frame rate is capped on each platform, and the pending work on it, is in `docs/frame-rate.md`. Textures and shader outputs are premultiplied, and the atlas keeps a gutter around each region; how, and what's left, is in `docs/texture-blending.md`.
 

@@ -34,7 +34,6 @@ import ru.nsu.ccfit.zuev.osu.game.GameplaySpinner
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
-import com.edlplan.osu.support.slider.SliderBody
 
 /**
  * Tests for the gameplay objects and the HUD, played by autoplay and a made up play instead of a
@@ -87,7 +86,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                     harness.comboColor(index++),
                     sliderBorderColor(),
                     GameHelper.convertSliderPath(slider, null),
-                    createRenderCache(slider)
+                    GameHelper.createRenderPath(slider, null)
                 )
                 slider to gameplaySlider
             }
@@ -169,20 +168,6 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
         }
     }
 
-
-    private fun createRenderCache(slider: Slider): SliderBody.RenderPathCache {
-        val skin = OsuSkin.get()
-        val scale = slider.screenSpaceGameplayScale
-
-        return SliderBody.createCache(
-            GameHelper.convertSliderPath(GameHelper.convertSliderPath(slider, null), null),
-            skin.sliderBodyWidth * scale,
-            skin.sliderBorderWidth * scale,
-            skin.isSliderHintEnable && slider.distance > skin.sliderHintShowMinLength,
-            skin.sliderHintWidth * scale,
-            Settings[OsuSettings.SnakingInSliders] || Settings[OsuSettings.SnakingOutSliders]
-        )
-    }
 
     // As the game scene picks it for a beatmap without colors of its own.
     private fun sliderBorderColor() =

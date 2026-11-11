@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.reco1l.verktex.math.Path
 import java.lang.ref.WeakReference
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
@@ -11,7 +12,6 @@ import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Platform
-import com.edlplan.osu.support.slider.SliderBody
 import com.osudroid.GameMode
 import com.osudroid.audio.MusicClock
 import com.osudroid.beatmaps.Beatmap
@@ -222,7 +222,7 @@ open class GameScene : GameObjectListener {
     private var failcount = 0
     private var sliderBorderColor: Color4? = null
     private var sliderPaths: Array<SliderPath?>? = null
-    private var sliderRenderPaths: Array<SliderBody.RenderPathCache?>? = null
+    private var sliderRenderPaths: Array<Path?>? = null
     private var sliderIndex = 0
     private var unrankedSprite: UISprite? = null
     private val modIcons = ArrayList<ModIcon>()
@@ -2997,7 +2997,7 @@ open class GameScene : GameObjectListener {
         }
 
         val sliderPaths = arrayOfNulls<SliderPath>(playableBeatmap.hitObjects.sliderCount)
-        val sliderRenderPaths = arrayOfNulls<SliderBody.RenderPathCache>(playableBeatmap.hitObjects.sliderCount)
+        val sliderRenderPaths = arrayOfNulls<Path>(playableBeatmap.hitObjects.sliderCount)
         var index = 0
 
         for (obj in playableBeatmap.hitObjects.objects) {
@@ -3012,21 +3012,7 @@ open class GameScene : GameObjectListener {
 
             scope?.ensureActive()
 
-            val scale = slider.screenSpaceGameplayScale
-            val sliderBodyWidth = OsuSkin.get().sliderBodyWidth * scale
-            val sliderBorderWidth = OsuSkin.get().sliderBorderWidth * scale
-            val sliderHintWidth = OsuSkin.get().sliderHintWidth * scale
-            val isHintVisible = OsuSkin.get().isSliderHintEnable &&
-                slider.distance > OsuSkin.get().sliderHintShowMinLength
-
-            sliderRenderPaths[index] = SliderBody.createCache(
-                GameHelper.convertSliderPath(sliderPaths[index]!!, scope),
-                sliderBodyWidth,
-                sliderBorderWidth,
-                isHintVisible,
-                sliderHintWidth,
-                Settings[OsuSettings.SnakingInSliders] || Settings[OsuSettings.SnakingOutSliders]
-            )
+            sliderRenderPaths[index] = GameHelper.createRenderPath(slider, scope)
 
             ++index
         }
@@ -3045,7 +3031,7 @@ open class GameScene : GameObjectListener {
         }
     }
 
-    private fun getSliderRenderPath(index: Int): SliderBody.RenderPathCache {
+    private fun getSliderRenderPath(index: Int): Path {
         val sliderRenderPaths = sliderRenderPaths ?: throw IllegalStateException(
             "Slider render paths have not been calculated; sliderRenderPaths is null, index=$index"
         )

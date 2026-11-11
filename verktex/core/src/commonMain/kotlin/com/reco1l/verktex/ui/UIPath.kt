@@ -102,6 +102,25 @@ class UIPath : UICanvas() {
         }
 
 
+    /**
+     * The vertices of the whole path's mesh, for tests.
+     */
+    internal val meshVertexCount: Int
+        get() {
+            ensureMesh()
+            return mesh.vertexCount
+        }
+
+    /**
+     * The range of the mesh drawn and the vertices of the rebuilt piece, for tests.
+     */
+    internal val drawnVertices: Triple<Int, Int, Int>
+        get() {
+            ensureMesh()
+            ensurePiece()
+            return Triple(rangeStart, rangeEnd, piece.vertexCount)
+        }
+
     // The path without points closer than MERGE_DISTANCE, a zero length line has no direction.
     private var meshPath = Path.Empty
 

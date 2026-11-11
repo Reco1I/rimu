@@ -1,8 +1,8 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import ru.nsu.ccfit.zuev.osu.Constants
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
-import com.edlplan.osu.support.slider.SliderBody
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.BankHitSampleInfo
@@ -13,7 +13,8 @@ import com.osudroid.beatmaps.sections.BeatmapControlPoints
 import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.GameplaySequenceHitSampleInfo
-import com.osudroid.math.LinePath
+import com.reco1l.verktex.math.Path
+import com.reco1l.verktex.ui.UIPath
 import com.osudroid.math.MathUtils
 import com.osudroid.math.Precision
 import com.osudroid.math.Vector2
@@ -98,14 +99,14 @@ class GameplaySlider : GameObject() {
     private val tickSet = BitSet()
     private var replayTickIndex = 0
 
-    private var superPath: LinePath? = null
+    private var superPath: Path? = null
     private var superPathMaxLength = 0f
     private var preStageFinish = false
     private var lastSnakeInLength = 0f
     private var lastSnakeOutStartLength = 0f
     private var lastSnakeOutEndLength = 0f
 
-    private val sliderBody: SliderBody
+    private val sliderBody: UIPath
 
     /**
      * The absolute slider's path end position.
@@ -172,7 +173,7 @@ class GameplaySlider : GameObject() {
         }
         followCircle.origin = Anchor.Center
 
-        sliderBody = SliderBody(OsuSkin.get().isSliderHintEnable)
+        sliderBody = UIPath()
         tickContainer = SliderTickContainer()
         isSliderBallFlip = OsuSkin.get().isSliderBallFlip
 
@@ -182,7 +183,7 @@ class GameplaySlider : GameObject() {
 
     fun init(listener: GameObjectListener, scene: UIContainer, stat: StatisticV2,
              beatmapSlider: Slider, controlPoints: BeatmapControlPoints, comboColor: Color4,
-             borderColor: Color4, sliderPath: SliderPath, buildCache: SliderBody.RenderPathCache) {
+             borderColor: Color4, sliderPath: SliderPath, renderPath: Path) {
         this.listener = listener
         this.scene = scene
         this.stat = stat
@@ -371,40 +372,43 @@ class GameplaySlider : GameObject() {
         }
 
         // Slider track
-        superPath = buildCache.sourcePath
-        superPathMaxLength = superPath!!.getLength()
+        // The body is drawn in osu!pixels, scaled to the playfield like the slider's positions are.
+        val widthScale = Constants.MAP_ACTUAL_WIDTH.toFloat() / Constants.MAP_WIDTH
+        val heightScale = Constants.MAP_ACTUAL_HEIGHT.toFloat() / Constants.MAP_HEIGHT
 
-        val sliderBodyWidth = OsuSkin.get().sliderBodyWidth * scale
-        val sliderBorderWidth = OsuSkin.get().sliderBorderWidth * scale
-        val sliderHintWidth = OsuSkin.get().sliderHintWidth * scale
+        val sliderBodyWidth = OsuSkin.get().sliderBodyWidth * scale / widthScale
+        val sliderBorderWidth = OsuSkin.get().sliderBorderWidth * scale / widthScale
+        val sliderHintWidth = OsuSkin.get().sliderHintWidth * scale / widthScale
         val isHintVisible = OsuSkin.get().isSliderHintEnable &&
             beatmapSlider.distance > OsuSkin.get().sliderHintShowMinLength
 
-        sliderBody.init(Settings[OsuSettings.SnakingInSliders], stackedPosition, buildCache)
-        sliderBody.setBackgroundWidth(sliderBodyWidth)
-        sliderBody.setTrackBorderWidth(sliderBorderWidth)
-        sliderBody.setTrackBorderColor(borderColor)
+        sliderBody.path = renderPath
+        sliderBody.setPosition(stackedPosition.x, stackedPosition.y)
+        sliderBody.scaleOrigin = Anchor.TopLeft
+        sliderBody.scaleX = widthScale
+        sliderBody.scaleY = heightScale
+        sliderBody.halfWidth = sliderBodyWidth
+        sliderBody.borderWidth = sliderBorderWidth
+        sliderBody.borderColor = borderColor
+        sliderBody.startLength = 0f
+        sliderBody.endLength = if (Settings[OsuSettings.SnakingInSliders]) 0f else Float.MAX_VALUE
         sliderBody.alpha = 0f
 
+        superPath = renderPath
+        superPathMaxLength = sliderBody.length
+
         // Head circle not being visible means Traceable is applied to this slider
-        if (GameHelper.isTraceable() && !headCirclePiece.isVisible) {
-            sliderBody.setBackgroundColor(0f, 0f, 0f, 0f)
+        sliderBody.bodyColor = if (GameHelper.isTraceable() && !headCirclePiece.isVisible) {
+            Color4(0f, 0f, 0f, 0f)
         } else {
-            sliderBody.setBackgroundColor(bodyColor, OsuSkin.get().sliderBodyBaseAlpha)
+            bodyColor.alpha(OsuSkin.get().sliderBodyBaseAlpha)
         }
 
         if (isHintVisible) {
-            sliderBody.setHintVisible(true)
-            sliderBody.setHintWidth(sliderHintWidth)
-
-            val hintColor = OsuSkin.get().sliderHintColor
-            if (hintColor != null) {
-                sliderBody.setHintColor(hintColor, OsuSkin.get().sliderHintAlpha)
-            } else {
-                sliderBody.setHintColor(bodyColor, OsuSkin.get().sliderHintAlpha)
-            }
+            sliderBody.hintWidth = sliderHintWidth
+            sliderBody.hintColor = (OsuSkin.get().sliderHintColor ?: bodyColor).alpha(OsuSkin.get().sliderHintAlpha)
         } else {
-            sliderBody.setHintVisible(false)
+            sliderBody.hintWidth = 0f
         }
 
         scene.add(0, tickContainer)
@@ -1417,7 +1421,7 @@ class GameplaySlider : GameObject() {
                 return
             }
 
-            sliderBody.setStartLength(targetLength)
+            sliderBody.startLength = targetLength
             lastSnakeOutStartLength = targetLength
             return
         }
@@ -1429,7 +1433,7 @@ class GameplaySlider : GameObject() {
             return
         }
 
-        sliderBody.setEndLength(targetLength)
+        sliderBody.endLength = targetLength
         lastSnakeInLength = targetLength
         lastSnakeOutEndLength = targetLength
     }

@@ -5,7 +5,7 @@ import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.hitobjects.SliderPathType
 import com.osudroid.math.Interpolation
-import com.osudroid.math.LinePath
+import com.reco1l.verktex.math.Path
 import com.osudroid.math.Precision
 import com.osudroid.math.Vector2
 import com.osudroid.math.roundExactHalfUp
@@ -104,17 +104,17 @@ object GameHelper {
     }
 
     /**
-     * Converts a [SliderPath] to a [LinePath] that can be used to render the slider path.
+     * The path a [Slider]'s body is drawn along, in osu!pixels relative to the slider's position.
      *
-     * @param sliderPath The [SliderPath] to convert.
-     * @return The converted [LinePath].
+     * Its points are those of the slider's calculated path, thinned out as osu!stable does.
      */
     @JvmStatic
-    fun convertSliderPath(sliderPath: SliderPath, scope: CoroutineScope?): LinePath {
-        val renderPath = LinePath()
+    fun createRenderPath(slider: Slider, scope: CoroutineScope?): Path {
+        val calculatedPath = slider.path.calculatedPath
+        val builder = Path.Builder()
 
-        if (sliderPath.anchorCount == 0) {
-            return renderPath
+        if (calculatedPath.isEmpty()) {
+            return builder.build()
         }
 
         var distanceThreshold = 0
@@ -124,43 +124,35 @@ object GameHelper {
             // In linear paths, the distance threshold is further extended to 32 osu!pixels.
             // However, we exclude this optimization if snaking out sliders is enabled as slider velocity may not be
             // reliably computed with respect to slider ball travel velocity.
-            distanceThreshold = if (sliderPath.pathType == SliderPathType.Linear) 32 else 6
+            distanceThreshold = if (slider.path.pathType == SliderPathType.Linear) 32 else 6
         }
 
         val distanceThresholdSquared = (distanceThreshold * distanceThreshold).toFloat()
 
-        // Invert the scale to convert from screen pixels to osu!pixels.
-        val invertedScale = Vector2(
-            Constants.MAP_WIDTH.toFloat() / Constants.MAP_ACTUAL_WIDTH,
-            Constants.MAP_HEIGHT.toFloat() / Constants.MAP_ACTUAL_HEIGHT
-        )
-
         // Additional consideration for Catmull sliders that form "bulbs" around points with identical positions.
-        val isCatmull = sliderPath.pathType == SliderPathType.Catmull
+        val isCatmull = slider.path.pathType == SliderPathType.Catmull
         val catmullSegmentLength = PathApproximation.CATMULL_DETAIL * 2
 
-        for (i in 0 until sliderPath.anchorCount) {
+        for (i in calculatedPath.indices) {
             if (scope != null) {
                 scope.coroutineContext.ensureActive()
             }
 
-            val x = sliderPath.getX(i)
-            val y = sliderPath.getY(i)
-            val vec = Vector2(x, y)
+            val x = calculatedPath[i].x
+            val y = calculatedPath[i].y
+            val last = builder.lastOrNull()
 
-            if (renderPath.size() == 0) {
-                renderPath.add(vec)
+            if (last == null) {
+                builder.add(x, y)
                 continue
             }
 
-            val last = renderPath.getLast()
-            val dx = (vec.x - last.x) * invertedScale.x
-            val dy = (vec.y - last.y) * invertedScale.y
-            val distanceFromLastSquared = dx * dx + dy * dy
+            val dx = x - last.x
+            val dy = y - last.y
 
-            if (distanceFromLastSquared > distanceThresholdSquared || i == sliderPath.anchorCount - 1 ||
+            if (dx * dx + dy * dy > distanceThresholdSquared || i == calculatedPath.size - 1 ||
                     (isCatmull && (i + 1) % catmullSegmentLength == 0)) {
-                renderPath.add(vec)
+                builder.add(x, y)
             }
         }
 
@@ -168,9 +160,7 @@ object GameHelper {
         // Normally, the path would need to be extended to account for the true length of the slider.
         // However, in this case we simply let it be as the path is still rendered correctly (its points
         // are still in the correct positions).
-        renderPath.measure()
-
-        return renderPath
+        return builder.build()
     }
 
     /**
