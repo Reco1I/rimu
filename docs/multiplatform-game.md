@@ -2,7 +2,7 @@
 
 > **Since this plan was written:** the project follows the structure Kotlin recommends for
 > multiplatform projects. What this document calls `:game` is `:shared` (`shared/`), with an `android`
-> and a `desktop` target, `src/jvmMain` shared by both and its tests in `src/desktopTest`
+> and a `desktop` target, its tests in `src/desktopTest`
 > (`:shared:desktopTest`) and `src/androidHostTest`. The applications are `:androidApp` (the Android
 > entry points, manifest, signing, build types and Firebase plugins) and `:desktopApp` (what was
 > `:game-desktop`, run with `:desktopApp:run` and `:desktopApp:runUITests`). Verktex is one module,
@@ -340,7 +340,7 @@ Left for desktop, roughly in order:
 2. Toasts: done, Verktex draws them (`Toasts`), see `../verktex/docs/engine-consolidation.md`.
 3. Multiplayer: a `RoomSocket` for desktop (or the planned Socket.IO client over Ktor).
 4. Videos, the beatmap listing, the block area editor and the replay picker, as Verktex rewrites.
-5. Moving `jvmMain` code to `commonMain` as its JVM uses are replaced.
+5. Moving `jvmMain` code to `commonMain` as its JVM uses are replaced: done, see below.
 6. The app's `MigrationTest` fails since `DatabaseManager.databasePath` reads `OsuPlatform`, which
    the test doesn't set (since `057734a75`, before this work).
 
@@ -349,3 +349,31 @@ Left for desktop, roughly in order:
 The game's own infrastructure (`Config`, `StringTable`, `ToastLogger`, `Http`, `OsuPlatform` (since split into Verktex's `Platform` and `OsuGameHost`),
 `SongService`, `GlobalManager`, the slider body code, `UIVideo`, the database setup) is being replaced
 by Verktex features, see `../verktex/docs/engine-consolidation.md`.
+
+## jvmMain moved to commonMain
+
+Done on 2026-11-11: `:shared` has no `jvmMain` anymore, every file of it was rewritten without the
+JVM and moved to `commonMain` (the `jvm` group of the source set hierarchy went with it).
+
+- With only JVM targets, the compiler lets `commonMain` see the JDK, so `checkCommonSources` (in
+  `shared/build.gradle.kts`, part of `check` and `desktopTest`) fails on Java imports and on the
+  stdlib members only the JVM has (`String.format`, `System.currentTimeMillis`, `javaClass`,
+  `Dispatchers.IO`, `runBlocking`, `Math`, JVM-only annotations). It doesn't catch everything (a
+  JVM-only member called without an import), so a new target would still find some.
+- What replaced what: Okio for files, kotlinx-datetime for dates (`formatTimeOfDay`,
+  `formatDateTime`), Verktex's `formatString` for `String.format`/`DecimalFormat`/`NumberFormat`
+  (`formatNumber`, `formatDuration`; `FormattingTest` checks the game's patterns against Java's),
+  `kotlin.time` (`currentTimeMillis`, `TimeSource`), atomicfu locks and the stdlib's atomics,
+  coroutines instead of executors and `CompletableFuture` (`stopAsync` returns a `Deferred`), and
+  `Platform.processorCount` in Verktex.
+- The expect/actuals that were in `jvmMain` are common: `LRUCache`, `roundExactHalfUp` (exact, over
+  the double's binary value), and the tolerant iteration buffers (a pool of atomic slots instead of
+  `ThreadLocalValue`).
+- Replays are JSON (`ReplayData.kt`, version 10) instead of Java's object serialization in a zip.
+  Older replays aren't read; the server has to accept and serve the new format for online scores and
+  online replays.
+- What blocks stays at the platforms' edges: `LibraryManager.scanDirectory` suspends, and
+  `MainActivity` (through `LibraryScanning.scanBeatmapDirectoryBlocking`) and `OsuDesktop` block on it;
+  `downloadFileBlocking` is in `androidMain`, for `PushNotificationService`.
+- No weak references in common code: `GameScene`'s last started play is a strong reference cleared
+  when it quits, and `RippleVisualizer` removes its listener when detached.

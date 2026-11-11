@@ -1,14 +1,13 @@
 import java.util.zip.ZipFile
 import javax.xml.parsers.DocumentBuilderFactory
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.w3c.dom.Element
 
 // The game: gameplay, beatmaps, difficulty, mods, scoring and UI, shared by its applications
 // (:androidApp and :desktopApp), with the targets of Verktex, see docs/multiplatform-game.md.
-// commonMain is common Kotlin, which can't depend on Android or the JVM, and jvmMain is what still
-// needs a JVM, shared by the Android and desktop targets. androidMain is the Android side of the
-// game (the database, the views, the features only Android has), with its resources.
+// commonMain is common Kotlin, which can't depend on Android or the JVM (checkCommonSources checks
+// it). androidMain is the Android side of the game (the database, the views, the features only
+// Android has), with its resources.
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.kotlin.multiplatform.library")
@@ -229,13 +228,6 @@ val checkCommonSources by tasks.registering(CheckCommonSources::class) {
     report.set(layout.buildDirectory.file("reports/checkCommonSources.txt"))
 }
 
-// The same check over jvmMain, whose code is rewritten as common code before it moves to commonMain.
-// It isn't part of check: it lists what's left.
-val checkJvmMainSources by tasks.registering(CheckCommonSources::class) {
-    sources.from(layout.projectDirectory.dir("src/jvmMain/kotlin"))
-    report.set(layout.buildDirectory.file("reports/checkJvmMainSources.txt"))
-}
-
 tasks.matching { it.name == "check" || it.name == "desktopTest" }.configureEach {
     dependsOn(checkCommonSources)
 }
@@ -243,17 +235,6 @@ tasks.matching { it.name == "check" || it.name == "desktopTest" }.configureEach 
 val roomVersion = "2.7.2"
 
 kotlin {
-    // The default hierarchy, with a source set between the common one and the JVM platforms.
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    applyDefaultHierarchyTemplate {
-        common {
-            group("jvm") {
-                withJvm()
-                withCompilations { it.target.name == "android" }
-            }
-        }
-    }
-
     android {
         // The namespace of the resources (R), the one the application had before the game moved
         // here. The application keeps its id.
