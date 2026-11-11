@@ -112,7 +112,6 @@ sealed class Dimension {
     companion object {
         @JvmField
         val Zero = Fixed.Pixels(0f)
-        val Max = Fixed.Pixels(Float.MAX_VALUE)
 
         @JvmField
         val FillAvailable = AvailableSizeFraction(1f)
@@ -127,14 +126,20 @@ sealed class Dimension {
  * It will be used as-is without any conversion.
  */
 val Float.px: Dimension.Fixed
-    get() = Dimension.Fixed.Pixels(this)
+    get() {
+        if (this == 0f) return Dimension.Zero
+        return Dimension.Fixed.Pixels(this)
+    }
 
 /**
  * Indicates that this float value is in density-independent pixels (dip).
  * It will be converted to pixels by multiplying it with the device's density factor.
  */
 val Float.dip: Dimension.Fixed
-    get() = Dimension.Fixed.DensityIndependentPixels(this)
+    get() {
+        if (this == 0f) return Dimension.Zero
+        return Dimension.Fixed.DensityIndependentPixels(this)
+    }
 
 /**
  * Indicates that this float value represents a percentage of the available size of the corresponding
@@ -149,6 +154,7 @@ val Float.pct: Dimension.AvailableSizeFraction
  * dimension (width or height).
  */
 fun fill(percentage: Float = 1f): Dimension.AvailableSizeFraction {
+    if (percentage == 1f) return Dimension.FillAvailable
     return Dimension.AvailableSizeFraction(percentage)
 }
 
@@ -157,5 +163,6 @@ fun fill(percentage: Float = 1f): Dimension.AvailableSizeFraction {
  * dimension (width or height).
  */
 fun wrap(percentage: Float = 1f): Dimension.ContentSizeFraction {
+    if (percentage == 1f) return Dimension.WrapContent
     return Dimension.ContentSizeFraction(percentage)
 }
