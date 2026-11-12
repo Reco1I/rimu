@@ -3,6 +3,7 @@ package ru.nsu.ccfit.zuev.osu;
 import static android.widget.LinearLayout.LayoutParams.*;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,6 +26,17 @@ import pub.devrel.easypermissions.EasyPermissions;
 import ru.nsu.ccfit.zuev.osuplus.R;
 
 public class PermissionActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
+
+    /**
+     * Whether the game can access the storage, which this screen asks for when it can't.
+     */
+    public static boolean hasStorageAccess(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return Environment.isExternalStorageManager();
+        }
+        return PermissionChecker.checkCallingOrSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PermissionChecker.PERMISSION_GRANTED;
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,21 +62,14 @@ public class PermissionActivity extends AppCompatActivity implements EasyPermiss
     }
 
     private void checkPermissions() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (Environment.isExternalStorageManager()) {
-                startGameActivity();
-            } else {
-                Uri uri = Uri.parse("package:" + getPackageName());
-                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
-                startActivityForResult(intent, 2444);
-            }
+        if (hasStorageAccess(this)) {
+            startGameActivity();
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Uri uri = Uri.parse("package:" + getPackageName());
+            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
+            startActivityForResult(intent, 2444);
         } else {
-            if (PermissionChecker.checkCallingOrSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PermissionChecker.PERMISSION_GRANTED) {
-                startGameActivity();
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2333);
-            }
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2333);
         }
     }
 

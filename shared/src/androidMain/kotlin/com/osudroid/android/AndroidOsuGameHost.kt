@@ -1,18 +1,15 @@
 package com.osudroid.android
 
-import android.Manifest
 import android.content.ContentResolver
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.StatFs
 import android.provider.OpenableColumns
 import android.view.KeyEvent
 import android.view.View
-import androidx.core.content.PermissionChecker
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.osudroid.OsuGame
@@ -53,7 +50,7 @@ import ru.nsu.ccfit.zuev.osu.game.GameScene
  * The game's host on Android: the activity running the engine, which starts the game
  * ([OsuGame.start]), with the features of the game only Android has and what it was opened with (a
  * beatmap set, a skin or a replay, a room invite). `MainActivity`, in `:androidApp`, only launches it,
- * with the screen that asks for access to the storage, [openPermissionScreen].
+ * once the storage is accessible.
  */
 abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
@@ -66,13 +63,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
     private var willReplay = false
 
     private var logFlushJob: Job? = null
-
-
-    /**
-     * Opens the screen that asks for access to the storage and finishes this activity, which the
-     * screen starts again once access is granted.
-     */
-    protected abstract fun openPermissionScreen()
 
 
     //region Lifecycle
@@ -94,12 +84,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
     }
 
     override fun onEngineInitialized() {
-        if (!hasStorageAccess()) {
-            // The permission screen starts the game again once access is granted.
-            openPermissionScreen()
-            return
-        }
-
         OsuGame.start()
         FirebaseCrashlytics.getInstance().setUserId(OsuSettings.installId)
     }
@@ -254,13 +238,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
 
     //region Startup
-
-    private fun hasStorageAccess() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        Environment.isExternalStorageManager()
-    } else {
-        @Suppress("DEPRECATION")
-        PermissionChecker.checkCallingOrSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PermissionChecker.PERMISSION_GRANTED
-    }
 
     // Tells the player when less than 512 MiB are left, which isn't exact but tells low storage apart.
     private fun warnIfStorageIsLow() {
