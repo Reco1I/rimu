@@ -1,9 +1,9 @@
 package com.osudroid.ui.v2.multi
 
+import com.osudroid.beatmaplisting.BeatmapListing
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
-import com.osudroid.OsuGameHost
 import com.osudroid.beatmaplisting.BeatmapDownloader
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -357,7 +357,7 @@ class RoomScene(
                                     if (Multiplayer.isRoomHost) {
                                         if (LibraryManager.getLibrary().isEmpty()) {
                                             OsuGame.music.pause()
-                                            OsuGameHost.current.showBeatmapListing()
+                                            BeatmapListing.show()
                                         }
 
                                         SongSelect().apply {

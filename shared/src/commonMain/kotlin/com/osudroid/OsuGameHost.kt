@@ -20,28 +20,6 @@ interface OsuGameHost : GameHost {
      */
     fun onGameStarted() = Unit
 
-    /**
-     * Whether [showBeatmapListing] is available.
-     */
-    val hasBeatmapListing: Boolean
-        get() = false
-
-    /**
-     * Shows the listing to search and download beatmaps.
-     */
-    fun showBeatmapListing() = Unit
-
-    /**
-     * Whether [showBlockAreaEditor] is available.
-     */
-    val hasBlockAreaEditor: Boolean
-        get() = false
-
-    /**
-     * Shows the editor of the areas of the screen that ignore touches in gameplay.
-     */
-    fun showBlockAreaEditor() = Unit
-
 
     /**
      * Whether the file of the game wasn't modified. Hosts that can't tell return true.

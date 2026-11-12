@@ -2,7 +2,6 @@ package com.osudroid.ui.v2.settings
 
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
-import com.osudroid.OsuGameHost
 import com.osudroid.game.GameplayVibrations
 import com.osudroid.settings.SettingsBackup
 import com.osudroid.settings.OsuSettings
@@ -1000,10 +999,7 @@ val inputSection = listOf(
                 key = "block_areas",
                 title = Res.string.block_area_preference_title,
                 summary = Res.string.block_area_preference_summary,
-                onAttach = { it.isVisible = OsuGameHost.current.hasBlockAreaEditor },
-                onClick = {
-                    OsuGameHost.current.showBlockAreaEditor()
-                }
+                onClick = { BlockAreaEditor.show() }
             ),
             SettingsOption(
                 type = Type.Checkbox,

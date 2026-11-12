@@ -1,8 +1,8 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.osudroid.beatmaplisting.BeatmapListing
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.BeatmapSelection
-import com.osudroid.OsuGameHost
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
@@ -241,7 +241,7 @@ class MainScene : UIScene() {
 
                             if (LibraryManager.getLibrary().isEmpty()) {
                                 Verktex.withTreeLock { Verktex.popScene() }
-                                OsuGameHost.current.showBeatmapListing()
+                                BeatmapListing.show()
                             } else {
                                 Verktex.withTreeLock {
                                     Verktex.popScene()
@@ -278,10 +278,8 @@ class MainScene : UIScene() {
                         }
                     }
 
-                    if (OsuGameHost.current.hasBeatmapListing) {
-                        +menuButton(FAIcon.TableList, "Browse") {
-                            OsuGameHost.current.showBeatmapListing()
-                        }
+                    +menuButton(FAIcon.TableList, "Browse") {
+                        BeatmapListing.show()
                     }
 
                     +menuButton(FAIcon.Gear, "Settings") {
