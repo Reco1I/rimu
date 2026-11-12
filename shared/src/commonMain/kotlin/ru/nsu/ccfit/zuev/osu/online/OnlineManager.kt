@@ -216,9 +216,6 @@ class OnlineManager {
                 avatarURL = ""
             }
             profileBannerURL = getProfileBannerURL(userId)
-
-            OsuGameHost.current.logAnalyticsEvent("login", mapOf("method" to "ingame"))
-
             return true
         }
     }

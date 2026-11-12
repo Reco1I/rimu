@@ -347,12 +347,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
     override fun checkNewSkins() = LibraryImport.importSkins()
 
-    override fun logAnalyticsEvent(name: String, parameters: Map<String, String>) {
-        val bundle = Bundle()
-        parameters.forEach { (key, value) -> bundle.putString(key, value) }
-        FirebaseAnalytics.getInstance(this).logEvent(name, bundle)
-    }
-
     override fun verifyFileIntegrity() = AndroidSecurityUtils.verifyFileIntegrity(this)
 
     //endregion

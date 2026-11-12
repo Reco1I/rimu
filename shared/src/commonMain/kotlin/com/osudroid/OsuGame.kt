@@ -103,7 +103,6 @@ object OsuGame {
             // The resolution scale setting is stored as a percentage.
             Settings[VerktexSettings.ResolutionScale] = Settings[OsuSettings.ResolutionScale] / 100f
 
-            host.logAnalyticsEvent("app_open", emptyMap())
             SplashScene.progress = 50
             host.checkNewSkins()
             SkinFolders.load()
