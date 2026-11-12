@@ -690,6 +690,15 @@ class RoomScene(
     }
 
 
+    // The player is no longer ready once the game's window loses the focus, in the room or in the song
+    // select opened from it.
+    override fun onGameWindowFocusChange(hasFocus: Boolean) {
+        if (!hasFocus && Multiplayer.isConnected && (Verktex.scene === this || Verktex.scene is SongSelect)) {
+            async { runSafe { invalidateStatus() } }
+        }
+    }
+
+
     // Actions
 
     fun invalidateStatus() {

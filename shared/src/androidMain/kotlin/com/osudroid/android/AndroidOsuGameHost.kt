@@ -9,7 +9,6 @@ import android.os.Environment
 import android.os.StatFs
 import android.provider.OpenableColumns
 import android.view.KeyEvent
-import android.view.View
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.osudroid.OsuGame
@@ -23,15 +22,12 @@ import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.resources.Res
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.mainmenu.MainScene
-import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.AccessibilityDetector
 import com.osudroid.utils.async
-import com.osudroid.utils.runSafe
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.PlatformApplication
-import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.android.AndroidGameHost
 import com.reco1l.verktex.localization.formatString
 import com.reco1l.verktex.ui.toast.Toasts
@@ -184,23 +180,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
         Multiplayer.flushLog()
         AccessibilityDetector.unregister(this)
-    }
-
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-
-        if (!hasFocus && Multiplayer.isConnected &&
-            (Verktex.scene === Multiplayer.roomScene || Verktex.scene is SongSelect)) {
-            async { runSafe { Multiplayer.roomScene?.invalidateStatus() } }
-        }
-
-        @Suppress("DEPRECATION")
-        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
     }
 
     override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration) {
