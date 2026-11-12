@@ -37,9 +37,9 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineManager
  * made up here, see [TestGameContext].
  *
  * Each scene is tested on its own inside the stage: the scenes it would open (e.g. song select from
- * the main menu) and going back from it are only logged, except in the tests that start plays (the
- * loader, song select and the room), which allow navigating so gameplay is shown: the made up
- * beatmaps are copies of a real one, played without sound. Overlays a scene opens, like the mod menu,
+ * the main menu) and going back from it are only logged, except in the tests that start plays (song
+ * select and the room), which allow navigating so gameplay is shown: the made up beatmaps are copies
+ * of a real one, played without sound. Overlays a scene opens, like the mod menu,
  * are shown. Settings changed here are the game's.
  */
 object OsuSceneUITests : UITestSuite("Scenes") {
@@ -74,15 +74,15 @@ object OsuSceneUITests : UITestSuite("Scenes") {
         }
 
         test("Game loader") {
-            play(epilepsyWarning = false)
+            gameLoader(isRestart = false, epilepsyWarning = false)
         }
 
         test("Game loader (restart)") {
-            restartLoader()
+            gameLoader(isRestart = true, epilepsyWarning = false)
         }
 
         test("Game loader (epilepsy warning)") {
-            play(epilepsyWarning = true)
+            gameLoader(isRestart = false, epilepsyWarning = true)
         }
 
         test("Settings") {
@@ -174,8 +174,9 @@ object OsuSceneUITests : UITestSuite("Scenes") {
     }
 
 
-    // Plays the first beatmap with mods, over the browser, as song select would.
-    private fun UITestStage.play(epilepsyWarning: Boolean) {
+    // The loader inside the stage, over a game scene that isn't loading the beatmap, so the loader
+    // stays on.
+    private fun UITestStage.gameLoader(isRestart: Boolean, epilepsyWarning: Boolean) {
         useGameContext()
 
         val beatmap = firstBeatmap()?.copy()?.also { it.epilepsyWarning = epilepsyWarning }
@@ -184,21 +185,7 @@ object OsuSceneUITests : UITestSuite("Scenes") {
             return
         }
 
-        allowsNavigation = true
-        GameScene().startGame(beatmap, null, testMods())
-    }
-
-    // The loader of a restart, inside the stage. Its game scene doesn't load, so it stays on.
-    private fun UITestStage.restartLoader() {
-        useGameContext()
-
-        val beatmap = firstBeatmap()
-        if (beatmap == null) {
-            log("No beatmaps in the library")
-            return
-        }
-
-        scene(GameLoaderScene(GameScene(), beatmap, testMods(), isRestart = true))
+        scene(GameLoaderScene(GameScene(), beatmap, testMods(), isRestart))
     }
 
     private fun testMods() = ModHashMap().apply {
