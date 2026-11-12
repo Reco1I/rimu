@@ -33,9 +33,6 @@ import com.reco1l.verktex.localization.formatString
 import com.reco1l.verktex.ui.toast.Toasts
 import java.io.File
 import java.io.IOException
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import okio.buffer
 import okio.sink
 import okio.source
@@ -57,8 +54,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
     // Whether fileToAdd is a replay, played once the library is loaded.
     private var willReplay = false
-
-    private var logFlushJob: Job? = null
 
 
     //region Lifecycle
@@ -158,27 +153,14 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
     override fun onResume() {
         super.onResume()
-        startFlushingLog()
 
         if (isInMultiWindowMode) {
             MultiWindowAlert.show(::finish)
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        stopFlushingLog()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        stopFlushingLog()
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-
-        Multiplayer.flushLog()
         AccessibilityDetector.unregister(this)
     }
 
@@ -227,23 +209,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
             Toasts.showLong(Res.string.message_low_storage_space.format(gibibytes))
         }
         Logger.i("AndroidOsuGameHost", "Free space: $gibibytes GiB")
-    }
-
-    // The multiplayer log is written every 5 seconds while the activity is shown, and when it isn't.
-    private fun startFlushingLog() {
-        logFlushJob?.cancel()
-        logFlushJob = async {
-            while (isActive) {
-                Multiplayer.flushLog()
-                delay(5000)
-            }
-        }
-    }
-
-    private fun stopFlushingLog() {
-        logFlushJob?.cancel()
-        logFlushJob = null
-        Multiplayer.flushLog()
     }
 
     //endregion

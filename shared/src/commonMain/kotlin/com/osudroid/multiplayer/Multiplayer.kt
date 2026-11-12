@@ -104,7 +104,6 @@ object Multiplayer {
         return if (isConnected) room!!.gameplaySettings.isRemoveSliderLock else Settings[OsuSettings.RemoveSliderLock]
     }
 
-    private val logger = MultiplayerLogger()
 
     /**
      * [CoroutineScope] used for reconnection.
@@ -405,22 +404,12 @@ object Multiplayer {
     // Logging
 
     @JvmStatic
-    fun initLog() {
-        logger.init()
-    }
-
-    @JvmStatic
     fun log(text: String) {
-        logger.log(text)
+        Logger.i("Multiplayer", text)
     }
 
     @JvmStatic
     fun log(e: Throwable) {
-        logger.log(e)
-    }
-
-    @JvmStatic
-    fun flushLog() {
-        logger.flush()
+        Logger.e("Multiplayer", "An exception has been thrown.", e)
     }
 }

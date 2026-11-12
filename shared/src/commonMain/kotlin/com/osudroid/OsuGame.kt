@@ -4,7 +4,6 @@ import com.osudroid.audio.MusicService
 import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.data.DatabaseManager
 import com.osudroid.mods.ModNightCore
-import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.resources.Res
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.OsuSettings
@@ -88,7 +87,6 @@ object OsuGame {
 
         OsuSettings.load()
         createGameFolders()
-        Multiplayer.initLog()
         OnlineManager.getInstance().init()
         isHeadless = false
 
