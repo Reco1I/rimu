@@ -75,22 +75,6 @@ interface OsuGameHost : GameHost {
      */
     fun verifyFileIntegrity(): Boolean = true
 
-    /**
-     * Whether [checkForUpdates] is available.
-     */
-    val canCheckForUpdates: Boolean
-        get() = false
-
-    /**
-     * Looks for a newer version of the game, telling the player only about a new one if [silently].
-     */
-    fun checkForUpdates(silently: Boolean) = Unit
-
-    /**
-     * Opens the changelog of this version.
-     */
-    fun openChangelog() = Unit
-
 
     companion object {
 

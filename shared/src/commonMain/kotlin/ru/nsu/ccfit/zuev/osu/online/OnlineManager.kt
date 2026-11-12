@@ -427,7 +427,6 @@ class OnlineManager {
 
         const val hostname = "osudroid.moe"
         const val endpoint = "https://$hostname/api/"
-        const val updateEndpoint = endpoint + "update.php?lang="
         @JvmField
         val defaultAvatarURL = getAvatarURL(0)
         const val profileBannerEndpoint = "https://$hostname/user/banner/"

@@ -3,7 +3,6 @@ package com.osudroid.android
 import android.Manifest
 import android.content.ContentResolver
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
@@ -13,14 +12,12 @@ import android.os.StatFs
 import android.provider.OpenableColumns
 import android.view.KeyEvent
 import android.view.View
-import androidx.core.content.FileProvider
 import androidx.core.content.PermissionChecker
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.osudroid.OsuGame
 import com.osudroid.OsuGameHost
-import com.osudroid.UpdateManager
 import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.debug.QuickPlay
@@ -79,18 +76,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
 
     /**
-     * The version code of the application.
-     */
-    val versionCode: Long
-        get() = try {
-            val packageInfo = packageManager.getPackageInfo(packageName, 0)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) packageInfo.longVersionCode else packageInfo.versionCode.toLong()
-        } catch (e: PackageManager.NameNotFoundException) {
-            Logger.e("AndroidOsuGameHost", "Failed to read the version code", e)
-            0
-        }
-
-    /**
      * Leaves the game right away, through the main menu's exit when it's shown.
      */
     fun forcedExit() = updateThread {
@@ -146,7 +131,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
     override fun onEngineStarted() = Unit
 
     override fun onGameStarted() {
-        UpdateManager.onActivityStart()
         warnIfStorageIsLow()
         AccessibilityDetector.register(this)
 
@@ -480,26 +464,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
     }
 
     override fun verifyFileIntegrity() = AndroidSecurityUtils.verifyFileIntegrity(this)
-
-    override val canCheckForUpdates: Boolean
-        get() = true
-
-    override fun checkForUpdates(silently: Boolean) = UpdateManager.checkNewUpdates(silently)
-
-    override fun openChangelog() {
-        val changelogFile = File(cacheDir, "changelog.html")
-
-        assets.open("app/changelog.html").use { input ->
-            changelogFile.outputStream().use { input.copyTo(it) }
-        }
-
-        val changelogUri = FileProvider.getUriForFile(this, AppBuild.applicationId + ".fileProvider", changelogFile)
-
-        val intent = Intent(Intent.ACTION_VIEW)
-        intent.setDataAndType(changelogUri, "text/html")
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        startActivity(intent)
-    }
 
     //endregion
 

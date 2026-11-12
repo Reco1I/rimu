@@ -321,22 +321,6 @@ val generalSection = listOf(
     ),
 
     SettingsCategory(
-        title = Res.string.opt_category_updates,
-        options = listOf(
-            SettingsOption(
-                type = Type.Button,
-                key = "update",
-                title = Res.string.opt_update_title,
-                summary = Res.string.opt_update_summary,
-                onClick = {
-                    OsuGameHost.current.checkForUpdates(false)
-                }
-            )
-        ),
-        isVisible = OsuGameHost.current.canCheckForUpdates
-    ),
-
-    SettingsCategory(
         title = Res.string.opt_category_config_backup,
         options = listOf(
             SettingsOption(

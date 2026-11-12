@@ -38,7 +38,7 @@ val NetworkJson = Json(LenientJson) {
  * coroutine (e.g. [com.osudroid.utils.async]):
  *
  * ```
- * val update = httpClient.get(url) { parameter("buildType", type) }.body<UpdateInfo>()
+ * val room = httpClient.get(url) { parameter("id", id) }.body<Room>()
  * ```
  *
  * Bodies are read and written as `@Serializable` classes with [NetworkJson], whatever content type

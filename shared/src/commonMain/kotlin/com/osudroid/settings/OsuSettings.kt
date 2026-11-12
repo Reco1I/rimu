@@ -164,7 +164,6 @@ object OsuSettings {
 
     @JvmField val Language = key("appLanguage", "system")
     @JvmField val InstallId = key("installID", "", isSensitive = true)
-    @JvmField val Version = key("version", -1L, isSensitive = true)
     @JvmField val DroidStarRatingVersion = key("droidStarRatingVersion", 0L, isSensitive = true)
     @JvmField val StandardStarRatingVersion = key("standardStarRatingVersion", 0L, isSensitive = true)
 
