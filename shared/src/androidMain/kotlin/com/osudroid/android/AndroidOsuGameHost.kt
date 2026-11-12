@@ -75,27 +75,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
     protected abstract fun openPermissionScreen()
 
 
-    /**
-     * Leaves the game right away, through the main menu's exit when it's shown.
-     */
-    fun forcedExit() = updateThread {
-        GameScene.current?.quit()
-
-        val mainScene = OsuGame.mainScene
-
-        if (mainScene == null) {
-            Platform.exit()
-            return@updateThread
-        }
-
-        if (Verktex.scene !== mainScene) {
-            Verktex.resetScenes(mainScene)
-        }
-
-        mainScene.exit()
-    }
-
-
     //region Lifecycle
 
     override fun onCreate(savedInstanceState: Bundle?) {

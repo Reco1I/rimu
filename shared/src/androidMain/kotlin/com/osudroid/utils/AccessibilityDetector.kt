@@ -1,6 +1,7 @@
 package com.osudroid.utils
 
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.database.ContentObserver
@@ -16,7 +17,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import com.osudroid.android.AndroidOsuGameHost
+import com.reco1l.verktex.Platform
 import com.reco1l.verktex.ui.dialog.UIMessageDialog
 
 object AccessibilityDetector {
@@ -50,7 +51,7 @@ object AccessibilityDetector {
 
 
     @JvmStatic
-    fun register(context: AndroidOsuGameHost) {
+    fun register(context: Activity) {
         val newScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         scope = newScope
 
@@ -77,7 +78,7 @@ object AccessibilityDetector {
         scope = null
     }
 
-    private suspend fun check(context: AndroidOsuGameHost) {
+    private suspend fun check(context: Activity) {
         currentCoroutineContext().ensureActive()
 
         val manager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
@@ -103,7 +104,7 @@ object AccessibilityDetector {
     }
 
 
-    private fun showAlert(context: AndroidOsuGameHost, services: List<AccessibilityServiceInfo>) = UIMessageDialog().apply {
+    private fun showAlert(context: Activity, services: List<AccessibilityServiceInfo>) = UIMessageDialog().apply {
 
         val message = buildString {
 
@@ -137,7 +138,7 @@ object AccessibilityDetector {
         addButton {
             text = Res.string.accessibility_detector_exit
             onActionUp = {
-                context.forcedExit()
+                Platform.exit()
                 hide()
             }
         }
