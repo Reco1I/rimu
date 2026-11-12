@@ -266,7 +266,7 @@ class HUDLeaderboard(private val game: GameScene) : HUDElement() {
 
     private inner class BoardItem(val data: ScoreBoardItem) : UIContainer() {
 
-        val background = UISprite().apply {
+        val backgroundSprite = UISprite().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             textureRegion = SkinTextures["menu-button-background"]
@@ -296,7 +296,7 @@ class HUDLeaderboard(private val game: GameScene) : HUDElement() {
             height = SPRITE_HEIGHT.px
             width = SPRITE_WIDTH.px
 
-            +background
+            +backgroundSprite
             +rank
             +info
 
@@ -305,7 +305,7 @@ class HUDLeaderboard(private val game: GameScene) : HUDElement() {
         }
 
         fun setColor(red: Float, green: Float, blue: Float, alpha: Float) {
-            background.color = Color4(red, green, blue, alpha)
+            backgroundSprite.color = Color4(red, green, blue, alpha)
         }
 
         fun updateInfo() {

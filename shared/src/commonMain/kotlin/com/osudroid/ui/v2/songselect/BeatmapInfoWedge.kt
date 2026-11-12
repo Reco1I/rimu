@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
 import com.osudroid.utils.ModHashMap
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.*
@@ -65,7 +66,7 @@ class BeatmapInfoWedge(
         width = Dimension.FillAvailable
 
         // Reaches the edges of the window, the outline of those sides is left outside of it.
-        background = UIWedge().apply {
+        backgroundComponent = UIWedge().apply {
             translationX = (-2f).px
             translationY = (-2f).px
             alpha = 0.75f
@@ -123,7 +124,7 @@ class BeatmapInfoWedge(
                 fun StatisticBadge(iconCode: Int) = badge {
                     leadingIcon = faSolidIcon(iconCode)
                     density = UIBadge.Density.Small
-                    backgroundColor = Color4.Transparent
+                    background = Background.Color(Color4.Transparent)
                     color = themed { palette.accent }
                 }
 

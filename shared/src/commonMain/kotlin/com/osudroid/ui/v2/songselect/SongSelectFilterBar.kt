@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
 import com.reco1l.verktex.settings.Settings
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.settings.OsuSettings
 import com.osudroid.data.DatabaseManager
@@ -116,7 +117,7 @@ class SongSelectFilterBar : UILinearContainer() {
             width = Dimension.FillAvailable
             orientation = Orientation.Vertical
             isVisible = false
-            backgroundColor = themed { palette.surface }
+            background = Background.Color(themed { palette.surface })
             radius = themed { CornerRadius(radius.xl) }
             padding = themed { Padding(gap.md) }
             spacing = themed { gap.sm }

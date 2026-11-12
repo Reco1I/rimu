@@ -1,6 +1,7 @@
 package com.osudroid.game.replay
 
 import com.osudroid.math.Precision
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
@@ -102,7 +103,7 @@ class ReplaySettingsPanel : UIContainer() {
 
     private inner class ReplaySettingsPanelButton : UIContainer() {
         init {
-            backgroundColor = Color4(0xFF181825)
+            background = Background.Color(Color4(0xFF181825))
             radius = CornerRadius(BUTTON_RADIUS.px)
 
             setSize(BUTTON_WIDTH, 150f)

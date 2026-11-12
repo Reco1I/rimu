@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.settings.GameResolution
+import com.reco1l.verktex.data.ScaleType
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.BankHitSampleInfo
@@ -99,7 +100,7 @@ open class GameplaySpinner : GameObject() {
 
         // The metre fills from the bottom: the sprite stays in place while the container clipping it grows.
         val metreSprite = UISprite()
-        metreSprite.scaleType = UISprite.ScaleType.Stretch
+        metreSprite.scaleType = ScaleType.Stretch
         metreSprite.textureRegion = SkinTextures.get("spinner-metre")
         metreSprite.anchor = Anchor.BottomLeft
         metreSprite.origin = Anchor.BottomLeft

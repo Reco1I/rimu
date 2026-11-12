@@ -1,6 +1,8 @@
 package com.osudroid.ui.v2
 
 import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.data.Background
+import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
@@ -30,14 +32,14 @@ class LoaderScene : UIScene() {
     }
 
     init {
-        background = UIContainer().apply {
+        backgroundComponent = UIContainer().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
             sprite {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
-                scaleType = UISprite.ScaleType.Crop
+                scaleType = ScaleType.Crop
                 textureRegion = SkinTextures["menu-background"]
 
                 if (!Settings[OsuSettings.SafeBeatmapBackground]) {
@@ -49,7 +51,7 @@ class LoaderScene : UIScene() {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 alpha = 0.9f
-                backgroundColor = Verktex.theme.palette.accent.shade(0.1f)
+                background = Background.Color(Verktex.theme.palette.accent.shade(0.1f))
             }
         }
 

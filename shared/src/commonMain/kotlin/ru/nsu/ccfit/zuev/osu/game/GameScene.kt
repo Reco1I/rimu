@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.reco1l.verktex.math.Path
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
@@ -376,7 +377,7 @@ class GameScene : GameObjectListener {
         root = UIContainer()
         root.width = Dimension.FillAvailable
         root.height = Dimension.FillAvailable
-        root.backgroundColor = Color4.Black
+        root.background = Background.Color(Color4.Black)
 
         backgroundLayer = UIContainer()
         backgroundLayer.width = Dimension.FillAvailable
@@ -405,7 +406,7 @@ class GameScene : GameObjectListener {
         root.clock = gameplayClock
 
         val scene = GameUIScene()
-        scene.background = root
+        scene.backgroundComponent = root
         return scene
     }
 
@@ -446,7 +447,7 @@ class GameScene : GameObjectListener {
             val box = UIBox()
             box.width = Dimension.FillAvailable
             box.height = Dimension.FillAvailable
-            box.backgroundColor = backgroundColor ?: Color4.Black
+            box.background = Background.Color(backgroundColor ?: Color4.Black)
 
             beatmapBackground = box
             beatmapBackgroundWidth = 0f
@@ -590,7 +591,7 @@ class GameScene : GameObjectListener {
             dimRectangle = UIBox()
             dimRectangle!!.width = Dimension.FillAvailable
             dimRectangle!!.height = Dimension.FillAvailable
-            dimRectangle!!.backgroundColor = Color4.Black
+            dimRectangle!!.background = Background.Color(Color4.Black)
         }
 
         dimRectangle!!.alpha = 1f - brightness
@@ -1282,7 +1283,7 @@ class GameScene : GameObjectListener {
                 val areaBox = object : UIBox() {
                     init {
                         radius = CornerRadius(Dimension.Fixed.Pixels(2f))
-                        backgroundColor = Color4(30f / 255f, 30f / 255f, 41f / 255f)
+                        background = Background.Color(Color4(30f / 255f, 30f / 255f, 41f / 255f))
                         alpha = 0.15f
 
                         setPosition(

@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2
 
 import com.osudroid.OsuGame
+import com.reco1l.verktex.data.Background
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.data.WinCondition.Accuracy
 import com.reco1l.verktex.data.Axis
@@ -72,12 +73,12 @@ class StatisticSelector(
             height = 100f.px
             padding = Padding(10f.dip, 4f.dip)
 
-            backgroundColor = when {
+            background = Background.Color(when {
                 stat.isAlive && isSelected -> Color4(0.5f, 0.5f, 1f, 0.9f)
                 stat.isAlive -> Color4(0.5f, 0.5f, 0.5f, 0.9f)
                 isSelected -> Color4(1f, 0.4f, 0.4f, 0.9f)
                 else -> Color4(1f, 0.6f, 0.6f, 0.9f)
-            }
+            })
 
             +UIText().apply {
                 color = if (stat.isAlive) Color4(0.6f, 0.6f, 0.6f, 0.9f) else Color4(1f, 0.6f, 0.6f, 0.9f)

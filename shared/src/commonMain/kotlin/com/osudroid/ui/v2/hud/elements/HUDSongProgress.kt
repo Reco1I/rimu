@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.graphics.CompareFunction
 import com.reco1l.verktex.graphics.DepthState
 
@@ -32,7 +33,7 @@ class HUDLinearSongProgress : HUDSongProgress() {
         origin = Anchor.BottomLeft
         width = Dimension.FillAvailable
         height = BAR_HEIGHT.px
-        backgroundColor = Color4.Black
+        background = Background.Color(Color4.Black)
         alpha = 0.3f
     }
 
@@ -57,9 +58,9 @@ class HUDLinearSongProgress : HUDSongProgress() {
     override fun setProgress(progress: Float, isIntro: Boolean) {
 
         if (isIntro) {
-            progressRect.backgroundColor = Color4(153f / 255f, 204f / 255f, 51f / 255f)
+            progressRect.background = Background.Color(Color4(153f / 255f, 204f / 255f, 51f / 255f))
         } else {
-            progressRect.backgroundColor = Color4(1f, 1f, 150f / 255f)
+            progressRect.background = Background.Color(Color4(1f, 1f, 150f / 255f))
         }
 
         progressRect.width = (bounds.width * progress).px

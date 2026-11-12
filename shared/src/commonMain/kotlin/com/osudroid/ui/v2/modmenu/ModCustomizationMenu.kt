@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.modmenu
 
 import com.osudroid.mods.*
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.mods.settings.*
 import com.osudroid.multiplayer.Multiplayer
@@ -37,7 +38,7 @@ class ModCustomizationMenu(
         scaleOrigin = Anchor.TopCenter
         clipping = ClipMode.Bounds
         scrollPadding = Vec2(0f, 64f.dip.toPixels())
-        backgroundColor = themed { palette.accent.shade(0.15f) }
+        background = Background.Color(themed { palette.accent.shade(0.15f) })
         radius = themed { CornerRadius(radius.lg) }
 
         +UILinearContainer().apply {
@@ -162,7 +163,7 @@ class ModCustomizationMenu(
                 width = Dimension.FillAvailable
                 padding = Padding(12f.dip)
                 spacing = 8f.dip
-                backgroundColor = Color4.Black.alpha(0.05f)
+                background = Background.Color(Color4.Black.alpha(0.05f))
                 radius = themed { CornerRadius(radius.lg) }
 
                 +ModIcon(mod).apply {

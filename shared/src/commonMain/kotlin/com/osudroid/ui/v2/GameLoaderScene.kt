@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2
 
 import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.ui.text.spans
@@ -30,7 +31,7 @@ import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.UILoadingIndicator
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.UISprite.ScaleType
+import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.ui.card
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.UIContainer
@@ -93,7 +94,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     private var minimumTimeout = if (isRestart) 500L else 2000L
 
     init {
-        background = UIContainer().apply {
+        backgroundComponent = UIContainer().apply {
             width = fill()
             height = fill()
 
@@ -107,7 +108,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             dimBox = box {
                 width = fill()
                 height = fill()
-                backgroundColor = Color4.Black
+                background = Background.Color(Color4.Black)
                 alpha = 0.7f
             }
         }

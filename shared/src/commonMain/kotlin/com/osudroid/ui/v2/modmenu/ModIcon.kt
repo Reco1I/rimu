@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.modmenu
 
 import com.osudroid.mods.*
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.ui.ISkinnable
 import com.osudroid.ui.v2.*
@@ -32,14 +33,14 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
         val texture = SkinTextures[mod.iconTextureName]
 
         if (texture != null) {
-            backgroundColor = Color4.Transparent
+            background = Background.Color(Color4.Transparent)
 
             +OsuSkinnableSprite(mod.iconTextureName).apply {
                 width = fill()
                 height = fill()
             }
         } else {
-            backgroundColor = Verktex.theme.palette.accent.shade(0.1f)
+            background = Background.Color(Verktex.theme.palette.accent.shade(0.1f))
 
             +UIText().apply {
                 anchor = Anchor.Center

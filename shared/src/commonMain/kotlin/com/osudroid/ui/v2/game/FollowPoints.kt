@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.game
 
 import kotlin.math.PI
+import com.reco1l.verktex.data.ScaleType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.utils.IPoolable
@@ -69,7 +70,7 @@ object FollowPointConnection {
         // Cropping from the center is what the scale type below does when the size is smaller than the texture.
         width = min(texture.width, HitObject.OBJECT_RADIUS * 2).px
         height = min(texture.height, HitObject.OBJECT_RADIUS).px
-        scaleType = UISprite.ScaleType.Crop
+        scaleType = ScaleType.Crop
     }
 
     @JvmStatic

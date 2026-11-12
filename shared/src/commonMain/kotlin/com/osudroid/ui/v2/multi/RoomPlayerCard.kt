@@ -1,6 +1,8 @@
 package com.osudroid.ui.v2.multi
 
 import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.data.Background
+import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.borderWidth
@@ -71,11 +73,11 @@ class RoomPlayerCard : UILinearContainer() {
                 add(0, teamColorBar)
             }
 
-            teamColorBar.backgroundColor = when (player.team) {
+            teamColorBar.background = Background.Color(when (player.team) {
                 Blue -> Color4(0xFF60A5FA).shade(0.8f)
                 Red -> Color4(0xFFF87171).shade(0.8f)
                 null -> Verktex.theme.palette.accent.shade(0.6f)
-            }
+            })
 
             if (player.id == OnlineManager.getInstance().userId) {
                 teamColorBar.onActionUp = { showTeamDropdown() }
@@ -156,7 +158,7 @@ class RoomPlayerCard : UILinearContainer() {
             alpha = if (isEnabled) 1f else 0.5f
             borderWidth = 2f.px
             padding = Padding(8f.dip)
-            backgroundColor = themed { palette.accent.shade(0.1f) }
+            background = Background.Color(themed { palette.accent.shade(0.1f) })
 
             avatarSprite = UISprite().apply {
                 anchor = Anchor.CenterLeft
@@ -164,7 +166,7 @@ class RoomPlayerCard : UILinearContainer() {
                 width = 50f.px
                 height = 50f.px
                 radius = CornerRadius(8f.px)
-                scaleType = UISprite.ScaleType.Crop
+                scaleType = ScaleType.Crop
                 textureRegion = defaultAvatar
             }
             +avatarSprite

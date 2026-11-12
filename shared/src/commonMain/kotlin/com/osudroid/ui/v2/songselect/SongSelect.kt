@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
 import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.reco1l.verktex.data.ScaleType
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.settings.OsuSettings
@@ -109,10 +110,10 @@ class SongSelect : UIScene() {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             textureRegion = SkinTextures["menu-background"]
-            scaleType = UISprite.ScaleType.Crop
+            scaleType = ScaleType.Crop
             color = color.shade(0.4f)
         }
-        background = backgroundSprite
+        backgroundComponent = backgroundSprite
 
         filterBar.onFilterChanged = { applyFilter() }
 

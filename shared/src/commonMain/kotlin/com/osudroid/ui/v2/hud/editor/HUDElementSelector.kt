@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud.editor
 
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.Padding
@@ -43,7 +44,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
         scrollAxes = Axis.Y
         height = Dimension.FillAvailable
         width = SELECTOR_WIDTH.px
-        backgroundColor = Color4(0xFF1E1E2E)
+        background = Background.Color(Color4(0xFF1E1E2E))
 
         +UILinearContainer().apply {
             width = Dimension.FillAvailable
@@ -66,7 +67,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
 
         // The button to show/hide the element selector
         +UIClickableContainer().apply {
-            backgroundColor = Color4(0xFF181825)
+            background = Background.Color(Color4(0xFF181825))
             radius = CornerRadius(BUTTON_RADIUS.px)
 
             width = BUTTON_WIDTH.px

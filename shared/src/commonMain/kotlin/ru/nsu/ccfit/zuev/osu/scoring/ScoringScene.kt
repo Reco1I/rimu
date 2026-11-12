@@ -1,6 +1,8 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
 import com.reco1l.verktex.Platform
+import com.reco1l.verktex.data.Background
+import com.reco1l.verktex.data.ScaleType
 import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -165,8 +167,8 @@ class ScoringScene(pGame: GameScene) {
             SkinTextures.get("menu-background"))
         backgroundSprite.width = Dimension.FillAvailable
         backgroundSprite.height = Dimension.FillAvailable
-        backgroundSprite.scaleType = UISprite.ScaleType.Crop
-        scene.background = backgroundSprite
+        backgroundSprite.scaleType = ScaleType.Crop
+        scene.backgroundComponent = backgroundSprite
 
         // Everything is placed in the coordinates of the game's resolution and scaled to fit the window.
         val content = UIContainer()
@@ -178,7 +180,7 @@ class ScoringScene(pGame: GameScene) {
 
         val bgTopRect = UIBox()
         bgTopRect.setSize(GameResolution.width.toFloat(), Utils.toRes(100).toFloat())
-        bgTopRect.backgroundColor = Color4(0f, 0f, 0f, 0.8f)
+        bgTopRect.background = Background.Color(Color4(0f, 0f, 0f, 0.8f))
         content += bgTopRect
 
         beatmapInfo = beatmapToReplay
@@ -497,7 +499,7 @@ class ScoringScene(pGame: GameScene) {
             }
 
             val ppInfo = createText(ppinfo.toString(), 21f)
-            ppInfo.backgroundColor = Color4(0f, 0f, 0f, 0.5f)
+            ppInfo.background = Background.Color(Color4(0f, 0f, 0f, 0.5f))
             ppInfo.origin = Anchor.BottomLeft
             ppInfo.setPosition(Utils.toRes(240).toFloat(), GameResolution.height - Utils.toRes(2) - paddingButtom)
             content += ppInfo

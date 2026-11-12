@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.ui.borderColor
 import com.reco1l.verktex.data.Vec2
@@ -54,7 +55,7 @@ class HUDAimErrorMeter : HUDElement() {
             origin = Anchor.Center
             width = (AVERAGE_MARKER_SIZE).px
             height = (AVERAGE_MARKER_THICKNESS).px
-            backgroundColor = Color4.White
+            background = Background.Color(Color4.White)
         }
 
         box {
@@ -63,7 +64,7 @@ class HUDAimErrorMeter : HUDElement() {
             width = (AVERAGE_MARKER_SIZE).px
             height = (AVERAGE_MARKER_THICKNESS).px
             rotationZ = 90f
-            backgroundColor = Color4.White
+            background = Background.Color(Color4.White)
         }
     }
 
@@ -126,7 +127,7 @@ class HUDAimErrorMeter : HUDElement() {
                 origin = Anchor.Center
                 width = (LINE_THICKNESS).px
                 height = (shaftLength).px
-                backgroundColor = Color4.White
+                background = Background.Color(Color4.White)
                 alpha = 0.7f
             }
 
@@ -141,7 +142,7 @@ class HUDAimErrorMeter : HUDElement() {
                 y = (-shaftLength / 2f).px
                 rotationOrigin = Anchor.TopCenter
                 rotationZ = -45f
-                backgroundColor = Color4.White
+                background = Background.Color(Color4.White)
                 alpha = 0.7f
             }
 
@@ -153,7 +154,7 @@ class HUDAimErrorMeter : HUDElement() {
                 y = (-shaftLength / 2f).px
                 rotationOrigin = Anchor.TopCenter
                 rotationZ = 45f
-                backgroundColor = Color4.White
+                background = Background.Color(Color4.White)
                 alpha = 0.7f
             }
         }
@@ -167,7 +168,7 @@ class HUDAimErrorMeter : HUDElement() {
         width = (thickness).px
         height = (SIZE * INNER_PORTION * 0.9f).px
         rotationZ = rotationDegrees
-        backgroundColor = Color4.White
+        background = Background.Color(Color4.White)
         alpha = guideAlpha
     }
 

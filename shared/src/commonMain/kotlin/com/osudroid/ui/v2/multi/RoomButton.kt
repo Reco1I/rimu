@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.multi
 
 import com.osudroid.multiplayer.Multiplayer
+import com.reco1l.verktex.data.Background
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.Room
 import com.osudroid.multiplayer.api.data.RoomStatus
@@ -28,7 +29,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
     init {
         width = fill()
         height = wrap()
-        backgroundColor = themed { palette.accent.shade(0.2f).alpha(0.4f) }
+        background = Background.Color(themed { palette.accent.shade(0.2f).alpha(0.4f) })
         padding = Padding(12f.dip)
         tintChildren = false
 

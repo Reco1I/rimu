@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
 import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.GraphicsRenderer
 
@@ -18,7 +19,7 @@ class HUDColorHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
         width = totalWidth.px
 
         height = (INDICATOR_SIZE).px
-        backgroundColor = Color4.Black.alpha(0.6f)
+        background = Background.Color(Color4.Black.alpha(0.6f))
     }
 
     override fun addResult(type: HitObjectType, accuracy: Float, color: Color4) {

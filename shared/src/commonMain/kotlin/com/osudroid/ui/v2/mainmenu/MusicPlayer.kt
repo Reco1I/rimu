@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.mainmenu
 
 import com.osudroid.OsuGame
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.BeatmapSelection
 
@@ -39,7 +40,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
     init {
         // Without the dimmed backdrop of modals.
-        backgroundColor = Color4.Transparent
+        background = Background.Color(Color4.Transparent)
 
         card.apply {
             anchor = Anchor.TopLeft

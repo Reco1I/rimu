@@ -1,6 +1,7 @@
 package com.osudroid.ui
 
 import com.osudroid.ui.v2.SkinTextures
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
@@ -49,7 +50,7 @@ class SendingPanel(
         origin = Anchor.TopCenter
         minWidth = 800f.px
         minHeight = 200f.px
-        backgroundColor = Color4(0f, 0f, 0f, 0.7f)
+        background = Background.Color(Color4(0f, 0f, 0f, 0.7f))
 
         +UILinearContainer().apply {
             orientation = Orientation.Vertical
@@ -195,15 +196,15 @@ class SendingPanel(
         private val valueBox = UIContainer().also {
             it.width = Dimension.FillAvailable
             it.padding = Padding(4f.dip)
-            it.backgroundColor = Color4(0.4f, 0.4f, 0.4f, 0.8f)
+            it.background = Background.Color(Color4(0.4f, 0.4f, 0.4f, 0.8f))
             it.minHeight = 40f.dip
             it += valueText
         }
 
-        var valueColor: Color4
-            get() = valueBox.backgroundColor
+        var valueColor
+            get() = (valueBox.background as Background.Color).color
             set(value) {
-                valueBox.backgroundColor = value
+                valueBox.background = Background.Color(value)
             }
 
         init {

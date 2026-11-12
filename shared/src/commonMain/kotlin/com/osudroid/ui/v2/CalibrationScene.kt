@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2
 
 import com.osudroid.OsuGame
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -102,10 +103,10 @@ class CalibrationScene(
 
     init {
         // Background
-        background = UIBox().apply {
+        backgroundComponent = UIBox().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            backgroundColor = Verktex.theme.palette.accent.shade(0.08f)
+            background = Background.Color(Verktex.theme.palette.accent.shade(0.08f))
         }
 
         textButton {
@@ -238,7 +239,7 @@ class CalibrationScene(
             padding = Padding(24f.px)
             radius = CornerRadius(16f.px)
 
-            backgroundColor = themed { palette.accent.shade(0.15f) }
+            background = Background.Color(themed { palette.accent.shade(0.15f) })
 
             text {
                 text = string.opt_offset_calibration_calibration
@@ -252,7 +253,7 @@ class CalibrationScene(
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                backgroundColor = themed { palette.accent.shade(0.2f) }
+                background = Background.Color(themed { palette.accent.shade(0.2f) })
             }
 
             text {
@@ -281,7 +282,7 @@ class CalibrationScene(
                     alignment = Anchor.Center
                     width = 110f.px
                     radius = CornerRadius(8f.px)
-                    backgroundColor = themed { palette.accent.shade(0.12f) }
+                    background = Background.Color(themed { palette.accent.shade(0.12f) })
                     color = themed { palette.accent }
                     onActionUp = { showBpmInputDialog() }
                     bpmValueText = this
@@ -297,7 +298,7 @@ class CalibrationScene(
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                backgroundColor = themed { palette.accent.shade(0.2f) }
+                background = Background.Color(themed { palette.accent.shade(0.2f) })
             }
 
             text {
@@ -326,7 +327,7 @@ class CalibrationScene(
                     alignment = Anchor.Center
                     width = 110f.px
                     radius = CornerRadius(8f.px)
-                    backgroundColor = themed { palette.accent.shade(0.12f) }
+                    background = Background.Color(themed { palette.accent.shade(0.12f) })
                     color = themed { palette.accent }
                     onActionUp = { showOffsetInputDialog() }
                     offsetValueText = this
@@ -356,7 +357,7 @@ class CalibrationScene(
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
                 color = Color4(0xFFFFBFBF)
-                backgroundColor = Color4(0xFF342121)
+                background = Background.Color(Color4(0xFF342121))
                 onActionUp = {
                     playShortClickSound()
                     pendingOffset = 0
@@ -380,7 +381,7 @@ class CalibrationScene(
             orientation = UILinearContainer.Orientation.Vertical
             padding = Padding(14f.px)
             radius = CornerRadius(16f.px)
-            backgroundColor = themed { palette.accent.shade(0.15f) }
+            background = Background.Color(themed { palette.accent.shade(0.15f) })
 
             // Header
             text {
@@ -396,7 +397,7 @@ class CalibrationScene(
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                backgroundColor = themed { palette.accent.shade(0.2f) }
+                background = Background.Color(themed { palette.accent.shade(0.2f) })
             }
 
             // Setting row: label (left) + ON/OFF toggle (right)

@@ -1,6 +1,8 @@
 package com.osudroid.ui.v2.mainmenu
 
 import com.osudroid.ui.v2.CachedTextures
+import com.reco1l.verktex.data.Background
+import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.data.Anchor
@@ -56,14 +58,14 @@ class PlayerButton : UIClickableContainer() {
             padding = Padding(9f.dip)
             spacing = 8f.dip
             radius = themed { CornerRadius(radius.xl) }
-            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.2f) }
+            background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.2f) })
 
             avatarSprite = sprite {
                 width = 48f.dip
                 height = 48f.dip
-                backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.3f) }
+                background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.3f) })
                 radius = themed { CornerRadius(radius.xl) }
-                scaleType = UISprite.ScaleType.Crop
+                scaleType = ScaleType.Crop
                 textureRegion = SkinTextures["emptyavatar"]
             }
 

@@ -1,6 +1,8 @@
 package com.osudroid.ui.v2.mainmenu
 
 import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.reco1l.verktex.data.Background
+import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.beatmaplisting.BeatmapListing
 import com.osudroid.beatmaps.LibraryImport
@@ -140,14 +142,14 @@ class MainScene : UIScene() {
 
     init {
 
-        background = UIContainer().apply {
+        backgroundComponent = UIContainer().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
             backgroundSprite = crossfadeSprite {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
-                scaleType = UISprite.ScaleType.Crop
+                scaleType = ScaleType.Crop
                 crossfadeDuration = BACKGROUND_FADE_DURATION
                 crossfadeTo(SkinTextures["menu-background"], 0f)
             }
@@ -393,7 +395,7 @@ class MainScene : UIScene() {
         box {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            backgroundColor = Color4.Black
+            background = Background.Color(Color4.Black)
             alpha = 0f
 
             fadeIn(3f).after {
@@ -716,7 +718,7 @@ class MenuButton(icon: Int, title: String) : UITextButton() {
         width = 256f.dip
         height = wrap()
         radius = CornerRadius(10.4f.dip)
-        backgroundColor = themed { palette.buttonBackgroundSurface.alpha(0.6f) }
+        background = Background.Color(themed { palette.buttonBackgroundSurface.alpha(0.6f) })
         density = Density.Large
         padding = Padding(24f.dip)
 

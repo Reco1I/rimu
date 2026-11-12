@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud.editor
 
 import com.osudroid.ui.v2.hud.GameplayHUD
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.hud.HUDElementSkinData
@@ -38,7 +39,7 @@ class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): 
         height = 120f.px
         padding = Padding(12f.px)
         scaleOrigin = Anchor.Center
-        backgroundColor = Color4(0xFF363653)
+        background = Background.Color(Color4(0xFF363653))
         radius = CornerRadius(12f.px)
 
         +element

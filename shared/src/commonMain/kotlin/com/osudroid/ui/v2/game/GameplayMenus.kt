@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.game
 
 import com.osudroid.OsuGame
+import com.reco1l.verktex.data.ScaleType
 import com.osudroid.settings.GameResolution
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.SkinSounds
@@ -37,7 +38,7 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : UICo
             +UISprite(it).apply {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
-                scaleType = UISprite.ScaleType.Crop
+                scaleType = ScaleType.Crop
             }
         }
 

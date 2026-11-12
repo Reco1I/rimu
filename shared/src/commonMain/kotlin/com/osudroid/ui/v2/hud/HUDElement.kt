@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud
 
 import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeTo
@@ -174,7 +175,7 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
         isInEditMode = value
 
         if (value) {
-            backgroundColor = Color4(0x29F27272).alpha(0.15f)
+            background = Background.Color(Color4(0x29F27272).alpha(0.15f))
             editorOverlay = HUDElementOverlay(this)
 
             parent!! += editorOverlay!!
@@ -182,7 +183,7 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
             connectionLine?.removeSelf()
             editorOverlay?.removeSelf()
 
-            backgroundColor = Color4.Transparent
+            background = Background.Color(Color4.Transparent)
             connectionLine = null
             editorOverlay = null
         }
@@ -193,7 +194,7 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
      */
     open fun onSelectionStateChange(isSelected: Boolean) {
 
-        backgroundColor = backgroundColor.alpha(if (isSelected) 0.5f else 0.15f)
+        background = Background.Color(Color4(0x29F27272).alpha(if (isSelected) 0.5f else 0.15f))
 
         editorOverlay?.clearTransforms()
         editorOverlay?.fadeTo(if (isSelected) 1f else 0f, 0.1f)

@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.settings
 
 import com.osudroid.OsuGame
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.settings.SettingKey
 import com.osudroid.settings.OsuSettings
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -73,7 +74,7 @@ class SettingsMenu : UIScene() {
 
 
     init {
-        backgroundColor = themed { palette.surface }
+        background = Background.Color(themed { palette.surface })
 
         linearContainer {
             width = fill()
@@ -85,7 +86,7 @@ class SettingsMenu : UIScene() {
                 scrollAxes = Axis.Y
                 height = fill()
                 padding = Padding(16f.dip)
-                backgroundColor = themed { palette.buttonBackgroundSurface }
+                background = Background.Color(themed { palette.buttonBackgroundSurface })
 
                 linearContainer {
                     width = fill()
@@ -104,7 +105,7 @@ class SettingsMenu : UIScene() {
                     box {
                         width = SIDEBAR_WIDTH
                         height = 2f.dip
-                        backgroundColor = themed { palette.divider }
+                        background = Background.Color(themed { palette.divider })
                     }
 
                     // In a room its settings come first, and the ones only meant for the menu are hidden.
@@ -263,7 +264,7 @@ class SettingsMenu : UIScene() {
                     box {
                         width = fill()
                         height = 2f.dip
-                        backgroundColor = themed { palette.divider }
+                        background = Background.Color(themed { palette.divider })
                     }
                 }
             }
@@ -353,7 +354,7 @@ class SettingsMenu : UIScene() {
         private var previousPlayfieldSize = OsuSettings.playfieldSize
 
         init {
-            backgroundColor = Color4.White
+            background = Background.Color(Color4.White)
             alpha = 0f
         }
 

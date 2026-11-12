@@ -24,6 +24,10 @@ import com.osudroid.ui.v2.ModsIndicator
 import com.osudroid.ui.v2.songselect.BeatmapCarrousel
 import com.osudroid.ui.v2.songselect.BeatmapSetModel
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Background
+import com.reco1l.verktex.data.Border
+import com.reco1l.verktex.data.CornerRadius
+import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
@@ -138,6 +142,47 @@ object OsuUITests : UITestSuite("osu!") {
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        test("Texture backgrounds") {
+            val texture = SkinTextures["menu-background"]
+
+            column {
+                if (texture == null) {
+                    text { text = "menu-background missing"; color = Color4.Red400 }
+                    return@column
+                }
+
+                // Wider and taller than the texture, so cropping and letterboxing show on both axes.
+                for ((title, width, height) in listOf(Triple("Wide", 220f, 90f), Triple("Tall", 90f, 160f))) {
+                    section(title) {
+                        for (scaleType in ScaleType.entries) {
+                            container {
+                                this.width = width.dip
+                                this.height = height.dip
+                                background = Background.Texture(texture, scaleType)
+                                radius = CornerRadius(24f.dip, 4f.dip, 24f.dip, 4f.dip)
+                                border = Border(3f.dip, Color4.Red400, Color4.Green400, Color4.Blue400, Color4.Yellow400)
+
+                                text {
+                                    text = scaleType.name
+                                    anchor = Anchor.Center
+                                    origin = Anchor.Center
+                                }
+                            }
+                        }
+                    }
+                }
+
+                section("Tinted, aligned to the left") {
+                    container {
+                        width = 220f.dip
+                        height = 90f.dip
+                        background = Background.Texture(texture, ScaleType.Fit, Anchor.CenterLeft, Color4.Blue400)
+                        radius = CornerRadius(16f.dip)
                     }
                 }
             }

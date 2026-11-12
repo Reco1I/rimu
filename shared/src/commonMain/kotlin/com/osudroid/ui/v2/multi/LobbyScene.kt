@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.multi
 
 import com.osudroid.OsuGame
+import com.reco1l.verktex.data.Background
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.resources.Res.string
@@ -14,7 +15,7 @@ import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.ui.UISprite.ScaleType
+import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.ui.container.*
 import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
 import com.reco1l.verktex.ui.control.textInput
@@ -65,7 +66,7 @@ class LobbyScene : UIScene() {
 
 
     init {
-        background = UISprite().apply {
+        backgroundComponent = UISprite().apply {
             width = fill()
             height = fill()
             scaleType = ScaleType.Crop
@@ -80,12 +81,12 @@ class LobbyScene : UIScene() {
             width = fill()
             height = fill()
             orientation = Orientation.Vertical
-            backgroundColor = themed { palette.accent.shade(0.1f).alpha(0.9f) }
+            background = Background.Color(themed { palette.accent.shade(0.1f).alpha(0.9f) })
 
             // Top bar
             extendIntoSafeAreaContainer {
                 width = fill()
-                backgroundColor = themed { palette.accent.shade(0.5f).alpha(0.1f) }
+                background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
                 border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
                 padding = Padding(16f.dip)
 

@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
 import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.CompareFunction
@@ -26,7 +27,7 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
         val mehWindow = UIBox().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
-            backgroundColor = mehColor
+            background = Background.Color(mehColor)
             radius = CornerRadius((BAR_HEIGHT / 2).px)
             width = (WIDTH).px
             height = (BAR_HEIGHT).px
@@ -36,7 +37,7 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
         val okWindow = UIBox().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
-            backgroundColor = okColor
+            background = Background.Color(okColor)
             width = (WIDTH * (hitWindow.okWindow / hitWindow.mehWindow).toFloat()).px
             height = (BAR_HEIGHT).px
             depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
@@ -47,7 +48,7 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
             origin = Anchor.Center
             width = (WIDTH * (hitWindow.greatWindow / hitWindow.mehWindow).toFloat()).px
             height = (BAR_HEIGHT).px
-            backgroundColor = greatColor
+            background = Background.Color(greatColor)
 
             clearDepthBeforeDraw = true
             depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
@@ -63,7 +64,7 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
             origin = Anchor.Center
             width = (INDICATOR_WIDTH / 2).px
             height = (INDICATOR_HEIGHT).px
-            backgroundColor = Color4.White
+            background = Background.Color(Color4.White)
         }
 
         mehWindow.alpha = 0.6f

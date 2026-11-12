@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.modmenu
 
 import com.osudroid.OsuGame
+import com.reco1l.verktex.data.Background
 import com.osudroid.BeatmapSelection
 import com.osudroid.settings.OsuSettings
 import com.osudroid.GameMode
@@ -132,8 +133,8 @@ class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
         width = fill()
         height = fill()
         blurRadius = 8f.dip
-        backgroundColor = themed {
-            palette.accent.shade(0.15f).alpha(0.5f)
+        background = themed {
+            Background.Color(palette.accent.shade(0.15f).alpha(0.5f))
         }
 
         linearContainer {
@@ -144,7 +145,7 @@ class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
             // TopBar
             extendIntoSafeAreaContainer {
                 width = fill()
-                backgroundColor = themed { palette.accent.shade(0.5f).alpha(0.1f) }
+                background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
                 border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
 
                 linearContainer {
@@ -189,7 +190,7 @@ class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
                         textButton {
                             text = "Clear"
                             color = Color4(0xFFFFBFBF)
-                            backgroundColor = Color4(0xFF342121)
+                            background = Background.Color(Color4(0xFF342121))
                             leadingIcon = faSolidIcon(FAIcon.DeleteLeft)
                             onActionUp = {
                                 SkinSounds["click-short-confirm"].play()
@@ -271,7 +272,7 @@ class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
             // Bottom bar
             extendIntoSafeAreaContainer {
                 width = fill()
-                backgroundColor = themed { palette.accent.shade(0.5f).alpha(0.1f) }
+                background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
                 border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
 
                 container {
@@ -330,7 +331,7 @@ class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
 
                         rankedBadge = badge {
                             text = "Ranked"
-                            backgroundColor = Color4(0xFF342121)
+                            background = Background.Color(Color4(0xFF342121))
                             color = Color4(0xFF161622)
                         }
 
@@ -535,8 +536,9 @@ class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
             clearTransforms()
             colorTo(if (isRanked) Color4(0xFF161622) else Verktex.theme.palette.accent, 0.1f)
 
-            backgroundColor =
+            background = Background.Color(
                 if (isRanked) Color4(0xFF83DF6B) else Verktex.theme.palette.accent.shade(0.15f)
+            )
         }
 
         modToggles.forEach {

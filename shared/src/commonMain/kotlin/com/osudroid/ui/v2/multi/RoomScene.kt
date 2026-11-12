@@ -1,6 +1,8 @@
 package com.osudroid.ui.v2.multi
 
 import com.osudroid.beatmaplisting.BeatmapListing
+import com.reco1l.verktex.data.Background
+import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
@@ -192,14 +194,14 @@ class RoomScene(
         RoomAPI.roomEventListener = this
         chat = RoomChat()
 
-        background = UIContainer().apply {
+        backgroundComponent = UIContainer().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
             backgroundSprite = sprite {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
-                scaleType = UISprite.ScaleType.Crop
+                scaleType = ScaleType.Crop
                 textureRegion = SkinTextures["menu-background"]
 
                 if (!Settings[OsuSettings.SafeBeatmapBackground]) {
@@ -211,7 +213,7 @@ class RoomScene(
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 alpha = 0.9f
-                backgroundColor = Verktex.theme.palette.accent.shade(0.1f)
+                background = Background.Color(Verktex.theme.palette.accent.shade(0.1f))
             }
         }
 
@@ -332,7 +334,7 @@ class RoomScene(
                         +BeatmapInfoLayout { mods }.apply {
                             padding = Padding(12f.dip)
                             radius = themed { CornerRadius(radius.md) }
-                            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.5f) }
+                            background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.5f) })
                             isVisible = false
 
                             beatmapInfoLayout = this
@@ -343,7 +345,7 @@ class RoomScene(
                             alignment = Anchor.Center
                             padding = Padding(12f.dip)
                             radius = themed { CornerRadius(radius.md) }
-                            backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.5f) }
+                            background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.5f) })
                         }
 
                         linearContainer {
@@ -395,7 +397,7 @@ class RoomScene(
                             leadingIcon = faSolidIcon(FAIcon.ArrowRightFromBracket)
                             text = Res.string.multiplayer_room_leave
                             color = Color4(0xFFFFBFBF)
-                            backgroundColor = Color4(0xFF342121)
+                            background = Background.Color(Color4(0xFF342121))
                             onActionUp = { leaveDialog.show() }
                         }
 

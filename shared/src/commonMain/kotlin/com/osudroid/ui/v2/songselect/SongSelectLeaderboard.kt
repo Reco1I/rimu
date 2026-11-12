@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
 import com.osudroid.BeatmapSelection
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.ui.borderWidth
@@ -288,7 +289,7 @@ class SongSelectLeaderboard : UILinearContainer() {
                     radius = CornerRadius(12f.px)
                     borderWidth = 2f.px
 
-                    backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.75f) }
+                    background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.75f) })
                     borderColor = themed { palette.accent.shade(0.2f) }
 
                     container {
