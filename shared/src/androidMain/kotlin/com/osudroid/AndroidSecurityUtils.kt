@@ -1,4 +1,4 @@
-package ru.nsu.ccfit.zuev.osu
+package com.osudroid
 
 import android.content.Context
 import android.content.pm.PackageInfo
@@ -6,10 +6,12 @@ import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.os.Build
 import com.reco1l.verktex.Logger
+import ru.nsu.ccfit.zuev.osu.BuildType
+import ru.nsu.ccfit.zuev.osu.SecurityUtils
 import java.io.IOException
 
 /**
- * The parts of [SecurityUtils] that need Android.
+ * The parts of [ru.nsu.ccfit.zuev.osu.SecurityUtils] that need Android.
  */
 object AndroidSecurityUtils {
 

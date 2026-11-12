@@ -1,4 +1,4 @@
-package com.osudroid.utils
+package com.osudroid
 
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.Activity
@@ -10,6 +10,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import com.osudroid.resources.Res
+import com.osudroid.utils.updateThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

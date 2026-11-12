@@ -9,7 +9,6 @@ import android.os.Environment
 import android.os.StatFs
 import android.provider.OpenableColumns
 import android.view.KeyEvent
-import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.osudroid.OsuGame
 import com.osudroid.OsuGameHost
@@ -22,7 +21,7 @@ import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.resources.Res
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.mainmenu.MainScene
-import com.osudroid.utils.AccessibilityDetector
+import com.osudroid.AccessibilityDetector
 import com.osudroid.utils.async
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
@@ -36,7 +35,7 @@ import java.io.IOException
 import okio.buffer
 import okio.sink
 import okio.source
-import ru.nsu.ccfit.zuev.osu.AndroidSecurityUtils
+import com.osudroid.AndroidSecurityUtils
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 
 /**

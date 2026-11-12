@@ -54,13 +54,6 @@ object OsuGame {
     var isHeadless = true
 
     /**
-     * The main menu, null until the game has started.
-     */
-    @JvmStatic
-    var mainScene: MainScene? = null
-        private set
-
-    /**
      * Creates the [GameScene] of a new play. Replaced by the UI test browser with one that plays
      * nothing.
      */
@@ -118,7 +111,6 @@ object OsuGame {
 
                 // The splash can't be gone back to.
                 val menu = MainScene()
-                mainScene = menu
                 Verktex.resetScenes(menu)
 
                 Platform.forceMaxRefreshRate = Settings[OsuSettings.ForceMaxRefreshRate]
