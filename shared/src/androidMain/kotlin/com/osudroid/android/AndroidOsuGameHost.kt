@@ -99,9 +99,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
     //region Lifecycle
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Some components may already use the activity when onCreate is called, e.g. when the game is
-        // restored after the system killed it for memory.
-        AndroidGame.mainActivity = this
         OsuGame.isHeadless = false
 
         super.onCreate(savedInstanceState)
@@ -224,11 +221,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
         Multiplayer.flushLog()
         AccessibilityDetector.unregister(this)
-
-        // A recreated activity may already have replaced it.
-        if (AndroidGame.mainActivity === this) {
-            AndroidGame.mainActivity = null
-        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

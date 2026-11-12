@@ -1,12 +1,13 @@
 package com.osudroid.data
 
+import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.osudroid.android.AndroidGame
+import com.reco1l.verktex.Verktex
 
 internal actual fun osuDatabaseBuilder(path: String?): RoomDatabase.Builder<OsuDatabase> {
-    // The application's context, the database outlives the activity.
-    val context = AndroidGame.context.applicationContext
+    // The application's context: the host is an activity, which the database outlives.
+    val context = (Verktex.host as Context).applicationContext
 
     return if (path == null) {
         Room.inMemoryDatabaseBuilder(context) { OsuDatabaseConstructor.initialize() }
