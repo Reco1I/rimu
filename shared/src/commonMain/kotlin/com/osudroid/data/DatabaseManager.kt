@@ -4,9 +4,10 @@ import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.osudroid.OsuGameHost
 import com.osudroid.settings.GameFolders
-import com.reco1l.verktex.database.Databases
+import com.reco1l.verktex.Platform
 import kotlin.jvm.JvmStatic
 import okio.Path.Companion.toPath
 
@@ -60,6 +61,11 @@ expect object OsuDatabaseConstructor : RoomDatabaseConstructor<OsuDatabase> {
 }
 
 /**
+ * Creates the platform's builder of the database at the file [path], or kept in memory if it's null.
+ */
+internal expect fun osuDatabaseBuilder(path: String?): RoomDatabase.Builder<OsuDatabase>
+
+/**
  * The osu!droid database manager.
  */
 object DatabaseManager {
@@ -107,8 +113,7 @@ object DatabaseManager {
         get() = database.getModPresetTable()
 
     /**
-     * The path to the database file. It's kept in the game's folder rather than in the data
-     * directory, where the installs before the engine opened databases had it.
+     * The path to the database file.
      */
     @JvmStatic
     val databasePath: String
@@ -121,12 +126,16 @@ object DatabaseManager {
     lateinit var database: OsuDatabase
 
     /**
-     * Opens the database file, recreated if it's of another version, as there are no migrations.
+     * Opens the database file at [path], recreated if it's of another version, as there are no
+     * migrations.
      */
-    fun open() {
-        database = Databases.open(OsuDatabaseConstructor, databasePath.toPath()) {
-            fallbackToDestructiveMigration(dropAllTables = true)
-        }
+    fun open(path: String = databasePath) {
+        path.toPath().parent?.let { Platform.fileSystem.createDirectories(it) }
+
+        database = osuDatabaseBuilder(path)
+            .setDriver(BundledSQLiteDriver())
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
     }
 
     /**
@@ -134,7 +143,7 @@ object DatabaseManager {
      * touched, e.g. in tests and the UI test browsers.
      */
     fun openInMemory() {
-        database = Databases.openInMemory(OsuDatabaseConstructor)
+        database = osuDatabaseBuilder(null).setDriver(BundledSQLiteDriver()).build()
     }
 
 }

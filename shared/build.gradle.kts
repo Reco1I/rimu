@@ -232,8 +232,6 @@ tasks.matching { it.name == "check" || it.name == "desktopTest" }.configureEach 
     dependsOn(checkCommonSources)
 }
 
-// Room's compiler, which generates the database for each target. It must be of the version of the
-// runtime Verktex provides (room in verktex/gradle/libs.versions.toml).
 val roomVersion = "2.7.2"
 
 kotlin {
@@ -300,6 +298,11 @@ kotlin {
 
             // Dates and times in a time zone, and their formats.
             api("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
+
+            // The database, the same on every platform: Room over the bundled SQLite, see
+            // com.osudroid.data.OsuDatabase. KSP generates its implementation for each target.
+            api("androidx.room:room-runtime:$roomVersion")
+            api("androidx.sqlite:sqlite-bundled:2.5.1")
         }
 
         androidMain.dependencies {

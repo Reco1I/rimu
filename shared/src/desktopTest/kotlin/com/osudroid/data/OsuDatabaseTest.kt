@@ -2,11 +2,9 @@ package com.osudroid.data
 
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
-import com.reco1l.verktex.database.Databases
 import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.runBlocking
-import okio.Path.Companion.toOkioPath
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -30,8 +28,14 @@ class OsuDatabaseTest {
         directory.deleteRecursively()
     }
 
-    private fun open() = Databases.open(OsuDatabaseConstructor, file.toOkioPath()) {
-        fallbackToDestructiveMigration(dropAllTables = true)
+    private fun open(): OsuDatabase {
+        DatabaseManager.open(file.path)
+        return DatabaseManager.database
+    }
+
+    private fun openInMemory(): OsuDatabase {
+        DatabaseManager.openInMemory()
+        return DatabaseManager.database
     }
 
     private fun preset() = ModPreset(name = "Preset", serializedMods = "[]")
@@ -59,12 +63,12 @@ class OsuDatabaseTest {
 
     @Test
     fun `a database in memory starts empty and is never written`() = runBlocking {
-        val database = Databases.openInMemory(OsuDatabaseConstructor)
+        val database = openInMemory()
         database.getModPresetTable().insert(preset())
         assertEquals(1, database.getModPresetTable().getAll().size)
         database.close()
 
-        val another = Databases.openInMemory(OsuDatabaseConstructor)
+        val another = openInMemory()
         assertTrue(another.getModPresetTable().getAll().isEmpty())
         another.close()
         assertTrue(directory.listFiles().isNullOrEmpty())
