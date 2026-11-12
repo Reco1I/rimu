@@ -47,13 +47,13 @@ import ru.nsu.ccfit.zuev.osu.game.GameScene
  */
 abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
-    // What the game was opened with: a file, a file of another application, or a room invite.
-    private var fileToAdd: String? = null
-    private var contentUriToAdd: Uri? = null
+    // What the game was opened with and hasn't opened yet: a file (of this or another application)
+    // or a room invite, opened once the game has started. Guarded by openedLock, as the game starts
+    // on another thread than the activity's.
+    private val openedLock = Any()
+    private var openedFile: Uri? = null
     private var roomInviteLink: Uri? = null
-
-    // Whether fileToAdd is a replay, played once the library is loaded.
-    private var willReplay = false
+    private var isGameStarted = false
 
 
     //region Lifecycle
@@ -98,16 +98,8 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
             }
         }
 
-        val inviteLink = roomInviteLink
-
-        if (inviteLink != null) {
-            roomInviteLink = null
-            Multiplayer.connectFromLink(inviteLink.pathSegments)
-        } else if (willReplay) {
-            fileToAdd?.let { MainScene.watchReplay(it) }
-            fileToAdd = null
-            willReplay = false
-        }
+        synchronized(openedLock) { isGameStarted = true }
+        openWhatTheGameWasOpenedWith()
     }
 
     override fun onStart() {
@@ -119,35 +111,9 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         super.onNewIntent(intent)
         setIntent(intent)
 
-        if (!parseIntent(intent)) {
-            return
-        }
-
-        val inviteLink = roomInviteLink
-
-        if (inviteLink != null) {
-            roomInviteLink = null
-
-            updateThread {
-                // Gameplay is left first, its state would linger in the lobby.
-                GameScene.current?.quit()
-                Multiplayer.connectFromLink(inviteLink.pathSegments)
-            }
-            return
-        }
-
-        async {
-            loadBeatmapLibrary()
-
-            val replayFile = fileToAdd
-
-            if (willReplay && replayFile != null) {
-                updateThread {
-                    MainScene.watchReplay(replayFile)
-                    fileToAdd = null
-                    willReplay = false
-                }
-            }
+        // Before the game has started, it's opened once it has.
+        if (parseIntent(intent)) {
+            openWhatTheGameWasOpenedWith()
         }
     }
 
@@ -228,11 +194,12 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
         val data = intent.data ?: return false
 
-        if (data.toString().startsWith(LobbyAPI.INVITE_HOST)) {
-            roomInviteLink = data
-        } else when (data.scheme) {
-            ContentResolver.SCHEME_FILE -> fileToAdd = data.path
-            ContentResolver.SCHEME_CONTENT -> contentUriToAdd = data
+        synchronized(openedLock) {
+            if (data.toString().startsWith(LobbyAPI.INVITE_HOST)) {
+                roomInviteLink = data
+            } else if (data.scheme == ContentResolver.SCHEME_FILE || data.scheme == ContentResolver.SCHEME_CONTENT) {
+                openedFile = data
+            }
         }
 
         // Consumed, so that onStart and onResume don't read it again.
@@ -240,25 +207,39 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         return true
     }
 
-    override suspend fun loadBeatmapLibrary() {
-        contentUriToAdd?.let {
-            fileToAdd = copyContentUriToCache(it)
-            contentUriToAdd = null
-        }
-
-        // A file the game was opened with: an archive is imported instead of the ones in the folders,
-        // a replay is played once the game has started.
-        val openedFile = fileToAdd
-
-        if (openedFile != null) {
-            if (openedFile.lowercase().endsWith(".odr")) {
-                willReplay = true
-            } else {
-                fileToAdd = null
+    // Opens the room invite or the file the game was opened with, once the game has started: a replay
+    // is played, an archive (a beatmap set or a skin) imported.
+    private fun openWhatTheGameWasOpenedWith() {
+        val (inviteLink, file) = synchronized(openedLock) {
+            if (!isGameStarted) {
+                return
+            }
+            (roomInviteLink to openedFile).also {
+                roomInviteLink = null
+                openedFile = null
             }
         }
 
-        LibraryImport.loadLibrary(openedFile)
+        if (inviteLink != null) {
+            updateThread {
+                // Gameplay is left first, its state would linger in the lobby.
+                GameScene.current?.quit()
+                Multiplayer.connectFromLink(inviteLink.pathSegments)
+            }
+            return
+        }
+
+        file ?: return
+
+        async {
+            val path = if (file.scheme == ContentResolver.SCHEME_FILE) file.path else copyContentUriToCache(file)
+
+            when {
+                path == null -> Unit
+                path.lowercase().endsWith(".odr") -> updateThread { MainScene.watchReplay(path) }
+                else -> LibraryImport.loadLibrary(path)
+            }
+        }
     }
 
     // Copies a file another application opened the game with to the cache, as it has no path.
@@ -344,8 +325,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
     override val platformApplication: PlatformApplication
         get() = super.platformApplication.copy(buildType = buildType)
-
-    override fun checkNewSkins() = LibraryImport.importSkins()
 
     override fun verifyFileIntegrity() = AndroidSecurityUtils.verifyFileIntegrity(this)
 

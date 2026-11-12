@@ -1,5 +1,6 @@
 package com.osudroid
 
+import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.audio.MusicService
 import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.data.DatabaseManager
@@ -104,10 +105,10 @@ object OsuGame {
             Settings[VerktexSettings.ResolutionScale] = Settings[OsuSettings.ResolutionScale] / 100f
 
             SplashScene.progress = 50
-            host.checkNewSkins()
+            LibraryImport.importSkins()
             SkinFolders.load()
             DifficultyCalculationManager.checkForOutdatedStarRatings()
-            host.loadBeatmapLibrary()
+            LibraryImport.loadLibrary()
 
             splashScene.playWelcomeAnimation()
 

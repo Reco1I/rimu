@@ -57,7 +57,7 @@ The codebase is split across multiple main package roots, each in `shared/src/co
 
 ### Game Loop
 
-`OsuGame.start` starts the game on every host: the hosts (`AndroidOsuGameHost`, which extends Verktex's `AndroidGameHost` and which `MainActivity` only launches, and `OsuDesktop`) call it once the engine is initialized and give it their platform parts through `OsuGameHost` (`loadBeatmapLibrary`, `onGameStarted`). Scenes are kept in a stack through `Verktex.pushScene` and `Verktex.popScene`, and `Verktex.resetScenes` replaces the whole stack (the hosts do it with the main menu once the splash ends). The scene flow for singleplayer is:
+`OsuGame.start` starts the game on every host: the hosts (`AndroidOsuGameHost`, which extends Verktex's `AndroidGameHost` and which `MainActivity` only launches, and `OsuDesktop`) call it once the engine is initialized and give it their platform parts through `OsuGameHost` (e.g. `onGameStarted`, where Android opens the file or the room invite it was opened with). Scenes are kept in a stack through `Verktex.pushScene` and `Verktex.popScene`, and `Verktex.resetScenes` replaces the whole stack (the hosts do it with the main menu once the splash ends). The scene flow for singleplayer is:
 
 ```
 SplashScene → LoadingScreen → MainScene (menu hub)

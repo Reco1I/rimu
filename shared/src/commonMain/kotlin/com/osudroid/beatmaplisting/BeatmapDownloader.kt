@@ -1,6 +1,5 @@
 package com.osudroid.beatmaplisting
 
-import com.osudroid.OsuGameHost
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.online.DownloadProgress
@@ -96,7 +95,7 @@ object BeatmapDownloader {
                 return
             }
 
-            OsuGameHost.current.loadBeatmapLibrary()
+            LibraryImport.loadLibrary()
         } finally {
             // The archive was only kept to be imported, and one that failed was renamed by the import.
             // There's one download at a time, so nothing else is in the folder.

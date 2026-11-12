@@ -1,8 +1,8 @@
 package com.osudroid.multiplayer
 
+import com.osudroid.beatmaps.LibraryImport
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
-import com.osudroid.OsuGameHost
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.utils.*
@@ -153,8 +153,8 @@ object Multiplayer {
             try {
                 LoaderScene().show()
 
-                OsuGameHost.current.checkNewSkins()
-                OsuGameHost.current.loadBeatmapLibrary()
+                LibraryImport.importSkins()
+                LibraryImport.loadLibrary()
 
                 val roomID = pathSegments[0].toLong()
                 val password = if (pathSegments.size > 1) pathSegments[1] else null

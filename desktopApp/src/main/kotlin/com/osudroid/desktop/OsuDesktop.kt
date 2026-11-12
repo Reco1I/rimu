@@ -2,7 +2,6 @@ package com.osudroid.desktop
 
 import com.osudroid.OsuGame
 import com.osudroid.OsuGameHost
-import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.debug.QuickPlay
 import com.reco1l.verktex.PlatformApplication
 import com.reco1l.verktex.desktop.DesktopGameHost
@@ -24,10 +23,6 @@ class OsuDesktop(
 ) : DesktopGameHost(title = "osu!droid", vsync = true), OsuGameHost {
 
     override val platformApplication = DESKTOP_APPLICATION
-
-    override suspend fun loadBeatmapLibrary() = LibraryImport.loadLibrary()
-
-    override fun checkNewSkins() = LibraryImport.importSkins()
 
     override fun onEngineInitialized() = OsuGame.start()
 

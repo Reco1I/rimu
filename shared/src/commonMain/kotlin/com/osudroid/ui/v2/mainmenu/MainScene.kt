@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
 import com.osudroid.settings.OsuSettings
@@ -231,8 +232,8 @@ class MainScene : UIScene() {
                         async {
                             LoaderScene().show()
 
-                            OsuGameHost.current.checkNewSkins()
-                            OsuGameHost.current.loadBeatmapLibrary()
+                            LibraryImport.importSkins()
+                            LibraryImport.loadLibrary()
 
                             // Song select opens on the beatmap playing in the menu, the selection.
                             val songSelect = SongSelect()
@@ -264,8 +265,8 @@ class MainScene : UIScene() {
                         async {
                             LoaderScene().show()
 
-                            OsuGameHost.current.checkNewSkins()
-                            OsuGameHost.current.loadBeatmapLibrary()
+                            LibraryImport.importSkins()
+                            LibraryImport.loadLibrary()
 
                             Verktex.withTreeLock {
                                 Verktex.popScene()

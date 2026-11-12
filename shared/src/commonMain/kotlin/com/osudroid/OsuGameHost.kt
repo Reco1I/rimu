@@ -21,17 +21,6 @@ interface OsuGameHost : GameHost {
     fun onGameStarted() = Unit
 
     /**
-     * Imports the beatmap sets waiting to be imported (`.osz` files in the game's folders, or opened
-     * with the game) and loads the library.
-     */
-    suspend fun loadBeatmapLibrary() = Unit
-
-    /**
-     * Imports the skins waiting to be imported (`.osk` files in the game's folders).
-     */
-    fun checkNewSkins() = Unit
-
-    /**
      * Whether [showBeatmapListing] is available.
      */
     val hasBeatmapListing: Boolean
