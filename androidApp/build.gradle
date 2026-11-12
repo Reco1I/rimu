@@ -18,7 +18,7 @@ if (localPropertiesFile.exists()) {
 }
 
 // The Android application: the entry points of the game on Android (MainActivity, the application
-// class, the other activities and the push service) and what an application decides: its id,
+// class, the other activities) and what an application decides: its id,
 // version, signing, build types and the Firebase plugins. The game itself is :shared.
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
@@ -151,6 +151,5 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'com.google.firebase:firebase-crashlytics:19.4.0'
     implementation 'com.google.firebase:firebase-analytics:22.2.0'
-    implementation 'com.google.firebase:firebase-messaging:24.1.0'
     implementation 'pub.devrel:easypermissions:3.0.0'
 }

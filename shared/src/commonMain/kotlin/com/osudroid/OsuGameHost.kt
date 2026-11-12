@@ -15,11 +15,6 @@ import com.reco1l.verktex.ui.ITextInput
 interface OsuGameHost : GameHost {
 
     /**
-     * Subscribes to or unsubscribes from the announcements the game receives as notifications.
-     */
-    fun setAnnouncementsSubscribed(subscribed: Boolean) = Unit
-
-    /**
      * Logs an analytics event, such as `login`, with its parameters.
      */
     fun logAnalyticsEvent(name: String, parameters: Map<String, String>) = Unit

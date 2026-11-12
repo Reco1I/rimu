@@ -8,7 +8,6 @@ import com.reco1l.verktex.Platform
 import com.reco1l.verktex.PlatformApplication
 import ru.nsu.ccfit.zuev.osuplus.app.BuildConfig
 import java.io.File
-import com.google.firebase.FirebaseApp
 import com.osudroid.ui.v2.Skin
 import com.reco1l.verktex.android.UITestActivity
 import com.reco1l.verktex.testing.VerktexUITests
@@ -28,9 +27,6 @@ class OsuUITestActivity : UITestActivity(), OsuGameHost {
 
 
     override fun onEngineInitialized() {
-        // Firebase only initializes itself in the main process, the configuration subscribes to topics.
-        FirebaseApp.initializeApp(this)
-
         // The game isn't running, a task reaching what only it sets up mustn't end the browser.
         Platform.onUncaughtException = { Logger.e("OsuUITestActivity", "Uncaught exception in a task", it) }
 

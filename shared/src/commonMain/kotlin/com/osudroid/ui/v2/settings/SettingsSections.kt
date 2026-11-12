@@ -308,19 +308,6 @@ val generalSection = listOf(
     ),
 
     SettingsCategory(
-        title = Res.string.opt_category_community,
-        options = listOf(
-            SettingsOption(
-                type = Type.Checkbox,
-                key = "receiveAnnouncements",
-                setting = OsuSettings.ReceiveAnnouncements,
-                title = Res.string.opt_receive_announcements_title,
-                summary = Res.string.opt_receive_announcements_summary
-            )
-        )
-    ),
-
-    SettingsCategory(
         title = Res.string.opt_category_config_backup,
         options = listOf(
             SettingsOption(

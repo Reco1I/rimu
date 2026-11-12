@@ -1,8 +1,6 @@
 package com.osudroid.ui.v2.settings
 
 import com.osudroid.OsuGame
-import com.osudroid.OsuGameHost
-import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.settings.SettingKey
 import com.osudroid.settings.OsuSettings
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
@@ -188,9 +186,6 @@ class SettingsMenu : UIScene() {
      * Leaves the menu, applying the changed preferences the same way the legacy settings screen does.
      */
     fun back() {
-
-        // As the legacy settings screen did when it was left.
-        OsuGameHost.current.setAnnouncementsSubscribed(Settings[OsuSettings.ReceiveAnnouncements])
         onPlayfieldChanged = null
 
         if (Multiplayer.isMultiplayer) {

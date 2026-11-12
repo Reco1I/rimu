@@ -27,21 +27,6 @@
         tools:ignore="UnusedAttribute">
         <profileable android:shell="${profileable}" tools:targetApi="29"/>
 
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/notify_inso"/>
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/colorAccent"/>
-
-        <service
-            android:name="ru.nsu.ccfit.zuev.push.PushNotificationService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
-            </intent-filter>
-        </service>
-
         <!-- The UI test browser, only enabled in debug builds. It runs in its own process since the
              engine is a singleton shared with the game. -->
         <activity

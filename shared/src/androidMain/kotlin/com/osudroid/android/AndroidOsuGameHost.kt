@@ -15,7 +15,6 @@ import android.view.View
 import androidx.core.content.PermissionChecker
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.messaging.FirebaseMessaging
 import com.osudroid.OsuGame
 import com.osudroid.OsuGameHost
 import com.osudroid.beatmaps.BeatmapCache
@@ -447,14 +446,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         get() = super.platformApplication.copy(buildType = buildType)
 
     override fun checkNewSkins() = LibraryImport.importSkins()
-
-    override fun setAnnouncementsSubscribed(subscribed: Boolean) {
-        if (subscribed) {
-            FirebaseMessaging.getInstance().subscribeToTopic("announcements")
-        } else {
-            FirebaseMessaging.getInstance().unsubscribeFromTopic("announcements")
-        }
-    }
 
     override fun logAnalyticsEvent(name: String, parameters: Map<String, String>) {
         val bundle = Bundle()

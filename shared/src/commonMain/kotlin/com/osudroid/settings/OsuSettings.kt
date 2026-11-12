@@ -1,6 +1,5 @@
 package com.osudroid.settings
 
-import com.osudroid.OsuGameHost
 import com.osudroid.resources.Languages
 import com.osudroid.ui.v2.SkinFolders
 import com.reco1l.verktex.data.Color4
@@ -151,7 +150,6 @@ object OsuSettings {
     @JvmField val OnlinePassword = key("onlinePassword", "", isSensitive = true)
     @JvmField val StayOnline = key("stayOnline", false)
     @JvmField val LoadAvatar = key("loadAvatar", false)
-    @JvmField val ReceiveAnnouncements = key("receiveAnnouncements", true)
     @JvmField val DifficultyAlgorithmSetting = key("difficultyAlgorithm", "0")
     @JvmField val BeatmapLeaderboardScoringModeSetting = key("beatmapLeaderboardScoringMode", "0")
     @JvmField val UseNightcoreOnMultiplayer = key("player_nightcore", false)
@@ -307,7 +305,6 @@ object OsuSettings {
         }
 
         GameResolution.measure()
-        OsuGameHost.current.setAnnouncementsSubscribed(Settings[ReceiveAnnouncements])
         Languages.apply(Settings[Language])
     }
 }

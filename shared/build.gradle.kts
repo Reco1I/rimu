@@ -311,7 +311,6 @@ kotlin {
 
             implementation("com.google.firebase:firebase-crashlytics:19.4.0")
             implementation("com.google.firebase:firebase-analytics:22.2.0")
-            implementation("com.google.firebase:firebase-messaging:24.1.0")
 
             // Localizations
             implementation("com.github.osudroid:language-pack:${providers.gradleProperty("languagePackVersion").get()}")
