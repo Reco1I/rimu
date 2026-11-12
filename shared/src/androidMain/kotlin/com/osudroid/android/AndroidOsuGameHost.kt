@@ -240,6 +240,11 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
         Multiplayer.flushLog()
         AccessibilityDetector.unregister(this)
+
+        // A recreated activity may already have replaced it.
+        if (AndroidGame.mainActivity === this) {
+            AndroidGame.mainActivity = null
+        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

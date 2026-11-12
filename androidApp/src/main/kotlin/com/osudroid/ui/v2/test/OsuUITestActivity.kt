@@ -37,7 +37,7 @@ class OsuUITestActivity : UITestActivity(), OsuGameHost {
         OsuSettings.load()
         Skin.load(SkinFolders.path)
 
-        // The activity is the context of the game here, it can start other activities too.
+        // The game reaches its resources through the application of the browser here.
         AndroidGame.context = this
 
         // Before any suite is created, the components under test reach the game through it.
