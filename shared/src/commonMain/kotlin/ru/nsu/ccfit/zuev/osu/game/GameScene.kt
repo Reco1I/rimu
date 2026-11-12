@@ -144,9 +144,9 @@ import com.reco1l.verktex.input.KeyboardEvent
 
 /**
  * A play of one beatmap: its gameplay, its retries and the replays watched from its [scoring] scene.
- * Created with [com.osudroid.OsuGame.createGameScene] by whoever starts the play.
+ * Created by whoever starts the play.
  */
-open class GameScene : GameObjectListener {
+class GameScene : GameObjectListener {
     private val maximumActiveCursorCount = 3
     private var cursors = arrayOfNulls<Cursor>(CursorCount)
     @JvmField
@@ -977,7 +977,7 @@ open class GameScene : GameObjectListener {
         startGame(beatmapInfo, replayFile, mods, false)
     }
 
-    open fun startGame(beatmapInfo: BeatmapInfo?, replayFile: String?, mods: ModHashMap?, isHUDEditor: Boolean) {
+    fun startGame(beatmapInfo: BeatmapInfo?, replayFile: String?, mods: ModHashMap?, isHUDEditor: Boolean) {
         isReadyToStart = false
         isHUDEditorMode = isHUDEditor
         startedFromHUDEditor = isHUDEditor
@@ -3090,7 +3090,7 @@ open class GameScene : GameObjectListener {
     /**
      * The time that gameplay started relative to the start of the [Beatmap], in seconds.
      */
-    open val initialStartTime: Float
+    val initialStartTime: Float
         get() = initialStartTimeValue
 
     /**

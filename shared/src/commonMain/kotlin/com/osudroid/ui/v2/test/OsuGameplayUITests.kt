@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.test
 
+import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.HitCircle
@@ -128,6 +129,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
             useGameContext()
 
             val elements = mutableListOf<HUDElement>()
+            val gameScene = GameScene()
 
             column {
                 for (entry in HUDElements.entries) {
@@ -142,7 +144,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                             clipping = ClipMode.Bounds
 
                             val element = try {
-                                entry.create(TestGameContext.gameScene)
+                                entry.create(gameScene)
                             } catch (e: Exception) {
                                 text {
                                     width = fill()
@@ -164,7 +166,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                 }
             }
 
-            FakeGameplayDriver(this, elements)
+            FakeGameplayDriver(this, gameScene, elements)
         }
     }
 

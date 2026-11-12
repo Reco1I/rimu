@@ -3,6 +3,7 @@ package com.osudroid.settings
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.settings.Settings
 import kotlin.jvm.JvmStatic
+import okio.Path.Companion.toPath
 
 /**
  * The folders of the game, each a path ending with `/`. The ones the player can choose are stored in
@@ -37,6 +38,13 @@ object GameFolders {
         set(value) {
             Settings[OsuSettings.BeatmapPath] = value
         }
+
+    /**
+     * The folder of the beatmap set in [directory]: a folder in [beatmapPath], unless [directory] is
+     * absolute, as the sets the UI test browser makes up in the cache folder are.
+     */
+    @JvmStatic
+    fun beatmapSetPath(directory: String) = if (directory.toPath().isAbsolute) directory else beatmapPath + directory
 
     /**
      * The folder with the replays of the scores.

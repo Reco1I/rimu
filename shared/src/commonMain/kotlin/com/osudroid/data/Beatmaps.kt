@@ -236,10 +236,11 @@ data class BeatmapInfo(
         get() = "${absoluteSetDirectory}/$backgroundFilename"
 
     /**
-     * The beatmap set path ([setDirectory]) with [com.osudroid.settings.GameFolders.beatmapPath] prepended.
+     * The beatmap set path ([setDirectory]) in [com.osudroid.settings.GameFolders.beatmapPath], see
+     * [GameFolders.beatmapSetPath].
      */
     val absoluteSetDirectory
-        get() = "${GameFolders.beatmapPath}$setDirectory"
+        get() = GameFolders.beatmapSetPath(setDirectory)
 
     /**
      * The total hit object count.

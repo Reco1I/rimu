@@ -1,41 +1,49 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitCircle
 import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.hud.IGameplayEvents
 import com.reco1l.verktex.testing.UITestStage
 import kotlin.random.Random
+import ru.nsu.ccfit.zuev.osu.game.GameScene
+import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
- * Makes up a play on the [FakeGameScene], hitting notes with some error now and then, and sends
- * the gameplay events to [listeners] as the game scene sends them to the HUD.
+ * Makes up a play on [gameScene], which isn't playing: hits notes with some error now and then, and
+ * sends the gameplay events to [listeners] as the game scene sends them to the HUD.
  *
- * The play lasts as long as the fake scene's objects do and starts over after.
+ * Only the statistics of [gameScene] follow the play: its time is the one of its gameplay clock,
+ * which doesn't run. The play lasts [PLAY_LENGTH] and starts over after.
  */
-class FakeGameplayDriver(stage: UITestStage, private val listeners: List<IGameplayEvents>) {
-
-    private val gameScene = TestGameContext.gameScene
+class FakeGameplayDriver(
+    stage: UITestStage,
+    private val gameScene: GameScene,
+    private val listeners: List<IGameplayEvents>
+) {
 
     private val random = Random(727)
 
     private val hitObject = HitCircle(0.0, Vector2(256f, 192f), true, 0)
 
+    private var time = 0f
+
     private var nextNoteTime = 0f
 
 
     init {
-        gameScene.resetPlay()
+        resetPlay()
 
         stage.onEachFrame { frame ->
             val deltaTime = frame.elapsedFrameTime
-            gameScene.time += deltaTime
+            time += deltaTime
 
-            if (gameScene.time >= gameScene.lastObjectEndTime) {
+            if (time >= PLAY_LENGTH) {
                 restart()
             }
 
-            while (gameScene.time >= nextNoteTime) {
+            while (time >= nextNoteTime) {
                 hitNote()
                 nextNoteTime += NOTE_INTERVAL
             }
@@ -43,19 +51,25 @@ class FakeGameplayDriver(stage: UITestStage, private val listeners: List<IGamepl
             listeners.forEach { it.onGameplayUpdate(gameScene, deltaTime) }
         }
 
-        stage.onDispose { gameScene.resetPlay() }
     }
 
 
+    private fun resetPlay() {
+        time = 0f
+        gameScene.stat = StatisticV2()
+        gameScene.hitWindow = DroidHitWindow(8f)
+        gameScene.firstObjectStartTime = 0f
+        gameScene.lastObjectEndTime = PLAY_LENGTH
+    }
+
     private fun restart() {
-        gameScene.resetPlay()
+        resetPlay()
         nextNoteTime = 0f
         listeners.forEach { it.onSeek() }
     }
 
     private fun hitNote() {
         val stat = gameScene.stat
-        val time = gameScene.time
         val roll = random.nextFloat()
 
         listeners.forEach {
@@ -88,6 +102,7 @@ class FakeGameplayDriver(stage: UITestStage, private val listeners: List<IGamepl
 
 
     private companion object {
+        const val PLAY_LENGTH = 60f
         const val NOTE_INTERVAL = 0.2f
         const val OBJECT_RADIUS = 50f
     }

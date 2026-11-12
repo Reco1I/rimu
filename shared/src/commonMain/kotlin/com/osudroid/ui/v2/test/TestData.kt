@@ -12,11 +12,17 @@ import com.osudroid.multiplayer.api.data.RoomBeatmap
 import com.osudroid.multiplayer.api.data.RoomMods
 import com.osudroid.multiplayer.api.data.RoomPlayer
 import com.osudroid.utils.ModHashMap
-import kotlin.random.Random
 import com.osudroid.utils.currentTimeMillis
+import com.reco1l.verktex.Platform
+import kotlin.random.Random
+import okio.ByteString
+import okio.ByteString.Companion.encodeUtf8
 
 /**
  * Made up data for the UI tests, so components can be tried without a library, scores or a server.
+ *
+ * The beatmaps are copies of one real beatmap (`assets/test/beatmap.osu`) with made up metadata, so
+ * they can be played, see [TestGameContext].
  */
 object TestData {
 
@@ -24,6 +30,17 @@ object TestData {
      * Prefix of the directories of the sample beatmap sets, so they never match a real one.
      */
     private const val DIRECTORY_PREFIX = "uitest-"
+
+    /**
+     * The audio file of every beatmap, an empty one: songs are played by a [FakeMusicService].
+     */
+    const val AUDIO_FILENAME = "audio.mp3"
+
+    // The beatmap every sample beatmap is a copy of.
+    private val template by lazy {
+        Platform.provider.read("test/beatmap.osu", isExternal = false)?.decodeToString()
+            ?: error("The test beatmap (assets/test/beatmap.osu) is missing")
+    }
 
     private val TITLES = listOf("Blue Zenith", "Adventure", "Crystallized", "Freedom Dive", "Galaxy Collapse",
         "Harumachi Clover", "Kimi no Bouken", "Lagtrain", "Night of Knights", "Odoru Mizu", "Padoru", "Quaoar",
@@ -43,7 +60,8 @@ object TestData {
 
         return TITLES.mapIndexed { index, title ->
             val count = random.nextInt(1, VERSIONS.size + 1)
-            val directory = "$DIRECTORY_PREFIX$index $title"
+            // Absolute, outside the beatmaps folder, see GameFolders.beatmapSetPath.
+            val directory = (Platform.storage.cacheDirectory / "$DIRECTORY_PREFIX$index $title").toString()
 
             BeatmapSetInfo(index, directory, VERSIONS.take(count).mapIndexed { difficulty, version ->
                 beatmap(directory, title, version, stars = difficulty * 1.3f + random.nextFloat() + 1f)
@@ -120,20 +138,36 @@ object TestData {
     )
 
 
+    /**
+     * The `.osu` file of [beatmap]: the test beatmap with the metadata of [beatmap].
+     */
+    fun beatmapFile(beatmap: BeatmapInfo) = beatmapFile(beatmap.title, beatmap.version)
+
+    private fun beatmapFile(title: String, version: String): ByteString {
+        val metadata = mapOf("Title" to title, "Artist" to ARTIST, "Creator" to CREATOR, "Version" to version)
+
+        return template.split('\n').joinToString("\n") { line ->
+            val key = line.substringBefore(':', "")
+            val value = metadata[key] ?: return@joinToString line
+            // The line ending is kept, the file's are CRLF.
+            "$key:$value" + if (line.endsWith('\r')) "\r" else ""
+        }.encodeUtf8()
+    }
+
     private fun beatmap(directory: String, title: String, version: String, stars: Float) = BeatmapInfo(
         filename = "$version.osu",
-        md5 = "$directory/$version",
+        md5 = beatmapFile(title, version).md5().hex(),
         id = null,
-        audioFilename = "audio.mp3",
+        audioFilename = AUDIO_FILENAME,
         backgroundFilename = null,
         status = null,
         setDirectory = directory,
         setId = null,
         title = title,
         titleUnicode = title,
-        artist = "Artist",
-        artistUnicode = "Artist",
-        creator = "Mapper",
+        artist = ARTIST,
+        artistUnicode = ARTIST,
+        creator = CREATOR,
         version = version,
         tags = "",
         source = "",
@@ -155,4 +189,8 @@ object TestData {
         maxCombo = 900,
         epilepsyWarning = false
     )
+
+
+    private const val ARTIST = "Artist"
+    private const val CREATOR = "Mapper"
 }

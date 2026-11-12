@@ -27,7 +27,6 @@ import kotlin.jvm.JvmStatic
 import okio.IOException
 import okio.Path.Companion.toPath
 import ru.nsu.ccfit.zuev.osu.LibraryManager
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
 /**
@@ -52,13 +51,6 @@ object OsuGame {
      */
     @JvmStatic
     var isHeadless = true
-
-    /**
-     * Creates the [GameScene] of a new play. Replaced by the UI test browser with one that plays
-     * nothing.
-     */
-    @JvmStatic
-    var createGameScene: () -> GameScene = ::GameScene
 
 
     /**

@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.songselect
 
+import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.settings.OsuSettings
@@ -272,7 +273,7 @@ class SongSelect : UIScene() {
             return
         }
 
-        val gameScene = OsuGame.createGameScene()
+        val gameScene = GameScene()
 
         gameScene.leaderboardItems = { leaderboard.scoreBoardItems }
         gameScene.isLeaderboardOnline = isLeaderboardOnline

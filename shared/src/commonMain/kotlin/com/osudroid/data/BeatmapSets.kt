@@ -41,7 +41,7 @@ data class BeatmapSetInfo(
      * The absolute path.
      */
     val path
-        get() = "${GameFolders.beatmapPath}${directory}"
+        get() = GameFolders.beatmapSetPath(directory)
 
 
     /**

@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.test
 
+import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.debug.MockRoom
@@ -9,7 +10,6 @@ import com.osudroid.multiplayer.api.data.PlayerStatus
 import com.osudroid.mods.ModDoubleTime
 import com.osudroid.mods.ModHidden
 import com.osudroid.ui.v2.GameLoaderScene
-import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.utils.ModHashMap
 import com.osudroid.ui.v2.mainmenu.MusicPlayer
@@ -37,8 +37,10 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineManager
  * made up here, see [TestGameContext].
  *
  * Each scene is tested on its own inside the stage: the scenes it would open (e.g. song select from
- * the main menu) and going back from it are only logged. Overlays it opens, like the mod menu, are
- * shown. Settings changed here are the game's.
+ * the main menu) and going back from it are only logged, except in the tests that start plays (the
+ * loader, song select and the room), which allow navigating so gameplay is shown: the made up
+ * beatmaps are copies of a real one, played without sound. Overlays a scene opens, like the mod menu,
+ * are shown. Settings changed here are the game's.
  */
 object OsuSceneUITests : UITestSuite("Scenes") {
 
@@ -72,15 +74,15 @@ object OsuSceneUITests : UITestSuite("Scenes") {
         }
 
         test("Game loader") {
-            gameLoader(isRestart = false, epilepsyWarning = false)
+            play(epilepsyWarning = false)
         }
 
         test("Game loader (restart)") {
-            gameLoader(isRestart = true, epilepsyWarning = false)
+            restartLoader()
         }
 
         test("Game loader (epilepsy warning)") {
-            gameLoader(isRestart = false, epilepsyWarning = true)
+            play(epilepsyWarning = true)
         }
 
         test("Settings") {
@@ -90,6 +92,8 @@ object OsuSceneUITests : UITestSuite("Scenes") {
 
         test("Song select") {
             useGameContext()
+            // Confirming a beatmap plays it.
+            allowsNavigation = true
             scene(SongSelect().apply { loadBeatmaps() })
         }
 
@@ -132,6 +136,8 @@ object OsuSceneUITests : UITestSuite("Scenes") {
         test("Room") {
             useGameContext()
             Multiplayer.isMultiplayer = true
+            // Starting the match plays the beatmap.
+            allowsNavigation = true
 
             // The mock socket of debug builds answers as the server would, it ends up showing the
             // room scene, the first scene pushed into the stage.
@@ -168,9 +174,8 @@ object OsuSceneUITests : UITestSuite("Scenes") {
     }
 
 
-    // The loader waits for the game scene, which never loads here: "Finish loading" marks it ready, as
-    // the end of loading the beatmap does.
-    private fun UITestStage.gameLoader(isRestart: Boolean, epilepsyWarning: Boolean) {
+    // Plays the first beatmap with mods, over the browser, as song select would.
+    private fun UITestStage.play(epilepsyWarning: Boolean) {
         useGameContext()
 
         val beatmap = firstBeatmap()?.copy()?.also { it.epilepsyWarning = epilepsyWarning }
@@ -179,29 +184,26 @@ object OsuSceneUITests : UITestSuite("Scenes") {
             return
         }
 
-        val gameScene = TestGameContext.gameScene
-        gameScene.isReadyToStart = false
-        // Faded in by the loader once loading is done.
-        gameScene.hud = gameScene.hud ?: GameplayHUD(gameScene)
-        onDispose { gameScene.isReadyToStart = false }
+        allowsNavigation = true
+        GameScene().startGame(beatmap, null, testMods())
+    }
 
-        val mods = ModHashMap().apply {
-            put(ModHidden::class)
-            put(ModDoubleTime::class)
+    // The loader of a restart, inside the stage. Its game scene doesn't load, so it stays on.
+    private fun UITestStage.restartLoader() {
+        useGameContext()
+
+        val beatmap = firstBeatmap()
+        if (beatmap == null) {
+            log("No beatmaps in the library")
+            return
         }
 
-        scene(GameLoaderScene(gameScene, beatmap, mods, isRestart))
+        scene(GameLoaderScene(GameScene(), beatmap, testMods(), isRestart = true))
+    }
 
-        textButton {
-            anchor = Anchor.BottomCenter
-            origin = Anchor.BottomCenter
-            y = (-16f).dip
-            text = "Finish loading"
-            onActionUp = {
-                gameScene.isReadyToStart = true
-                log("Game scene ready")
-            }
-        }
+    private fun testMods() = ModHashMap().apply {
+        put(ModHidden::class)
+        put(ModDoubleTime::class)
     }
 
     private fun firstBeatmap() = LibraryManager.getLibrary().firstOrNull()?.beatmaps?.firstOrNull()

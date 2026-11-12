@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.beatmaplisting.BeatmapListing
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.BeatmapSelection
@@ -699,7 +700,7 @@ class MainScene : UIScene() {
             stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
 
             // The replay is played by this game when asked from the results.
-            val scoring = OsuGame.createGameScene().scoring
+            val scoring = GameScene().scoring
             scoring.load(stat, null, OsuGame.music, replayFile, null, beatmap)
             Verktex.pushScene(scoring.scene!!)
         }

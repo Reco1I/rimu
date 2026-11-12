@@ -1185,7 +1185,7 @@ class RoomScene(
 
                 allowAutomaticPlaybackRestart = false
                 OsuGame.music.stop()
-                game = OsuGame.createGameScene().apply { startGame(BeatmapSelection.beatmap, null, mods) }
+                game = GameScene().apply { startGame(BeatmapSelection.beatmap, null, mods) }
 
             }
         }

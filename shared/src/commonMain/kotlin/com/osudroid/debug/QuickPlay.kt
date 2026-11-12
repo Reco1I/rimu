@@ -1,6 +1,6 @@
 package com.osudroid.debug
 
-import com.osudroid.OsuGame
+import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.BeatmapSelection
 import com.osudroid.mods.ModAutoplay
 import com.osudroid.utils.ModHashMap
@@ -68,7 +68,7 @@ object QuickPlay {
         BeatmapSelection.beatmap = beatmap
         // Song select loads it otherwise, the game scene expects it.
         beatmap.backgroundPath?.let { Textures.load("::background", it) }
-        OsuGame.createGameScene().startGame(beatmap, null, mods)
+        GameScene().startGame(beatmap, null, mods)
         return true
     }
 }
