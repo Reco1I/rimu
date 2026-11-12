@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud.editor
 
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.ui.container.UIClickableContainer
@@ -66,7 +67,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
         // The button to show/hide the element selector
         +UIClickableContainer().apply {
             backgroundColor = Color4(0xFF181825)
-            radius = BUTTON_RADIUS.px
+            radius = CornerRadius(BUTTON_RADIUS.px)
 
             width = BUTTON_WIDTH.px
             height = 150f.px

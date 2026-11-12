@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.reco1l.verktex.math.Path
+import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
@@ -1280,7 +1281,7 @@ class GameScene : GameObjectListener {
                 // Attach the block area to the HUD so that it does not get scaled with the playfield.
                 val areaBox = object : UIBox() {
                     init {
-                        radius = Dimension.Fixed.Pixels(2f)
+                        radius = CornerRadius(Dimension.Fixed.Pixels(2f))
                         backgroundColor = Color4(30f / 255f, 30f / 255f, 41f / 255f)
                         alpha = 0.15f
 

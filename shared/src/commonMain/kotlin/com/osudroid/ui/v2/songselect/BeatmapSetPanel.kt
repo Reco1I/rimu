@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
 import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.ui.borderColor
 import com.reco1l.verktex.Logger
 import com.osudroid.data.BeatmapInfo
@@ -139,21 +140,21 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 onActionUp = { select() }
                 borderColor = themed { palette.accent.alpha(0.3f) }
                 borderWidth = 1f.dip
-                radius = themed { radius.xl }
+                radius = themed { CornerRadius(radius.xl) }
 
                 cover = sprite {
                     width = fill()
                     height = fill()
                     scaleType = UISprite.ScaleType.Crop
                     backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.5f) }
-                    radius = themed { radius.xl }
+                    radius = themed { CornerRadius(radius.xl) }
                 }
 
                 box {
                     width = fill()
                     height = fill()
                     backgroundColor = Color4.Black.alpha(0.6f)
-                    radius = themed { radius.xl }
+                    radius = themed { CornerRadius(radius.xl) }
                 }
 
                 linearContainer {
@@ -206,7 +207,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
             difficultyIndicators += UIBox().apply {
                 width = 12f.dip
                 height = 2f.dip
-                radius = 8f.dip
+                radius = CornerRadius(8f.dip)
                 backgroundColor = OsuColors.getStarRatingColor(beatmap.getStarRating().toDouble()).lighten(0.5f)
             }
         }

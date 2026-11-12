@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.modmenu
 
 import com.osudroid.mods.*
+import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.ui.ISkinnable
 import com.osudroid.ui.v2.*
 import com.osudroid.utils.allModsInstances
@@ -71,7 +72,7 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
             acronymText.scale = bounds.height * 0.6f / acronymText.measuredSize.y
         }
 
-        radius = (bounds.height * 0.2f).px
+        radius = CornerRadius((bounds.height * 0.2f).px)
 
         super.onUpdate(clock)
     }

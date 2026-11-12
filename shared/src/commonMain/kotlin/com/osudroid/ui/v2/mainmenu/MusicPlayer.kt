@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.mainmenu
 
 import com.osudroid.OsuGame
+import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.BeatmapSelection
 
 import com.reco1l.verktex.data.Anchor
@@ -117,7 +118,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                         icon = FAIcon.Play
                         density = UIButton.Density.Large
                         variant = UIButton.Variant.Solid
-                        radius = FULL_RADIUS
+                        radius = CornerRadius(FULL_RADIUS)
 
                         onActionUp = {
                             if (OsuGame.music.isPlaying) {

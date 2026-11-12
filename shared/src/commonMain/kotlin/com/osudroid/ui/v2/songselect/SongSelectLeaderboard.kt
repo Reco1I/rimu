@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
 import com.osudroid.BeatmapSelection
+import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
@@ -284,7 +285,7 @@ class SongSelectLeaderboard : UILinearContainer() {
                     orientation = UILinearContainer.Orientation.Horizontal
                     padding = Padding(8f.px)
                     spacing = 8f.px
-                    radius = 12f.px
+                    radius = CornerRadius(12f.px)
                     borderWidth = 2f.px
 
                     backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.75f) }
@@ -314,7 +315,7 @@ class SongSelectLeaderboard : UILinearContainer() {
                                     height = 32f.px
                                     anchor = Anchor.CenterLeft
                                     origin = Anchor.CenterLeft
-                                    radius = 8f.px
+                                    radius = CornerRadius(8f.px)
                                     textureRegion = SkinTextures["offline-avatar"]
                                 }
                             }

@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
 import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.CompareFunction
 import com.reco1l.verktex.graphics.DepthState
@@ -26,7 +27,7 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
             anchor = Anchor.Center
             origin = Anchor.Center
             backgroundColor = mehColor
-            radius = (BAR_HEIGHT / 2).px
+            radius = CornerRadius((BAR_HEIGHT / 2).px)
             width = (WIDTH).px
             height = (BAR_HEIGHT).px
             depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)

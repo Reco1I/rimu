@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.test
 
 import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.HitCircle
@@ -138,7 +139,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                             width = 280f.dip
                             height = 110f.dip
                             padding = Padding(8f.dip)
-                            radius = 8f.dip
+                            radius = CornerRadius(8f.dip)
                             backgroundColor = Color4(0.16f, 0.16f, 0.22f)
                             // Some elements are bigger than the cell, e.g. the leaderboard.
                             clipping = ClipMode.Bounds

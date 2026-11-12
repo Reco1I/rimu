@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.multi
 
 import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
@@ -55,7 +56,7 @@ class RoomPlayerCard : UILinearContainer() {
         teamColorBar = UIButton().apply {
             width = 0.025f.pct
             height = Dimension.FillAvailable
-            radius = 32f.dip
+            radius = CornerRadius(32f.dip)
         }
 
         playerButton = RoomPlayerButton()
@@ -162,7 +163,7 @@ class RoomPlayerCard : UILinearContainer() {
                 origin = Anchor.CenterLeft
                 width = 50f.px
                 height = 50f.px
-                radius = 8f.px
+                radius = CornerRadius(8f.px)
                 scaleType = UISprite.ScaleType.Crop
                 textureRegion = defaultAvatar
             }

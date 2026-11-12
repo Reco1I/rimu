@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
 import com.osudroid.utils.ModHashMap
+import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.*
 import com.osudroid.beatmaps.DroidHitWindow.Companion.hitWindow300ToOverallDifficulty
@@ -70,7 +71,7 @@ class BeatmapInfoWedge(
             alpha = 0.75f
 
             color = themed { palette.accent.shade(0.1f).alpha(0.75f) }
-            radius = 12f.dip
+            radius = CornerRadius(12f.dip)
             strokeWidth = 2f.px
             strokeColor = themed { palette.accent.shade(0.2f) }
         }

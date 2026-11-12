@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.ui.borderColor
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.px
@@ -96,7 +97,7 @@ class HUDAimErrorMeter : HUDElement() {
             origin = Anchor.Center
             width = (SIZE * INNER_PORTION).px
             height = (SIZE * INNER_PORTION).px
-            radius = (SIZE * INNER_PORTION / 2f).px
+            radius = CornerRadius((SIZE * INNER_PORTION / 2f).px)
             borderWidth = LINE_THICKNESS.px
             borderColor = Color4.White
         }

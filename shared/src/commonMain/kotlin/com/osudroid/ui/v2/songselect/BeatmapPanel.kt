@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
 import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.ui.borderColor
 import com.osudroid.data.*
 import com.osudroid.ui.v2.*
@@ -43,7 +44,7 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         width = Dimension.FillAvailable
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
-        radius = themed { radius.xl }
+        radius = themed { CornerRadius(radius.xl) }
         backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.6f) }
         borderColor = themed { palette.accent.alpha(0.3f) }
         borderWidth = 1f.dip

@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.multi
 
 import com.osudroid.beatmaplisting.BeatmapListing
+import com.reco1l.verktex.data.CornerRadius
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
@@ -330,7 +331,7 @@ class RoomScene(
 
                         +BeatmapInfoLayout { mods }.apply {
                             padding = Padding(12f.dip)
-                            radius = themed { radius.md }
+                            radius = themed { CornerRadius(radius.md) }
                             backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.5f) }
                             isVisible = false
 
@@ -341,7 +342,7 @@ class RoomScene(
                             width = Dimension.FillAvailable
                             alignment = Anchor.Center
                             padding = Padding(12f.dip)
-                            radius = themed { radius.md }
+                            radius = themed { CornerRadius(radius.md) }
                             backgroundColor = themed { (palette.accent.shade(0.1f)).alpha(0.5f) }
                         }
 

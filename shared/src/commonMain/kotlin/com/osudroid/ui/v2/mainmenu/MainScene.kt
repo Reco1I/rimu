@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.mainmenu
 
 import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.beatmaplisting.BeatmapListing
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.BeatmapSelection
@@ -714,7 +715,7 @@ class MenuButton(icon: Int, title: String) : UITextButton() {
     init {
         width = 256f.dip
         height = wrap()
-        radius = 10.4f.dip
+        radius = CornerRadius(10.4f.dip)
         backgroundColor = themed { palette.buttonBackgroundSurface.alpha(0.6f) }
         density = Density.Large
         padding = Padding(24f.dip)

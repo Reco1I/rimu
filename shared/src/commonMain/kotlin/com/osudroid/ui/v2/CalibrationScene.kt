@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2
 
 import com.osudroid.OsuGame
+import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.control.IntegerTextInput
@@ -154,7 +155,7 @@ class CalibrationScene(
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                radius = (CIRCLE_DIAMETER / 2f).px
+                radius = CornerRadius((CIRCLE_DIAMETER / 2f).px)
                 borderWidth = 8f.px
                 borderColor = themed { palette.accent }
             }
@@ -164,7 +165,7 @@ class CalibrationScene(
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                radius = (CIRCLE_DIAMETER / 2f).px
+                radius = CornerRadius((CIRCLE_DIAMETER / 2f).px)
                 borderWidth = 6f.px
                 scaleOrigin = Anchor.Center
                 scale = APPROACH_SCALE_START
@@ -177,7 +178,7 @@ class CalibrationScene(
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                radius = (CIRCLE_DIAMETER / 2f).px
+                radius = CornerRadius((CIRCLE_DIAMETER / 2f).px)
                 borderWidth = 6f.px
                 scaleOrigin = Anchor.Center
                 alpha = 0f
@@ -235,7 +236,7 @@ class CalibrationScene(
             translationX = (-20f).px
             orientation = UILinearContainer.Orientation.Vertical
             padding = Padding(24f.px)
-            radius = 16f.px
+            radius = CornerRadius(16f.px)
 
             backgroundColor = themed { palette.accent.shade(0.15f) }
 
@@ -279,7 +280,7 @@ class CalibrationScene(
                     text = currentBpm.toString()
                     alignment = Anchor.Center
                     width = 110f.px
-                    radius = 8f.px
+                    radius = CornerRadius(8f.px)
                     backgroundColor = themed { palette.accent.shade(0.12f) }
                     color = themed { palette.accent }
                     onActionUp = { showBpmInputDialog() }
@@ -324,7 +325,7 @@ class CalibrationScene(
                     text = formatOffset(pendingOffset)
                     alignment = Anchor.Center
                     width = 110f.px
-                    radius = 8f.px
+                    radius = CornerRadius(8f.px)
                     backgroundColor = themed { palette.accent.shade(0.12f) }
                     color = themed { palette.accent }
                     onActionUp = { showOffsetInputDialog() }
@@ -378,7 +379,7 @@ class CalibrationScene(
             translationY = (-20f).px
             orientation = UILinearContainer.Orientation.Vertical
             padding = Padding(14f.px)
-            radius = 16f.px
+            radius = CornerRadius(16f.px)
             backgroundColor = themed { palette.accent.shade(0.15f) }
 
             // Header
