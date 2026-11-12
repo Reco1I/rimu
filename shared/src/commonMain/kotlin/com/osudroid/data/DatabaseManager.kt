@@ -5,7 +5,6 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.osudroid.OsuGameHost
 import com.osudroid.settings.GameFolders
 import com.reco1l.verktex.Platform
 import kotlin.jvm.JvmStatic
@@ -117,7 +116,7 @@ object DatabaseManager {
      */
     @JvmStatic
     val databasePath: String
-        get() = "${GameFolders.corePath}databases/room-${OsuGameHost.current.buildType}.db"
+        get() = "${GameFolders.corePath}databases/room-${Platform.application.buildType}.db"
 
     /**
      * The database, set once it's open, see [open].

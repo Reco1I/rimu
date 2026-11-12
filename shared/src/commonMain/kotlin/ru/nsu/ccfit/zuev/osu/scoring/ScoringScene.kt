@@ -1,6 +1,5 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
-import com.osudroid.OsuGameHost
 import com.reco1l.verktex.Platform
 import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
@@ -324,7 +323,7 @@ class ScoringScene(pGame: GameScene) {
         var mapperStr = "Beatmap by " + beatmapInfo.creator
         var playerStr = "Played by " + stat.playerName + " on " +
             formatDateTime(stat.time)
-        playerStr += formatString("  %s(%s)", Platform.application.versionName, OsuGameHost.current.buildType)
+        playerStr += formatString("  %s(%s)", Platform.application.versionName, Platform.application.buildType)
         if (ModCustomSpeed::class in mods ||
             ModDifficultyAdjust::class in mods ||
             (ModFlashlight::class in mods && !mods.ofType(ModFlashlight::class)!!.usesDefaultSettings)) {

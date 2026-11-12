@@ -23,7 +23,7 @@ import kotlinx.coroutines.runBlocking
  */
 class OsuUITestsDesktop(initialTest: String?, screenshot: File?) : UITestApplication(initialTest, screenshot), OsuGameHost {
 
-    override val application = DESKTOP_APPLICATION
+    override val platformApplication = DESKTOP_APPLICATION
 
     override fun onEngineInitialized() {
         OsuSettings.load()

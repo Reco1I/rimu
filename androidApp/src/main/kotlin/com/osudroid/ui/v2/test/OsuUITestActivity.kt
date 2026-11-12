@@ -5,7 +5,8 @@ import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.OsuGameHost
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
-import com.osudroid.android.AppBuild
+import com.reco1l.verktex.PlatformApplication
+import ru.nsu.ccfit.zuev.osuplus.app.BuildConfig
 import java.io.File
 import com.google.firebase.FirebaseApp
 import com.osudroid.ui.v2.Skin
@@ -22,8 +23,8 @@ import kotlinx.coroutines.runBlocking
  */
 class OsuUITestActivity : UITestActivity(), OsuGameHost {
 
-    override val buildType: String
-        get() = AppBuild.buildType
+    override val platformApplication: PlatformApplication
+        get() = super.platformApplication.copy(buildType = BuildConfig.BUILD_TYPE)
 
 
     override fun onEngineInitialized() {

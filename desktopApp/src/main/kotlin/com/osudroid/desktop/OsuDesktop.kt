@@ -23,7 +23,7 @@ class OsuDesktop(
     private val quickPlayAutoplay: Boolean = true,
 ) : DesktopGameHost(title = "osu!droid", vsync = true), OsuGameHost {
 
-    override val application = DESKTOP_APPLICATION
+    override val platformApplication = DESKTOP_APPLICATION
 
     override suspend fun loadBeatmapLibrary() = LibraryImport.loadLibrary()
 
@@ -58,7 +58,7 @@ class OsuDesktop(
 /**
  * The game on desktop: a debug build, without a version of its own.
  */
-internal val DESKTOP_APPLICATION = PlatformApplication(versionName = "desktop", isDebug = true)
+internal val DESKTOP_APPLICATION = PlatformApplication(versionName = "desktop", buildType = "debug", isDebug = true)
 
 fun main(args: Array<String>) {
     var screenshot: File? = null

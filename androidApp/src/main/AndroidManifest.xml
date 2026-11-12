@@ -24,7 +24,6 @@
         android:allowAudioPlaybackCapture="true"
         android:requestLegacyExternalStorage="true"
         android:resizeableActivity="false"
-        android:name="com.osudroid.android.OsuApplication"
         tools:ignore="UnusedAttribute">
         <profileable android:shell="${profileable}" tools:targetApi="29"/>
 

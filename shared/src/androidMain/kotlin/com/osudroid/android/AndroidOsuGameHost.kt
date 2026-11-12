@@ -34,6 +34,7 @@ import com.osudroid.utils.runSafe
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
+import com.reco1l.verktex.PlatformApplication
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.android.AndroidGameHost
 import com.reco1l.verktex.localization.formatString
@@ -103,7 +104,7 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
         super.onCreate(savedInstanceState)
 
-        if (AppBuild.isDebug) {
+        if (Platform.application.isDebug) {
             try {
                 @Suppress("DEPRECATION")
                 val folder = File(Environment.getExternalStorageDirectory(), "osu!droid/Log").apply { mkdirs() }
@@ -436,8 +437,14 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
     //region Features
 
-    override val buildType: String
-        get() = AppBuild.buildType
+    /**
+     * The type of the application's build (its `BuildConfig.BUILD_TYPE`), which this module, a
+     * library, can't read.
+     */
+    protected abstract val buildType: String
+
+    override val platformApplication: PlatformApplication
+        get() = super.platformApplication.copy(buildType = buildType)
 
     override fun checkNewSkins() = LibraryImport.importSkins()
 

@@ -15,12 +15,6 @@ import com.reco1l.verktex.ui.ITextInput
 interface OsuGameHost : GameHost {
 
     /**
-     * The type of the build, as Android names them: `debug`, `release`, `pre_release` or `profile`.
-     */
-    val buildType: String
-        get() = "debug"
-
-    /**
      * Subscribes to or unsubscribes from the announcements the game receives as notifications.
      */
     fun setAnnouncementsSubscribed(subscribed: Boolean) = Unit
