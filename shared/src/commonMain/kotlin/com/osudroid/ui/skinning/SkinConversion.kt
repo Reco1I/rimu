@@ -142,6 +142,7 @@ fun convertToJson(ini: IniReader) = buildJsonObject {
         putIfNotNull("hitCircleOverlayAboveNumber", overlayAboveNumber != false)
 
         putIfNotNull("spinnerNoBlink", ini.get<Boolean>("General", "SpinnerNoBlink") == true)
+        putIfNotNull("allowSliderBallTint", ini.get<Boolean>("General", "AllowSliderBallTint") == true)
         putIfNotNull("spinnerBackgroundColor", convertToHex(ini["Colours", "SpinnerBackground"]))
         putIfNotNull("comboTextScale", 0.8f)
         putIfNotNull("animationFramerate", ini["General", "AnimationFramerate"] ?: -1f)

@@ -128,6 +128,7 @@ class SkinJsonReader private constructor() : SkinReader() {
         skin.versionData.setFromJson(data)
         skin.hitCircleOverlayAboveNumberData.setFromJson(data)
         skin.spinnerNoBlinkData.setFromJson(data)
+        skin.allowSliderBallTintData.setFromJson(data)
         skin.spinnerBackgroundColorData.setFromJson(data)
         skin.disableKiaiData.setFromJson(data)
         skin.comboTextScaleData.setFromJson(data)

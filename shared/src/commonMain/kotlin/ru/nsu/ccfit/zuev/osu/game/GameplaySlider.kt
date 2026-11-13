@@ -34,6 +34,8 @@ import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.UIAnimatedSprite
 import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.graphics.BlendMode
+import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
 import com.reco1l.verktex.ui.container.UIContainer
@@ -119,6 +121,8 @@ class GameplaySlider : GameObject() {
      * The slider ball sprite.
      */
     private val ball: UIAnimatedSprite
+    private val ballUnder = UISprite()
+    private val ballOver = UISprite()
 
     /**
      * The start circle piece of the slider.
@@ -164,6 +168,12 @@ class GameplaySlider : GameObject() {
 
         ball = UIAnimatedSprite(skinFrames("sliderb", orStatic = true), 60f)
         ball.origin = Anchor.Center
+
+        // The layers of the default slider ball, which a skin can replace without replacing the ball.
+        ballUnder.origin = Anchor.Center
+        ballUnder.setColor(5 / 255f, 5 / 255f, 5 / 255f)
+        ballOver.origin = Anchor.Center
+        ballOver.blendMode = BlendMode.Additive
 
         // Animated or not depending on the skin, which may change while the slider is alive.
         followCircle = UIAnimatedSprite(skinFrames("sliderfollowcircle", orStatic = true), OsuSkin.get().animationFramerate)
@@ -574,6 +584,8 @@ class GameplaySlider : GameObject() {
         approachCircle.clearAnimations()
         followCircle.clearAnimations()
         ball.clearAnimations()
+        ballUnder.clearAnimations()
+        ballOver.clearAnimations()
         sliderBody.clearAnimations()
         tickContainer.clearAnimations()
 
@@ -584,6 +596,8 @@ class GameplaySlider : GameObject() {
         approachCircle.removeSelf()
         followCircle.removeSelf()
         ball.removeSelf()
+        ballUnder.removeSelf()
+        ballOver.removeSelf()
         sliderBody.removeSelf()
         tickContainer.removeSelf()
 
@@ -970,11 +984,28 @@ class GameplaySlider : GameObject() {
             // the "tracking starts" branch and makes the follow circle visible.
             isInRadius = false
 
+            // Tinted with the combo colour only if the skin allows it.
+            ball.color = if (OsuSkin.get().isAllowSliderBallTint) circleColor else Color4.White
+
+            // Only shown with the default ball: a skin's own ball ignores them.
+            val isBallSkinned = SkinTextures.isSkinned("sliderb") || SkinTextures.isSkinned("sliderb0")
+            ballUnder.texture = if (isBallSkinned) null else skinTexture("sliderb-nd")
+            ballOver.texture = if (isBallSkinned) null else skinTexture("sliderb-spec")
+
+            for (layer in arrayOf(ballUnder, ballOver)) {
+                layer.scale = scale
+                layer.alpha = 1f
+            }
+
+            scene += ballUnder
             scene += ball
+            scene += ballOver
             scene += followCircle
 
-            ball.choreographAt(beatmapSlider.endTime.toFloat() / 1000) { sequence ->
-                sequence.fadeOut().after { e -> updateThread { e.removeSelf() } } }
+            for (layer in arrayOf(ball, ballUnder, ballOver)) {
+                layer.choreographAt(beatmapSlider.endTime.toFloat() / 1000) { sequence ->
+                    sequence.fadeOut().after { e -> updateThread { e.removeSelf() } } }
+            }
         }
 
         approachCircle.clearAnimations()
@@ -1007,6 +1038,11 @@ class GameplaySlider : GameObject() {
         followCircle.setPosition(ballPos.x, ballPos.y)
         ball.setPosition(ballPos.x, ballPos.y)
         ball.rotationZ = ballAngle
+        ballUnder.setPosition(ballPos.x, ballPos.y)
+        ballUnder.rotationZ = ballAngle
+
+        // The highlight stays still, it neither rotates nor flips.
+        ballOver.setPosition(ballPos.x, ballPos.y)
 
         if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
             listener.updateAutoBasedPos(ballPos.x, ballPos.y)

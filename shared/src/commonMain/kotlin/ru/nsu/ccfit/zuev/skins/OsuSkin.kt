@@ -37,6 +37,7 @@ class OsuSkin {
     internal val expandCursorData = BooleanSkinData("expandCursor", true)
     internal val hitCircleOverlayAboveNumberData = BooleanSkinData("hitCircleOverlayAboveNumber", true)
     internal val spinnerNoBlinkData = BooleanSkinData("spinnerNoBlink")
+    internal val allowSliderBallTintData = BooleanSkinData("allowSliderBallTint")
     internal val spinnerBackgroundColorData = ColorSkinData("spinnerBackgroundColor", Color4(100 / 255f, 100 / 255f, 100 / 255f))
 
     // Skins that aren't osu!stable's, without a skin.ini, are made for the latest version.
@@ -94,6 +95,12 @@ class OsuSkin {
      */
     val isSpinnerNoBlink: Boolean
         get() = spinnerNoBlinkData.currentValue
+
+    /**
+     * Whether the slider ball is tinted with the combo colour.
+     */
+    val isAllowSliderBallTint: Boolean
+        get() = allowSliderBallTintData.currentValue
 
     /**
      * The colour the old style spinner's background is tinted with.
