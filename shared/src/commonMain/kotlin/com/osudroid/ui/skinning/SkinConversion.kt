@@ -135,6 +135,11 @@ fun convertToJson(ini: IniReader) = buildJsonObject {
 
     putIfNotNull("Utils", buildJsonObject {
         putIfNotNull("version", parseSkinVersion(ini.get<Any>("General", "Version")))
+
+        // osu!stable also reads it misspelled, as some skins have it.
+        val overlayAboveNumber = ini.get<Boolean>("General", "HitCircleOverlayAboveNumber")
+            ?: ini.get<Boolean>("General", "HitCircleOverlayAboveNumer")
+        putIfNotNull("hitCircleOverlayAboveNumber", overlayAboveNumber != false)
         putIfNotNull("comboTextScale", 0.8f)
         putIfNotNull("animationFramerate", ini["General", "AnimationFramerate"] ?: -1f)
         putIfNotNull("layeredHitSounds", ini.get<Boolean>("General", "LayeredHitSounds") != false)

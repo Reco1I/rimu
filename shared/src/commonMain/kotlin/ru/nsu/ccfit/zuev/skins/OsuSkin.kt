@@ -35,6 +35,7 @@ class OsuSkin {
     internal val rotateCursorData = BooleanSkinData("rotateCursor", true)
     internal val rotateCursorTrailData = BooleanSkinData("rotateCursorTrail", true)
     internal val expandCursorData = BooleanSkinData("expandCursor", true)
+    internal val hitCircleOverlayAboveNumberData = BooleanSkinData("hitCircleOverlayAboveNumber", true)
 
     // Skins that aren't osu!stable's, without a skin.ini, are made for the latest version.
     internal val versionData = FloatSkinData("version", LATEST_VERSION)
@@ -85,6 +86,12 @@ class OsuSkin {
      */
     val version: Float
         get() = versionData.currentValue
+
+    /**
+     * Whether the overlay of hit circles is drawn over their number rather than under it.
+     */
+    val isHitCircleOverlayAboveNumber: Boolean
+        get() = hitCircleOverlayAboveNumberData.currentValue
 
     /**
      * Whether the cursor grows when pressing and while following a slider.

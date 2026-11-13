@@ -34,7 +34,7 @@ open class CirclePiece(
         +it
     }
 
-    private val overlay = UISprite().also {
+    protected val overlay = UISprite().also {
 
         it.origin = Anchor.Center
         it.anchor = Anchor.Center
@@ -76,6 +76,20 @@ class NumberedCirclePiece(circleTexture: String, overlayTexture: String) : Circl
 
     fun setNumberText(value: Int) {
         number.text = value.toString()
+        applyLayering()
+    }
+
+    /**
+     * Draws the overlay over the number, or under it for skins that ask for it, as the skin may have changed
+     * while this piece was pooled.
+     */
+    private fun applyLayering() {
+        val top = if (OsuSkin.get().isHitCircleOverlayAboveNumber) overlay else number
+
+        if (this[childCount - 1] !== top) {
+            top.removeSelf()
+            +top
+        }
     }
 
     fun setNumberScale(value: Float) {
