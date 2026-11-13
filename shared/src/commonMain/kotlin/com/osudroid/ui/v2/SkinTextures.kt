@@ -6,6 +6,7 @@ import com.osudroid.ui.skinning.StringSkinData
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.texture.FramesReference
 import com.reco1l.verktex.texture.TextureReference
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.UIComponent
@@ -264,3 +265,26 @@ fun skinTexture(name: String) = SkinTexture(name)
  * Refers to the skin texture named [name] with a configurable [prefix], following it as the skin changes.
  */
 fun skinTexture(prefix: StringSkinData, name: String) = SkinTexture(name, prefix)
+
+/**
+ * Refers to the frames of the animated skin texture named [name], see [SkinTextures.frames], following
+ * them as the skin or the beatmap skin changes. With [orStatic], a skin where it isn't animated gives
+ * its single texture as the only frame.
+ */
+data class SkinFrames(val name: String, val orStatic: Boolean = false) : FramesReference.Lookup() {
+
+    override val revision: Int
+        get() = Textures.revision + SkinTextures.revision
+
+    override fun lookup(): List<GraphicsTexture.Region> {
+        val frames = SkinTextures.frames(name)
+
+        return if (orStatic && frames.isEmpty()) listOfNotNull(SkinTextures[name]) else frames
+    }
+}
+
+/**
+ * Refers to the frames of the animated skin texture named [name], following them as the skin changes.
+ * With [orStatic], a skin where it isn't animated gives its single texture as the only frame.
+ */
+fun skinFrames(name: String, orStatic: Boolean = false) = SkinFrames(name, orStatic)

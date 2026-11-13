@@ -10,10 +10,10 @@ import com.osudroid.beatmaps.hitobjects.Spinner
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.GameplaySequenceHitSampleInfo
 import com.osudroid.math.Vector2
-import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.game.ScoreNumber
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.ClipMode
+import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.container.UIContainer
@@ -40,7 +40,11 @@ open class GameplaySpinner : GameObject() {
     private val circle: UISprite
     private val approachCircle: UISprite
     private val metre: UIContainer
-    private val fullHeight: Float
+    private val metreSprite: UISprite
+    private var fullHeight = 0f
+    // The background region the sizes were derived from, see layoutToBackground.
+    private var laidOutBackground: GraphicsTexture.Region? = null
+    private var isLaidOut = false
     private val spinText: UISprite
     private val clearText: UISprite
     private val bonusScore: ScoreNumber
@@ -90,9 +94,6 @@ open class GameplaySpinner : GameObject() {
         background.origin = Anchor.Center
         background.setPosition(position.x, position.y)
         background.texture = skinTexture("spinner-background")
-        val backgroundTexture = SkinTextures.get("spinner-background")
-        background.scale = if (backgroundTexture != null) GameResolution.width / backgroundTexture.width.toFloat() else 1f
-        fullHeight = if (backgroundTexture != null) backgroundTexture.height * background.scaleY else 0f
 
         circle = UISprite()
         circle.origin = Anchor.Center
@@ -100,19 +101,19 @@ open class GameplaySpinner : GameObject() {
         circle.texture = skinTexture("spinner-circle")
 
         // The metre fills from the bottom: the sprite stays in place while the container clipping it grows.
-        val metreSprite = UISprite()
+        metreSprite = UISprite()
         metreSprite.scaleType = ScaleType.Stretch
         metreSprite.texture = skinTexture("spinner-metre")
         metreSprite.anchor = Anchor.BottomLeft
         metreSprite.origin = Anchor.BottomLeft
-        metreSprite.setSize(GameResolution.width.toFloat(), fullHeight)
 
         metre = UIContainer()
         metre.clipping = ClipMode.Bounds
         metre.origin = Anchor.BottomLeft
-        metre.setPosition(position.x - GameResolution.width / 2f, position.y + fullHeight / 2f)
         metre.setSize(GameResolution.width.toFloat(), 0f)
         metre += metreSprite
+
+        layoutToBackground()
 
         approachCircle = UISprite()
         approachCircle.origin = Anchor.Center
@@ -137,6 +138,26 @@ open class GameplaySpinner : GameObject() {
 
         // Spinners always end combo.
         endsCombo = true
+    }
+
+    /**
+     * Scales the background to the width of the screen and sizes the metre to it, again whenever the
+     * background's texture changed, as when the skin does.
+     */
+    private fun layoutToBackground() {
+        val backgroundTexture = background.textureRegion
+
+        if (isLaidOut && backgroundTexture === laidOutBackground) {
+            return
+        }
+        isLaidOut = true
+        laidOutBackground = backgroundTexture
+
+        background.scale = if (backgroundTexture != null) GameResolution.width / backgroundTexture.width else 1f
+        fullHeight = if (backgroundTexture != null) backgroundTexture.height * background.scaleY else 0f
+
+        metreSprite.setSize(GameResolution.width.toFloat(), fullHeight)
+        metre.setPosition(position.x - GameResolution.width / 2f, position.y + fullHeight / 2f)
     }
 
     open fun init(listener: GameObjectListener, scene: UIContainer,
@@ -297,6 +318,8 @@ open class GameplaySpinner : GameObject() {
     override fun update(dt: Float) {
         val listener = listener!!
         val stat = stat!!
+
+        layoutToBackground()
 
         passedTime = listener.elapsedTime - hitTime
 

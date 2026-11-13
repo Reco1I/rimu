@@ -1,17 +1,16 @@
 package com.osudroid.ui.v2.game
 
-import com.reco1l.verktex.texture.TextureReference
 import kotlin.math.PI
-import com.osudroid.ui.v2.skinTexture
+import com.osudroid.ui.v2.skinFrames
+import com.reco1l.verktex.data.LayoutConstraints
+import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.ScaleType
 import com.osudroid.beatmaps.hitobjects.HitObject
-import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.UIAnimatedSprite
 import com.reco1l.verktex.ui.OnTransformFinished
@@ -34,21 +33,7 @@ object FollowPointConnection {
     private val pool = SynchronizedPool<IPoolable>(20)
 
     private fun obtainFollowPoint(): UISprite {
-        return pool.acquire() as UISprite? ?: createFollowPoint()
-    }
-
-    private fun createFollowPoint(): UISprite {
-        val frames = SkinTextures.frames("followpoint")
-
-        val sprite = if (frames.isNotEmpty()) {
-            PoolableAnimatedFollowPoint(frames, OsuSkin.get().animationFramerate).also { it.isLoop = false }
-        } else {
-            PoolableFollowPoint(skinTexture("followpoint"))
-        }
-
-        sprite.textureRegion?.let { sprite.applyFollowPointMaxSize(it) }
-
-        return sprite
+        return pool.acquire() as UISprite? ?: PoolableFollowPoint()
     }
 
     private val expire = OnTransformFinished { fp ->
@@ -67,20 +52,12 @@ object FollowPointConnection {
     }
 
 
-    private fun UISprite.applyFollowPointMaxSize(texture: GraphicsTexture.Region) {
-        // Reference: https://github.com/ppy/osu/blob/0811de728e4205a45e485d53ccdaf19a937c6033/osu.Game.Rulesets.Osu/Skinning/Legacy/OsuLegacySkinTransformer.cs#L95-L97
-        // Cropping from the center is what the scale type below does when the size is smaller than the texture.
-        width = min(texture.width, HitObject.OBJECT_RADIUS * 2).px
-        height = min(texture.height, HitObject.OBJECT_RADIUS).px
-        scaleType = ScaleType.Crop
-    }
-
     @JvmStatic
     fun clearAll(scene: UIContainer) {
         for (i in scene.childCount - 1 downTo 0) {
             val child = scene[i]
 
-            if (child is PoolableFollowPoint || child is PoolableAnimatedFollowPoint) {
+            if (child is PoolableFollowPoint) {
                 child.choreography?.clear()
                 child.removeSelf()
                 pool.release(child as IPoolable)
@@ -93,7 +70,7 @@ object FollowPointConnection {
         pool.clear()
 
         repeat(size) {
-            pool.release(createFollowPoint() as IPoolable)
+            pool.release(PoolableFollowPoint())
         }
     }
 
@@ -172,14 +149,27 @@ object FollowPointConnection {
         }
     }
 
-    private class PoolableFollowPoint(texture: TextureReference? = null) : UISprite(texture), IPoolable {
+    /**
+     * A follow point, animated or not depending on the skin, which may change while it's pooled.
+     */
+    private class PoolableFollowPoint : UIAnimatedSprite(skinFrames("followpoint", orStatic = true), OsuSkin.get().animationFramerate), IPoolable {
         override var isRecycled = false
-    }
 
-    private class PoolableAnimatedFollowPoint(
-        frames: List<GraphicsTexture.Region>,
-        framesPerSecond: Float
-    ) : UIAnimatedSprite(frames, framesPerSecond), IPoolable {
-        override var isRecycled = false
+        init {
+            isLoop = false
+            // Cropping from the center is what this scale type does when the size is smaller than the texture.
+            scaleType = ScaleType.Crop
+        }
+
+        // The size follows the texture, at most this.
+        // Reference: https://github.com/ppy/osu/blob/0811de728e4205a45e485d53ccdaf19a937c6033/osu.Game.Rulesets.Osu/Skinning/Legacy/OsuLegacySkinTransformer.cs#L95-L97
+        override fun onMeasure(parentConstraints: LayoutConstraints, contentConstraints: LayoutConstraints): Vec2 {
+            val size = super.onMeasure(parentConstraints, contentConstraints)
+
+            return Vec2(
+                x = min(size.x, HitObject.OBJECT_RADIUS * 2),
+                y = min(size.y, HitObject.OBJECT_RADIUS)
+            )
+        }
     }
 }

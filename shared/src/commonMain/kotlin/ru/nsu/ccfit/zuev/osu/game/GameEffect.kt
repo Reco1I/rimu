@@ -2,7 +2,7 @@ package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.skinTexture
-import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.skinFrames
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
@@ -24,8 +24,9 @@ class GameEffect(texname: String) : GameObject() {
         private set
 
     init {
-        if (isAnimationEffect(texname) && (SkinTextures.get("$texname-0") != null)) {
-            val hit = UIAnimatedSprite(SkinTextures.frames(texname), OsuSkin.get().animationFramerate)
+        if (isAnimationEffect(texname)) {
+            // Animated or not depending on the skin, which may change while the effect is pooled.
+            val hit = UIAnimatedSprite(skinFrames(texname, orStatic = true), OsuSkin.get().animationFramerate)
             hit.isLoop = false
             this.hit = hit
         } else {

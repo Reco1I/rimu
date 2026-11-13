@@ -2,6 +2,7 @@ package ru.nsu.ccfit.zuev.osu.game
 
 import ru.nsu.ccfit.zuev.osu.Constants
 import com.osudroid.ui.v2.skinTexture
+import com.osudroid.ui.v2.skinFrames
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.HitWindow
@@ -21,7 +22,6 @@ import com.osudroid.math.Precision
 import com.osudroid.math.Vector2
 import com.osudroid.mods.ModHidden
 import com.osudroid.mods.ModSynesthesia
-import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.game.CirclePiece
 import com.osudroid.ui.v2.game.NumberedCirclePiece
 import com.osudroid.ui.v2.game.SliderTickContainer
@@ -162,16 +162,11 @@ class GameplaySlider : GameObject() {
         endArrow.origin = Anchor.Center
         endArrow.texture = skinTexture("reversearrow")
 
-        ball = UIAnimatedSprite(SkinTextures.frames("sliderb"), 60f)
+        ball = UIAnimatedSprite(skinFrames("sliderb"), 60f)
         ball.origin = Anchor.Center
 
-        // Avoid to use AnimatedSprite if not necessary.
-        if ((SkinTextures.get("sliderfollowcircle-0") != null)) {
-            followCircle = UIAnimatedSprite(SkinTextures.frames("sliderfollowcircle"), OsuSkin.get().animationFramerate)
-        } else {
-            followCircle = UISprite()
-            followCircle.texture = skinTexture("sliderfollowcircle")
-        }
+        // Animated or not depending on the skin, which may change while the slider is alive.
+        followCircle = UIAnimatedSprite(skinFrames("sliderfollowcircle", orStatic = true), OsuSkin.get().animationFramerate)
         followCircle.origin = Anchor.Center
 
         sliderBody = UIPath()
