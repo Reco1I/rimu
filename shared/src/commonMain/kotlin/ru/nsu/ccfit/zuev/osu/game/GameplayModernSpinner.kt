@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.reco1l.verktex.graphics.BlendMode
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.settings.Settings
@@ -62,6 +63,7 @@ class GameplayModernSpinner : GameplaySpinner() {
         glow.origin = Anchor.Center
         glow.setPosition(position.x, position.y)
         glow.texture = skinTexture("spinner-glow")
+        glow.blendMode = BlendMode.Additive
 
         bonusScore = ScoreNumber(position.x, position.y + 100, "", 1.1f, true)
 
@@ -274,12 +276,11 @@ class GameplayModernSpinner : GameplaySpinner() {
                     }
                     spinnerBonusSample.play()
 
+                    // Blinks white and goes back to its tint.
                     glow.choreographNow { sequence -> sequence
-                        .colorTo(0f, 1f, 0.8f)
                         .colorTo(1f, 1f, 1f, 0.1f)
                         .then()
-                        .colorTo(1f, 0f, 1f)
-                        .colorTo(0.8f, 1f, 1f, 0.1f) }
+                        .colorTo(0f, 0.8f, 1f, 0.1f) }
 
                     var rate = 0.375f
                     if (GameHelper.getHealthDrain() > 0) {
