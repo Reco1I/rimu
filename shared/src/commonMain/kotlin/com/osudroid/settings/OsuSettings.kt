@@ -2,7 +2,6 @@ package com.osudroid.settings
 
 import com.osudroid.resources.Languages
 import com.osudroid.ui.v2.SkinFolders
-import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.settings.SettingKey
 import com.reco1l.verktex.settings.Settings
@@ -80,11 +79,6 @@ object OsuSettings {
     @JvmField val BurstEffects = key("bursts", true)
     @JvmField val HitLighting = key("hitlighting", false)
     @JvmField val UseParticles = key("particles", false)
-    @JvmField val UseCustomComboColors = key("useCustomColors", false)
-    @JvmField val ComboColor1 = key("combo1", 0xff000000.toInt())
-    @JvmField val ComboColor2 = key("combo2", 0xff000000.toInt())
-    @JvmField val ComboColor3 = key("combo3", 0xff000000.toInt())
-    @JvmField val ComboColor4 = key("combo4", 0xff000000.toInt())
     @JvmField val ShowCursor = key("showcursor", false)
     @JvmField val HideInGameUI = key("hideInGameUI", false)
     @JvmField val HideReplayMarquee = key("hideReplayMarquee", false)
@@ -268,15 +262,6 @@ object OsuSettings {
         set(value) {
             Settings[BeatmapLeaderboardScoringModeSetting] = value.ordinal.toString()
         }
-
-    /**
-     * The colors of the combos when [UseCustomComboColors] is on.
-     */
-    @JvmStatic
-    val comboColors: Array<Color4>
-        get() = arrayOf(ComboColor1, ComboColor2, ComboColor3, ComboColor4).map {
-            Color4("#" + (Settings[it] and 0xFFFFFF).toString(16).padStart(6, '0'))
-        }.toTypedArray()
 
     /**
      * The identifier of this installation, created the first time it's needed.

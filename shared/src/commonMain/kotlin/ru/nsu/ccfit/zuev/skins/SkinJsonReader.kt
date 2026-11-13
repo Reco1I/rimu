@@ -86,7 +86,7 @@ class SkinJsonReader private constructor() : SkinReader() {
         skin.comboColorList.clear()
         val array = data.optJsonArray("colors")
         if (array == null || array.size == 0) {
-            skin.comboColorList.add(Color4(skin.DEFAULT_COLOR_HEX))
+            skin.comboColorList.addAll(skin.DEFAULT_COMBO_COLORS)
         } else {
             for (i in 0 until array.size) {
                 val hex = array.optString(i, skin.DEFAULT_COLOR_HEX)
@@ -97,9 +97,9 @@ class SkinJsonReader private constructor() : SkinReader() {
                 }
             }
 
-            // If no valid colors were found, use the default color
+            // If no valid colors were found, use the default ones
             if (skin.comboColorList.isEmpty()) {
-                skin.comboColorList.add(Color4(skin.DEFAULT_COLOR_HEX))
+                skin.comboColorList.addAll(skin.DEFAULT_COMBO_COLORS)
             }
         }
     }

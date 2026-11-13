@@ -41,6 +41,16 @@ class OsuSkin {
     internal val DEFAULT_COLOR_HEX = "#FFFFFF"
     internal val comboColorList = ArrayList<Color4>()
 
+    /**
+     * The combo colors of a skin that has none, those of osu!stable's default skin.
+     */
+    internal val DEFAULT_COMBO_COLORS = listOf(
+        Color4(255 / 255f, 192 / 255f, 0f),
+        Color4(0f, 202 / 255f, 0f),
+        Color4(18 / 255f, 124 / 255f, 255 / 255f),
+        Color4(242 / 255f, 24 / 255f, 57 / 255f)
+    )
+
     internal val sliderBorderColorData = ColorSkinData("sliderBorderColor", null)
     internal val sliderBodyColorData = ColorSkinData("sliderBodyColor", null)
     internal val sliderHintColorData = ColorSkinData("sliderHintColor", Color4(DEFAULT_COLOR_HEX))
@@ -107,7 +117,7 @@ class OsuSkin {
     val comboColor: ArrayList<Color4>
         get() {
             if (comboColorList.isEmpty()) {
-                comboColorList.add(Color4(DEFAULT_COLOR_HEX))
+                comboColorList.addAll(DEFAULT_COMBO_COLORS)
             }
             return comboColorList
         }
