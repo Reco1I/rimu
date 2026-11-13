@@ -13,6 +13,7 @@ import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.container.UIContainer
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
+import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.jvm.JvmStatic
 import okio.Path.Companion.toPath
 
@@ -54,6 +55,44 @@ object SkinTextures {
     // The files of the beatmap skin by texture name, each one is loaded when it's first used.
     private val beatmapFiles = mutableMapOf<String, String>()
 
+    // The names in beatmapFiles whose file is an @2x image.
+    private val hdBeatmapFiles = mutableSetOf<String>()
+
+    private const val HD_SUFFIX = "@2x"
+
+    // What a skin without its own slider head and tail uses, as osu!stable does.
+    private val skinFallbacks = mapOf(
+        "sliderstartcircle" to "hitcircle",
+        "sliderstartcircleoverlay" to "hitcircleoverlay",
+        "sliderendcircle" to "hitcircle",
+        "sliderendcircleoverlay" to "hitcircleoverlay"
+    )
+
+    // Textures a skin other than the default one doesn't show unless it has them.
+    private val optionalTextures = setOf("scorebar-marker", "scorebar-ki", "scorebar-kidanger", "scorebar-kidanger2")
+
+    // The slider tail of an osu!stable skin, which isn't shown unless the skin has it.
+    private val stableOptionalTextures = setOf("sliderendcircle", "sliderendcircleoverlay")
+
+    // Textures that are always the default skin's, under another name.
+    private val defaultAliases = mapOf("defaultapproachcircle" to "approachcircle")
+
+    private val GAMEPLAY_TEXTURES = arrayOf(
+        "hitcircle", "hitcircleoverlay", "approachcircle", "defaultapproachcircle",
+        "sliderstartcircle", "sliderstartcircleoverlay", "sliderendcircle", "sliderendcircleoverlay",
+        "reversearrow", "sliderscorepoint", "lighting",
+        "spinner-background", "spinner-circle", "spinner-metre", "spinner-approachcircle", "spinner-spin",
+        "spinner-clear", "spinner-top", "spinner-bottom", "spinner-glow", "spinner-middle", "spinner-middle2",
+        "spinner-osu", "cursor", "cursormiddle", "cursortrail",
+        "scorebar-bg", "scorebar-marker", "scorebar-ki", "scorebar-kidanger", "scorebar-kidanger2",
+        "particle50", "particle100", "particle300"
+    )
+
+    private val GAMEPLAY_ANIMATIONS = arrayOf(
+        "sliderb", "sliderfollowcircle", "followpoint", "scorebar-colour", "play-skip",
+        "hit0", "hit50", "hit100", "hit100k", "hit300", "hit300k", "hit300g"
+    )
+
 
     /**
      * Goes up whenever a name may look up another texture than before without [Textures] changing,
@@ -92,11 +131,12 @@ object SkinTextures {
     fun frames(name: String): List<GraphicsTexture.Region> {
         val frames = mutableListOf<GraphicsTexture.Region>()
 
-        // The frames of a beatmap skin replace the whole animation.
+        // The frames of a beatmap skin replace the whole animation, as its single image does.
         if (BeatmapSkinManager.isSkinEnabled()) {
             val delimiter = when {
                 "$name-0" in beatmapFiles -> "-"
                 "${name}0" in beatmapFiles -> ""
+                name in beatmapFiles -> return frames
                 else -> null
             }
 
@@ -109,10 +149,59 @@ object SkinTextures {
             }
         }
 
-        val delimiter = if (get("$name-0") != null) "-" else ""
+        // The same goes for the skin: its animation, or its single image, replaces the default one, and the
+        // frames it doesn't have aren't taken from the default skin.
+        val skinDelimiter = when {
+            isInSkin("$name-0") -> "-"
+            isInSkin("${name}0") -> ""
+            isInSkin(name) -> return frames
+            else -> null
+        }
 
-        while (true) {
+        if (skinDelimiter != null) {
+            while (isInSkin("$name$skinDelimiter${frames.size}")) {
+                frames += get("$name$skinDelimiter${frames.size}") ?: return frames
+            }
+
+            return frames
+        }
+
+        val delimiter = if (Platform.provider.exists("gfx/$name-0.png", false)) "-" else ""
+
+        while (Platform.provider.exists("gfx/$name$delimiter${frames.size}.png", false)) {
             frames += get("$name$delimiter${frames.size}") ?: return frames
+        }
+
+        return frames
+    }
+
+    /**
+     * Resolves the textures gameplay uses, so they're loaded while the game loads instead of when they're
+     * first shown. To be called once the beatmap skin is loaded.
+     */
+    @JvmStatic
+    fun preloadGameplay() {
+        for (name in GAMEPLAY_TEXTURES) {
+            get(name)
+        }
+
+        for (name in GAMEPLAY_ANIMATIONS) {
+            if (frames(name).isEmpty()) {
+                get(name)
+            }
+        }
+
+        val skin = OsuSkin.get()
+
+        for (digit in 0..9) {
+            get(skin.hitCirclePrefix, digit.toString())
+            get(skin.scorePrefix, digit.toString())
+            get(skin.comboPrefix, digit.toString())
+        }
+
+        for (name in arrayOf("comma", "dot", "percent", "x")) {
+            get(skin.scorePrefix, name)
+            get(skin.comboPrefix, name)
         }
     }
 
@@ -122,7 +211,18 @@ object SkinTextures {
     @JvmStatic
     fun loadBeatmapTexture(path: String) {
         revision++
-        val name = path.toPath().name.substringBeforeLast('.').lowercase()
+        val fileName = path.toPath().name.substringBeforeLast('.').lowercase()
+        val name = fileName.removeSuffix(HD_SUFFIX)
+
+        // An image made at twice the resolution is used only if there isn't one at the normal resolution.
+        if (name != fileName) {
+            if (name in beatmapFiles && name !in hdBeatmapFiles) {
+                return
+            }
+            hdBeatmapFiles += name
+        } else {
+            hdBeatmapFiles -= name
+        }
 
         if (!isKnown(name)) {
             // A single image replacing all the frames of an animation.
@@ -169,6 +269,7 @@ object SkinTextures {
     @JvmStatic
     fun clearBeatmapTextures() {
         beatmapFiles.clear()
+        hdBeatmapFiles.clear()
         revision++
         Textures.unloadAll { key, _ -> key.startsWith(BEATMAP_KEY_PREFIX) }
     }
@@ -207,8 +308,9 @@ object SkinTextures {
 
         val path = beatmapFiles[name] ?: return null
         val key = BEATMAP_KEY_PREFIX + name
+        val density = if (path.substringBeforeLast('.').endsWith(HD_SUFFIX, ignoreCase = true)) 2f else 1f
 
-        return Textures[key] ?: Textures.load(key, path, isInternal = false)
+        return Textures[key] ?: Textures.load(key, path, isInternal = false, density = density)
     }
 
     private fun lookup(customName: String, defaultName: String): GraphicsTexture.Region? {
@@ -222,17 +324,14 @@ object SkinTextures {
             return null
         }
 
-        val customPath = SkinFolders.path + customName + ".png"
-        val defaultPath = "gfx/$defaultName.png"
-
-        // Assets that aren't skinnable, such as UI icons, are at the root.
-        val assetPath = "$defaultName.png"
+        val defaultAlias = defaultAliases[defaultName]
 
         val region = when {
-            Platform.provider.exists(customPath, true) -> Textures.load(key, customPath, isInternal = false)
-            Platform.provider.exists(defaultPath, false) -> Textures.load(key, defaultPath, isInternal = true)
-            Platform.provider.exists(assetPath, false) -> Textures.load(key, assetPath, isInternal = true)
-            else -> null
+            defaultAlias != null -> loadDefault(key, defaultAlias)
+            isOptional(customName) -> null
+            else -> loadFromSkin(key, customName)
+                ?: skinFallbacks[customName]?.let { loadFromSkin(key, it) }
+                ?: loadDefault(key, defaultName)
         }
 
         if (region == null) {
@@ -241,6 +340,67 @@ object SkinTextures {
 
         return region
     }
+
+    private fun loadFromSkin(key: String, name: String): GraphicsTexture.Region? {
+        val path = SkinFolders.path + name + ".png"
+
+        if (Platform.provider.exists(path, true)) {
+            return Textures.load(key, path, isInternal = false)
+        }
+
+        val hdPath = SkinFolders.path + name + HD_SUFFIX + ".png"
+
+        if (Platform.provider.exists(hdPath, true)) {
+            return Textures.load(key, hdPath, isInternal = false, density = 2f)
+        }
+
+        return null
+    }
+
+    private fun loadDefault(key: String, name: String): GraphicsTexture.Region? {
+        val defaultPath = "gfx/$name.png"
+
+        // Assets that aren't skinnable, such as UI icons, are at the root.
+        val assetPath = "$name.png"
+
+        return when {
+            Platform.provider.exists(defaultPath, false) -> Textures.load(key, defaultPath, isInternal = true)
+            Platform.provider.exists(assetPath, false) -> Textures.load(key, assetPath, isInternal = true)
+            else -> null
+        }
+    }
+
+    /**
+     * Whether the skin folder has the texture, at either resolution.
+     */
+    private fun isInSkin(name: String): Boolean {
+        return Platform.provider.exists(SkinFolders.path + name + ".png", true)
+            || Platform.provider.exists(SkinFolders.path + name + HD_SUFFIX + ".png", true)
+    }
+
+    /**
+     * Whether a texture the skin doesn't have isn't shown, instead of being taken from the default skin.
+     */
+    private fun isOptional(name: String): Boolean {
+        if (isDefaultSkin() || isInSkin(name)) {
+            return false
+        }
+
+        if (name in optionalTextures) {
+            return true
+        }
+
+        // Only for osu!stable skins, those configured by a skin.ini alone.
+        if (name in stableOptionalTextures) {
+            val folder = SkinFolders.path.toPath()
+            val fileSystem = Platform.fileSystem
+            return fileSystem.exists(folder / "skin.ini") && !fileSystem.exists(folder / "skin.json")
+        }
+
+        return false
+    }
+
+    private fun isDefaultSkin() = SkinFolders.path.trimEnd('/') == SkinFolders.topPath.trimEnd('/')
 }
 
 /**

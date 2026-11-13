@@ -49,9 +49,9 @@ class ScoreNumber @JvmOverloads constructor(
                 }
 
                 val texture = SkinTextures[OsuSkin.get().scorePrefix, name] ?: continue
-                val width = texture.width * letterScale
+                val width = texture.displayWidth * letterScale
 
-                letterHeight = texture.height * letterScale
+                letterHeight = texture.displayHeight * letterScale
 
                 +UISprite(texture).apply {
                     setPosition(totalWidth, 0f)

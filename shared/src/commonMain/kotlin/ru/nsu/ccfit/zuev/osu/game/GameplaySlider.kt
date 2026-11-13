@@ -162,7 +162,7 @@ class GameplaySlider : GameObject() {
         endArrow.origin = Anchor.Center
         endArrow.texture = skinTexture("reversearrow")
 
-        ball = UIAnimatedSprite(skinFrames("sliderb"), 60f)
+        ball = UIAnimatedSprite(skinFrames("sliderb", orStatic = true), 60f)
         ball.origin = Anchor.Center
 
         // Animated or not depending on the skin, which may change while the slider is alive.

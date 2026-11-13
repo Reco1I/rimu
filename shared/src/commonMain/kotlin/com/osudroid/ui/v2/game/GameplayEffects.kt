@@ -56,7 +56,7 @@ class FlashLightEntity(flashlight: ModFlashlight) : UIContainer() {
         it.scale = FLASHLIGHT_BASE_SIZE
         it.background = Background.Color(Color4.Black)
         it.alpha = 0f
-        it.setSize(texture?.width ?: 0f, texture?.height ?: 0f)
+        it.setSize(texture?.displayWidth ?: 0f, texture?.displayHeight ?: 0f)
         +it
     }
 
@@ -184,8 +184,8 @@ class BreakAnimator(
 
     init {
         val texture = arrows[0].textureRegion
-        val arrowWidth = texture?.width ?: 0f
-        val arrowHeight = texture?.height ?: 0f
+        val arrowWidth = texture?.displayWidth ?: 0f
+        val arrowHeight = texture?.displayHeight ?: 0f
         val margin = Utils.toRes(64).toFloat()
         val right = GameResolution.width - arrowWidth - margin
         val bottom = GameResolution.height - arrowHeight
@@ -266,7 +266,7 @@ class BreakAnimator(
             layer.add(0, it)
         }
 
-        val zeroWidth = SkinTextures[OsuSkin.get().scorePrefix, "0"]?.width ?: 0f
+        val zeroWidth = SkinTextures[OsuSkin.get().scorePrefix, "0"]?.displayWidth ?: 0f
 
         mark = UISprite(rankingTexture()).also {
             it.setPosition(GameResolution.width - zeroWidth * 11f, 5f)
@@ -420,7 +420,7 @@ class ComboBurst(private val rightX: Float, private val bottomY: Float) {
 
     private fun show(sprite: UISprite) {
         val texture = sprite.textureRegion ?: return
-        val width = texture.width
+        val width = texture.displayWidth
         val toX: Float
 
         if (fromX > 0) {
@@ -431,7 +431,7 @@ class ComboBurst(private val rightX: Float, private val bottomY: Float) {
         }
 
         sprite.choreography?.clear()
-        sprite.setPosition(0f, bottomY - texture.height)
+        sprite.setPosition(0f, bottomY - texture.displayHeight)
         sprite.translationX = fromX.px
         sprite.alpha = 0f
 
@@ -485,8 +485,8 @@ class Countdown(
     private val center = Utils.trackToRealCoords(Vector2(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f))
 
     private val ready = createSprite("ready", center.x)
-    private val count3 = createSprite("count3", (SkinTextures["count3"]?.width ?: 0f) / 2f)
-    private val count2 = createSprite("count2", GameResolution.width - (SkinTextures["count2"]?.width ?: 0f) / 2f)
+    private val count3 = createSprite("count3", (SkinTextures["count3"]?.displayWidth ?: 0f) / 2f)
+    private val count2 = createSprite("count2", GameResolution.width - (SkinTextures["count2"]?.displayWidth ?: 0f) / 2f)
     private val count1 = createSprite("count1", center.x)
     private val go = createSprite("go", center.x)
 

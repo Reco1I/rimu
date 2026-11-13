@@ -59,6 +59,7 @@ import com.osudroid.resources.Res
 import com.osudroid.ui.v2.GameLoaderScene
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.skinFrames
 import com.reco1l.verktex.ui.UIVideo
 import com.osudroid.ui.v2.game.AutoCursor
 import com.osudroid.ui.v2.game.BreakAnimator
@@ -940,6 +941,7 @@ class GameScene : GameObjectListener {
 
         scope?.ensureActive()
 
+        SkinTextures.preloadGameplay()
         GameObjectPool.getInstance().preload()
 
         sliderIndex = 0
@@ -1322,7 +1324,7 @@ class GameScene : GameObjectListener {
         if (skipTime > 1) {
             val paddingBottom = if (Multiplayer.isConnected) Multiplayer.roomScene!!.chat.buttonHeight else 0f
 
-            val skipBtn = UIAnimatedSprite(SkinTextures.frames("play-skip"), OsuSkin.get().animationFramerate)
+            val skipBtn = UIAnimatedSprite(skinFrames("play-skip", orStatic = true), OsuSkin.get().animationFramerate)
             this.skipBtn = skipBtn
             skipBtn.origin = Anchor.BottomRight
             skipBtn.setPosition(GameResolution.width.toFloat(), GameResolution.height - paddingBottom)

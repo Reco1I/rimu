@@ -18,10 +18,14 @@ import kotlinx.coroutines.runBlocking
  * The UI test browser of osu!droid on desktop, the counterpart of Android's `OsuUITestActivity`:
  *
  * ```
- * ./gradlew :desktopApp:runUITests --args="--test 'osu!/Hit circles' --screenshot build/test.png"
+ * ./gradlew :desktopApp:runUITests --args="--test 'osu!/Hit circles' --screenshot build/test.png --delay 3"
  * ```
  */
-class OsuUITestsDesktop(initialTest: String?, screenshot: File?) : UITestApplication(initialTest, screenshot), OsuGameHost {
+class OsuUITestsDesktop(
+    initialTest: String?,
+    screenshot: File?,
+    screenshotDelay: Double,
+) : UITestApplication(initialTest, screenshot, screenshotDelay = screenshotDelay), OsuGameHost {
 
     override val platformApplication = DESKTOP_APPLICATION
 
@@ -40,19 +44,21 @@ class OsuUITestsDesktop(initialTest: String?, screenshot: File?) : UITestApplica
 fun main(args: Array<String>) {
     var test: String? = null
     var screenshot: File? = null
+    var delay = UITestApplication.SCREENSHOT_DELAY_SECONDS
 
     var i = 0
     while (i < args.size) {
         when (args[i]) {
             "--test" -> test = args.getOrNull(++i)
             "--screenshot" -> screenshot = args.getOrNull(++i)?.let(::File)
+            "--delay" -> delay = args.getOrNull(++i)?.toDoubleOrNull() ?: delay
             else -> {
-                System.err.println("Unknown argument: ${args[i]}. Usage: [--test <suite/test>] [--screenshot <file.png>]")
+                System.err.println("Unknown argument: ${args[i]}. Usage: [--test <suite/test>] [--screenshot <file.png> [--delay <seconds>]]")
                 exitProcess(2)
             }
         }
         i++
     }
 
-    OsuUITestsDesktop(test, screenshot).run()
+    OsuUITestsDesktop(test, screenshot, delay).run()
 }

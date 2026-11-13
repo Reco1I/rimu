@@ -153,8 +153,8 @@ open class GameplaySpinner : GameObject() {
         isLaidOut = true
         laidOutBackground = backgroundTexture
 
-        background.scale = if (backgroundTexture != null) GameResolution.width / backgroundTexture.width else 1f
-        fullHeight = if (backgroundTexture != null) backgroundTexture.height * background.scaleY else 0f
+        background.scale = if (backgroundTexture != null) GameResolution.width / backgroundTexture.displayWidth else 1f
+        fullHeight = if (backgroundTexture != null) backgroundTexture.displayHeight * background.scaleY else 0f
 
         metreSprite.setSize(GameResolution.width.toFloat(), fullHeight)
         metre.setPosition(position.x - GameResolution.width / 2f, position.y + fullHeight / 2f)

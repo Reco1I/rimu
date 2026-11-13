@@ -104,12 +104,12 @@ class ScoringScene(pGame: GameScene) {
 
     private fun textureWidth(texture: String): Float {
         val region = SkinTextures.get(texture)
-        return region?.width?.toFloat() ?: 0f
+        return region?.displayWidth?.toFloat() ?: 0f
     }
 
     private fun textureHeight(texture: String): Float {
         val region = SkinTextures.get(texture)
-        return region?.height?.toFloat() ?: 0f
+        return region?.displayHeight?.toFloat() ?: 0f
     }
 
     private fun createButton(texture: String, onClick: () -> Unit): UISprite {
