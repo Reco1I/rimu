@@ -33,6 +33,8 @@ import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.jvm.JvmField
+import com.reco1l.verktex.data.fill
+import kotlin.random.Random
 import kotlin.jvm.JvmStatic
 
 open class GameplaySpinner : GameObject() {
@@ -101,16 +103,17 @@ open class GameplaySpinner : GameObject() {
         circle.texture = skinTexture("spinner-circle")
 
         // The metre fills from the bottom: the sprite keeps the size of the background while the container
-        // clipping it grows, revealing the texture from its bottom as osu!stable does.
+        // shows a growing part of it from its bottom, as osu!stable does.
         metreSprite = UISprite()
         metreSprite.scaleType = ScaleType.Stretch
         metreSprite.texture = skinTexture("spinner-metre")
-        metreSprite.anchor = Anchor.BottomLeft
-        metreSprite.origin = Anchor.BottomLeft
+        metreSprite.width = fill()
+        metreSprite.height = fill()
 
         metre = UIClipContainer()
         metre.origin = Anchor.BottomLeft
-        metre.setSize(GameResolution.width.toFloat(), 0f)
+        metre.clipAnchor = Anchor.BottomLeft
+        metre.clipFactorY = 0f
         metre += metreSprite
 
         layoutToBackground()
@@ -156,7 +159,7 @@ open class GameplaySpinner : GameObject() {
         background.scale = if (backgroundTexture != null) GameResolution.width / backgroundTexture.displayWidth else 1f
         fullHeight = if (backgroundTexture != null) backgroundTexture.displayHeight * background.scaleY else 0f
 
-        metreSprite.setSize(GameResolution.width.toFloat(), fullHeight)
+        metre.setSize(GameResolution.width.toFloat(), fullHeight)
         metre.setPosition(position.x - GameResolution.width / 2f, position.y + fullHeight / 2f)
     }
 
@@ -188,7 +191,8 @@ open class GameplaySpinner : GameObject() {
         background.isVisible = !GameHelper.isTraceable() ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapSpinner)
 
-        metre.setSize(GameResolution.width.toFloat(), 0f)
+        metre.clipFactorY = 0f
+        background.color = OsuSkin.get().spinnerBackgroundColor
 
         scene.add(0, spinText)
 
@@ -460,7 +464,7 @@ open class GameplaySpinner : GameObject() {
                 }
             }
 
-            metre.setSize(GameResolution.width.toFloat(), fullHeight * min(1f, abs(percentfill)))
+            metre.clipFactorY = metreFill(min(1f, abs(percentfill)))
 
             oldMouse.set(currMouse)
         }
@@ -468,6 +472,24 @@ open class GameplaySpinner : GameObject() {
         if (passedTime >= duration) {
             removeFromScene()
         }
+    }
+
+    /**
+     * The fraction of the metre that's shown for the given progress: it fills by bars, the one being filled
+     * blinking with a chance that grows as it fills, unless the skin asks for it to stay shown.
+     *
+     * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyOldStyleSpinner.cs
+     */
+    private fun metreFill(progress: Float): Float {
+        val percent = min(99f, progress * 100)
+        var bars = percent.toInt() / 10
+        val partial = (percent.toInt() % 10) / 10f
+
+        if (partial > 0 && (OsuSkin.get().isSpinnerNoBlink || Random.nextFloat() < partial)) {
+            bars++
+        }
+
+        return if (progress >= 1f) 1f else bars / METRE_BARS.toFloat()
     }
 
     override fun onExpire() {
@@ -640,6 +662,8 @@ open class GameplaySpinner : GameObject() {
     }
 
     companion object {
+        private const val METRE_BARS = 10
+
         /**
          * Converts [radians] to degrees as `Math.toDegrees` does.
          */

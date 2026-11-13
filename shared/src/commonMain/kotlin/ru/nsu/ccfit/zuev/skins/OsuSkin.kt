@@ -36,6 +36,8 @@ class OsuSkin {
     internal val rotateCursorTrailData = BooleanSkinData("rotateCursorTrail", true)
     internal val expandCursorData = BooleanSkinData("expandCursor", true)
     internal val hitCircleOverlayAboveNumberData = BooleanSkinData("hitCircleOverlayAboveNumber", true)
+    internal val spinnerNoBlinkData = BooleanSkinData("spinnerNoBlink")
+    internal val spinnerBackgroundColorData = ColorSkinData("spinnerBackgroundColor", Color4(100 / 255f, 100 / 255f, 100 / 255f))
 
     // Skins that aren't osu!stable's, without a skin.ini, are made for the latest version.
     internal val versionData = FloatSkinData("version", LATEST_VERSION)
@@ -86,6 +88,18 @@ class OsuSkin {
      */
     val version: Float
         get() = versionData.currentValue
+
+    /**
+     * Whether the highest bar of the old style spinner's metre stays shown, instead of blinking while it fills.
+     */
+    val isSpinnerNoBlink: Boolean
+        get() = spinnerNoBlinkData.currentValue
+
+    /**
+     * The colour the old style spinner's background is tinted with.
+     */
+    val spinnerBackgroundColor: Color4
+        get() = spinnerBackgroundColorData.currentValue ?: Color4(100 / 255f, 100 / 255f, 100 / 255f)
 
     /**
      * Whether the overlay of hit circles is drawn over their number rather than under it.

@@ -140,6 +140,9 @@ fun convertToJson(ini: IniReader) = buildJsonObject {
         val overlayAboveNumber = ini.get<Boolean>("General", "HitCircleOverlayAboveNumber")
             ?: ini.get<Boolean>("General", "HitCircleOverlayAboveNumer")
         putIfNotNull("hitCircleOverlayAboveNumber", overlayAboveNumber != false)
+
+        putIfNotNull("spinnerNoBlink", ini.get<Boolean>("General", "SpinnerNoBlink") == true)
+        putIfNotNull("spinnerBackgroundColor", convertToHex(ini["Colours", "SpinnerBackground"]))
         putIfNotNull("comboTextScale", 0.8f)
         putIfNotNull("animationFramerate", ini["General", "AnimationFramerate"] ?: -1f)
         putIfNotNull("layeredHitSounds", ini.get<Boolean>("General", "LayeredHitSounds") != false)
