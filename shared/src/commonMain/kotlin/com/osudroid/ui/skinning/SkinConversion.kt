@@ -63,6 +63,8 @@ fun convertToJson(ini: IniReader) = buildJsonObject {
     putIfNotNull("Cursor", buildJsonObject {
         putIfNotNull("rotateCursor", ini.get<Boolean>("General", "CursorRotate") != false)
         putIfNotNull("rotateCursorTrail", ini.get<Boolean>("General", "CursorTrailRotate") != false)
+        putIfNotNull("expandCursor", ini.get<Boolean>("General", "CursorExpand") != false)
+        putIfNotNull("centreCursor", ini.get<Boolean>("General", "CursorCentre") != false)
     })
 
     putIfNotNull("ComboColor", buildJsonObject {

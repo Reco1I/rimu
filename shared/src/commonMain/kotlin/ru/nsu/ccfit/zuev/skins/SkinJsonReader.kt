@@ -167,6 +167,8 @@ class SkinJsonReader private constructor() : SkinReader() {
         val data = currentCursorData
         skin.rotateCursorData.setFromJson(data)
         skin.rotateCursorTrailData.setFromJson(data)
+        skin.expandCursorData.setFromJson(data)
+        skin.centreCursorData.setFromJson(data)
     }
 
     override fun loadTheme() {

@@ -10,17 +10,24 @@ import com.reco1l.verktex.graphics.BlendMode
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.UIAnimatedSprite
 import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.UIParticleSystem
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.random.Random
 
 /**
- * The effects shown when hit objects are judged: the judgement sprites (300, 100, miss...), the hit
- * lighting and the bursts of hit circles and slider ends.
+ * The effects shown when hit objects are judged: the judgement sprites (300, 100, miss...), the
+ * particles of skins that have them, the hit lighting and the bursts of hit circles and slider ends.
  */
 class GameplayEffects {
 
     private var background: UIContainer? = null
     private var foreground: UIContainer? = null
     private var scale = 1f
+
+    // One for each particle texture, they're added to the foreground once it's set.
+    private val particleSystems = mutableMapOf<String, UIParticleSystem>()
 
 
     /**
@@ -30,6 +37,9 @@ class GameplayEffects {
     fun setLayers(background: UIContainer, foreground: UIContainer) {
         this.background = background
         this.foreground = foreground
+
+        particleSystems.values.forEach { it.removeSelf() }
+        particleSystems.clear()
     }
 
     /**
@@ -44,6 +54,8 @@ class GameplayEffects {
      * Shows the judgement sprite with the given texture name, e.g. `hit300` or `hit0`.
      */
     fun hit(pos: Vector2, name: String, color: Color4?) {
+
+        emitParticles(pos, name)
 
         val effect = GameObjectPool.getInstance().getEffect(name)
         val hit = effect.hit
@@ -139,6 +151,54 @@ class GameplayEffects {
     }
 
     /**
+     * Throws the particles of the judgement out from its position if the skin has a texture for them, as
+     * osu!stable does.
+     */
+    private fun emitParticles(pos: Vector2, name: String) {
+        val particleName = when {
+            name.startsWith("hit300") -> "particle300"
+            name.startsWith("hit100") -> "particle100"
+            name.startsWith("hit50") -> "particle50"
+            else -> return
+        }
+
+        val texture = SkinTextures[particleName] ?: return
+        val foreground = foreground ?: return
+
+        // Reference: https://github.com/ppy/osu/blob/master/osu.Game/Skinning/LegacyJudgementPieceNew.cs
+        val system = particleSystems.getOrPut(particleName) {
+            UIParticleSystem(MAX_PARTICLES).apply { blendMode = BlendMode.Additive }
+        }
+
+        // Again if the layer was cleared, e.g. when the game restarts.
+        if (system.parent == null) {
+            foreground += system
+        }
+
+        system.texture = texture
+
+        for (i in 0 until PARTICLE_COUNT) {
+            val direction = Random.nextFloat() * 2 * PI.toFloat()
+            val distance = Random.nextFloat() * PARTICLE_SPREAD * scale
+
+            val velocityX = sin(direction) * distance / PARTICLE_DURATION
+            val velocityY = cos(direction) * distance / PARTICLE_DURATION
+
+            // They start some way into their animation, so they don't cluster at the centre.
+            system.emit(
+                x = pos.x + velocityX * PARTICLE_HEAD_START,
+                y = pos.y + velocityY * PARTICLE_HEAD_START,
+                lifetime = PARTICLE_DURATION - PARTICLE_HEAD_START,
+                velocityX = velocityX,
+                velocityY = velocityY,
+                startScale = scale,
+                startAlpha = 1 - PARTICLE_HEAD_START / PARTICLE_DURATION,
+                endAlpha = 0f
+            )
+        }
+    }
+
+    /**
      * The burst of a hit circle.
      */
     fun burst(pos: Vector2, color: Color4) {
@@ -203,5 +263,17 @@ class GameplayEffects {
                 .scaleTo(scale * 1.4f, fadeDuration, Easing.OutQuad)
                 .fadeOut(fadeDuration) }
         )
+    }
+
+    private companion object {
+        const val PARTICLE_COUNT = 150
+        const val PARTICLE_DURATION = 1.6f
+        const val PARTICLE_HEAD_START = 0.1f
+
+        // How far they go at most, in osu!pixels.
+        const val PARTICLE_SPREAD = 70f
+
+        // Enough for the particles of a dense stream of hits to last.
+        const val MAX_PARTICLES = 2048
     }
 }

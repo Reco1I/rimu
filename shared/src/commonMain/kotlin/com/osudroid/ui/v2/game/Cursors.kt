@@ -4,6 +4,7 @@ import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.math.Easing
@@ -26,11 +27,15 @@ class CursorSprite : UISprite(), ISliderListener {
 
     val baseSize = OsuSettings.cursorSize * 2
 
+    // Whether the skin lets it grow on clicks and sliders.
+    private val expands = OsuSkin.get().isExpandCursor
+
     init {
         anchor = Anchor.Center
-        origin = Anchor.Center
+        origin = cursorOrigin()
+        scaleOrigin = cursorOrigin()
         scale = baseSize
-        textureRegion = SkinTextures["cursor"]
+        texture = skinTexture("cursor")
     }
 
 
@@ -40,6 +45,10 @@ class CursorSprite : UISprite(), ISliderListener {
     }
 
     fun handleClick() {
+        if (!expands) {
+            return
+        }
+
         choreography?.clear()
         scale = baseSize
 
@@ -60,12 +69,20 @@ class CursorSprite : UISprite(), ISliderListener {
     override fun onSliderStart() {}
 
     override fun onSliderTracking() {
+        if (!expands) {
+            return
+        }
+
         choreography?.clear()
         scale = baseSize
         choreograph { at(currentClockTime).scaleTo(baseSize * 1.25f, CLICK_ANIMATION_TIME) }
     }
 
     override fun onSliderEnd() {
+        if (!expands) {
+            return
+        }
+
         choreography?.clear()
         scale = baseSize * 1.25f
         choreograph { at(currentClockTime).scaleTo(baseSize, CLICK_ANIMATION_TIME) }
@@ -92,6 +109,14 @@ open class CursorEntity : UIContainer() {
 
     protected val cursorSprite = CursorSprite()
 
+    // Drawn over the cursor, it neither rotates nor grows.
+    private val middleSprite = UISprite().apply {
+        anchor = Anchor.Center
+        origin = cursorOrigin()
+        scale = cursorSprite.baseSize
+        texture = skinTexture("cursormiddle")
+    }
+
     private val trail = if (Settings[OsuSettings.UseParticles]) CursorTrail(cursorSprite) else null
     private var isShowing = false
 
@@ -100,6 +125,7 @@ open class CursorEntity : UIContainer() {
         origin = Anchor.Center
         isVisible = false
         +cursorSprite
+        +middleSprite
     }
 
 
@@ -122,6 +148,12 @@ open class CursorEntity : UIContainer() {
         layer += this
     }
 }
+
+/**
+ * Where a cursor's textures are placed from its position: their centre, or their top left corner for skins
+ * that ask for it.
+ */
+private fun cursorOrigin() = if (OsuSkin.get().isCentreCursor) Anchor.Center else Anchor.TopLeft
 
 /**
  * The particles left behind by a cursor.

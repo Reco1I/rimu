@@ -34,6 +34,8 @@ class OsuSkin {
     internal val forceOverrideComboColorData = BooleanSkinData("forceOverride")
     internal val rotateCursorData = BooleanSkinData("rotateCursor", true)
     internal val rotateCursorTrailData = BooleanSkinData("rotateCursorTrail", true)
+    internal val expandCursorData = BooleanSkinData("expandCursor", true)
+    internal val centreCursorData = BooleanSkinData("centreCursor", true)
     internal val layeredHitSoundsData = BooleanSkinData("layeredHitSounds", true)
     internal val sliderBallFlipData = BooleanSkinData("sliderBallFlip", true)
     internal val spinnerFrequencyModulateData = BooleanSkinData("spinnerFrequencyModulate", true)
@@ -74,6 +76,18 @@ class OsuSkin {
 
     val isRotateCursorTrail: Boolean
         get() = rotateCursorTrailData.currentValue
+
+    /**
+     * Whether the cursor grows when pressing and while following a slider.
+     */
+    val isExpandCursor: Boolean
+        get() = expandCursorData.currentValue
+
+    /**
+     * Whether the cursor's texture is centred on its position, rather than starting at it.
+     */
+    val isCentreCursor: Boolean
+        get() = centreCursorData.currentValue
 
     val comboTextScale: Float
         get() = comboTextScaleData.currentValue
