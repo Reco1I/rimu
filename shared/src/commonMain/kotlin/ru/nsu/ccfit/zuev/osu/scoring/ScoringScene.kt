@@ -41,6 +41,8 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.texture.Textures
+import com.reco1l.verktex.texture.reference
+import com.reco1l.verktex.texture.storedTexture
 import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.container.UIContainer
@@ -161,10 +163,10 @@ class ScoringScene(pGame: GameScene) {
             replayStat = stat
         }
 
-        val backgroundSprite = UISprite(if (Textures.get("::background") != null)
-            Textures.get("::background")
+        val backgroundSprite = UISprite(if ("::background" in Textures)
+            storedTexture("::background")
         else
-            SkinTextures.get("menu-background"))
+            SkinTextures.get("menu-background")?.reference)
         backgroundSprite.width = Dimension.FillAvailable
         backgroundSprite.height = Dimension.FillAvailable
         backgroundSprite.scaleType = ScaleType.Crop
