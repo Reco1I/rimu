@@ -32,6 +32,7 @@ import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.v2.game.SpinnerRpmCounter
 import kotlin.jvm.JvmField
 import com.reco1l.verktex.data.fill
 import kotlin.random.Random
@@ -50,6 +51,9 @@ open class GameplaySpinner : GameObject() {
     private val spinText: UISprite
     private val clearText: UISprite
     private val bonusScore: ScoreNumber
+
+    @JvmField
+    protected val rpmCounter = SpinnerRpmCounter()
 
     @JvmField
     protected var beatmapSpinner: Spinner? = null
@@ -211,6 +215,8 @@ open class GameplaySpinner : GameObject() {
         scene.add(0, metre)
         scene.add(0, background)
 
+        rpmCounter.attach(scene, hitTime, hitTime + duration)
+
         val fadeDuration = timePreempt * 0.25f
         val fadeInStartTime = hitTime - fadeDuration
 
@@ -259,6 +265,8 @@ open class GameplaySpinner : GameObject() {
 
         metre.clearAnimations()
         metre.removeSelf()
+
+        rpmCounter.detach()
 
         bonusScore.removeSelf()
         lifetimeEnd = hitTime + duration
@@ -409,6 +417,7 @@ open class GameplaySpinner : GameObject() {
             }
 
             rotations += dfill / 4f
+            rpmCounter.update(hitTime + passedTime, circle.rotationZ)
             var percentfill = (abs(rotations) + fullRotations) / needRotations
 
             if (dfill != 0f) {

@@ -122,6 +122,8 @@ class GameplayModernSpinner : GameplaySpinner() {
             scene += middle2
         }
 
+        rpmCounter.attach(scene, hitTime, hitTime + duration)
+
         val timePreempt = beatmapSpinner.timePreempt.toFloat() / 1000f
         passedTime = -timePreempt
 
@@ -231,6 +233,7 @@ class GameplayModernSpinner : GameplaySpinner() {
             }
 
             rotations += dFill / 4f
+            rpmCounter.update(hitTime + passedTime, top.rotationZ)
             val percentFilled = (abs(rotations) + fullRotations) / needRotations
             val percent = min(percentFilled, 1f)
 
@@ -331,6 +334,8 @@ class GameplayModernSpinner : GameplaySpinner() {
 
         glow.clearAnimations()
         glow.removeSelf()
+
+        rpmCounter.detach()
 
         bonusScore.removeSelf()
         scene = null

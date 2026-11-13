@@ -27,6 +27,12 @@ class ScoreNumber @JvmOverloads constructor(
     var letterHeight = 0f
         private set
 
+    /**
+     * The width of the text.
+     */
+    var textWidth = 0f
+        private set
+
 
     init {
         setPosition(x, y)
@@ -60,6 +66,8 @@ class ScoreNumber @JvmOverloads constructor(
 
                 totalWidth += width
             }
+
+            textWidth = totalWidth
 
             if (isCentered) {
                 for (letter in this) {
