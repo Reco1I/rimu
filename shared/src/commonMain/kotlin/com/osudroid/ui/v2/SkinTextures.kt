@@ -58,6 +58,15 @@ object SkinTextures {
     // The names in beatmapFiles whose file is an @2x image.
     private val hdBeatmapFiles = mutableSetOf<String>()
 
+    // The names in beatmapFiles that are the hit circle's textures standing in for the slider's.
+    private val aliasedBeatmapFiles = mutableSetOf<String>()
+
+    // The overlays of the slider's circles, by the circle they go over.
+    private val sliderCircleOverlays = mapOf(
+        "sliderstartcircleoverlay" to "sliderstartcircle",
+        "sliderendcircleoverlay" to "sliderendcircle"
+    )
+
     private const val HD_SUFFIX = "@2x"
 
     // What a skin without its own slider head and tail uses, as osu!stable does.
@@ -276,15 +285,15 @@ object SkinTextures {
         }
 
         beatmapFiles[name] = path
+        aliasedBeatmapFiles -= name
 
-        if (name == "hitcircle") {
-            beatmapFiles.getOrPut("sliderstartcircle") { path }
-            beatmapFiles.getOrPut("sliderendcircle") { path }
-        }
-
-        if (name == "hitcircleoverlay") {
-            beatmapFiles.getOrPut("sliderstartcircleoverlay") { path }
-            beatmapFiles.getOrPut("sliderendcircleoverlay") { path }
+        if (name == "hitcircle" || name == "hitcircleoverlay") {
+            for ((sliderName, circleName) in skinFallbacks) {
+                if (circleName == name && sliderName !in beatmapFiles) {
+                    beatmapFiles[sliderName] = path
+                    aliasedBeatmapFiles += sliderName
+                }
+            }
         }
     }
 
@@ -294,6 +303,7 @@ object SkinTextures {
     @JvmStatic
     fun clearBeatmapTextures() {
         beatmapFiles.clear()
+        aliasedBeatmapFiles.clear()
         hdBeatmapFiles.clear()
         revision++
         Textures.unloadAll { key, _ -> key.startsWith(BEATMAP_KEY_PREFIX) }
@@ -339,6 +349,10 @@ object SkinTextures {
     }
 
     private fun lookup(customName: String, defaultName: String): GraphicsTexture.Region? {
+        if (isHiddenSliderOverlay(defaultName)) {
+            return null
+        }
+
         lookupBeatmap(defaultName)?.let { return it }
 
         val key = KEY_PREFIX + customName
@@ -423,6 +437,33 @@ object SkinTextures {
         }
 
         return false
+    }
+
+    /**
+     * Whether the overlay of a slider's circle isn't shown: a skin with the slider's circle but not its
+     * overlay shows none, the hit circle's overlay is only used when the slider's circle isn't skinned either.
+     */
+    private fun isHiddenSliderOverlay(name: String): Boolean {
+        val circleName = sliderCircleOverlays[name] ?: return false
+
+        if (BeatmapSkinManager.isSkinEnabled() && circleName in beatmapFiles && circleName !in aliasedBeatmapFiles) {
+            return name !in beatmapFiles || name in aliasedBeatmapFiles
+        }
+
+        return isInSkin(circleName) && !isInSkin(name)
+    }
+
+    /**
+     * Whether the skin in use, or the beatmap skin while it's enabled, has its own texture with the name,
+     * rather than the default skin's.
+     */
+    @JvmStatic
+    fun isSkinned(name: String): Boolean {
+        if (BeatmapSkinManager.isSkinEnabled() && name in beatmapFiles && name !in aliasedBeatmapFiles) {
+            return true
+        }
+
+        return isInSkin(name)
     }
 
     private fun isDefaultSkin() = SkinFolders.path.trimEnd('/') == SkinFolders.topPath.trimEnd('/')

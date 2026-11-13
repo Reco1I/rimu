@@ -155,13 +155,19 @@ class GameplayEffects {
      * osu!stable does.
      */
     private fun emitParticles(pos: Vector2, name: String) {
-        val particleName = when {
-            name.startsWith("hit300") -> "particle300"
-            name.startsWith("hit100") -> "particle100"
-            name.startsWith("hit50") -> "particle50"
+        val judgement = when {
+            name.startsWith("hit300") -> "300"
+            name.startsWith("hit100") -> "100"
+            name.startsWith("hit50") -> "50"
             else -> return
         }
 
+        // Only for skins that have their own judgement too.
+        if (!SkinTextures.isSkinned("hit$judgement") && !SkinTextures.isSkinned("hit$judgement-0")) {
+            return
+        }
+
+        val particleName = "particle$judgement"
         val texture = SkinTextures[particleName] ?: return
         val foreground = foreground ?: return
 
