@@ -12,10 +12,10 @@ import com.osudroid.game.GameplaySequenceHitSampleInfo
 import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.game.ScoreNumber
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.choreographAt
+import com.reco1l.verktex.ui.container.UIClipContainer
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.scaleTo
@@ -39,7 +39,7 @@ open class GameplaySpinner : GameObject() {
     private val background: UISprite
     private val circle: UISprite
     private val approachCircle: UISprite
-    private val metre: UIContainer
+    private val metre: UIClipContainer
     private val metreSprite: UISprite
     private var fullHeight = 0f
     // The background region the sizes were derived from, see layoutToBackground.
@@ -100,15 +100,15 @@ open class GameplaySpinner : GameObject() {
         circle.setPosition(position.x, position.y)
         circle.texture = skinTexture("spinner-circle")
 
-        // The metre fills from the bottom: the sprite stays in place while the container clipping it grows.
+        // The metre fills from the bottom: the sprite keeps the size of the background while the container
+        // clipping it grows, revealing the texture from its bottom as osu!stable does.
         metreSprite = UISprite()
         metreSprite.scaleType = ScaleType.Stretch
         metreSprite.texture = skinTexture("spinner-metre")
         metreSprite.anchor = Anchor.BottomLeft
         metreSprite.origin = Anchor.BottomLeft
 
-        metre = UIContainer()
-        metre.clipping = ClipMode.Bounds
+        metre = UIClipContainer()
         metre.origin = Anchor.BottomLeft
         metre.setSize(GameResolution.width.toFloat(), 0f)
         metre += metreSprite
