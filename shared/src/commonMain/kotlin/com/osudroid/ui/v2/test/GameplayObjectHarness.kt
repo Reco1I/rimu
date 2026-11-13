@@ -13,6 +13,9 @@ import com.osudroid.game.Cursor
 import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.mods.ModAutoplay
+import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.settings.SettingKey
+import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.dip
@@ -76,14 +79,24 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     val stat = StatisticV2()
 
+    // Holds the layers of the playfield, scaled to fit the stage as the game fits it in the screen.
+    private val area = UIContainer().apply {
+        setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+        anchor = Anchor.Center
+        origin = Anchor.Center
+        scaleOrigin = Anchor.Center
+    }
+
+    // Under the objects, as the game's background layer, for the hit lighting.
+    private val background = UIContainer().apply {
+        setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+    }
+
     /**
      * The container objects are added to, with the size of the gameplay playfield.
      */
     val playfield = UIContainer().apply {
         setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
-        anchor = Anchor.Center
-        origin = Anchor.Center
-        scaleOrigin = Anchor.Center
     }
 
     /**
@@ -97,7 +110,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     private val clock = ManualClock()
 
-    private val effects = GameplayEffects().apply { setLayers(playfield, playfield) }
+    private val effects = GameplayEffects().apply { setLayers(background, playfield) }
 
     private var cursor = Cursor()
 
@@ -109,8 +122,14 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
 
     init {
-        playfield.clock = clock
-        stage += playfield
+        area.clock = clock
+        area += background
+        area += playfield
+        stage += area
+
+        // Left by a game that was played before.
+        GameHelper.setHidden(null)
+        GameHelper.setTraceable(null)
 
         GameHelper.setOverallDifficulty(difficulty.od)
         GameHelper.setHealthDrain(difficulty.hp)
@@ -121,10 +140,12 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         GameHelper.setBeatLength(0.5)
         GameHelper.setKiai(false)
 
+        effectButtons()
+
         stage.onEachFrame { frame ->
             // Fits the playfield in the stage, as the game fits it in the screen.
             val bounds = stage.bounds
-            playfield.scale = min(bounds.width / GameResolution.width, bounds.height / GameResolution.height)
+            area.scale = min(bounds.width / GameResolution.width, bounds.height / GameResolution.height)
 
             val deltaTime = frame.elapsedFrameTime
             clock.time += deltaTime
@@ -148,6 +169,26 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
     fun loop(factory: (startTime: Double) -> Pair<HitObject, GameObject>) {
         spawn = factory
         restart()
+    }
+
+    /**
+     * Adds buttons turning the effects of the hits on and off, which are settings of the game.
+     */
+    private fun effectButtons() {
+        fun toggle(label: String, key: SettingKey<Boolean>, y: Float) = stage.textButton {
+            x = 16f.dip
+            this.y = y.dip
+            variant = UIButton.Variant.Surface
+            fun update() { text = "$label: ${if (Settings[key]) "on" else "off"}" }
+            update()
+            onActionUp = {
+                Settings[key] = !Settings[key]
+                update()
+            }
+        }
+
+        toggle("Bursts", OsuSettings.BurstEffects, 16f)
+        toggle("Hit lighting", OsuSettings.HitLighting, 72f)
     }
 
     /**

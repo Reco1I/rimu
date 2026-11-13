@@ -23,6 +23,8 @@ class GameEffect(texname: String) : GameObject() {
     var texname: String = texname
         private set
 
+    private var nextBlendMode: BlendMode = BlendMode.Alpha
+
     init {
         if (isAnimationEffect(texname)) {
             // Animated or not depending on the skin, which may change while the effect is pooled.
@@ -55,7 +57,8 @@ class GameEffect(texname: String) : GameObject() {
         hit.scale = scale
         hit.alpha = 1f
         hit.removeSelf()
-        hit.blendMode = BlendMode.Alpha
+        hit.blendMode = nextBlendMode
+        nextBlendMode = BlendMode.Alpha
         scene += hit
 
         hit.clearAnimations()
@@ -76,8 +79,11 @@ class GameEffect(texname: String) : GameObject() {
         }
     }
 
+    /**
+     * Sets how the effect is blended the next time it's shown with [init], after which it's alpha blended again.
+     */
     fun setBlendMode(blendMode: BlendMode) {
-        hit.blendMode = blendMode
+        nextBlendMode = blendMode
     }
 
     override fun update(dt: Float) {

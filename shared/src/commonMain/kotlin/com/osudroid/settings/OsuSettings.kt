@@ -77,7 +77,7 @@ object OsuSettings {
     @JvmField val SnakingOutSliders = key("snakingOutSliders", true)
     @JvmField val BackgroundBrightness = key("bgbrightness", 25f, bounds = 0..100)
     @JvmField val CursorSize = key("cursorSize", 50, bounds = 25..300)
-    @JvmField val BurstEffects = key("bursts", false)
+    @JvmField val BurstEffects = key("bursts", true)
     @JvmField val HitLighting = key("hitlighting", false)
     @JvmField val UseParticles = key("particles", false)
     @JvmField val UseCustomComboColors = key("useCustomColors", false)

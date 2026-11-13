@@ -65,7 +65,7 @@ class GameplayEffects {
                     pos,
                     scale,
                     { sequence -> sequence
-                        .fadeIn(fadeInLength)
+                        .fadeInFromZero(fadeInLength)
                         .then(fadeOutDelay)
                         .fadeOut(fadeOutLength) }
                 )
@@ -75,7 +75,7 @@ class GameplayEffects {
                     pos,
                     scale * 1.6f,
                     { sequence -> sequence
-                        .fadeIn(fadeInLength)
+                        .fadeInFromZero(fadeInLength)
                         .then(fadeOutDelay)
                         .fadeOut(fadeOutLength) },
                     { sequence -> sequence
@@ -106,7 +106,7 @@ class GameplayEffects {
                 pos,
                 scale * 0.8f,
                 { sequence -> sequence.scaleTo(scale * 1.2f, 0.6f, Easing.OutQuad) },
-                { sequence -> sequence.fadeIn(0.2f).then().fadeOut(1f) }
+                { sequence -> sequence.fadeInFromZero(0.2f).then().fadeOut(1f) }
             )
         }
 
@@ -116,14 +116,14 @@ class GameplayEffects {
                 foreground!!,
                 pos,
                 scale,
-                { sequence -> sequence.fadeIn(fadeInLength).then(fadeOutDelay).fadeOut(fadeOutLength) }
+                { sequence -> sequence.fadeInFromZero(fadeInLength).then(fadeOutDelay).fadeOut(fadeOutLength) }
             )
         } else {
             effect.init(
                 foreground!!,
                 pos,
                 scale * 0.6f,
-                { sequence -> sequence.fadeIn(fadeInLength).then(fadeOutDelay).fadeOut(fadeOutLength) },
+                { sequence -> sequence.fadeInFromZero(fadeInLength).then(fadeOutDelay).fadeOut(fadeOutLength) },
                 { sequence -> sequence
                     .scaleTo(scale * 1.1f, fadeInLength * 0.8f) // t = 0.8
                     .then(fadeInLength * 0.2f) // t = 1.0
