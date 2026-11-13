@@ -6,6 +6,7 @@ import com.osudroid.ui.skinning.StringSkinData
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.texture.TextureReference
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.UIComponent
 import com.reco1l.verktex.ui.container.UIContainer
@@ -51,6 +52,22 @@ object SkinTextures {
 
     // The files of the beatmap skin by texture name, each one is loaded when it's first used.
     private val beatmapFiles = mutableMapOf<String, String>()
+
+
+    /**
+     * Goes up whenever a name may look up another texture than before without [Textures] changing,
+     * such as when the files of the beatmap skin are registered or it's enabled, see [SkinTexture].
+     */
+    var revision = 0
+        private set
+
+    /**
+     * To be called when the beatmap skin is enabled or disabled.
+     */
+    @JvmStatic
+    fun onBeatmapSkinToggled() {
+        revision++
+    }
 
 
     /**
@@ -103,6 +120,7 @@ object SkinTextures {
      */
     @JvmStatic
     fun loadBeatmapTexture(path: String) {
+        revision++
         val name = path.toPath().name.substringBeforeLast('.').lowercase()
 
         if (!isKnown(name)) {
@@ -150,6 +168,7 @@ object SkinTextures {
     @JvmStatic
     fun clearBeatmapTextures() {
         beatmapFiles.clear()
+        revision++
         Textures.unloadAll { key, _ -> key.startsWith(BEATMAP_KEY_PREFIX) }
     }
 
@@ -160,6 +179,7 @@ object SkinTextures {
     fun onSkinChanged() {
         Textures.unloadAll { key, _ -> key.startsWith(KEY_PREFIX) }
         missingTextures.clear()
+        revision++
         notifySkinChanged(Verktex.scene)
     }
 
@@ -221,3 +241,26 @@ object SkinTextures {
         return region
     }
 }
+
+/**
+ * Refers to the skin texture named [name], see [SkinTextures.get], following it as the skin or the
+ * beatmap skin changes. With a [prefix], it's the one named with that configurable prefix.
+ */
+data class SkinTexture(val name: String, val prefix: StringSkinData? = null) : TextureReference.Lookup() {
+
+    // Both only go up, so their sum changes whenever either does.
+    override val revision: Int
+        get() = Textures.revision + SkinTextures.revision
+
+    override fun lookup() = if (prefix != null) SkinTextures[prefix, name] else SkinTextures[name]
+}
+
+/**
+ * Refers to the skin texture named [name], following it as the skin changes.
+ */
+fun skinTexture(name: String) = SkinTexture(name)
+
+/**
+ * Refers to the skin texture named [name] with a configurable [prefix], following it as the skin changes.
+ */
+fun skinTexture(prefix: StringSkinData, name: String) = SkinTexture(name, prefix)

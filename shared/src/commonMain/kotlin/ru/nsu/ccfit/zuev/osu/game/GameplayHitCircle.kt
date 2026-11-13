@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.settings.OsuSettings
+import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.beatmaps.constants.HitObjectType
@@ -101,7 +102,7 @@ class GameplayHitCircle : GameObject() {
         approachCircle.isVisible = !GameHelper.isHidden() ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getHidden()!!.firstObject === beatmapCircle)
 
-        approachCircle.textureRegion = SkinTextures.get(
+        approachCircle.texture = skinTexture(
             if (GameHelper.isTraceable()) "defaultapproachcircle" else "approachcircle")
 
         val scene = scene!!

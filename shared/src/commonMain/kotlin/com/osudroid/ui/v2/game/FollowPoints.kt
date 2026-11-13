@@ -1,6 +1,8 @@
 package com.osudroid.ui.v2.game
 
+import com.reco1l.verktex.texture.TextureReference
 import kotlin.math.PI
+import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.ScaleType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.osudroid.ui.v2.SkinTextures
@@ -41,7 +43,7 @@ object FollowPointConnection {
         val sprite = if (frames.isNotEmpty()) {
             PoolableAnimatedFollowPoint(frames, OsuSkin.get().animationFramerate).also { it.isLoop = false }
         } else {
-            PoolableFollowPoint(SkinTextures["followpoint"])
+            PoolableFollowPoint(skinTexture("followpoint"))
         }
 
         sprite.textureRegion?.let { sprite.applyFollowPointMaxSize(it) }
@@ -170,7 +172,7 @@ object FollowPointConnection {
         }
     }
 
-    private class PoolableFollowPoint(textureRegion: GraphicsTexture.Region? = null) : UISprite(textureRegion), IPoolable {
+    private class PoolableFollowPoint(texture: TextureReference? = null) : UISprite(texture), IPoolable {
         override var isRecycled = false
     }
 

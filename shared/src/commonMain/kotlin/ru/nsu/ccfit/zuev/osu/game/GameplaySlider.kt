@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import ru.nsu.ccfit.zuev.osu.Constants
+import com.osudroid.ui.v2.skinTexture
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.HitWindow
@@ -155,11 +156,11 @@ class GameplaySlider : GameObject() {
 
         startArrow = UISprite()
         startArrow.origin = Anchor.Center
-        startArrow.textureRegion = SkinTextures.get("reversearrow")
+        startArrow.texture = skinTexture("reversearrow")
 
         endArrow = UISprite()
         endArrow.origin = Anchor.Center
-        endArrow.textureRegion = SkinTextures.get("reversearrow")
+        endArrow.texture = skinTexture("reversearrow")
 
         ball = UIAnimatedSprite(SkinTextures.frames("sliderb"), 60f)
         ball.origin = Anchor.Center
@@ -169,7 +170,7 @@ class GameplaySlider : GameObject() {
             followCircle = UIAnimatedSprite(SkinTextures.frames("sliderfollowcircle"), OsuSkin.get().animationFramerate)
         } else {
             followCircle = UISprite()
-            followCircle.textureRegion = SkinTextures.get("sliderfollowcircle")
+            followCircle.texture = skinTexture("sliderfollowcircle")
         }
         followCircle.origin = Anchor.Center
 
@@ -263,7 +264,7 @@ class GameplaySlider : GameObject() {
         approachCircle.isVisible = !GameHelper.isHidden() ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getHidden()!!.firstObject === beatmapSlider)
 
-        approachCircle.textureRegion = SkinTextures.get(
+        approachCircle.texture = skinTexture(
             if (GameHelper.isTraceable()) "defaultapproachcircle" else "approachcircle")
 
         scene.add(0, headCirclePiece)

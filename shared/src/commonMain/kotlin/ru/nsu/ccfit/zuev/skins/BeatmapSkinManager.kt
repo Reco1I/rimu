@@ -78,7 +78,10 @@ class BeatmapSkinManager private constructor() {
 
         @JvmStatic
         fun setSkinEnabled(skinEnabled: Boolean) {
-            this.skinEnabled = skinEnabled
+            if (this.skinEnabled != skinEnabled) {
+                this.skinEnabled = skinEnabled
+                SkinTextures.onBeatmapSkinToggled()
+            }
         }
     }
 }

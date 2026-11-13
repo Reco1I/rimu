@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.settings.OsuSettings
+import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.Spinner
 import com.osudroid.math.Vector2
@@ -40,27 +41,27 @@ class GameplayModernSpinner : GameplaySpinner() {
         middle = UISprite()
         middle.origin = Anchor.Center
         middle.setPosition(position.x, position.y)
-        middle.textureRegion = SkinTextures.get("spinner-middle")
+        middle.texture = skinTexture("spinner-middle")
 
         middle2 = UISprite()
         middle2.origin = Anchor.Center
         middle2.setPosition(position.x, position.y)
-        middle2.textureRegion = SkinTextures.get("spinner-middle2")
+        middle2.texture = skinTexture("spinner-middle2")
 
         bottom = UISprite()
         bottom.origin = Anchor.Center
         bottom.setPosition(position.x, position.y)
-        bottom.textureRegion = SkinTextures.get("spinner-bottom")
+        bottom.texture = skinTexture("spinner-bottom")
 
         top = UISprite()
         top.origin = Anchor.Center
         top.setPosition(position.x, position.y)
-        top.textureRegion = SkinTextures.get("spinner-top")
+        top.texture = skinTexture("spinner-top")
 
         glow = UISprite()
         glow.origin = Anchor.Center
         glow.setPosition(position.x, position.y)
-        glow.textureRegion = SkinTextures.get("spinner-glow")
+        glow.texture = skinTexture("spinner-glow")
 
         bonusScore = ScoreNumber(position.x, position.y + 100, "", 1.1f, true)
 

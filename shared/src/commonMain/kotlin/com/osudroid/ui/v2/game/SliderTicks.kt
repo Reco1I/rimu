@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.game
 
 import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
@@ -89,7 +90,7 @@ class SliderTickSprite : UISprite(), IPoolable {
     private var tick: SliderTick? = null
 
     init {
-        textureRegion = SkinTextures["sliderscorepoint"]
+        texture = skinTexture("sliderscorepoint")
         origin = Anchor.Center
     }
 
@@ -172,9 +173,7 @@ class SliderTickSprite : UISprite(), IPoolable {
          */
         @JvmStatic
         fun obtain(): SliderTickSprite {
-            val sprite = pool.acquire() ?: return SliderTickSprite()
-            sprite.textureRegion = SkinTextures["sliderscorepoint"]
-            return sprite
+            return pool.acquire() ?: SliderTickSprite()
         }
     }
 

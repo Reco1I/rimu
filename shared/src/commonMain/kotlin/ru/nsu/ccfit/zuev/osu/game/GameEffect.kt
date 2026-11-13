@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.math.Vector2
+import com.osudroid.ui.v2.skinTexture
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Anchor
@@ -29,7 +30,7 @@ class GameEffect(texname: String) : GameObject() {
             this.hit = hit
         } else {
             hit = UISprite()
-            hit.textureRegion = SkinTextures.get(texname)
+            hit.texture = skinTexture(texname)
         }
     }
 

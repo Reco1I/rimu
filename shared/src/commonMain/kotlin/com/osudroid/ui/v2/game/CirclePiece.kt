@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.game
 
 import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.skinTexture
 
 import com.osudroid.ui.v2.SpriteFont
 import com.reco1l.verktex.ui.UISprite
@@ -28,7 +29,7 @@ open class CirclePiece(
 
         it.origin = Anchor.Center
         it.anchor = Anchor.Center
-        it.textureRegion = SkinTextures[circleTexture]
+        it.texture = skinTexture(circleTexture)
 
         +it
     }
@@ -37,7 +38,7 @@ open class CirclePiece(
 
         it.origin = Anchor.Center
         it.anchor = Anchor.Center
-        it.textureRegion = SkinTextures[overlayTexture]
+        it.texture = skinTexture(overlayTexture)
 
         +it
     }
@@ -52,11 +53,11 @@ open class CirclePiece(
     }
 
     fun setCircleTextureRegion(circleTexture: String) {
-        circle.textureRegion = SkinTextures[circleTexture]
+        circle.texture = skinTexture(circleTexture)
     }
 
     fun setOverlayTextureRegion(overlayTexture: String) {
-        overlay.textureRegion = SkinTextures[overlayTexture]
+        overlay.texture = skinTexture(overlayTexture)
     }
 }
 

@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.settings.GameResolution
+import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.ScaleType
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -88,7 +89,7 @@ open class GameplaySpinner : GameObject() {
         background = UISprite()
         background.origin = Anchor.Center
         background.setPosition(position.x, position.y)
-        background.textureRegion = SkinTextures.get("spinner-background")
+        background.texture = skinTexture("spinner-background")
         val backgroundTexture = SkinTextures.get("spinner-background")
         background.scale = if (backgroundTexture != null) GameResolution.width / backgroundTexture.width.toFloat() else 1f
         fullHeight = if (backgroundTexture != null) backgroundTexture.height * background.scaleY else 0f
@@ -96,12 +97,12 @@ open class GameplaySpinner : GameObject() {
         circle = UISprite()
         circle.origin = Anchor.Center
         circle.setPosition(position.x, position.y)
-        circle.textureRegion = SkinTextures.get("spinner-circle")
+        circle.texture = skinTexture("spinner-circle")
 
         // The metre fills from the bottom: the sprite stays in place while the container clipping it grows.
         val metreSprite = UISprite()
         metreSprite.scaleType = ScaleType.Stretch
-        metreSprite.textureRegion = SkinTextures.get("spinner-metre")
+        metreSprite.texture = skinTexture("spinner-metre")
         metreSprite.anchor = Anchor.BottomLeft
         metreSprite.origin = Anchor.BottomLeft
         metreSprite.setSize(GameResolution.width.toFloat(), fullHeight)
@@ -116,17 +117,17 @@ open class GameplaySpinner : GameObject() {
         approachCircle = UISprite()
         approachCircle.origin = Anchor.Center
         approachCircle.setPosition(position.x, position.y)
-        approachCircle.textureRegion = SkinTextures.get("spinner-approachcircle")
+        approachCircle.texture = skinTexture("spinner-approachcircle")
 
         spinText = UISprite()
         spinText.origin = Anchor.Center
         spinText.setPosition(position.x, position.y * 1.5f)
-        spinText.textureRegion = SkinTextures.get("spinner-spin")
+        spinText.texture = skinTexture("spinner-spin")
 
         clearText = UISprite()
         clearText.origin = Anchor.Center
         clearText.setPosition(position.x, position.y * 0.5f)
-        clearText.textureRegion = SkinTextures.get("spinner-clear")
+        clearText.texture = skinTexture("spinner-clear")
 
         bonusScore = ScoreNumber(position.x, position.y + 100, "", 1.1f, true)
 
