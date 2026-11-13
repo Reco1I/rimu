@@ -856,6 +856,8 @@ class GameplaySlider : GameObject() {
 
         val elapsedTime = completedSpanCount * spanDuration + elapsedSpanTime
 
+        pulseReverseArrows(listener.elapsedTime, beatmapSlider.screenSpaceGameplayScale)
+
         // If the slider head is not judged yet
         if (!startHit) {
             val replayObjectData = replayObjectData
@@ -1347,6 +1349,26 @@ class GameplaySlider : GameObject() {
     }
 
     /**
+     * Pulses the reverse arrows with the beat, from 1.3 times their size back to it over a beat.
+     *
+     * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyReverseArrow.cs
+     */
+    private fun pulseReverseArrows(time: Float, scale: Float) {
+        val timingPoint = controlPoints?.timing?.controlPointAt(time * 1000.0) ?: return
+        val beatLength = timingPoint.msPerBeat
+
+        if (beatLength <= 0) {
+            return
+        }
+
+        val beatTime = (time * 1000.0 - timingPoint.time).mod(beatLength)
+        val progress = (beatTime / beatLength).toFloat()
+
+        startArrow.scale = scale * (1f + ARROW_PULSE * (1f - Easing.OutQuad.interpolate(progress)))
+        endArrow.scale = startArrow.scaleX
+    }
+
+    /**
      * Fades the head in and, depending on the mods, out, dimming it until it can be hit. The fade of a head
      * that isn't hit is left out once it's hit and stays as the end of the next span.
      */
@@ -1457,6 +1479,9 @@ class GameplaySlider : GameObject() {
 
         // The part of the whole width of the body that its shadow takes, as osu!lazer's LegacySliderBody.
         private const val SHADOW_PORTION = 5f / 64f
+
+        // How much larger reverse arrows are at the start of each beat.
+        private const val ARROW_PULSE = 0.3f
 
         /**
          * Darkens [color] by [amount] as osu!framework does.
