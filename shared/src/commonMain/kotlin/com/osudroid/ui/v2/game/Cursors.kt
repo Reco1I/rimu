@@ -19,16 +19,20 @@ import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
 import ru.nsu.ccfit.zuev.osu.game.GameplaySpinner
 import ru.nsu.ccfit.zuev.osu.game.ISliderListener
 import ru.nsu.ccfit.zuev.skins.OsuSkin
+import kotlin.math.sqrt
+import com.reco1l.verktex.graphics.BlendMode
 
 /**
- * The sprite of a cursor, which reacts to clicks and sliders.
+ * The sprite of a cursor, which grows while it's pressed.
  */
-class CursorSprite : UISprite(), ISliderListener {
+class CursorSprite : UISprite() {
 
     val baseSize = OsuSettings.cursorSize * 2
 
-    // Whether the skin lets it grow on clicks and sliders.
+    // Whether the skin lets it grow while pressed.
     private val expands = OsuSkin.get().isExpandCursor
+
+    private var isPressed = false
 
     init {
         anchor = Anchor.Center
@@ -44,48 +48,33 @@ class CursorSprite : UISprite(), ISliderListener {
         startRotationLoop()
     }
 
-    fun handleClick() {
-        if (!expands) {
+    /**
+     * Grows the cursor while it's pressed, unless the skin says it doesn't.
+     *
+     * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/UI/Cursor/OsuCursor.cs
+     */
+    fun press() {
+        if (!expands || isPressed) {
             return
         }
+        isPressed = true
 
         choreography?.clear()
         scale = baseSize
-
-        choreograph {
-            at(currentClockTime)
-            scaleTo(baseSize * 1.25f, CLICK_ANIMATION_TIME)
-            then()
-            scaleTo(baseSize, CLICK_ANIMATION_TIME)
-        }
+        choreograph { at(currentClockTime).scaleTo(baseSize * PRESSED_SCALE, EXPAND_DURATION, Easing.OutElasticHalf) }
     }
 
-    fun update(secondsElapsed: Float) {
-        if (scaleX > 2f) {
-            scale = maxOf(baseSize, scaleX - baseSize * 0.75f * secondsElapsed)
-        }
-    }
-
-    override fun onSliderStart() {}
-
-    override fun onSliderTracking() {
-        if (!expands) {
+    /**
+     * Shrinks the cursor back once it's released.
+     */
+    fun release() {
+        if (!isPressed) {
             return
         }
+        isPressed = false
 
         choreography?.clear()
-        scale = baseSize
-        choreograph { at(currentClockTime).scaleTo(baseSize * 1.25f, CLICK_ANIMATION_TIME) }
-    }
-
-    override fun onSliderEnd() {
-        if (!expands) {
-            return
-        }
-
-        choreography?.clear()
-        scale = baseSize * 1.25f
-        choreograph { at(currentClockTime).scaleTo(baseSize, CLICK_ANIMATION_TIME) }
+        choreograph { at(currentClockTime).scaleTo(baseSize, EXPAND_DURATION, Easing.OutQuad) }
     }
 
     private fun startRotationLoop() {
@@ -98,12 +87,13 @@ class CursorSprite : UISprite(), ISliderListener {
     }
 
     private companion object {
-        const val CLICK_ANIMATION_TIME = 0.25f
+        const val PRESSED_SCALE = 1.2f
+        const val EXPAND_DURATION = 0.4f
     }
 }
 
 /**
- * A cursor in the playfield, optionally leaving a trail of particles behind.
+ * A cursor in the playfield, leaving a trail behind if the skin has one.
  */
 open class CursorEntity : UIContainer() {
 
@@ -117,7 +107,7 @@ open class CursorEntity : UIContainer() {
         texture = skinTexture("cursormiddle")
     }
 
-    private val trail = if (Settings[OsuSettings.UseParticles]) CursorTrail(cursorSprite) else null
+    private val trail = if (SkinTextures["cursortrail"] != null) CursorTrail(cursorSprite) else null
     private var isShowing = false
 
 
@@ -130,15 +120,23 @@ open class CursorEntity : UIContainer() {
 
 
     fun setShowing(showing: Boolean) {
+        if (!showing) {
+            trail?.breakPath()
+        }
+
         isShowing = showing
         isVisible = showing
     }
 
-    fun click() = cursorSprite.handleClick()
+    /**
+     * Whether the cursor is pressed, it grows while it is.
+     */
+    fun setPressed(pressed: Boolean) {
+        if (pressed) cursorSprite.press() else cursorSprite.release()
+    }
 
     open fun update(secondsElapsed: Float) {
         if (isShowing) {
-            cursorSprite.update(secondsElapsed)
             trail?.spawn(x.resolve(0f), y.resolve(0f), secondsElapsed)
         }
     }
@@ -156,40 +154,106 @@ open class CursorEntity : UIContainer() {
 private fun cursorOrigin() = if (OsuSkin.get().isCentreCursor) Anchor.Center else Anchor.TopLeft
 
 /**
- * The particles left behind by a cursor.
+ * The trail left behind by a cursor, as osu!stable's: separate images every frame for skins without a
+ * `cursormiddle`, a continuous trail along the path of the cursor for skins with one.
+ *
+ * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyCursorTrail.cs
  */
 private class CursorTrail(private val cursor: CursorSprite) : UIParticleSystem(MAX_PARTICLES) {
 
-    private val spawnInterval = 1f / (Verktex.graphics.window.refreshRate * 2)
-    private var spawnTimer = 0f
+    private val isContinuous = SkinTextures["cursormiddle"] != null
+
+    private val lifetime = if (isContinuous) CONTINUOUS_LIFETIME else SEPARATE_LIFETIME
+
+    private val isCentred = isContinuous || OsuSkin.get().isCentreCursor
+
+    private var timeSinceLast = SEPARATE_INTERVAL
+
+    // Where the last part of a continuous trail was put, NaN when it starts again.
+    private var lastX = Float.NaN
+    private var lastY = Float.NaN
 
 
     init {
         texture = SkinTextures["cursortrail"]
-    }
 
-
-    fun spawn(x: Float, y: Float, secondsElapsed: Float) {
-        spawnTimer += secondsElapsed
-
-        while (spawnTimer >= spawnInterval) {
-            spawnTimer -= spawnInterval
-
-            emit(
-                x = x,
-                y = y,
-                lifetime = LIFETIME,
-                startScale = cursor.baseSize,
-                startAlpha = 1f,
-                endAlpha = 0f,
-                rotation = if (OsuSkin.get().isRotateCursorTrail) cursor.rotationZ else 0f
-            )
+        if (isContinuous) {
+            blendMode = BlendMode.Additive
         }
     }
 
+
+    /**
+     * Makes the next part start the trail again, e.g. when the cursor was hidden.
+     */
+    fun breakPath() {
+        lastX = Float.NaN
+        lastY = Float.NaN
+    }
+
+    fun spawn(x: Float, y: Float, secondsElapsed: Float) {
+        val texture = texture ?: return
+
+        if (!isContinuous) {
+            timeSinceLast += secondsElapsed
+
+            if (timeSinceLast >= SEPARATE_INTERVAL) {
+                timeSinceLast = 0f
+                emitPart(x, y, texture.displayWidth, texture.displayHeight)
+            }
+            return
+        }
+
+        if (lastX.isNaN()) {
+            lastX = x
+            lastY = y
+            emitPart(x, y, texture.displayWidth, texture.displayHeight)
+            return
+        }
+
+        // Parts along the way, overlapping so they look like one.
+        val interval = texture.displayWidth * cursor.baseSize / 2.5f
+        val dx = x - lastX
+        val dy = y - lastY
+        var distance = sqrt(dx * dx + dy * dy)
+
+        if (interval <= 0f || distance < interval) {
+            return
+        }
+
+        val directionX = dx / distance
+        val directionY = dy / distance
+
+        while (distance >= interval) {
+            lastX += directionX * interval
+            lastY += directionY * interval
+            distance -= interval
+            emitPart(lastX, lastY, texture.displayWidth, texture.displayHeight)
+        }
+    }
+
+    private fun emitPart(x: Float, y: Float, width: Float, height: Float) {
+        // Particles are centred, a trail with its origin at the top left is offset by half their size.
+        val offsetX = if (isCentred) 0f else width * cursor.baseSize / 2f
+        val offsetY = if (isCentred) 0f else height * cursor.baseSize / 2f
+
+        emit(
+            x = x + offsetX,
+            y = y + offsetY,
+            lifetime = lifetime,
+            startScale = cursor.baseSize,
+            startAlpha = 1f,
+            endAlpha = 0f,
+            rotation = if (OsuSkin.get().isRotateCursorTrail) cursor.rotationZ else 0f
+        )
+    }
+
     private companion object {
-        const val MAX_PARTICLES = 256
-        const val LIFETIME = 0.1f
+        const val MAX_PARTICLES = 512
+
+        const val SEPARATE_INTERVAL = 1f / 60f
+        const val SEPARATE_LIFETIME = 0.15f
+        const val CONTINUOUS_LIFETIME = 0.5f
     }
 }
 
@@ -211,6 +275,10 @@ class AutoCursor : CursorEntity(), ISliderListener {
     private var moveEndX = 0f
     private var moveEndY = 0f
 
+    // How long until the press of a hit is released, held while on a slider.
+    private var releaseTimer = 0f
+    private var isOnSlider = false
+
 
     init {
         setPosition(GameResolution.width / 2f, GameResolution.height / 2f)
@@ -219,6 +287,14 @@ class AutoCursor : CursorEntity(), ISliderListener {
 
 
     override fun update(secondsElapsed: Float) {
+        if (releaseTimer > 0f) {
+            releaseTimer -= secondsElapsed
+
+            if (releaseTimer <= 0f && !isOnSlider) {
+                setPressed(false)
+            }
+        }
+
         if (isMoving) {
             moveElapsed += secondsElapsed
 
@@ -288,9 +364,28 @@ class AutoCursor : CursorEntity(), ISliderListener {
         listener.onUpdatedAutoCursor(moveX, moveY)
     }
 
-    override fun onSliderStart() = cursorSprite.onSliderStart()
+    /**
+     * Presses the cursor for a moment, as autoplay hits.
+     */
+    fun click() {
+        setPressed(true)
+        releaseTimer = KEY_UP_DELAY
+    }
 
-    override fun onSliderTracking() = cursorSprite.onSliderTracking()
+    override fun onSliderStart() {
+        isOnSlider = true
+        setPressed(true)
+    }
 
-    override fun onSliderEnd() = cursorSprite.onSliderEnd()
+    override fun onSliderTracking() = onSliderStart()
+
+    override fun onSliderEnd() {
+        isOnSlider = false
+        setPressed(false)
+    }
+
+    private companion object {
+        // How long autoplay holds a key for a hit, as osu!lazer's.
+        const val KEY_UP_DELAY = 0.05f
+    }
 }

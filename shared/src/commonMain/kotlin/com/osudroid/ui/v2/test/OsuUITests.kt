@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.test
 
+import kotlin.math.sin
+import kotlin.math.cos
 import com.reco1l.verktex.ui.UIVideo
 import com.reco1l.verktex.Platform
 import com.osudroid.OsuGameHost
@@ -15,7 +17,7 @@ import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.SpriteFont
 import com.osudroid.ui.v2.StarRatingBadge
 import com.reco1l.verktex.ui.UIBadge
-import com.osudroid.ui.v2.game.CursorSprite
+import com.osudroid.ui.v2.game.CursorEntity
 import com.osudroid.ui.v2.game.NumberedCirclePiece
 import com.osudroid.ui.v2.mainmenu.OsuLogo
 import com.osudroid.ui.v2.mainmenu.TrianglesDispenser
@@ -348,21 +350,31 @@ object OsuUITests : UITestSuite("osu!") {
         }
 
         test("Cursor") {
-            val cursor = CursorSprite().apply {
-                anchor = Anchor.Center
-                origin = Anchor.Center
-            }
-            +cursor
+            // Moving in a circle, so the trail shows.
+            val cursor = CursorEntity()
+            cursor.attachToScene(this)
+            cursor.setShowing(true)
+
+            var angle = 0f
+            var isPressed = false
 
             textButton {
                 anchor = Anchor.BottomCenter
                 origin = Anchor.BottomCenter
                 y = (-16f).dip
-                text = "Click"
-                onActionUp = { cursor.handleClick() }
+                text = "Press"
+                onActionUp = {
+                    isPressed = !isPressed
+                    cursor.setPressed(isPressed)
+                    text = if (isPressed) "Release" else "Press"
+                }
             }
 
-            onEachFrame { cursor.update(it.elapsedFrameTime) }
+            onEachFrame {
+                angle += it.elapsedFrameTime * 3f
+                cursor.setPosition(bounds.width / 2f + cos(angle) * 150f, bounds.height / 2f + sin(angle) * 150f)
+                cursor.update(it.elapsedFrameTime)
+            }
         }
     }
 }

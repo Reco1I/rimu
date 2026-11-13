@@ -1638,9 +1638,7 @@ class GameScene : GameObjectListener {
                     sprite.setShowing(!latestEvent.isActionUp)
                 }
 
-                if (cursor.getLatestDownEvent() != null) {
-                    sprite.click()
-                }
+                sprite.setPressed(cursor.getLatestNonUpEvent() != null)
             }
         }
 
@@ -2989,7 +2987,7 @@ class GameScene : GameObjectListener {
     }
 
     override fun onTrackingSliders(isTrackingSliders: Boolean) {
-        if (GameHelper.isAutoplay()) {
+        if (GameHelper.isAutoplay() && isTrackingSliders) {
             autoCursor!!.onSliderTracking()
         }
         if (GameHelper.isFlashlight()) {

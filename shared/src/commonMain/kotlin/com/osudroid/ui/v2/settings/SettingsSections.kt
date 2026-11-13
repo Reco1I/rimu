@@ -687,13 +687,6 @@ val graphicsSection = listOfNotNull(
                 step = 1f,
                 valueFormatter = { "${it / 100f}x" }
             ),
-            SettingsOption(
-                type = Type.Checkbox,
-                key = "particles",
-                setting = OsuSettings.UseParticles,
-                title = Res.string.opt_particles_title,
-                summary = Res.string.opt_particles_summary,
-            )
         )
     ),
 

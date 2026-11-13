@@ -77,7 +77,6 @@ object OsuSettings {
     @JvmField val CursorSize = key("cursorSize", 50, bounds = 25..300)
     @JvmField val BurstEffects = key("bursts", true)
     @JvmField val HitLighting = key("hitlighting", false)
-    @JvmField val UseParticles = key("particles", false)
     @JvmField val ShowCursor = key("showcursor", false)
     @JvmField val HideInGameUI = key("hideInGameUI", false)
     @JvmField val HideReplayMarquee = key("hideReplayMarquee", false)
