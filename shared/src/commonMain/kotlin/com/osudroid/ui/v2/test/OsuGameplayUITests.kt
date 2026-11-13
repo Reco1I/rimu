@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.test
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
-import com.osudroid.settings.OsuSettings
+import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.HitCircle
 import com.osudroid.beatmaps.hitobjects.Slider
@@ -97,7 +97,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
 
         test("Spinners") {
             val harness = GameplayObjectHarness(this)
-            var isModern = OsuSettings.spinnerStyle == 1
+            var isModern = SkinTextures.isNewStyleSpinner()
 
             fun play() = harness.loop { startTime ->
                 val spinner = harness.prepare(Spinner(startTime, startTime + 3000, true))

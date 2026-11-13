@@ -125,6 +125,7 @@ class SkinJsonReader private constructor() : SkinReader() {
         val data = currentUtilsData
         val skin = OsuSkin.get()
         skin.limitComboTextLengthData.setFromJson(data)
+        skin.versionData.setFromJson(data)
         skin.disableKiaiData.setFromJson(data)
         skin.comboTextScaleData.setFromJson(data)
         skin.animationFramerateData.setFromJson(data)

@@ -427,15 +427,6 @@ val gameplaySection = listOf(
                 }
             ),
             SettingsOption(
-                type = Type.Select,
-                key = "spinnerstyle",
-                setting = OsuSettings.SpinnerStyle,
-                title = Res.string.opt_spinner_style_title,
-                summary = Res.string.opt_spinner_style_summary,
-                entries = Res.array.spinner_style_names,
-                entryValues = Res.array.spinner_style_values
-            ),
-            SettingsOption(
                 type = Type.Checkbox,
                 key = "skin",
                 setting = OsuSettings.UseCustomSkins,

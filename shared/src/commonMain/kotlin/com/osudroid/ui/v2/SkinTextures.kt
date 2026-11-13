@@ -176,6 +176,31 @@ object SkinTextures {
     }
 
     /**
+     * Whether spinners are the new style ones (`spinner-top`, `spinner-middle`...) rather than the old style
+     * ones (`spinner-background`, `spinner-metre`...), as osu!stable decides: a skin with a
+     * `spinner-background` or made for a version before 2.0 has old style spinners. The default skin has new
+     * style ones unless it has a `spinner-background` itself.
+     */
+    @JvmStatic
+    fun isNewStyleSpinner(): Boolean {
+        if (BeatmapSkinManager.isSkinEnabled()) {
+            if ("spinner-background" in beatmapFiles) {
+                return false
+            }
+
+            if ("spinner-top" in beatmapFiles) {
+                return true
+            }
+        }
+
+        if (isInSkin("spinner-background")) {
+            return false
+        }
+
+        return isDefaultSkin() || OsuSkin.get().version >= 2f
+    }
+
+    /**
      * Resolves the textures gameplay uses, so they're loaded while the game loads instead of when they're
      * first shown. To be called once the beatmap skin is loaded.
      */

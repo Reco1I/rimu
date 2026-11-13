@@ -35,6 +35,9 @@ class OsuSkin {
     internal val rotateCursorData = BooleanSkinData("rotateCursor", true)
     internal val rotateCursorTrailData = BooleanSkinData("rotateCursorTrail", true)
     internal val expandCursorData = BooleanSkinData("expandCursor", true)
+
+    // Skins that aren't osu!stable's, without a skin.ini, are made for the latest version.
+    internal val versionData = FloatSkinData("version", LATEST_VERSION)
     internal val centreCursorData = BooleanSkinData("centreCursor", true)
     internal val layeredHitSoundsData = BooleanSkinData("layeredHitSounds", true)
     internal val sliderBallFlipData = BooleanSkinData("sliderBallFlip", true)
@@ -76,6 +79,12 @@ class OsuSkin {
 
     val isRotateCursorTrail: Boolean
         get() = rotateCursorTrailData.currentValue
+
+    /**
+     * The osu!stable version the skin is made for, e.g. 1.0 for skins made before the new spinner.
+     */
+    val version: Float
+        get() = versionData.currentValue
 
     /**
      * Whether the cursor grows when pressing and while following a slider.
@@ -185,6 +194,11 @@ class OsuSkin {
     }
 
     companion object {
+
+        /**
+         * The version of a skin made for the latest version of osu!stable.
+         */
+        const val LATEST_VERSION = 999f
         private val skinJson = OsuSkin()
 
         @JvmStatic

@@ -1,6 +1,7 @@
 package com.osudroid.ui.skinning
 
 import com.osudroid.utils.putIfNotNull
+import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.math.min
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -29,6 +30,17 @@ fun mergeMissing(target: JsonObject, source: JsonObject): JsonObject {
     }
 
     return JsonObject(merged)
+}
+
+/**
+ * The version a skin.ini says the skin is made for, 1.0 when it doesn't say as osu!stable assumes, and
+ * [OsuSkin.LATEST_VERSION] for `latest`.
+ */
+private fun parseSkinVersion(value: Any?): Float = when (value) {
+    null -> 1f
+    is Boolean -> if (value) 1f else 0f
+    is Number -> value.toFloat()
+    else -> value.toString().trim().toFloatOrNull() ?: OsuSkin.LATEST_VERSION
 }
 
 fun convertToJson(ini: IniReader) = buildJsonObject {
@@ -122,6 +134,7 @@ fun convertToJson(ini: IniReader) = buildJsonObject {
     })
 
     putIfNotNull("Utils", buildJsonObject {
+        putIfNotNull("version", parseSkinVersion(ini.get<Any>("General", "Version")))
         putIfNotNull("comboTextScale", 0.8f)
         putIfNotNull("animationFramerate", ini["General", "AnimationFramerate"] ?: -1f)
         putIfNotNull("layeredHitSounds", ini.get<Boolean>("General", "LayeredHitSounds") != false)

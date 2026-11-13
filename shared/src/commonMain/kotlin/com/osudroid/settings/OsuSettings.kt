@@ -58,7 +58,6 @@ object OsuSettings {
     @JvmField val ComboBurst = key("comboburst", false)
     @JvmField val Corovans = key("images", false)
     @JvmField val ShowFps = key("fps", true)
-    @JvmField val SpinnerStyle = key("spinnerstyle", "1")
     @JvmField val ShowFirstApproachCircle = key("showfirstapproachcircle", false)
     @JvmField val EnableStoryboard = key("enableStoryboard", false)
     @JvmField val EnableVideo = key("enableVideo", false)
@@ -219,10 +218,6 @@ object OsuSettings {
     @JvmStatic
     val playfieldVerticalPosition: Float
         get() = Settings[PlayfieldVerticalPosition] / 100f
-
-    @JvmStatic
-    val spinnerStyle: Int
-        get() = Settings[SpinnerStyle].toIntOrNull() ?: 1
 
     @JvmStatic
     val metronomeSwitch: Int
