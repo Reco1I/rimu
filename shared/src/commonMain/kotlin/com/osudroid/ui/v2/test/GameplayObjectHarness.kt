@@ -18,6 +18,7 @@ import com.reco1l.verktex.settings.SettingKey
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.testing.UITestStage
@@ -79,8 +80,15 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     val stat = StatisticV2()
 
-    // Holds the layers of the playfield, scaled to fit the stage as the game fits it in the screen.
-    private val area = UIContainer().apply {
+    // Holds the layers of the playfield, scaled to fit the stage as the game fits it in the screen. It keeps the
+    // size of the game's even when the stage is smaller, as what's in it is laid out for that size.
+    private val area = object : UIContainer() {
+        override fun adjustParentConstraints(constraints: LayoutConstraints): LayoutConstraints {
+            val width = GameResolution.width.toFloat()
+            val height = GameResolution.height.toFloat()
+            return LayoutConstraints(width, width, height, height)
+        }
+    }.apply {
         setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
         anchor = Anchor.Center
         origin = Anchor.Center

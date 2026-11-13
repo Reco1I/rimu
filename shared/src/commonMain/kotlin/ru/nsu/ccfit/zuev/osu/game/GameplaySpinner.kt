@@ -44,7 +44,6 @@ open class GameplaySpinner : GameObject() {
     private val approachCircle: UISprite
     private val metre: UIClipContainer
     private val metreSprite: UISprite
-    private var fullHeight = 0f
     // The background region the sizes were derived from, see layoutToBackground.
     private var laidOutBackground: GraphicsTexture.Region? = null
     private var isLaidOut = false
@@ -115,7 +114,9 @@ open class GameplaySpinner : GameObject() {
         metreSprite.height = fill()
 
         metre = UIClipContainer()
-        metre.origin = Anchor.BottomLeft
+        metre.origin = Anchor.Center
+        metre.scaleOrigin = Anchor.Center
+        metre.setPosition(position.x, position.y)
         metre.clipAnchor = Anchor.BottomLeft
         metre.clipFactorY = 0f
         metre += metreSprite
@@ -161,10 +162,11 @@ open class GameplaySpinner : GameObject() {
         laidOutBackground = backgroundTexture
 
         background.scale = if (backgroundTexture != null) GameResolution.width / backgroundTexture.displayWidth else 1f
-        fullHeight = if (backgroundTexture != null) backgroundTexture.displayHeight * background.scaleY else 0f
 
-        metre.setSize(GameResolution.width.toFloat(), fullHeight)
-        metre.setPosition(position.x - GameResolution.width / 2f, position.y + fullHeight / 2f)
+        // Sized and scaled as the background over the same centre, so both line up: sized to the screen instead,
+        // the metre would be cut to the height of its layer, the background being taller than the screen.
+        metre.setSize(backgroundTexture?.displayWidth ?: 0f, backgroundTexture?.displayHeight ?: 0f)
+        metre.scale = background.scaleX
     }
 
     open fun init(listener: GameObjectListener, scene: UIContainer,
