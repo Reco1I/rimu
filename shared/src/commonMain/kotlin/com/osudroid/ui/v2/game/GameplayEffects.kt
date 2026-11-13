@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.game
 
+import kotlin.random.Random
 import com.osudroid.settings.GameResolution
 import com.reco1l.verktex.data.Background
 import com.osudroid.settings.OsuSettings
@@ -402,6 +403,11 @@ class ComboBurst(private val rightX: Float, private val bottomY: Float) {
         }
 
         if (sprites.isNotEmpty()) {
+            // In order, or at random for skins that ask for it.
+            if (OsuSkin.get().isComboBurstRandom) {
+                nextShowId = Random.nextInt(sprites.size)
+            }
+
             show(sprites[nextShowId])
             nextShowId = (nextShowId + 1) % sprites.size
         }

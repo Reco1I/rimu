@@ -38,6 +38,7 @@ class OsuSkin {
     internal val hitCircleOverlayAboveNumberData = BooleanSkinData("hitCircleOverlayAboveNumber", true)
     internal val spinnerNoBlinkData = BooleanSkinData("spinnerNoBlink")
     internal val allowSliderBallTintData = BooleanSkinData("allowSliderBallTint")
+    internal val comboBurstRandomData = BooleanSkinData("comboBurstRandom")
     internal val spinnerBackgroundColorData = ColorSkinData("spinnerBackgroundColor", Color4(100 / 255f, 100 / 255f, 100 / 255f))
 
     // Skins that aren't osu!stable's, without a skin.ini, are made for the latest version.
@@ -95,6 +96,12 @@ class OsuSkin {
      */
     val isSpinnerNoBlink: Boolean
         get() = spinnerNoBlinkData.currentValue
+
+    /**
+     * Whether combo bursts are shown in a random order instead of one after the other.
+     */
+    val isComboBurstRandom: Boolean
+        get() = comboBurstRandomData.currentValue
 
     /**
      * Whether the slider ball is tinted with the combo colour.

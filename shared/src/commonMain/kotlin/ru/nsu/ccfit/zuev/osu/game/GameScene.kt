@@ -1324,7 +1324,7 @@ class GameScene : GameObjectListener {
         if (skipTime > 1) {
             val paddingBottom = if (Multiplayer.isConnected) Multiplayer.roomScene!!.chat.buttonHeight else 0f
 
-            val skipBtn = UIAnimatedSprite(skinFrames("play-skip", orStatic = true), OsuSkin.get().animationFramerate)
+            val skipBtn = UIAnimatedSprite(skinFrames("play-skip", orStatic = true), 60f)
             this.skipBtn = skipBtn
             skipBtn.origin = Anchor.BottomRight
             skipBtn.setPosition(GameResolution.width.toFloat(), GameResolution.height - paddingBottom)
