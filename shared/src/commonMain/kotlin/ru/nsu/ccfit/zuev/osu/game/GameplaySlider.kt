@@ -323,14 +323,11 @@ class GameplaySlider : GameObject() {
 
         scene.add(0, tailCirclePiece)
 
+        choreographHead(fadesOutWhenMissed = true)
+
         if (GameHelper.isHidden() && !GameHelper.getHidden()!!.onlyFadeApproachCircles) {
             val fadeOutDuration = timePreempt * ModHidden.FADE_OUT_DURATION_MULTIPLIER.toFloat()
             val finalTailAlpha = (headFadeIn - fadeInDelay) / headFadeIn
-
-            headCirclePiece.choreographAt(initialModifierTime) { sequence -> sequence
-                .fadeIn(headFadeIn)
-                .then()
-                .fadeOut(fadeOutDuration) }
 
             tailCirclePiece.choreographAt(initialModifierTime) { sequence -> sequence
                 .delay(fadeInDelay)
@@ -338,13 +335,6 @@ class GameplaySlider : GameObject() {
                 .then()
                 .fadeOut(fadeOutDuration) }
         } else {
-            headCirclePiece.choreographAt(initialModifierTime) { sequence -> sequence.fadeIn(headFadeIn) }
-
-            val mehWindow = hitWindow!!.mehWindow.toFloat() / 1000
-            val okWindow = hitWindow!!.okWindow.toFloat() / 1000
-
-            headCirclePiece.choreographAt(hitTime + okWindow) { sequence -> sequence.fadeOut(mehWindow - okWindow) }
-
             tailCirclePiece.choreographAt(initialModifierTime) { sequence -> sequence
                 .delay(fadeInDelay)
                 .fadeIn(headFadeIn) }
@@ -411,7 +401,6 @@ class GameplaySlider : GameObject() {
         tickContainer.init(beatmapSlider)
 
         if (Settings[OsuSettings.DimHitObjects]) {
-            applyDim(headCirclePiece)
             applyDim(tailCirclePiece)
             applyDim(endArrow)
             applyDim(sliderBody)
@@ -668,16 +657,16 @@ class GameplaySlider : GameObject() {
             // Setting visibility of repeat arrows
             if (reverse) {
                 if (remainingSpans <= 2) {
-                    endArrow.alpha = 0f
-                    tailCirclePiece.alpha = 0f
+                    endArrow.choreographNow { sequence -> sequence.fadeOut() }
+                    tailCirclePiece.choreographNow { sequence -> sequence.fadeOut() }
                 } else if (GameHelper.isSynesthesia()) {
                     val newColor = getSynesthesiaComboColor(beatmapSlider.nestedHitObjects[currentNestedObjectIndex])
 
                     tailCirclePiece.color = newColor
                 }
             } else if (remainingSpans <= 2 && startHit) {
-                startArrow.alpha = 0f
-                headCirclePiece.alpha = 0f
+                startArrow.choreographNow { sequence -> sequence.fadeOut() }
+                headCirclePiece.choreographNow { sequence -> sequence.fadeOut() }
             } else if (GameHelper.isSynesthesia()) {
                 val newColor =
                     getSynesthesiaComboColor(beatmapSlider.nestedHitObjects[currentNestedObjectIndex])
@@ -1193,6 +1182,7 @@ class GameplaySlider : GameObject() {
         if (beatmapSlider.spanCount - completedSpanCount > 1) {
             // The head stays visible as the end of the next span, so it must not fade out for being missed.
             headCirclePiece.clearAnimations()
+            choreographHead(fadesOutWhenMissed = false)
 
             // Change the head circle to the end circle piece.
             headCirclePiece.hideNumber()
@@ -1354,6 +1344,37 @@ class GameplaySlider : GameObject() {
 
     private fun playCurrentNestedObjectHitSound() {
         listener!!.playHitSamples(nestedHitSamples[currentNestedObjectIndex])
+    }
+
+    /**
+     * Fades the head in and, depending on the mods, out, dimming it until it can be hit. The fade of a head
+     * that isn't hit is left out once it's hit and stays as the end of the next span.
+     */
+    private fun choreographHead(fadesOutWhenMissed: Boolean) {
+        val initialModifierTime = hitTime - timePreempt
+        val headFadeIn = beatmapSlider!!.head.timeFadeIn.toFloat() / 1000
+
+        if (GameHelper.isHidden() && !GameHelper.getHidden()!!.onlyFadeApproachCircles) {
+            val fadeOutDuration = timePreempt * ModHidden.FADE_OUT_DURATION_MULTIPLIER.toFloat()
+
+            headCirclePiece.choreographAt(initialModifierTime) { sequence -> sequence
+                .fadeInFromZero(headFadeIn)
+                .then()
+                .fadeOut(fadeOutDuration) }
+        } else {
+            headCirclePiece.choreographAt(initialModifierTime) { sequence -> sequence.fadeInFromZero(headFadeIn) }
+
+            if (fadesOutWhenMissed) {
+                val mehWindow = hitWindow!!.mehWindow.toFloat() / 1000
+                val okWindow = hitWindow!!.okWindow.toFloat() / 1000
+
+                headCirclePiece.choreographAt(hitTime + okWindow) { sequence -> sequence.fadeOut(mehWindow - okWindow) }
+            }
+        }
+
+        if (Settings[OsuSettings.DimHitObjects]) {
+            applyDim(headCirclePiece)
+        }
     }
 
     private fun applyDim(piece: UIComponent) {

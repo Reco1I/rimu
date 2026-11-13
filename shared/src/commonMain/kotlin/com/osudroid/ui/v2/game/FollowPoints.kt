@@ -33,7 +33,12 @@ object FollowPointConnection {
     private val pool = SynchronizedPool<IPoolable>(20)
 
     private fun obtainFollowPoint(): UISprite {
-        return pool.acquire() as UISprite? ?: PoolableFollowPoint()
+        val fp = pool.acquire() as PoolableFollowPoint? ?: PoolableFollowPoint()
+
+        // A pooled one stopped on its last frame, its animation plays again from the start.
+        fp.stop()
+        fp.play()
+        return fp
     }
 
     private val expire = OnTransformFinished { fp ->
