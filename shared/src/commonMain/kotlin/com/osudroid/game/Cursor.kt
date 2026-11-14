@@ -11,12 +11,6 @@ import kotlin.jvm.JvmName
  */
 class Cursor {
     /**
-     * Whether this [Cursor] is blocked from a [PointerEvent.Action.Down].
-     */
-    @JvmField
-    var mouseBlocked = false
-
-    /**
      * Whether this [Cursor] is currently pressed down.
      */
     @get:JvmName("isMouseDown")

@@ -980,13 +980,6 @@ val inputSection = listOf(
         title = Res.string.opt_category_gameplay,
         options = listOf(
             SettingsOption(
-                type = Type.Button,
-                key = "block_areas",
-                title = Res.string.block_area_preference_title,
-                summary = Res.string.block_area_preference_summary,
-                onClick = { BlockAreaEditor.show() }
-            ),
-            SettingsOption(
                 type = Type.Checkbox,
                 key = "highPrecisionInput",
                 setting = OsuSettings.HighPrecisionInput,

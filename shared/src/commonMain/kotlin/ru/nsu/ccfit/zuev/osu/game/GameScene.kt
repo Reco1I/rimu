@@ -1264,47 +1264,6 @@ class GameScene : GameObjectListener {
         val hud = GameplayHUD(this)
         this.hud = hud
 
-        if (!replaying && !GameHelper.isAutoplay()) {
-            // Since block areas are saved in device pixels, we need to map them to scaled pixels.
-            val ratio = GameResolution.width.toFloat() / Platform.currentDisplay.width
-
-            for (area in DatabaseManager.blockAreaTable.getAll()) {
-                // Attach the block area to the HUD so that it does not get scaled with the playfield.
-                val areaBox = object : UIBox() {
-                    init {
-                        radius = CornerRadius(Dimension.Fixed.Pixels(2f))
-                        background = Background.Color(Color4(30f / 255f, 30f / 255f, 41f / 255f))
-                        alpha = 0.15f
-
-                        setPosition(
-                            Interpolation.linear(0f, area.x, ratio),
-                            Interpolation.linear(0f, area.y, ratio)
-                        )
-
-                        setSize(
-                            Interpolation.linear(0f, area.width, ratio),
-                            Interpolation.linear(0f, area.height, ratio)
-                        )
-                    }
-
-                    override fun onInputEvent(event: InputEvent): Boolean {
-                        if (event is PointerEvent && event.action == PointerEvent.Action.Down
-                            && containsScenePoint(event.x, event.y)) {
-                            val id = event.pointerId
-
-                            if (id >= 0 && id < getCursorsCount()) {
-                                cursors[id]!!.mouseBlocked = true
-                            }
-                        }
-
-                        return false
-                    }
-                }
-
-                hud += areaBox
-            }
-        }
-
         hud.setEditMode(isHUDEditorMode)
         hud.setSkinData(OsuSkin.get().hudSkinData)
 
@@ -2637,11 +2596,6 @@ class GameScene : GameObjectListener {
         val action = event.action
 
         if (action == PointerEvent.Action.Down) {
-            if (cursor.mouseBlocked) {
-                cursor.mouseBlocked = false
-                return true
-            }
-
             var activeCursorCount = 0
 
             for (i in cursors.indices) {

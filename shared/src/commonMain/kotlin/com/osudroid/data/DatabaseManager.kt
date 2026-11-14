@@ -16,7 +16,7 @@ import okio.Path.Companion.toPath
  * The current schema version of the database. A database of another version is recreated: there
  * are no migrations, see [DatabaseManager.open].
  */
-const val DATABASE_VERSION = 5
+const val DATABASE_VERSION = 6
 
 /**
  * The game's database, the same on every platform. Its DAOs suspend, as Room only implements those
@@ -30,7 +30,6 @@ const val DATABASE_VERSION = 5
         ScoreInfo::class,
         BeatmapSetCollection::class,
         BeatmapSetCollection_BeatmapSetInfo::class,
-        BlockArea::class,
         ModPreset::class
     ],
     exportSchema = false
@@ -45,8 +44,6 @@ abstract class OsuDatabase : RoomDatabase() {
     abstract fun getBeatmapCollectionsTable(): IBeatmapCollectionsDAO
 
     abstract fun getScoreInfoTable(): IScoreInfoDAO
-
-    abstract fun getBlockAreaTable(): IBlockAreaDAO
 
     abstract fun getModPresetTable(): IModPresetDAO
 }
@@ -96,13 +93,6 @@ object DatabaseManager {
     @JvmStatic
     val scoreInfoTable
         get() = database.getScoreInfoTable()
-
-    /**
-     * Get the block area table DAO.
-     */
-    @JvmStatic
-    val blockAreaTable
-        get() = database.getBlockAreaTable()
 
     /**
      * Get the mod preset table DAO.
