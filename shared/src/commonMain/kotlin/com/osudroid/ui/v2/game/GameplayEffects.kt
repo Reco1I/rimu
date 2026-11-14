@@ -253,8 +253,8 @@ class BreakAnimator(
         ending = if (stat.hp > 0.5f) "pass" else "fail"
 
         passFail = UISprite(SkinTextures["section-$ending"]).also {
+            it.anchor = Anchor.Center
             it.origin = Anchor.Center
-            it.setPosition(GameResolution.width / 2f, GameResolution.height / 2f)
             it.isVisible = false
             hud.add(0, it)
         }
@@ -271,7 +271,8 @@ class BreakAnimator(
         val zeroWidth = SkinTextures[OsuSkin.get().scorePrefix, "0"]?.displayWidth ?: 0f
 
         mark = UISprite(rankingTexture()).also {
-            it.setPosition(GameResolution.width - zeroWidth * 11f, 5f)
+            it.anchor = Anchor.TopRight
+            it.setPosition(-zeroWidth * 11f, 5f)
             it.scale = 1.2f
             hud.add(0, it)
         }

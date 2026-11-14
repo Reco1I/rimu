@@ -2,7 +2,6 @@ package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.data.px
 
-import com.reco1l.verktex.data.dip
 
 import com.reco1l.verktex.time.FrameClock
 
@@ -20,7 +19,7 @@ import ru.nsu.ccfit.zuev.skins.*
 sealed class HUDStatisticCounter(label: String) : HUDElement() {
 
     protected val labelText = UIText().apply {
-        fontSize = 14f.dip
+        fontSize = 21f.px
         text = label
     }
 

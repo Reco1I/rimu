@@ -19,11 +19,10 @@ import com.osudroid.resources.Res.string
 import com.osudroid.ui.v2.hud.elements.HUDAccuracyCounter
 import com.osudroid.ui.v2.hud.elements.HUDPieSongProgress
 import com.osudroid.ui.v2.hud.elements.HUDScoreCounter
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.UIScalingContainer
 import com.osudroid.ui.v2.hud.editor.HUDElementSelector
 import com.reco1l.verktex.ui.dialog.UIMessageDialog
 import com.osudroid.utils.updateThread
-import com.reco1l.verktex.data.Dimension
 import com.reco1l.framework.forEachTolerant
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
@@ -36,12 +35,16 @@ import kotlin.reflect.*
 import com.reco1l.verktex.Platform
 import okio.Path.Companion.toPath
 
+/**
+ * The HUD of a play. As upstream, it's laid out for a screen [REFERENCE_WIDTH] pixels wide and
+ * scaled up to the real one, its height following the screen's aspect ratio.
+ */
 class GameplayHUD(
     /**
      * The play this HUD shows.
      */
     val game: GameScene
-) : UIContainer(), IGameplayEvents {
+) : UIScalingContainer(), IGameplayEvents {
 
     /**
      * The currently selected element.
@@ -77,8 +80,8 @@ class GameplayHUD(
 
 
     init {
-        width = Dimension.FillAvailable
-        height = Dimension.FillAvailable
+        referenceSize = Vec2(REFERENCE_WIDTH, REFERENCE_HEIGHT)
+        mode = Mode.Width
     }
 
 
@@ -372,6 +375,18 @@ class GameplayHUD(
             return false
         }
         return true
+    }
+
+    companion object {
+        /**
+         * The width the HUD is laid out for.
+         */
+        const val REFERENCE_WIDTH = 1280f
+
+        /**
+         * The height the HUD is laid out for, on a 16:9 screen.
+         */
+        const val REFERENCE_HEIGHT = 720f
     }
 }
 

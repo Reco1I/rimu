@@ -1260,6 +1260,7 @@ class GameScene : GameObjectListener {
         if (hud != null) {
             hud!!.removeSelf()
         }
+        replaySettingsPanel?.removeSelf()
 
         val hud = GameplayHUD(this)
         this.hud = hud
@@ -1273,8 +1274,10 @@ class GameScene : GameObjectListener {
 
             val skipBtn = UIAnimatedSprite(skinFrames("play-skip", orStatic = true), 60f)
             this.skipBtn = skipBtn
+            skipBtn.anchor = Anchor.BottomRight
             skipBtn.origin = Anchor.BottomRight
-            skipBtn.setPosition(GameResolution.width.toFloat(), GameResolution.height - paddingBottom)
+            // The chat's height is in window pixels, the HUD's are scaled.
+            skipBtn.y = (-paddingBottom / hud.factor).px
             skipBtn.alpha = 0.7f
             hud += skipBtn
         }
@@ -1289,7 +1292,7 @@ class GameScene : GameObjectListener {
                 val replayText = UIText()
                 this.replayText = replayText
                 replayText.text = "Watching " + playname + " play " + metadata.artist + " - " + metadata.title + " [" + metadata.version + "]"
-                replayText.setPosition(GameResolution.width + 5f, 140f)
+                replayText.setPosition(GameplayHUD.REFERENCE_WIDTH + 5f, 140f)
                 replayText.alpha = 0.7f
                 hud.add(0, replayText)
             }
@@ -1310,7 +1313,7 @@ class GameScene : GameObjectListener {
         if (!startedFromHUDEditor && (GameHelper.isAutoplay() || replaying)) {
             val replaySettingsPanel = ReplaySettingsPanel()
             this.replaySettingsPanel = replaySettingsPanel
-            hud += replaySettingsPanel
+            // Designed in dp, so it's not in the scaled HUD, it's added with it in start().
 
             val seekControl = replaySettingsPanel.playbackControl.seekControl
 
@@ -1412,6 +1415,7 @@ class GameScene : GameObjectListener {
         }
 
         root += hud
+        replaySettingsPanel?.let { root += it }
         replaceCurrentScene(gameUIScene)
 
         if (isHUDEditorMode) {
@@ -2111,6 +2115,7 @@ class GameScene : GameObjectListener {
         activeObjects?.clear()
         expiredObjects?.clear()
         hud?.removeSelf()
+        replaySettingsPanel?.removeSelf()
         breakPeriods = null
         replaySettingsPanel = null
         objects = null
@@ -3811,6 +3816,13 @@ class GameScene : GameObjectListener {
         }
 
         override fun onInputEvent(event: InputEvent): Boolean {
+            val panel = replaySettingsPanel
+            if (panel != null && panel.parent != null
+                && (event !is PointerEvent || event.action != PointerEvent.Action.Down || panel.containsScenePoint(event.x, event.y))
+                && panel.onInputEvent(event)) {
+                return true
+            }
+
             if (hud != null && hud!!.onInputEvent(event)) {
                 return true
             }
@@ -3886,10 +3898,11 @@ class GameScene : GameObjectListener {
         private fun updateReplayText(deltaTimeSec: Float) {
             val replayText = replayText!!
             val textWidth = replayText.bounds.width
-            val distance = GameResolution.width + 5 + textWidth
+            val hudWidth = hud?.bounds?.width ?: GameplayHUD.REFERENCE_WIDTH
+            val distance = hudWidth + 5 + textWidth
             val x = replayText.x.resolve(0f) - distance / 40f * deltaTimeSec
 
-            replayText.setPosition(if (x < -textWidth) GameResolution.width + 5f else x, 140f)
+            replayText.setPosition(if (x < -textWidth) hudWidth + 5f else x, 140f)
         }
     }
 

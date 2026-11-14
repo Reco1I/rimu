@@ -5,15 +5,15 @@ import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.ui.borderColor
 import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Vec2
-import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.data.px
+import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.time.FrameClock
@@ -62,7 +62,7 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
 
     private val nameText = UIText().apply {
         origin = Anchor.TopCenter
-        fontSize = 14f.dip
+        fontSize = 21f.px
         color = Color4(0xFFF27272)
         text = element.name
     }
@@ -193,8 +193,12 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
                         return false
                     }
 
-                    var deltaX = event.x - initialX
-                    var deltaY = event.y - initialY
+                    // Pointers move in window pixels, the element is sized in the HUD's.
+                    val delta = (element.parent as? GameplayHUD)?.toLocalDelta(event.x - initialX, event.y - initialY)
+                        ?: Vec2(event.x - initialX, event.y - initialY)
+
+                    var deltaX = delta.x
+                    var deltaY = delta.y
 
                     initialX = event.x
                     initialY = event.y

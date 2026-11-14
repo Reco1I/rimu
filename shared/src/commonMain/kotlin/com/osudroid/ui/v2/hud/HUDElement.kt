@@ -273,7 +273,9 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
             PointerEvent.Action.Move -> {
                 // Preventing from moving the element if it's not selected.
                 if (isDragging && isSelected) {
-                    move(event.x - initialX, event.y - initialY)
+                    // Pointers move in window pixels, the element in the HUD's.
+                    val delta = hud.toLocalDelta(event.x - initialX, event.y - initialY)
+                    move(delta.x, delta.y)
                     wasMoved = true
 
                     initialX = event.x
