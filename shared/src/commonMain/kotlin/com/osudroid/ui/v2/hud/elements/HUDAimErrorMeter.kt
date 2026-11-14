@@ -292,7 +292,18 @@ class HUDAimErrorMeter : HUDElement() {
     }
 
     override fun onUpdate(clock: FrameClock) {
-        activeIndicators.forEach(Indicator::update)
+        // Faded indicators are removed in the same pass, see HUDBarHitErrorMeter.onUpdate.
+        var i = 0
+        while (i < activeIndicators.size) {
+            val indicator = activeIndicators[i]
+
+            if (indicator.update()) {
+                i++
+            } else {
+                activeIndicators.removeAt(i)
+                expiredIndicators.release(indicator)
+            }
+        }
 
         super.onUpdate(clock)
     }
@@ -302,19 +313,12 @@ class HUDAimErrorMeter : HUDElement() {
     private inner class Indicator(var x: Float, var y: Float, var color: Color4, var alpha: Float) : IPoolable {
         override var isRecycled = false
 
-        fun update() {
-            if (alpha > 0f) {
-                alpha -= ALPHA_DECAY
-            }
-
-            if (alpha <= 0f) {
-                alpha = 0f
-                expiredIndicators.release(this)
-
-                updateThread {
-                    activeIndicators.remove(this)
-                }
-            }
+        /**
+         * Fades the indicator, returns whether it's still visible.
+         */
+        fun update(): Boolean {
+            alpha = (alpha - ALPHA_DECAY).coerceAtLeast(0f)
+            return alpha > 0f
         }
     }
 

@@ -120,7 +120,21 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
     }
 
     override fun onUpdate(clock: FrameClock) {
-        activeIndicators.forEach(Indicator::update)
+        // Faded indicators are removed in the same pass. Removing them later released them to the
+        // pool again if they were updated in between, which threw, or removed them after they were
+        // acquired again for another hit.
+        var i = 0
+        while (i < activeIndicators.size) {
+            val indicator = activeIndicators[i]
+
+            if (indicator.update()) {
+                i++
+            } else {
+                activeIndicators.removeAt(i)
+                expiredIndicators.release(indicator)
+            }
+        }
+
         super.onUpdate(clock)
     }
 
@@ -130,18 +144,12 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
     private inner class Indicator(var x: Float, var alpha: Float, var color: Color4) : IPoolable {
         override var isRecycled = false
 
-        fun update() {
-            if (alpha > 0f) {
-                alpha -= 0.005f
-            }
-
-            if (alpha <= 0f) {
-                alpha = 0f
-                expiredIndicators.release(this)
-                updateThread {
-                    activeIndicators.remove(this)
-                }
-            }
+        /**
+         * Fades the indicator, returns whether it's still visible.
+         */
+        fun update(): Boolean {
+            alpha = (alpha - 0.005f).coerceAtLeast(0f)
+            return alpha > 0f
         }
     }
 
