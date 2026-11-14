@@ -10,6 +10,8 @@ import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.hud.elements.*
 import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Vec2
 import com.osudroid.ui.v2.hud.editor.HUDElementOverlay
 import com.osudroid.beatmaps.constants.HitObjectType
@@ -121,6 +123,15 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
      */
     val transformedSize
         get() = measuredSize * scale
+
+
+    // Elements sized by their content take their natural size, as in stable, even past the HUD's
+    // edges, e.g. a scorebar background made to cover a 1366x768 screen. Without this the HUD's
+    // size would squeeze them.
+    override fun adjustParentConstraints(constraints: LayoutConstraints) = constraints.copy(
+        maxWidth = if (width is Dimension.ContentSizeFraction) Float.POSITIVE_INFINITY else constraints.maxWidth,
+        maxHeight = if (height is Dimension.ContentSizeFraction) Float.POSITIVE_INFINITY else constraints.maxHeight
+    )
 
 
     //region Skinning

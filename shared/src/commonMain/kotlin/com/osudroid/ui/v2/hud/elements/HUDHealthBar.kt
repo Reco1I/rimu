@@ -58,8 +58,8 @@ class HUDHealthBar : HUDElement() {
         val fillFrames = SkinTextures.frames("scorebar-colour").ifEmpty { listOfNotNull(SkinTextures["scorebar-colour"]) }
 
         // Preserve the first frame size.
-        fillWidth = fillFrames.firstOrNull()?.width ?: 0f
-        fillHeight = fillFrames.firstOrNull()?.height ?: 0f
+        fillWidth = fillFrames.firstOrNull()?.displayWidth ?: 0f
+        fillHeight = fillFrames.firstOrNull()?.displayHeight ?: 0f
 
         fill = UIAnimatedSprite(fillFrames, OsuSkin.get().animationFramerate)
         fill.width = fillWidth.px
