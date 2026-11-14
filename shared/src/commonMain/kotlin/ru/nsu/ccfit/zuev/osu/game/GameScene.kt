@@ -224,7 +224,6 @@ class GameScene : GameObjectListener {
     var replaying = false
         private set
     private var replayFilePath: String? = null
-    private var dimRectangle: UIBox? = null
     private var comboBurst: ComboBurst? = null
     private var failcount = 0
     private var sliderBorderColor: Color4? = null
@@ -423,11 +422,6 @@ class GameScene : GameObjectListener {
     val scoring: ScoringScene by lazy { ScoringScene(this) }
 
     private fun loadBackground() {
-        if (dimRectangle != null) {
-            dimRectangle!!.removeSelf()
-            dimRectangle = null
-        }
-
         if (sceneBorder != null) {
             sceneBorder!!.removeSelf()
             sceneBorder = null
@@ -588,19 +582,13 @@ class GameScene : GameObjectListener {
             backgroundLayer += background
         }
 
-        if (dimRectangle == null) {
-            dimRectangle = UIBox()
-            dimRectangle!!.width = Dimension.FillAvailable
-            dimRectangle!!.height = Dimension.FillAvailable
-            dimRectangle!!.background = Background.Color(Color4.Black)
-        }
-
-        dimRectangle!!.alpha = 1f - brightness
-        backgroundLayer += dimRectangle!!
+        // Dimmed by fading it over the black of the root rather than covering it with black, which
+        // costs a fullscreen layer to the GPU, and a fully dimmed background isn't drawn at all.
+        backgroundLayer.alpha = brightness
 
         if (breakAnimator != null) {
             breakAnimator!!.setDimBrightness(brightness)
-            breakAnimator!!.setDimRectangle(dimRectangle)
+            breakAnimator!!.setDimmedLayer(backgroundLayer)
         }
 
         // Storyboards are drawn here once they're available again, on top of the background and below the playfield.
@@ -1392,8 +1380,8 @@ class GameScene : GameObjectListener {
                 breakAnimator.setDimBrightness(brightness)
 
                 // We do not want
-                if (!breakAnimator.isBreak() && dimRectangle != null) {
-                    dimRectangle!!.alpha = 1f - brightness
+                if (!breakAnimator.isBreak()) {
+                    backgroundLayer.alpha = brightness
                 }
             }
 

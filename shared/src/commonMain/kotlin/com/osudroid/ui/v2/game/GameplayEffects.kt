@@ -170,7 +170,8 @@ class BreakAnimator(
         UISprite(SkinTextures["play-warningarrow"]).also { it.flippedHorizontal = i > 1 }
     }
 
-    private var dimRectangle: UIComponent? = null
+    // The background, faded over black to dim it.
+    private var dimmedLayer: UIComponent? = null
     private var dimBrightness = OsuSettings.backgroundBrightness
 
     private var length = 0f
@@ -199,8 +200,8 @@ class BreakAnimator(
     }
 
 
-    fun setDimRectangle(dimRectangle: UIComponent?) {
-        this.dimRectangle = dimRectangle
+    fun setDimmedLayer(dimmedLayer: UIComponent?) {
+        this.dimmedLayer = dimmedLayer
     }
 
     fun setDimBrightness(brightness: Float) {
@@ -291,13 +292,13 @@ class BreakAnimator(
 
     private fun setBgFade(percent: Float) {
         if (!Settings[OsuSettings.NoChangeDimInBreaks]) {
-            dimRectangle?.alpha = (1 - dimBrightness) * (1 - percent)
+            dimmedLayer?.alpha = 1 - (1 - dimBrightness) * (1 - percent)
         }
     }
 
     private fun resumeBgFade() {
         if (!Settings[OsuSettings.NoChangeDimInBreaks]) {
-            dimRectangle?.alpha = 1 - dimBrightness
+            dimmedLayer?.alpha = dimBrightness
         }
     }
 
