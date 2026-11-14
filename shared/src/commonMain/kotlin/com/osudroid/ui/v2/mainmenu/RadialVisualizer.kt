@@ -106,8 +106,9 @@ class RadialVisualizer : UICanvas() {
             val fraction = exactIndex - fftIndex1
 
             // Interpolate between two consecutive FFT values for smooth transition
-            val value1 = fft?.getOrNull(fftIndex1) ?: 0f
-            val value2 = fft?.getOrNull(fftIndex2) ?: 0f
+            // Not getOrNull, which boxes every value.
+            val value1 = if (fft != null && fftIndex1 < fft.size) fft[fftIndex1] else 0f
+            val value2 = if (fft != null && fftIndex2 < fft.size) fft[fftIndex2] else 0f
             val interpolatedValue = value1 * (1f - fraction) + value2 * fraction
 
             barInfo.targetHeight = interpolatedValue * magnitudeMultiplier
