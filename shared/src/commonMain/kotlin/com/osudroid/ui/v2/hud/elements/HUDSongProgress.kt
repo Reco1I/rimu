@@ -2,8 +2,8 @@ package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.Background
-import com.reco1l.verktex.graphics.CompareFunction
-import com.reco1l.verktex.graphics.DepthState
+import com.reco1l.verktex.data.Border
+import com.reco1l.verktex.data.CornerRadius
 
 import com.reco1l.verktex.ui.shape.UIBox
 import com.reco1l.verktex.ui.shape.UICircle
@@ -84,42 +84,27 @@ class HUDPieSongProgress : HUDSongProgress() {
 
         // Reference: https://github.com/ppy/osu/blob/6455c0583b5e607baeca7f584410bc63515aa619/osu.Game/Skinning/LegacySongProgress.cs
 
-        UICircle().also { clear ->
-
-            clear.width = 30f.px
-            clear.height = 30f.px
-            clear.anchor = Anchor.Center
-            clear.origin = Anchor.Center
-            clear.color = Color4.Transparent
-            clear.clearDepthBeforeDraw = true
-            clear.depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
-
-            +clear
-        }
-
-        UICircle().also { background ->
-
-            background.width = 33f.px
-            background.height = 33f.px
-            background.anchor = Anchor.Center
-            background.origin = Anchor.Center
-            background.color = Color4.White
-            background.depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
-
-            +background
-        }
-
         circularProgress = UICircle().also { progress ->
 
-            progress.width = 30f.px
-            progress.height = 30f.px
+            progress.width = (SIZE * 0.95f).px
+            progress.height = (SIZE * 0.95f).px
             progress.anchor = Anchor.Center
             progress.origin = Anchor.Center
-            progress.alpha = 0.6f
 
             +progress
         }
 
+        UIBox().also { ring ->
+
+            ring.width = SIZE.px
+            ring.height = SIZE.px
+            ring.anchor = Anchor.Center
+            ring.origin = Anchor.Center
+            ring.radius = CornerRadius((SIZE / 2f).px)
+            ring.border = Border(2f.px, Color4.White)
+
+            +ring
+        }
 
         UICircle().also { dot ->
 
@@ -140,15 +125,25 @@ class HUDPieSongProgress : HUDSongProgress() {
         val snappedProgress = (progress * PROGRESS_STEPS).roundToInt() / PROGRESS_STEPS
 
         if (isIntro) {
-            circularProgress.color = Color4(199f / 255f, 1f, 47f / 255f, circularProgress.alpha)
+            circularProgress.color = Color4(199f / 255f, 1f, 47f / 255f, PROGRESS_ALPHA)
             circularProgress.setPortion(-1f + snappedProgress)
         } else {
-            circularProgress.color = Color4(1f, 1f, 1f, circularProgress.alpha)
+            circularProgress.color = Color4(1f, 1f, 1f, PROGRESS_ALPHA)
             circularProgress.setPortion(snappedProgress)
         }
     }
 
     companion object {
+        /**
+         * The size of the ring, as lazer's legacy song progress.
+         */
+        private const val SIZE = 33f
+
+        /**
+         * The alpha of the pie.
+         */
+        private const val PROGRESS_ALPHA = 0.6f
+
         /**
          * The number of steps a full circle is divided into (0.5 degrees per step).
          */

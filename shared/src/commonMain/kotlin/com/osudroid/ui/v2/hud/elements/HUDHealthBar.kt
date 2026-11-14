@@ -6,8 +6,6 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.BlendMode
-import com.reco1l.verktex.graphics.CompareFunction
-import com.reco1l.verktex.graphics.DepthState
 import com.reco1l.verktex.graphics.GraphicsTexture
 import com.reco1l.verktex.math.ColorInterpolation
 import com.reco1l.verktex.math.Easing
@@ -17,7 +15,7 @@ import com.reco1l.verktex.ui.UISprite
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.ui.container.UIClipContainer
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.*
 import ru.nsu.ccfit.zuev.skins.*
@@ -25,7 +23,7 @@ import ru.nsu.ccfit.zuev.skins.*
 class HUDHealthBar : HUDElement() {
 
     private val fill: UIAnimatedSprite
-    private val fillClear: UIBox
+    private val fillClip: UIClipContainer
 
     private val marker: UISprite
     private val explode: UISprite
@@ -57,24 +55,23 @@ class HUDHealthBar : HUDElement() {
         // background implementation is the same for both versions.
         +UISprite().apply { textureRegion = backgroundTexture }
 
-        fillClear = UIBox()
-        fillClear.origin = Anchor.TopRight
-        fillClear.clearDepthBeforeDraw = true
-        fillClear.depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
-        fillClear.alpha = 0f
-        +fillClear
-
         val fillFrames = SkinTextures.frames("scorebar-colour").ifEmpty { listOfNotNull(SkinTextures["scorebar-colour"]) }
-
-        fill = UIAnimatedSprite(fillFrames, OsuSkin.get().animationFramerate)
-        fill.depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
-        +fill
 
         // Preserve the first frame size.
         fillWidth = fillFrames.firstOrNull()?.width ?: 0f
         fillHeight = fillFrames.firstOrNull()?.height ?: 0f
+
+        fill = UIAnimatedSprite(fillFrames, OsuSkin.get().animationFramerate)
         fill.width = fillWidth.px
         fill.height = fillHeight.px
+
+        // Shows the part of the fill up to the health, from the left.
+        fillClip = UIClipContainer()
+        fillClip.clipAnchor = Anchor.TopLeft
+        fillClip.width = fillWidth.px
+        fillClip.height = fillHeight.px
+        fillClip += fill
+        +fillClip
 
         marker = UISprite()
         marker.origin = Anchor.Center
@@ -111,13 +108,8 @@ class HUDHealthBar : HUDElement() {
             explode.textureRegion = markerNormalTexture
         }
 
-        fill.x = fillX.px
-        fill.y = fillY.px
-
-        fillClear.width = 0f.px
-        fillClear.height = fillHeight.px
-        fillClear.x = (fillX + fillWidth).px
-        fillClear.y = fillY.px
+        fillClip.x = fillX.px
+        fillClip.y = fillY.px
     }
 
 
@@ -125,7 +117,7 @@ class HUDHealthBar : HUDElement() {
         val hp = game.stat.hp
 
         clearedWidth = FloatInterpolation.floatAt(secondsElapsed.coerceIn(0f, 0.2f), clearedWidth, (1f - hp) * fillWidth, 0f, 0.2f, Easing.OutQuint)
-        fillClear.width = clearedWidth.px
+        fillClip.clipFactorX = if (fillWidth > 0f) 1f - clearedWidth / fillWidth else 1f
 
         marker.x = (fillX + fillWidth - clearedWidth).px
         marker.y = (fillY + (if (isNewStyle) fillHeight / 2 else 0f)).px
