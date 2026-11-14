@@ -36,8 +36,9 @@ import com.reco1l.verktex.Platform
 import okio.Path.Companion.toPath
 
 /**
- * The HUD of a play. As upstream, it's laid out for a screen [REFERENCE_WIDTH] pixels wide and
- * scaled up to the real one, its height following the screen's aspect ratio.
+ * The HUD of a play. As stable, it's laid out for a screen [REFERENCE_HEIGHT] pixels tall and
+ * scaled to the real one, its width following the screen's aspect ratio, so skin images keep the
+ * size they have in stable.
  */
 class GameplayHUD(
     /**
@@ -81,7 +82,7 @@ class GameplayHUD(
 
     init {
         referenceSize = Vec2(REFERENCE_WIDTH, REFERENCE_HEIGHT)
-        mode = Mode.Width
+        mode = Mode.Height
     }
 
 
@@ -379,14 +380,14 @@ class GameplayHUD(
 
     companion object {
         /**
-         * The width the HUD is laid out for.
+         * The height the HUD is laid out for, stable's.
          */
-        const val REFERENCE_WIDTH = 1280f
+        const val REFERENCE_HEIGHT = 768f
 
         /**
-         * The height the HUD is laid out for, on a 16:9 screen.
+         * The width of the HUD on a 16:9 screen.
          */
-        const val REFERENCE_HEIGHT = 720f
+        const val REFERENCE_WIDTH = 1366f
     }
 }
 
