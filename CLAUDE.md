@@ -88,6 +88,7 @@ Verktex's abstract `UITestActivity` (`verktex/.../android/`) and `UITestApplicat
 
 - **osu!droid: UI Tests (Android)**: `:androidApp`'s `OsuUITestActivity`, every suite, Verktex's included.
 - **osu!droid: UI Tests (Desktop)**: `./gradlew :desktopApp:runUITests`, every suite, Verktex's included.
+- **osu!droid: Verktex UI Tests (Desktop)**: `./gradlew :verktex:desktopApp:run`, Verktex's browser alone. The engine's own **Verktex: UI Tests (Desktop)** runs `:desktopApp:run` from the project's root, so it only works with `verktex/` opened on its own: from the game, it opens the game.
 
 The Android browser is enabled only in debug and profile builds and runs in its own process. Open a test directly with:
 
