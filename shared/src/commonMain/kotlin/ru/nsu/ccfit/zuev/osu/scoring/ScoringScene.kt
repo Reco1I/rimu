@@ -180,7 +180,7 @@ class ScoringScene(pGame: GameScene) {
 
         val bgTopRect = UIBox()
         bgTopRect.setSize(GameResolution.width.toFloat(), Utils.toRes(100).toFloat())
-        bgTopRect.background = Background.Color(Color4(0f, 0f, 0f, 0.8f))
+        bgTopRect.color = Color4(0f, 0f, 0f, 0.8f)
         content += bgTopRect
 
         beatmapInfo = beatmapToReplay

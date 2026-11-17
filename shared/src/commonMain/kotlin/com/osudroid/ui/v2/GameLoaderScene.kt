@@ -108,7 +108,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             dimBox = box {
                 width = fill()
                 height = fill()
-                background = Background.Color(Color4.Black)
+                color = Color4.Black
                 alpha = 0.7f
             }
         }

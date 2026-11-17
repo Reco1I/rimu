@@ -105,7 +105,7 @@ class SettingsMenu : UIScene() {
                     box {
                         width = SIDEBAR_WIDTH
                         height = 2f.dip
-                        background = Background.Color(themed { palette.divider })
+                        color = themed { palette.divider }
                     }
 
                     // In a room its settings come first, and the ones only meant for the menu are hidden.
@@ -264,7 +264,7 @@ class SettingsMenu : UIScene() {
                     box {
                         width = fill()
                         height = 2f.dip
-                        background = Background.Color(themed { palette.divider })
+                        color = themed { palette.divider }
                     }
                 }
             }
@@ -354,7 +354,7 @@ class SettingsMenu : UIScene() {
         private var previousPlayfieldSize = OsuSettings.playfieldSize
 
         init {
-            background = Background.Color(Color4.White)
+            color = Color4.White
             alpha = 0f
         }
 

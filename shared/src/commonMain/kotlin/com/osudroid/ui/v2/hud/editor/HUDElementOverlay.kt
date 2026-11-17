@@ -1,7 +1,6 @@
 package com.osudroid.ui.v2.hud.editor
 
 import com.reco1l.verktex.ui.borderWidth
-import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.ui.borderColor
 import com.osudroid.ui.v2.SkinTextures
@@ -36,7 +35,7 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
         private set
 
 
-    private val outline = UIBox().apply {
+    private val outline = UIContainer().apply {
         borderColor = Color4(0xFFF27272)
         borderWidth = 8f.px
     }
@@ -162,7 +161,7 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
             +UIBox().apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                background = Background.Color(Color4(0xFFF27272))
+                color = Color4(0xFFF27272)
                 radius = CornerRadius(TIP_SIZE.px)
                 width = 0.5f.pct
                 height = 0.5f.pct
@@ -246,7 +245,7 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
 
             +UIBox().apply {
                 radius = CornerRadius(12f.px)
-                background = Background.Color(back)
+                color = back
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
             }

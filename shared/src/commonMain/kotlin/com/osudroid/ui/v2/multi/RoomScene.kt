@@ -212,8 +212,8 @@ class RoomScene(
             box {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
+                color = Verktex.theme.palette.accent.shade(0.1f)
                 alpha = 0.9f
-                background = Background.Color(Verktex.theme.palette.accent.shade(0.1f))
             }
         }
 

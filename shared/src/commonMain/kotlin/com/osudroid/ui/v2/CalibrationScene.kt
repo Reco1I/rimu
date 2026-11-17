@@ -33,6 +33,7 @@ import com.reco1l.verktex.ui.UIScene
 import com.reco1l.verktex.ui.UITextButton
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.UILinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.control.UICheckbox
@@ -90,9 +91,9 @@ class CalibrationScene(
     private var wasMusicPlaying = false
     private var successfulTapStreak = 0
 
-    private lateinit var approachCircle: UIBox
+    private lateinit var approachCircle: UIContainer
     private lateinit var hitCircleFill: UICircle
-    private lateinit var rippleCircle: UIBox
+    private lateinit var rippleCircle: UIContainer
     private var circleContainer: UIContainer
     private lateinit var bpmValueText: UITextButton
     private lateinit var offsetValueText: UITextButton
@@ -106,7 +107,7 @@ class CalibrationScene(
         backgroundComponent = UIBox().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            background = Background.Color(Verktex.theme.palette.accent.shade(0.08f))
+            color = Verktex.theme.palette.accent.shade(0.08f)
         }
 
         textButton {
@@ -151,7 +152,7 @@ class CalibrationScene(
                 hitCircleFill = this
             }
 
-            box {
+            container {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
@@ -161,7 +162,7 @@ class CalibrationScene(
                 borderColor = themed { palette.accent }
             }
 
-            box {
+            container {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
@@ -174,7 +175,7 @@ class CalibrationScene(
                 approachCircle = this
             }
 
-            box {
+            container {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
@@ -253,7 +254,7 @@ class CalibrationScene(
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                background = Background.Color(themed { palette.accent.shade(0.2f) })
+                color = themed { palette.accent.shade(0.2f) }
             }
 
             text {
@@ -298,7 +299,7 @@ class CalibrationScene(
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                background = Background.Color(themed { palette.accent.shade(0.2f) })
+                color = themed { palette.accent.shade(0.2f) }
             }
 
             text {
@@ -397,7 +398,7 @@ class CalibrationScene(
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                background = Background.Color(themed { palette.accent.shade(0.2f) })
+                color = themed { palette.accent.shade(0.2f) }
             }
 
             // Setting row: label (left) + ON/OFF toggle (right)

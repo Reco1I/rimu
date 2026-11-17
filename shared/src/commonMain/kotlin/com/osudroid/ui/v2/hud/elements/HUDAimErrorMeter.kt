@@ -1,7 +1,6 @@
 package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.ui.borderWidth
-import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.ui.borderColor
 import com.reco1l.verktex.data.Vec2
@@ -55,7 +54,7 @@ class HUDAimErrorMeter : HUDElement() {
             origin = Anchor.Center
             width = (AVERAGE_MARKER_SIZE).px
             height = (AVERAGE_MARKER_THICKNESS).px
-            background = Background.Color(Color4.White)
+            color = Color4.White
         }
 
         box {
@@ -64,7 +63,7 @@ class HUDAimErrorMeter : HUDElement() {
             width = (AVERAGE_MARKER_SIZE).px
             height = (AVERAGE_MARKER_THICKNESS).px
             rotationZ = 90f
-            background = Background.Color(Color4.White)
+            color = Color4.White
         }
     }
 
@@ -93,7 +92,7 @@ class HUDAimErrorMeter : HUDElement() {
             alpha = 0.3f
         }
 
-        box {
+        container {
             anchor = Anchor.Center
             origin = Anchor.Center
             width = (SIZE * INNER_PORTION).px
@@ -127,7 +126,7 @@ class HUDAimErrorMeter : HUDElement() {
                 origin = Anchor.Center
                 width = (LINE_THICKNESS).px
                 height = (shaftLength).px
-                background = Background.Color(Color4.White)
+                color = Color4.White
                 alpha = 0.7f
             }
 
@@ -142,7 +141,7 @@ class HUDAimErrorMeter : HUDElement() {
                 y = (-shaftLength / 2f).px
                 rotationOrigin = Anchor.TopCenter
                 rotationZ = -45f
-                background = Background.Color(Color4.White)
+                color = Color4.White
                 alpha = 0.7f
             }
 
@@ -154,7 +153,7 @@ class HUDAimErrorMeter : HUDElement() {
                 y = (-shaftLength / 2f).px
                 rotationOrigin = Anchor.TopCenter
                 rotationZ = 45f
-                background = Background.Color(Color4.White)
+                color = Color4.White
                 alpha = 0.7f
             }
         }
@@ -168,7 +167,7 @@ class HUDAimErrorMeter : HUDElement() {
         width = (thickness).px
         height = (SIZE * INNER_PORTION * 0.9f).px
         rotationZ = rotationDegrees
-        background = Background.Color(Color4.White)
+        color = Color4.White
         alpha = guideAlpha
     }
 

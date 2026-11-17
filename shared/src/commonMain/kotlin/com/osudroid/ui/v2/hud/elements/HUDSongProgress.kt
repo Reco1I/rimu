@@ -1,8 +1,8 @@
 package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.Border
+import com.reco1l.verktex.ui.container.UIContainer
 import com.reco1l.verktex.data.CornerRadius
 
 import com.reco1l.verktex.ui.shape.UIBox
@@ -33,7 +33,7 @@ class HUDLinearSongProgress : HUDSongProgress() {
         origin = Anchor.BottomLeft
         width = Dimension.FillAvailable
         height = BAR_HEIGHT.px
-        background = Background.Color(Color4.Black)
+        color = Color4.Black
         alpha = 0.3f
     }
 
@@ -58,9 +58,9 @@ class HUDLinearSongProgress : HUDSongProgress() {
     override fun setProgress(progress: Float, isIntro: Boolean) {
 
         if (isIntro) {
-            progressRect.background = Background.Color(Color4(153f / 255f, 204f / 255f, 51f / 255f))
+            progressRect.color = Color4(153f / 255f, 204f / 255f, 51f / 255f).alpha(0.4f)
         } else {
-            progressRect.background = Background.Color(Color4(1f, 1f, 150f / 255f))
+            progressRect.color = Color4(1f, 1f, 150f / 255f).alpha(0.4f)
         }
 
         progressRect.width = (bounds.width * progress).px
@@ -94,7 +94,7 @@ class HUDPieSongProgress : HUDSongProgress() {
             +progress
         }
 
-        UIBox().also { ring ->
+        UIContainer().also { ring ->
 
             ring.width = SIZE.px
             ring.height = SIZE.px

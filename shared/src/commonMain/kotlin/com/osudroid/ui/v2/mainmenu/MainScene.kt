@@ -395,7 +395,7 @@ class MainScene : UIScene() {
         box {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            background = Background.Color(Color4.Black)
+            color = Color4.Black
             alpha = 0f
 
             fadeIn(3f).after {

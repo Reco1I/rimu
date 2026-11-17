@@ -2,7 +2,6 @@ package com.osudroid.ui.v2.game
 
 import kotlin.random.Random
 import com.osudroid.settings.GameResolution
-import com.reco1l.verktex.data.Background
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.mods.ModFlashlight
@@ -55,7 +54,7 @@ class FlashLightEntity(flashlight: ModFlashlight) : UIContainer() {
 
         it.origin = Anchor.Center
         it.scale = FLASHLIGHT_BASE_SIZE
-        it.background = Background.Color(Color4.Black)
+        it.color = Color4.Black
         it.alpha = 0f
         it.setSize(texture?.displayWidth ?: 0f, texture?.displayHeight ?: 0f)
         +it

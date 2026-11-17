@@ -155,7 +155,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 box {
                     width = fill()
                     height = fill()
-                    background = Background.Color(Color4.Black.alpha(0.6f))
+                    color = Color4.Black.alpha(0.6f)
                     radius = themed { CornerRadius(radius.xl) }
                 }
 
@@ -210,7 +210,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 width = 12f.dip
                 height = 2f.dip
                 radius = CornerRadius(8f.dip)
-                background = Background.Color(OsuColors.getStarRatingColor(beatmap.getStarRating().toDouble()).lighten(0.5f))
+                color = OsuColors.getStarRatingColor(beatmap.getStarRating().toDouble()).lighten(0.5f)
             }
         }
     }

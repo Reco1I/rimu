@@ -176,7 +176,7 @@ class GameScene : GameObjectListener {
     private var failAnimation: FailAnimation? = null
     private var pauseMenu: PauseMenu? = null
     private var replayText: UIText? = null
-    private var sceneBorder: UIBox? = null
+    private var sceneBorder: UIContainer? = null
     private var beatmapBackground: UIComponent? = null
     private var beatmapBackgroundWidth = 0f
     private var beatmapBackgroundHeight = 0f
@@ -442,7 +442,7 @@ class GameScene : GameObjectListener {
             val box = UIBox()
             box.width = Dimension.FillAvailable
             box.height = Dimension.FillAvailable
-            box.background = Background.Color(backgroundColor ?: Color4.Black)
+            box.color = backgroundColor ?: Color4.Black
 
             beatmapBackground = box
             beatmapBackgroundWidth = 0f
@@ -543,7 +543,7 @@ class GameScene : GameObjectListener {
         var sceneBorder = this.sceneBorder
 
         if (sceneBorder == null && Settings[OsuSettings.DisplayPlayfieldBorder] && playfieldSize < 1f) {
-            sceneBorder = UIBox().apply {
+            sceneBorder = UIContainer().apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 border = Border(Dimension.Fixed.Pixels(5f), Color4.White, Color4.White)
