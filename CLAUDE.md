@@ -115,7 +115,7 @@ Text goes through Verktex's `Localization` (`verktex/shared/.../localization/`).
 
 ### Audio
 
-Through Verktex's audio API: its driver (`Verktex.audio`) opens samples and streams (`createSampleSource`, `createStreamSource`). On Android the audio backend is a setting (Audio → Output, Verktex's `VerktexSettings.AudioBackend`, applied on the next start): BASS, bundled in Verktex, or the experimental Oboe, over Verktex's native audio core, which falls back to BASS where it can't start and whose stream positions account for the output's latency, see `verktex/docs/audio-backends.md`. Desktop has BASS alone. `MusicService` (`com/osudroid/audio/`, reached through `OsuGame.music`) plays songs and knows their beatmap, and `BassSoundProvider` plays sound effects, whatever the backend.
+Through Verktex's audio API: its driver (`Verktex.audio`) opens samples and streams (`createSampleSource`, `createStreamSource`). On Android the audio backend is a setting (Audio → Output, Verktex's `VerktexSettings.AudioBackend`, applied on the next start): BASS, bundled in Verktex, or the experimental Oboe, over Verktex's native audio core, which falls back to BASS where it can't start and whose stream positions, as BASS's, don't subtract the output's latency (hitsounds would be late against the music), see `verktex/docs/audio-backends.md`. Desktop has BASS alone. `MusicService` (`com/osudroid/audio/`, reached through `OsuGame.music`) plays songs and knows their beatmap, and `BassSoundProvider` plays sound effects, whatever the backend.
 
 ### Beatmaps & Difficulty
 
