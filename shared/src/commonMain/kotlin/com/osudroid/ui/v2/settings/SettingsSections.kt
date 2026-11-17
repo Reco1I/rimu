@@ -13,6 +13,7 @@ import com.osudroid.ui.v2.LoaderScene
 import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToInt
+import com.reco1l.verktex.audio.AudioBackend
 import com.reco1l.verktex.graphics.GraphicsBackend
 import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.settings.Settings
@@ -777,7 +778,42 @@ val graphicsSection = listOfNotNull(
     )
 )
 
-val audioSection = listOf(
+private fun audioBackendOption(): SettingsOption? {
+    // Oboe is Android's, desktop has BASS alone.
+    if (Platform.availableAudioBackends.size < 2) {
+        return null
+    }
+
+    return SettingsOption(
+        type = Type.Select,
+        key = "audioBackend",
+        // The engine's own setting, read when it starts.
+        setting = VerktexSettings.AudioBackend,
+        title = Res.string.opt_audio_backend_title,
+        summary = Res.string.opt_audio_backend_summary,
+        entries = Res.array.opt_audio_backend_names,
+        entryValues = Res.array.opt_audio_backend_values,
+        onChange = { value ->
+            val selected = (value as? List<*>)?.firstOrNull() ?: value
+
+            // The engine keeps the backend it was initialized with until the game restarts.
+            if (selected == AudioBackend.Oboe.name) {
+                Toasts.showLong(Res.string.opt_audio_backend_oboe_experimental)
+            } else {
+                Toasts.showLong(Res.string.opt_audio_backend_restart)
+            }
+        }
+    )
+}
+
+val audioSection = listOfNotNull(
+    audioBackendOption()?.let {
+        SettingsCategory(
+            title = Res.string.opt_category_audio_output,
+            options = listOf(it)
+        )
+    },
+
     SettingsCategory(
         title = Res.string.opt_category_volume,
         options = listOf(

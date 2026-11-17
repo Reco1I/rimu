@@ -46,4 +46,19 @@
         <item>Vulkan</item>
     </string-array>
 
+    <string name="opt_category_audio_output">Output</string>
+    <string name="opt_audio_backend_title">Audio backend</string>
+    <string name="opt_audio_backend_summary">The library the game plays audio with. Applied after restarting the game.</string>
+    <string name="opt_audio_backend_restart">Restart the game to apply the new audio backend.</string>
+    <string name="opt_audio_backend_oboe_experimental">Oboe support is experimental. Restart the game to apply it, it falls back to BASS if it fails to start. Its timing accounts for your device\'s audio latency, so calibrate your offset again.</string>
+    <string-array name="opt_audio_backend_names">
+        <item>BASS</item>
+        <item>Oboe (experimental)</item>
+    </string-array>
+    <!-- Names of com.reco1l.verktex.audio.AudioBackend. -->
+    <string-array name="opt_audio_backend_values" translatable="false">
+        <item>BASS</item>
+        <item>Oboe</item>
+    </string-array>
+
 </resources>
