@@ -20,12 +20,15 @@ import kotlinx.coroutines.runBlocking
  * ```
  * ./gradlew :desktopApp:runUITests --args="--test 'osu!/Hit circles' --screenshot build/test.png --delay 3"
  * ```
+ *
+ * `--backend` opens it with a graphics backend, e.g. `Vulkan`.
  */
 class OsuUITestsDesktop(
     initialTest: String?,
     screenshot: File?,
     screenshotDelay: Double,
-) : UITestApplication(initialTest, screenshot, screenshotDelay = screenshotDelay), OsuGameHost {
+    backend: String? = null,
+) : UITestApplication(initialTest, screenshot, screenshotDelay = screenshotDelay, backend = backend), OsuGameHost {
 
     override val platformApplication = DESKTOP_APPLICATION
 
@@ -45,6 +48,7 @@ fun main(args: Array<String>) {
     var test: String? = null
     var screenshot: File? = null
     var delay = UITestApplication.SCREENSHOT_DELAY_SECONDS
+    var backend: String? = null
 
     var i = 0
     while (i < args.size) {
@@ -52,13 +56,14 @@ fun main(args: Array<String>) {
             "--test" -> test = args.getOrNull(++i)
             "--screenshot" -> screenshot = args.getOrNull(++i)?.let(::File)
             "--delay" -> delay = args.getOrNull(++i)?.toDoubleOrNull() ?: delay
+            "--backend" -> backend = args.getOrNull(++i)
             else -> {
-                System.err.println("Unknown argument: ${args[i]}. Usage: [--test <suite/test>] [--screenshot <file.png> [--delay <seconds>]]")
+                System.err.println("Unknown argument: ${args[i]}. Usage: [--test <suite/test>] [--screenshot <file.png> [--delay <seconds>]] [--backend <name>]")
                 exitProcess(2)
             }
         }
         i++
     }
 
-    OsuUITestsDesktop(test, screenshot, delay).run()
+    OsuUITestsDesktop(test, screenshot, delay, backend).run()
 }

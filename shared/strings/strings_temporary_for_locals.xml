@@ -34,5 +34,16 @@
         <item>OpenGLES2</item>
         <item>Vulkan</item>
     </string-array>
+    <!-- The desktop's backends, see opt_graphics_backend_names. -->
+    <string-array name="opt_graphics_backend_names_desktop">
+        <item>Automatic</item>
+        <item>OpenGL</item>
+        <item>Vulkan (experimental)</item>
+    </string-array>
+    <string-array name="opt_graphics_backend_values_desktop" translatable="false">
+        <item>Auto</item>
+        <item>OpenGL</item>
+        <item>Vulkan</item>
+    </string-array>
 
 </resources>

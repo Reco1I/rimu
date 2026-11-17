@@ -635,8 +635,10 @@ private fun graphicsBackendOption(): SettingsOption? {
         return null
     }
 
-    // The experimental Vulkan backend is only offered where the device reports Vulkan 1.1.
+    // The experimental Vulkan backend is only offered where the device reports Vulkan 1.1. Desktop's
+    // backends are OpenGL and Vulkan, it lists anything only where Vulkan can be used.
     val withVulkan = GraphicsBackend.Vulkan in backends
+    val isDesktop = GraphicsBackend.OpenGL in backends
 
     return SettingsOption(
         type = Type.Select,
@@ -645,8 +647,16 @@ private fun graphicsBackendOption(): SettingsOption? {
         setting = VerktexSettings.GraphicsBackend,
         title = Res.string.opt_graphics_backend_title,
         summary = Res.string.opt_graphics_backend_summary,
-        entries = if (withVulkan) Res.array.opt_graphics_backend_names_with_vulkan else Res.array.opt_graphics_backend_names,
-        entryValues = if (withVulkan) Res.array.opt_graphics_backend_values_with_vulkan else Res.array.opt_graphics_backend_values,
+        entries = when {
+            isDesktop -> Res.array.opt_graphics_backend_names_desktop
+            withVulkan -> Res.array.opt_graphics_backend_names_with_vulkan
+            else -> Res.array.opt_graphics_backend_names
+        },
+        entryValues = when {
+            isDesktop -> Res.array.opt_graphics_backend_values_desktop
+            withVulkan -> Res.array.opt_graphics_backend_values_with_vulkan
+            else -> Res.array.opt_graphics_backend_values
+        },
         onChange = { value ->
             val selected = (value as? List<*>)?.firstOrNull() ?: value
 
