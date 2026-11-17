@@ -151,7 +151,7 @@ object OsuGame {
      */
     @JvmStatic
     fun init() {
-        Platform.audioDriver.enumerateDevices()
+        Verktex.audio.enumerateDevices()
         SplashScene.progress = 10
         SplashScene.info = "Loading skin..."
         Skin.load(SkinFolders.path)

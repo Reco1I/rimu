@@ -1,7 +1,7 @@
 package ru.nsu.ccfit.zuev.audio
 
 import com.osudroid.settings.OsuSettings
-import com.reco1l.verktex.Platform
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.audio.AudioPlayback
 import com.reco1l.verktex.audio.AudioSample
 import kotlin.jvm.JvmField
@@ -42,7 +42,7 @@ class BassSoundProvider {
         }
 
         sample = try {
-            Platform.provider.createAudioSampleSource(path, isExternal)?.createSample()
+            Verktex.audio.createSampleSource(path, isExternal)?.createSample()
         } catch (_: IllegalStateException) {
             null
         }

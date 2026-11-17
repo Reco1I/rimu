@@ -6,6 +6,7 @@ import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.BeatmapSetInfo
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.audio.AudioStream
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -215,7 +216,7 @@ open class MusicService {
             release()
 
             val newStream = try {
-                Platform.provider.createAudioStreamSource(filePath, true)?.createStream()
+                Verktex.audio.createStreamSource(filePath, true)?.createStream()
             } catch (_: IllegalStateException) {
                 null
             }
