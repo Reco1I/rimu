@@ -1,0 +1,46 @@
+name: Desktop
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-linux:
+    name: Build and test on Linux
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        # Verktex, the engine.
+        submodules: true
+
+    - name: Setup JDK 17 and Gradle
+      uses: ./.github/actions/setup-java-gradle
+
+    # The Vulkan backend's library builds against the NDK's Vulkan headers and jni.h, and the shaders
+    # compile with its glslc. Mesa's drivers include lavapipe, a software device the context test
+    # runs on.
+    - name: Install the NDK and the Vulkan loader
+      run: |
+        yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;22.1.7171670" > /dev/null
+        sudo apt-get update
+        sudo apt-get install -y libvulkan1 mesa-vulkan-drivers
+
+    - name: Build the desktop natives
+      run: ./gradlew :verktex:desktop-natives:jar
+
+    - name: Check the Vulkan library was built
+      run: unzip -l verktex/desktop-natives/build/libs/desktop-natives.jar | grep natives/linux-x64/libverktex_vulkan.so
+
+    - name: Run the engine's and the game's tests
+      run: ./gradlew :verktex:shared:desktopTest :verktex:shadertools:test :shared:desktopTest
+
+    - name: Compile the desktop applications
+      run: ./gradlew :desktopApp:compileKotlin :verktex:desktopApp:compileKotlin
