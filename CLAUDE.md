@@ -80,7 +80,7 @@ SplashScene → LoadingScreen → MainScene (menu hub) → LobbyScene
 
 Verktex handles all rendering. UI is a tree of `Component`s measured and laid out through `LayoutConstraints`, animated with transforms for UI, and with `Choreography` for anything on the gameplay clock, whose state depends only on the time so that seeking works. Slider bodies are Verktex `PathShape`s, a `Path` stroked from a mesh kept on the GPU, in osu!pixels inside the playfield.
 
-A Vulkan backend roadmap lives in `verktex/docs/vulkan-backend.md`. How the frame rate is capped on each platform, and the pending work on it, is in `verktex/docs/frame-rate.md`. Textures and shader outputs are premultiplied, and the atlas keeps a gutter around each region; how, and what's left, is in `verktex/docs/texture-blending.md`.
+A Vulkan backend roadmap lives in `verktex/docs/vulkan-backend.md`. How the frame rate is capped on each platform, and the pending work on it, is in `verktex/docs/frame-rate.md`. Textures and shader outputs are premultiplied, and the atlas keeps a gutter around each region; how, and what's left, is in `verktex/docs/texture-blending.md`. Shaders share code through `#import`, and `ClipMode` follows a component's corner radius, rotation and skew, clipped in the shaders; see `verktex/docs/shaders.md`.
 
 ### UI Tests
 
