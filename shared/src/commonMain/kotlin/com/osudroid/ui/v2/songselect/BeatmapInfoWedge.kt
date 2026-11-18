@@ -13,6 +13,8 @@ import com.osudroid.ui.v2.modmenu.*
 import com.osudroid.utils.applyMods
 import com.osudroid.utils.calculateRate
 import com.reco1l.framework.math.roundBy
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
@@ -27,7 +29,7 @@ import com.reco1l.verktex.ui.container.ExtendIntoSafeAreaContainer
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.labeledBadge
-import com.reco1l.verktex.ui.shape.Wedge
+import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
@@ -66,15 +68,18 @@ class BeatmapInfoWedge(
         width = Dimension.FillAvailable
 
         // Reaches the edges of the window, the outline of those sides is left outside of it.
-        backgroundComponent = Wedge().apply {
+        // Skewed around its top, the bottom slides to the left: the right side slants and the left one
+        // goes past the edge of the window.
+        backgroundComponent = Box().apply {
             translationX = (-2f).px
             translationY = (-2f).px
             alpha = 0.75f
+            skewOrigin = Anchor.TopLeft
+            skewX = -12f
 
             color = themed { palette.accent.shade(0.1f).alpha(0.75f) }
-            radius = CornerRadius(12f.dip)
-            strokeWidth = 2f.px
-            strokeColor = themed { palette.accent.shade(0.2f) }
+            radius = CornerRadius(Dimension.Zero, Dimension.Zero, 12f.dip, Dimension.Zero)
+            border = themed { Border(2f.px, palette.accent.shade(0.2f)) }
         }
 
         linearContainer {
