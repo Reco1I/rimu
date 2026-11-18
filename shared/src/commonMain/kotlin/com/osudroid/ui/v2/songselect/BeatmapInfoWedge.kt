@@ -36,6 +36,7 @@ import com.reco1l.verktex.ui.text.text
 import kotlin.math.roundToInt
 import com.reco1l.verktex.ui.themed
 import com.osudroid.utils.formatDuration
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 
 class BeatmapInfoWedge(
     /**
@@ -70,7 +71,7 @@ class BeatmapInfoWedge(
         // Reaches the edges of the window, the outline of those sides is left outside of it.
         // Skewed around its top, the bottom slides to the left: the right side slants and the left one
         // goes past the edge of the window.
-        backgroundComponent = Box().apply {
+        background = Background.Component(Box().apply {
             translationX = (-2f).px
             translationY = (-2f).px
             alpha = 0.75f
@@ -80,22 +81,22 @@ class BeatmapInfoWedge(
             color = themed { palette.accent.shade(0.1f).alpha(0.75f) }
             radius = CornerRadius(Dimension.Zero, Dimension.Zero, 12f.dip, Dimension.Zero)
             border = themed { Border(2f.px, palette.accent.shade(0.2f)) }
-        }
+        })
 
         linearContainer {
             width = Dimension.FillAvailable
-            orientation = LinearContainer.Orientation.Vertical
+            orientation = Orientation.Vertical
             padding = Padding(16f.dip)
             spacing = 6f.dip
 
             linearContainer {
-                orientation = LinearContainer.Orientation.Horizontal
+                orientation = Orientation.Horizontal
                 spacing = 10f.px
                 width = Dimension.FillAvailable
 
                 linearContainer {
                     width = Dimension.FillAvailable
-                    orientation = LinearContainer.Orientation.Vertical
+                    orientation = Orientation.Vertical
 
                     artistText = text {
                         text = "Unknown"
@@ -123,7 +124,7 @@ class BeatmapInfoWedge(
             }
 
             linearContainer {
-                orientation = LinearContainer.Orientation.Horizontal
+                orientation = Orientation.Horizontal
                 spacing = 8f.dip
 
                 fun StatisticBadge(iconCode: Int) = badge {
@@ -138,11 +139,11 @@ class BeatmapInfoWedge(
             }
 
             linearContainer {
-                orientation = LinearContainer.Orientation.Vertical
+                orientation = Orientation.Vertical
                 spacing = 4f.dip
 
                 linearContainer {
-                    orientation = LinearContainer.Orientation.Horizontal
+                    orientation = Orientation.Horizontal
                     spacing = 4f.dip
 
                     circlesBadge = labeledBadge {
@@ -163,7 +164,7 @@ class BeatmapInfoWedge(
                 }
 
                 linearContainer {
-                    orientation = LinearContainer.Orientation.Horizontal
+                    orientation = Orientation.Horizontal
                     spacing = 4f.dip
 
                     arText = labeledBadge {
