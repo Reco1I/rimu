@@ -18,6 +18,8 @@ import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.container.ClipContainer
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.ui.transformSequence
+import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.scaleTo
 import kotlin.math.PI
 import kotlin.math.abs
@@ -44,8 +46,11 @@ open class GameplaySpinner : GameObject() {
     private val approachCircle: Sprite
     private val metre: ClipContainer
     private val metreSprite: Sprite
-    // The background region the sizes were derived from, see layoutToBackground.
+    // The regions the sizes were derived from, see layout.
     private var laidOutBackground: Texture.Region? = null
+    private var laidOutMetre: Texture.Region? = null
+    // The scale of the spinner's sprites on the screen, see layout.
+    private var spriteScale = 1f
     private var isLaidOut = false
     private val spinText: Sprite
     private val clearText: Sprite
@@ -105,8 +110,8 @@ open class GameplaySpinner : GameObject() {
         circle.setPosition(position.x, position.y)
         circle.texture = skinTexture("spinner-circle")
 
-        // The metre fills from the bottom: the sprite keeps the size of the background while the container
-        // shows a growing part of it from its bottom, as osu!stable does.
+        // The metre fills from the bottom: the sprite keeps its size while the container shows a growing part of
+        // it from its bottom, as osu!stable does.
         metreSprite = Sprite()
         metreSprite.scaleType = ScaleType.Stretch
         metreSprite.texture = skinTexture("spinner-metre")
@@ -114,14 +119,11 @@ open class GameplaySpinner : GameObject() {
         metreSprite.height = fill()
 
         metre = ClipContainer()
-        metre.origin = Anchor.Center
-        metre.scaleOrigin = Anchor.Center
-        metre.setPosition(position.x, position.y)
+        metre.origin = Anchor.TopLeft
+        metre.scaleOrigin = Anchor.TopLeft
         metre.clipAnchor = Anchor.BottomLeft
         metre.clipFactorY = 0f
         metre += metreSprite
-
-        layoutToBackground()
 
         approachCircle = Sprite()
         approachCircle.origin = Anchor.Center
@@ -138,6 +140,8 @@ open class GameplaySpinner : GameObject() {
         clearText.setPosition(position.x, position.y * 0.5f)
         clearText.texture = skinTexture("spinner-clear")
 
+        layout()
+
         bonusScore = ScoreNumber(position.x, position.y + 100, "", 1.1f, true)
 
         isSpinnerFrequencyModulate = OsuSkin.get().isSpinnerFrequencyModulate
@@ -149,24 +153,65 @@ open class GameplaySpinner : GameObject() {
     }
 
     /**
-     * Scales the background to the width of the screen and sizes the metre to it, again whenever the
-     * background's texture changed, as when the skin does.
+     * Lays the background, the circle and the metre out as osu!stable does, in a 640x480 area as tall as the
+     * screen and centred on it, again whenever their textures changed, as when the skin does. Their textures keep
+     * their own proportions, scaled by [SPRITE_SCALE] in that area, instead of being stretched to the screen.
+     *
+     * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyOldStyleSpinner.cs
      */
-    private fun layoutToBackground() {
+    private fun layout() {
         val backgroundTexture = background.textureRegion
+        val metreTexture = metreSprite.textureRegion
 
-        if (isLaidOut && backgroundTexture === laidOutBackground) {
+        if (isLaidOut && backgroundTexture === laidOutBackground && metreTexture === laidOutMetre) {
             return
         }
         isLaidOut = true
         laidOutBackground = backgroundTexture
+        laidOutMetre = metreTexture
 
-        background.scale = if (backgroundTexture != null) GameResolution.width / backgroundTexture.displayWidth else 1f
+        // From the 640x480 area to the screen.
+        val areaScale = GameResolution.height / LEGACY_AREA_HEIGHT
+        val areaLeft = GameResolution.width / 2f - LEGACY_AREA_WIDTH / 2f * areaScale
+        val areaTop = GameResolution.height / 2f - LEGACY_AREA_HEIGHT / 2f * areaScale
+        val spriteScale = SPRITE_SCALE * areaScale
+        val centreX = GameResolution.width / 2f
+        val centreY = areaTop + SPINNER_Y_CENTRE * areaScale
+        this.spriteScale = spriteScale
 
-        // Sized and scaled as the background over the same centre, so both line up: sized to the screen instead,
-        // the metre would be cut to the height of its layer, the background being taller than the screen.
-        metre.setSize(backgroundTexture?.displayWidth ?: 0f, backgroundTexture?.displayHeight ?: 0f)
-        metre.scale = background.scaleX
+        background.setPosition(centreX, centreY)
+        background.scale = spriteScale
+
+        circle.setPosition(centreX, centreY)
+        circle.scale = spriteScale
+
+        // Its scale is animated, see init.
+        approachCircle.setPosition(centreX, centreY)
+
+        spinText.setPosition(centreX, areaTop + (SPINNER_TOP_OFFSET + 335f) * areaScale)
+        spinText.scale = spriteScale
+
+        // Its scale is animated once the spinner is cleared.
+        clearText.setPosition(centreX, areaTop + (SPINNER_TOP_OFFSET + 115f) * areaScale)
+
+        // Its top left corner is the area's, under the top offset: it isn't centred on the background.
+        metre.setPosition(areaLeft, areaTop + SPINNER_TOP_OFFSET * areaScale)
+        metre.setSize(metreTexture?.displayWidth ?: 0f, metreTexture?.displayHeight ?: 0f)
+        metre.scale = spriteScale
+    }
+
+    /**
+     * The fraction of the metre's texture that's shown when [fill] of the metre is: osu!stable reveals it by
+     * [FINAL_METRE_HEIGHT] up from the bottom of its texture, so the part of a taller texture below that is always
+     * shown and the part above it never is.
+     */
+    private fun metreClipFactor(fill: Float): Float {
+        val textureHeight = (metreSprite.textureRegion?.displayHeight ?: 0f) * SPRITE_SCALE
+
+        if (textureHeight <= 0f) {
+            return 0f
+        }
+        return (textureHeight - FINAL_METRE_HEIGHT * (1f - fill)) / textureHeight
     }
 
     open fun init(listener: GameObjectListener, scene: Container,
@@ -197,7 +242,7 @@ open class GameplaySpinner : GameObject() {
         background.isVisible = !GameHelper.isTraceable() ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapSpinner)
 
-        metre.clipFactorY = 0f
+        metre.clipFactorY = metreClipFactor(0f)
         background.color = OsuSkin.get().spinnerBackgroundColor
 
         scene.add(0, spinText)
@@ -209,8 +254,8 @@ open class GameplaySpinner : GameObject() {
             approachCircle.choreographAt(hitTime) { sequence -> sequence
                 .fadeTo(0.75f)
                 .fadeTo(1f, duration)
-                .scaleTo(2f)
-                .scaleTo(0f, duration) }
+                .scaleTo(spriteScale * 1.86f)
+                .scaleTo(spriteScale * 0.1f, duration) }
         }
 
         scene.add(0, circle)
@@ -333,7 +378,7 @@ open class GameplaySpinner : GameObject() {
         val listener = listener!!
         val stat = stat!!
 
-        layoutToBackground()
+        layout()
 
         passedTime = listener.elapsedTime - hitTime
 
@@ -351,6 +396,8 @@ open class GameplaySpinner : GameObject() {
                 applySeekRotations()
 
                 if (clear) {
+                    clearText.alpha = 1f
+                    clearText.scale = spriteScale
                     scene!! += clearText
                 }
 
@@ -434,10 +481,15 @@ open class GameplaySpinner : GameObject() {
 
                 if (!clear) {
                     scene!! += clearText
+                    // As osu!lazer's LegacySpinner.
                     clearText.alpha = 0f
-                    clearText.fadeIn(0.25f)
-                    clearText.scale = 1.5f
-                    clearText.scaleTo(1f, 0.25f)
+                    clearText.fadeIn(0.4f, Easing.OutQuad)
+                    clearText.scale = spriteScale * 2f
+                    clearText.transformSequence {
+                        scaleTo(spriteScale * 0.8f, 0.24f, Easing.OutQuad)
+                        then()
+                        scaleTo(spriteScale, 0.16f)
+                    }
 
                     clear = true
 
@@ -475,7 +527,7 @@ open class GameplaySpinner : GameObject() {
                 }
             }
 
-            metre.clipFactorY = metreFill(min(1f, abs(percentfill)))
+            metre.clipFactorY = metreClipFactor(metreFill(min(1f, abs(percentfill))))
 
             oldMouse.set(currMouse)
         }
@@ -486,21 +538,27 @@ open class GameplaySpinner : GameObject() {
     }
 
     /**
-     * The fraction of the metre that's shown for the given progress: it fills by bars, the one being filled
-     * blinking with a chance that grows as it fills, unless the skin asks for it to stay shown.
+     * The fraction of the metre that's shown for the given progress: it fills by whole bars, the one being
+     * filled blinking with a chance that grows as it fills, even once the spinner is cleared, unless the skin's
+     * SpinnerNoBlink turns the blinking off.
      *
      * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyOldStyleSpinner.cs
      */
     private fun metreFill(progress: Float): Float {
-        val percent = min(99f, progress * 100)
-        var bars = percent.toInt() / 10
-        val partial = (percent.toInt() % 10) / 10f
+        val isBlinking = !OsuSkin.get().isSpinnerNoBlink
+        var percent = progress * 100
 
-        if (partial > 0 && (OsuSkin.get().isSpinnerNoBlink || Random.nextFloat() < partial)) {
+        if (isBlinking) {
+            percent = min(99f, percent)
+        }
+
+        var bars = percent.toInt() / 10
+
+        if (isBlinking && Random.nextFloat() < (percent.toInt() % 10) / 10f) {
             bars++
         }
 
-        return if (progress >= 1f) 1f else bars / METRE_BARS.toFloat()
+        return bars / METRE_BARS.toFloat()
     }
 
     override fun onExpire() {
@@ -674,6 +732,15 @@ open class GameplaySpinner : GameObject() {
 
     companion object {
         private const val METRE_BARS = 10
+
+        // osu!stable's layout of the old style spinner in its 640x480 area, as osu!lazer's LegacySpinner and
+        // LegacyOldStyleSpinner have it.
+        private const val LEGACY_AREA_WIDTH = 640f
+        private const val LEGACY_AREA_HEIGHT = 480f
+        private const val SPRITE_SCALE = 0.625f
+        private const val SPINNER_TOP_OFFSET = 45f - 16f
+        private const val SPINNER_Y_CENTRE = SPINNER_TOP_OFFSET + 219f
+        private const val FINAL_METRE_HEIGHT = 692f * SPRITE_SCALE
 
         /**
          * Converts [radians] to degrees as `Math.toDegrees` does.
