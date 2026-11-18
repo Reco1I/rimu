@@ -2,7 +2,7 @@ package com.osudroid.ui.v2.settings
 
 import com.reco1l.verktex.localization.LocalizedStringArray
 import com.reco1l.verktex.settings.SettingKey
-import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.Component
 
 data class SettingsOption(
     /**
@@ -66,7 +66,7 @@ data class SettingsOption(
      */
     val entryValues: LocalizedStringArray? = null,
 
-    // FormSlider props
+    // FormSeekBar props
 
     /**
      * The minimum value of the slider.
@@ -101,7 +101,7 @@ data class SettingsOption(
     /**
      * Called when the component is attached to the scene.
      */
-    val onAttach: (component: UIComponent) -> Unit = { },
+    val onAttach: (component: Component) -> Unit = { },
 
     /**
      * The current value of an option that isn't a preference, e.g. a setting of the multiplayer

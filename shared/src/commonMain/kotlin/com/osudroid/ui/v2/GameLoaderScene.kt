@@ -28,15 +28,15 @@ import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UILoadingIndicator
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.LoadingIndicator
+import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.ui.card
 import com.reco1l.verktex.ui.clearTransforms
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.ScrollableContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.fadeIn
@@ -44,7 +44,7 @@ import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.form.*
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.sprite
 import com.reco1l.verktex.ui.text.faSolidIcon
@@ -60,7 +60,7 @@ import com.osudroid.utils.async
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.input.KeyboardEvent
 
-class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : UIScene() {
+class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : Scene() {
 
     // Back cancels the play, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -79,8 +79,8 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     private var isStarting = false
     private var multiplayerLoadElapsed = 0f
 
-    private val dimBox: UIBox
-    private val mainContainer: UIContainer
+    private val dimBox: Box
+    private val mainContainer: Container
 
     // The options of the beatmap set, read from the database once the scene opens. Gameplay starts
     // once they're read, with their offset.
@@ -88,13 +88,13 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     private var isBeatmapOptionsLoaded = false
 
     // Shows the offset of the options once they're read.
-    private var offsetSlider: FormSlider? = null
+    private var offsetSlider: FormSeekBar? = null
 
     private var fadeTimeout = if (isRestart) 500L else 2000L
     private var minimumTimeout = if (isRestart) 500L else 2000L
 
     init {
-        backgroundComponent = UIContainer().apply {
+        backgroundComponent = Container().apply {
             width = fill()
             height = fill()
 
@@ -138,7 +138,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
                 linearContainer {
                     width = fill()
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = LinearContainer.Orientation.Vertical
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
                     spacing = 8f.dip
@@ -177,12 +177,12 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 }
 
                 linearContainer {
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = LinearContainer.Orientation.Vertical
                     anchor = Anchor.BottomLeft
                     origin = Anchor.BottomLeft
                     spacing = 16f.dip
 
-                    +UILoadingIndicator()
+                    +LoadingIndicator()
 
                     textButton {
                         text = "Back"
@@ -294,7 +294,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     }
 
 
-    private inner class QuickSettingsLayout : UIScrollableContainer() {
+    private inner class QuickSettingsLayout : ScrollableContainer() {
 
         init {
             width = 0.3f.pct
@@ -306,7 +306,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
             linearContainer {
                 width = fill()
-                orientation = UILinearContainer.Orientation.Vertical
+                orientation = LinearContainer.Orientation.Vertical
                 spacing = 16f.dip
 
                 card {
@@ -315,7 +315,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     isCollapsible = true
 
                     content.apply {
-                        val offsetSlider = FormSlider().apply {
+                        val offsetSlider = FormSeekBar().apply {
                             label = Res.string.opt_category_offset
                             control.min = -250f
                             control.max = 250f

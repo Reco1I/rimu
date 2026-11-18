@@ -14,9 +14,9 @@ import com.osudroid.utils.async
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.*
 import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.dialog.UIDialog
+import com.reco1l.verktex.ui.dialog.Dialog
 import com.reco1l.verktex.ui.form.FormContainer
 import com.reco1l.verktex.ui.form.FormInput
 import com.reco1l.verktex.ui.text.spans
@@ -24,7 +24,7 @@ import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 
-class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
+class RoomButton(val lobbyScene: LobbyScene, val room: Room) : Button() {
 
     init {
         width = fill()
@@ -34,7 +34,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
         tintChildren = false
 
         linearContainer {
-            orientation = UILinearContainer.Orientation.Vertical
+            orientation = LinearContainer.Orientation.Vertical
             width = fill()
             spacing = 4f.dip
 
@@ -74,7 +74,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 spacing = 8f.dip
 
                 badge {
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                     text = when (room.teamMode) {
                         TeamMode.HeadToHead -> string.multiplayer_room_head_to_head
                         TeamMode.TeamVS -> string.multiplayer_room_team_versus
@@ -82,7 +82,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 }
 
                 badge {
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                     text = when (room.winCondition) {
                             WinCondition.ScoreV1 -> string.multiplayer_room_score_v1
                             WinCondition.ScoreV2 -> string.multiplayer_room_score_v2
@@ -92,15 +92,15 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                 }
 
                 labeledBadge {
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                     label = string.multiplayer_room_players
                     value = "${room.playerCount}/${room.maxPlayers}"
                 }
 
                 if (room.gameplaySettings.isFreeMod) {
                     badge {
-                        density = UIBadge.Density.Small
-                        variant = UIBadge.Variant.Solid
+                        density = Badge.Density.Small
+                        variant = Badge.Variant.Solid
                         text = string.multiplayer_room_free_mods
                     }
                 }
@@ -120,7 +120,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
 
                 val form: FormContainer
 
-                object : UIDialog<FormContainer>(FormContainer().apply {
+                object : Dialog<FormContainer>(FormContainer().apply {
                     width = fill()
                     form = this
 
@@ -137,13 +137,13 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : UIButton() {
                     init {
                         title = string.multiplayer_lobby_join_room
 
-                        addButton(UITextButton().apply {
+                        addButton(TextButton().apply {
                             text = string.multiplayer_lobby_join_room_accept
                             variant = Variant.Solid
                             onActionUp = { form.submit() }
                         })
 
-                        addButton(UITextButton().apply {
+                        addButton(TextButton().apply {
                             text = string.multiplayer_lobby_join_room_cancel
                             onActionUp = { hide() }
                         })

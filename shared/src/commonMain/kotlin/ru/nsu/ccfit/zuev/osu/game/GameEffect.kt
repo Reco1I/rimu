@@ -8,18 +8,18 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.graphics.BlendMode
 import com.reco1l.verktex.ui.ChoreographyBlock
-import com.reco1l.verktex.ui.UIAnimatedSprite
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.AnimatedSprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
 import com.reco1l.verktex.ui.choreography
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.jvm.JvmField
 
 class GameEffect(texname: String) : GameObject() {
     @JvmField
-    var hit: UISprite
+    var hit: Sprite
     var texname: String = texname
         private set
 
@@ -28,11 +28,11 @@ class GameEffect(texname: String) : GameObject() {
     init {
         if (isAnimationEffect(texname)) {
             // Animated or not depending on the skin, which may change while the effect is pooled.
-            val hit = UIAnimatedSprite(skinFrames(texname, orStatic = true), OsuSkin.get().animationFramerate)
+            val hit = AnimatedSprite(skinFrames(texname, orStatic = true), OsuSkin.get().animationFramerate)
             hit.isLoop = false
             this.hit = hit
         } else {
-            hit = UISprite()
+            hit = Sprite()
             hit.texture = skinTexture(texname)
         }
     }
@@ -45,10 +45,10 @@ class GameEffect(texname: String) : GameObject() {
         }
     }
 
-    fun init(scene: UIContainer, pos: Vector2, scale: Float,
+    fun init(scene: Container, pos: Vector2, scale: Float,
              vararg sequenceConsumers: ChoreographyBlock) {
         val hit = hit
-        if (hit is UIAnimatedSprite) {
+        if (hit is AnimatedSprite) {
             hit.stop()
             hit.play()
         }

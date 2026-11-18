@@ -6,31 +6,31 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.BlendMode
-import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.math.ColorInterpolation
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.FloatInterpolation
-import com.reco1l.verktex.ui.UIAnimatedSprite
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.AnimatedSprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.container.UIClipContainer
+import com.reco1l.verktex.ui.container.ClipContainer
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.*
 import ru.nsu.ccfit.zuev.skins.*
 
 class HUDHealthBar : HUDElement() {
 
-    private val fill: UIAnimatedSprite
-    private val fillClip: UIClipContainer
+    private val fill: AnimatedSprite
+    private val fillClip: ClipContainer
 
-    private val marker: UISprite
-    private val explode: UISprite
+    private val marker: Sprite
+    private val explode: Sprite
 
-    private val markerNormalTexture: GraphicsTexture.Region?
-    private val markerDangerTexture: GraphicsTexture.Region?
-    private val markerSuperDangerTexture: GraphicsTexture.Region?
+    private val markerNormalTexture: Texture.Region?
+    private val markerDangerTexture: Texture.Region?
+    private val markerSuperDangerTexture: Texture.Region?
 
     private val isNewStyle: Boolean
 
@@ -53,7 +53,7 @@ class HUDHealthBar : HUDElement() {
         isNewStyle = backgroundTexture != null && markerTexture != null
 
         // background implementation is the same for both versions.
-        +UISprite().apply { textureRegion = backgroundTexture }
+        +Sprite().apply { textureRegion = backgroundTexture }
 
         val fillFrames = SkinTextures.frames("scorebar-colour").ifEmpty { listOfNotNull(SkinTextures["scorebar-colour"]) }
 
@@ -61,25 +61,25 @@ class HUDHealthBar : HUDElement() {
         fillWidth = fillFrames.firstOrNull()?.displayWidth ?: 0f
         fillHeight = fillFrames.firstOrNull()?.displayHeight ?: 0f
 
-        fill = UIAnimatedSprite(fillFrames, OsuSkin.get().animationFramerate)
+        fill = AnimatedSprite(fillFrames, OsuSkin.get().animationFramerate)
         fill.width = fillWidth.px
         fill.height = fillHeight.px
 
         // Shows the part of the fill up to the health, from the left.
-        fillClip = UIClipContainer()
+        fillClip = ClipContainer()
         fillClip.clipAnchor = Anchor.TopLeft
         fillClip.width = fillWidth.px
         fillClip.height = fillHeight.px
         fillClip += fill
         +fillClip
 
-        marker = UISprite()
+        marker = Sprite()
         marker.origin = Anchor.Center
         marker.scaleOrigin = Anchor.Center
         marker.blendMode = BlendMode.Additive
         +marker
 
-        explode = UISprite()
+        explode = Sprite()
         explode.origin = Anchor.Center
         explode.scaleOrigin = Anchor.Center
         explode.blendMode = BlendMode.Additive

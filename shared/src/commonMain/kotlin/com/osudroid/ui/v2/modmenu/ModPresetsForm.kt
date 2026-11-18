@@ -2,16 +2,16 @@ package com.osudroid.ui.v2.modmenu
 
 import com.osudroid.ui.v2.*
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.dialog.UIDialog
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.dialog.Dialog
 import com.reco1l.verktex.ui.form.*
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.TextButton
 
-class ModPresetsForm(section: ModMenuPresetsSection) : UIDialog<UILinearContainer>(innerContent = UILinearContainer().apply {
-    orientation = UILinearContainer.Orientation.Vertical
+class ModPresetsForm(section: ModMenuPresetsSection) : Dialog<LinearContainer>(innerContent = LinearContainer().apply {
+    orientation = LinearContainer.Orientation.Vertical
     width = Dimension.FillAvailable
 }) {
 
@@ -34,16 +34,16 @@ class ModPresetsForm(section: ModMenuPresetsSection) : UIDialog<UILinearContaine
             }
         }
 
-        addButton(UITextButton().apply {
+        addButton(TextButton().apply {
             text = "Save"
-            variant = UIButton.Variant.Solid
+            variant = Button.Variant.Solid
             onActionUp = {
                 section.saveModPreset(nameInput.value)
                 hide()
             }
         })
 
-        addButton(UITextButton().apply {
+        addButton(TextButton().apply {
             text = "Cancel"
             onActionUp = {
                 hide()

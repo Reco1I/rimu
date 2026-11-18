@@ -30,24 +30,24 @@ import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.UIIcon
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.Component
+import com.reco1l.verktex.ui.Icon
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.control.UIDropdown
-import com.reco1l.verktex.ui.dialog.UIConfirmDialog
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.control.Dropdown
+import com.reco1l.verktex.ui.dialog.ConfirmDialog
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.text
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import com.reco1l.verktex.ui.themed
 
-class RoomPlayerCard : UILinearContainer() {
-    private val teamColorBar: UIButton
+class RoomPlayerCard : LinearContainer() {
+    private val teamColorBar: Button
     private val playerButton: RoomPlayerButton
 
     init {
@@ -55,7 +55,7 @@ class RoomPlayerCard : UILinearContainer() {
         orientation = Orientation.Horizontal
         spacing = 16f.dip
 
-        teamColorBar = UIButton().apply {
+        teamColorBar = Button().apply {
             width = 0.025f.pct
             height = Dimension.FillAvailable
             radius = CornerRadius(32f.dip)
@@ -94,7 +94,7 @@ class RoomPlayerCard : UILinearContainer() {
     }
 
     private fun showTeamDropdown() {
-        UIDropdown(teamColorBar).apply dropdown@{
+        Dropdown(teamColorBar).apply dropdown@{
             width = 100f.px
 
             addButton {
@@ -115,16 +115,16 @@ class RoomPlayerCard : UILinearContainer() {
         }.show()
     }
 
-    private class RoomPlayerButton : UIButton() {
+    private class RoomPlayerButton : Button() {
 
-        private lateinit var nameText: UIText
-        private lateinit var iconContainer: UILinearContainer
-        private lateinit var rankText: UIText
+        private lateinit var nameText: Text
+        private lateinit var iconContainer: LinearContainer
+        private lateinit var rankText: Text
 
-        private lateinit var innerContainer: UILinearContainer
-        private var modDisplay: UIComponent? = null
+        private lateinit var innerContainer: LinearContainer
+        private var modDisplay: Component? = null
 
-        private val avatarSprite: UISprite
+        private val avatarSprite: Sprite
 
         var avatarJob: Job? = null
             private set
@@ -132,19 +132,19 @@ class RoomPlayerCard : UILinearContainer() {
         private var lastPlayerId = -1L
         private val defaultAvatar = SkinTextures["emptyavatar"]
 
-        private val hostIcon = UIIcon(FAIcon.Crown).apply {
+        private val hostIcon = Icon(FAIcon.Crown).apply {
             width = 24f.px
             height = 24f.px
             color = themed { palette.accent }
         }
 
-        private val mutedIcon = UIIcon(FAIcon.MicrophoneSlash).apply {
+        private val mutedIcon = Icon(FAIcon.MicrophoneSlash).apply {
             width = 24f.px
             height = 24f.px
             color = OsuColors.redLight
         }
 
-        private val missingBeatmapIcon = UISprite().apply {
+        private val missingBeatmapIcon = Sprite().apply {
             width = 24f.px
             height = 24f.px
             textureRegion = SkinTextures["missing"]
@@ -160,7 +160,7 @@ class RoomPlayerCard : UILinearContainer() {
             padding = Padding(8f.dip)
             background = Background.Color(themed { palette.accent.shade(0.1f) })
 
-            avatarSprite = UISprite().apply {
+            avatarSprite = Sprite().apply {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
                 width = 50f.px
@@ -178,10 +178,10 @@ class RoomPlayerCard : UILinearContainer() {
                     x = 58f.px
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = LinearContainer.Orientation.Vertical
 
                     linearContainer {
-                        orientation = UILinearContainer.Orientation.Horizontal
+                        orientation = LinearContainer.Orientation.Horizontal
                         spacing = 8f.dip
 
                         nameText = text {
@@ -189,7 +189,7 @@ class RoomPlayerCard : UILinearContainer() {
                         }
 
                         iconContainer = linearContainer {
-                            orientation = UILinearContainer.Orientation.Horizontal
+                            orientation = LinearContainer.Orientation.Horizontal
                             spacing = 6f.px
                         }
                     }
@@ -230,10 +230,10 @@ class RoomPlayerCard : UILinearContainer() {
             missingBeatmapIcon.isVisible = player.status == MissingBeatmap
 
             if (Settings[OsuSettings.PreferModAcronymInMultiplayer]) {
-                if (modDisplay !is UIText) {
+                if (modDisplay !is Text) {
                     modDisplay?.removeSelf()
 
-                    modDisplay = UIText().apply {
+                    modDisplay = Text().apply {
                         minHeight = 24f.px // Force to take space even if no mods are enabled
                         fontSize = themed { typography.smallCaption.size }
                         color = themed { palette.accent.shade(0.8f) }
@@ -242,7 +242,7 @@ class RoomPlayerCard : UILinearContainer() {
                     innerContainer += modDisplay!!
                 }
 
-                (modDisplay as UIText).text = player.mods.toDisplayModString()
+                (modDisplay as Text).text = player.mods.toDisplayModString()
             } else {
                 if (modDisplay !is ModsIndicator) {
                     modDisplay?.removeSelf()
@@ -260,7 +260,7 @@ class RoomPlayerCard : UILinearContainer() {
             }
 
             onActionLongPress = {
-                UIDropdown(this@RoomPlayerButton).apply dropdown@{
+                Dropdown(this@RoomPlayerButton).apply dropdown@{
                     maxWidth = 384f.dip
 
                     addButton {
@@ -285,7 +285,7 @@ class RoomPlayerCard : UILinearContainer() {
                             addButton {
                                 text = Res.string.multiplayer_room_player_menu_transfer_host
                                 onActionUp = {
-                                    UIConfirmDialog().apply {
+                                    ConfirmDialog().apply {
                                         title = Res.string.multiplayer_room_player_transfer_dialog_title.format(player.name)
                                         text = Res.string.multiplayer_room_player_transfer_dialog_message
                                         onConfirm = {
@@ -302,7 +302,7 @@ class RoomPlayerCard : UILinearContainer() {
                                 text = Res.string.multiplayer_room_player_menu_kick
                                 color = Color4("#FFBFBF")
                                 onActionUp = {
-                                    UIConfirmDialog().apply {
+                                    ConfirmDialog().apply {
                                         title = Res.string.multiplayer_room_player_kick_dialog_title.format(player.name)
                                         text = Res.string.multiplayer_room_player_kick_dialog_message
                                         onConfirm = {

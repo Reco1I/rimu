@@ -3,7 +3,7 @@ package ru.nsu.ccfit.zuev.skins
 import com.osudroid.settings.GameResolution
 import com.osudroid.utils.optDouble
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
@@ -27,7 +27,7 @@ class SkinLayout {
     var scale = 1f
 
     @JvmOverloads
-    fun apply(sprite: UISprite, previousSprite: UISprite? = null) {
+    fun apply(sprite: Sprite, previousSprite: Sprite? = null) {
         if (scale != -1f) {
             sprite.scale = scale
         }

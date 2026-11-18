@@ -8,16 +8,16 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.texture.Textures
-import com.reco1l.verktex.ui.UILoadingIndicator
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.LoadingIndicator
+import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.sprite
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
 
-class LoaderScene : UIScene() {
+class LoaderScene : Scene() {
 
     // Back does nothing while loading, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -32,7 +32,7 @@ class LoaderScene : UIScene() {
     }
 
     init {
-        backgroundComponent = UIContainer().apply {
+        backgroundComponent = Container().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
@@ -55,7 +55,7 @@ class LoaderScene : UIScene() {
             }
         }
 
-        +UILoadingIndicator().apply {
+        +LoadingIndicator().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
         }

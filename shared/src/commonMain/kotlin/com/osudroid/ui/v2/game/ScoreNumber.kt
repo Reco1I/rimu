@@ -3,9 +3,9 @@ package com.osudroid.ui.v2.game
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreograph
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.scaleTo
 import kotlin.jvm.JvmOverloads
 import ru.nsu.ccfit.zuev.skins.OsuSkin
@@ -19,7 +19,7 @@ class ScoreNumber @JvmOverloads constructor(
     text: String,
     private val letterScale: Float,
     private val isCentered: Boolean = false
-) : UIContainer() {
+) : Container() {
 
     /**
      * The height of the letters.
@@ -59,7 +59,7 @@ class ScoreNumber @JvmOverloads constructor(
 
                 letterHeight = texture.displayHeight * letterScale
 
-                +UISprite(texture).apply {
+                +Sprite(texture).apply {
                     setPosition(totalWidth, 0f)
                     setSize(width, letterHeight)
                 }

@@ -15,15 +15,15 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.interpolateColor
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UIBadge
-import com.reco1l.verktex.ui.container.UIClickableContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.Badge
+import com.reco1l.verktex.ui.container.ClickableContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.themed
 
 @Suppress("LeakingThis")
-open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: BeatmapInfo) : UIClickableContainer() {
+open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: BeatmapInfo) : ClickableContainer() {
 
     private var isExpanded = false
 
@@ -51,13 +51,13 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         borderWidth = 1f.dip
 
         linearContainer {
-            orientation = UILinearContainer.Orientation.Horizontal
+            orientation = LinearContainer.Orientation.Horizontal
             padding = Padding(16f.dip)
             spacing = 8f.dip
 
             +StarRatingBadge().apply {
                 rating = beatmapInfo.getStarRating().toDouble()
-                density = UIBadge.Density.Small
+                density = Badge.Density.Small
                 applyColorsInstantly()
             }
 

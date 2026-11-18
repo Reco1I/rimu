@@ -26,16 +26,16 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.clearTransforms
-import com.reco1l.verktex.ui.container.UIClickableContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.ClickableContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
-import com.reco1l.verktex.ui.control.UITextInput
+import com.reco1l.verktex.ui.control.TextInput
 import com.reco1l.verktex.ui.moveTo
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
@@ -54,7 +54,7 @@ private val DEVELOPERS = longArrayOf(
 )
 
 
-class RoomChat : UILinearContainer() {
+class RoomChat : LinearContainer() {
 
     /**
      * Height of the chat button.
@@ -77,9 +77,9 @@ class RoomChat : UILinearContainer() {
 
     private val button = ChatButton()
 
-    private lateinit var content: UILinearContainer
-    private lateinit var input: UITextInput
-    private lateinit var messageContainer: UILinearContainer
+    private lateinit var content: LinearContainer
+    private lateinit var input: TextInput
+    private lateinit var messageContainer: LinearContainer
 
     private var messagesChanged = false
 
@@ -127,7 +127,7 @@ class RoomChat : UILinearContainer() {
                     spacing = 8f.dip
                     padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 8f.dip, bottom = 12f.dip)
 
-                    +UITextInput("").apply {
+                    +TextInput("").apply {
                         width = Dimension.FillAvailable
                         height = Dimension.FillAvailable
                         maxCharacters = 200
@@ -139,7 +139,7 @@ class RoomChat : UILinearContainer() {
 
                     textButton {
                         trailingIcon = faSolidIcon(FAIcon.PaperPlane)
-                        variant = UIButton.Variant.Solid
+                        variant = Button.Variant.Solid
                         text = Res.string.multiplayer_room_chat_send
                         onActionUp = { sendMessage() }
                     }
@@ -282,9 +282,9 @@ class RoomChat : UILinearContainer() {
     }
 
 
-    inner class ChatButton : UIClickableContainer() {
+    inner class ChatButton : ClickableContainer() {
 
-        private lateinit var summaryText: UIText
+        private lateinit var summaryText: Text
 
 
         init {
@@ -336,7 +336,7 @@ class RoomChat : UILinearContainer() {
     }
 
 
-    inner class MessageComponent : UILinearContainer() {
+    inner class MessageComponent : LinearContainer() {
 
         var message: Message? = null
             set(value) {

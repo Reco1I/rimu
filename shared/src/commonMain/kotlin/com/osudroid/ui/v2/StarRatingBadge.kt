@@ -8,7 +8,7 @@ import com.reco1l.verktex.ui.Theme
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIBadge
+import com.reco1l.verktex.ui.Badge
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.rian.framework.RollingDoubleCounter
 import kotlin.math.abs
@@ -16,9 +16,9 @@ import com.reco1l.verktex.ui.themed
 
 
 /**
- * A [UIBadge] for displaying star ratings. Automatically adjusts its styling according to the rating.
+ * A [Badge] for displaying star ratings. Automatically adjusts its styling according to the rating.
  */
-class StarRatingBadge : UIBadge() {
+class StarRatingBadge : Badge() {
 
     private val counter = RollingDoubleCounter(0.0).apply {
         rollingEasing = Easing.OutQuint

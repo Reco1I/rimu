@@ -9,8 +9,8 @@ import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 
-import com.reco1l.verktex.ui.shape.UICircle
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.shape.Circle
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.math.FloatInterpolation
 import com.osudroid.ui.v2.hud.HUDElement
@@ -28,7 +28,7 @@ class HUDBackButton(private val game: GameScene) : HUDElement() {
 
     private val requiredPressTimeMs = Settings[OsuSettings.BackButtonPressTime].toFloat()
 
-    private val arrow = UISprite().apply {
+    private val arrow = Sprite().apply {
         textureRegion = SkinTextures["back-arrow"]
         anchor = Anchor.Center
         origin = Anchor.Center
@@ -36,7 +36,7 @@ class HUDBackButton(private val game: GameScene) : HUDElement() {
         height = 0.6f.pct
     }
 
-    private val backCircle = UICircle().apply {
+    private val backCircle = Circle().apply {
         setPortion(0f)
         anchor = Anchor.Center
         origin = Anchor.Center
@@ -47,7 +47,7 @@ class HUDBackButton(private val game: GameScene) : HUDElement() {
         height = Dimension.FillAvailable
     }
 
-    private val frontCircle = UICircle().apply {
+    private val frontCircle = Circle().apply {
         anchor = Anchor.Center
         origin = Anchor.Center
         color = Color4(0xFF002626)

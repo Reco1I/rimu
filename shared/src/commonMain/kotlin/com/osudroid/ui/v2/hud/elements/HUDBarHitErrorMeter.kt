@@ -5,10 +5,10 @@ import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.CompareFunction
 import com.reco1l.verktex.graphics.DepthState
-import com.reco1l.verktex.graphics.GraphicsRenderer
+import com.reco1l.verktex.graphics.Renderer
 import com.reco1l.verktex.time.FrameClock
 
-import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.data.Color4
 import com.osudroid.utils.*
 import com.osudroid.beatmaps.constants.HitObjectType
@@ -23,7 +23,7 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
     init {
         width = (WIDTH).px
         height = (INDICATOR_HEIGHT).px
-        val mehWindow = UIBox().apply {
+        val mehWindow = Box().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
             color = mehColor
@@ -33,7 +33,7 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
             depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
         }
 
-        val okWindow = UIBox().apply {
+        val okWindow = Box().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
             color = okColor
@@ -42,7 +42,7 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
             depthState = DepthState(enabled = true, writeEnabled = true, function = CompareFunction.Less)
         }
 
-        val greatWindow = UIBox().apply {
+        val greatWindow = Box().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
             width = (WIDTH * (hitWindow.greatWindow / hitWindow.mehWindow).toFloat()).px
@@ -58,7 +58,7 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
         add(0, greatWindow)
 
         // Indicator
-        +UIBox().apply {
+        +Box().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
             width = (INDICATOR_WIDTH / 2).px
@@ -104,7 +104,7 @@ class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
 
     //region Indicator update & draw
 
-    override fun onDraw(renderer: GraphicsRenderer) {
+    override fun onDraw(renderer: Renderer) {
         super.onDraw(renderer)
 
         val centerX = bounds.width / 2f

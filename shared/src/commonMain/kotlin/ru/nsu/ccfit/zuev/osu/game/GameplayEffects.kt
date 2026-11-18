@@ -8,9 +8,9 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.graphics.BlendFactor
 import com.reco1l.verktex.graphics.BlendMode
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.UIAnimatedSprite
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.UIParticleSystem
+import com.reco1l.verktex.ui.AnimatedSprite
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.ParticleSystem
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -22,19 +22,19 @@ import kotlin.random.Random
  */
 class GameplayEffects {
 
-    private var background: UIContainer? = null
-    private var foreground: UIContainer? = null
+    private var background: Container? = null
+    private var foreground: Container? = null
     private var scale = 1f
 
     // One for each particle texture, they're added to the foreground once it's set.
-    private val particleSystems = mutableMapOf<String, UIParticleSystem>()
+    private val particleSystems = mutableMapOf<String, ParticleSystem>()
 
 
     /**
      * Sets the containers the effects are added to: hit lighting goes into `background`, below the
      * hit objects, and everything else into `foreground`.
      */
-    fun setLayers(background: UIContainer, foreground: UIContainer) {
+    fun setLayers(background: Container, foreground: Container) {
         this.background = background
         this.foreground = foreground
 
@@ -59,7 +59,7 @@ class GameplayEffects {
 
         val effect = GameObjectPool.getInstance().getEffect(name)
         val hit = effect.hit
-        val isAnimated = hit is UIAnimatedSprite && hit.frames.size > 1
+        val isAnimated = hit is AnimatedSprite && hit.frames.size > 1
 
         // Reference https://github.com/ppy/osu/blob/ebf637bd3c33f1c886f6bfc81aa9ea2132c9e0d2/osu.Game/Skinning/LegacyJudgementPieceOld.cs
 
@@ -173,7 +173,7 @@ class GameplayEffects {
 
         // Reference: https://github.com/ppy/osu/blob/master/osu.Game/Skinning/LegacyJudgementPieceNew.cs
         val system = particleSystems.getOrPut(particleName) {
-            UIParticleSystem(MAX_PARTICLES).apply { blendMode = BlendMode.Additive }
+            ParticleSystem(MAX_PARTICLES).apply { blendMode = BlendMode.Additive }
         }
 
         // Again if the layer was cleared, e.g. when the game restarts.

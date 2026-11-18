@@ -2,11 +2,11 @@ package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.Border
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.data.CornerRadius
 
-import com.reco1l.verktex.ui.shape.UIBox
-import com.reco1l.verktex.ui.shape.UICircle
+import com.reco1l.verktex.ui.shape.Box
+import com.reco1l.verktex.ui.shape.Circle
 import com.reco1l.verktex.data.Color4
 import com.osudroid.ui.v2.hud.HUDElement
 import com.reco1l.verktex.data.Anchor
@@ -28,7 +28,7 @@ sealed class HUDSongProgress : HUDElement() {
 
 class HUDLinearSongProgress : HUDSongProgress() {
 
-    private val backgroundRect = UIBox().apply {
+    private val backgroundRect = Box().apply {
         anchor = Anchor.BottomLeft
         origin = Anchor.BottomLeft
         width = Dimension.FillAvailable
@@ -37,7 +37,7 @@ class HUDLinearSongProgress : HUDSongProgress() {
         alpha = 0.3f
     }
 
-    private val progressRect = UIBox().apply {
+    private val progressRect = Box().apply {
         anchor = Anchor.BottomLeft
         origin = Anchor.BottomLeft
         width = (0f).px
@@ -75,7 +75,7 @@ class HUDLinearSongProgress : HUDSongProgress() {
 
 class HUDPieSongProgress : HUDSongProgress() {
 
-    private val circularProgress: UICircle
+    private val circularProgress: Circle
 
 
     init {
@@ -84,7 +84,7 @@ class HUDPieSongProgress : HUDSongProgress() {
 
         // Reference: https://github.com/ppy/osu/blob/6455c0583b5e607baeca7f584410bc63515aa619/osu.Game/Skinning/LegacySongProgress.cs
 
-        circularProgress = UICircle().also { progress ->
+        circularProgress = Circle().also { progress ->
 
             progress.width = (SIZE * 0.95f).px
             progress.height = (SIZE * 0.95f).px
@@ -94,7 +94,7 @@ class HUDPieSongProgress : HUDSongProgress() {
             +progress
         }
 
-        UIContainer().also { ring ->
+        Container().also { ring ->
 
             ring.width = SIZE.px
             ring.height = SIZE.px
@@ -106,7 +106,7 @@ class HUDPieSongProgress : HUDSongProgress() {
             +ring
         }
 
-        UICircle().also { dot ->
+        Circle().also { dot ->
 
             dot.width = 4f.px
             dot.height = 4f.px
@@ -120,7 +120,7 @@ class HUDPieSongProgress : HUDSongProgress() {
 
 
     override fun setProgress(progress: Float, isIntro: Boolean) {
-        // Snapping the progress to fixed steps lets UICircle skip rebuilding its vertex buffer on frames where the
+        // Snapping the progress to fixed steps lets Circle skip rebuilding its vertex buffer on frames where the
         // visible arc would not change.
         val snappedProgress = (progress * PROGRESS_STEPS).roundToInt() / PROGRESS_STEPS
 

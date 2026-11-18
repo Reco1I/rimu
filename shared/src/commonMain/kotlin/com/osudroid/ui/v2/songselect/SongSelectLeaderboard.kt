@@ -20,21 +20,21 @@ import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.UILoadingIndicator
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.Component
+import com.reco1l.verktex.ui.LoadingIndicator
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.RecyclableComponent
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UIRecyclerContainer
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.RecyclerContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.control.UITabSelector
+import com.reco1l.verktex.ui.control.TabSelector
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.text
 import kotlinx.coroutines.*
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
@@ -44,7 +44,7 @@ import com.reco1l.verktex.ui.themed
 import com.reco1l.verktex.localization.formatString
 import com.osudroid.utils.formatNumber
 
-class SongSelectLeaderboard : UILinearContainer() {
+class SongSelectLeaderboard : LinearContainer() {
 
 
     /**
@@ -77,9 +77,9 @@ class SongSelectLeaderboard : UILinearContainer() {
 
     private val scoreLoadingScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    private val scoresContainer = UIRecyclerContainer<BeatmapScoreModel, LeaderboardItem>(18)
+    private val scoresContainer = RecyclerContainer<BeatmapScoreModel, LeaderboardItem>(18)
 
-    private val overlayContainer = UILinearContainer()
+    private val overlayContainer = LinearContainer()
 
 
     private var currentLoadingJob: Job? = null
@@ -92,7 +92,7 @@ class SongSelectLeaderboard : UILinearContainer() {
         // The right side leaves space for the shear of the wedge.
         padding = Padding(left = 16f.dip, right = 40f.dip)
 
-        +UITabSelector().apply {
+        +TabSelector().apply {
             width = Dimension.FillAvailable
             addButton("Local") { leaderboardType = Local }
             addButton("Global") { leaderboardType = Global }
@@ -132,7 +132,7 @@ class SongSelectLeaderboard : UILinearContainer() {
     }
 
 
-    private fun switchContainers(adverseContainer: UIComponent, showingContainer: UIComponent) {
+    private fun switchContainers(adverseContainer: Component, showingContainer: Component) {
 
         adverseContainer.apply {
             clearTransforms()
@@ -179,7 +179,7 @@ class SongSelectLeaderboard : UILinearContainer() {
         overlayContainer.apply {
             clearChildren()
 
-            +UILoadingIndicator().apply {
+            +LoadingIndicator().apply {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
                 width = 32f.px
@@ -260,22 +260,22 @@ class SongSelectLeaderboard : UILinearContainer() {
             get() = !button.isPressed
 
 
-        private val button: UIButton
-        private val nameText = UIText()
-        private val rankText = UIText()
+        private val button: Button
+        private val nameText = Text()
+        private val rankText = Text()
         private val modsIndicator = ModsIndicator()
 
-        private val avatarSprite = if (withAvatars) UISprite() else null
+        private val avatarSprite = if (withAvatars) Sprite() else null
 
-        private lateinit var scoreText: UIText
-        private lateinit var maxComboText: UIText
-        private lateinit var accuracyText: UIText
+        private lateinit var scoreText: Text
+        private lateinit var maxComboText: Text
+        private lateinit var accuracyText: Text
 
 
         init {
             width = Dimension.FillAvailable
 
-            button = UIButton().apply {
+            button = Button().apply {
                 width = Dimension.FillAvailable
                 height = Dimension.WrapContent
                 padding = Padding.Zero
@@ -283,7 +283,7 @@ class SongSelectLeaderboard : UILinearContainer() {
                 linearContainer {
                     width = Dimension.FillAvailable
 
-                    orientation = UILinearContainer.Orientation.Horizontal
+                    orientation = LinearContainer.Orientation.Horizontal
                     padding = Padding(8f.px)
                     spacing = 8f.px
                     radius = CornerRadius(12f.px)
@@ -298,7 +298,7 @@ class SongSelectLeaderboard : UILinearContainer() {
                         linearContainer {
                             anchor = Anchor.CenterLeft
                             origin = Anchor.CenterLeft
-                            orientation = UILinearContainer.Orientation.Horizontal
+                            orientation = LinearContainer.Orientation.Horizontal
                             spacing = 8f.px
 
                             +rankText.apply {
@@ -322,7 +322,7 @@ class SongSelectLeaderboard : UILinearContainer() {
                             }
 
                             linearContainer {
-                                orientation = UILinearContainer.Orientation.Vertical
+                                orientation = LinearContainer.Orientation.Vertical
                                 spacing = 2f.px
 
                                 +nameText.apply {
@@ -339,20 +339,20 @@ class SongSelectLeaderboard : UILinearContainer() {
                         }
 
                         linearContainer {
-                            orientation = UILinearContainer.Orientation.Horizontal
+                            orientation = LinearContainer.Orientation.Horizontal
                             spacing = 8f.px
                             anchor = Anchor.CenterRight
                             origin = Anchor.CenterRight
 
-                            fun MetricText(name: String, placeholder: String): UIText {
+                            fun MetricText(name: String, placeholder: String): Text {
 
-                                val metricText = UIText().apply {
+                                val metricText = Text().apply {
                                     text = placeholder
                                     color = themed { palette.accent }
                                 }
 
                                 linearContainer {
-                                    orientation = UILinearContainer.Orientation.Vertical
+                                    orientation = LinearContainer.Orientation.Vertical
                                     spacing = (-2f).px
 
                                     text {

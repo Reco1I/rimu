@@ -15,7 +15,7 @@ import com.reco1l.verktex.data.LayoutConstraints
 import com.acivev.ui.addSnowfallWithPeriod
 import com.acivev.ui.addFireworksWithPeriod
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
-import com.reco1l.verktex.ui.dialog.UIConfirmDialog
+import com.reco1l.verktex.ui.dialog.ConfirmDialog
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.*
@@ -30,9 +30,9 @@ import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
 import kotlin.random.Random
 import kotlinx.coroutines.Job
-import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.Platform
-import com.reco1l.verktex.ui.UIParticleSystem
+import com.reco1l.verktex.ui.ParticleSystem
 import com.reco1l.verktex.ui.particleSystem
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
@@ -48,21 +48,21 @@ import com.reco1l.verktex.math.FloatInterpolation
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UIGradientBox
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.UICrossfadeSprite
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.GradientBox
+import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.CrossfadeSprite
 import com.reco1l.verktex.ui.crossfadeSprite
-import com.reco1l.verktex.ui.UITextButton
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.TextButton
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.ScrollableContainer
 import com.reco1l.verktex.ui.container.clickableContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
-import com.reco1l.verktex.ui.dialog.UIDialog
+import com.reco1l.verktex.ui.dialog.Dialog
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.rotateTo
@@ -86,7 +86,7 @@ import com.reco1l.verktex.input.KeyboardEvent
 /**
  * The main menu, created by the host once the game has started.
  */
-class MainScene : UIScene() {
+class MainScene : Scene() {
 
     // Back asks to leave the game, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -102,18 +102,18 @@ class MainScene : UIScene() {
     }
 
     private lateinit var playerButton: PlayerButton
-    private lateinit var musicButton: UITextButton
+    private lateinit var musicButton: TextButton
 
     // Animated instead of the button, which drives its own alpha.
-    private lateinit var musicButtonHolder: UIContainer
+    private lateinit var musicButtonHolder: Container
     private lateinit var musicPlayer: MusicPlayer
-    private lateinit var kiaiParticles: UIParticleSystem
-    private lateinit var backgroundSprite: UICrossfadeSprite
-    private lateinit var leftFlash: UIGradientBox
-    private lateinit var rightFlash: UIGradientBox
+    private lateinit var kiaiParticles: ParticleSystem
+    private lateinit var backgroundSprite: CrossfadeSprite
+    private lateinit var leftFlash: GradientBox
+    private lateinit var rightFlash: GradientBox
     private lateinit var logo: OsuLogo
-    private lateinit var menuContainer: UIContainer
-    private lateinit var menuGradientBox: UIGradientBox
+    private lateinit var menuContainer: Container
+    private lateinit var menuGradientBox: GradientBox
 
     private var isMenuExpanded = false
     private var isExiting = false
@@ -142,7 +142,7 @@ class MainScene : UIScene() {
 
     init {
 
-        backgroundComponent = UIContainer().apply {
+        backgroundComponent = Container().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
@@ -154,7 +154,7 @@ class MainScene : UIScene() {
                 crossfadeTo(SkinTextures["menu-background"], 0f)
             }
 
-            +UIGradientBox().apply {
+            +GradientBox().apply {
                 height = Dimension.FillAvailable
                 gradientAngle = 0f
                 colorStart = Color4.White
@@ -165,7 +165,7 @@ class MainScene : UIScene() {
                 leftFlash = this
             }
 
-            +UIGradientBox().apply {
+            +GradientBox().apply {
                 height = Dimension.FillAvailable
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
@@ -178,7 +178,7 @@ class MainScene : UIScene() {
                 rightFlash = this
             }
 
-            +UIGradientBox().apply {
+            +GradientBox().apply {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 gradientAngle = 270f
@@ -196,7 +196,7 @@ class MainScene : UIScene() {
         }
 
         linearContainer {
-            orientation = UILinearContainer.Orientation.Horizontal
+            orientation = LinearContainer.Orientation.Horizontal
             anchor = Anchor.Center
             origin = Anchor.Center
 
@@ -228,7 +228,7 @@ class MainScene : UIScene() {
                 alpha = 0f
 
                 +CarrouselLinearContainer(logo).apply {
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = LinearContainer.Orientation.Vertical
                     spacing = 4.6f.dip
                     padding = Padding(0f.dip, 128f.dip)
 
@@ -356,7 +356,7 @@ class MainScene : UIScene() {
             return
         }
 
-        UIConfirmDialog().apply {
+        ConfirmDialog().apply {
             title = "Exit"
             text = Res.string.dialog_exit_message
             onConfirm = { exit() }
@@ -426,7 +426,7 @@ class MainScene : UIScene() {
         if (!hasEntered) {
             hasEntered = true
 
-            (background as? UIContainer)?.let {
+            (background as? Container)?.let {
                 addSnowfallWithPeriod(it)
                 addFireworksWithPeriod(it)
             }
@@ -484,7 +484,7 @@ class MainScene : UIScene() {
         }
     }
 
-    private fun fadeToBackground(region: GraphicsTexture.Region?) {
+    private fun fadeToBackground(region: Texture.Region?) {
         backgroundSprite.crossfadeTo(region)
         backgroundKeyIndex = 1 - backgroundKeyIndex
     }
@@ -712,7 +712,7 @@ class MainScene : UIScene() {
 
 private fun Random.nextFloat(from: Float, until: Float) = from + nextFloat() * (until - from)
 
-class MenuButton(icon: Int, title: String) : UITextButton() {
+class MenuButton(icon: Int, title: String) : TextButton() {
 
     init {
         width = 256f.dip
@@ -733,7 +733,7 @@ class MenuButton(icon: Int, title: String) : UITextButton() {
 }
 
 
-class CarrouselLinearContainer(private val logo: OsuLogo) : UILinearContainer() {
+class CarrouselLinearContainer(private val logo: OsuLogo) : LinearContainer() {
 
     var shear: Dimension.Fixed = 32f.dip
 

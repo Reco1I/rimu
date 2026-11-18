@@ -2,14 +2,14 @@ package com.osudroid.game.replay
 
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.UICard
-import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.ui.Card
+import com.reco1l.verktex.ui.form.FormSeekBar
 import kotlin.math.roundToInt
 
 /**
  * Controls visual settings of gameplay when replaying.
  */
-class ReplayVisualSettingsControl : UICard() {
+class ReplayVisualSettingsControl : Card() {
     /**
      * The default background brightness.
      *
@@ -24,7 +24,7 @@ class ReplayVisualSettingsControl : UICard() {
             brightnessSlider.value = sliderValue
         }
 
-    private val brightnessSlider = FormSlider(defaultBackgroundBrightness * 100).apply {
+    private val brightnessSlider = FormSeekBar(defaultBackgroundBrightness * 100).apply {
         label = com.osudroid.resources.Res.string.opt_bgbrightness_title
         control.min = 0f
         control.max = 100f

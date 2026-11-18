@@ -20,15 +20,15 @@ import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIBadge
-import com.reco1l.verktex.ui.UILabeledBadge
+import com.reco1l.verktex.ui.Badge
+import com.reco1l.verktex.ui.LabeledBadge
 import com.reco1l.verktex.ui.badge
-import com.reco1l.verktex.ui.container.UIExtendIntoSafeAreaContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.ExtendIntoSafeAreaContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.labeledBadge
-import com.reco1l.verktex.ui.shape.UIWedge
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.shape.Wedge
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import kotlin.math.roundToInt
@@ -40,33 +40,33 @@ class BeatmapInfoWedge(
      * Returns the mods to show the beatmap with.
      */
     private val mods: () -> ModHashMap
-) : UIExtendIntoSafeAreaContainer() {
+) : ExtendIntoSafeAreaContainer() {
 
 
-    private lateinit var titleText: UIText
-    private lateinit var artistText: UIText
+    private lateinit var titleText: Text
+    private lateinit var artistText: Text
 
-    private lateinit var lengthText: UIBadge
-    private lateinit var bpmText: UIBadge
+    private lateinit var lengthText: Badge
+    private lateinit var bpmText: Badge
 
-    private lateinit var arText: UILabeledBadge
-    private lateinit var csText: UILabeledBadge
-    private lateinit var odText: UILabeledBadge
-    private lateinit var hpText: UILabeledBadge
+    private lateinit var arText: LabeledBadge
+    private lateinit var csText: LabeledBadge
+    private lateinit var odText: LabeledBadge
+    private lateinit var hpText: LabeledBadge
 
-    private lateinit var circlesBadge: UILabeledBadge
-    private lateinit var slidersBadge: UILabeledBadge
-    private lateinit var spinnersBadge: UILabeledBadge
+    private lateinit var circlesBadge: LabeledBadge
+    private lateinit var slidersBadge: LabeledBadge
+    private lateinit var spinnersBadge: LabeledBadge
 
     private lateinit var starsText: StarRatingBadge
-    private lateinit var versionText: UIText
+    private lateinit var versionText: Text
 
 
     init {
         width = Dimension.FillAvailable
 
         // Reaches the edges of the window, the outline of those sides is left outside of it.
-        backgroundComponent = UIWedge().apply {
+        backgroundComponent = Wedge().apply {
             translationX = (-2f).px
             translationY = (-2f).px
             alpha = 0.75f
@@ -79,18 +79,18 @@ class BeatmapInfoWedge(
 
         linearContainer {
             width = Dimension.FillAvailable
-            orientation = UILinearContainer.Orientation.Vertical
+            orientation = LinearContainer.Orientation.Vertical
             padding = Padding(16f.dip)
             spacing = 6f.dip
 
             linearContainer {
-                orientation = UILinearContainer.Orientation.Horizontal
+                orientation = LinearContainer.Orientation.Horizontal
                 spacing = 10f.px
                 width = Dimension.FillAvailable
 
                 linearContainer {
                     width = Dimension.FillAvailable
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = LinearContainer.Orientation.Vertical
 
                     artistText = text {
                         text = "Unknown"
@@ -118,12 +118,12 @@ class BeatmapInfoWedge(
             }
 
             linearContainer {
-                orientation = UILinearContainer.Orientation.Horizontal
+                orientation = LinearContainer.Orientation.Horizontal
                 spacing = 8f.dip
 
                 fun StatisticBadge(iconCode: Int) = badge {
                     leadingIcon = faSolidIcon(iconCode)
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                     background = Background.Color(Color4.Transparent)
                     color = themed { palette.accent }
                 }
@@ -133,53 +133,53 @@ class BeatmapInfoWedge(
             }
 
             linearContainer {
-                orientation = UILinearContainer.Orientation.Vertical
+                orientation = LinearContainer.Orientation.Vertical
                 spacing = 4f.dip
 
                 linearContainer {
-                    orientation = UILinearContainer.Orientation.Horizontal
+                    orientation = LinearContainer.Orientation.Horizontal
                     spacing = 4f.dip
 
                     circlesBadge = labeledBadge {
                         label = "Circles"
                         value = "0"
-                        density = UIBadge.Density.Small
+                        density = Badge.Density.Small
                     }
                     slidersBadge = labeledBadge {
                         label = "Sliders"
                         value = "0"
-                        density = UIBadge.Density.Small
+                        density = Badge.Density.Small
                     }
                     spinnersBadge = labeledBadge {
                         label = "Spinners"
                         value = "0"
-                        density = UIBadge.Density.Small
+                        density = Badge.Density.Small
                     }
                 }
 
                 linearContainer {
-                    orientation = UILinearContainer.Orientation.Horizontal
+                    orientation = LinearContainer.Orientation.Horizontal
                     spacing = 4f.dip
 
                     arText = labeledBadge {
                         label = "AR"
                         value = "00.0"
-                        density = UIBadge.Density.Small
+                        density = Badge.Density.Small
                     }
                     odText = labeledBadge {
                         label = "OD"
                         value = "00.0"
-                        density = UIBadge.Density.Small
+                        density = Badge.Density.Small
                     }
                     csText = labeledBadge {
                         label = "CS"
                         value = "00.0"
-                        density = UIBadge.Density.Small
+                        density = Badge.Density.Small
                     }
                     hpText = labeledBadge {
                         label = "HP"
                         value = "00.0"
-                        density = UIBadge.Density.Small
+                        density = Badge.Density.Small
                     }
                 }
             }

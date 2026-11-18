@@ -16,16 +16,16 @@ import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.clearTransforms
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.shape.UIBox
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.shape.Box
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.transformSequence
 
-class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
+class HUDElementOverlay(private val element: HUDElement) : Container() {
 
 
     /**
@@ -35,14 +35,14 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
         private set
 
 
-    private val outline = UIContainer().apply {
+    private val outline = Container().apply {
         borderColor = Color4(0xFFF27272)
         borderWidth = 8f.px
     }
 
-    private val toolbar = UILinearContainer().apply {
+    private val toolbar = LinearContainer().apply {
         origin = Anchor.BottomCenter
-        orientation = UILinearContainer.Orientation.Horizontal
+        orientation = LinearContainer.Orientation.Horizontal
         spacing = 4f.px
 
         // Toolbar buttons:
@@ -59,7 +59,7 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
 
     }
 
-    private val nameText = UIText().apply {
+    private val nameText = Text().apply {
         origin = Anchor.TopCenter
         fontSize = 21f.px
         color = Color4(0xFFF27272)
@@ -145,7 +145,7 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
     /**
      * Represents a tip in the overlay toolbar.
      */
-    private inner class Tip(val corner: Vec2) : UIContainer() {
+    private inner class Tip(val corner: Vec2) : Container() {
 
         private var initialX = 0f
         private var initialY = 0f
@@ -158,7 +158,7 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
             height = TIP_SIZE.px
 
             // The tip container is bigger than the actual tip in order to make it easier to touch.
-            +UIBox().apply {
+            +Box().apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 color = Color4(0xFFF27272)
@@ -233,7 +233,7 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
     /**
      * Represents a button in the overlay toolbar.
      */
-    private inner class Button(texture: String, back: Color4 = Color4(0xFF002626), val action: () -> Unit) : UIContainer() {
+    private inner class Button(texture: String, back: Color4 = Color4(0xFF002626), val action: () -> Unit) : Container() {
 
         private var isPressed = false
 
@@ -243,14 +243,14 @@ class HUDElementOverlay(private val element: HUDElement) : UIContainer() {
             height = BUTTON_SIZE.px
             scaleOrigin = Anchor.Center
 
-            +UIBox().apply {
+            +Box().apply {
                 radius = CornerRadius(12f.px)
                 color = back
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
             }
 
-            +UISprite().apply {
+            +Sprite().apply {
                 this.textureRegion = SkinTextures[texture]
                 anchor = Anchor.Center
                 origin = Anchor.Center

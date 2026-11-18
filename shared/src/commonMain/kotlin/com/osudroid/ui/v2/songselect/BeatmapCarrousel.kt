@@ -9,12 +9,12 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.container.UIRecyclerContainer
+import com.reco1l.verktex.ui.Component
+import com.reco1l.verktex.ui.container.RecyclerContainer
 import kotlin.math.*
 
 class BeatmapSetModel(
@@ -24,7 +24,7 @@ class BeatmapSetModel(
      * Whether the panel stands for a single difficulty, so it shows its name as well.
      */
     val isDifficulty: Boolean = false,
-    var coverTexture: GraphicsTexture.Region? = null,
+    var coverTexture: Texture.Region? = null,
     var isLoadingCover: Boolean = false,
 ) {
     override fun toString(): String {
@@ -32,7 +32,7 @@ class BeatmapSetModel(
     }
 }
 
-class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>(), IPanelContainer<BeatmapSetPanel> {
+class BeatmapCarrousel : RecyclerContainer<BeatmapSetModel, BeatmapSetPanel>(), IPanelContainer<BeatmapSetPanel> {
 
     /**
      * The currently selected beatmap set panel.
@@ -123,7 +123,7 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
      * The vertical position of the middle of a component in the carrousel, from its layout. The
      * transformations aren't used, they include the offset of the curve and are a frame behind.
      */
-    private fun centerYOf(component: UIComponent): Float {
+    private fun centerYOf(component: Component): Float {
         var y = component.bounds.y + component.bounds.height / 2f
         var parent = component.parent
 
@@ -138,7 +138,7 @@ class BeatmapCarrousel : UIRecyclerContainer<BeatmapSetModel, BeatmapSetPanel>()
      * The offset of a component following the tilt: the panels lean to the right towards the top
      * of the carrousel.
      */
-    private fun curveOffsetOf(component: UIComponent): Float {
+    private fun curveOffsetOf(component: Component): Float {
         if (bounds.height <= 0f) {
             return 0f
         }

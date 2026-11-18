@@ -16,17 +16,17 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.clearTransforms
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.transformSequence
 import kotlin.math.abs
 import kotlin.math.min
 
-class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): UIContainer() {
+class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): Container() {
 
 
-    private val label = UIText().apply {
+    private val label = Text().apply {
         fontSize = 14f.dip
         anchor = Anchor.BottomLeft
         origin = Anchor.BottomLeft

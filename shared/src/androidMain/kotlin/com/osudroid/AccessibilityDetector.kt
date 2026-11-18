@@ -19,7 +19,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import com.reco1l.verktex.Platform
-import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.reco1l.verktex.ui.dialog.MessageDialog
 
 object AccessibilityDetector {
 
@@ -34,7 +34,7 @@ object AccessibilityDetector {
     /**
      * The alert that notifies the user which services are not allowed
      */
-    private var alert: UIMessageDialog? = null
+    private var alert: MessageDialog? = null
 
     private var contentObserver: ContentObserver? = null
     private var scope: CoroutineScope? = null
@@ -105,7 +105,7 @@ object AccessibilityDetector {
     }
 
 
-    private fun showAlert(context: Activity, services: List<AccessibilityServiceInfo>) = UIMessageDialog().apply {
+    private fun showAlert(context: Activity, services: List<AccessibilityServiceInfo>) = MessageDialog().apply {
 
         val message = buildString {
 

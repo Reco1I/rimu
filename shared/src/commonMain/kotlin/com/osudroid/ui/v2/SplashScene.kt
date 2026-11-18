@@ -5,12 +5,12 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import kotlin.concurrent.Volatile
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
@@ -18,7 +18,7 @@ import com.reco1l.verktex.input.KeyboardEvent
 /**
  * The scene shown while the game is loading, created by the host when it starts.
  */
-class SplashScene : UIScene() {
+class SplashScene : Scene() {
 
     // Back does nothing while the game starts, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -49,7 +49,7 @@ class SplashScene : UIScene() {
         var info: String? = null
     }
 
-    private val loading = UISprite(SkinTextures["loading_start"]).also {
+    private val loading = Sprite(SkinTextures["loading_start"]).also {
         it.anchor = Anchor.Center
         it.origin = Anchor.Center
         it.scale = 0.4f
@@ -57,14 +57,14 @@ class SplashScene : UIScene() {
         +it
     }
 
-    private val progressText = UIText().also {
+    private val progressText = Text().also {
         it.anchor = Anchor.Center
         it.origin = Anchor.TopCenter
         it.y = 100f.dip
         +it
     }
 
-    private val infoText = UIText().also {
+    private val infoText = Text().also {
         it.anchor = Anchor.BottomCenter
         it.origin = Anchor.BottomCenter
         it.y = (-16f).dip
@@ -100,7 +100,7 @@ class SplashScene : UIScene() {
         SkinSounds["welcome"].play()
         SkinSounds["welcome_piano"].play()
 
-        +UISprite(SkinTextures["welcome"]).apply {
+        +Sprite(SkinTextures["welcome"]).apply {
             anchor = Anchor.Center
             origin = Anchor.Center
             alpha = 0f

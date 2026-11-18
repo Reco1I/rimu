@@ -11,9 +11,9 @@ import com.reco1l.verktex.Platform
 import com.osudroid.utils.*
 
 import com.reco1l.verktex.Logger
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.texture.Textures
@@ -81,10 +81,10 @@ object BannerManager {
 
     data class Banner(
         val url: String,
-        val image: GraphicsTexture.Region?,
+        val image: Texture.Region?,
     )
 
-    class BannerSprite(private val banners: List<Banner>) : UISprite() {
+    class BannerSprite(private val banners: List<Banner>) : Sprite() {
 
 
         private var currentBannerIndex = 0

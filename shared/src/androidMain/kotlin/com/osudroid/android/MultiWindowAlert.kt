@@ -2,7 +2,7 @@ package com.osudroid.android
 
 import com.osudroid.resources.Res
 import com.osudroid.utils.updateThread
-import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.reco1l.verktex.ui.dialog.MessageDialog
 
 /**
  * The alert shown while the game is in multi-window mode, which it doesn't support. It can't be
@@ -10,7 +10,7 @@ import com.reco1l.verktex.ui.dialog.UIMessageDialog
  */
 object MultiWindowAlert {
 
-    private var dialog: UIMessageDialog? = null
+    private var dialog: MessageDialog? = null
 
 
     /**
@@ -18,7 +18,7 @@ object MultiWindowAlert {
      */
     @JvmStatic
     fun show(onExit: Runnable) = updateThread {
-        val dialog = dialog ?: UIMessageDialog().apply {
+        val dialog = dialog ?: MessageDialog().apply {
             title = Res.string.multi_mode_window_alert_title
             text = Res.string.multi_mode_window_alert_message
             staticBackdrop = true

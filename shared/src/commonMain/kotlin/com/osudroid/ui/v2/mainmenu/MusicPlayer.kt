@@ -13,27 +13,27 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UIIconButton
-import com.reco1l.verktex.ui.UIModal
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.IconButton
+import com.reco1l.verktex.ui.Modal
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.control.UISlider
+import com.reco1l.verktex.ui.control.SeekBar
 import com.reco1l.verktex.ui.iconButton
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.themed
 import com.reco1l.verktex.localization.formatString
 
-class MusicPlayer(private val trigger: UIButton) : UIModal() {
+class MusicPlayer(private val trigger: Button) : Modal() {
 
-    private lateinit var titleText: UIText
-    private lateinit var artistText: UIText
-    private lateinit var progressSlider: UISlider
-    private lateinit var playPauseButton: UIIconButton
-    private lateinit var currentTime: UIText
-    private lateinit var totalTime: UIText
+    private lateinit var titleText: Text
+    private lateinit var artistText: Text
+    private lateinit var progressSlider: SeekBar
+    private lateinit var playPauseButton: IconButton
+    private lateinit var currentTime: Text
+    private lateinit var totalTime: Text
 
     private var draggingProgressSlider = false
 
@@ -51,12 +51,12 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
             linearContainer {
                 width = Dimension.FillAvailable
-                orientation = UILinearContainer.Orientation.Vertical
+                orientation = LinearContainer.Orientation.Vertical
                 spacing = 8f.dip
 
                 linearContainer {
                     width = Dimension.FillAvailable
-                    orientation = UILinearContainer.Orientation.Vertical
+                    orientation = LinearContainer.Orientation.Vertical
 
                     titleText = text {
                         width = Dimension.FillAvailable
@@ -88,7 +88,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                     }
                 }
 
-                +UISlider().apply {
+                +SeekBar().apply {
                     width = Dimension.FillAvailable
                     step = 0.01f
                     onStartDragging = { draggingProgressSlider = true }
@@ -100,14 +100,14 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
                 }
 
                 linearContainer {
-                    orientation = UILinearContainer.Orientation.Horizontal
+                    orientation = LinearContainer.Orientation.Horizontal
                     anchor = Anchor.TopCenter
                     origin = Anchor.TopCenter
                     spacing = 16f.dip
 
                     iconButton {
                         icon = FAIcon.BackwardFast
-                        variant = UIButton.Variant.Ghost
+                        variant = Button.Variant.Ghost
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
                         scaleOrigin = Anchor.Center
@@ -117,8 +117,8 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
                     playPauseButton = iconButton {
                         icon = FAIcon.Play
-                        density = UIButton.Density.Large
-                        variant = UIButton.Variant.Solid
+                        density = Button.Density.Large
+                        variant = Button.Variant.Solid
                         radius = CornerRadius(FULL_RADIUS)
 
                         onActionUp = {
@@ -132,7 +132,7 @@ class MusicPlayer(private val trigger: UIButton) : UIModal() {
 
                     iconButton {
                         icon = FAIcon.ForwardFast
-                        variant = UIButton.Variant.Ghost
+                        variant = Button.Variant.Ghost
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
                         scaleOrigin = Anchor.Center

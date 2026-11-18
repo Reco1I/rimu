@@ -21,24 +21,24 @@ import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIButton.Variant
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.Button.Variant
+import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.transformSequence
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
-import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
+import com.reco1l.verktex.ui.container.ScrollableContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
-import com.reco1l.verktex.ui.control.UISelect
+import com.reco1l.verktex.ui.control.Select
 import com.reco1l.verktex.ui.form.FormControl
-import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.ui.form.FormSeekBar
 import com.reco1l.verktex.ui.form.FormSelect
 import com.reco1l.verktex.ui.form.FormInput
 import com.reco1l.verktex.ui.form.FormCheckbox
-import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
@@ -50,7 +50,7 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
 
 
-class SettingsMenu : UIScene() {
+class SettingsMenu : Scene() {
 
     // Back goes back a section or leaves the settings, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -67,8 +67,8 @@ class SettingsMenu : UIScene() {
 
     private var selectedSection = SettingsSection.General
 
-    private lateinit var sectionScroll: UIScrollableContainer
-    private lateinit var sectionContainer: UILinearContainer
+    private lateinit var sectionScroll: ScrollableContainer
+    private lateinit var sectionContainer: LinearContainer
 
     private val playfieldAreaDisplay = PlayfieldAreaDisplay()
 
@@ -175,7 +175,7 @@ class SettingsMenu : UIScene() {
         SettingsSection.Advanced -> advancedSection
     }
 
-    private fun UILinearContainer.sidebarCaption(caption: String) = text {
+    private fun LinearContainer.sidebarCaption(caption: String) = text {
         text = caption
         alpha = 0.6f
         fontSettings = themed { typography.caption }
@@ -231,7 +231,7 @@ class SettingsMenu : UIScene() {
                         val title = option.title
 
                         if (option.type == Type.Button) {
-                            val button = UITextButton().apply {
+                            val button = TextButton().apply {
                                 width = fill()
                                 text = title
                                 onActionUp = { option.onClick?.invoke() }
@@ -271,7 +271,7 @@ class SettingsMenu : UIScene() {
         }
     }
 
-    private fun UILinearContainer.addSummary(option: SettingsOption) {
+    private fun LinearContainer.addSummary(option: SettingsOption) {
         val summary = option.summary ?: return
 
         text {
@@ -293,7 +293,7 @@ class SettingsMenu : UIScene() {
                 Type.Checkbox -> FormCheckbox(initialValue as Boolean)
                 Type.Input -> FormInput(initialValue as String)
                 Type.Select -> FormSelect(listOf(initialValue as String))
-                Type.Slider -> FormSlider((initialValue as Number).toFloat())
+                Type.Slider -> FormSeekBar((initialValue as Number).toFloat())
                 Type.Button -> error("Buttons are not form controls")
             }.apply { showResetButton = false }
         } else {
@@ -317,11 +317,11 @@ class SettingsMenu : UIScene() {
 
             if (entries.size == values.size) {
                 @Suppress("UNCHECKED_CAST")
-                (control as FormSelect<String>).options = entries.values.mapIndexed { i, entry -> UISelect.Option(values[i], entry) }
+                (control as FormSelect<String>).options = entries.values.mapIndexed { i, entry -> Select.Option(values[i], entry) }
             }
         }
 
-        if (control is FormSlider) {
+        if (control is FormSeekBar) {
             val step = option.step ?: 1f
 
             // The maximum first, the range starts at 0..1 and a minimum above it is rejected.
@@ -349,7 +349,7 @@ class SettingsMenu : UIScene() {
     /**
      * Shows the area the playfield will take while its size or position are being changed.
      */
-    private class PlayfieldAreaDisplay : UIBox() {
+    private class PlayfieldAreaDisplay : Box() {
 
         private var previousPlayfieldSize = OsuSettings.playfieldSize
 
@@ -388,7 +388,7 @@ class SettingsMenu : UIScene() {
     }
 
 
-    inner class SectionButton(private val section: SettingsSection, icon: Int) : UITextButton() {
+    inner class SectionButton(private val section: SettingsSection, icon: Int) : TextButton() {
 
         init {
             leadingIcon = faSolidIcon(icon)

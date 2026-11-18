@@ -13,19 +13,19 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.pct
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UITextButton
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UIScrollableContainer
-import com.reco1l.verktex.ui.dialog.UIDialog
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.TextButton
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.ScrollableContainer
+import com.reco1l.verktex.ui.dialog.Dialog
 import com.reco1l.verktex.ui.form.*
 import com.osudroid.utils.async
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.helper.*
 import ru.nsu.ccfit.zuev.osu.online.*
 
-class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>(
-    UIScrollableContainer().apply {
+class RoomCreateDialog(lobbyScene: LobbyScene) : Dialog<ScrollableContainer>(
+    ScrollableContainer().apply {
     scrollAxes = Axis.Y
     width = Dimension.FillAvailable
     clipping = ClipMode.Bounds
@@ -36,7 +36,7 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
 
         val form = FormContainer().apply {
             width = Dimension.FillAvailable
-            orientation = UILinearContainer.Orientation.Vertical
+            orientation = LinearContainer.Orientation.Vertical
             padding = Padding(0f.dip, 16f.dip)
 
             onSubmit = { data ->
@@ -105,7 +105,7 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
                 label = string.multiplayer_lobby_room_password
             }
 
-            +FormSlider(8f).apply {
+            +FormSeekBar(8f).apply {
                 key = "capacity"
                 width = Dimension.FillAvailable
                 label = string.multiplayer_lobby_room_capacity
@@ -121,15 +121,15 @@ class RoomCreateDialog(lobbyScene: LobbyScene) : UIDialog<UIScrollableContainer>
 
         title = string.multiplayer_lobby_create_room
 
-        addButton(UITextButton().apply {
+        addButton(TextButton().apply {
             text = string.multiplayer_lobby_create_room_accept
-            variant = UIButton.Variant.Solid
+            variant = Button.Variant.Solid
             onActionUp = {
                 form.submit()
             }
         })
 
-        addButton(UITextButton().apply {
+        addButton(TextButton().apply {
             text = string.multiplayer_lobby_create_room_cancel
             onActionUp = { hide() }
         })

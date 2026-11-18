@@ -35,7 +35,7 @@ object DifficultyCalculationManager {
 
     private var job: Job? = null
 
-    private var badge: Toasts.Toast? = null
+    private var badge: Toasts.Handle? = null
 
 
     /**

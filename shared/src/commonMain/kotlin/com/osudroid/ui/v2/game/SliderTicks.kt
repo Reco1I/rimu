@@ -15,14 +15,14 @@ import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTick
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.container.Container
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import kotlin.jvm.JvmStatic
 
-class SliderTickContainer : UIContainer() {
+class SliderTickContainer : Container() {
     private var slider: Slider? = null
 
     fun init(beatmapSlider: Slider) {
@@ -85,7 +85,7 @@ class SliderTickContainer : UIContainer() {
 }
 
 
-class SliderTickSprite : UISprite(), IPoolable {
+class SliderTickSprite : Sprite(), IPoolable {
     override var isRecycled = false
     private var tick: SliderTick? = null
 

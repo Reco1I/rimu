@@ -6,8 +6,8 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.graphics.BlendMode
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UIParticleSystem
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.ParticleSystem
+import com.reco1l.verktex.ui.container.Container
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
@@ -20,7 +20,7 @@ private fun Random.nextFloat(from: Float, to: Float) = from + nextFloat() * (to 
 /**
  * Snow falling from the top of the screen.
  */
-private class Snowfall(isLowEndDevice: Boolean) : UIParticleSystem(if (isLowEndDevice) 15 else 75) {
+private class Snowfall(isLowEndDevice: Boolean) : ParticleSystem(if (isLowEndDevice) 15 else 75) {
 
     private var spawnTimer = 0f
 
@@ -58,16 +58,16 @@ private class Snowfall(isLowEndDevice: Boolean) : UIParticleSystem(if (isLowEndD
 /**
  * Fireworks launched from the bottom of the screen.
  */
-private class Fireworks(private val isLowEndDevice: Boolean) : UIContainer() {
+private class Fireworks(private val isLowEndDevice: Boolean) : Container() {
 
-    private val trail = UIParticleSystem(TRAIL_PARTICLES).also {
+    private val trail = ParticleSystem(TRAIL_PARTICLES).also {
         it.blendMode = BlendMode.Additive
         it.texture = loadTexture("firework_rocket")
         +it
     }
 
     private val explosions = List(3) { i ->
-        UIParticleSystem(MAX_EXPLOSION_PARTICLES).also {
+        ParticleSystem(MAX_EXPLOSION_PARTICLES).also {
             it.blendMode = BlendMode.Additive
             it.texture = loadTexture("firework_explosion${i + 1}")
             +it
@@ -164,7 +164,7 @@ private class Fireworks(private val isLowEndDevice: Boolean) : UIContainer() {
 /**
  * Adds snowfall between December 15 and January 6, excluding the time of the fireworks.
  */
-fun addSnowfallWithPeriod(container: UIContainer) {
+fun addSnowfallWithPeriod(container: Container) {
     val now = localNow()
     val month = now.month
     val day = now.day
@@ -180,7 +180,7 @@ fun addSnowfallWithPeriod(container: UIContainer) {
 /**
  * Adds fireworks during the first 20 hours of January 1st.
  */
-fun addFireworksWithPeriod(container: UIContainer) {
+fun addFireworksWithPeriod(container: Container) {
     if (isFireworksPeriod(localNow())) {
         container += Fireworks(Platform.isLowEndDevice)
     }

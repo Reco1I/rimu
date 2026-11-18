@@ -2,7 +2,7 @@ package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.data.px
 
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.osudroid.ui.v2.hud.HUDElement
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.localization.formatString
@@ -13,7 +13,7 @@ class HUDUnstableRateCounter : HUDElement() {
 
     private fun format(value: Double) = formatString("UR: %.2f", value)
 
-    private val text = UIText().apply {
+    private val text = Text().apply {
         fontSize = 21f.px
         text = format(0.0)
     }

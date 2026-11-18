@@ -57,23 +57,23 @@ import com.reco1l.verktex.data.px
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIBadge
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UILabeledBadge
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.Badge
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.LabeledBadge
+import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.badge
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
-import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.reco1l.verktex.ui.dialog.MessageDialog
 import com.reco1l.verktex.ui.labeledBadge
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.sprite
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
@@ -90,7 +90,7 @@ class RoomScene(
      * be reused and update its current state accordingly.
      */
     var room: Room
-) : UIScene(), IRoomEventListener, IPlayerEventListener {
+) : Scene(), IRoomEventListener, IPlayerEventListener {
 
     // Back closes the mod menu or asks to leave the room, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -145,7 +145,7 @@ class RoomScene(
     /**
      * The leave dialog that will be shown when the player tries to leave the room.
      */
-    val leaveDialog = UIMessageDialog().apply {
+    val leaveDialog = MessageDialog().apply {
 
         title = "Leave room"
         text = "Are you sure?"
@@ -168,21 +168,21 @@ class RoomScene(
     }
 
 
-    private lateinit var backgroundSprite: UISprite
+    private lateinit var backgroundSprite: Sprite
     private lateinit var beatmapInfoLayout: BeatmapInfoLayout
-    private lateinit var beatmapInfoAlert: UIText
-    private lateinit var modsButton: UITextButton
-    private lateinit var startButton: UITextButton
-    private lateinit var statusButton: UITextButton
-    private lateinit var nameText: UIText
-    private lateinit var teamModeBadge: UIBadge
-    private lateinit var freeModsBadge: UIBadge
-    private lateinit var winConditionBadge: UIBadge
-    private lateinit var playersBadge: UILabeledBadge
+    private lateinit var beatmapInfoAlert: Text
+    private lateinit var modsButton: TextButton
+    private lateinit var startButton: TextButton
+    private lateinit var statusButton: TextButton
+    private lateinit var nameText: Text
+    private lateinit var teamModeBadge: Badge
+    private lateinit var freeModsBadge: Badge
+    private lateinit var winConditionBadge: Badge
+    private lateinit var playersBadge: LabeledBadge
     private lateinit var modsIndicator: ModsIndicator
-    private lateinit var playersContainer: UILinearContainer
-    private lateinit var changeBeatmapButton: UITextButton
-    private lateinit var downloadBeatmapButton: UITextButton
+    private lateinit var playersContainer: LinearContainer
+    private lateinit var changeBeatmapButton: TextButton
+    private lateinit var downloadBeatmapButton: TextButton
 
 
     private var currentPlayers = LongArray(0)
@@ -194,7 +194,7 @@ class RoomScene(
         RoomAPI.roomEventListener = this
         chat = RoomChat()
 
-        backgroundComponent = UIContainer().apply {
+        backgroundComponent = Container().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
@@ -228,7 +228,7 @@ class RoomScene(
             )
 
             linearContainer {
-                orientation = UILinearContainer.Orientation.Vertical
+                orientation = LinearContainer.Orientation.Vertical
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
 
@@ -237,7 +237,7 @@ class RoomScene(
                     padding = Padding(0f.dip, 10f.dip)
 
                     linearContainer {
-                        orientation = UILinearContainer.Orientation.Vertical
+                        orientation = LinearContainer.Orientation.Vertical
                         spacing = 8f.dip
 
                         nameText = text {
@@ -250,22 +250,22 @@ class RoomScene(
                             spacing = 8f.dip
 
                             teamModeBadge = badge {
-                                density = UIBadge.Density.Small
+                                density = Badge.Density.Small
                             }
 
                             winConditionBadge = badge {
-                                density = UIBadge.Density.Small
+                                density = Badge.Density.Small
                             }
 
                             playersBadge = labeledBadge {
-                                density = UIBadge.Density.Small
+                                density = Badge.Density.Small
                                 label = Res.string.multiplayer_room_players
                                 value = "0/${room.maxPlayers}"
                             }
 
                             freeModsBadge = badge {
-                                density = UIBadge.Density.Small
-                                variant = UIBadge.Variant.Solid
+                                density = Badge.Density.Small
+                                variant = Badge.Variant.Solid
                                 text = Res.string.multiplayer_room_free_mods
                                 isVisible = false
                             }
@@ -295,9 +295,9 @@ class RoomScene(
                     padding = Padding(0f.dip, 8f.dip)
                     spacing = 24f.dip
 
-                    fun UILinearContainer.Section(title: com.reco1l.verktex.localization.LocalizedString, block: UILinearContainer.() -> Unit) {
+                    fun LinearContainer.Section(title: com.reco1l.verktex.localization.LocalizedString, block: LinearContainer.() -> Unit) {
                         linearContainer {
-                            orientation = UILinearContainer.Orientation.Vertical
+                            orientation = LinearContainer.Orientation.Vertical
                             width = Dimension.FillAvailable
                             height = Dimension.FillAvailable
                             spacing = 8f.dip
@@ -320,7 +320,7 @@ class RoomScene(
                             clipping = ClipMode.Bounds
 
                             linearContainer {
-                                orientation = UILinearContainer.Orientation.Vertical
+                                orientation = LinearContainer.Orientation.Vertical
                                 width = Dimension.FillAvailable
                                 padding = Padding(1f.px)
                                 spacing = 4f.dip
@@ -409,7 +409,7 @@ class RoomScene(
                     }
 
                     linearContainer {
-                        orientation = UILinearContainer.Orientation.Vertical
+                        orientation = LinearContainer.Orientation.Vertical
                         origin = Anchor.CenterRight
                         anchor = Anchor.CenterRight
                         width = 160f.dip
@@ -417,7 +417,7 @@ class RoomScene(
 
                         textButton {
                             width = Dimension.FillAvailable
-                            variant = UIButton.Variant.Solid
+                            variant = Button.Variant.Solid
                             text = Res.string.multiplayer_room_start_game
                             onActionUp = callback@{
 
@@ -1278,7 +1278,7 @@ class RoomScene(
 
                 back()
 
-                UIMessageDialog().apply dialog@{
+                MessageDialog().apply dialog@{
                     title = Res.string.multiplayer_room_kicked_title
                     text = Res.string.multiplayer_room_kicked_message
 

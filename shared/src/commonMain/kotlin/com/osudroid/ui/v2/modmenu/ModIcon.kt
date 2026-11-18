@@ -12,15 +12,15 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.themed
 
 
 /**
  * The icon for a mod in the mod menu.
  */
-class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
+class ModIcon(val mod: Mod) : Container(), ISkinnable {
 
     private var shouldUpdateTexture = true
 
@@ -42,7 +42,7 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
         } else {
             background = Background.Color(Verktex.theme.palette.accent.shade(0.1f))
 
-            +UIText().apply {
+            +Text().apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 text = mod.acronym
@@ -69,7 +69,7 @@ class ModIcon(val mod: Mod) : UIContainer(), ISkinnable {
         }
 
         val acronymText = if (childCount > 0) this[0] else null
-        if (acronymText is UIText && acronymText.measuredSize.y > 0f) {
+        if (acronymText is Text && acronymText.measuredSize.y > 0f) {
             acronymText.scale = bounds.height * 0.6f / acronymText.measuredSize.y
         }
 

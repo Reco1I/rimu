@@ -5,14 +5,14 @@ import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.Padding
-import com.reco1l.verktex.ui.container.UIClickableContainer
+import com.reco1l.verktex.ui.container.ClickableContainer
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.moveToX
 
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UIScrollableContainer
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.ScrollableContainer
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.data.Color4
 import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.hud.HUDElements
@@ -27,7 +27,7 @@ import com.reco1l.verktex.data.Axis
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
-class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGameplayEvents {
+class HUDElementSelector(private val hud: GameplayHUD) : Container(), IGameplayEvents {
 
 
     /**
@@ -39,18 +39,18 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
 
     private val elements = HUDElements.entries.map { it.create(hud.game) }
 
-    private val elementList = UIScrollableContainer().apply {
+    private val elementList = ScrollableContainer().apply {
 
         scrollAxes = Axis.Y
         height = Dimension.FillAvailable
         width = SELECTOR_WIDTH.px
         background = Background.Color(Color4(0xFF1E1E2E))
 
-        +UILinearContainer().apply {
+        +LinearContainer().apply {
             width = Dimension.FillAvailable
             padding = Padding(16f.px)
             spacing = 12f.px
-            orientation = UILinearContainer.Orientation.Vertical
+            orientation = LinearContainer.Orientation.Vertical
 
             elements.forEach { element ->
                 +HUDElementPreview(element, hud)
@@ -66,7 +66,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
         translationX = (-SELECTOR_WIDTH).px
 
         // The button to show/hide the element selector
-        +UIClickableContainer().apply {
+        +ClickableContainer().apply {
             background = Background.Color(Color4(0xFF181825))
             radius = CornerRadius(BUTTON_RADIUS.px)
 
@@ -77,7 +77,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : UIContainer(), IGamepla
             anchor = Anchor.CenterLeft
             origin = Anchor.CenterLeft
 
-            +UIText().apply {
+            +Text().apply {
                 rotationZ = -90f
                 anchor = Anchor.Center
                 origin = Anchor.Center

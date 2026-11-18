@@ -1,12 +1,12 @@
 package com.osudroid.game.replay
 
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.UICard
+import com.reco1l.verktex.ui.Card
 
 /**
  * Controls playback of gameplay when replaying.
  */
-class ReplayPlaybackControl : UICard() {
+class ReplayPlaybackControl : Card() {
     /**
      * Controls for playback rate.
      */

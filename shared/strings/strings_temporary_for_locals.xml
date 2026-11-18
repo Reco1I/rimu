@@ -15,7 +15,7 @@
         <item>OpenGL ES 3</item>
         <item>OpenGL ES 2</item>
     </string-array>
-    <!-- Names of com.reco1l.verktex.graphics.GraphicsBackend. -->
+    <!-- Names of com.reco1l.verktex.graphics.GPUBackend. -->
     <string-array name="opt_graphics_backend_values" translatable="false">
         <item>Auto</item>
         <item>OpenGLES3</item>

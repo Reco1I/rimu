@@ -15,13 +15,13 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIBadge
-import com.reco1l.verktex.ui.UILabeledBadge
+import com.reco1l.verktex.ui.Badge
+import com.reco1l.verktex.ui.LabeledBadge
 import com.reco1l.verktex.ui.badge
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.labeledBadge
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.framework.math.roundBy
@@ -40,27 +40,27 @@ class BeatmapInfoLayout(
      * Returns the mods to show the beatmap with.
      */
     private val mods: () -> ModHashMap
-) : UILinearContainer() {
+) : LinearContainer() {
 
 
-    private lateinit var titleText: UIText
-    private lateinit var artistText: UIText
-    private lateinit var creatorText: UIText
+    private lateinit var titleText: Text
+    private lateinit var artistText: Text
+    private lateinit var creatorText: Text
 
-    private lateinit var lengthBadge: UIBadge
-    private lateinit var bpmBadge: UIBadge
+    private lateinit var lengthBadge: Badge
+    private lateinit var bpmBadge: Badge
 
-    private lateinit var arText: UILabeledBadge
-    private lateinit var csText: UILabeledBadge
-    private lateinit var odText: UILabeledBadge
-    private lateinit var hpText: UILabeledBadge
+    private lateinit var arText: LabeledBadge
+    private lateinit var csText: LabeledBadge
+    private lateinit var odText: LabeledBadge
+    private lateinit var hpText: LabeledBadge
 
-    private lateinit var circlesBadge: UILabeledBadge
-    private lateinit var slidersBadge: UILabeledBadge
-    private lateinit var spinnersBadge: UILabeledBadge
+    private lateinit var circlesBadge: LabeledBadge
+    private lateinit var slidersBadge: LabeledBadge
+    private lateinit var spinnersBadge: LabeledBadge
 
     private lateinit var starRatingBadge: StarRatingBadge
-    private lateinit var versionText: UIText
+    private lateinit var versionText: Text
 
     private var calculationJob: Job? = null
     private var displayedBeatmap: BeatmapInfo? = null
@@ -123,22 +123,22 @@ class BeatmapInfoLayout(
                 circlesBadge = labeledBadge {
                     label = "Circles"
                     value = "0"
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                 }
                 slidersBadge = labeledBadge {
                     label = "Sliders"
                     value = "0"
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                 }
                 spinnersBadge = labeledBadge {
                     label = "Spinners"
                     value = "0"
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                 }
                 lengthBadge = badge {
                     text = "-:--"
                     leadingIcon = faSolidIcon(FAIcon.Clock)
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                 }
             }
 
@@ -149,27 +149,27 @@ class BeatmapInfoLayout(
                 arText = labeledBadge {
                     label = "AR"
                     value = "0.00"
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                 }
                 odText = labeledBadge {
                     label = "OD"
                     value = "0.00"
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                 }
                 csText = labeledBadge {
                     label = "CS"
                     value = "0.00"
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                 }
                 hpText = labeledBadge {
                     label = "HP"
                     value = "0.00"
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                 }
                 bpmBadge = badge {
                     leadingIcon = faSolidIcon(FAIcon.Music)
                     text = "0"
-                    density = UIBadge.Density.Small
+                    density = Badge.Density.Small
                 }
             }
         }

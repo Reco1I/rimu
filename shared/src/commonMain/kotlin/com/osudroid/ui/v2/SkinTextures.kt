@@ -5,12 +5,12 @@ import com.osudroid.ui.ISkinnable
 import com.osudroid.ui.skinning.StringSkinData
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Verktex
-import com.reco1l.verktex.graphics.GraphicsTexture
+import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.texture.FramesReference
 import com.reco1l.verktex.texture.TextureReference
 import com.reco1l.verktex.texture.Textures
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.Component
+import com.reco1l.verktex.ui.container.Container
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
@@ -30,7 +30,7 @@ object CachedTextures {
     /**
      * Gets the texture of an already downloaded file, loading it if needed.
      */
-    operator fun get(url: String): GraphicsTexture.Region? {
+    operator fun get(url: String): Texture.Region? {
         val key = keyOf(url)
         val file = GameFolders.cachePath.toPath() / MD5Calculator.getStringMD5(url)
 
@@ -123,13 +123,13 @@ object SkinTextures {
      * Gets a skin texture by name, loading it if needed.
      */
     @JvmStatic
-    operator fun get(name: String): GraphicsTexture.Region? = lookup(name, name)
+    operator fun get(name: String): Texture.Region? = lookup(name, name)
 
     /**
      * Gets a skin texture named with a configurable prefix, such as the hit circle font, loading it if needed.
      */
     @JvmStatic
-    operator fun get(prefix: StringSkinData, name: String): GraphicsTexture.Region? {
+    operator fun get(prefix: StringSkinData, name: String): Texture.Region? {
         return lookup("${prefix.currentValue}-$name".replace("\\", ""), "${prefix.defaultValue}-$name")
     }
 
@@ -137,8 +137,8 @@ object SkinTextures {
      * Gets the frames of an animated skin texture, an empty list if it isn't animated.
      */
     @JvmStatic
-    fun frames(name: String): List<GraphicsTexture.Region> {
-        val frames = mutableListOf<GraphicsTexture.Region>()
+    fun frames(name: String): List<Texture.Region> {
+        val frames = mutableListOf<Texture.Region>()
 
         // The frames of a beatmap skin replace the whole animation, as its single image does.
         if (BeatmapSkinManager.isSkinEnabled()) {
@@ -320,12 +320,12 @@ object SkinTextures {
         notifySkinChanged(Verktex.scene)
     }
 
-    private fun notifySkinChanged(component: UIComponent) {
+    private fun notifySkinChanged(component: Component) {
         if (component is ISkinnable) {
             component.onSkinChanged()
         }
 
-        if (component is UIContainer) {
+        if (component is Container) {
             component.forEach(::notifySkinChanged)
         }
     }
@@ -336,7 +336,7 @@ object SkinTextures {
             || Platform.provider.exists("$name.png", false)
     }
 
-    private fun lookupBeatmap(name: String): GraphicsTexture.Region? {
+    private fun lookupBeatmap(name: String): Texture.Region? {
         if (!BeatmapSkinManager.isSkinEnabled()) {
             return null
         }
@@ -348,7 +348,7 @@ object SkinTextures {
         return Textures[key] ?: Textures.load(key, path, isInternal = false, density = density)
     }
 
-    private fun lookup(customName: String, defaultName: String): GraphicsTexture.Region? {
+    private fun lookup(customName: String, defaultName: String): Texture.Region? {
         if (isHiddenSliderOverlay(defaultName)) {
             return null
         }
@@ -380,7 +380,7 @@ object SkinTextures {
         return region
     }
 
-    private fun loadFromSkin(key: String, name: String): GraphicsTexture.Region? {
+    private fun loadFromSkin(key: String, name: String): Texture.Region? {
         val path = SkinFolders.path + name + ".png"
 
         if (Platform.provider.exists(path, true)) {
@@ -396,7 +396,7 @@ object SkinTextures {
         return null
     }
 
-    private fun loadDefault(key: String, name: String): GraphicsTexture.Region? {
+    private fun loadDefault(key: String, name: String): Texture.Region? {
         val defaultPath = "gfx/$name.png"
 
         // Assets that aren't skinnable, such as UI icons, are at the root.
@@ -502,7 +502,7 @@ data class SkinFrames(val name: String, val orStatic: Boolean = false) : FramesR
     override val revision: Int
         get() = Textures.revision + SkinTextures.revision
 
-    override fun lookup(): List<GraphicsTexture.Region> {
+    override fun lookup(): List<Texture.Region> {
         val frames = SkinTextures.frames(name)
 
         return if (orStatic && frames.isEmpty()) listOfNotNull(SkinTextures[name]) else frames

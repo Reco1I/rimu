@@ -4,8 +4,8 @@ import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.skinTexture
 
 import com.osudroid.ui.v2.SpriteFont
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.framework.*
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Anchor
@@ -17,7 +17,7 @@ open class CirclePiece(
     circleTexture: String,
     overlayTexture: String
 
-) : UIContainer() {
+) : Container() {
 
 
     init {
@@ -25,7 +25,7 @@ open class CirclePiece(
     }
 
 
-    private val circle = UISprite().also {
+    private val circle = Sprite().also {
 
         it.origin = Anchor.Center
         it.anchor = Anchor.Center
@@ -34,7 +34,7 @@ open class CirclePiece(
         +it
     }
 
-    protected val overlay = UISprite().also {
+    protected val overlay = Sprite().also {
 
         it.origin = Anchor.Center
         it.anchor = Anchor.Center

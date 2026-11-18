@@ -23,8 +23,8 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.testing.UITestStage
 import com.reco1l.verktex.time.ManualClock
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.textButton
 import com.osudroid.utils.BitSet
 import kotlin.math.PI
@@ -82,7 +82,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     // Holds the layers of the playfield, scaled to fit the stage as the game fits it in the screen. It keeps the
     // size of the game's even when the stage is smaller, as what's in it is laid out for that size.
-    private val area = object : UIContainer() {
+    private val area = object : Container() {
         override fun adjustParentConstraints(constraints: LayoutConstraints): LayoutConstraints {
             val width = GameResolution.width.toFloat()
             val height = GameResolution.height.toFloat()
@@ -96,14 +96,14 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
     }
 
     // Under the objects, as the game's background layer, for the hit lighting.
-    private val background = UIContainer().apply {
+    private val background = Container().apply {
         setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
     }
 
     /**
      * The container objects are added to, with the size of the gameplay playfield.
      */
-    val playfield = UIContainer().apply {
+    val playfield = Container().apply {
         setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
     }
 
@@ -186,7 +186,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         fun toggle(label: String, key: SettingKey<Boolean>, y: Float) = stage.textButton {
             x = 16f.dip
             this.y = y.dip
-            variant = UIButton.Variant.Surface
+            variant = Button.Variant.Surface
             fun update() { text = "$label: ${if (Settings[key]) "on" else "off"}" }
             update()
             onActionUp = {
@@ -207,7 +207,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         origin = Anchor.TopRight
         x = (-16f).dip
         y = 16f.dip
-        variant = UIButton.Variant.Surface
+        variant = Button.Variant.Surface
         text = play.label
         onActionUp = {
             play = plays[(plays.indexOf(play) + 1) % plays.size]

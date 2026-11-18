@@ -5,9 +5,9 @@ import com.osudroid.ui.v2.modmenu.*
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 
-class ModsIndicator : UILinearContainer() {
+class ModsIndicator : LinearContainer() {
 
     /**
      * Whether to show mods that are not playable. Defined by [Mod.isUserPlayable].

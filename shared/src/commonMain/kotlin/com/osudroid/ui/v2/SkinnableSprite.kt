@@ -1,9 +1,9 @@
 package com.osudroid.ui.v2
 
 import com.osudroid.ui.ISkinnable
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 
-class OsuSkinnableSprite(val textureLookup: String) : UISprite(), ISkinnable {
+class OsuSkinnableSprite(val textureLookup: String) : Sprite(), ISkinnable {
 
     init {
         onSkinChanged()

@@ -12,12 +12,12 @@ import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.UIAnimatedSprite
+import com.reco1l.verktex.ui.AnimatedSprite
 import com.reco1l.verktex.ui.OnTransformFinished
 import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.choreography
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.container.Container
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.math.*
@@ -32,7 +32,7 @@ object FollowPointConnection {
 
     private val pool = SynchronizedPool<IPoolable>(20)
 
-    private fun obtainFollowPoint(): UISprite {
+    private fun obtainFollowPoint(): Sprite {
         val fp = pool.acquire() as PoolableFollowPoint? ?: PoolableFollowPoint()
 
         // A pooled one stopped on its last frame, its animation plays again from the start.
@@ -58,7 +58,7 @@ object FollowPointConnection {
 
 
     @JvmStatic
-    fun clearAll(scene: UIContainer) {
+    fun clearAll(scene: Container) {
         for (i in scene.childCount - 1 downTo 0) {
             val child = scene[i]
 
@@ -80,7 +80,7 @@ object FollowPointConnection {
     }
 
     @JvmStatic
-    fun addConnection(scene: UIContainer, start: HitObject, end: HitObject) {
+    fun addConnection(scene: Container, start: HitObject, end: HitObject) {
 
         // Reference: https://github.com/ppy/osu/blob/7bc8908ca9c026fed1d831eb6e58df7624a8d614/osu.Game.Rulesets.Osu/Objects/Drawables/Connections/FollowPointConnection.cs
 
@@ -157,7 +157,7 @@ object FollowPointConnection {
     /**
      * A follow point, animated or not depending on the skin, which may change while it's pooled.
      */
-    private class PoolableFollowPoint : UIAnimatedSprite(skinFrames("followpoint", orStatic = true), OsuSkin.get().animationFramerate), IPoolable {
+    private class PoolableFollowPoint : AnimatedSprite(skinFrames("followpoint", orStatic = true), OsuSkin.get().animationFramerate), IPoolable {
         override var isRecycled = false
 
         init {

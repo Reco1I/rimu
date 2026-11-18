@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.hud.elements
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.graphics.GraphicsRenderer
+import com.reco1l.verktex.graphics.Renderer
 
 import com.reco1l.verktex.data.Color4
 import com.osudroid.beatmaps.constants.HitObjectType
@@ -39,7 +39,7 @@ class HUDColorHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
         indicators.forEach { it.alpha = 0f }
     }
 
-    override fun onDraw(renderer: GraphicsRenderer) {
+    override fun onDraw(renderer: Renderer) {
         super.onDraw(renderer)
 
         val y = (bounds.height - INDICATOR_SIZE) / 2f

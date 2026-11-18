@@ -8,7 +8,7 @@ import com.reco1l.verktex.ui.fadeTo
 
 import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.hud.elements.*
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.LayoutConstraints
@@ -17,7 +17,7 @@ import com.osudroid.ui.v2.hud.editor.HUDElementOverlay
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.shape.UILine
+import com.reco1l.verktex.ui.shape.Line
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
@@ -62,7 +62,7 @@ enum class HUDElements(val type: KClass<out HUDElement>, val create: (GameScene)
 }
 
 
-abstract class HUDElement : UIContainer(), IGameplayEvents {
+abstract class HUDElement : Container(), IGameplayEvents {
 
     /**
      * Returns the name of this element.
@@ -96,7 +96,7 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
         private set
 
 
-    private var connectionLine: UILine? = null
+    private var connectionLine: Line? = null
 
 
     /**
@@ -365,7 +365,7 @@ abstract class HUDElement : UIContainer(), IGameplayEvents {
 
 
         if (connectionLine == null) {
-            connectionLine = UILine().apply {
+            connectionLine = Line().apply {
                 color = Color4(0xFFF27272)
                 lineWidth = 10f.px
                 alpha = 0f

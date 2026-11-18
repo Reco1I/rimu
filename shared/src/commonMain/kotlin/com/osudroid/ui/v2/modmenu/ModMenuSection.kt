@@ -9,20 +9,20 @@ import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.verticalPadding
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
-import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
+import com.reco1l.verktex.ui.container.ScrollableContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.themed
 
 @Suppress("LeakingThis")
-open class ModMenuSection(name: String, private val toggles: List<UIButton> = listOf()) : UIScrollableContainer() {
+open class ModMenuSection(name: String, private val toggles: List<Button> = listOf()) : ScrollableContainer() {
 
-    protected val toggleContainer: UILinearContainer
+    protected val toggleContainer: LinearContainer
 
 
     init {

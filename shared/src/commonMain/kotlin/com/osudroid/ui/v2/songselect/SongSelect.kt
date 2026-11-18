@@ -20,17 +20,17 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.ui.control.UIDropdown
-import com.reco1l.verktex.ui.dialog.UIConfirmDialog
+import com.reco1l.verktex.ui.control.Dropdown
+import com.reco1l.verktex.ui.dialog.ConfirmDialog
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.text.faSolidIcon
@@ -49,7 +49,7 @@ import com.reco1l.verktex.input.KeyboardEvent
  * Song select, created each time it's opened. Its sort order and grouping are settings, and it
  * opens on the selected beatmap; the rest of the filter and the solo mods start over.
  */
-class SongSelect : UIScene() {
+class SongSelect : Scene() {
 
     // Back leaves song select, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -92,7 +92,7 @@ class SongSelect : UIScene() {
     private val leaderboard = SongSelectLeaderboard()
     private val beatmapCarrousel = BeatmapCarrousel()
     private val beatmapInfoWedge = BeatmapInfoWedge { mods }
-    private val backgroundSprite: UISprite
+    private val backgroundSprite: Sprite
 
     private lateinit var modsIndicator: ModsIndicator
 
@@ -106,7 +106,7 @@ class SongSelect : UIScene() {
 
 
     init {
-        backgroundSprite = UISprite().apply {
+        backgroundSprite = Sprite().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             textureRegion = SkinTextures["menu-background"]
@@ -131,7 +131,7 @@ class SongSelect : UIScene() {
             linearContainer {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
-                orientation = UILinearContainer.Orientation.Vertical
+                orientation = LinearContainer.Orientation.Vertical
                 spacing = 8f.dip
 
                 +beatmapInfoWedge
@@ -149,7 +149,7 @@ class SongSelect : UIScene() {
         }
 
         linearContainer {
-            orientation = UILinearContainer.Orientation.Horizontal
+            orientation = LinearContainer.Orientation.Horizontal
             anchor = Anchor.BottomLeft
             origin = Anchor.BottomLeft
             padding = Padding(8f.dip, 16f.dip)
@@ -377,7 +377,7 @@ class SongSelect : UIScene() {
         val directory = beatmapSetInfo.directory
         val title = beatmapSetInfo.beatmaps.firstOrNull()?.titleText ?: directory
 
-        UIDropdown(panel.button).apply dropdown@{
+        Dropdown(panel.button).apply dropdown@{
             maxWidth = 320f.dip
 
             addButton {
@@ -419,7 +419,7 @@ class SongSelect : UIScene() {
                 leadingIcon = faSolidIcon(FAIcon.Trash)
                 color = Color4("#FFBFBF")
                 onActionUp = {
-                    UIConfirmDialog().apply {
+                    ConfirmDialog().apply {
                         this.title = "Delete beatmap set"
                         text = "Are you sure you want to delete \"$title\"? Its files will be removed from the device."
                         onConfirm = {

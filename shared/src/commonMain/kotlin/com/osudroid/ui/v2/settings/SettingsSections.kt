@@ -14,13 +14,13 @@ import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToInt
 import com.reco1l.verktex.audio.AudioBackend
-import com.reco1l.verktex.graphics.GraphicsBackend
+import com.reco1l.verktex.graphics.GPUBackend
 import com.reco1l.verktex.settings.VerktexSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.form.FormSelect
-import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.Button
 import kotlin.math.max
-import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.ui.form.FormSeekBar
 import com.reco1l.verktex.ui.form.FormInput
 import com.reco1l.verktex.ui.form.FormControl
 import com.osudroid.multiplayer.api.data.WinCondition
@@ -41,7 +41,7 @@ import com.osudroid.mods.ModAutoplay
 import com.osudroid.ui.v2.settings.SettingsOption.Type
 import com.osudroid.utils.ModHashMap
 import com.reco1l.verktex.Verktex
-import com.reco1l.verktex.ui.control.UISelect
+import com.reco1l.verktex.ui.control.Select
 import kotlinx.coroutines.Job
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 import com.reco1l.verktex.ui.toast.Toasts
@@ -158,7 +158,7 @@ val roomSection = listOf(
                 initialValue = { Multiplayer.room?.maxPlayers ?: 2 },
                 onAttach = {
                     // Not fewer than the players already in the room.
-                    (it as FormSlider).control.min = max(2, Multiplayer.room?.activePlayers?.size ?: 0).toFloat()
+                    (it as FormSeekBar).control.min = max(2, Multiplayer.room?.activePlayers?.size ?: 0).toFloat()
                 },
                 onChange = { value -> RoomAPI.setRoomMaxPlayers((value as Float).toInt()) }
             )
@@ -357,8 +357,8 @@ val generalSection = listOf(
                 entries = Res.array.placeholder_array,
                 entryValues = Res.array.placeholder_array,
                 onAttach = {
-                    (it as PreferenceSelect).options = listOf(UISelect.Option(Languages.SYSTEM, "System Default")) +
-                        Languages.names.map { (tag, name) -> UISelect.Option(tag, name) }
+                    (it as PreferenceSelect).options = listOf(Select.Option(Languages.SYSTEM, "System Default")) +
+                        Languages.names.map { (tag, name) -> Select.Option(tag, name) }
                 },
                 onChange = { value ->
                     // The text of the game follows it right away.
@@ -387,9 +387,9 @@ val gameplaySection = listOf(
                 onAttach = {
                     val skinMain = SkinFolders.topPath.toPath()
                     val skins = SkinFolders.skins.map { skin ->
-                        UISelect.Option(skin.value.withTrailingSlash(), skin.key)
+                        Select.Option(skin.value.withTrailingSlash(), skin.key)
                     }.sortedBy { it.text.toString() }.toMutableList()
-                    skins.add(0, UISelect.Option(skinMain.toString().withTrailingSlash(), skinMain.name + " (Default)"))
+                    skins.add(0, Select.Option(skinMain.toString().withTrailingSlash(), skinMain.name + " (Default)"))
 
                     @Suppress("UNCHECKED_CAST")
                     (it as FormSelect<String>).options = skins
@@ -407,7 +407,7 @@ val gameplaySection = listOf(
                 title = Res.string.opt_hudEditor_title,
                 summary = Res.string.opt_hudEditor_summary,
                 // It plays the beatmap, which can't be done from a multiplayer room.
-                onAttach = { (it as UIButton).isEnabled = !Multiplayer.isMultiplayer },
+                onAttach = { (it as Button).isEnabled = !Multiplayer.isMultiplayer },
                 onClick = {
                     val selectedBeatmap = BeatmapSelection.beatmap
 
@@ -620,7 +620,7 @@ private fun resolutionScaleOption(): SettingsOption? {
         },
         onChange = { value -> if (!isDragging) apply((value as Number).toFloat()) },
         onAttach = { component ->
-            val slider = component as FormSlider
+            val slider = component as FormSeekBar
             slider.control.onStartDragging = { isDragging = true }
             slider.control.onStopDragging = {
                 isDragging = false
@@ -638,14 +638,14 @@ private fun graphicsBackendOption(): SettingsOption? {
 
     // The experimental Vulkan backend is only offered where the device reports Vulkan 1.1. Desktop's
     // backends are OpenGL and Vulkan, it lists anything only where Vulkan can be used.
-    val withVulkan = GraphicsBackend.Vulkan in backends
-    val isDesktop = GraphicsBackend.OpenGL in backends
+    val withVulkan = GPUBackend.Vulkan in backends
+    val isDesktop = GPUBackend.OpenGL in backends
 
     return SettingsOption(
         type = Type.Select,
         key = "graphicsBackend",
         // The engine's own setting, read when it starts.
-        setting = VerktexSettings.GraphicsBackend,
+        setting = VerktexSettings.GPUBackend,
         title = Res.string.opt_graphics_backend_title,
         summary = Res.string.opt_graphics_backend_summary,
         entries = when {
@@ -662,7 +662,7 @@ private fun graphicsBackendOption(): SettingsOption? {
             val selected = (value as? List<*>)?.firstOrNull() ?: value
 
             // The engine keeps the backend it was initialized with until the game restarts.
-            if (selected == GraphicsBackend.Vulkan.name) {
+            if (selected == GPUBackend.Vulkan.name) {
                 Toasts.showLong(Res.string.opt_graphics_backend_vulkan_experimental)
             } else {
                 Toasts.showLong(Res.string.opt_graphics_backend_restart)

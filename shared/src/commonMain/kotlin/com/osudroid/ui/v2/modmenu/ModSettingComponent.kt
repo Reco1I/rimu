@@ -1,8 +1,8 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.control.UIControl
+import com.reco1l.verktex.ui.control.Control
 import com.reco1l.verktex.ui.form.FormControl
 import com.osudroid.mods.Mod
 import com.osudroid.mods.settings.ModSetting
@@ -43,7 +43,7 @@ interface IModSettingComponent<V> {
 sealed class ModSettingComponent<TSettingValue, TControlValue : Any>(
     final override val mod: Mod,
     final override val setting: ModSetting<TSettingValue>
-) : UIContainer(), IModSettingComponent<TSettingValue> {
+) : Container(), IModSettingComponent<TSettingValue> {
     /**
      * Called when the user changes the value of [setting].
      */
@@ -84,7 +84,7 @@ sealed class ModSettingComponent<TSettingValue, TControlValue : Any>(
     /**
      * Creates the [FormControl] that is used to display this [ModSettingComponent].
      */
-    protected abstract fun createControl(): FormControl<TControlValue, UIControl<TControlValue>>
+    protected abstract fun createControl(): FormControl<TControlValue, Control<TControlValue>>
 
     /**
      * Converts a value from the [ModSetting] to a value that can be displayed in the [FormControl].

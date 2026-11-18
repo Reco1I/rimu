@@ -11,9 +11,9 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.text.Text
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import com.osudroid.utils.currentTimeMillis
@@ -264,21 +264,21 @@ class HUDLeaderboard(private val game: GameScene) : HUDElement() {
     }
 
 
-    private inner class BoardItem(val data: ScoreBoardItem) : UIContainer() {
+    private inner class BoardItem(val data: ScoreBoardItem) : Container() {
 
-        val backgroundSprite = UISprite().apply {
+        val backgroundSprite = Sprite().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             textureRegion = SkinTextures["menu-button-background"]
         }
 
-        val info = UIText().apply {
+        val info = Text().apply {
             x = 10f.px
             y = 15f.px
             fontSize = (28f * 0.65f).px
         }
 
-        val rank = UIText().apply {
+        val rank = Text().apply {
             origin = Anchor.TopRight
             x = 100f.px
             y = 30f.px

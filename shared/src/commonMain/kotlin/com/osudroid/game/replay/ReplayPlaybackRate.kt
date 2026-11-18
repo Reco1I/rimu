@@ -1,17 +1,17 @@
 package com.osudroid.game.replay
 
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.textButton
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.ui.form.FormSeekBar
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.toFixed
 
-class ReplayPlaybackRate : UILinearContainer() {
+class ReplayPlaybackRate : LinearContainer() {
     /**
      * The rate at which gameplay should progress.
      */
@@ -23,7 +23,7 @@ class ReplayPlaybackRate : UILinearContainer() {
         orientation = Orientation.Vertical
         width = Dimension.FillAvailable
 
-        val slider = FormSlider(rate).apply {
+        val slider = FormSeekBar(rate).apply {
             label = "Playback speed"
             control.min = 0.05f
             control.max = 2f

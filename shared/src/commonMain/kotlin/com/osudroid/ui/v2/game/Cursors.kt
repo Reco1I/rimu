@@ -8,10 +8,10 @@ import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.UIParticleSystem
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.ParticleSystem
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreograph
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.rotateTo
 import com.reco1l.verktex.ui.scaleTo
 import ru.nsu.ccfit.zuev.osu.game.GameObject
@@ -25,7 +25,7 @@ import com.reco1l.verktex.graphics.BlendMode
 /**
  * The sprite of a cursor, which grows while it's pressed.
  */
-class CursorSprite : UISprite() {
+class CursorSprite : Sprite() {
 
     val baseSize = OsuSettings.cursorSize * 2
 
@@ -95,12 +95,12 @@ class CursorSprite : UISprite() {
 /**
  * A cursor in the playfield, leaving a trail behind if the skin has one.
  */
-open class CursorEntity : UIContainer() {
+open class CursorEntity : Container() {
 
     protected val cursorSprite = CursorSprite()
 
     // Drawn over the cursor, it neither rotates nor grows.
-    private val middleSprite = UISprite().apply {
+    private val middleSprite = Sprite().apply {
         anchor = Anchor.Center
         origin = cursorOrigin()
         scale = cursorSprite.baseSize
@@ -141,7 +141,7 @@ open class CursorEntity : UIContainer() {
         }
     }
 
-    fun attachToScene(layer: UIContainer) {
+    fun attachToScene(layer: Container) {
         trail?.let { layer += it }
         layer += this
     }
@@ -159,7 +159,7 @@ private fun cursorOrigin() = if (OsuSkin.get().isCentreCursor) Anchor.Center els
  *
  * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyCursorTrail.cs
  */
-private class CursorTrail(private val cursor: CursorSprite) : UIParticleSystem(MAX_PARTICLES) {
+private class CursorTrail(private val cursor: CursorSprite) : ParticleSystem(MAX_PARTICLES) {
 
     private val isContinuous = SkinTextures["cursormiddle"] != null
 

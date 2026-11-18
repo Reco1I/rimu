@@ -10,15 +10,15 @@ import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UIIconButton
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UIScrollableContainer
-import com.reco1l.verktex.ui.control.UITextInput
-import com.reco1l.verktex.ui.dialog.UIConfirmDialog
-import com.reco1l.verktex.ui.dialog.UIDialog
-import com.reco1l.verktex.ui.dialog.UIPromptDialog
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.IconButton
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.ScrollableContainer
+import com.reco1l.verktex.ui.control.TextInput
+import com.reco1l.verktex.ui.dialog.ConfirmDialog
+import com.reco1l.verktex.ui.dialog.Dialog
+import com.reco1l.verktex.ui.dialog.PromptDialog
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.themed
 import com.osudroid.utils.async
@@ -29,8 +29,8 @@ import kotlin.concurrent.Volatile
  * Lists the beatmap collections to add the beatmap set in [directory] to or remove it from, and to
  * create or delete collections.
  */
-class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrollableContainer>(
-    UIScrollableContainer().apply {
+class BeatmapCollectionsDialog(private val directory: String) : Dialog<ScrollableContainer>(
+    ScrollableContainer().apply {
         scrollAxes = Axis.Y
         width = fill()
         maxHeight = 0.55f.pct
@@ -44,8 +44,8 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
     var onCollectionsChanged: (() -> Unit)? = null
 
 
-    private val list = UILinearContainer().apply {
-        orientation = UILinearContainer.Orientation.Vertical
+    private val list = LinearContainer().apply {
+        orientation = LinearContainer.Orientation.Vertical
         width = fill()
         padding = themed { Padding(gap.md) }
         spacing = themed { gap.xs }
@@ -63,7 +63,7 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
         addButton {
             text = "New collection"
             leadingIcon = faSolidIcon(FAIcon.FolderPlus)
-            variant = UIButton.Variant.Solid
+            variant = Button.Variant.Solid
             onActionUp = { showNewCollectionPrompt() }
         }
 
@@ -98,7 +98,7 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
         list.clearChildren()
 
         if (collections.isEmpty()) {
-            list += UIText().apply {
+            list += Text().apply {
                 width = fill()
                 alignment = Anchor.Center
                 padding = themed { Padding(gap.md) }
@@ -112,13 +112,13 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
     }
 
     private fun showNewCollectionPrompt() {
-        UIPromptDialog(UITextInput()).apply {
+        PromptDialog(TextInput()).apply {
             title = "New collection"
             input.placeholder = "Name"
 
             addButton {
                 text = "Create"
-                variant = UIButton.Variant.Solid
+                variant = Button.Variant.Solid
                 onActionUp = {
                     val name = value.trim()
 
@@ -154,19 +154,19 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
     }
 
 
-    private inner class CollectionRow(state: CollectionState) : UILinearContainer() {
+    private inner class CollectionRow(state: CollectionState) : LinearContainer() {
 
         private val name = state.name
 
-        private val countText = UIText().apply {
+        private val countText = Text().apply {
             fontSettings = themed { typography.smallBody }
             color = Color4.White.alpha(0.6f)
         }
 
-        private val toggleButton = UIIconButton().apply {
+        private val toggleButton = IconButton().apply {
             anchor = Anchor.CenterLeft
             origin = Anchor.CenterLeft
-            variant = UIButton.Variant.Ghost
+            variant = Button.Variant.Ghost
             onActionUp = {
                 // Before the change is written, so that closing the dialog right away still reports it.
                 hasChanges = true
@@ -194,20 +194,20 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
 
             +toggleButton
 
-            +UILinearContainer().apply {
+            +LinearContainer().apply {
                 orientation = Orientation.Vertical
                 width = fill()
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
 
-                +UIText().apply { text = name }
+                +Text().apply { text = name }
                 +countText
             }
 
-            +UIIconButton().apply {
+            +IconButton().apply {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                variant = UIButton.Variant.Ghost
+                variant = Button.Variant.Ghost
                 icon = FAIcon.Trash
                 color = Color4("#FFBFBF")
                 onActionUp = { confirmDeletion() }
@@ -223,7 +223,7 @@ class BeatmapCollectionsDialog(private val directory: String) : UIDialog<UIScrol
         }
 
         private fun confirmDeletion() {
-            UIConfirmDialog().apply {
+            ConfirmDialog().apply {
                 title = "Delete collection"
                 text = "Delete the collection \"$name\"? ${string.favorite_ensure}"
                 onConfirm = {

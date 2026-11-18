@@ -41,14 +41,14 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.texture.Textures
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.shape.UIBox
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.shape.Box
+import com.reco1l.verktex.ui.text.Text
 import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import com.reco1l.verktex.ui.toast.Toasts
@@ -64,9 +64,9 @@ import com.reco1l.verktex.input.KeyboardEvent
 
 class ScoringScene(pGame: GameScene) {
     private val game: GameScene = pGame
-    var scene: UIScene? = null
+    var scene: Scene? = null
         private set
-    private var content: UIContainer? = null
+    private var content: Container? = null
     private var music: MusicService? = null
     var replayStat: StatisticV2? = null
     var replayID = -1
@@ -80,8 +80,8 @@ class ScoringScene(pGame: GameScene) {
     private var selector: StatisticSelector? = null
 
 
-    private fun createSprite(texture: String, x: Float, y: Float): UISprite {
-        val sprite = UISprite(SkinTextures.get(texture))
+    private fun createSprite(texture: String, x: Float, y: Float): Sprite {
+        val sprite = Sprite(SkinTextures.get(texture))
         sprite.setPosition(x, y)
         return sprite
     }
@@ -89,14 +89,14 @@ class ScoringScene(pGame: GameScene) {
     /**
      * Creates a sprite centered in the given position with a size relative to its texture.
      */
-    private fun createHitSprite(texture: String, centerX: Float, centerY: Float): UISprite {
+    private fun createHitSprite(texture: String, centerX: Float, centerY: Float): Sprite {
         val sprite = createSprite(texture, Utils.toRes(centerX), Utils.toRes(centerY))
         sprite.origin = Anchor.Center
         return sprite
     }
 
-    private fun createText(value: String, fontSize: Float): UIText {
-        val text = UIText()
+    private fun createText(value: String, fontSize: Float): Text {
+        val text = Text()
         text.fontSize = Dimension.Fixed.Pixels(fontSize)
         text.text = value
         return text
@@ -112,8 +112,8 @@ class ScoringScene(pGame: GameScene) {
         return region?.displayHeight?.toFloat() ?: 0f
     }
 
-    private fun createButton(texture: String, onClick: () -> Unit): UISprite {
-        return object : UISprite(SkinTextures.get(texture)) {
+    private fun createButton(texture: String, onClick: () -> Unit): Sprite {
+        return object : Sprite(SkinTextures.get(texture)) {
             private var isPressed = false
 
             override fun onInputEvent(event: InputEvent): Boolean {
@@ -161,7 +161,7 @@ class ScoringScene(pGame: GameScene) {
             replayStat = stat
         }
 
-        val backgroundSprite = UISprite(if (Textures.get("::background") != null)
+        val backgroundSprite = Sprite(if (Textures.get("::background") != null)
             Textures.get("::background")
         else
             SkinTextures.get("menu-background"))
@@ -171,14 +171,14 @@ class ScoringScene(pGame: GameScene) {
         scene.backgroundComponent = backgroundSprite
 
         // Everything is placed in the coordinates of the game's resolution and scaled to fit the window.
-        val content = UIContainer()
+        val content = Container()
         this.content = content
         content.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
         content.scaleOrigin = Anchor.TopLeft
         content.scale = Verktex.graphics.window.windowWidth.toFloat() / GameResolution.width
         scene += content
 
-        val bgTopRect = UIBox()
+        val bgTopRect = Box()
         bgTopRect.setSize(GameResolution.width.toFloat(), Utils.toRes(100).toFloat())
         bgTopRect.color = Color4(0f, 0f, 0f, 0.8f)
         content += bgTopRect
@@ -193,7 +193,7 @@ class ScoringScene(pGame: GameScene) {
         else
             0f
 
-        val scaledContainer = UIContainer()
+        val scaledContainer = Container()
         scaledContainer.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
         scaledContainer.setPosition(0f, 100f)
         scaledContainer.scaleOrigin = Anchor.TopLeft
@@ -373,8 +373,8 @@ class ScoringScene(pGame: GameScene) {
 
             mapperStr += "]"
         }
-        val infoContainer = UILinearContainer()
-        infoContainer.orientation = UILinearContainer.Orientation.Vertical
+        val infoContainer = LinearContainer()
+        infoContainer.orientation = LinearContainer.Orientation.Vertical
         infoContainer.setPosition(Utils.toRes(4).toFloat(), Utils.toRes(2).toFloat())
         infoContainer += createText(infoStr, 28f)
         infoContainer += createText(mapperStr, 21f)
@@ -626,7 +626,7 @@ class ScoringScene(pGame: GameScene) {
         }
     }
 
-    private inner class ResultsUIScene : UIScene() {
+    private inner class ResultsUIScene : Scene() {
         val scoring
             get() = this@ScoringScene
 

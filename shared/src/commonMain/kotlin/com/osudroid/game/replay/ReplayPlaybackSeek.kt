@@ -1,20 +1,20 @@
 package com.osudroid.game.replay
 
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.iconButton
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.UIIcon
+import com.reco1l.verktex.ui.Icon
 import com.reco1l.verktex.ui.textButton
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.ui.form.FormSeekBar
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import kotlin.math.abs
 
-class ReplayPlaybackSeek : UILinearContainer() {
+class ReplayPlaybackSeek : LinearContainer() {
     /**
      * Called when the user seeks to a position. The argument is the target time in seconds.
      */
@@ -37,7 +37,7 @@ class ReplayPlaybackSeek : UILinearContainer() {
     private var isUserDragging = false
 
 
-    private val seekBar = FormSlider().apply {
+    private val seekBar = FormSeekBar().apply {
         label = "Seek"
         control.min = 0f
         control.max = 0f

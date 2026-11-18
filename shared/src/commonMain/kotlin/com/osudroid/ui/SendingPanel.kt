@@ -11,13 +11,13 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.clearTransforms
-import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.moveTo
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import kotlin.math.abs
 import kotlin.math.round
 import com.reco1l.verktex.localization.formatString
@@ -30,7 +30,7 @@ class SendingPanel(
     private val score: Long,
     private val accuracy: Float,
     private val pp: Float
-) : UIContainer() {
+) : Container() {
 
     private val dismissButton = DismissButton().also {
         it.anchor = Anchor.BottomCenter
@@ -52,20 +52,20 @@ class SendingPanel(
         minHeight = 200f.px
         background = Background.Color(Color4(0f, 0f, 0f, 0.7f))
 
-        +UILinearContainer().apply {
+        +LinearContainer().apply {
             orientation = Orientation.Vertical
             anchor = Anchor.TopCenter
             origin = Anchor.TopCenter
             spacing = 10f.dip
             padding = Padding(10f.dip)
 
-            +UIText().apply {
+            +Text().apply {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
                 text = "Overall Ranking"
             }
 
-            +UILinearContainer().apply {
+            +LinearContainer().apply {
                 spacing = 10f.px
 
                 +mapRankColumn
@@ -156,17 +156,17 @@ class SendingPanel(
         .reversed()
 
 
-    private inner class DismissButton : UIContainer() {
+    private inner class DismissButton : Container() {
 
         var canBeDismissed = false
 
-        private val text = UIText().also {
+        private val text = Text().also {
             it.anchor = Anchor.Center
             it.origin = Anchor.Center
         }
 
         init {
-            +UISprite(SkinTextures["ranking_button"])
+            +Sprite(SkinTextures["ranking_button"])
             +text
         }
 
@@ -185,15 +185,15 @@ class SendingPanel(
         }
     }
 
-    private class Column(caption: String) : UILinearContainer() {
+    private class Column(caption: String) : LinearContainer() {
 
-        private val valueText = UIText().also {
+        private val valueText = Text().also {
             it.anchor = Anchor.Center
             it.origin = Anchor.Center
             it.alignment = Anchor.Center
         }
 
-        private val valueBox = UIContainer().also {
+        private val valueBox = Container().also {
             it.width = Dimension.FillAvailable
             it.padding = Padding(4f.dip)
             it.background = Background.Color(Color4(0.4f, 0.4f, 0.4f, 0.8f))
@@ -211,7 +211,7 @@ class SendingPanel(
             orientation = Orientation.Vertical
             minWidth = 100f.px
 
-            +UIText().apply {
+            +Text().apply {
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
                 text = caption

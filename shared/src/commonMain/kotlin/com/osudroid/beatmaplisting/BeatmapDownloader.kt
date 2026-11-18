@@ -84,7 +84,7 @@ object BeatmapDownloader {
     }
 
 
-    private suspend fun onDownloadEnd(toast: Toasts.Toast, filename: String, file: Path) {
+    private suspend fun onDownloadEnd(toast: Toasts.Handle, filename: String, file: Path) {
         toast.setAction(null)
         toast.isIndeterminate = true
         toast.text = Res.string.beatmap_downloader_importing.format(filename)
@@ -111,7 +111,7 @@ object BeatmapDownloader {
         }
     }
 
-    private fun onDownloadUpdate(toast: Toasts.Toast, filename: String, download: DownloadProgress) {
+    private fun onDownloadUpdate(toast: Toasts.Handle, filename: String, download: DownloadProgress) {
         val progress = download.percentage.toInt()
         val info = formatString("\n%.3f mb/s (%d%%)", download.speedKbps / 1024, progress.coerceAtLeast(0))
 

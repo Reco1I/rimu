@@ -17,21 +17,21 @@ import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UIModal
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.Modal
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.ScrollableContainer
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import kotlin.reflect.KClass
 import com.reco1l.verktex.ui.themed
 
 class ModCustomizationMenu(
-    private val trigger: UIButton,
+    private val trigger: Button,
     private val onSettingChanged: (Mod) -> Unit
-) : UIModal(
+) : Modal(
 
-    card = UIScrollableContainer().apply {
+    card = ScrollableContainer().apply {
         scrollAxes = Axis.Y
         width = 0.475f.pct
         height = 0.675f.pct
@@ -41,16 +41,16 @@ class ModCustomizationMenu(
         background = Background.Color(themed { palette.accent.shade(0.15f) })
         radius = themed { CornerRadius(radius.lg) }
 
-        +UILinearContainer().apply {
+        +LinearContainer().apply {
             width = Dimension.FillAvailable
-            orientation = UILinearContainer.Orientation.Vertical
+            orientation = LinearContainer.Orientation.Vertical
         }
     }
 
 ) {
 
     private val modSettings = mutableMapOf<KClass<out Mod>, ModSettingsSection>()
-    private val modSettingsContainer = card[0] as UILinearContainer
+    private val modSettingsContainer = card[0] as LinearContainer
     private val modSettingComponents = mutableListOf<IModSettingComponent<*>>()
 
 
@@ -151,14 +151,14 @@ class ModCustomizationMenu(
     //endregion
 
 
-    private inner class ModSettingsSection(val mod: Mod) : UILinearContainer() {
+    private inner class ModSettingsSection(val mod: Mod) : LinearContainer() {
 
         init {
             orientation = Orientation.Vertical
             width = Dimension.FillAvailable
             padding = Padding(bottom = 16f.dip)
 
-            +UILinearContainer().apply {
+            +LinearContainer().apply {
                 orientation = Orientation.Horizontal
                 width = Dimension.FillAvailable
                 padding = Padding(12f.dip)
@@ -173,7 +173,7 @@ class ModCustomizationMenu(
                     height = 14f.dip
                 }
 
-                +UIText().apply {
+                +Text().apply {
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
                     text = mod.name.uppercase()

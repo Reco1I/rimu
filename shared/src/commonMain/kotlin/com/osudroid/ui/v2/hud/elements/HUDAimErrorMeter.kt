@@ -18,9 +18,9 @@ import com.osudroid.math.toRadians
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.utils.*
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.graphics.GraphicsRenderer
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.graphics.Renderer
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.data.Color4
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -44,7 +44,7 @@ class HUDAimErrorMeter : HUDElement() {
 
     // Still attached as a normal child (so its `moveTo` transform keeps ticking via the regular update
     // traversal), but manually re-drawn after the hit indicators in `onDraw` - see there for why.
-    private val averageMarker = UIContainer().apply {
+    private val averageMarker = Container().apply {
         anchor = Anchor.Center
         origin = Anchor.Center
         width = (AVERAGE_MARKER_SIZE).px
@@ -161,7 +161,7 @@ class HUDAimErrorMeter : HUDElement() {
         +averageMarker
     }
 
-    private fun createCrossGuide(rotationDegrees: Float, thickness: Float, guideAlpha: Float) = UIBox().apply {
+    private fun createCrossGuide(rotationDegrees: Float, thickness: Float, guideAlpha: Float) = Box().apply {
         anchor = Anchor.Center
         origin = Anchor.Center
         width = (thickness).px
@@ -265,7 +265,7 @@ class HUDAimErrorMeter : HUDElement() {
 
     //region Indicator update & draw
 
-    override fun onDraw(renderer: GraphicsRenderer) {
+    override fun onDraw(renderer: Renderer) {
         // averageMarker is hidden for this pass and re-drawn manually below (after the hit indicators) so
         // it always renders on top of them.
         averageMarker.isVisible = false

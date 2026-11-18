@@ -9,23 +9,23 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UISprite
-import com.reco1l.verktex.ui.container.UIClickableContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.container.ClickableContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.sprite
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
 import com.reco1l.verktex.Platform
 import com.osudroid.resources.Res
-import com.reco1l.verktex.ui.dialog.UIConfirmDialog
+import com.reco1l.verktex.ui.dialog.ConfirmDialog
 import kotlin.math.roundToInt
 import com.reco1l.verktex.ui.themed
 import com.reco1l.verktex.localization.formatString
 
-class PlayerButton : UIClickableContainer() {
+class PlayerButton : ClickableContainer() {
 
     private val onlineManager = OnlineManager.getInstance()
     private val onlineScoring = OnlineScoring.getInstance()
@@ -33,16 +33,16 @@ class PlayerButton : UIClickableContainer() {
     private var avatarUri = ""
     private var avatarLoaded = false
 
-    private lateinit var nameText: UIText
-    private lateinit var informationText: UIText
-    private lateinit var avatarSprite: UISprite
+    private lateinit var nameText: Text
+    private lateinit var informationText: Text
+    private lateinit var avatarSprite: Sprite
 
 
     init {
         onActionUp = {
             // Like the old online panel, the profile is only reachable while logged in.
             if (onlineManager.isStayOnline) {
-                UIConfirmDialog().apply {
+                ConfirmDialog().apply {
                     title = onlineManager.username
                     text = Res.string.dialog_visit_osudroid_profile_page
                     onConfirm = {
@@ -53,7 +53,7 @@ class PlayerButton : UIClickableContainer() {
         }
 
         linearContainer {
-            orientation = UILinearContainer.Orientation.Horizontal
+            orientation = LinearContainer.Orientation.Horizontal
             minWidth = 208f.dip
             padding = Padding(9f.dip)
             spacing = 8f.dip
@@ -72,7 +72,7 @@ class PlayerButton : UIClickableContainer() {
             linearContainer {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
-                orientation = UILinearContainer.Orientation.Vertical
+                orientation = LinearContainer.Orientation.Vertical
 
                 nameText = text {
                     text = "Player"

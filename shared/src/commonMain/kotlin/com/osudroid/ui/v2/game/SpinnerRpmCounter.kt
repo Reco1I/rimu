@@ -6,9 +6,9 @@ import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -24,9 +24,9 @@ class SpinnerRpmCounter {
 
     private val scale = GameResolution.height / STABLE_HEIGHT
 
-    private val container = UIContainer()
+    private val container = Container()
 
-    private val background = UISprite().apply {
+    private val background = Sprite().apply {
         origin = Anchor.TopLeft
         texture = skinTexture("spinner-rpm")
         this.scale = this@SpinnerRpmCounter.scale
@@ -56,7 +56,7 @@ class SpinnerRpmCounter {
     /**
      * Adds the counter to [scene] for a spinner from [startTime] to [endTime], in seconds of gameplay.
      */
-    fun attach(scene: UIContainer, startTime: Float, endTime: Float) {
+    fun attach(scene: Container, startTime: Float, endTime: Float) {
         // Only for skins that have it.
         if (SkinTextures["spinner-rpm"] == null) {
             return

@@ -23,8 +23,8 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.testing.UITestStage
 import com.reco1l.verktex.testing.UITestSuite
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.textButton
 import com.reco1l.verktex.ui.text.faSolidIcon
@@ -59,7 +59,7 @@ object OsuSceneUITests : UITestSuite("Scenes") {
                 OsuGame.music.next()
             }
 
-            lateinit var trigger: UIButton
+            lateinit var trigger: Button
             trigger = textButton {
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
@@ -205,7 +205,7 @@ object OsuSceneUITests : UITestSuite("Scenes") {
 
     // Events the server would send to the room, sent straight to the room scene.
     private fun UITestStage.roomEvents() = linearContainer {
-        orientation = UILinearContainer.Orientation.Horizontal
+        orientation = LinearContainer.Orientation.Horizontal
         // Next to the name of the room, where they cover the least of it.
         anchor = Anchor.TopCenter
         origin = Anchor.TopCenter
@@ -216,8 +216,8 @@ object OsuSceneUITests : UITestSuite("Scenes") {
 
         fun event(name: String, action: () -> Unit) = textButton {
             text = name
-            variant = UIButton.Variant.Surface
-            density = UIButton.Density.Small
+            variant = Button.Variant.Surface
+            density = Button.Density.Small
             onActionUp = {
                 val roomScene = Multiplayer.roomScene
 

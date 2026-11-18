@@ -21,18 +21,18 @@ import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.interpolateColor
 import com.reco1l.verktex.math.interpolateFloat
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Component
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.container.RecyclableComponent
-import com.reco1l.verktex.ui.container.UIClickableContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
+import com.reco1l.verktex.ui.container.ClickableContainer
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.container.clickableContainer
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.sprite
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.text
 import kotlin.math.abs
 import kotlin.random.*
@@ -55,7 +55,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
     /**
      * The component the carrousel scrolls to: the selected beatmap panel, or the button while none.
      */
-    val scrollTarget: UIComponent
+    val scrollTarget: Component
         get() = selectedPanel ?: button
 
 
@@ -96,12 +96,12 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
     /**
      * The container for the beatmap panels.
      */
-    lateinit var panelsContainer: UILinearContainer
+    lateinit var panelsContainer: LinearContainer
 
     /**
      * The button itself.
      */
-    lateinit var button: UIClickableContainer
+    lateinit var button: ClickableContainer
 
 
     /**
@@ -120,10 +120,10 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
     private var buttonGlow = 0f
     private var panelsExpansion = 0f
 
-    private lateinit var cover: UISprite
-    private lateinit var titleText: UIText
-    private lateinit var artistText: UIText
-    private lateinit var difficultyIndicators: UILinearContainer
+    private lateinit var cover: Sprite
+    private lateinit var titleText: Text
+    private lateinit var artistText: Text
+    private lateinit var difficultyIndicators: LinearContainer
 
 
     init {
@@ -206,7 +206,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
         difficultyIndicators.clearChildren()
         data.beatmapSetInfo.beatmaps.sortedBy { it.getStarRating() }.forEach { beatmap ->
-            difficultyIndicators += UIBox().apply {
+            difficultyIndicators += Box().apply {
                 width = 12f.dip
                 height = 2f.dip
                 radius = CornerRadius(8f.dip)

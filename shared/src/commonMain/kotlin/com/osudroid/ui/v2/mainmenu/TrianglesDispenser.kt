@@ -4,12 +4,12 @@ import com.reco1l.framework.forEachTolerant
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.graphics.GraphicsRenderer
+import com.reco1l.verktex.graphics.Renderer
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UICanvas
+import com.reco1l.verktex.ui.Canvas
 import kotlin.random.Random
 
-class TrianglesDispenser : UICanvas() {
+class TrianglesDispenser : Canvas() {
 
     /**
      * The minimum scale factor for triangles.
@@ -91,7 +91,7 @@ class TrianglesDispenser : UICanvas() {
         super.onUpdate(clock)
     }
 
-    override fun onDraw(renderer: GraphicsRenderer) {
+    override fun onDraw(renderer: Renderer) {
         val thickness = lineWidth.toPixels()
 
         activeTriangles.forEachTolerant { info ->

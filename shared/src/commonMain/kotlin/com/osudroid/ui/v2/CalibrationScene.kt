@@ -6,7 +6,7 @@ import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.control.IntegerTextInput
-import com.reco1l.verktex.ui.dialog.UIPromptDialog
+import com.reco1l.verktex.ui.dialog.PromptDialog
 import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.borderColor
 import com.osudroid.beatmaps.DroidHitWindow
@@ -29,22 +29,22 @@ import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.clearTransforms
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.container
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.control.UICheckbox
+import com.reco1l.verktex.ui.control.Checkbox
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.shape.UIBox
-import com.reco1l.verktex.ui.shape.UICircle
+import com.reco1l.verktex.ui.shape.Box
+import com.reco1l.verktex.ui.shape.Circle
 import com.reco1l.verktex.ui.shape.box
 import com.reco1l.verktex.ui.shape.circle
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
@@ -62,7 +62,7 @@ import com.reco1l.verktex.input.KeyboardEvent
 class CalibrationScene(
     private val offsetMin: Int = -500,
     private val offsetMax: Int = 500
-) : UIScene() {
+) : Scene() {
 
     // Back leaves the calibration, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -91,20 +91,20 @@ class CalibrationScene(
     private var wasMusicPlaying = false
     private var successfulTapStreak = 0
 
-    private lateinit var approachCircle: UIContainer
-    private lateinit var hitCircleFill: UICircle
-    private lateinit var rippleCircle: UIContainer
-    private var circleContainer: UIContainer
-    private lateinit var bpmValueText: UITextButton
-    private lateinit var offsetValueText: UITextButton
-    private lateinit var tapFeedbackText: UIText
-    private lateinit var judgementText: UIText
-    private lateinit var streakText: UIText
-    private lateinit var highPrecisionToggle: UICheckbox
+    private lateinit var approachCircle: Container
+    private lateinit var hitCircleFill: Circle
+    private lateinit var rippleCircle: Container
+    private var circleContainer: Container
+    private lateinit var bpmValueText: TextButton
+    private lateinit var offsetValueText: TextButton
+    private lateinit var tapFeedbackText: Text
+    private lateinit var judgementText: Text
+    private lateinit var streakText: Text
+    private lateinit var highPrecisionToggle: Checkbox
 
     init {
         // Background
-        backgroundComponent = UIBox().apply {
+        backgroundComponent = Box().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             color = Verktex.theme.palette.accent.shade(0.08f)
@@ -124,7 +124,7 @@ class CalibrationScene(
             onActionCancel = { playShortClickSound() }
         }
 
-        circleContainer = object : UIContainer() {
+        circleContainer = object : Container() {
             override fun onInputEvent(event: InputEvent): Boolean {
                 if (event !is PointerEvent || event.action != PointerEvent.Action.Down) {
                     return false
@@ -236,7 +236,7 @@ class CalibrationScene(
             anchor = Anchor.CenterRight
             origin = Anchor.CenterRight
             translationX = (-20f).px
-            orientation = UILinearContainer.Orientation.Vertical
+            orientation = LinearContainer.Orientation.Vertical
             padding = Padding(24f.px)
             radius = CornerRadius(16f.px)
 
@@ -267,7 +267,7 @@ class CalibrationScene(
             }
 
             linearContainer {
-                orientation = UILinearContainer.Orientation.Horizontal
+                orientation = LinearContainer.Orientation.Horizontal
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
                 spacing = 12f.px
@@ -312,7 +312,7 @@ class CalibrationScene(
             }
 
             linearContainer {
-                orientation = UILinearContainer.Orientation.Horizontal
+                orientation = LinearContainer.Orientation.Horizontal
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
                 spacing = 12f.px
@@ -379,7 +379,7 @@ class CalibrationScene(
             origin = Anchor.BottomLeft
             translationX = (20f).px
             translationY = (-20f).px
-            orientation = UILinearContainer.Orientation.Vertical
+            orientation = LinearContainer.Orientation.Vertical
             padding = Padding(14f.px)
             radius = CornerRadius(16f.px)
             background = Background.Color(themed { palette.accent.shade(0.15f) })
@@ -403,7 +403,7 @@ class CalibrationScene(
 
             // Setting row: label (left) + ON/OFF toggle (right)
             linearContainer {
-                orientation = UILinearContainer.Orientation.Horizontal
+                orientation = LinearContainer.Orientation.Horizontal
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
                 spacing = 8f.px
@@ -418,7 +418,7 @@ class CalibrationScene(
                     color = themed { palette.accent.shade(0.9f) }
                 }
 
-                highPrecisionToggle = UICheckbox(Settings[OsuSettings.HighPrecisionInput]).apply {
+                highPrecisionToggle = Checkbox(Settings[OsuSettings.HighPrecisionInput]).apply {
                     onValueChange =  {
                         Settings[OsuSettings.HighPrecisionInput] = value
                     }
@@ -669,7 +669,7 @@ class CalibrationScene(
 
     private fun showOffsetInputDialog() {
         updateThread {
-            UIPromptDialog(IntegerTextInput(pendingOffset)).apply {
+            PromptDialog(IntegerTextInput(pendingOffset)).apply {
                 title = com.osudroid.resources.Res.string.opt_offset_title
                 text = com.osudroid.resources.Res.string.opt_offset_summary
 
@@ -699,7 +699,7 @@ class CalibrationScene(
 
     private fun showBpmInputDialog() {
         updateThread {
-            UIPromptDialog(IntegerTextInput(currentBpm)).apply {
+            PromptDialog(IntegerTextInput(currentBpm)).apply {
                 title = "BPM"
 
                 addButton {

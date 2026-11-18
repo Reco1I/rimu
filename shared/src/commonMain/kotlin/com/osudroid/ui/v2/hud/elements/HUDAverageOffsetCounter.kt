@@ -2,7 +2,7 @@ package com.osudroid.ui.v2.hud.elements
 
 import com.reco1l.verktex.data.px
 
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.osudroid.ui.v2.hud.HUDElement
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import kotlin.math.roundToInt
@@ -11,7 +11,7 @@ class HUDAverageOffsetCounter : HUDElement() {
 
     override val name = "Average offset counter"
 
-    private val text = UIText().apply {
+    private val text = Text().apply {
         fontSize = 21f.px
         text = "Avg offset: 0ms"
     }

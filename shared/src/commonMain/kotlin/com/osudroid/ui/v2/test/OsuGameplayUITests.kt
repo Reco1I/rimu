@@ -26,7 +26,7 @@ import com.reco1l.verktex.testing.column
 import com.reco1l.verktex.testing.section
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.text.text
-import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.textButton
 import com.osudroid.ui.v2.test.GameplayObjectHarness.Play
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
@@ -115,7 +115,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                 origin = Anchor.TopRight
                 x = (-16f).dip
                 y = 72f.dip
-                variant = UIButton.Variant.Surface
+                variant = Button.Variant.Surface
                 text = styleName(isModern)
                 onActionUp = {
                     isModern = !isModern

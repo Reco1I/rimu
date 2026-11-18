@@ -3,12 +3,12 @@ package com.osudroid.ui.v2.mainmenu
 import com.reco1l.framework.forEachTolerant
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.graphics.GraphicsRenderer
+import com.reco1l.verktex.graphics.Renderer
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UICanvas
+import com.reco1l.verktex.ui.Canvas
 import kotlin.math.max
 
-class RippleVisualizer : UICanvas() {
+class RippleVisualizer : Canvas() {
 
     /**
      * The thickness of each ripple.
@@ -46,7 +46,7 @@ class RippleVisualizer : UICanvas() {
         super.onUpdate(clock)
     }
 
-    override fun onDraw(renderer: GraphicsRenderer) {
+    override fun onDraw(renderer: Renderer) {
         val baseSize = max(bounds.width, bounds.height)
         val thickness = rippleThickness.toPixels()
 

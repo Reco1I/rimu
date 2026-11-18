@@ -12,10 +12,10 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UIScrollableContainer
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.ScrollableContainer
+import com.reco1l.verktex.ui.text.Text
 import kotlin.math.hypot
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
@@ -28,7 +28,7 @@ import com.osudroid.utils.formatNumber
 class StatisticSelector(
     private val scoring: ScoringScene,
     stats: Array<StatisticV2>?
-) : UIScrollableContainer() {
+) : ScrollableContainer() {
 
     private val selected: StatisticV2? = scoring.currentStatistic
 
@@ -40,8 +40,8 @@ class StatisticSelector(
         x = 570f.px
         showVerticalIndicator = false
 
-        +UILinearContainer().apply {
-            orientation = UILinearContainer.Orientation.Vertical
+        +LinearContainer().apply {
+            orientation = LinearContainer.Orientation.Vertical
             width = Dimension.FillAvailable
 
             stats?.forEachIndexed { index, stat -> +BoardItem(index, stat) }
@@ -59,7 +59,7 @@ class StatisticSelector(
     }
 
 
-    private inner class BoardItem(index: Int, private val stat: StatisticV2) : UIContainer() {
+    private inner class BoardItem(index: Int, private val stat: StatisticV2) : Container() {
 
         private var pressX = 0f
         private var pressY = 0f
@@ -80,14 +80,14 @@ class StatisticSelector(
                 else -> Color4(1f, 0.6f, 0.6f, 0.9f)
             })
 
-            +UIText().apply {
+            +Text().apply {
                 color = if (stat.isAlive) Color4(0.6f, 0.6f, 0.6f, 0.9f) else Color4(1f, 0.6f, 0.6f, 0.9f)
                 text = "#${index + 1}"
                 anchor = com.reco1l.verktex.data.Anchor.CenterRight
                 origin = com.reco1l.verktex.data.Anchor.CenterRight
             }
 
-            +UIText().apply {
+            +Text().apply {
                 color = if (stat.isAlive) Color4(0.9f, 0.9f, 0.9f) else Color4(1f, 0.8f, 0.8f)
                 text = listOf(
                     stat.playerName,

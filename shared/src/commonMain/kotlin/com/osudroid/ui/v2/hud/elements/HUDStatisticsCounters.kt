@@ -10,7 +10,7 @@ import com.reco1l.framework.*
 import com.osudroid.ui.v2.hud.HUDElement
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.*
@@ -18,7 +18,7 @@ import ru.nsu.ccfit.zuev.skins.*
 @Suppress("LeakingThis")
 sealed class HUDStatisticCounter(label: String) : HUDElement() {
 
-    protected val labelText = UIText().apply {
+    protected val labelText = Text().apply {
         fontSize = 21f.px
         text = label
     }

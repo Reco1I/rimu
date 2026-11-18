@@ -42,14 +42,14 @@ import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIBadge
-import com.reco1l.verktex.ui.UILabeledBadge
-import com.reco1l.verktex.ui.UITextButton
+import com.reco1l.verktex.ui.Badge
+import com.reco1l.verktex.ui.LabeledBadge
+import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.badge
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.colorTo
-import com.reco1l.verktex.ui.container.UICaptureContainer
-import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
+import com.reco1l.verktex.ui.container.CaptureContainer
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
 import com.reco1l.verktex.ui.container.linearContainer
@@ -67,7 +67,7 @@ import kotlin.math.roundToInt
 import kotlin.reflect.KClass
 import com.osudroid.utils.createModInstance
 import com.reco1l.verktex.data.Border
-import com.reco1l.verktex.ui.container.UIIgnoreParentPaddingContainer
+import com.reco1l.verktex.ui.container.IgnoreParentPaddingContainer
 import com.reco1l.verktex.ui.container.captureContainer
 import com.reco1l.verktex.ui.themed
 import com.reco1l.verktex.localization.formatString
@@ -76,7 +76,7 @@ import com.reco1l.verktex.localization.formatString
  * The mod menu, shown over the scene it was opened from. It shows and changes [mods], which its
  * owner keeps: song select's for solo play, the room's in multiplayer.
  */
-class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
+class ModMenu(val mods: ModHashMap) : CaptureContainer() {
 
     /**
      * Called by the back button. Hides the menu by default.
@@ -108,11 +108,11 @@ class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
     private var hasSettingsChanged = false
 
     private lateinit var modPresetsSection: ModMenuPresetsSection
-    private lateinit var customizeButton: UITextButton
+    private lateinit var customizeButton: TextButton
     private lateinit var customizationMenu: ModCustomizationMenu
     private lateinit var selectedModsIndicator: ModsIndicator
     private lateinit var searchInput: ModMenuSearchInput
-    private lateinit var rankedBadge: UIBadge
+    private lateinit var rankedBadge: Badge
     private lateinit var arBadge: StatisticsBadge
     private lateinit var odBadge: StatisticsBadge
     private lateinit var csBadge: StatisticsBadge
@@ -610,7 +610,7 @@ class ModMenu(val mods: ModHashMap) : UICaptureContainer() {
 
     private class StatisticsBadge(
         private val formatter: (Float) -> String = { formatString("%.2f", it) }
-    ) : UILabeledBadge() {
+    ) : LabeledBadge() {
         private val counter = RollingFloatCounter(0f).apply {
             rollingEasing = Easing.OutQuint
             rollingDuration = 0.3f

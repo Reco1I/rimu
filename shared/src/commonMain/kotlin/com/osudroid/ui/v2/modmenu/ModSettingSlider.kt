@@ -1,8 +1,8 @@
 package com.osudroid.ui.v2.modmenu
 
-import com.reco1l.verktex.ui.control.UIControl
+import com.reco1l.verktex.ui.control.Control
 import com.reco1l.verktex.ui.form.FormControl
-import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.ui.form.FormSeekBar
 import com.osudroid.mods.Mod
 import com.osudroid.mods.settings.*
 
@@ -11,7 +11,7 @@ sealed class ModSettingSlider<V : Number?>(mod: Mod, setting: ModSetting<V>) :
 
     @Suppress("UNCHECKED_CAST")
     final override fun update() {
-        val slider = (control as FormSlider).control
+        val slider = (control as FormSeekBar).control
 
         // Assigning some constraining values (e.g., min, max and step) to the slider may unexpectedly change the value
         // of the setting due to their boundaries. Since the base update call will update the value of the control,
@@ -39,7 +39,7 @@ sealed class ModSettingSlider<V : Number?>(mod: Mod, setting: ModSetting<V>) :
 
     @Suppress("UNCHECKED_CAST")
     final override fun createControl() =
-        FormSlider(convertSettingValue(setting.initialValue)) as FormControl<Float, UIControl<Float>>
+        FormSeekBar(convertSettingValue(setting.initialValue)) as FormControl<Float, Control<Float>>
 
     final override fun convertSettingValue(value: V) = value?.toFloat() ?: setting.defaultValue?.toFloat() ?: 0f
 }

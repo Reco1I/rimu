@@ -17,7 +17,7 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.*
 import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.ui.container.*
-import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.control.textInput
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
@@ -30,7 +30,7 @@ import com.osudroid.utils.currentTimeMillis
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
 
-class LobbyScene : UIScene() {
+class LobbyScene : Scene() {
 
     // Back leaves the lobby, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -58,15 +58,15 @@ class LobbyScene : UIScene() {
             }
         }
 
-    private lateinit var messageContainer: UILinearContainer
-    private lateinit var roomContainer: UILinearContainer
-    private lateinit var refreshButton: UITextButton
+    private lateinit var messageContainer: LinearContainer
+    private lateinit var roomContainer: LinearContainer
+    private lateinit var refreshButton: TextButton
 
     private val fetchScope = CoroutineScope(Dispatchers.Default)
 
 
     init {
-        backgroundComponent = UISprite().apply {
+        backgroundComponent = Sprite().apply {
             width = fill()
             height = fill()
             scaleType = ScaleType.Crop
@@ -185,7 +185,7 @@ class LobbyScene : UIScene() {
     }
 
 
-    private fun switchContainers(target: UIContainer) {
+    private fun switchContainers(target: Container) {
 
         val opposite = if (target == roomContainer) messageContainer else roomContainer
 
@@ -237,7 +237,7 @@ class LobbyScene : UIScene() {
                 messageContainer.apply {
                     clearChildren()
 
-                    +UILoadingIndicator().apply {
+                    +LoadingIndicator().apply {
                         anchor = Anchor.Center
                         origin = Anchor.Center
 

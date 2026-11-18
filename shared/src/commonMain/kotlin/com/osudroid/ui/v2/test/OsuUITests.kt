@@ -2,7 +2,7 @@ package com.osudroid.ui.v2.test
 
 import kotlin.math.sin
 import kotlin.math.cos
-import com.reco1l.verktex.ui.UIVideo
+import com.reco1l.verktex.ui.Video
 import com.reco1l.verktex.Platform
 import com.osudroid.OsuGameHost
 import com.osudroid.settings.GameFolders
@@ -16,7 +16,7 @@ import com.osudroid.mods.ModRelax
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.SpriteFont
 import com.osudroid.ui.v2.StarRatingBadge
-import com.reco1l.verktex.ui.UIBadge
+import com.reco1l.verktex.ui.Badge
 import com.osudroid.ui.v2.game.CursorEntity
 import com.osudroid.ui.v2.game.NumberedCirclePiece
 import com.osudroid.ui.v2.mainmenu.OsuLogo
@@ -36,10 +36,10 @@ import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.testing.UITestSuite
 import com.reco1l.verktex.testing.column
 import com.reco1l.verktex.testing.section
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.control.slider
+import com.reco1l.verktex.ui.control.seekBar
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import ru.nsu.ccfit.zuev.skins.OsuSkin
@@ -63,7 +63,7 @@ object OsuUITests : UITestSuite("osu!") {
     init {
         test("Hit circles") {
             val pieces = mutableListOf<NumberedCirclePiece>()
-            val approachCircles = mutableListOf<UISprite>()
+            val approachCircles = mutableListOf<Sprite>()
 
             linearContainer {
                 anchor = Anchor.Center
@@ -82,7 +82,7 @@ object OsuUITests : UITestSuite("osu!") {
                             +it
                         }
 
-                        approachCircles += UISprite(SkinTextures["approachcircle"]).also {
+                        approachCircles += Sprite(SkinTextures["approachcircle"]).also {
                             it.anchor = Anchor.Center
                             it.origin = Anchor.Center
                             it.color = color
@@ -138,7 +138,7 @@ object OsuUITests : UITestSuite("osu!") {
                             if (texture == null) {
                                 text { text = "$name missing"; color = Color4.Red400 }
                             } else {
-                                +UISprite(texture).apply {
+                                +Sprite(texture).apply {
                                     width = 96f.dip
                                     height = 96f.dip
                                 }
@@ -211,7 +211,7 @@ object OsuUITests : UITestSuite("osu!") {
                 section("Badge") { +badge }
 
                 section("Rating") {
-                    slider {
+                    seekBar {
                         width = 400f.dip
                         min = 0f
                         max = 12f
@@ -219,7 +219,7 @@ object OsuUITests : UITestSuite("osu!") {
                     }
                 }
 
-                for (density in UIBadge.Density.entries) {
+                for (density in Badge.Density.entries) {
                     section("Presets ($density)") {
                         for (rating in listOf(1.5, 3.2, 5.4, 6.8, 8.2, 10.0)) {
                             +StarRatingBadge().apply {
@@ -300,7 +300,7 @@ object OsuUITests : UITestSuite("osu!") {
                 return@test
             }
 
-            val video = UIVideo(file.toString()).apply {
+            val video = Video(file.toString()).apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
             }

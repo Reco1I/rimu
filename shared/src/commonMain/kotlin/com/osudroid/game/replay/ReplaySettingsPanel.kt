@@ -11,10 +11,10 @@ import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.moveToX
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UIScrollableContainer
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.ScrollableContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.data.Dimension
@@ -26,7 +26,7 @@ import com.reco1l.verktex.data.px
 /**
  * A panel that contains settings for replay playback. Can be expanded and collapsed by tapping the button on the left.
  */
-class ReplaySettingsPanel : UIContainer() {
+class ReplaySettingsPanel : Container() {
     lateinit var playbackControl: ReplayPlaybackControl
         private set
 
@@ -36,7 +36,7 @@ class ReplaySettingsPanel : UIContainer() {
     private val isExpanded
         get() = Precision.almostEquals(translationX.resolve(0f), 0f)
 
-    private val elementContainer = UIScrollableContainer().apply {
+    private val elementContainer = ScrollableContainer().apply {
         x = BUTTON_WIDTH.px
 
         scrollAxes = Axis.Y
@@ -93,7 +93,7 @@ class ReplaySettingsPanel : UIContainer() {
         fadeTo(0.5f, 0.2f).after { elementContainer.isVisible = false }
     }
 
-    private fun UILinearContainer.addControls() {
+    private fun LinearContainer.addControls() {
         playbackControl = ReplayPlaybackControl()
         +playbackControl
 
@@ -101,7 +101,7 @@ class ReplaySettingsPanel : UIContainer() {
         +visualSettingsControl
     }
 
-    private inner class ReplaySettingsPanelButton : UIContainer() {
+    private inner class ReplaySettingsPanelButton : Container() {
         init {
             background = Background.Color(Color4(0xFF181825))
             radius = CornerRadius(BUTTON_RADIUS.px)

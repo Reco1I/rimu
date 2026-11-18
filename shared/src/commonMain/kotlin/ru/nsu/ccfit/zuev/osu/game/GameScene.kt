@@ -60,7 +60,7 @@ import com.osudroid.ui.v2.GameLoaderScene
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.skinFrames
-import com.reco1l.verktex.ui.UIVideo
+import com.reco1l.verktex.ui.Video
 import com.osudroid.ui.v2.game.AutoCursor
 import com.osudroid.ui.v2.game.BreakAnimator
 import com.osudroid.ui.v2.game.ComboBurst
@@ -99,15 +99,15 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.time.FrameStableClock
 import com.reco1l.verktex.time.SongClock
 import com.reco1l.verktex.time.Stopwatch
-import com.reco1l.verktex.ui.UIAnimatedSprite
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.UIScene
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.AnimatedSprite
+import com.reco1l.verktex.ui.Component
+import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.shape.UIBox
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.shape.Box
+import com.reco1l.verktex.ui.text.Text
 import okio.FileNotFoundException
 import okio.Path.Companion.toPath
 import okio.IOException
@@ -155,12 +155,12 @@ class GameScene : GameObjectListener {
     @JvmField
     var audioFilePath: String? = null
     private var gameUIScene: GameUIScene
-    private lateinit var root: UIContainer
-    private lateinit var backgroundLayer: UIContainer
-    private lateinit var playfield: UIContainer
-    private lateinit var bgScene: UIContainer
-    private lateinit var mgScene: UIContainer
-    private lateinit var fgScene: UIContainer
+    private lateinit var root: Container
+    private lateinit var backgroundLayer: Container
+    private lateinit var playfield: Container
+    private lateinit var bgScene: Container
+    private lateinit var mgScene: Container
+    private lateinit var fgScene: Container
 
     /**
      * The scores of the leaderboard shown during gameplay, given by song select with the play.
@@ -175,9 +175,9 @@ class GameScene : GameObjectListener {
     var isLeaderboardOnline = false
     private var failAnimation: FailAnimation? = null
     private var pauseMenu: PauseMenu? = null
-    private var replayText: UIText? = null
-    private var sceneBorder: UIContainer? = null
-    private var beatmapBackground: UIComponent? = null
+    private var replayText: Text? = null
+    private var sceneBorder: Container? = null
+    private var beatmapBackground: Component? = null
     private var beatmapBackgroundWidth = 0f
     private var beatmapBackgroundHeight = 0f
     private var parsedBeatmap: Beatmap? = null
@@ -213,7 +213,7 @@ class GameScene : GameObjectListener {
     private var initialStartTimeValue = 0f
     private var totalLength = Int.MAX_VALUE
     private var paused = false
-    private var skipBtn: UISprite? = null
+    private var skipBtn: Sprite? = null
     private var skipTime = 0f
     private var distToNextObject = 0.0
     private var cursorSprites: Array<CursorEntity>? = null
@@ -230,7 +230,7 @@ class GameScene : GameObjectListener {
     private var sliderPaths: Array<SliderPath?>? = null
     private var sliderRenderPaths: Array<Path?>? = null
     private var sliderIndex = 0
-    private var unrankedSprite: UISprite? = null
+    private var unrankedSprite: Sprite? = null
     private val modIcons = ArrayList<ModIcon>()
     private val rateAdjustingMods = ArrayList<IModApplicableToTrackRate>()
 
@@ -336,7 +336,7 @@ class GameScene : GameObjectListener {
     private var videoEnabled = false
 
     /**The video sprite*/
-    private var video: UIVideo? = null
+    private var video: Video? = null
 
     /**Video offset aka video start time in seconds*/
     private var videoOffset = 0f
@@ -374,16 +374,16 @@ class GameScene : GameObjectListener {
     }
 
     private fun createScene(): GameUIScene {
-        root = UIContainer()
+        root = Container()
         root.width = Dimension.FillAvailable
         root.height = Dimension.FillAvailable
         root.background = Background.Color(Color4.Black)
 
-        backgroundLayer = UIContainer()
+        backgroundLayer = Container()
         backgroundLayer.width = Dimension.FillAvailable
         backgroundLayer.height = Dimension.FillAvailable
 
-        playfield = UIContainer()
+        playfield = Container()
         playfield.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
         playfield.scaleOrigin = Anchor.TopLeft
 
@@ -410,8 +410,8 @@ class GameScene : GameObjectListener {
         return scene
     }
 
-    private fun createLayer(): UIContainer {
-        val layer = UIContainer()
+    private fun createLayer(): Container {
+        val layer = Container()
         layer.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
         return layer
     }
@@ -439,7 +439,7 @@ class GameScene : GameObjectListener {
         if (textureRegion == null) {
             val backgroundColor = playableBeatmap.events.backgroundColor
 
-            val box = UIBox()
+            val box = Box()
             box.width = Dimension.FillAvailable
             box.height = Dimension.FillAvailable
             box.color = backgroundColor ?: Color4.Black
@@ -448,7 +448,7 @@ class GameScene : GameObjectListener {
             beatmapBackgroundWidth = 0f
             beatmapBackgroundHeight = 0f
         } else {
-            beatmapBackground = UISprite(textureRegion)
+            beatmapBackground = Sprite(textureRegion)
             beatmapBackgroundWidth = textureRegion.width.toFloat()
             beatmapBackgroundHeight = textureRegion.height.toFloat()
         }
@@ -488,7 +488,7 @@ class GameScene : GameObjectListener {
 
         videoLoadingJob = async {
             try {
-                val video = UIVideo(beatmapInfo.absoluteSetDirectory + "/" + videoFilename)
+                val video = Video(beatmapInfo.absoluteSetDirectory + "/" + videoFilename)
                 if (!video.isAvailable) {
                     return@async
                 }
@@ -543,7 +543,7 @@ class GameScene : GameObjectListener {
         var sceneBorder = this.sceneBorder
 
         if (sceneBorder == null && Settings[OsuSettings.DisplayPlayfieldBorder] && playfieldSize < 1f) {
-            sceneBorder = UIContainer().apply {
+            sceneBorder = Container().apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 border = Border(Dimension.Fixed.Pixels(5f), Color4.White, Color4.White)
@@ -556,7 +556,7 @@ class GameScene : GameObjectListener {
         }
 
         val showVideo = videoEnabled && video != null
-        val background: UIComponent? = if (showVideo) video else beatmapBackground
+        val background: Component? = if (showVideo) video else beatmapBackground
 
         val backgroundWidth = if (showVideo) video!!.videoWidth.toFloat() else beatmapBackgroundWidth
         val backgroundHeight = if (showVideo) video!!.videoHeight.toFloat() else beatmapBackgroundHeight
@@ -957,7 +957,7 @@ class GameScene : GameObjectListener {
         return true
     }
 
-    val scene: UIScene
+    val scene: Scene
         get() = gameUIScene
 
     fun restartGame() {
@@ -1110,7 +1110,7 @@ class GameScene : GameObjectListener {
         return stopped
     }
 
-    private fun replaceCurrentScene(newScene: UIScene) {
+    private fun replaceCurrentScene(newScene: Scene) {
         Verktex.withTreeLock {
             Verktex.popScene()
             Verktex.pushScene(newScene)
@@ -1241,7 +1241,7 @@ class GameScene : GameObjectListener {
 
         val hasUnrankedMod = lastMods.values.any { m -> !m.isRanked }
         if (hasUnrankedMod || Multiplayer.isRemoveSliderLock()) {
-            val unrankedSprite = UISprite(SkinTextures.get("play-unranked"))
+            val unrankedSprite = Sprite(SkinTextures.get("play-unranked"))
             this.unrankedSprite = unrankedSprite
             unrankedSprite.anchor = Anchor.TopCenter
             unrankedSprite.origin = Anchor.Center
@@ -1272,7 +1272,7 @@ class GameScene : GameObjectListener {
         if (skipTime > 1) {
             val paddingBottom = if (Multiplayer.isConnected) Multiplayer.roomScene!!.chat.buttonHeight else 0f
 
-            val skipBtn = UIAnimatedSprite(skinFrames("play-skip", orStatic = true), 60f)
+            val skipBtn = AnimatedSprite(skinFrames("play-skip", orStatic = true), 60f)
             this.skipBtn = skipBtn
             skipBtn.anchor = Anchor.BottomRight
             skipBtn.origin = Anchor.BottomRight
@@ -1289,7 +1289,7 @@ class GameScene : GameObjectListener {
             playname = if (replaying) scoring.replayStat!!.playerName else "osu!"
 
             if (!Settings[OsuSettings.HideReplayMarquee]) {
-                val replayText = UIText()
+                val replayText = Text()
                 this.replayText = replayText
                 replayText.text = "Watching " + playname + " play " + metadata.artist + " - " + metadata.title + " [" + metadata.version + "]"
                 replayText.setPosition(GameplayHUD.REFERENCE_WIDTH + 5f, 140f)
@@ -2799,7 +2799,7 @@ class GameScene : GameObjectListener {
     private inner class FailAnimation(private val music: MusicService, private val initialFrequency: Float) {
         private var elapsedTime = 0f
 
-        private fun applyEffectToLayer(layer: UIContainer) {
+        private fun applyEffectToLayer(layer: Container) {
             if (layer.alpha > 0) {
                 layer.alpha = max(0f, layer.alpha - 0.007f)
             }
@@ -3279,7 +3279,7 @@ class GameScene : GameObjectListener {
         for (i in mgScene.childCount - 1 downTo 0) {
             val child = mgScene[i]
 
-            if (child is UISprite && child.choreography != null) {
+            if (child is Sprite && child.choreography != null) {
                 // Hit effects need to be pooled, so we cannot directly detach.
                 // finish() fires the effect's fade-out callback, which schedules putEffect() so the GameEffect
                 // wrapper is returned to the pool rather than orphaned.
@@ -3803,7 +3803,7 @@ class GameScene : GameObjectListener {
 
     //endregion
 
-    private inner class GameUIScene : UIScene() {
+    private inner class GameUIScene : Scene() {
         val game
             get() = this@GameScene
 

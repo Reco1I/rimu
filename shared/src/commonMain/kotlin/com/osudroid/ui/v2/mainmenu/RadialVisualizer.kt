@@ -4,18 +4,18 @@ import com.osudroid.OsuGame
 import com.reco1l.framework.forEachIndexedTolerant
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.graphics.GraphicsRenderer
+import com.reco1l.verktex.graphics.Renderer
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.FloatInterpolation
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.Theme
-import com.reco1l.verktex.ui.UICanvas
+import com.reco1l.verktex.ui.Canvas
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 
-class RadialVisualizer : UICanvas() {
+class RadialVisualizer : Canvas() {
 
     /**
      * The thickness of each bar.
@@ -118,7 +118,7 @@ class RadialVisualizer : UICanvas() {
         super.onUpdate(clock)
     }
 
-    override fun onDraw(renderer: GraphicsRenderer) {
+    override fun onDraw(renderer: Renderer) {
         val bars = bars
 
         val centerX = bounds.width / 2f

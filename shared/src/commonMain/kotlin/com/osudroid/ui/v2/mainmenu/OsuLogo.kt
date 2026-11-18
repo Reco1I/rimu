@@ -10,15 +10,15 @@ import com.reco1l.verktex.graphics.CompareFunction
 import com.reco1l.verktex.graphics.DepthState
 import com.reco1l.verktex.math.FloatInterpolation
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UIGradientBox
-import com.reco1l.verktex.ui.container.UIClickableContainer
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.GradientBox
+import com.reco1l.verktex.ui.container.ClickableContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.container
-import com.reco1l.verktex.ui.shape.UICircle
+import com.reco1l.verktex.ui.shape.Circle
 import com.reco1l.verktex.ui.shape.circle
 import com.reco1l.verktex.ui.sprite
 
-class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
+class OsuLogo(withExternalEffects: Boolean = true) : ClickableContainer() {
 
     /**
      * Whether to play music effects.
@@ -26,9 +26,9 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
     var playEffects = withExternalEffects
 
 
-    private lateinit var inputFeedbackCircle: UICircle
+    private lateinit var inputFeedbackCircle: Circle
 
-    private val bounceContainer: UIContainer
+    private val bounceContainer: Container
 
     private var radialVisualizer: RadialVisualizer? = null
     private var rippleDispenser: RippleVisualizer? = null
@@ -90,7 +90,7 @@ class OsuLogo(withExternalEffects: Boolean = true) : UIClickableContainer() {
                 )
             }
 
-            +UIGradientBox().apply {
+            +GradientBox().apply {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 colorStart = Color4.Transparent

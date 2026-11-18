@@ -12,10 +12,10 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreograph
-import com.reco1l.verktex.ui.container.UIContainer
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.fadeIn
 import kotlin.math.hypot
 import com.reco1l.verktex.ui.toast.Toasts
@@ -25,7 +25,7 @@ import ru.nsu.ccfit.zuev.skins.OsuSkin
 /**
  * The menu shown when pausing or failing, on top of the frozen gameplay.
  */
-class PauseMenu(private val game: GameScene, private val isFail: Boolean) : UIContainer() {
+class PauseMenu(private val game: GameScene, private val isFail: Boolean) : Container() {
 
     private var isReplaySaved = false
 
@@ -35,15 +35,15 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : UICo
         height = Dimension.FillAvailable
 
         SkinTextures[if (isFail) "fail-background" else "pause-overlay"]?.let {
-            +UISprite(it).apply {
+            +Sprite(it).apply {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 scaleType = ScaleType.Crop
             }
         }
 
-        +UILinearContainer().apply {
-            orientation = UILinearContainer.Orientation.Vertical
+        +LinearContainer().apply {
+            orientation = LinearContainer.Orientation.Vertical
             anchor = Anchor.Center
             origin = Anchor.Center
             scale = Verktex.graphics.window.windowWidth.toFloat() / GameResolution.width
@@ -108,7 +108,7 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : UICo
     }
 
 
-    private class MenuItem(texture: String, private val onClick: () -> Unit) : UISprite(SkinTextures[texture]) {
+    private class MenuItem(texture: String, private val onClick: () -> Unit) : Sprite(SkinTextures[texture]) {
 
         private var isPressed = false
         private var pressX = 0f

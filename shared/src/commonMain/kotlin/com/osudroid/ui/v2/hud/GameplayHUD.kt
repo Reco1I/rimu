@@ -11,7 +11,7 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.time.FrameClock
-import com.reco1l.verktex.ui.UIComponent
+import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.data.Vec2
 
 import com.osudroid.math.Vector2
@@ -19,9 +19,9 @@ import com.osudroid.resources.Res.string
 import com.osudroid.ui.v2.hud.elements.HUDAccuracyCounter
 import com.osudroid.ui.v2.hud.elements.HUDPieSongProgress
 import com.osudroid.ui.v2.hud.elements.HUDScoreCounter
-import com.reco1l.verktex.ui.container.UIScalingContainer
+import com.reco1l.verktex.ui.container.ScalingContainer
 import com.osudroid.ui.v2.hud.editor.HUDElementSelector
-import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.reco1l.verktex.ui.dialog.MessageDialog
 import com.osudroid.utils.updateThread
 import com.reco1l.framework.forEachTolerant
 import com.osudroid.beatmaps.constants.HitObjectType
@@ -44,7 +44,7 @@ class GameplayHUD(
      * The play this HUD shows.
      */
     val game: GameScene
-) : UIScalingContainer(), IGameplayEvents {
+) : ScalingContainer(), IGameplayEvents {
 
     /**
      * The currently selected element.
@@ -100,7 +100,7 @@ class GameplayHUD(
     }
 
 
-    private fun bringToFront(component: UIComponent) {
+    private fun bringToFront(component: Component) {
         if (children.remove(component)) {
             children.add(component)
         }
@@ -141,7 +141,7 @@ class GameplayHUD(
             return
         }
 
-        UIMessageDialog().apply {
+        MessageDialog().apply {
             title = string.hudEditor_modal_title
 
             addButton {
@@ -312,7 +312,7 @@ class GameplayHUD(
      * Exposes [children] to [forEachElement], since a public inline function cannot access protected members.
      */
     @PublishedApi
-    internal val elementChildren: List<UIComponent>
+    internal val elementChildren: List<Component>
         get() = children
 
     override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {

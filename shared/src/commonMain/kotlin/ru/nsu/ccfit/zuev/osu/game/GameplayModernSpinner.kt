@@ -9,10 +9,10 @@ import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.game.ScoreNumber
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
@@ -28,38 +28,38 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
  */
 class GameplayModernSpinner : GameplaySpinner() {
 
-    private val middle: UISprite
-    private val middle2: UISprite
-    private val bottom: UISprite
-    private val top: UISprite
-    private val glow: UISprite
+    private val middle: Sprite
+    private val middle2: Sprite
+    private val bottom: Sprite
+    private val top: Sprite
+    private val glow: Sprite
     private val bonusScore: ScoreNumber
 
     init {
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f)
         Utils.trackToRealCoords(position)
 
-        middle = UISprite()
+        middle = Sprite()
         middle.origin = Anchor.Center
         middle.setPosition(position.x, position.y)
         middle.texture = skinTexture("spinner-middle")
 
-        middle2 = UISprite()
+        middle2 = Sprite()
         middle2.origin = Anchor.Center
         middle2.setPosition(position.x, position.y)
         middle2.texture = skinTexture("spinner-middle2")
 
-        bottom = UISprite()
+        bottom = Sprite()
         bottom.origin = Anchor.Center
         bottom.setPosition(position.x, position.y)
         bottom.texture = skinTexture("spinner-bottom")
 
-        top = UISprite()
+        top = Sprite()
         top.origin = Anchor.Center
         top.setPosition(position.x, position.y)
         top.texture = skinTexture("spinner-top")
 
-        glow = UISprite()
+        glow = Sprite()
         glow.origin = Anchor.Center
         glow.setPosition(position.x, position.y)
         glow.texture = skinTexture("spinner-glow")
@@ -71,7 +71,7 @@ class GameplayModernSpinner : GameplaySpinner() {
         endsCombo = true
     }
 
-    override fun init(listener: GameObjectListener, scene: UIContainer,
+    override fun init(listener: GameObjectListener, scene: Container,
                       beatmapSpinner: Spinner, rps: Float, stat: StatisticV2) {
         this.scene = scene
         this.beatmapSpinner = beatmapSpinner
@@ -138,7 +138,7 @@ class GameplayModernSpinner : GameplaySpinner() {
         lifetimeEnd = Float.MAX_VALUE
     }
 
-    private fun fadeIn(sprite: UISprite) {
+    private fun fadeIn(sprite: Sprite) {
         val timePreempt = beatmapSpinner!!.timePreempt.toFloat() / 1000
 
         sprite.choreographAt(hitTime - timePreempt) { sequence -> sequence.fadeIn(timePreempt) }

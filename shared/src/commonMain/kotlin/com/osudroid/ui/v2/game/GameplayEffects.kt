@@ -12,14 +12,14 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.FloatInterpolation
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Component
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.clearTransforms
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.shape.UIBox
+import com.reco1l.verktex.ui.shape.Box
 import com.osudroid.math.Vector2
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.Utils
@@ -37,19 +37,19 @@ private const val FLASHLIGHT_SLIDER_DIM_ALPHA = 0.8f
 /**
  * The area around the cursor that remains visible with the Flashlight mod.
  */
-class FlashLightEntity(flashlight: ModFlashlight) : UIContainer() {
+class FlashLightEntity(flashlight: ModFlashlight) : Container() {
 
     private val followDelay = flashlight.followDelay
     private val sizeMultiplier = flashlight.sizeMultiplier
     private val comboBasedSize = flashlight.comboBasedSize
 
-    private val mainSprite = UISprite(SkinTextures["flashlight_cursor"]).also {
+    private val mainSprite = Sprite(SkinTextures["flashlight_cursor"]).also {
         it.origin = Anchor.Center
         it.scale = FLASHLIGHT_BASE_SIZE
         +it
     }
 
-    private val dimLayer = UIBox().also {
+    private val dimLayer = Box().also {
         val texture = mainSprite.textureRegion
 
         it.origin = Anchor.Center
@@ -155,9 +155,9 @@ class FlashLightEntity(flashlight: ModFlashlight) : UIContainer() {
  * Shows the state of the player during breaks and fades the background in the meantime.
  */
 class BreakAnimator(
-    private val layer: UIContainer,
+    private val layer: Container,
     private val stat: StatisticV2,
-    private val hud: UIContainer
+    private val hud: Container
 ) : GameObject() {
 
     /**
@@ -166,19 +166,19 @@ class BreakAnimator(
     var onEnding: (() -> Unit)? = null
 
     private val arrows = Array(4) { i ->
-        UISprite(SkinTextures["play-warningarrow"]).also { it.flippedHorizontal = i > 1 }
+        Sprite(SkinTextures["play-warningarrow"]).also { it.flippedHorizontal = i > 1 }
     }
 
     // The background, faded over black to dim it.
-    private var dimmedLayer: UIComponent? = null
+    private var dimmedLayer: Component? = null
     private var dimBrightness = OsuSettings.backgroundBrightness
 
     private var length = 0f
     private var time = 0f
     private var arrowTime = 0f
     private var ending = ""
-    private var passFail: UISprite? = null
-    private var mark: UISprite? = null
+    private var passFail: Sprite? = null
+    private var mark: Sprite? = null
     private var isBreak = false
     private var over = false
 
@@ -199,7 +199,7 @@ class BreakAnimator(
     }
 
 
-    fun setDimmedLayer(dimmedLayer: UIComponent?) {
+    fun setDimmedLayer(dimmedLayer: Component?) {
         this.dimmedLayer = dimmedLayer
     }
 
@@ -251,7 +251,7 @@ class BreakAnimator(
         arrowTime = 0f
         ending = if (stat.hp > 0.5f) "pass" else "fail"
 
-        passFail = UISprite(SkinTextures["section-$ending"]).also {
+        passFail = Sprite(SkinTextures["section-$ending"]).also {
             it.anchor = Anchor.Center
             it.origin = Anchor.Center
             it.isVisible = false
@@ -269,7 +269,7 @@ class BreakAnimator(
 
         val zeroWidth = SkinTextures[OsuSkin.get().scorePrefix, "0"]?.displayWidth ?: 0f
 
-        mark = UISprite(rankingTexture()).also {
+        mark = Sprite(rankingTexture()).also {
             it.anchor = Anchor.TopRight
             it.setPosition(-zeroWidth * 11f, 5f)
             it.scale = 1.2f
@@ -375,7 +375,7 @@ class BreakAnimator(
  */
 class ComboBurst(private val rightX: Float, private val bottomY: Float) {
 
-    private val sprites = mutableListOf<UISprite>()
+    private val sprites = mutableListOf<Sprite>()
     private val vocals = (listOf("comboburst") + List(10) { "comboburst-$it" }).mapNotNull(SkinSounds::getOrNull)
 
     private var nextKeyComboNum = 30
@@ -388,7 +388,7 @@ class ComboBurst(private val rightX: Float, private val bottomY: Float) {
         for (name in listOf("comboburst") + List(10) { "comboburst-$it" }) {
             val texture = SkinTextures[name] ?: continue
 
-            sprites += UISprite(texture).also { it.alpha = 0f }
+            sprites += Sprite(texture).also { it.alpha = 0f }
         }
     }
 
@@ -425,7 +425,7 @@ class ComboBurst(private val rightX: Float, private val bottomY: Float) {
         }
     }
 
-    private fun show(sprite: UISprite) {
+    private fun show(sprite: Sprite) {
         val texture = sprite.textureRegion ?: return
         val width = texture.displayWidth
         val toX: Float
@@ -459,7 +459,7 @@ class ComboBurst(private val rightX: Float, private val bottomY: Float) {
         nextKeyComboNum = 30
     }
 
-    fun attachAll(layer: UIContainer) {
+    fun attachAll(layer: Container) {
         sprites.forEach { layer += it }
     }
 
@@ -476,7 +476,7 @@ class ComboBurst(private val rightX: Float, private val bottomY: Float) {
  * The countdown shown before the first object of a beatmap.
  */
 class Countdown(
-    private var layer: UIContainer?,
+    private var layer: Container?,
     private val speed: Float,
     @Suppress("UNUSED_PARAMETER") offset: Float,
     time: Float
@@ -498,7 +498,7 @@ class Countdown(
     private val go = createSprite("go", center.x)
 
 
-    private fun createSprite(texture: String, x: Float) = UISprite(SkinTextures[texture]).also {
+    private fun createSprite(texture: String, x: Float) = Sprite(SkinTextures[texture]).also {
         it.origin = Anchor.Center
         it.setPosition(x, center.y)
         it.isVisible = false
@@ -521,7 +521,7 @@ class Countdown(
         }
     }
 
-    private fun showCount(sprite: UISprite, holdFraction: Float) {
+    private fun showCount(sprite: Sprite, holdFraction: Float) {
         sprite.alpha = 0f
         sprite.isVisible = true
         sprite.choreograph {

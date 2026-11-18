@@ -14,18 +14,18 @@ import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.wrap
-import com.reco1l.verktex.ui.UIButton
+import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.clearTransforms
-import com.reco1l.verktex.ui.container.UILinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.fadeTo
-import com.reco1l.verktex.ui.text.UIText
+import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.spans
 import com.reco1l.verktex.ui.text.text
 import ru.nsu.ccfit.zuev.osu.*
 
 
-class ModMenuToggle(var mod: Mod, private val selectedMods: ModHashMap) : UIButton() {
+class ModMenuToggle(var mod: Mod, private val selectedMods: ModHashMap) : Button() {
 
     /**
      * Whether the [Mod] represented by this [ModMenuToggle] is incompatible with one or more enabled [Mod]s.

@@ -3,14 +3,14 @@ package com.osudroid.ui.v2.modmenu
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.control.UITextInput
+import com.reco1l.verktex.ui.control.TextInput
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.osudroid.utils.currentTimeMillis
 
 /**
  * A search input field for filtering mods and mod presets in the mod menu.
  */
-class ModMenuSearchInput : UITextInput("") {
+class ModMenuSearchInput : TextInput("") {
     /**
      * The function to call when the search term changes.
      */

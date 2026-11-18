@@ -16,7 +16,7 @@ import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.GameplaySequenceHitSampleInfo
 import com.reco1l.verktex.math.Path
-import com.reco1l.verktex.ui.UIPath
+import com.reco1l.verktex.ui.shape.PathShape
 import com.osudroid.math.MathUtils
 import com.osudroid.math.Precision
 import com.osudroid.math.Vector2
@@ -31,14 +31,14 @@ import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.UIAnimatedSprite
-import com.reco1l.verktex.ui.UIComponent
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.AnimatedSprite
+import com.reco1l.verktex.ui.Component
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.graphics.BlendMode
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.scaleTo
@@ -54,12 +54,12 @@ import ru.nsu.ccfit.zuev.skins.OsuSkin
 
 class GameplaySlider : GameObject() {
 
-    private val approachCircle: UISprite
-    private val startArrow: UISprite
-    private val endArrow: UISprite
+    private val approachCircle: Sprite
+    private val startArrow: Sprite
+    private val endArrow: Sprite
     private var beatmapSlider: Slider? = null
     private var controlPoints: BeatmapControlPoints? = null
-    private var scene: UIContainer? = null
+    private var scene: Container? = null
     private var stat: StatisticV2? = null
     private var listener: GameObjectListener? = null
     private var path: SliderPath? = null
@@ -86,7 +86,7 @@ class GameplaySlider : GameObject() {
     private var isTracking = false
     private var spanStarted = false
 
-    private val followCircle: UISprite
+    private val followCircle: Sprite
 
     // Temporarily used Vector2 to avoid allocations
     private val tmpPoint = Vector2(0f)
@@ -109,7 +109,7 @@ class GameplaySlider : GameObject() {
     private var lastSnakeOutStartLength = 0f
     private var lastSnakeOutEndLength = 0f
 
-    private val sliderBody: UIPath
+    private val sliderBody: PathShape
 
     /**
      * The absolute slider's path end position.
@@ -120,9 +120,9 @@ class GameplaySlider : GameObject() {
     /**
      * The slider ball sprite.
      */
-    private val ball: UIAnimatedSprite
-    private val ballUnder = UISprite()
-    private val ballOver = UISprite()
+    private val ball: AnimatedSprite
+    private val ballUnder = Sprite()
+    private val ballOver = Sprite()
 
     /**
      * The start circle piece of the slider.
@@ -155,18 +155,18 @@ class GameplaySlider : GameObject() {
         headCirclePiece = NumberedCirclePiece(sliderStartCircleTexture, sliderStartCircleOverlayTexture)
         tailCirclePiece = CirclePiece(sliderEndCircleTexture, sliderEndCircleOverlayTexture)
 
-        approachCircle = UISprite()
+        approachCircle = Sprite()
         approachCircle.origin = Anchor.Center
 
-        startArrow = UISprite()
+        startArrow = Sprite()
         startArrow.origin = Anchor.Center
         startArrow.texture = skinTexture("reversearrow")
 
-        endArrow = UISprite()
+        endArrow = Sprite()
         endArrow.origin = Anchor.Center
         endArrow.texture = skinTexture("reversearrow")
 
-        ball = UIAnimatedSprite(skinFrames("sliderb", orStatic = true), 60f)
+        ball = AnimatedSprite(skinFrames("sliderb", orStatic = true), 60f)
         ball.origin = Anchor.Center
 
         // The layers of the default slider ball, which a skin can replace without replacing the ball.
@@ -176,10 +176,10 @@ class GameplaySlider : GameObject() {
         ballOver.blendMode = BlendMode.Additive
 
         // Animated or not depending on the skin, which may change while the slider is alive.
-        followCircle = UIAnimatedSprite(skinFrames("sliderfollowcircle", orStatic = true), OsuSkin.get().animationFramerate)
+        followCircle = AnimatedSprite(skinFrames("sliderfollowcircle", orStatic = true), OsuSkin.get().animationFramerate)
         followCircle.origin = Anchor.Center
 
-        sliderBody = UIPath()
+        sliderBody = PathShape()
         tickContainer = SliderTickContainer()
         isSliderBallFlip = OsuSkin.get().isSliderBallFlip
 
@@ -187,7 +187,7 @@ class GameplaySlider : GameObject() {
         sliderWhistleSample = GameplaySequenceHitSampleInfo()
     }
 
-    fun init(listener: GameObjectListener, scene: UIContainer, stat: StatisticV2,
+    fun init(listener: GameObjectListener, scene: Container, stat: StatisticV2,
              beatmapSlider: Slider, controlPoints: BeatmapControlPoints, comboColor: Color4,
              borderColor: Color4, sliderPath: SliderPath, renderPath: Path) {
         this.listener = listener
@@ -1435,7 +1435,7 @@ class GameplaySlider : GameObject() {
         }
     }
 
-    private fun applyDim(piece: UIComponent) {
+    private fun applyDim(piece: Component) {
         if (piece.parent == null || !piece.isVisible) {
             return
         }

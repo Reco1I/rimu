@@ -11,12 +11,12 @@ import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.UIButton
-import com.reco1l.verktex.ui.UITextButton
-import com.reco1l.verktex.ui.container.UILinearContainer
-import com.reco1l.verktex.ui.container.UILinearContainer.Orientation
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.TextButton
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.dialog.UIMessageDialog
+import com.reco1l.verktex.ui.dialog.MessageDialog
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.osudroid.utils.async
@@ -25,7 +25,7 @@ import com.osudroid.utils.updateThread
 class ModMenuPresetsSection(val menu: ModMenu) : ModMenuSection("Presets") {
 
 
-    private val addButton: UITextButton
+    private val addButton: TextButton
 
     private var modPresets = listOf<ModPreset>()
 
@@ -33,7 +33,7 @@ class ModMenuPresetsSection(val menu: ModMenu) : ModMenuSection("Presets") {
     init {
         minWidth = 192f.dip
 
-        addButton = UITextButton().apply {
+        addButton = TextButton().apply {
             width = fill()
             leadingIcon = faSolidIcon(FAIcon.Plus)
             text = "Add preset"
@@ -105,7 +105,7 @@ class ModMenuPresetsSection(val menu: ModMenu) : ModMenuSection("Presets") {
         }
     }
 
-    inner class ModPresetToggle(val preset: ModPreset) : UIButton() {
+    inner class ModPresetToggle(val preset: ModPreset) : Button() {
 
         init {
             width = fill()
@@ -131,11 +131,11 @@ class ModMenuPresetsSection(val menu: ModMenu) : ModMenuSection("Presets") {
             }
 
             onActionLongPress = {
-                UIMessageDialog().apply {
+                MessageDialog().apply {
                     title = "Delete preset"
                     text = "Delete preset \"${preset.name}\"?"
 
-                    addButton(UITextButton().apply {
+                    addButton(TextButton().apply {
                         text = "Delete"
                         variant = Variant.Solid
                         onActionUp = {
@@ -147,7 +147,7 @@ class ModMenuPresetsSection(val menu: ModMenu) : ModMenuSection("Presets") {
                         }
                     })
 
-                    addButton(UITextButton().apply {
+                    addButton(TextButton().apply {
                         text = "Cancel"
                         onActionUp = {
                             hide()

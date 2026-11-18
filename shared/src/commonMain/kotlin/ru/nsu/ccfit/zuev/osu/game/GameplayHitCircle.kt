@@ -15,10 +15,10 @@ import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.Container
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -27,10 +27,10 @@ import ru.nsu.ccfit.zuev.skins.OsuSkin
 
 class GameplayHitCircle : GameObject() {
 
-    private val approachCircle: UISprite
+    private val approachCircle: Sprite
     private var comboColor = Color4()
     private var listener: GameObjectListener? = null
-    private var scene: UIContainer? = null
+    private var scene: Container? = null
     private var beatmapCircle: HitCircle? = null
     private var passedTime = 0f
     private var timePreempt = 0f
@@ -47,11 +47,11 @@ class GameplayHitCircle : GameObject() {
 
     init {
         circlePiece = NumberedCirclePiece("hitcircle", "hitcircleoverlay")
-        approachCircle = UISprite()
+        approachCircle = Sprite()
         approachCircle.origin = Anchor.Center
     }
 
-    fun init(listener: GameObjectListener, pScene: UIContainer, beatmapCircle: HitCircle,
+    fun init(listener: GameObjectListener, pScene: Container, beatmapCircle: HitCircle,
              comboColor: Color4) {
         // Storing parameters into fields
         this.beatmapCircle = beatmapCircle

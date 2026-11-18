@@ -12,11 +12,11 @@ import com.osudroid.game.GameplaySequenceHitSampleInfo
 import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.game.ScoreNumber
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.graphics.GraphicsTexture
-import com.reco1l.verktex.ui.UISprite
+import com.reco1l.verktex.graphics.Texture
+import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
-import com.reco1l.verktex.ui.container.UIClipContainer
-import com.reco1l.verktex.ui.container.UIContainer
+import com.reco1l.verktex.ui.container.ClipContainer
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.scaleTo
 import kotlin.math.PI
@@ -39,16 +39,16 @@ import kotlin.random.Random
 import kotlin.jvm.JvmStatic
 
 open class GameplaySpinner : GameObject() {
-    private val background: UISprite
-    private val circle: UISprite
-    private val approachCircle: UISprite
-    private val metre: UIClipContainer
-    private val metreSprite: UISprite
+    private val background: Sprite
+    private val circle: Sprite
+    private val approachCircle: Sprite
+    private val metre: ClipContainer
+    private val metreSprite: Sprite
     // The background region the sizes were derived from, see layoutToBackground.
-    private var laidOutBackground: GraphicsTexture.Region? = null
+    private var laidOutBackground: Texture.Region? = null
     private var isLaidOut = false
-    private val spinText: UISprite
-    private val clearText: UISprite
+    private val spinText: Sprite
+    private val clearText: Sprite
     private val bonusScore: ScoreNumber
 
     @JvmField
@@ -61,7 +61,7 @@ open class GameplaySpinner : GameObject() {
     @JvmField
     protected var listener: GameObjectListener? = null
     @JvmField
-    protected var scene: UIContainer? = null
+    protected var scene: Container? = null
     @JvmField
     protected var fullRotations = 0
     @JvmField
@@ -95,25 +95,25 @@ open class GameplaySpinner : GameObject() {
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f)
         Utils.trackToRealCoords(position)
 
-        background = UISprite()
+        background = Sprite()
         background.origin = Anchor.Center
         background.setPosition(position.x, position.y)
         background.texture = skinTexture("spinner-background")
 
-        circle = UISprite()
+        circle = Sprite()
         circle.origin = Anchor.Center
         circle.setPosition(position.x, position.y)
         circle.texture = skinTexture("spinner-circle")
 
         // The metre fills from the bottom: the sprite keeps the size of the background while the container
         // shows a growing part of it from its bottom, as osu!stable does.
-        metreSprite = UISprite()
+        metreSprite = Sprite()
         metreSprite.scaleType = ScaleType.Stretch
         metreSprite.texture = skinTexture("spinner-metre")
         metreSprite.width = fill()
         metreSprite.height = fill()
 
-        metre = UIClipContainer()
+        metre = ClipContainer()
         metre.origin = Anchor.Center
         metre.scaleOrigin = Anchor.Center
         metre.setPosition(position.x, position.y)
@@ -123,17 +123,17 @@ open class GameplaySpinner : GameObject() {
 
         layoutToBackground()
 
-        approachCircle = UISprite()
+        approachCircle = Sprite()
         approachCircle.origin = Anchor.Center
         approachCircle.setPosition(position.x, position.y)
         approachCircle.texture = skinTexture("spinner-approachcircle")
 
-        spinText = UISprite()
+        spinText = Sprite()
         spinText.origin = Anchor.Center
         spinText.setPosition(position.x, position.y * 1.5f)
         spinText.texture = skinTexture("spinner-spin")
 
-        clearText = UISprite()
+        clearText = Sprite()
         clearText.origin = Anchor.Center
         clearText.setPosition(position.x, position.y * 0.5f)
         clearText.texture = skinTexture("spinner-clear")
@@ -169,7 +169,7 @@ open class GameplaySpinner : GameObject() {
         metre.scale = background.scaleX
     }
 
-    open fun init(listener: GameObjectListener, scene: UIContainer,
+    open fun init(listener: GameObjectListener, scene: Container,
                   beatmapSpinner: Spinner, rps: Float, stat: StatisticV2) {
         fullRotations = 0
         rotations = 0f

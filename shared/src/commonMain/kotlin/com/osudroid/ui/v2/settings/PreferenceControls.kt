@@ -5,7 +5,7 @@ import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.form.FormCheckbox
 import com.reco1l.verktex.ui.form.FormInput
 import com.reco1l.verktex.ui.form.FormSelect
-import com.reco1l.verktex.ui.form.FormSlider
+import com.reco1l.verktex.ui.form.FormSeekBar
 import kotlin.math.roundToInt
 
 /*
@@ -56,7 +56,7 @@ class PreferenceSelect(private val setting: SettingKey<String>) :
 /**
  * A slider storing its value as a float.
  */
-class FloatPreferenceSlider(private val setting: SettingKey<Float>) : FormSlider(Settings[setting]) {
+class FloatPreferenceSlider(private val setting: SettingKey<Float>) : FormSeekBar(Settings[setting]) {
 
     init {
         defaultValue = setting.default
@@ -71,7 +71,7 @@ class FloatPreferenceSlider(private val setting: SettingKey<Float>) : FormSlider
 /**
  * A slider storing its value as a whole number.
  */
-class IntPreferenceSlider(private val setting: SettingKey<Int>) : FormSlider(Settings[setting].toFloat()) {
+class IntPreferenceSlider(private val setting: SettingKey<Int>) : FormSeekBar(Settings[setting].toFloat()) {
 
     init {
         defaultValue = setting.default.toFloat()
