@@ -42,8 +42,16 @@ import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import kotlin.coroutines.cancellation.CancellationException
 import com.osudroid.data.BeatmapSetInfo
 import com.osudroid.utils.updateThread
+import com.reco1l.verktex.data.CornerRadius
+import com.reco1l.verktex.data.verticalPadding
+import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
+import com.reco1l.verktex.ui.Icon
+import com.reco1l.verktex.ui.button
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
+import com.reco1l.verktex.ui.text.text
+import com.reco1l.verktex.ui.themed
 
 /**
  * Song select, created each time it's opened. Its sort order and grouping are settings, and it
@@ -131,7 +139,7 @@ class SongSelect : Scene() {
             linearContainer {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
-                orientation = LinearContainer.Orientation.Vertical
+                orientation = Orientation.Vertical
                 spacing = 8f.dip
 
                 +beatmapInfoWedge
@@ -149,10 +157,10 @@ class SongSelect : Scene() {
         }
 
         linearContainer {
-            orientation = LinearContainer.Orientation.Horizontal
+            orientation = Orientation.Horizontal
             anchor = Anchor.BottomLeft
             origin = Anchor.BottomLeft
-            padding = Padding(8f.dip, 16f.dip)
+            padding = Padding(8f.dip, 0f.px)
             spacing = 8f.dip
 
             textButton {
@@ -164,10 +172,45 @@ class SongSelect : Scene() {
                 onActionUp = { back() }
             }
 
-            textButton {
-                text = "Mods"
-                leadingIcon = faSolidIcon(FAIcon.Sliders)
-                onActionUp = { showModMenu() }
+
+            fun bottomBarButton(icon: Int, label: String, onClick: () -> Unit) = button {
+                height = wrap()
+                minWidth = 92f.dip
+                padding = themed { Padding(gap.sm) }
+                tintChildren = false
+                radius = themed {
+                    buttonStyle[density].radius.let { r -> CornerRadius(r, r, 0f.px, 0f.px) }
+                }
+
+                linearContainer {
+                    orientation = Orientation.Vertical
+                    spacing = themed { gap.xs }
+                    anchor = Anchor.Center
+                    origin = Anchor.Center
+
+                    +Icon(icon).apply {
+                        iconSize = themed { typography.h2.size }
+                        anchor = Anchor.TopCenter
+                        origin = Anchor.TopCenter
+                    }
+
+                    text {
+                        text = label
+                        anchor = Anchor.TopCenter
+                        origin = Anchor.TopCenter
+                    }
+                }
+                onActionUp = onClick
+            }
+
+            bottomBarButton(FAIcon.Sliders, "Mods") {
+                showModMenu()
+            }
+
+            bottomBarButton(FAIcon.Shuffle, "Random") {
+                if (beatmapCarrousel.data.isNotEmpty()) {
+                    beatmapCarrousel.applyComponent(beatmapCarrousel.data.random()) { selectRandom() }
+                }
             }
 
             modsIndicator = ModsIndicator().apply {
@@ -177,16 +220,6 @@ class SongSelect : Scene() {
                 spacing = (-5f).px
             }
             +modsIndicator
-
-            textButton {
-                text = "Random"
-                leadingIcon = faSolidIcon(FAIcon.Shuffle)
-                onActionUp = {
-                    if (beatmapCarrousel.data.isNotEmpty()) {
-                        beatmapCarrousel.applyComponent(beatmapCarrousel.data.random()) { selectRandom() }
-                    }
-                }
-            }
         }
     }
 

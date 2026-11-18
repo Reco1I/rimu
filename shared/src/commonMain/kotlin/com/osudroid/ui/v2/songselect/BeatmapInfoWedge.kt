@@ -86,7 +86,7 @@ class BeatmapInfoWedge(
         linearContainer {
             width = Dimension.FillAvailable
             orientation = Orientation.Vertical
-            padding = Padding(16f.dip)
+            padding = Padding(16f.dip, 8f.dip, 32f.dip, 8f.dip)
             spacing = 6f.dip
 
             linearContainer {
