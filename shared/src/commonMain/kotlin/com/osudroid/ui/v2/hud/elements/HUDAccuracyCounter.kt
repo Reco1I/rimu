@@ -14,17 +14,7 @@ import com.reco1l.verktex.localization.formatString
 class HUDAccuracyCounter : HUDElement() {
 
     private val sprite = SpriteFont(OsuSkin.get().scorePrefix).apply {
-        val digitRange = '0'..'9'
-        val maxDigitWidth = digitRange.maxOfOrNull { characters[it]?.width?.toFloat() ?: 0f } ?: 0f
-
-        fixedCharWidths = buildMap {
-            for (c in digitRange) {
-                put(c, maxDigitWidth)
-            }
-
-            characters['.']?.let { put('.', it.width.toFloat()) }
-            characters['%']?.let { put('%', it.width.toFloat()) }
-        }
+        useFixedDigitWidth()
 
         measureText = "100.00%"
         text = "100.00%"

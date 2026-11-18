@@ -20,4 +20,20 @@ open class SpriteFont(private val texturePrefix: StringSkinData) : TextureText(m
     addChar('d', "d")
     addChar('p', "p")
 
-})
+}) {
+
+    /**
+     * Gives every digit the width of the '5', centred in it, so numbers don't shift as they change, as osu!lazer's
+     * legacy sprite texts do. Other characters keep their own width, or the one [others] gives them.
+     */
+    fun useFixedDigitWidth(others: Map<Char, Float> = emptyMap()) {
+        val digitWidth = characters['5']?.displayWidth ?: 0f
+
+        fixedCharWidths = buildMap {
+            for (c in '0'..'9') {
+                put(c, digitWidth)
+            }
+            putAll(others)
+        }
+    }
+}
