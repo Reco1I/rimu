@@ -9,6 +9,7 @@ import com.osudroid.ui.v2.test.OsuSceneUITests
 import com.osudroid.ui.v2.test.OsuUITests
 import com.osudroid.ui.v2.test.TestGameContext
 import com.reco1l.verktex.desktop.testing.UITestApplication
+import com.reco1l.verktex.testing.SimulatedSafeArea
 import com.reco1l.verktex.testing.VerktexUITests
 import java.io.File
 import kotlin.system.exitProcess
@@ -21,14 +22,16 @@ import kotlinx.coroutines.runBlocking
  * ./gradlew :desktopApp:runUITests --args="--test 'osu!/Hit circles' --screenshot build/test.png --delay 3"
  * ```
  *
- * `--backend` opens it with a graphics backend, e.g. `Vulkan`.
+ * `--backend` opens it with a graphics backend, e.g. `Vulkan`, and `--safe-area` simulates a phone's
+ * safe area (a `SimulatedSafeArea`, e.g. `Notch`).
  */
 class OsuUITestsDesktop(
     initialTest: String?,
     screenshot: File?,
     screenshotDelay: Double,
     backend: String? = null,
-) : UITestApplication(initialTest, screenshot, screenshotDelay = screenshotDelay, backend = backend), OsuGameHost {
+    safeArea: SimulatedSafeArea? = null,
+) : UITestApplication(initialTest, screenshot, screenshotDelay = screenshotDelay, backend = backend, safeArea = safeArea), OsuGameHost {
 
     override val platformApplication = DESKTOP_APPLICATION
 
@@ -49,6 +52,7 @@ fun main(args: Array<String>) {
     var screenshot: File? = null
     var delay = UITestApplication.SCREENSHOT_DELAY_SECONDS
     var backend: String? = null
+    var safeArea: SimulatedSafeArea? = null
 
     var i = 0
     while (i < args.size) {
@@ -57,13 +61,14 @@ fun main(args: Array<String>) {
             "--screenshot" -> screenshot = args.getOrNull(++i)?.let(::File)
             "--delay" -> delay = args.getOrNull(++i)?.toDoubleOrNull() ?: delay
             "--backend" -> backend = args.getOrNull(++i)
+            "--safe-area" -> safeArea = UITestApplication.parseSafeArea(args.getOrNull(++i))
             else -> {
-                System.err.println("Unknown argument: ${args[i]}. Usage: [--test <suite/test>] [--screenshot <file.png> [--delay <seconds>]] [--backend <name>]")
+                System.err.println("Unknown argument: ${args[i]}. Usage: [--test <suite/test>] [--screenshot <file.png> [--delay <seconds>]] [--backend <name>] [--safe-area <name>]")
                 exitProcess(2)
             }
         }
         i++
     }
 
-    OsuUITestsDesktop(test, screenshot, delay, backend).run()
+    OsuUITestsDesktop(test, screenshot, delay, backend, safeArea).run()
 }
