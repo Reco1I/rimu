@@ -1,7 +1,6 @@
 package com.osudroid.ui.v2
 
 import com.osudroid.settings.OsuSettings
-import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.ui.text.spans
@@ -17,12 +16,10 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.pct
-import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.texture.Textures
@@ -30,7 +27,6 @@ import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.LoadingIndicator
 import com.reco1l.verktex.ui.Scene
-import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.ui.card
 import com.reco1l.verktex.ui.clearTransforms
@@ -51,7 +47,6 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import kotlin.math.*
-import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.ui.themed
 import com.osudroid.utils.currentTimeMillis
@@ -59,6 +54,10 @@ import com.reco1l.verktex.localization.formatString
 import com.osudroid.utils.async
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.input.KeyboardEvent
+import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.Button.Density
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
+import com.reco1l.verktex.ui.icon
 
 class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : Scene() {
 
@@ -127,18 +126,22 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 height = fill()
 
                 if (beatmapInfo.epilepsyWarning) {
-                    text {
-                        spans {
-                            icon(FAIcon.TriangleExclamation)
-                            space(8f.dip)
-                            +Res.string.epilepsy_warning.toString()
+                    linearContainer {
+                        spacing = 12f.dip
+                        icon {
+                            iconCode = FAIcon.TriangleExclamation
+                            anchor = Anchor.CenterLeft
+                            origin = Anchor.CenterLeft
+                        }
+                        text {
+                            text = Res.string.epilepsy_warning
                         }
                     }
                 }
 
                 linearContainer {
                     width = fill()
-                    orientation = LinearContainer.Orientation.Vertical
+                    orientation = Orientation.Vertical
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
                     spacing = 8f.dip
@@ -147,7 +150,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         width = fill()
                         wrapText = true
                         text = beatmapInfo.titleText
-                        fontSize = themed { typography.h2.size }
+                        fontSettings = themed { typography.h1 }
                         color = themed { palette.accent }
                     }
 
@@ -155,7 +158,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         width = fill()
                         wrapText = true
                         text = beatmapInfo.version
-                        fontSize = themed { typography.h2.size }
+                        fontSettings = themed { typography.h3 }
                         color = themed { palette.accent }
                     }
 
@@ -177,7 +180,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 }
 
                 linearContainer {
-                    orientation = LinearContainer.Orientation.Vertical
+                    orientation = Orientation.Vertical
                     anchor = Anchor.BottomLeft
                     origin = Anchor.BottomLeft
                     spacing = 16f.dip
@@ -306,7 +309,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
             linearContainer {
                 width = fill()
-                orientation = LinearContainer.Orientation.Vertical
+                orientation = Orientation.Vertical
                 spacing = 16f.dip
 
                 card {
@@ -315,7 +318,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     isCollapsible = true
 
                     content.apply {
-                        val offsetSlider = FormSeekBar().apply {
+                        val offsetSeekbar = FormSeekBar().apply {
                             label = Res.string.opt_category_offset
                             control.min = -250f
                             control.max = 250f
@@ -332,8 +335,8 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                                 }
                             }
                         }
-                        +offsetSlider
-                        this@GameLoaderScene.offsetSlider = offsetSlider
+                        +offsetSeekbar
+                        this@GameLoaderScene.offsetSlider = offsetSeekbar
 
                         linearContainer {
                             anchor = Anchor.TopCenter
@@ -341,18 +344,19 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                             spacing = 12f.dip
                             padding = com.reco1l.verktex.data.Padding(8f.dip)
 
-                            fun StepButton(step: Int) = textButton {
+                            fun stepButton(step: Int) = textButton {
                                 text = abs(step).toString()
+                                density = Density.Small
                                 leadingIcon = faSolidIcon(if (step >= 0) FAIcon.Plus else FAIcon.Minus)
                                 onActionUp = {
-                                    offsetSlider.value += step
+                                    offsetSeekbar.value += step
                                 }
                             }
 
-                            StepButton(-5)
-                            StepButton(-1)
-                            StepButton(1)
-                            StepButton(5)
+                            stepButton(-5)
+                            stepButton(-1)
+                            stepButton(1)
+                            stepButton(5)
                         }
                     }
 
@@ -395,11 +399,12 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                             }
                         }
 
-                        +PreferenceCheckbox(OsuSettings.EnableStoryboard).apply {
+                        // TODO: Add Storyboard support.
+                        /*+PreferenceCheckbox(OsuSettings.EnableStoryboard).apply {
                             label = Res.string.opt_enableStoryboard_title
                             onValueChanged = {
                             }
-                        }
+                        }*/
 
                         +PreferenceCheckbox(OsuSettings.EnableVideo).apply {
                             label = Res.string.opt_video_title
