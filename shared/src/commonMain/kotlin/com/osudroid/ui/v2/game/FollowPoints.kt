@@ -13,6 +13,7 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.AnimatedSprite
+import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.OnTransformFinished
 import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.choreography
@@ -32,12 +33,9 @@ object FollowPointConnection {
 
     private val pool = SynchronizedPool<IPoolable>(20)
 
-    private fun obtainFollowPoint(): Sprite {
+    private fun obtainFollowPoint(animationStartTime: Float): Sprite {
         val fp = pool.acquire() as PoolableFollowPoint? ?: PoolableFollowPoint()
-
-        // A pooled one stopped on its last frame, its animation plays again from the start.
-        fp.stop()
-        fp.play()
+        fp.animationStartTime = animationStartTime
         return fp
     }
 
@@ -84,7 +82,7 @@ object FollowPointConnection {
 
         // Reference: https://github.com/ppy/osu/blob/7bc8908ca9c026fed1d831eb6e58df7624a8d614/osu.Game.Rulesets.Osu/Objects/Drawables/Connections/FollowPointConnection.cs
 
-        val scale = start.screenSpaceGameplayScale
+        val scale = end.screenSpaceGameplayScale
         val startTime = (start.endTime / 1000f).toFloat()
 
         val startPosition = start.screenSpaceGameplayStackedEndPosition
@@ -94,7 +92,8 @@ object FollowPointConnection {
         val distanceY = endPosition.y - startPosition.y
         val rotation = atan2(distanceY, distanceX) * (180f / PI).toFloat()
 
-        // HitObject.timeFadeIn may be modified by mods, but reference uses the unmodified version (which is 400ms).
+        // osu!stable's HitObjectManager.TimeFadeIn, a constant: HitObject.timeFadeIn isn't used, as mods such as
+        // Hidden change it.
         val endFadeInTime = 0.4f
         val duration = (end.startTime - start.endTime).toFloat() / 1000f
 
@@ -105,9 +104,11 @@ object FollowPointConnection {
 
         // Since the unit of spacing is in osu!pixels, we cannot directly port the reference code. As such, we need to
         // approach it with another method. We use the distance between the start and end positions in osu!pixels to
-        // determine the amount of sprites to spawn, and then map them into gameplay positions in pixels.
-        val osuPixelsStartPosition = start.difficultyStackedEndPosition
-        val osuPixelsEndPosition = end.difficultyStackedPosition
+        // determine the amount of sprites to spawn, and then map them into gameplay positions in pixels. These are the
+        // gameplay stacked positions, the ones the screen space positions above come from: the difficulty stacked
+        // ones may be stacked differently and give another amount of points.
+        val osuPixelsStartPosition = start.gameplayStackedEndPosition
+        val osuPixelsEndPosition = end.gameplayStackedPosition
 
         val osuPixelsDistance = osuPixelsEndPosition.getDistance(osuPixelsStartPosition).toInt()
 
@@ -125,7 +126,7 @@ object FollowPointConnection {
             val fadeOutTime = startTime + fraction * duration
             val fadeInTime = fadeOutTime - preempt
 
-            val fp = obtainFollowPoint()
+            val fp = obtainFollowPoint(fadeInTime)
 
             fp.choreography?.clear()
             fp.translationX = pointStartX.px
@@ -156,14 +157,32 @@ object FollowPointConnection {
 
     /**
      * A follow point, animated or not depending on the skin, which may change while it's pooled.
+     *
+     * As in osu!lazer, its animation loops and starts when the follow point starts to fade in, on the gameplay
+     * clock, so it's in the same frame whenever it's seen, seeking included.
      */
     private class PoolableFollowPoint : AnimatedSprite(skinFrames("followpoint", orStatic = true), OsuSkin.get().animationFramerate), IPoolable {
         override var isRecycled = false
 
+        /**
+         * The time the animation starts at, in seconds on the clock of the follow point.
+         */
+        var animationStartTime = 0f
+
         init {
-            isLoop = false
+            isLoop = true
+            // The frame follows the clock instead of advancing on its own.
+            pause()
             // Cropping from the center is what this scale type does when the size is smaller than the texture.
             scaleType = ScaleType.Crop
+        }
+
+        override fun onUpdate(clock: FrameClock) {
+            val duration = duration
+
+            elapsedSec = if (duration > 0f) max(0f, currentClockTime - animationStartTime) % duration else 0f
+
+            super.onUpdate(clock)
         }
 
         // The size follows the texture, at most this.
