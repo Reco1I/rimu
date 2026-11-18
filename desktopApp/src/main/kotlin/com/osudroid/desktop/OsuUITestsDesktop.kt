@@ -23,7 +23,7 @@ import kotlinx.coroutines.runBlocking
  * ```
  *
  * `--backend` opens it with a graphics backend, e.g. `Vulkan`, and `--safe-area` simulates a phone's
- * safe area (a `SimulatedSafeArea`, e.g. `Notch`).
+ * safe area (a `SimulatedSafeArea`, e.g. `CutoutLeft`).
  */
 class OsuUITestsDesktop(
     initialTest: String?,

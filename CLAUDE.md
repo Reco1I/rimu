@@ -98,7 +98,7 @@ adb shell am start -S -n ru.nsu.ccfit.zuev.osuplus.debug/com.osudroid.ui.v2.test
 
 Add `--es backend <name>` (a `GPUBackend`: `OpenGLES3`, `OpenGLES2`, `Vulkan`) to open it with another graphics backend.
 
-On desktop, `--test` opens a test and `--screenshot <file.png>` saves a frame and exits. The desktop window has no safe area, so the browser simulates a phone's, with its toolbar button or `--safe-area <name>` (a `SimulatedSafeArea`: `None`, `CutoutLeft`, `CutoutRight`, `Notch`), and tints what it leaves out: it's the window's safe area while the browser is shown, so code reading `Verktex.graphics.window.insets` sees it too. Relative paths resolve against the root of the build the task belongs to, so Verktex's browser saves under `verktex/`:
+On desktop, `--test` opens a test and `--screenshot <file.png>` saves a frame and exits. The desktop window has no safe area, so the browser simulates a phone's, with its toolbar button or `--safe-area <name>` (a `SimulatedSafeArea`, cutouts on the sides: `None`, `CutoutLeft`, `CutoutRight`, `CutoutBoth`): it's the window's safe area while the browser is shown, so code reading `Verktex.graphics.window.insets` sees it too. Relative paths resolve against the root of the build the task belongs to, so Verktex's browser saves under `verktex/`:
 
 ```bash
 ./gradlew :verktex:desktopApp:run --args="--test 'Verktex/Text' --screenshot build/text.png"
