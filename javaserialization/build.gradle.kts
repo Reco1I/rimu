@@ -9,6 +9,51 @@ plugins {
     id("com.android.kotlin.multiplatform.library")
     // For the tests' @Serializable classes.
     id("org.jetbrains.kotlin.plugin.serialization")
+    `maven-publish`
+}
+
+// Published as com.reco1l:java-serialization, with an artifact per target
+// (java-serialization-jvm, java-serialization-android) that Gradle picks from the root one's
+// metadata. ./gradlew :javaserialization:publishToMavenLocal publishes it to ~/.m2, and
+// :javaserialization:publishAllPublicationsToBuildRepository to build/repository, to look at.
+group = "com.reco1l"
+version = "0.1.0"
+
+val artifactName = "java-serialization"
+
+publishing {
+    publications.withType<MavenPublication>().configureEach {
+        // The module's name, javaserialization, is what Kotlin names them after (the targets' are
+        // renamed by kotlin.targets, as Kotlin names them later).
+        artifactId = artifactId.replace(project.name, artifactName)
+
+        pom {
+            name.set("Java Serialization")
+            description.set(
+                "Reads Java's object serialization streams without the JVM, and decodes them into " +
+                    "@Serializable classes with a kotlinx.serialization format. Kotlin Multiplatform."
+            )
+            licenses {
+                license {
+                    name.set("The Apache License, Version 2.0")
+                    url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                }
+            }
+            developers {
+                developer {
+                    id.set("Reco1l")
+                    name.set("Reco1l")
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "build"
+            url = uri(layout.buildDirectory.dir("repository"))
+        }
+    }
 }
 
 val checkCommonSources by tasks.registering(CheckCommonSources::class) {
@@ -40,6 +85,13 @@ kotlin {
     }
 
     explicitApi()
+
+    // Each target's publication, named after the module by Kotlin, see publishing below.
+    targets.configureEach {
+        mavenPublication {
+            artifactId = artifactId.replace(project.name, artifactName)
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
