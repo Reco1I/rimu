@@ -292,7 +292,29 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      circle, as Argon's.
    - The `osu!/Spinners` UI test cycles through the skin's spinner, the default skin's and both texture styles.
 
-5. **Procedural follow points, cursor and trail.** Adds the texture made at runtime, if the engine needs it.
+5. **Procedural follow points, cursor and trail** (done). Adds the texture made at runtime, if the engine needs it.
+
+   ### Phase 5 as done
+
+   - **Engine:** `PixelsSource` (`graphics/PixelsSource.kt`, engine commit `2e6f884`) is a texture source of
+     pixels made in code, with `pixelBufferOf` to hand them to the backends. `PixelsSource.softDot` makes a white
+     dot fading to its edge.
+   - **Follow points:** they show the skin's `FollowPointPiece` inside the pooled follow point, which still places,
+     turns and fades them for every skin, as osu!lazer's `FollowPoint` does.
+     - `LegacyFollowPointPiece` is the `followpoint` animation, synced to the clock from `animationStartTime`, at
+       most 128×64.
+     - `DefaultFollowPointPiece` is a white chevron with a glow, 16×22.
+   - **Cursor:** `CursorSprite` is now a container growing and turning the skin's `CursorPiece`, placed from its
+     centre or its top left corner as the piece says (`isCentred`).
+     - `LegacyCursorPiece` is the `cursor` texture.
+     - `DefaultCursorPiece` (76) is a white ring with a glow around a dark disc and a white dot, always centred.
+     - `cursormiddle` stays a texture of skins that have it.
+   - **Trail:** the trail is drawn in the skin's `CursorTrailStyle`.
+     - `LegacyCursorTrailStyle` keeps osu!stable's rules: separate images every frame, or a continuous trail with a
+       `cursormiddle`.
+     - `DefaultCursorTrailStyle` is a continuous trail of soft dots, a texture made once with
+       `PixelsSource.softDot` and kept in `Textures` as `default-skin:cursortrail`.
+
 6. **HUD**: Torus counters with fixed-width digits (an engine change), and the procedural health bar.
 7. **Remove the replaced assets.**
    - Delete from `gfx/`:

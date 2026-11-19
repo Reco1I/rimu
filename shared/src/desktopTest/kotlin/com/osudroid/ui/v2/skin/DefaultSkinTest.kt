@@ -9,12 +9,13 @@ import org.junit.Test
 class DefaultSkinTest {
 
     @Test
-    fun `it provides the circles, sliders, approach circles and judgements`() {
+    fun `it provides every component but the hit lighting`() {
         for (component in listOf(
             SkinComponent.HitCircle, SkinComponent.SliderHeadCircle, SkinComponent.SliderTailCircle,
             SkinComponent.ApproachCircle, SkinComponent.TraceableApproachCircle, SkinComponent.Judgement("hit300"),
             SkinComponent.SliderBody, SkinComponent.SliderBall, SkinComponent.FollowCircle, SkinComponent.ReverseArrow,
-            SkinComponent.SliderTick, SkinComponent.Spinner,
+            SkinComponent.SliderTick, SkinComponent.Spinner, SkinComponent.FollowPoint, SkinComponent.Cursor,
+            SkinComponent.CursorTrail,
         )) {
             assertTrue("$component", DefaultSkin.provides(component))
         }

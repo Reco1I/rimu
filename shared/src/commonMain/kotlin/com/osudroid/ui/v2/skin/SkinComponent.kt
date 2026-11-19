@@ -65,6 +65,21 @@ sealed class SkinComponent<T : Any> {
     data object Spinner : SkinComponent<SpinnerPiece>()
 
     /**
+     * A point between two objects.
+     */
+    data object FollowPoint : SkinComponent<FollowPointPiece>()
+
+    /**
+     * A cursor.
+     */
+    data object Cursor : SkinComponent<CursorPiece>()
+
+    /**
+     * The trail a cursor leaves.
+     */
+    data object CursorTrail : SkinComponent<CursorTrailStyle>()
+
+    /**
      * The light behind a judgement. Only texture skins have it.
      */
     data object HitLighting : SkinComponent<HitLightingPiece>()

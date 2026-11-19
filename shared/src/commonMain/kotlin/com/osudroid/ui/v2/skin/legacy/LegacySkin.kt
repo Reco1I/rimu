@@ -31,6 +31,9 @@ object LegacySkin : GameplaySkin {
         // The body is drawn with the skin's settings, which any skin of its own has.
         SkinComponent.SliderBody -> !SkinTextures.isDefaultSkin()
         SkinComponent.Spinner -> SPINNER_TEXTURES.any { isSkinned(it) }
+        SkinComponent.FollowPoint -> isAnimationSkinned("followpoint")
+        SkinComponent.Cursor -> isSkinned("cursor")
+        SkinComponent.CursorTrail -> isSkinned("cursortrail")
         SkinComponent.HitLighting -> isSkinned("lighting")
         is SkinComponent.Judgement -> isAnimationSkinned(component.textureName)
     }
@@ -51,6 +54,9 @@ object LegacySkin : GameplaySkin {
         SkinComponent.FollowCircle -> LegacyFollowCirclePiece()
         SkinComponent.SliderBody -> LegacySliderBodyStyle
         SkinComponent.Spinner -> if (SkinTextures.isNewStyleSpinner()) LegacyModernSpinnerPiece() else LegacyClassicSpinnerPiece()
+        SkinComponent.FollowPoint -> LegacyFollowPointPiece()
+        SkinComponent.Cursor -> LegacyCursorPiece()
+        SkinComponent.CursorTrail -> LegacyCursorTrailStyle
         SkinComponent.HitLighting -> if (SkinTextures["lighting"] != null) HitLightingPiece() else null
         is SkinComponent.Judgement -> LegacyJudgementPiece(component.textureName)
     } as T?

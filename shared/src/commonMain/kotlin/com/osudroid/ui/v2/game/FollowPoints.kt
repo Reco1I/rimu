@@ -1,7 +1,8 @@
 package com.osudroid.ui.v2.game
 
 import kotlin.math.PI
-import com.osudroid.ui.v2.skinFrames
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.ScaleType
@@ -33,9 +34,9 @@ object FollowPointConnection {
 
     private val pool = SynchronizedPool<IPoolable>(20)
 
-    private fun obtainFollowPoint(animationStartTime: Float): Sprite {
+    private fun obtainFollowPoint(animationStartTime: Float): PoolableFollowPoint {
         val fp = pool.acquire() as PoolableFollowPoint? ?: PoolableFollowPoint()
-        fp.animationStartTime = animationStartTime
+        fp.piece.animationStartTime = animationStartTime
         return fp
     }
 
@@ -151,44 +152,19 @@ object FollowPointConnection {
     }
 
     /**
-     * A follow point, animated or not depending on the skin, which may change while it's pooled.
-     *
-     * As in osu!lazer, its animation loops and starts when the follow point starts to fade in, on the gameplay
-     * clock, so it's in the same frame whenever it's seen, seeking included.
+     * A follow point, showing the skin's piece, as osu!lazer's `FollowPoint`: it's placed, turned and faded here,
+     * whatever the skin.
      */
-    private class PoolableFollowPoint : AnimatedSprite(skinFrames("followpoint", orStatic = true), OsuSkin.get().animationFramerate), IPoolable {
+    private class PoolableFollowPoint : Container(), IPoolable {
         override var isRecycled = false
 
-        /**
-         * The time the animation starts at, in seconds on the clock of the follow point.
-         */
-        var animationStartTime = 0f
+        val piece = SkinPieces.current.create(SkinComponent.FollowPoint).apply {
+            anchor = Anchor.Center
+            origin = Anchor.Center
+        }
 
         init {
-            isLoop = true
-            // The frame follows the clock instead of advancing on its own.
-            pause()
-            // Cropping from the center is what this scale type does when the size is smaller than the texture.
-            scaleType = ScaleType.Crop
-        }
-
-        override fun onUpdate(clock: FrameClock) {
-            val duration = duration
-
-            elapsedSec = if (duration > 0f) max(0f, currentClockTime - animationStartTime) % duration else 0f
-
-            super.onUpdate(clock)
-        }
-
-        // The size follows the texture, at most this.
-        // Reference: https://github.com/ppy/osu/blob/0811de728e4205a45e485d53ccdaf19a937c6033/osu.Game.Rulesets.Osu/Skinning/Legacy/OsuLegacySkinTransformer.cs#L95-L97
-        override fun onMeasure(parentConstraints: LayoutConstraints, contentConstraints: LayoutConstraints): Vec2 {
-            val size = super.onMeasure(parentConstraints, contentConstraints)
-
-            return Vec2(
-                x = min(size.x, HitObject.OBJECT_RADIUS * 2),
-                y = min(size.y, HitObject.OBJECT_RADIUS)
-            )
+            +piece
         }
     }
 }

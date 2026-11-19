@@ -2,7 +2,9 @@ package com.osudroid.ui.v2.game
 
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
-import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.skin.CursorTrailStyle
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
@@ -22,9 +24,9 @@ import kotlin.math.sqrt
 import com.reco1l.verktex.graphics.BlendMode
 
 /**
- * The sprite of a cursor, which grows while it's pressed.
+ * A cursor's look, the skin's [CursorPiece], which grows while it's pressed.
  */
-class CursorSprite : Sprite() {
+class CursorSprite : Container() {
 
     val baseSize = OsuSettings.cursorSize * 2
 
@@ -33,12 +35,19 @@ class CursorSprite : Sprite() {
 
     private var isPressed = false
 
+    private val piece = SkinPieces.current.create(SkinComponent.Cursor)
+
+    /**
+     * Where the cursor is placed from its position: its centre, or its top left corner for skins that ask for it.
+     */
+    val cursorOrigin = if (piece.isCentred) Anchor.Center else Anchor.TopLeft
+
     init {
         anchor = Anchor.Center
-        origin = cursorOrigin()
-        scaleOrigin = cursorOrigin()
+        origin = cursorOrigin
+        scaleOrigin = cursorOrigin
         scale = baseSize
-        texture = skinTexture("cursor")
+        +piece
     }
 
 
@@ -98,15 +107,17 @@ open class CursorEntity : Container() {
 
     protected val cursorSprite = CursorSprite()
 
-    // Drawn over the cursor, it neither rotates nor grows.
+    // Drawn over the cursor, it neither rotates nor grows. Only texture skins have it.
     private val middleSprite = Sprite().apply {
         anchor = Anchor.Center
-        origin = cursorOrigin()
+        origin = cursorSprite.cursorOrigin
         scale = cursorSprite.baseSize
         texture = skinTexture("cursormiddle")
     }
 
-    private val trail = if (SkinTextures["cursortrail"] != null) CursorTrail(cursorSprite) else null
+    private val trail = SkinPieces.current.createOrNull(SkinComponent.CursorTrail)
+        ?.takeIf { it.texture != null }
+        ?.let { CursorTrail(cursorSprite, it) }
     private var isShowing = false
 
 
@@ -147,24 +158,18 @@ open class CursorEntity : Container() {
 }
 
 /**
- * Where a cursor's textures are placed from its position: their centre, or their top left corner for skins
- * that ask for it.
- */
-private fun cursorOrigin() = if (OsuSkin.get().isCentreCursor) Anchor.Center else Anchor.TopLeft
-
-/**
- * The trail left behind by a cursor, as osu!stable's: separate images every frame for skins without a
- * `cursormiddle`, a continuous trail along the path of the cursor for skins with one.
+ * The trail left behind by a cursor, as osu!stable's, in the skin's [style]: separate images every frame, or a
+ * continuous trail along the path of the cursor.
  *
  * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyCursorTrail.cs
  */
-private class CursorTrail(private val cursor: CursorSprite) : ParticleSystem(MAX_PARTICLES) {
+private class CursorTrail(private val cursor: CursorSprite, private val style: CursorTrailStyle) : ParticleSystem(MAX_PARTICLES) {
 
-    private val isContinuous = SkinTextures["cursormiddle"] != null
+    private val isContinuous = style.isContinuous
 
     private val lifetime = if (isContinuous) CONTINUOUS_LIFETIME else SEPARATE_LIFETIME
 
-    private val isCentred = isContinuous || OsuSkin.get().isCentreCursor
+    private val isCentred = style.isCentred
 
     private var timeSinceLast = SEPARATE_INTERVAL
 
@@ -174,7 +179,7 @@ private class CursorTrail(private val cursor: CursorSprite) : ParticleSystem(MAX
 
 
     init {
-        texture = SkinTextures["cursortrail"]
+        texture = style.texture
 
         if (isContinuous) {
             blendMode = BlendMode.Additive
@@ -243,7 +248,7 @@ private class CursorTrail(private val cursor: CursorSprite) : ParticleSystem(MAX
             startScale = cursor.baseSize,
             startAlpha = 1f,
             endAlpha = 0f,
-            rotation = if (OsuSkin.get().isRotateCursorTrail) cursor.rotationZ else 0f
+            rotation = if (style.rotates) cursor.rotationZ else 0f
         )
     }
 

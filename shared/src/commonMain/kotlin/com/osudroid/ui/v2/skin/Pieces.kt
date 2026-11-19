@@ -3,6 +3,7 @@ package com.osudroid.ui.v2.skin
 import com.osudroid.game.HitResult
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.shape.PathShape
@@ -170,6 +171,55 @@ abstract class SpinnerPiece : Container() {
      * The spinner is judged: takes every piece out, what was shown on top too.
      */
     abstract fun end()
+}
+
+/**
+ * A follow point, which the connection between two objects places, turns and fades, whatever the skin.
+ */
+abstract class FollowPointPiece : Container() {
+
+    /**
+     * The time, on its clock, the follow point starts to show at, for skins animating it from then.
+     */
+    open var animationStartTime = 0f
+}
+
+/**
+ * The look of a cursor, which the cursor grows while pressed and turns for the skins asking for it.
+ */
+abstract class CursorPiece : Container() {
+
+    /**
+     * Whether the cursor's position is its centre rather than its top left corner.
+     */
+    abstract val isCentred: Boolean
+}
+
+/**
+ * How a cursor's trail is drawn by its particle system.
+ */
+interface CursorTrailStyle {
+
+    /**
+     * The image of each part of the trail, null for none.
+     */
+    val texture: Texture.Region?
+
+    /**
+     * Whether the trail is continuous along the path of the cursor, additive, rather than separate images left
+     * every frame.
+     */
+    val isContinuous: Boolean
+
+    /**
+     * Whether the parts are centred on the cursor's position rather than placed from their top left corner.
+     */
+    val isCentred: Boolean
+
+    /**
+     * Whether the parts are turned as the cursor is.
+     */
+    val rotates: Boolean
 }
 
 /**
