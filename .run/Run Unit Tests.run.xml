@@ -10,6 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
+          <option value=":javaserialization:jvmTest" />
           <option value=":shared:desktopTest" />
         </list>
       </option>

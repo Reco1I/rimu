@@ -1,5 +1,6 @@
 // What every module shares: the plugins on the classpath and the repositories. The modules are
-// :shared (the game), :androidApp and :desktopApp (its applications), see docs/multiplatform-game.md.
+// :shared (the game), :androidApp and :desktopApp (its applications), see docs/multiplatform-game.md,
+// and :javaserialization, a library of its own.
 buildscript {
     ext {
         kotlin_version = '2.4.10'

@@ -23,6 +23,9 @@ includeBuild('verktex')
 // The game, shared by its applications, see docs/multiplatform-game.md.
 include ':shared'
 
+// Libraries of the game's own that don't depend on it, each meant to be published on its own.
+include ':javaserialization'
+
 // The applications: the entry points of the game on each platform.
 include ':androidApp'
 include ':desktopApp'

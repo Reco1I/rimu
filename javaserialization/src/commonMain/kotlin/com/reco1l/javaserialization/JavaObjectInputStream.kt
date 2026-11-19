@@ -40,7 +40,7 @@ import okio.buffer
  * @param source The stream, from its header on. It's closed with this.
  * @throws JavaSerializationException If [source] doesn't start with a serialization stream header.
  */
-class JavaObjectInputStream(source: Source) : Closeable {
+public class JavaObjectInputStream(source: Source) : Closeable {
 
     private val source: BufferedSource = source as? BufferedSource ?: source.buffer()
 
@@ -65,7 +65,7 @@ class JavaObjectInputStream(source: Source) : Closeable {
      *
      * @throws JavaSerializationException If primitive data is next instead.
      */
-    fun readObject(): Any? {
+    public fun readObject(): Any? {
         if (blockRemaining > 0) {
             throw JavaSerializationException("Expected an object, $blockRemaining bytes of primitive data are left")
         }
@@ -73,35 +73,35 @@ class JavaObjectInputStream(source: Source) : Closeable {
         return readContent()
     }
 
-    fun readBoolean() = readBlockByte() != 0.toByte()
+    public fun readBoolean(): Boolean = readBlockByte() != 0.toByte()
 
-    fun readByte() = readBlockByte()
+    public fun readByte(): Byte = readBlockByte()
 
-    fun readUnsignedByte() = readBlockByte().toInt() and 0xFF
+    public fun readUnsignedByte(): Int = readBlockByte().toInt() and 0xFF
 
-    fun readShort() = readBlockBits(2).toShort()
+    public fun readShort(): Short = readBlockBits(2).toShort()
 
-    fun readUnsignedShort() = readBlockBits(2).toInt() and 0xFFFF
+    public fun readUnsignedShort(): Int = readBlockBits(2).toInt() and 0xFFFF
 
-    fun readChar() = readBlockBits(2).toInt().toChar()
+    public fun readChar(): Char = readBlockBits(2).toInt().toChar()
 
-    fun readInt() = readBlockBits(4).toInt()
+    public fun readInt(): Int = readBlockBits(4).toInt()
 
-    fun readLong() = readBlockBits(8)
+    public fun readLong(): Long = readBlockBits(8)
 
-    fun readFloat() = Float.fromBits(readInt())
+    public fun readFloat(): Float = Float.fromBits(readInt())
 
-    fun readDouble() = Double.fromBits(readLong())
+    public fun readDouble(): Double = Double.fromBits(readLong())
 
     /**
      * Reads a string written with `writeUTF`.
      */
-    fun readUTF() = decodeModifiedUtf8(readFully(readUnsignedShort()))
+    public fun readUTF(): String = decodeModifiedUtf8(readFully(readUnsignedShort()))
 
     /**
      * Reads the next [byteCount] bytes of primitive data, written with `write`.
      */
-    fun readFully(byteCount: Int): ByteArray {
+    public fun readFully(byteCount: Int): ByteArray {
         val bytes = ByteArray(byteCount)
         readFully(bytes, 0, byteCount)
         return bytes
@@ -110,7 +110,7 @@ class JavaObjectInputStream(source: Source) : Closeable {
     /**
      * Reads the next [length] bytes of primitive data into [bytes], from [offset].
      */
-    fun readFully(bytes: ByteArray, offset: Int, length: Int) {
+    public fun readFully(bytes: ByteArray, offset: Int, length: Int) {
         var read = 0
 
         while (read < length) {
@@ -126,7 +126,7 @@ class JavaObjectInputStream(source: Source) : Closeable {
         }
     }
 
-    override fun close() = source.close()
+    override fun close(): Unit = source.close()
 
 
     // Primitive data
