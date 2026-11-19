@@ -51,7 +51,7 @@ object DefaultSkin : GameplaySkin {
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> create(component: SkinComponent<T>): T? = when (component) {
         SkinComponent.HitCircle, SkinComponent.SliderHeadCircle -> DefaultMainCirclePiece(hasNumber = true)
-        SkinComponent.SliderTailCircle -> DefaultMainCirclePiece(hasNumber = false)
+        SkinComponent.SliderTailCircle -> DefaultSliderTailPiece()
         SkinComponent.ApproachCircle, SkinComponent.TraceableApproachCircle -> DefaultApproachCircle()
         SkinComponent.ReverseArrow -> DefaultReverseArrow()
         SkinComponent.SliderTick -> DefaultSliderTick()

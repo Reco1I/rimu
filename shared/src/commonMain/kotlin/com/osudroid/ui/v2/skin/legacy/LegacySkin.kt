@@ -25,7 +25,7 @@ object LegacySkin : GameplaySkin {
         SkinComponent.SliderHeadCircle -> isSkinned("sliderstartcircle") || provides(SkinComponent.HitCircle)
         SkinComponent.SliderTailCircle -> isSkinned("sliderendcircle") || provides(SkinComponent.HitCircle)
         SkinComponent.ApproachCircle -> isSkinned("approachcircle")
-        // Traceable always shows the default skin's.
+        // Traceable always shows the default skin's, drawn in code.
         SkinComponent.TraceableApproachCircle -> false
         SkinComponent.ReverseArrow -> isSkinned("reversearrow")
         SkinComponent.SliderTick -> isSkinned("sliderscorepoint")
@@ -53,7 +53,7 @@ object LegacySkin : GameplaySkin {
         )
         SkinComponent.SliderTailCircle -> LegacyMainCirclePiece("sliderendcircle", "sliderendcircleoverlay", hasNumber = false)
         SkinComponent.ApproachCircle -> sprite("approachcircle")
-        SkinComponent.TraceableApproachCircle -> sprite("defaultapproachcircle")
+        SkinComponent.TraceableApproachCircle -> null
         SkinComponent.ReverseArrow -> sprite("reversearrow")
         SkinComponent.SliderTick -> sprite("sliderscorepoint")
         SkinComponent.SliderBall -> LegacySliderBallPiece()

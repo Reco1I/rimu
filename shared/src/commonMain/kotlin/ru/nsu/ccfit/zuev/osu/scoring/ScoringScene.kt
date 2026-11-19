@@ -30,6 +30,8 @@ import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.StatisticSelector
 import com.osudroid.ui.v2.game.ScoreNumber
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import com.osudroid.ui.v2.modmenu.ModIcon
 import com.osudroid.ui.v2.multi.LobbyScene
 import com.osudroid.utils.updateThread
@@ -43,6 +45,7 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
@@ -88,12 +91,13 @@ class ScoringScene(pGame: GameScene) {
     }
 
     /**
-     * Creates a sprite centered in the given position with a size relative to its texture.
+     * Creates the skin's judgement for the texture [texture] (`hit300`…), still, centered in the given position: the
+     * texture of a skin that has it, drawn in code otherwise.
      */
-    private fun createHitSprite(texture: String, centerX: Float, centerY: Float): Sprite {
-        val sprite = createSprite(texture, centerX, centerY)
-        sprite.origin = Anchor.Center
-        return sprite
+    private fun createHitSprite(texture: String, centerX: Float, centerY: Float): Component {
+        val piece = SkinPieces.current.create(SkinComponent.Judgement(texture))
+        piece.setPosition(centerX, centerY)
+        return piece
     }
 
     private fun createText(value: String, fontSize: Float): Text {

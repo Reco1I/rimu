@@ -176,15 +176,21 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
         number.alpha = 0f
     }
 
+    // A slider's end has no circle in the default skin, as in osu!lazer's Argon Pro: the head that becomes one hides.
     override fun showAsSliderEnd(value: Boolean) {
-        if (value) hideNumber()
-        if (!value) reset()
+        if (value) hideNumber() else reset()
+        for (part in parts) part.isVisible = !value
     }
+
+    private val parts: Array<Component>
+        get() = arrayOf(outerFill, outerGradient, innerFill, outerRing, number, flash)
 
     /**
      * Gives back the look before a hit, for the piece to be used again.
      */
     private fun reset() {
+        for (part in parts) part.isVisible = true
+
         for (part in arrayOf<Component>(outerGradient, innerFill, outerRing, number, flash)) {
             part.clearAnimations()
             part.scale = 1f
@@ -227,6 +233,24 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
         const val FLASH_IN = 0.04f
         const val HIT_DURATION = 0.4f
     }
+}
+
+/**
+ * The end of a slider in the default skin: nothing, as in osu!lazer's Argon Pro, the body's round end is enough. The
+ * reverse arrows are still shown on it.
+ */
+class DefaultSliderTailPiece : MainCirclePiece() {
+
+    init {
+        val size = SkinDimensions.HIT_CIRCLE.width
+        width = size.px
+        height = size.px
+        origin = Anchor.Center
+    }
+
+    override fun setCircleColor(color: Color4) = Unit
+
+    override fun playHit(scale: Float, time: Float) = time
 }
 
 /**

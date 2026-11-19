@@ -83,11 +83,8 @@ object SkinTextures {
     // The slider tail of an osu!stable skin, which isn't shown unless the skin has it.
     private val stableOptionalTextures = setOf("sliderendcircle", "sliderendcircleoverlay")
 
-    // Textures that are always the default skin's, under another name.
-    private val defaultAliases = mapOf("defaultapproachcircle" to "approachcircle")
-
     private val GAMEPLAY_TEXTURES = arrayOf(
-        "hitcircle", "hitcircleoverlay", "approachcircle", "defaultapproachcircle",
+        "hitcircle", "hitcircleoverlay", "approachcircle",
         "sliderstartcircle", "sliderstartcircleoverlay", "sliderendcircle", "sliderendcircleoverlay",
         "reversearrow", "sliderscorepoint", "lighting",
         "spinner-background", "spinner-circle", "spinner-metre", "spinner-approachcircle", "spinner-spin",
@@ -363,10 +360,7 @@ object SkinTextures {
             return null
         }
 
-        val defaultAlias = defaultAliases[defaultName]
-
         val region = when {
-            defaultAlias != null -> loadDefault(key, defaultAlias)
             isOptional(customName) -> null
             else -> loadFromSkin(key, customName)
                 ?: skinFallbacks[customName]?.let { loadFromSkin(key, it) }

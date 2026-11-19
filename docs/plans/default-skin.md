@@ -333,7 +333,7 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
        flashes with hits. It turns red under 30% health.
    - Spinners' bonus and RPM numbers in texture skins still use their score font (`ScoreNumber`).
 
-7. **Remove the replaced assets.**
+7. **Remove the replaced assets** (done).
    - Delete from `gfx/`:
      - hitcircle and overlay, approachcircle, the `default-*` and `score-*` digits;
      - the slider textures (start, end, ball, follow circle, score point, points, reverse arrow, border, track);
@@ -345,6 +345,38 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      `GAMEPLAY_TEXTURES`/`GAMEPLAY_ANIMATIONS`, `defaultAliases`, and the default branch of `isNewStyleSpinner`.
    - The default skin's skin.json keeps only what still applies.
    - Update the game's `CLAUDE.md` (Rendering and Asset loading) and this plan's "As done" sections.
+
+   ### Phase 7 as done
+
+   - **Before deleting, the gaps were filled:**
+     - **Hit lighting:** `DefaultSkin` provides it. `HitLightingPiece`, now in `skin/`, shows a soft glow made with
+       `PixelsSource.softDot`, as big as `lighting`, so the Hit lighting setting still works without the texture.
+     - **Numbers:** `ScoreNumber` (the results screen, the spinners' bonus and the RPM counter) draws the skin's
+       `ScoreFont`: the skin's digits, or Torus without them.
+     - **Results screen:** it shows the skin's judgement pieces for its counts, still, rather than the `hit300`…
+       textures.
+   - **Asked by the user on the way:**
+     - The default ball shows a chevron in its middle, pointing where it goes, instead of a dot. The reverse arrow is
+       the same chevron (`chevron()` in `DefaultSliderPieces.kt`), drawn with lines so it's centred exactly.
+     - A slider's end has no circle in the default skin, as in osu!lazer's Argon Pro (`DefaultSliderTailPiece`): the
+       body's round end shows it. The head hides once it's hit and becomes the end of a repeat; reverse arrows are
+       still shown.
+   - **Deleted:** the 78 gameplay and HUD textures, including `hitcircleselect`, `sliderborder`, `slidertrack` and
+     `spinner-osu`, which nothing drew. What's left in `gfx/` is for the menus, the results, pause, fail, break, skip
+     and countdown screens.
+   - **`SkinTextures`:** the `defaultapproachcircle` alias is gone: Traceable's approach circle is the default skin's,
+     drawn in code. The other lookups stay: their fallback to `gfx/` still serves the textures that are left.
+   - **Not changed:**
+     - There was no default `skin.json` in the assets to trim.
+     - `isNewStyleSpinner` still treats the default skin as new style, which only matters for a beatmap skin with some
+       spinner textures.
+   - **On screen** (desktop UI tests, after the deletion): the default skin draws every piece, sliders end on their
+     body, and the HUD and spinners show their numbers in Torus.
+   - **Found by checking on screen**, before the deletion:
+     - Texts of the default skin are placed by the ink of their glyphs, by hand (`placeText`). They're laid out at
+       the size they're rasterised at, and their piece's size clamped them, which moved the circles' number down and
+       GREAT to the side.
+     - A component's `color` carries its alpha, so tinting the follow circle's fill made it opaque.
 
 ## Files
 

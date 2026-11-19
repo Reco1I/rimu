@@ -142,7 +142,7 @@ object OsuUITests : UITestSuite("osu!") {
             val rows = mutableListOf<Row>()
 
             column {
-                for ((name, skin) in listOf<Pair<String, GameplaySkin>>("Textures" to LegacySkin, "Default skin" to DefaultSkin)) {
+                for ((name, skin) in listOf<Pair<String, GameplaySkin>>("Skin's textures" to LegacySkin, "Default skin" to DefaultSkin)) {
                     section(name) {
                         linearContainer {
                             spacing = 24f.dip

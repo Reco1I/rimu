@@ -109,7 +109,7 @@ The game itself runs with **osu!droid: Game (Android)** and **osu!droid: Game (D
 
 ### Asset / Resource Loading
 
-`SkinTextures` and `SkinSounds` look up skin assets, preferring the beatmap skin, then the custom skin folder, then the default skin. `Skin` loads the configuration of a skin folder. Other textures and sounds go through Verktex's `Textures` and `Sounds`. The game's own assets (the default skin, sounds, fonts) are in `shared/assets/`, which Android packages as assets and desktop loads from the classpath.
+`SkinTextures` and `SkinSounds` look up skin assets, preferring the beatmap skin, then the custom skin folder, then the default skin. Gameplay and the HUD have no default textures: a piece a skin has no textures for is drawn in code by `DefaultSkin` (`com/osudroid/ui/v2/skin/`, modelled on osu!lazer's Argon), and `gfx/` keeps the textures of the menus, the results and the pause, fail, break, skip and countdown screens. `Skin` loads the configuration of a skin folder. Other textures and sounds go through Verktex's `Textures` and `Sounds`. The game's own assets (the default skin, sounds, fonts) are in `shared/assets/`, which Android packages as assets and desktop loads from the classpath.
 
 Text goes through Verktex's `Localization` (`verktex/shared/.../localization/`). `:shared:generateStringResources` turns the language pack into `strings/<locale>.json` assets and the generated `Res`, whose `Res.string.*` are `LocalizedString`s: a `CharSequence` that components such as `Text` show in the current language and re-resolve when it changes. Format one with `Res.string.x.format(args)`, and use `toString()` where a `String` is needed.
 
