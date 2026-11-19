@@ -1,0 +1,238 @@
+# A component-based default skin
+
+Once approved, this plan is saved as `docs/plans/default-skin.md` and committed, and each phase is committed when
+it's finished (any engine change in `verktex/` first, then the game with the submodule bump).
+
+## Context
+
+Every gameplay visual is a sprite of a skin texture. When the custom skin lacks a texture, `SkinTextures` falls
+back to the default skin's `gfx/` folder in `shared/assets/`, which has 164 PNGs at a single resolution with no
+`@2x`. The goal is a default skin drawn in code, the way osu!lazer's Argon skin is: shapes, gradients, Torus text and
+choreography, at any resolution and in combo colours, with nothing to load.
+
+Hit objects can now take pieces like these. They are Components that own their pieces and play their judgement
+through `ChoreographyTransitions` (phases 2–4 of `animations.md`).
+
+Decided with the user:
+
+- **Scope.** Gameplay and the HUD: hit circles, sliders, spinners, approach circles, follow points, the cursor and
+  its trail, judgements and their effects, and the HUD's score, combo, accuracy and pp numbers and its health bar.
+  The countdown, skip, pause, break, fail, results and menu textures stay as assets, for a later plan.
+- **Fallback per component, as in osu!lazer.** Each piece is looked up in the custom or beatmap skin first. If that
+  skin doesn't have the piece's textures, the procedural piece is drawn instead. A skin with only a cursor then gets
+  procedural circles.
+- **Only visuals.** Sounds, gameplay and the skin.json format don't change.
+
+When this is done, the textures the procedural skin replaces are deleted from `gfx/`.
+
+## Design
+
+### Pieces are looked up by component
+
+- **`SkinComponent`** (`com/osudroid/ui/v2/skin/`) is an enum of what a skin can draw:
+  - `HitCircle`, `SliderHeadCircle`, `SliderTailCircle`, `ApproachCircle`, `ReverseArrow`, `SliderTick`,
+    `SliderBall`, `FollowCircle`, `SliderBody`
+  - `Spinner`, `Judgement`, `HitLighting`, `FollowPoint`, `Cursor`, `CursorTrail`
+  - The HUD's `ScoreFont`, `ComboFont` and `HealthBar`.
+- **`GameplaySkin`** is an interface with `fun create(component): Component?`. It has two implementations:
+  - `LegacySkin` builds today's texture pieces. It returns null when the custom or beatmap skin has none of the
+    component's textures, which is checked with `SkinTextures.isSkinned`, ignoring the default assets.
+  - `DefaultSkin` builds the procedural pieces and always returns one, except where it has no counterpart, such as
+    `HitLighting`.
+- **`SkinPieces.create(component)`** asks `LegacySkin` first, then `DefaultSkin`. This one place replaces today's
+  piecemeal checks:
+  - `isNewStyleSpinner` now only decides between the two legacy spinners.
+  - The `sliderb-nd`/`-spec` layers, the default's `defaultapproachcircle` under Traceable, and the
+    `isSkinned("hitXXX")` check for particles become choices inside `LegacySkin`.
+
+### What each piece must do
+
+Each piece implements a small contract, so the objects don't care which skin drew it:
+
+| Contract | What the object calls | Implementations |
+|---|---|---|
+| `MainCirclePiece` (circles, slider head and tail) | `comboColor`, `comboNumber`, `showNumber`/`hideNumber`, `playJudged(result, time): Float` | `LegacyMainCirclePiece` (today's `CirclePiece`/`NumberedCirclePiece`, its hit is the burst of `GameObject.burst`); `DefaultMainCirclePiece` |
+| `ApproachCirclePiece` | `comboColor`; the object keeps animating its scale and alpha | `Sprite` of `approachcircle`; a procedural ring |
+| `SliderBallPiece` | `comboColor`, `rotation` / flip from the path's direction | today's ball (`sliderb` + `-nd`/`-spec`); a procedural ball |
+| `FollowCirclePiece` | `playTracking(isTracking, time)`, `playJudged(result, time)` | today's follow circle; a procedural follow circle |
+| `ReverseArrowPiece`, `SliderTickPiece` | `comboColor`, `playJudged` | `reversearrow` / `sliderscorepoint`; procedural |
+| `SliderBodyStyle` | not a Component: it sets the `PathShape`'s widths and colours from the combo colour | today's skin.json `Slider` settings; the default style |
+| `SpinnerPiece` | `progress`, `rotation`, `rpm`, `bonus`, `playCleared(time)`, `playJudged(result, time)` | `GameplaySpinner`'s classic and modern pieces, moved inside it; a procedural spinner |
+| `JudgementPiece` | `play(result, time): Float`, as today | today's `JudgementPiece` (renamed `LegacyJudgementPiece`); a procedural one |
+| `FollowPointPiece`, `CursorPiece`, `CursorTrail` | as the classes in `FollowPoints.kt` and `Cursors.kt` use them today | texture; procedural |
+
+The rules for every piece:
+
+- **What reacts to a result or a state** (`playJudged`, `playTracking`, `playCleared`) plays a
+  `ChoreographyTransitions` at the time given and returns its end time, which the object's lifetime extends to,
+  as `JudgementPiece` does today. It's seek-safe and never computed in `onUpdate`.
+- **Values that follow the gameplay state** (spinner rotation and progress, ball rotation) are set by the object
+  every frame. They depend only on the time.
+- **The object keeps the animations that don't depend on the skin**: fade-in, Hidden and Traceable, the approach
+  circle shrinking, and the fail animation. It plays them on the piece as a whole.
+- **Where the piece is drawn.** Pieces drawn above every object (approach circles, the ball, the follow circle) go
+  through `GameObject.drawIn` as today. Judgements go into the `judgements` layer.
+- **Pooling.** Objects are pooled, so `GameObjectPool.preload` drops pooled objects and judgement pieces when
+  `SkinTextures.revision` has changed since they were made. It already does that for spinners of the wrong style.
+
+### Dimensions follow osu!stable
+
+A fallback piece takes the place of a texture, so it has the size, origin and position the texture would have in
+osu!stable, at 1x (the `@2x` size halved).
+
+- **Mixing skins.** In a partial skin, a procedural piece lines up with the texture pieces around it. A procedural
+  approach circle meets a texture hit circle at the same size, and a procedural follow circle surrounds a texture
+  ball as stable's does.
+- **The objects' code doesn't depend on the skin.** It keeps today's scales and origins: approach circles from 4x
+  to 1x, the follow circle's tracking scales, the judgement scales of `JudgementPiece`, the spinner's layout in
+  stable's 640×480 space, the cursor's `CursorSize` and expansion, and the HUD's layout positions.
+
+Each piece has a fixed size, given as constants in `DefaultSkin`, with the texture size each one stands for. The
+pieces draw inside those bounds.
+
+| Piece | Size (stable, 1x) |
+|---|---|
+| Hit circle, slider head and tail, approach circle, slider ball | 128×128 |
+| Follow circle | 256×256, so at its 1x scale it's twice the ball |
+| Reverse arrow | 128×128 |
+| Slider tick | 16×16 |
+| Judgements | about 128 tall, centred where stable centres `hit300`… |
+| Follow point | 128×64, as `FollowPoints.kt` already caps it |
+| Cursor | 128×128 |
+| Spinner | stable's pieces in the 640×480 space: `spinner-circle` 512, the approach circle 320 at 1x, the metre over the playfield, "clear" and the bonus at stable's positions |
+| Health bar | `scorebar-bg`'s size, with the fill and marker where the textures put them |
+| Score, combo and accuracy numbers | the height and digit advance of the default `score-*` digits, so a Torus number takes the space of a texture one |
+
+The sizes in this table are checked against stable and against today's default textures in phase 1, before any
+procedural piece is drawn. A unit test checks that each procedural piece reports the size of the texture it
+replaces.
+
+### The procedural pieces (modelled on Argon)
+
+The pieces are built from what Verktex already has:
+
+- `Box` with `radius = size / 2` and `border`: discs and rings drawn by the SDF in `ui.frag`, batched;
+- `GradientBox`: linear gradients with radius and border;
+- `Shadow(cutout = true)`: glows;
+- `Circle.setPortion` and `drawArcStroke`: arcs;
+- `PathShape`'s bands: the slider body;
+- `Text` in Torus (`torus-bold.otf`, already in Verktex) and FontAwesome icons (`fa-solid.otf`): numbers and
+  arrows;
+- `BlendMode.Additive`: flashes.
+
+| Piece | How it looks |
+|---|---|
+| Hit circle | A white outer ring (`border`). The inner fill is a vertical gradient from the combo colour to a darker one. The number is in Torus Bold. On a hit it flashes white, the ring expands and the fill fades. On a miss it fades. Kiai adds a flash on each beat, unless `isDisableKiai`. |
+| Approach circle | A thin ring in the combo colour. |
+| Slider body | `PathShape`: a light border, and a body in the darkened combo colour at about 0.7 alpha, with a gradient across its width. |
+| Slider head and tail | The hit circle; the tail has no number. |
+| Reverse arrow | A FontAwesome chevron on a small white disc. It pulses on the beat, in choreography. |
+| Slider tick | A small ring. |
+| Slider ball | A disc in the combo colour. |
+| Follow circle | A ring with a soft glow. It scales up while tracking and down when tracking is lost or the slider ends. |
+| Spinner | A ring with a progress arc (`drawArcStroke`), short ticks around it that rotate with the spin, and a centre disc that grows with the progress. The RPM, the bonus and "clear" are in Torus. There is one style: classic or modern is only a choice for legacy skins. |
+| Judgement | "GREAT", "OK", "MEH" or "MISS" in Torus, coloured by the result. Hits get a ring explosion (rings with a border, scaling out and fading), and a miss drops and rotates. Slider points and ticks get a small dot, or nothing. Hit lighting and particles stay legacy-only. |
+| Follow points | Small chevrons, or rounded boxes, fading in sequence. |
+| Cursor | A white ring with a glow. It expands while pressed, following `isExpandCursor`. |
+| Cursor trail | Soft dots through the trail's `ParticleSystem`, from a small texture generated once (a falloff into a `PixelBuffer`), with no asset. |
+
+Colours:
+
+- Combo colours stay the beatmap's. When it has none, or `forceOverride` is set, the skin's are used, and the
+  default skin's colours move from its skin.json into `DefaultSkin`.
+- Most skin.json settings only affect `LegacySkin`: the fonts' prefixes and overlaps, `comboTextScale`,
+  `hitCircleOverlayAboveNumber`, the `Slider` widths, `allowSliderBallTint`, `spinnerNoBlink`.
+- The slider border colour is used by both skins.
+
+### Engine gaps (`verktex/`)
+
+They are small, and each is added only when a phase needs it:
+
+- **An arc component** over `drawArcStroke`, with `progress` and rounded caps, for the spinner and the health bar.
+- **Fixed-width digits in `Text`** (Torus has tabular figures; otherwise each digit gets a fixed advance), so
+  counters don't jitter. `TextureText.fixedCharWidths` already does this for texture fonts.
+- **A texture from a `PixelBuffer`**, made at runtime, for the trail's particles. Check first whether `Textures`
+  can already do it.
+- **No radial gradient, blur or new shader is needed**: glows are `Shadow`, and gradients are linear.
+
+### HUD
+
+The HUD already has a registry of components (`HUDElements` and its skin data).
+
+- **Numbers:** `HUDScoreCounter`, `HUDAccuracyCounter`, `HUDPPCounter` and `HUDComboCounter` use the skin's
+  `SpriteFont` when it has the font's digits (`score-0`… with its prefix), and otherwise a Torus `Text` with
+  fixed-width digits.
+- **Health bar:** `HUDHealthBar` gets a procedural style for skins without `scorebar-bg`: a rounded track with a fill
+  gradient and a glowing marker at its end. It sits next to the existing new and old texture styles.
+- **Unchanged:** the HUD layout and the editor. A procedural element must keep the size the layout expects, within
+  reason.
+
+## Phases
+
+1. **Lookup and contracts, with no visual change.**
+   - Add `SkinComponent`, `GameplaySkin`, `SkinPieces` and the contracts.
+   - Wrap today's pieces as `LegacySkin`. The default assets still count as skinned in this phase, so the result
+     is identical.
+   - Move the circle burst into `LegacyMainCirclePiece.playJudged`.
+   - Make `GameplayHitCircle`, `GameplaySlider`, the spinners, follow points and cursors create their pieces through
+     `SkinPieces`.
+   - Make the pools drop pieces when the skin changes.
+   - Record the stable dimension of each component, checked against the current textures, in `DefaultSkin`'s
+     constants.
+   - Unit tests for the order of lookup and the fallback.
+2. **Procedural hit circles, approach circles and judgements**, the pieces seen most, so the look can be tuned
+   early. `DefaultSkin` becomes the fallback: the default assets no longer count as skinned for the components it
+   covers.
+3. **Procedural sliders**: body style, head, tail, reverse arrow, ticks, ball and follow circle.
+4. **Procedural spinner.** Adds the arc component in the engine.
+5. **Procedural follow points, cursor and trail.** Adds the texture made at runtime, if the engine needs it.
+6. **HUD**: Torus counters with fixed-width digits (an engine change), and the procedural health bar.
+7. **Remove the replaced assets.**
+   - Delete from `gfx/`:
+     - hitcircle and overlay, approachcircle, the `default-*` and `score-*` digits;
+     - the slider textures (start, end, ball, follow circle, score point, points, reverse arrow, border, track);
+     - the spinner textures (`spinner-*`);
+     - the judgements (`hit*`), `lighting`;
+     - `followpoint`, `cursor` and `cursortrail`;
+     - `scorebar-*`.
+   - Remove what pointed at them in `SkinTextures`: the `gfx/` fallback for these names,
+     `GAMEPLAY_TEXTURES`/`GAMEPLAY_ANIMATIONS`, `defaultAliases`, and the default branch of `isNewStyleSpinner`.
+   - The default skin's skin.json keeps only what still applies.
+   - Update the game's `CLAUDE.md` (Rendering and Asset loading) and this plan's "As done" sections.
+
+## Files
+
+- **New:**
+  - `com/osudroid/ui/v2/skin/`: `SkinComponent`, `GameplaySkin`, `SkinPieces`, the contracts, `LegacySkin`, and
+    `DefaultSkin` with its pieces (`DefaultMainCirclePiece`, `DefaultSpinner`, `DefaultJudgementPiece`…).
+- **Changed:**
+  - `ru/.../game/GameplayHitCircle.kt`, `GameplaySlider.kt`, `GameplaySpinner.kt`, `GameplayModernSpinner.kt`;
+  - `com/osudroid/ui/v2/game/CirclePiece.kt`, `JudgementPiece.kt`, `GameObject.kt` (burst into the legacy piece),
+    `FollowPoints.kt`, `Cursors.kt`, `SliderTicks.kt`;
+  - `ru/.../game/GameObjectPool.kt`;
+  - `com/osudroid/ui/v2/SkinTextures.kt`, `ru/.../skins/OsuSkin.kt`;
+  - the HUD elements in `com/osudroid/ui/v2/hud/elements/`;
+  - `GameScene.kt` (combo colours, where pieces are created);
+  - the UI tests in `com/osudroid/ui/v2/test/` (`OsuGameplayUITests`, `GameplayObjectHarness`).
+- **Engine:** an arc component in `ui/shape/`, fixed digits in `ui/text/Text.kt`, and maybe a runtime texture in
+  `texture/`, each with a desktop test and a `VerktexUITests` entry.
+
+## Verification
+
+- **Each phase:** `./gradlew :shared:desktopTest :shared:compileAndroidMain :verktex:shared:desktopTest
+  :verktex:shared:compileAndroidMain :verktex:desktopApp:compileKotlin`, checking the exit code. The Android host
+  tests can't run on this machine's JDK.
+- **Unit tests:**
+  - The lookup order: the beatmap skin, then the custom skin, then `DefaultSkin`.
+  - A skin with only some textures gets procedural pieces for the rest.
+  - Pools drop pieces after a skin change.
+  - The procedural pieces' judgement choreography returns the right end times, and it gives the same state when
+    seeking back.
+- **UI tests (run by the user):**
+  - `osu!/Hit circles`, Sliders and Spinners get a toolbar toggle between the default skin and a texture skin, and a
+    new `osu!/Default skin` test shows every piece and judgement side by side.
+  - Engine changes get their entries in `VerktexUITests`.
+- **On screen (by the user):**
+  - A quickplay with the default skin, then with a full custom skin and a partial one.
+  - Seeking back and forth, Hidden, Traceable, kiai, autoplay spinners, and failing.
+  - After phase 7, check that no gameplay piece falls back to the "missing" texture.
