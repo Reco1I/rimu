@@ -1,5 +1,9 @@
 package com.osudroid.ui.v2.skin
 
+import com.reco1l.verktex.graphics.PixelsSource
+import com.reco1l.verktex.graphics.Texture
+import com.reco1l.verktex.texture.Textures
+
 /**
  * The default skin, drawn in code as osu!lazer's Argon skin, see `docs/plans/default-skin.md`. It provides the
  * components it draws, which texture skins missing their textures fall back to. The others still come from the
@@ -12,6 +16,15 @@ object DefaultSkin : GameplaySkin {
      * screen by the playfield.
      */
     const val TEXT_RESOLUTION = 2f
+
+    private const val LIGHTING_KEY = "default-skin:lighting"
+
+    /**
+     * The glow behind judgements, as big as the default `lighting`, made once in code and kept in [Textures],
+     * made again if they were unloaded.
+     */
+    private fun lightingTexture(): Texture.Region? = Textures[LIGHTING_KEY]
+        ?: Textures.load(LIGHTING_KEY, PixelsSource.softDot(SkinDimensions.HIT_LIGHTING.width.toInt(), falloff = 2.5f))
 
     override fun provides(component: SkinComponent<*>) = when (component) {
         SkinComponent.HitCircle,
@@ -32,7 +45,7 @@ object DefaultSkin : GameplaySkin {
         SkinComponent.ComboFont,
         SkinComponent.HealthBar,
         is SkinComponent.Judgement -> true
-        SkinComponent.HitLighting -> false
+        SkinComponent.HitLighting -> true
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -52,7 +65,7 @@ object DefaultSkin : GameplaySkin {
         SkinComponent.ScoreFont, SkinComponent.ComboFont -> DefaultNumberText(SkinDimensions.SCORE_DIGIT_HEIGHT)
         SkinComponent.HealthBar -> DefaultHealthBarPiece()
         is SkinComponent.Judgement -> DefaultJudgementPiece(component.textureName)
-        SkinComponent.HitLighting -> null
+        SkinComponent.HitLighting -> HitLightingPiece(lightingTexture())
     } as T?
 }
 

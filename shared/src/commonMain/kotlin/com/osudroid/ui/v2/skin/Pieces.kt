@@ -257,6 +257,11 @@ abstract class NumberText : Container() {
      * Gives every digit the same width, so numbers don't shift as they change.
      */
     abstract fun useFixedDigitWidth()
+
+    /**
+     * The height of the digits.
+     */
+    abstract val digitHeight: Float
 }
 
 /**

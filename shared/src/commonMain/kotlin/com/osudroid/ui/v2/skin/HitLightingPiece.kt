@@ -1,10 +1,11 @@
-package com.osudroid.ui.v2.skin.legacy
+package com.osudroid.ui.v2.skin
 
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.graphics.BlendFactor
 import com.reco1l.verktex.graphics.BlendMode
+import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
@@ -12,12 +13,14 @@ import com.reco1l.verktex.ui.choreographAt
 /**
  * The light behind a judgement, in the combo color, as osu!lazer's `DrawableOsuJudgement` shows it. Owned by the
  * hit object it lights, and drawn below every object.
+ *
+ * It shows the skin's `lighting`, or [glow], an image made in code, for the default skin.
  */
-class HitLightingPiece : Sprite() {
+class HitLightingPiece(glow: Texture.Region? = null) : Sprite() {
 
     init {
         origin = Anchor.Center
-        texture = skinTexture("lighting")
+        if (glow != null) textureRegion = glow else texture = skinTexture("lighting")
 
         // The colour is premultiplied, so One weighs it by its alpha as SrcAlpha would with straight alpha.
         blendMode = BlendMode.Custom(BlendFactor.One, BlendFactor.DstAlpha, BlendFactor.SrcAlpha, BlendFactor.DstAlpha)

@@ -13,7 +13,7 @@ import com.osudroid.ui.v2.skin.JudgementPiece
 import com.osudroid.ui.v2.skin.MainCirclePiece
 import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
-import com.osudroid.ui.v2.skin.legacy.HitLightingPiece
+import com.osudroid.ui.v2.skin.HitLightingPiece
 import com.osudroid.ui.v2.skin.legacy.LegacySkin
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.settings.Settings

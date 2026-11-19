@@ -18,7 +18,7 @@ import kotlin.math.max
  * Each character is its own text in a cell, so digits can all have the width of the widest, as a texture font's do
  * with [useFixedDigitWidth].
  */
-class DefaultNumberText(private val digitHeight: Float) : NumberText() {
+class DefaultNumberText(override val digitHeight: Float) : NumberText() {
 
     // The font as rasterised, and how much smaller it's shown.
     private val font: Font

@@ -1,12 +1,14 @@
 package com.osudroid.ui.v2.skin
 
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.ui.shape.Line
+import com.reco1l.verktex.ui.shape.Box
+import com.reco1l.verktex.data.Vec2
+import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.Icon
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.shape.PathShape
@@ -35,8 +37,8 @@ object DefaultSliderBodyStyle : SliderBodyStyle {
 }
 
 /**
- * The ball of the default skin: a disc of the combo colour in a white ring, with a white dot ahead of it showing the
- * direction it rolls in, at the size of the default `sliderb`.
+ * The ball of the default skin: a disc of the combo colour in a white ring, with a white chevron in its middle
+ * pointing where it goes, at the size of the default `sliderb`.
  */
 class DefaultSliderBallPiece : SliderBallPiece() {
 
@@ -44,20 +46,8 @@ class DefaultSliderBallPiece : SliderBallPiece() {
 
     private val fill = gradientDisc(size)
 
-    // Turns with the direction, carrying the dot.
-    private val direction = Container().apply {
-        width = size.px
-        height = size.px
-        anchor = Anchor.Center
-        origin = Anchor.Center
-
-        +disc(size * 0.16f).apply {
-            color = Color4.White
-            anchor = Anchor.CenterRight
-            origin = Anchor.CenterRight
-            x = (-size * 0.1f).px
-        }
-    }
+    // A chevron in the middle, pointing where the ball goes, turned around the ball's centre.
+    private val direction = chevron(size, size * 0.18f, size * 0.07f)
 
     init {
         width = size.px
@@ -167,14 +157,7 @@ class DefaultReverseArrow : Container() {
         height = size.px
         origin = Anchor.Center
 
-        +Icon(FAIcon.ChevronRight).apply {
-            anchor = Anchor.Center
-            origin = Anchor.Center
-            iconSize = (size * 0.4f * DefaultSkin.TEXT_RESOLUTION).px
-            scale = 1f / DefaultSkin.TEXT_RESOLUTION
-            color = Color4.White
-            shadow = Shadow(Color4.Black.alpha(0.4f), blur = (size * 0.1f).px)
-        }
+        +chevron(size, size * 0.16f, size * 0.07f)
     }
 }
 
@@ -193,5 +176,45 @@ class DefaultSliderTick : Container() {
 
         +disc(size).apply { color = Color4.Black.alpha(0.5f) }
         +ring(size, size * 0.2f)
+    }
+}
+
+/**
+ * A white chevron pointing right, centred in a [size] square: two strokes [thickness] wide with round ends, reaching
+ * [reach] from the centre each way. Drawn with lines rather than a font, so its strokes are centred exactly and it
+ * turns in place.
+ */
+internal fun chevron(size: Float, reach: Float, thickness: Float) = Container().apply {
+    width = size.px
+    height = size.px
+    anchor = Anchor.Center
+    origin = Anchor.Center
+
+    val centre = size / 2
+    val tip = Vec2(centre + reach / 2, centre)
+    val ends = listOf(Vec2(centre - reach / 2, centre - reach), Vec2(centre - reach / 2, centre + reach))
+
+    for (end in ends) {
+        +Line().apply {
+            width = size.px
+            height = size.px
+            fromPoint = end
+            toPoint = tip
+            lineWidth = thickness.px
+            color = Color4.White
+        }
+    }
+
+    // Round ends and a round tip.
+    for (point in ends + tip) {
+        +Box().apply {
+            width = thickness.px
+            height = thickness.px
+            origin = Anchor.Center
+            x = point.x.px
+            y = point.y.px
+            radius = CornerRadius((thickness / 2).px)
+            color = Color4.White
+        }
     }
 }

@@ -1,84 +1,64 @@
 package com.osudroid.ui.v2.game
 
-import com.osudroid.ui.v2.SkinTextures
-import com.reco1l.verktex.Verktex
-import com.reco1l.verktex.data.px
-import com.reco1l.verktex.ui.Sprite
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
+import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.container.Container
-import com.reco1l.verktex.ui.scaleTo
 import kotlin.jvm.JvmOverloads
-import ru.nsu.ccfit.zuev.skins.OsuSkin
 
 /**
- * A number drawn with the score font of the skin.
+ * A number in the skin's score font ([SkinComponent.ScoreFont]): its texture digits, or Torus in the default skin
+ * and in skins without them. Placed from its top left corner, its top centre if [isCentered], where it pops each time
+ * it changes, or its top right corner if [isRightAligned].
  */
 class ScoreNumber @JvmOverloads constructor(
     x: Float,
     y: Float,
     text: String,
     private val letterScale: Float,
-    private val isCentered: Boolean = false
+    private val isCentered: Boolean = false,
+    isRightAligned: Boolean = false
 ) : Container() {
+
+    private val number = SkinPieces.current.create(SkinComponent.ScoreFont)
 
     /**
      * The height of the letters.
      */
-    var letterHeight = 0f
-        private set
-
-    /**
-     * The width of the text.
-     */
-    var textWidth = 0f
-        private set
-
+    val letterHeight: Float
+        get() = number.digitHeight * letterScale
 
     init {
+        val placement = when {
+            isCentered -> Anchor.TopCenter
+            isRightAligned -> Anchor.TopRight
+            else -> Anchor.TopLeft
+        }
+
+        origin = placement
+        number.anchor = placement
+        number.origin = placement
+        number.scaleOrigin = placement
+        number.scale = letterScale
+        +number
+
         setPosition(x, y)
         setText(text)
     }
 
 
     fun setText(text: String) {
-        Verktex.withTreeLock {
-            clearChildren()
+        number.text = text
 
-            var totalWidth = 0f
-
-            for (ch in text) {
-                val name = when (ch) {
-                    in '0'..'9' -> ch.toString()
-                    '.', ',' -> "comma"
-                    '%' -> "percent"
-                    else -> "x"
-                }
-
-                val texture = SkinTextures[OsuSkin.get().scorePrefix, name] ?: continue
-                val width = texture.displayWidth * letterScale
-
-                letterHeight = texture.displayHeight * letterScale
-
-                +Sprite(texture).apply {
-                    setPosition(totalWidth, 0f)
-                    setSize(width, letterHeight)
-                }
-
-                totalWidth += width
-            }
-
-            textWidth = totalWidth
-
-            if (isCentered) {
-                for (letter in this) {
-                    letter.x = (letter.x.resolve(0f) - totalWidth / 2f).px
-                    letter.choreograph {
-                        at(letter.currentClockTime)
-                        scaleTo(1.5f, 0.2f)
-                        then()
-                        scaleTo(1f, 0.4f)
-                    }
-                }
+        if (isCentered) {
+            number.choreography?.clear()
+            number.scale = letterScale
+            number.choreograph {
+                at(number.currentClockTime)
+                scaleTo(letterScale * 1.5f, 0.2f)
+                then()
+                scaleTo(letterScale, 0.4f)
             }
         }
     }

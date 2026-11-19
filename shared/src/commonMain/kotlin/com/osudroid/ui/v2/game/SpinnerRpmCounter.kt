@@ -37,7 +37,8 @@ class SpinnerRpmCounter {
         setPosition(BACKGROUND_X, BACKGROUND_Y)
     }
 
-    private val number = ScoreNumber(0f, NUMBER_Y, "0", 1f)
+    // Right aligned.
+    private val number = ScoreNumber(NUMBER_RIGHT, NUMBER_Y, "0", 1f, isRightAligned = true)
 
     // The rotation added up over time, sampled each update, to measure the rotations of the last moments.
     private val sampleTimes = FloatArray(SAMPLE_COUNT)
@@ -154,9 +155,6 @@ class SpinnerRpmCounter {
         shownRpm = rpm
 
         number.setText(rpm.toString())
-
-        // Right aligned.
-        number.x = (NUMBER_RIGHT - number.textWidth).px
     }
 
 

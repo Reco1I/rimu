@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.skin
 
-import com.osudroid.ui.v2.skin.legacy.HitLightingPiece
 import com.reco1l.verktex.ui.Component
 
 /**

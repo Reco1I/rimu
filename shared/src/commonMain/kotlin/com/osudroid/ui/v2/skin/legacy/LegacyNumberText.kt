@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.skin.legacy
 
 import com.osudroid.ui.skinning.StringSkinData
+import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.SpriteFont
 import com.osudroid.ui.v2.skin.NumberText
 import com.reco1l.verktex.graphics.BlendMode
@@ -9,7 +10,7 @@ import com.reco1l.verktex.ui.text.TextAlign
 /**
  * A number in a texture skin's font, the textures starting with [prefix] (`score-0`, `score-comma`…).
  */
-class LegacyNumberText(prefix: StringSkinData) : NumberText() {
+class LegacyNumberText(private val prefix: StringSkinData) : NumberText() {
 
     private val font = SpriteFont(prefix)
 
@@ -48,4 +49,7 @@ class LegacyNumberText(prefix: StringSkinData) : NumberText() {
         }
 
     override fun useFixedDigitWidth() = font.useFixedDigitWidth()
+
+    override val digitHeight: Float
+        get() = SkinTextures[prefix, "0"]?.displayHeight ?: 0f
 }

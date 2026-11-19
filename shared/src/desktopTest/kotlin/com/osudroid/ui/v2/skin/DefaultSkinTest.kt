@@ -2,26 +2,22 @@ package com.osudroid.ui.v2.skin
 
 import com.reco1l.verktex.data.Dimension
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DefaultSkinTest {
 
     @Test
-    fun `it provides every component but the hit lighting`() {
+    fun `it provides every component`() {
         for (component in listOf(
             SkinComponent.HitCircle, SkinComponent.SliderHeadCircle, SkinComponent.SliderTailCircle,
             SkinComponent.ApproachCircle, SkinComponent.TraceableApproachCircle, SkinComponent.Judgement("hit300"),
             SkinComponent.SliderBody, SkinComponent.SliderBall, SkinComponent.FollowCircle, SkinComponent.ReverseArrow,
             SkinComponent.SliderTick, SkinComponent.Spinner, SkinComponent.FollowPoint, SkinComponent.Cursor,
-            SkinComponent.CursorTrail, SkinComponent.HealthBar,
+            SkinComponent.CursorTrail, SkinComponent.HealthBar, SkinComponent.HitLighting,
         )) {
             assertTrue("$component", DefaultSkin.provides(component))
         }
-
-        // Only texture skins light their judgements.
-        assertFalse(DefaultSkin.provides(SkinComponent.HitLighting))
     }
 
     @Test
