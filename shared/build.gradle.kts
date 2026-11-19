@@ -163,7 +163,7 @@ val generateStringResources by tasks.registering(GenerateStringResources::class)
 /**
  * Fails when common code uses the JVM. Both targets are JVMs, so the compiler lets commonMain see
  * the JDK; this catches what it doesn't: Java imports and the stdlib members only the JVM has.
- * Comments are skipped.
+ * Comments are skipped, and so are what strings hold.
  */
 abstract class CheckCommonSources : DefaultTask() {
 
@@ -187,6 +187,9 @@ abstract class CheckCommonSources : DefaultTask() {
         Regex("""\bkotlinx\.coroutines\.future\b""") to "CompletableFuture interop",
     )
 
+    // A string on one line, with its escapes.
+    private val stringLiteral = Regex(""""(?:[^"\\]|\\.)*"""")
+
     @TaskAction
     fun check() {
         val problems = mutableListOf<String>()
@@ -201,6 +204,9 @@ abstract class CheckCommonSources : DefaultTask() {
                     line = line.substring(end + 2)
                     inBlockComment = false
                 }
+                // What strings hold is data (such as the names of Java classes a format reads), not
+                // code: they're emptied, which keeps "".format( visible.
+                line = line.replace(stringLiteral, "\"\"")
                 val blockStart = line.indexOf("/*")
                 if (blockStart >= 0) {
                     inBlockComment = line.indexOf("*/", blockStart + 2) < 0

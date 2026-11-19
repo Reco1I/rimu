@@ -7,11 +7,13 @@ import com.osudroid.mods.ModReplayV6
 import com.osudroid.utils.BitSet
 import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.deserializeMods
-import com.reco1l.javaserialization.JavaArray
-import com.reco1l.javaserialization.JavaEnum
 import com.reco1l.javaserialization.JavaObject
 import com.reco1l.javaserialization.JavaObjectInputStream
+import com.reco1l.javaserialization.JavaSerialization
 import com.reco1l.javaserialization.JavaSerializationException
+import com.reco1l.javaserialization.decodeFromJavaValue
+import com.reco1l.javaserialization.decodeObject
+import kotlinx.serialization.Serializable
 import okio.Buffer
 import okio.BufferedSource
 import okio.ByteString.Companion.decodeHex
@@ -94,8 +96,8 @@ internal fun Replay.loadLegacy(source: BufferedSource, replayFilename: String, w
         var version = 0
         val beatmapsetName = when (val first = input.readObject()) {
             is JavaObject -> {
-                version = first.fields["version"] as? Int ?: throw JavaSerializationException("Not a replay version: $first")
-                input.readString()
+                version = JavaSerialization.decodeFromJavaValue<LegacyReplayVersion>(first).version
+                input.decodeObject<String>()
             }
 
             is String -> first
@@ -103,8 +105,8 @@ internal fun Replay.loadLegacy(source: BufferedSource, replayFilename: String, w
         }
 
         replayVersion = version
-        val beatmapName = input.readString()
-        setBeatmap(beatmapsetName, beatmapName, input.readString())
+        val beatmapName = input.decodeObject<String>()
+        setBeatmap(beatmapsetName, beatmapName, input.decodeObject<String>())
 
         if (version >= 3) {
             val stat = StatisticV2()
@@ -133,13 +135,14 @@ internal fun Replay.loadLegacy(source: BufferedSource, replayFilename: String, w
                 input.readBoolean()
             }
 
-            stat.playerName = input.readString()
+            stat.playerName = input.decodeObject<String>()
 
             if (version >= 7) {
-                stat.mod = deserializeMods(input.readString())
+                stat.mod = deserializeMods(input.decodeObject<String>())
             } else {
-                val modNames = legacyModNames(input.readObject())
-                val extraModString = if (version >= 4) input.readString() else ""
+                // The GameMod constants, decoded by their names.
+                val modNames = input.decodeObject<Set<String>?>().orEmpty()
+                val extraModString = if (version >= 4) input.decodeObject<String>() else ""
 
                 stat.mod = LegacyModConverter.convert(modNames, extraModString)
                 stat.mod.put(ModReplayV6())
@@ -191,11 +194,6 @@ internal fun Replay.loadLegacy(source: BufferedSource, replayFilename: String, w
     }
 }
 
-private fun JavaObjectInputStream.readString() = when (val value = readObject()) {
-    is String -> value
-    else -> throw JavaSerializationException("Expected a string, found $value")
-}
-
 /**
  * Reads the movements of a cursor, converting their positions as [Replay.MoveArray.fromCursor] does,
  * from the coordinates of the first versions for replays older than version 2.
@@ -234,25 +232,7 @@ private fun JavaObjectInputStream.readLegacyCursor(version: Int, mods: ModHashMa
 }
 
 /**
- * The names of the `GameMod` constants of the mod set of a replay older than version 7, whichever
- * set it was: an `EnumSet` (written as its serialization proxy, with the constants in an array) or a
- * `HashSet` (with the constants after its fields).
+ * The object replays have started with since version 1, upstream's `Replay.ReplayVersion`.
  */
-private fun legacyModNames(mods: Any?): List<String> {
-    val names = ArrayList<String>()
-
-    fun collect(value: Any?) {
-        when (value) {
-            is JavaEnum -> names += value.constant
-            is JavaArray -> value.elements.forEach(::collect)
-
-            is JavaObject -> {
-                value.fields.values.forEach(::collect)
-                value.annotations.values.forEach { it.forEach(::collect) }
-            }
-        }
-    }
-
-    collect(mods)
-    return names
-}
+@Serializable
+private class LegacyReplayVersion(val version: Int)
