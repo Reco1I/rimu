@@ -2,15 +2,35 @@ package com.osudroid.ui.v2.skin
 
 /**
  * The default skin, drawn in code as osu!lazer's Argon skin, see `docs/plans/default-skin.md`. It provides the
- * components it draws, which texture skins missing their textures fall back to.
- *
- * It doesn't draw any yet: every component comes from the default skin's textures.
+ * components it draws, which texture skins missing their textures fall back to. The others still come from the
+ * default skin's textures.
  */
 object DefaultSkin : GameplaySkin {
 
-    override fun provides(component: SkinComponent<*>) = false
+    /**
+     * How many times larger than their size the texts of the pieces are rasterised, as the pieces are scaled up on
+     * screen by the playfield.
+     */
+    const val TEXT_RESOLUTION = 2f
 
-    override fun <T : Any> create(component: SkinComponent<T>): T? = null
+    override fun provides(component: SkinComponent<*>) = when (component) {
+        SkinComponent.HitCircle,
+        SkinComponent.SliderHeadCircle,
+        SkinComponent.SliderTailCircle,
+        SkinComponent.ApproachCircle,
+        SkinComponent.TraceableApproachCircle,
+        is SkinComponent.Judgement -> true
+        else -> false
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Any> create(component: SkinComponent<T>): T? = when (component) {
+        SkinComponent.HitCircle, SkinComponent.SliderHeadCircle -> DefaultMainCirclePiece(hasNumber = true)
+        SkinComponent.SliderTailCircle -> DefaultMainCirclePiece(hasNumber = false)
+        SkinComponent.ApproachCircle, SkinComponent.TraceableApproachCircle -> DefaultApproachCircle()
+        is SkinComponent.Judgement -> DefaultJudgementPiece(component.textureName)
+        else -> null
+    } as T?
 }
 
 /**

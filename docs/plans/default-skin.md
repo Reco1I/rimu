@@ -209,9 +209,41 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      in their own phases (4 to 6), next to the default skin's piece they need to fit.
    - `SkinPiecesTest` covers the order of lookup and the fallbacks.
 
-2. **Procedural hit circles, approach circles and judgements**, the pieces seen most, so the look can be tuned
+2. **Procedural hit circles, approach circles and judgements** (done), the pieces seen most, so the look can be tuned
    early. `DefaultSkin` becomes the fallback: the default assets no longer count as skinned for the components it
    covers.
+
+   ### Phase 2 as done
+
+   - `DefaultSkin` provides the circles (hit circles and the slider's head and end, which are the same piece), the
+     approach circles (Traceable's too) and the judgements. With the default skin, or a skin without these textures,
+     they're drawn in code. Sliders' bodies, balls, follow circles, arrows and ticks still use the default textures.
+   - `DefaultMainCirclePiece` (`skin/DefaultCirclePieces.kt`), modelled on `ArgonMainCirclePiece`, has the size of
+     `hitcircle` (128). It has:
+     - a dark disc;
+     - a band in a vertical gradient of the combo colour;
+     - a dark centre with the number in Torus;
+     - a white outer ring.
+
+     Its hit is choreography: a white additive flash, the ring growing out and fading, the whole circle growing and
+     fading in 0.4 s. It's undone when the piece gets its number again, or shown as the head again, so pooled pieces
+     start clean. Kiai lightens the band through `setCircleColor`, as with textures.
+   - `DefaultApproachCircle` is a white ring with a soft glow (`Shadow` with `cutout`), 128 across, which the
+     object tints.
+   - `DefaultJudgementPiece` (`skin/DefaultJudgementPiece.kt`) shows "GREAT", "OK", "MEH" or "MISS" in Torus, in
+     osu!lazer's colours for the results. It's played through `ChoreographyTransitions` keyed by `HitResult`.
+     - A 300 or a 100 also bursts a ring of the circle's size.
+     - A miss drops and turns.
+     - Slider points and ticks show nothing, as in Argon.
+     - It is `hit300`'s size (103×60) and lasts at most 1.1 s, within `JudgementPiece.DURATION`.
+   - Texts are rasterised at twice their size (`DefaultSkin.TEXT_RESOLUTION`) and scaled down, as the playfield
+     scales the pieces up on screen.
+   - The hit lighting still shows under the default skin's judgements, from the default `lighting` texture, until
+     phase 7 removes it. The bursts follow the Burst effects setting for both skins.
+   - The UI test `osu!/Default skin` shows the texture pieces above the default skin's, at the same size, looping
+     an approach, a hit and every judgement. `DefaultSkinTest` covers what it provides and the approach circle's
+     size. Pieces with text can't be built in unit tests, which have no fonts.
+
 3. **Procedural sliders**: body style, head, tail, reverse arrow, ticks, ball and follow circle.
 4. **Procedural spinner.** Adds the arc component in the engine.
 5. **Procedural follow points, cursor and trail.** Adds the texture made at runtime, if the engine needs it.

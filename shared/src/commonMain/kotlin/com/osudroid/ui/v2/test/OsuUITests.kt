@@ -18,7 +18,13 @@ import com.osudroid.ui.v2.SpriteFont
 import com.osudroid.ui.v2.StarRatingBadge
 import com.reco1l.verktex.ui.Badge
 import com.osudroid.ui.v2.game.CursorEntity
+import com.osudroid.game.HitResult
+import com.osudroid.ui.v2.skin.DefaultSkin
+import com.osudroid.ui.v2.skin.GameplaySkin
+import com.osudroid.ui.v2.skin.JudgementPiece
 import com.osudroid.ui.v2.skin.MainCirclePiece
+import com.osudroid.ui.v2.skin.legacy.LegacySkin
+import com.reco1l.verktex.data.px
 import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
 import com.reco1l.verktex.ui.Component
@@ -122,6 +128,81 @@ object OsuUITests : UITestSuite("osu!") {
                         }
                     }
                 }
+            }
+        }
+
+        test("Default skin") {
+            // The pieces of the default skin under those of the default textures, which they stand for: they have
+            // the same sizes. Loops an approach, a hit and every judgement.
+            class Row(val circle: MainCirclePiece, val approach: Component, val judgements: List<JudgementPiece>)
+
+            val results = listOf("hit300" to HitResult.Great, "hit100" to HitResult.Ok, "hit50" to HitResult.Meh, "hit0" to HitResult.Miss)
+            val rows = mutableListOf<Row>()
+
+            column {
+                for ((name, skin) in listOf<Pair<String, GameplaySkin>>("Textures" to LegacySkin, "Default skin" to DefaultSkin)) {
+                    section(name) {
+                        linearContainer {
+                            spacing = 24f.dip
+
+                            val circle = skin.create(SkinComponent.HitCircle)!!
+                            val approach = skin.create(SkinComponent.ApproachCircle)!!
+                            val judgements = mutableListOf<JudgementPiece>()
+
+                            container {
+                                width = 160f.px
+                                height = 160f.px
+
+                                circle.anchor = Anchor.Center
+                                circle.setCircleColor(COMBO_COLORS[2])
+                                circle.setComboNumber(1)
+                                +circle
+
+                                approach.anchor = Anchor.Center
+                                approach.color = COMBO_COLORS[2]
+                                +approach
+                            }
+
+                            for ((texture, _) in results) {
+                                container {
+                                    width = 160f.px
+                                    height = 160f.px
+                                    judgements += skin.create(SkinComponent.Judgement(texture))!!.also { +it }
+                                }
+                            }
+
+                            rows += Row(circle, approach, judgements)
+                        }
+                    }
+                }
+            }
+
+            var time = 0f
+            var wasHit = false
+            onEachFrame { clock ->
+                time = (time + clock.elapsedFrameTime) % 2f
+
+                for (row in rows) {
+                    if (time < 1f) {
+                        if (wasHit) {
+                            row.circle.clearAnimations()
+                            row.circle.setComboNumber(1)
+                            row.circle.showNumber()
+                        }
+                        row.circle.alpha = 1f
+                        row.circle.scale = 1f
+                        row.approach.alpha = 1f
+                        row.approach.scale = 4f - 3f * time
+                    } else if (!wasHit) {
+                        val now = row.circle.currentClockTime
+                        row.approach.alpha = 0f
+                        row.circle.playHit(1f, now)
+                        row.judgements.forEachIndexed { index, piece ->
+                            piece.play(80f, 80f, results[index].second, 1f, now)
+                        }
+                    }
+                }
+                wasHit = time >= 1f
             }
         }
 
