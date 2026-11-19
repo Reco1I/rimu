@@ -1,7 +1,9 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.ui.v2.SkinTextures
-import com.osudroid.ui.v2.game.JudgementPiece
+import com.osudroid.ui.v2.skin.JudgementPiece
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmStatic
 
@@ -56,13 +58,13 @@ class GameObjectPool private constructor() {
     }
 
     /**
-     * A judgement piece showing the texture [textureName], see [JudgementPiece].
+     * A judgement piece of the skin for the texture [textureName], see [JudgementPiece].
      */
     fun getJudgement(textureName: String): JudgementPiece {
         judgements[textureName]?.removeFirstOrNull()?.let { return it }
 
         objectsCreated++
-        return JudgementPiece(textureName)
+        return SkinPieces.current.create(SkinComponent.Judgement(textureName))
     }
 
     fun putJudgement(piece: JudgementPiece) {

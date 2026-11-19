@@ -2,8 +2,6 @@ package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.ui.v2.game.GameplayPlayfield
 
-import com.osudroid.ui.v2.skinTexture
-import com.osudroid.ui.v2.skinFrames
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.HitWindow
@@ -23,26 +21,21 @@ import com.osudroid.math.Precision
 import com.osudroid.math.Vector2
 import com.osudroid.mods.ModHidden
 import com.osudroid.mods.ModSynesthesia
-import com.osudroid.ui.v2.game.CirclePiece
-import com.osudroid.ui.v2.game.NumberedCirclePiece
+import com.osudroid.ui.v2.skin.FollowCirclePiece
+import com.osudroid.ui.v2.skin.MainCirclePiece
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
+import com.osudroid.ui.v2.skin.SliderBallPiece
 import com.osudroid.ui.v2.game.SliderTickContainer
-import com.osudroid.ui.v2.game.SliderTickSprite
+import com.osudroid.ui.v2.game.GameplaySliderTick
 import com.osudroid.utils.BitSet
 import com.osudroid.utils.updateThread
-import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.AnimatedSprite
 import com.reco1l.verktex.ui.Component
-import com.reco1l.verktex.ui.Sprite
-import com.reco1l.verktex.graphics.BlendMode
-import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
 import com.reco1l.verktex.ui.container.Container
-import com.reco1l.verktex.ui.fadeIn
-import com.reco1l.verktex.ui.fadeOut
-import com.reco1l.verktex.ui.scaleTo
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
@@ -55,9 +48,12 @@ import ru.nsu.ccfit.zuev.skins.OsuSkin
 
 class GameplaySlider : GameObject() {
 
-    private val approachCircle: Sprite
-    private val startArrow: Sprite
-    private val endArrow: Sprite
+    private val pieces = SkinPieces.current
+    private val normalApproachCircle = pieces.create(SkinComponent.ApproachCircle)
+    private val traceableApproachCircle by lazy { pieces.create(SkinComponent.TraceableApproachCircle) }
+    private var approachCircle: Component = normalApproachCircle
+    private val startArrow = pieces.create(SkinComponent.ReverseArrow)
+    private val endArrow = pieces.create(SkinComponent.ReverseArrow)
     private var beatmapSlider: Slider? = null
     private var controlPoints: BeatmapControlPoints? = null
     private var playfield: GameplayPlayfield? = null
@@ -66,10 +62,10 @@ class GameplaySlider : GameObject() {
     private var effectsPlayfield: GameplayPlayfield? = null
 
     // The bursts of the head and the end, which stay shown for the repeats, and of the reverse arrows.
-    private val headBurst = CirclePiece(sliderStartCircleTexture, sliderStartCircleOverlayTexture)
-    private val tailBurst = CirclePiece(sliderEndCircleTexture, sliderEndCircleOverlayTexture)
-    private val reverseBursts = ArrayList<Sprite>()
-    private val freeReverseBursts = ArrayList<Sprite>()
+    private val headBurst = pieces.create(SkinComponent.SliderHeadCircle).apply { hideNumber() }
+    private val tailBurst = pieces.create(SkinComponent.SliderTailCircle)
+    private val reverseBursts = ArrayList<Component>()
+    private val freeReverseBursts = ArrayList<Component>()
     private var stat: StatisticV2? = null
     private var listener: GameObjectListener? = null
     private var path: SliderPath? = null
@@ -96,7 +92,7 @@ class GameplaySlider : GameObject() {
     private var isTracking = false
     private var spanStarted = false
 
-    private val followCircle: Sprite
+    private val followCircle: FollowCirclePiece = pieces.create(SkinComponent.FollowCircle)
 
     // Temporarily used Vector2 to avoid allocations
     private val tmpPoint = Vector2(0f)
@@ -119,7 +115,8 @@ class GameplaySlider : GameObject() {
     private var lastSnakeOutStartLength = 0f
     private var lastSnakeOutEndLength = 0f
 
-    private val sliderBody: PathShape
+    private val sliderBody = PathShape()
+    private val sliderBodyStyle = pieces.create(SkinComponent.SliderBody)
 
     /**
      * The absolute slider's path end position.
@@ -128,21 +125,19 @@ class GameplaySlider : GameObject() {
     private val pathEndPosition = Vector2(0f)
 
     /**
-     * The slider ball sprite.
+     * The slider ball.
      */
-    private val ball: AnimatedSprite
-    private val ballUnder = Sprite()
-    private val ballOver = Sprite()
+    private val ball: SliderBallPiece = pieces.create(SkinComponent.SliderBall)
 
     /**
      * The start circle piece of the slider.
      */
-    private val headCirclePiece: NumberedCirclePiece
+    private val headCirclePiece: MainCirclePiece = pieces.create(SkinComponent.SliderHeadCircle)
 
     /**
      * The end circle piece of the slider.
      */
-    private val tailCirclePiece: CirclePiece
+    private val tailCirclePiece: MainCirclePiece = pieces.create(SkinComponent.SliderTailCircle)
 
     /**
      * The slider tick container.
@@ -161,35 +156,6 @@ class GameplaySlider : GameObject() {
 
 
     init {
-
-        headCirclePiece = NumberedCirclePiece(sliderStartCircleTexture, sliderStartCircleOverlayTexture)
-        tailCirclePiece = CirclePiece(sliderEndCircleTexture, sliderEndCircleOverlayTexture)
-
-        approachCircle = Sprite()
-        approachCircle.origin = Anchor.Center
-
-        startArrow = Sprite()
-        startArrow.origin = Anchor.Center
-        startArrow.texture = skinTexture("reversearrow")
-
-        endArrow = Sprite()
-        endArrow.origin = Anchor.Center
-        endArrow.texture = skinTexture("reversearrow")
-
-        ball = AnimatedSprite(skinFrames("sliderb", orStatic = true), 60f)
-        ball.origin = Anchor.Center
-
-        // The layers of the default slider ball, which a skin can replace without replacing the ball.
-        ballUnder.origin = Anchor.Center
-        ballUnder.setColor(5 / 255f, 5 / 255f, 5 / 255f)
-        ballOver.origin = Anchor.Center
-        ballOver.blendMode = BlendMode.Additive
-
-        // Animated or not depending on the skin, which may change while the slider is alive.
-        followCircle = AnimatedSprite(skinFrames("sliderfollowcircle", orStatic = true), OsuSkin.get().animationFramerate)
-        followCircle.origin = Anchor.Center
-
-        sliderBody = PathShape()
         tickContainer = SliderTickContainer()
         isSliderBallFlip = OsuSkin.get().isSliderBallFlip
 
@@ -261,8 +227,7 @@ class GameplaySlider : GameObject() {
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapSlider)
 
         // Start circle piece
-        headCirclePiece.setCircleTextureRegion(sliderStartCircleTexture)
-        headCirclePiece.setOverlayTextureRegion(sliderStartCircleOverlayTexture)
+        headCirclePiece.showAsSliderEnd(false)
         headCirclePiece.showNumber()
         headCirclePiece.scale = scale
         headCirclePiece.setCircleColor(comboColor)
@@ -272,19 +237,16 @@ class GameplaySlider : GameObject() {
         if (OsuSkin.get().isLimitComboTextLength) {
             comboNum %= 10
         }
-        headCirclePiece.setNumberText(comboNum)
-        headCirclePiece.setNumberScale(OsuSkin.get().comboTextScale)
+        headCirclePiece.setComboNumber(comboNum)
         headCirclePiece.isVisible = applyIncreasedVisibilityToCirclePiece
 
+        approachCircle = if (GameHelper.isTraceable()) traceableApproachCircle else normalApproachCircle
         approachCircle.color = comboColor
         approachCircle.scale = scale * 3 * (beatmapSlider.timePreempt / GameHelper.getOriginalTimePreempt()).toFloat()
         approachCircle.alpha = 0f
         approachCircle.setPosition(this.position.x, this.position.y)
         approachCircle.isVisible = !GameHelper.isHidden() ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getHidden()!!.firstObject === beatmapSlider)
-
-        approachCircle.texture = skinTexture(
-            if (GameHelper.isTraceable()) "defaultapproachcircle" else "approachcircle")
 
         add(0, headCirclePiece)
         this += approachCircle
@@ -388,14 +350,9 @@ class GameplaySlider : GameObject() {
         val mapping = listener.playfieldMapping
         val skinScale = scale * mapping.objectScale / mapping.scaleX
 
-        val sliderBodyWidth = OsuSkin.get().sliderBodyWidth * skinScale
-        val sliderBorderWidth = OsuSkin.get().sliderBorderWidth * skinScale
-
         sliderBody.path = renderPath
         sliderBody.setPosition(stackedPosition.x, stackedPosition.y)
-        sliderBody.halfWidth = sliderBodyWidth
-        sliderBody.borderWidth = sliderBorderWidth
-        sliderBody.borderColor = borderColor
+        sliderBodyStyle.apply(sliderBody, bodyColor, borderColor, skinScale)
         sliderBody.startLength = 0f
         sliderBody.endLength = if (Settings[OsuSettings.SnakingInSliders]) 0f else Float.MAX_VALUE
         sliderBody.alpha = 0f
@@ -403,19 +360,10 @@ class GameplaySlider : GameObject() {
         superPath = renderPath
         superPathMaxLength = sliderBody.length
 
-        // The body as osu!stable draws it (see osu!lazer's LegacySliderBody): a gradient from the colour
-        // darkened at the border to it lightened at the centre, and a shadow outside the border taking
-        // the outer 5/64 of the whole width.
-        sliderBody.shadowWidth = sliderBodyWidth * SHADOW_PORTION / (1 - SHADOW_PORTION)
-
-        // Head circle not being visible means Traceable is applied to this slider
+        // Head circle not being visible means Traceable is applied to this slider: only the border is drawn.
         if (GameHelper.isTraceable() && !headCirclePiece.isVisible) {
             sliderBody.bodyColor = Color4(0f, 0f, 0f, 0f)
             sliderBody.bodyCenterColor = null
-        } else {
-            val bodyAlpha = OsuSkin.get().sliderBodyBaseAlpha
-            sliderBody.bodyColor = darken(bodyColor, 0.1f).alpha(bodyAlpha)
-            sliderBody.bodyCenterColor = lighten(bodyColor, 0.5f).alpha(bodyAlpha)
         }
 
         add(0, tickContainer)
@@ -554,10 +502,7 @@ class GameplaySlider : GameObject() {
     private fun burstReverseArrow(at: Vector2, rotation: Float) {
         val playfield = effectsPlayfield ?: return
 
-        val arrow = freeReverseBursts.removeLastOrNull() ?: Sprite().apply {
-            origin = Anchor.Center
-            texture = skinTexture("reversearrow")
-        }
+        val arrow = freeReverseBursts.removeLastOrNull() ?: pieces.create(SkinComponent.ReverseArrow)
         reverseBursts += arrow
 
         arrow.setPosition(at.x, at.y)
@@ -579,14 +524,7 @@ class GameplaySlider : GameObject() {
 
         if (Settings[OsuSettings.AnimateFollowCircle]) {
             if (isInRadius) {
-                followCircle.clearAnimations()
-
-                followCircle.choreographAt(modifierStartTime) { sequence ->
-                    sequence.scaleTo(beatmapSlider.gameplayScale * 0.8f, 0.2f, Easing.OutQuad)
-                        .fadeOut(0.2f, Easing.InQuad)
-
-                    extendLifetime(sequence)
-                }
+                extendLifetime(followCircle.playSliderEnd(beatmapSlider.gameplayScale, modifierStartTime))
             }
         } else {
             followCircle.removeSelf()
@@ -639,8 +577,6 @@ class GameplaySlider : GameObject() {
         approachCircle.clearAnimations()
         followCircle.clearAnimations()
         ball.clearAnimations()
-        ballUnder.clearAnimations()
-        ballOver.clearAnimations()
         sliderBody.clearAnimations()
         tickContainer.clearAnimations()
 
@@ -651,8 +587,6 @@ class GameplaySlider : GameObject() {
         approachCircle.removeSelf()
         followCircle.removeSelf()
         ball.removeSelf()
-        ballUnder.removeSelf()
-        ballOver.removeSelf()
         sliderBody.removeSelf()
         tickContainer.removeSelf()
 
@@ -729,7 +663,7 @@ class GameplaySlider : GameObject() {
             elapsedSpanTime -= spanDuration
 
             if (isSliderBallFlip) {
-                ball.flippedHorizontal = reverse
+                ball.setFlipped(reverse)
             }
 
             // Restore ticks
@@ -900,14 +834,7 @@ class GameplaySlider : GameObject() {
             playSlidingSamples()
 
             if (Settings[OsuSettings.AnimateFollowCircle]) {
-                val remainTime = max(0.0, duration - elapsedSpanTime).toFloat()
-                val initialScale = if (followCircle.alpha == 0f) scale * 0.5f else followCircle.scaleX
-
-                followCircle.clearAnimations()
-                followCircle.scale = initialScale
-
-                followCircle.scaleTo(scale, min(remainTime, 0.18f), Easing.OutQuad)
-                followCircle.fadeIn(min(remainTime, 0.06f))
+                followCircle.playTrackingStart(scale, max(0.0, duration - elapsedSpanTime).toFloat())
             } else {
                 followCircle.alpha = 1f
             }
@@ -915,10 +842,7 @@ class GameplaySlider : GameObject() {
             stopSlidingSamples()
 
             if (Settings[OsuSettings.AnimateFollowCircle]) {
-                followCircle.clearAnimations()
-
-                followCircle.scaleTo(scale * 2, 0.1f)
-                followCircle.fadeOut(0.1f)
+                followCircle.playTrackingEnd(scale)
             } else {
                 followCircle.alpha = 0f
             }
@@ -974,7 +898,7 @@ class GameplaySlider : GameObject() {
                 val g = min(1f, circleColor.green + (1 - circleColor.green) * kiaiModifier)
                 val b = min(1f, circleColor.blue + (1 - circleColor.blue) * kiaiModifier)
                 kiai = true
-                headCirclePiece.setCircleColor(r, g, b)
+                headCirclePiece.setCircleColor(Color4(r, g, b))
             } else if (kiai) {
                 headCirclePiece.setCircleColor(circleColor)
                 kiai = false
@@ -1037,9 +961,9 @@ class GameplaySlider : GameObject() {
 
             // The scale on screen, as the frames follow the distance on screen.
             val screenScale = scale * listener!!.playfieldMapping.objectScale
-            ball.frameTime = 1f / (beatmapSlider.velocity.toFloat() * Slider.BASE_SCORING_DISTANCE * screenScale)
+            ball.setSpeed(beatmapSlider.velocity.toFloat() * Slider.BASE_SCORING_DISTANCE * screenScale)
             ball.scale = scale
-            ball.flippedHorizontal = false
+            ball.setFlipped(false)
             ball.alpha = 1f
 
             followCircle.alpha = 0f
@@ -1052,29 +976,16 @@ class GameplaySlider : GameObject() {
             // the "tracking starts" branch and makes the follow circle visible.
             isInRadius = false
 
-            // Tinted with the combo colour only if the skin allows it.
-            ball.color = if (OsuSkin.get().isAllowSliderBallTint) circleColor else Color4.White
-
-            // Only shown with the default ball: a skin's own ball ignores them.
-            val isBallSkinned = SkinTextures.isSkinned("sliderb") || SkinTextures.isSkinned("sliderb0")
-            ballUnder.texture = if (isBallSkinned) null else skinTexture("sliderb-nd")
-            ballOver.texture = if (isBallSkinned) null else skinTexture("sliderb-spec")
-
-            for (layer in arrayOf(ballUnder, ballOver)) {
-                layer.scale = scale
-                layer.alpha = 1f
-            }
+            ball.setComboColor(circleColor)
 
             // Above the bodies of every object, as the approach circles.
-            for (piece in arrayOf(ballUnder, ball, ballOver, followCircle)) {
+            for (piece in arrayOf(ball, followCircle)) {
                 this += piece
                 drawIn(playfield.approachCircles, piece)
             }
 
-            for (layer in arrayOf(ball, ballUnder, ballOver)) {
-                layer.choreographAt(beatmapSlider.endTime.toFloat() / 1000) { sequence ->
-                    sequence.fadeOut().after { e -> updateThread { e.removeSelf() } } }
-            }
+            ball.choreographAt(beatmapSlider.endTime.toFloat() / 1000) { sequence ->
+                sequence.fadeOut().after { e -> updateThread { e.removeSelf() } } }
         }
 
         approachCircle.clearAnimations()
@@ -1106,12 +1017,7 @@ class GameplaySlider : GameObject() {
         // Setting position of ball and follow circle
         followCircle.setPosition(ballPos.x, ballPos.y)
         ball.setPosition(ballPos.x, ballPos.y)
-        ball.rotationZ = ballAngle
-        ballUnder.setPosition(ballPos.x, ballPos.y)
-        ballUnder.rotationZ = ballAngle
-
-        // The highlight stays still, it neither rotates nor flips.
-        ballOver.setPosition(ballPos.x, ballPos.y)
+        ball.setBallRotation(ballAngle)
 
         if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
             listener.updateAutoBasedPos(ballPos.x, ballPos.y)
@@ -1292,8 +1198,7 @@ class GameplaySlider : GameObject() {
 
             // Change the head circle to the end circle piece.
             headCirclePiece.hideNumber()
-            headCirclePiece.setCircleTextureRegion(sliderEndCircleTexture)
-            headCirclePiece.setOverlayTextureRegion(sliderEndCircleOverlayTexture)
+            headCirclePiece.showAsSliderEnd(true)
 
             startArrow.alpha = 1f
         } else if (headCirclePiece.isVisible) {
@@ -1350,11 +1255,8 @@ class GameplaySlider : GameObject() {
             val isTracking = isTracking()
 
             if (isTracking) {
-                if (Settings[OsuSettings.AnimateFollowCircle] && followCircle.scaleX > 1f) {
-                    followCircle.clearAnimations()
-
-                    followCircle.scale = scale * 1.1f
-                    followCircle.scaleTo(scale, 0.2f)
+                if (Settings[OsuSettings.AnimateFollowCircle]) {
+                    followCircle.playTick(scale)
                 }
 
                 playCurrentNestedObjectHitSound()
@@ -1370,7 +1272,7 @@ class GameplaySlider : GameObject() {
             judge(if (isTracking) 10 else -1, tmpPoint, false, GameObjectListener.SLIDER_TICK, isTracking)
             currentNestedObjectIndex++
 
-            val tickSprite = tickContainer[currentTickSpriteIndex] as SliderTickSprite
+            val tickSprite = tickContainer[currentTickSpriteIndex] as GameplaySliderTick
             tickSprite.onHit(isTracking)
 
             if (reverse && currentTickSpriteIndex > 0) {
@@ -1582,32 +1484,8 @@ class GameplaySlider : GameObject() {
     companion object {
 
         // The part of the whole width of the body that its shadow takes, as osu!lazer's LegacySliderBody.
-        private const val SHADOW_PORTION = 5f / 64f
-
         // How much larger reverse arrows are at the start of each beat.
         private const val ARROW_PULSE = 0.3f
-
-        /**
-         * Darkens [color] by [amount] as osu!framework does.
-         */
-        private fun darken(color: Color4, amount: Float): Color4 {
-            val scalar = max(1f, 1f + amount)
-            return Color4(color.red / scalar, color.green / scalar, color.blue / scalar, color.alpha)
-        }
-
-        /**
-         * Lightens [color] in a way friendlier to dark or strong colours, as osu!lazer's LegacySliderBody.
-         */
-        private fun lighten(color: Color4, amount: Float): Color4 {
-            val half = amount * 0.5f
-            fun channel(value: Float) = min(1f, value * (1 + 0.5f * half) + half)
-            return Color4(channel(color.red), channel(color.green), channel(color.blue), color.alpha)
-        }
-
-        private const val sliderStartCircleTexture = "sliderstartcircle"
-        private const val sliderStartCircleOverlayTexture = "sliderstartcircleoverlay"
-        private const val sliderEndCircleTexture = "sliderendcircle"
-        private const val sliderEndCircleOverlayTexture = "sliderendcircleoverlay"
 
         // Avoid rebuilding slider body mesh for tiny length deltas every frame.
         private const val snakeLengthUpdateThreshold = 0.75f

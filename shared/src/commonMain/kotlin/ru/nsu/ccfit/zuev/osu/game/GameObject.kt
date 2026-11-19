@@ -8,14 +8,15 @@ import com.osudroid.math.Vector2
 import com.osudroid.game.HitResult
 import com.osudroid.mods.ModRelax
 import com.osudroid.settings.OsuSettings
-import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.game.GameplayPlayfield
-import com.osudroid.ui.v2.game.HitLightingPiece
-import com.osudroid.ui.v2.game.JudgementPiece
+import com.osudroid.ui.v2.skin.JudgementPiece
+import com.osudroid.ui.v2.skin.MainCirclePiece
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
+import com.osudroid.ui.v2.skin.legacy.HitLightingPiece
+import com.osudroid.ui.v2.skin.legacy.LegacySkin
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.settings.Settings
-import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.Choreography
 import com.reco1l.verktex.ui.Component
@@ -290,6 +291,7 @@ abstract class GameObject : Container() {
     private val judgementPieces = ArrayList<JudgementPiece>()
 
     private var lighting: HitLightingPiece? = null
+    private var isLightingLookedUp = false
 
     /**
      * Shows the judgement with the texture [textureName] (`hit300`, `hit0`, `sliderpoint30`…) at ([x], [y]) in this
@@ -315,18 +317,25 @@ abstract class GameObject : Container() {
         playfield.particles.emit(particleX, particleY, textureName, particleScale)
 
         if (result != HitResult.Miss && result != HitResult.SliderPoint && result != HitResult.Tick &&
-            Settings[OsuSettings.HitLighting] && SkinTextures["lighting"] != null) {
+            Settings[OsuSettings.HitLighting]) {
 
-            val lighting = lighting ?: HitLightingPiece().also { lighting = it }
-
-            if (lighting.parent == null) {
-                this += lighting
-                drawIn(playfield.underlay, lighting)
+            if (!isLightingLookedUp) {
+                // Looked up once: only texture skins have it, and the pools are emptied when the skin changes.
+                lighting = SkinPieces.current.createOrNull(SkinComponent.HitLighting)
+                isLightingLookedUp = true
             }
-            extendLifetime(lighting.play(x, y, color, scale, time))
+
+            val lighting = lighting
+            if (lighting != null) {
+                if (lighting.parent == null) {
+                    this += lighting
+                    drawIn(playfield.underlay, lighting)
+                }
+                extendLifetime(lighting.play(x, y, color, scale, time))
+            }
         }
 
-        val piece = GameObjectPool.getInstance().getJudgement(textureName)
+        val piece: JudgementPiece = GameObjectPool.getInstance().getJudgement(textureName)
         judgementPieces += piece
         this += piece
         drawIn(playfield.judgements, piece)
@@ -345,14 +354,11 @@ abstract class GameObject : Container() {
     }
 
     /**
-     * Bursts [piece], one of this object's, at the given [scale] now: it grows and fades out, drawn above every
-     * object as the judgements are, as osu!lazer's `LegacyMainCirclePiece` does. The lifetime of this object is
-     * extended until it ends.
+     * Plays [piece], one of this object's, being hit at the given [scale] now, drawn above every object as the
+     * judgements are: a circle as its skin plays it ([MainCirclePiece.playHit]), any other piece (a reverse arrow)
+     * bursting as osu!stable's do. The lifetime of this object is extended until it ends.
      */
     protected fun burst(playfield: GameplayPlayfield, piece: Component, scale: Float) {
-        // Reference: https://github.com/ppy/osu/blob/c5893f245ce7a89d1900dbb620390823702481fe/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyMainCirclePiece.cs#L152-L174
-        val fadeDuration = 0.24f
-
         if (piece.parent == null) {
             this += piece
         }
@@ -361,10 +367,9 @@ abstract class GameObject : Container() {
         piece.clearAnimations()
         piece.scale = scale
         piece.alpha = 1f
-        piece.choreographAt(currentClockTime) { sequence ->
-            sequence.scaleTo(scale * 1.4f, fadeDuration, Easing.OutQuad).fadeOut(fadeDuration)
-            extendLifetime(sequence)
-        }
+
+        val time = currentClockTime
+        extendLifetime(if (piece is MainCirclePiece) piece.playHit(scale, time) else LegacySkin.burst(piece, scale, time))
     }
 
     /**

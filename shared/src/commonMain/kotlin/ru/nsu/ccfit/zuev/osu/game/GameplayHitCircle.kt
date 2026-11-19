@@ -1,7 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.settings.OsuSettings
-import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.beatmaps.constants.HitObjectType
@@ -9,14 +8,14 @@ import com.osudroid.beatmaps.hitobjects.HitCircle
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.math.MathUtils
 import com.osudroid.mods.ModHidden
-import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.game.GameplayPlayfield
-import com.osudroid.ui.v2.game.NumberedCirclePiece
+import com.osudroid.ui.v2.skin.MainCirclePiece
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import com.osudroid.utils.updateThread
-import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.Sprite
+import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
 import kotlin.math.abs
@@ -27,7 +26,9 @@ import ru.nsu.ccfit.zuev.skins.OsuSkin
 
 class GameplayHitCircle : GameObject() {
 
-    private val approachCircle: Sprite
+    private val normalApproachCircle = SkinPieces.current.create(SkinComponent.ApproachCircle)
+    private val traceableApproachCircle by lazy { SkinPieces.current.create(SkinComponent.TraceableApproachCircle) }
+    private var approachCircle: Component = normalApproachCircle
     private var comboColor = Color4()
     private var listener: GameObjectListener? = null
     private var playfield: GameplayPlayfield? = null
@@ -45,14 +46,7 @@ class GameplayHitCircle : GameObject() {
     /**
      * The circle piece that represents the circle body and overlay.
      */
-    private val circlePiece: NumberedCirclePiece
-
-
-    init {
-        circlePiece = NumberedCirclePiece("hitcircle", "hitcircleoverlay")
-        approachCircle = Sprite()
-        approachCircle.origin = Anchor.Center
-    }
+    private val circlePiece: MainCirclePiece = SkinPieces.current.create(SkinComponent.HitCircle)
 
     fun init(listener: GameObjectListener, playfield: GameplayPlayfield, beatmapCircle: HitCircle,
              comboColor: Color4) {
@@ -94,21 +88,18 @@ class GameplayHitCircle : GameObject() {
             comboNum %= 10
         }
 
-        circlePiece.setNumberText(comboNum)
+        circlePiece.setComboNumber(comboNum)
         circlePiece.showNumber()
-        circlePiece.setNumberScale(OsuSkin.get().comboTextScale)
         circlePiece.isVisible = !GameHelper.isTraceable() ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapCircle)
 
+        approachCircle = if (GameHelper.isTraceable()) traceableApproachCircle else normalApproachCircle
         approachCircle.color = comboColor
         approachCircle.scale = scale * 3 * (beatmapCircle.timePreempt / GameHelper.getOriginalTimePreempt()).toFloat()
         approachCircle.alpha = 0f
         approachCircle.setPosition(this.position.x, this.position.y)
         approachCircle.isVisible = !GameHelper.isHidden() ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getHidden()!!.firstObject === beatmapCircle)
-
-        approachCircle.texture = skinTexture(
-            if (GameHelper.isTraceable()) "defaultapproachcircle" else "approachcircle")
 
         // Newer objects are below older ones.
         playfield.objects.add(0, this)
@@ -192,8 +183,7 @@ class GameplayHitCircle : GameObject() {
         approachCircle.removeSelf()
 
         if (judgement != null && judgement != "hit0" && areBurstsShown()) {
-            // The circle bursts itself, without its number.
-            circlePiece.hideNumber()
+            // The circle bursts itself.
             circlePiece.setCircleColor(comboColor)
             circlePiece.setColor(1f, 1f, 1f)
             burst(playfield, circlePiece, beatmapCircle!!.gameplayScale)
@@ -275,7 +265,7 @@ class GameplayHitCircle : GameObject() {
                 val g = min(1f, comboColor.green + (1 - comboColor.green) * kiaiModifier)
                 val b = min(1f, comboColor.blue + (1 - comboColor.blue) * kiaiModifier)
                 kiai = true
-                circlePiece.setCircleColor(r, g, b)
+                circlePiece.setCircleColor(Color4(r, g, b))
             } else if (kiai) {
                 circlePiece.setCircleColor(comboColor)
                 kiai = false

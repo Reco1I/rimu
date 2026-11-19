@@ -169,7 +169,7 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
 
 ## Phases
 
-1. **Lookup and contracts, with no visual change.**
+1. **Lookup and contracts, with no visual change** (done).
    - Add `SkinComponent`, `GameplaySkin`, `SkinPieces` and the contracts.
    - Wrap today's pieces as `LegacySkin`. The default assets still count as skinned in this phase, so the result
      is identical.
@@ -180,6 +180,35 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
    - Record the stable dimension of each component, checked against the current textures, in `DefaultSkin`'s
      constants.
    - Unit tests for the order of lookup and the fallback.
+
+   ### Phase 1 as done
+
+   - `SkinComponent` is a sealed class rather than an enum: each component is typed by its contract
+     (`SkinComponent<MainCirclePiece>`…), and `Judgement` carries the texture it's for. `SkinPieces.current` asks
+     `LegacySkin` and then `DefaultSkin`: a component comes from the first skin that `provides` it, otherwise from
+     the first that can create it at all, which is `LegacySkin` with the default textures until the default skin
+     draws it. `createOrNull` is for what not every skin has (the hit lighting).
+   - The contracts are in `skin/Pieces.kt`: `MainCirclePiece`, `SliderBallPiece`, `FollowCirclePiece`,
+     `SliderBodyStyle` and `JudgementPiece`. Texture skins implement them in `skin/legacy/`:
+     `LegacyMainCirclePiece` (was `CirclePiece`/`NumberedCirclePiece`), `LegacySliderBallPiece` (the ball with its
+     `-nd`/`-spec` layers, one piece drawn through one proxy), `LegacyFollowCirclePiece`, `LegacySliderBodyStyle`
+     and `LegacyJudgementPiece` (was `JudgementPiece`, now a container around its sprite). `HitLightingPiece` moved
+     there too.
+   - The approach circle, reverse arrows and slider ticks are plain Components: the objects tint, scale and fade
+     them, whatever the skin. As osu!lazer's `DrawableSliderTick`, `GameplaySliderTick` (was `SliderTickSprite`)
+     animates the tick and shows the skin's piece inside.
+   - A circle's hit is `MainCirclePiece.playHit`: `GameObject.burst` draws the piece above every object and lets it
+     play its hit. Texture skins burst, through `LegacySkin.burst`, which reverse arrows use too.
+   - The follow circle's reactions moved into `LegacyFollowCirclePiece` as they were, with transforms. They become
+     choreography with the default skin's follow circle, in phase 3.
+   - The pools didn't need a revision check: `GameScene` already empties them, and renews the ticks' and follow
+     points', each time a beatmap loads, after loading the beatmap's skin.
+   - `SkinDimensions` (`skin/DefaultSkin.kt`) records the sizes of the default textures at 1x. They're osu!stable's
+     sizes, though not every one is round: the ball is 118, the cursor 76 and the spinner's textures 666 to 852.
+   - The spinners, follow points, cursors and the HUD don't go through `SkinPieces` yet. Their contracts are shaped
+     in their own phases (4 to 6), next to the default skin's piece they need to fit.
+   - `SkinPiecesTest` covers the order of lookup and the fallbacks.
+
 2. **Procedural hit circles, approach circles and judgements**, the pieces seen most, so the look can be tuned
    early. `DefaultSkin` becomes the fallback: the default assets no longer count as skinned for the components it
    covers.

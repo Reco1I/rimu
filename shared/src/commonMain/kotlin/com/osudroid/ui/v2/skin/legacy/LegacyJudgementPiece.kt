@@ -1,4 +1,4 @@
-package com.osudroid.ui.v2.game
+package com.osudroid.ui.v2.skin.legacy
 
 import com.osudroid.game.HitResult
 import com.osudroid.ui.v2.SkinTextures
@@ -7,7 +7,9 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.texture.FramesReference
 import com.reco1l.verktex.texture.Textures
+import com.osudroid.ui.v2.skin.JudgementPiece
 import com.reco1l.verktex.ui.AnimatedSprite
+import com.reco1l.verktex.ui.Choreography
 import com.reco1l.verktex.ui.choreographyTransitions
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.random.Random
@@ -19,10 +21,17 @@ import kotlin.random.Random
  *
  * Owned by the hit object it judges, until the object expires, and pooled by texture.
  */
-class JudgementPiece(val textureName: String) : AnimatedSprite(
-    if (textureName in ANIMATED) skinFrames(textureName, orStatic = true) else StaticSkinTexture(textureName),
-    OsuSkin.get().animationFramerate
-) {
+class LegacyJudgementPiece(textureName: String) : JudgementPiece(textureName) {
+
+    private val sprite = AnimatedSprite(
+        if (textureName in ANIMATED) skinFrames(textureName, orStatic = true) else StaticSkinTexture(textureName),
+        OsuSkin.get().animationFramerate
+    ).also {
+        it.origin = Anchor.Center
+        it.anchor = Anchor.Center
+        it.isLoop = false
+        +it
+    }
 
     // What the animation of the current judgement is played with.
     private var startTime = 0f
@@ -32,7 +41,7 @@ class JudgementPiece(val textureName: String) : AnimatedSprite(
 
     // Legacy judgements don't play any transforms if they are an animation.
     private val isAnimated
-        get() = frames.size > 1
+        get() = sprite.frames.size > 1
 
     private val judgementTransitions = choreographyTransitions<HitResult> {
         this[HitResult.Miss] = {
@@ -76,23 +85,17 @@ class JudgementPiece(val textureName: String) : AnimatedSprite(
 
     init {
         origin = Anchor.Center
-        isLoop = false
     }
 
-    private fun com.reco1l.verktex.ui.Choreography.fades() =
+    private fun Choreography.fades() =
         fadeInFromZero(FADE_IN_LENGTH).then(FADE_OUT_DELAY).fadeOut(FADE_OUT_LENGTH)
 
 
-    /**
-     * Shows the judgement [result] at ([x], [y]) in the space of its parent, for an object of the given [scale],
-     * from [time] on its clock. A [spinnerMiss] is a spinner's miss, which only fades.
-     *
-     * @return The time its animation ends at.
-     */
-    fun play(x: Float, y: Float, result: HitResult, scale: Float, time: Float, spinnerMiss: Boolean = false): Float {
+    // A spinner's miss only fades.
+    override fun play(x: Float, y: Float, result: HitResult, scale: Float, time: Float, spinnerMiss: Boolean): Float {
         clearAnimations()
-        stop()
-        play()
+        sprite.stop()
+        sprite.play()
 
         startTime = time
         baseScale = scale
@@ -110,19 +113,14 @@ class JudgementPiece(val textureName: String) : AnimatedSprite(
         return judgementTransitions.play(this, result, time)
     }
 
-    companion object {
+    private companion object {
 
-        /**
-         * How long the longest judgement lasts, in seconds.
-         */
-        const val DURATION = 1.22f
-
-        private const val FADE_IN_LENGTH = 0.12f
-        private const val FADE_OUT_LENGTH = 0.6f
-        private const val FADE_OUT_DELAY = 0.5f
+        const val FADE_IN_LENGTH = 0.12f
+        const val FADE_OUT_LENGTH = 0.6f
+        const val FADE_OUT_DELAY = 0.5f
 
         // The judgements a skin can animate.
-        private val ANIMATED = setOf("hit0", "hit50", "hit100", "hit100k", "hit300", "hit300k", "hit300g")
+        val ANIMATED = setOf("hit0", "hit50", "hit100", "hit100k", "hit300", "hit300k", "hit300g")
     }
 }
 

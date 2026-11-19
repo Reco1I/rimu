@@ -18,7 +18,10 @@ import com.osudroid.ui.v2.SpriteFont
 import com.osudroid.ui.v2.StarRatingBadge
 import com.reco1l.verktex.ui.Badge
 import com.osudroid.ui.v2.game.CursorEntity
-import com.osudroid.ui.v2.game.NumberedCirclePiece
+import com.osudroid.ui.v2.skin.MainCirclePiece
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
+import com.reco1l.verktex.ui.Component
 import com.osudroid.ui.v2.mainmenu.OsuLogo
 import com.osudroid.ui.v2.mainmenu.TrianglesDispenser
 import com.osudroid.ui.v2.modmenu.ModIcon
@@ -62,8 +65,8 @@ object OsuUITests : UITestSuite("osu!") {
 
     init {
         test("Hit circles") {
-            val pieces = mutableListOf<NumberedCirclePiece>()
-            val approachCircles = mutableListOf<Sprite>()
+            val pieces = mutableListOf<MainCirclePiece>()
+            val approachCircles = mutableListOf<Component>()
 
             linearContainer {
                 anchor = Anchor.Center
@@ -75,16 +78,15 @@ object OsuUITests : UITestSuite("osu!") {
                         width = 140f.dip
                         height = 140f.dip
 
-                        pieces += NumberedCirclePiece("hitcircle", "hitcircleoverlay").also {
+                        pieces += SkinPieces.current.create(SkinComponent.HitCircle).also {
                             it.anchor = Anchor.Center
                             it.setCircleColor(color)
-                            it.setNumberText(index + 1)
+                            it.setComboNumber(index + 1)
                             +it
                         }
 
-                        approachCircles += Sprite(SkinTextures["approachcircle"]).also {
+                        approachCircles += SkinPieces.current.create(SkinComponent.ApproachCircle).also {
                             it.anchor = Anchor.Center
-                            it.origin = Anchor.Center
                             it.color = color
                             +it
                         }

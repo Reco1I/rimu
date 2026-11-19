@@ -69,9 +69,9 @@ import com.osudroid.ui.v2.game.CursorEntity
 import com.osudroid.ui.v2.game.FlashLightEntity
 import com.osudroid.ui.v2.game.FollowPointConnection
 import com.osudroid.ui.v2.game.GameplayPlayfield
-import com.osudroid.ui.v2.game.JudgementPiece
+import com.osudroid.ui.v2.skin.JudgementPiece
 import com.osudroid.ui.v2.game.PauseMenu
-import com.osudroid.ui.v2.game.SliderTickSprite
+import com.osudroid.ui.v2.game.GameplaySliderTick
 import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.hud.HUDElements
 import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
@@ -901,7 +901,7 @@ class GameScene : GameObjectListener {
         scope?.ensureActive()
 
         FollowPointConnection.renew(16)
-        SliderTickSprite.renew(16)
+        GameplaySliderTick.renew(16)
 
         // TODO replay
         replaying = false

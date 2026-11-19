@@ -466,7 +466,10 @@ object SkinTextures {
         return isInSkin(name)
     }
 
-    private fun isDefaultSkin() = SkinFolders.path.trimEnd('/') == SkinFolders.topPath.trimEnd('/')
+    /**
+     * Whether the skin in use is the default skin: no skin folder is chosen.
+     */
+    fun isDefaultSkin() = SkinFolders.path.trimEnd('/') == SkinFolders.topPath.trimEnd('/')
 }
 
 /**

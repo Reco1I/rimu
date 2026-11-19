@@ -1,7 +1,7 @@
 package com.osudroid.ui.v2.game
 
-import com.osudroid.ui.v2.SkinTextures
-import com.osudroid.ui.v2.skinTexture
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
@@ -15,7 +15,6 @@ import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTick
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.container.Container
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.*
@@ -25,7 +24,7 @@ import kotlin.jvm.JvmStatic
 class SliderTickContainer : Container() {
     private var slider: Slider? = null
 
-    // The scale of the ticks, from the size of their texture.
+    // The scale of the ticks, as the objects'.
     private var tickScale = 1f
 
     /**
@@ -47,7 +46,7 @@ class SliderTickContainer : Container() {
             val tick = beatmapSlider.nestedHitObjects[i] as? SliderTick ?: break
             val tickPosition = tick.gameplayStackedPosition
 
-            val sprite = SliderTickSprite.obtain()
+            val sprite = GameplaySliderTick.obtain()
 
             // We're subtracting the position of the slider because the tick container is
             // already at the position of the slider since it's a child of the slider's body.
@@ -78,7 +77,7 @@ class SliderTickContainer : Container() {
             // For reverse sliders, the ticks are in the opposite order.
             val sprite = this[
                 if (newSpanIndex % 2 != 0) childCount - (i - spanStartIndex) - 1 else i - spanStartIndex
-            ] as? SliderTickSprite ?: break
+            ] as? GameplaySliderTick ?: break
 
             sprite.init(tick, tickScale)
         }
@@ -92,20 +91,28 @@ class SliderTickContainer : Container() {
 }
 
 
-class SliderTickSprite : Sprite(), IPoolable {
+/**
+ * A tick of a slider, as osu!lazer's `DrawableSliderTick`: it animates the skin's piece it shows, the same for every
+ * skin.
+ */
+class GameplaySliderTick : Container(), IPoolable {
     override var isRecycled = false
     private var tick: SliderTick? = null
     private var baseScale = 1f
 
     init {
-        texture = skinTexture("sliderscorepoint")
         origin = Anchor.Center
+
+        +SkinPieces.current.create(SkinComponent.SliderTick).also {
+            it.anchor = Anchor.Center
+            it.origin = Anchor.Center
+        }
     }
 
     /**
-     * Initializes this [SliderTickSprite] with the given [SliderTick].
+     * Initializes this [GameplaySliderTick] with the given [SliderTick].
      *
-     * @param tick The [SliderTick] represented by this [SliderTickSprite].
+     * @param tick The [SliderTick] represented by this [GameplaySliderTick].
      */
     fun init(tick: SliderTick, baseScale: Float) {
         this.tick = tick
@@ -135,7 +142,7 @@ class SliderTickSprite : Sprite(), IPoolable {
     }
 
     /**
-     * Called when the [SliderTick] that this [SliderTickSprite] represents is hit.
+     * Called when the [SliderTick] that this [GameplaySliderTick] represents is hit.
      *
      * @param isSuccessful Whether the hit resulted in a successful hit.
      */
@@ -164,25 +171,25 @@ class SliderTickSprite : Sprite(), IPoolable {
 
     companion object {
         private const val ANIM_DURATION = 0.15f
-        private val pool = SynchronizedPool<SliderTickSprite>(20).apply { release(SliderTickSprite()) }
+        private val pool = SynchronizedPool<GameplaySliderTick>(20)
 
         /**
-         * Renews the [SliderTickSprite] pool with fresh instances.
+         * Renews the [GameplaySliderTick] pool with fresh instances, with the pieces of the skin in use.
          *
-         * @param size The number of [SliderTickSprite] instances to pre-populate the pool with.
+         * @param size The number of [GameplaySliderTick] instances to pre-populate the pool with.
          */
         @JvmStatic
         fun renew(size: Int) {
             pool.clear()
-            repeat(size) { pool.release(SliderTickSprite()) }
+            repeat(size) { pool.release(GameplaySliderTick()) }
         }
 
         /**
-         * Obtains a [SliderTickSprite] from the pool, or creates a new one if the pool is empty.
+         * Obtains a [GameplaySliderTick] from the pool, or creates a new one if the pool is empty.
          */
         @JvmStatic
-        fun obtain(): SliderTickSprite {
-            return pool.acquire() ?: SliderTickSprite()
+        fun obtain(): GameplaySliderTick {
+            return pool.acquire() ?: GameplaySliderTick()
         }
     }
 

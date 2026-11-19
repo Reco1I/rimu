@@ -1,4 +1,4 @@
-package com.osudroid.ui.v2.game
+package com.osudroid.ui.v2.skin.legacy
 
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.Anchor
