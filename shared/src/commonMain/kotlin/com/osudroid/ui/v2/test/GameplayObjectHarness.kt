@@ -39,7 +39,6 @@ import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
 import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
-import ru.nsu.ccfit.zuev.osu.game.GameplayEffects
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
@@ -129,8 +128,6 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         }
 
     private val clock = ManualClock()
-
-    private val effects = GameplayEffects().apply { setLayers(gameplayPlayfield.underlay, gameplayPlayfield.judgements) }
 
     private var cursor = Cursor()
 
@@ -260,7 +257,6 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         }
 
         current = Spawned(hitObject, gameObject)
-        effects.setScale(hitObject.gameplayScale)
     }
 
     private fun step(deltaTime: Float) {
@@ -334,8 +330,8 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     //region GameObjectListener
 
-    override fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4) {
-        val hitWindow = current?.hitObject?.hitWindow ?: return
+    override fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4): String? {
+        val hitWindow = current?.hitObject?.hitWindow ?: return null
         val error = abs(accuracy) * 1000
 
         // As the game scene judges it.
@@ -346,64 +342,47 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
             else -> 50
         }
 
-        if (score > 0) {
-            effects.burst(pos, color)
-        }
-        effects.hit(pos, scoreName(score), color)
-
         stage.log(if (score == 0) "Circle missed" else "Circle hit $score, offset ${(accuracy * 1000).toInt()}ms")
+        return scoreName(score)
     }
 
-    override fun onSliderHit(id: Int, score: Int, judgementPos: Vector2, endCombo: Boolean, color: Color4, type: Int, incrementCombo: Boolean) {
+    override fun onSliderHit(id: Int, score: Int, judgementPos: Vector2, endCombo: Boolean, color: Color4, type: Int, incrementCombo: Boolean): String? {
         // The whole slider was missed.
         if (score == 0) {
-            effects.hit(judgementPos, "hit0", color)
             stage.log("Slider missed")
-            return
+            return "hit0"
         }
 
         // A nested object was missed, it only breaks the combo.
         if (score == -1) {
             stage.log("Slider ${partName(type)} missed")
-            return
+            return null
         }
 
         val name = when (type) {
-            GameObjectListener.SLIDER_START -> {
-                if (incrementCombo) effects.burstSliderStart(judgementPos, color)
-                "sliderpoint30"
-            }
-            GameObjectListener.SLIDER_REPEAT -> "sliderpoint30"
+            GameObjectListener.SLIDER_START, GameObjectListener.SLIDER_REPEAT -> "sliderpoint30"
             GameObjectListener.SLIDER_TICK -> "sliderpoint10"
-            else -> {
-                if (incrementCombo) effects.burstSliderEnd(judgementPos, color)
-                scoreName(score)
-            }
+            else -> scoreName(score)
         }
+
+        stage.log("Slider ${partName(type)}, score $score")
 
         // The end is judged as the whole slider.
-        if (incrementCombo || type == GameObjectListener.SLIDER_END) {
-            effects.hit(judgementPos, name, color)
-        }
-        stage.log("Slider ${partName(type)}, score $score")
+        return if (incrementCombo || type == GameObjectListener.SLIDER_END) name else null
     }
-
-    override fun onSliderReverse(pos: Vector2, ang: Float, color: Color4) = effects.burstSliderReverse(pos, ang, color)
 
     override fun onSliderEnd(id: Int, accuracy: Int, tickSet: BitSet?) = Unit
 
     override fun onSpinnerStart(id: Int) = stage.log("Spinner started")
 
-    override fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int) {
+    override fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int): String? {
         // Bonus spins.
         if (score == 1000) {
-            return
+            return null
         }
 
-        // The center of the playfield, where spinners are.
-        val center = Vector2(PlayfieldMapping.PLAYFIELD_WIDTH / 2, PlayfieldMapping.PLAYFIELD_HEIGHT / 2)
-        effects.hit(center, scoreName(score), null)
         stage.log(if (score == 0) "Spinner missed" else "Spinner judged $score")
+        return scoreName(score)
     }
 
     override fun addObject(`object`: GameObject?) = Unit

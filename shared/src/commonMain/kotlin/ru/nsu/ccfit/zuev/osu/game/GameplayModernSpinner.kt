@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.ui.v2.game.GameplayPlayfield
+
 import com.reco1l.verktex.graphics.BlendMode
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.skinTexture
@@ -72,8 +74,9 @@ class GameplayModernSpinner : GameplaySpinner() {
         bonusScore.setPosition(center.x, center.y + 100)
     }
 
-    override fun init(listener: GameObjectListener, scene: Container,
+    override fun init(listener: GameObjectListener, scene: Container, playfield: GameplayPlayfield,
                       beatmapSpinner: Spinner, rps: Float, stat: StatisticV2) {
+        effectsPlayfield = playfield
         this.scene = scene
 
         // Above what the layer already has, as the pieces were.
@@ -150,6 +153,11 @@ class GameplayModernSpinner : GameplaySpinner() {
     }
 
     override fun updateJudgement(dt: Float) {
+        // Judged, until its judgement ends.
+        if (scene == null) {
+            return
+        }
+
         val listener = listener!!
         val stat = stat!!
 
@@ -343,8 +351,6 @@ class GameplayModernSpinner : GameplaySpinner() {
         rpmCounter.detach()
 
         bonusScore.removeSelf()
-        removeProxies()
-        removeSelf()
         scene = null
     }
 
@@ -386,7 +392,7 @@ class GameplayModernSpinner : GameplaySpinner() {
             }
         }
         stopLoopingSamples()
-        listener.onSpinnerHit(id, score, endsCombo, this.bonusScoreCounter + fullRotations - 1)
+        showResult(listener.onSpinnerHit(id, score, endsCombo, this.bonusScoreCounter + fullRotations - 1))
         playAndFreeHitSamples(score)
     }
 }

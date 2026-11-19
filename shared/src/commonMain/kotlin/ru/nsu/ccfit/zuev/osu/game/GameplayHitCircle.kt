@@ -39,6 +39,9 @@ class GameplayHitCircle : GameObject() {
     private var successfulHit = false
     private val hitSamples = ArrayList<GameplayHitSampleInfo>(5)
 
+    // The texture of the judgement the game gave the circle, shown once it's removed. Null for none.
+    private var judgement: String? = null
+
     /**
      * The circle piece that represents the circle body and overlay.
      */
@@ -72,6 +75,7 @@ class GameplayHitCircle : GameObject() {
         passedTime = -timePreempt
         startHit = false
         successfulHit = false
+        judgement = null
         kiai = (GameHelper.isKiai() && !OsuSkin.get().isDisableKiai)
         this.comboColor = comboColor
 
@@ -91,6 +95,7 @@ class GameplayHitCircle : GameObject() {
         }
 
         circlePiece.setNumberText(comboNum)
+        circlePiece.showNumber()
         circlePiece.setNumberScale(OsuSkin.get().comboTextScale)
         circlePiece.isVisible = !GameHelper.isTraceable() ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapCircle)
@@ -172,9 +177,8 @@ class GameplayHitCircle : GameObject() {
     }
 
     private fun removeFromScene() {
-        if (playfield == null) {
-            return
-        }
+        val playfield = playfield ?: return
+        val judgement = judgement
 
         lifetimeEnd = hitTime + hitOffset
 
@@ -187,7 +191,13 @@ class GameplayHitCircle : GameObject() {
         approachCircle.clearAnimations()
         approachCircle.removeSelf()
 
-        if (successfulHit || !circlePiece.isVisible || circlePiece.alpha == 0f) {
+        if (judgement != null && judgement != "hit0" && areBurstsShown()) {
+            // The circle bursts itself, without its number.
+            circlePiece.hideNumber()
+            circlePiece.setCircleColor(comboColor)
+            circlePiece.setColor(1f, 1f, 1f)
+            burst(playfield, circlePiece, beatmapCircle!!.gameplayScale)
+        } else if (successfulHit || !circlePiece.isVisible || circlePiece.alpha == 0f) {
             circlePiece.removeSelf()
         } else {
             circlePiece.choreographNow { sequence ->
@@ -196,7 +206,11 @@ class GameplayHitCircle : GameObject() {
             }
         }
 
-        playfield = null
+        if (judgement != null) {
+            showJudgement(playfield, judgement, position.x, position.y, beatmapCircle!!.gameplayScale, comboColor)
+        }
+
+        this.playfield = null
     }
 
     private fun playHitSamples() {
@@ -229,7 +243,7 @@ class GameplayHitCircle : GameObject() {
                 startHit = true
                 successfulHit = abs(hitOffset).toDouble() <= mehWindow
                 // Remove circle and register hit in update thread
-                listener.onCircleHit(id, hitOffset, position, endsCombo, replayObjectData.result, comboColor)
+                judgement = listener.onCircleHit(id, hitOffset, position, endsCombo, replayObjectData.result, comboColor)
                 if (successfulHit && !listener.isAfterSeek()) {
                     playHitSamples()
                 }
@@ -245,7 +259,7 @@ class GameplayHitCircle : GameObject() {
                 startHit = true
                 successfulHit = abs(hitOffset).toDouble() <= mehWindow
                 // Remove circle and register hit in update thread
-                listener.onCircleHit(id, hitOffset, position, endsCombo, 0.toByte(), comboColor)
+                judgement = listener.onCircleHit(id, hitOffset, position, endsCombo, 0.toByte(), comboColor)
                 if (successfulHit) {
                     playHitSamples()
                 }
@@ -277,7 +291,7 @@ class GameplayHitCircle : GameObject() {
             // Remove circle and register hit in update thread
             hitOffset = 0f
             listener.registerAccuracy(HitObjectType.Normal, 0.0)
-            listener.onCircleHit(id, 0f, position, endsCombo, ResultType.HIT300.id, comboColor)
+            judgement = listener.onCircleHit(id, 0f, position, endsCombo, ResultType.HIT300.id, comboColor)
             startHit = true
             successfulHit = true
             if (!listener.isAfterSeek()) {
@@ -293,9 +307,9 @@ class GameplayHitCircle : GameObject() {
                 startHit = true
                 val forcedScore = replayObjectData?.result ?: 0
 
-                removeFromScene()
                 listener.registerAccuracy(HitObjectType.Normal, mehWindow + 1)
-                listener.onCircleHit(id, 10f, position, false, forcedScore, comboColor)
+                judgement = listener.onCircleHit(id, 10f, position, false, forcedScore, comboColor)
+                removeFromScene()
             }
         }
     }
@@ -306,7 +320,7 @@ class GameplayHitCircle : GameObject() {
 
         circlePiece.removeSelf()
         approachCircle.removeSelf()
-        removeProxies()
+        releaseEffects()
         removeSelf()
 
         for (i in hitSamples.size - 1 downTo 0) {

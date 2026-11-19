@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.ui.v2.game.GameplayPlayfield
+
 import com.reco1l.verktex.ui.Component
 
 import com.osudroid.game.PlayfieldMapping
@@ -65,6 +67,9 @@ open class GameplaySpinner : GameObject() {
     protected var listener: GameObjectListener? = null
     @JvmField
     protected var scene: Container? = null
+
+    // The playfield the judgement is shown in, until the spinner expires.
+    protected var effectsPlayfield: GameplayPlayfield? = null
     @JvmField
     protected var fullRotations = 0
     @JvmField
@@ -196,8 +201,9 @@ open class GameplaySpinner : GameObject() {
         metre.scale = spinnerBackground.scaleX
     }
 
-    open fun init(listener: GameObjectListener, scene: Container,
+    open fun init(listener: GameObjectListener, scene: Container, playfield: GameplayPlayfield,
                   beatmapSpinner: Spinner, rps: Float, stat: StatisticV2) {
+        effectsPlayfield = playfield
         fullRotations = 0
         rotations = 0f
         this.scene = scene
@@ -302,10 +308,28 @@ open class GameplaySpinner : GameObject() {
         rpmCounter.detach()
 
         bonusScore.removeSelf()
-        removeProxies()
-        removeSelf()
         lifetimeEnd = hitTime + duration
         scene = null
+    }
+
+    /**
+     * Shows the judgement the game gave the spinner, with the texture [judgement], at the center of the playfield.
+     */
+    protected fun showResult(judgement: String?) {
+        judgement ?: return
+        val playfield = effectsPlayfield ?: return
+
+        // The spinner is in the space gameplay is laid out in, the playfield is mapped into it.
+        val mapping = listener!!.playfieldMapping
+        val centerX = PlayfieldMapping.PLAYFIELD_WIDTH / 2
+        val centerY = PlayfieldMapping.PLAYFIELD_HEIGHT / 2
+        val center = mapping.toResolution(centerX, centerY)
+        val scale = beatmapSpinner!!.gameplayScale
+
+        showJudgement(
+            playfield, judgement, center.x, center.y, scale * mapping.scaleY, null,
+            particleX = centerX, particleY = centerY, particleScale = scale, spinnerMiss = true
+        )
     }
 
     /**
@@ -370,11 +394,16 @@ open class GameplaySpinner : GameObject() {
             }
         }
         stopLoopingSamples()
-        listener.onSpinnerHit(id, score, endsCombo, this.bonusScoreCounter + fullRotations - 1)
+        showResult(listener.onSpinnerHit(id, score, endsCombo, this.bonusScoreCounter + fullRotations - 1))
         playAndFreeHitSamples(score)
     }
 
     override fun updateJudgement(dt: Float) {
+        // Judged, until its judgement ends.
+        if (scene == null) {
+            return
+        }
+
         val listener = listener!!
         val stat = stat!!
 
@@ -558,7 +587,8 @@ open class GameplaySpinner : GameObject() {
 
     override fun onExpire() {
         detachFromScene()
-        removeProxies()
+        releaseEffects()
+        effectsPlayfield = null
         removeSelf()
         stopLoopingSamples()
 
@@ -569,6 +599,9 @@ open class GameplaySpinner : GameObject() {
         hitSamples.clear()
         GameObjectPool.getInstance().putSpinner(this)
     }
+
+    // Detached once it's judged.
+    override fun hasFinalJudgement() = scene == null
 
     override fun isJudged(): Boolean {
         // In remove spinner lock mode, the spinner is assumed to be judged to allow other objects to be judged while

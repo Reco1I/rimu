@@ -134,7 +134,7 @@ Engine commit `d9bc5b9`.
 
 ---
 
-## Phase 3: hit objects as Components (done, to be verified on screen)
+## Phase 3: hit objects as Components (done)
 
 Files: `ru/nsu/ccfit/zuev/osu/game/GameObject.kt`, `GameplayHitCircle.kt`, `GameplaySlider.kt`, `GameplaySpinner.kt`,
 `GameplayModernSpinner.kt`, `GameObjectPool.kt`, `GameScene.kt`, `com/osudroid/ui/v2/game/GameplayPlayfield.kt`,
@@ -185,7 +185,7 @@ Engine commit `9ff29f2` and the game commit after it. What differs from the step
 
 ---
 
-## Phase 4: judgement effects inside the hit objects
+## Phase 4: judgement effects inside the hit objects (done, to be verified on screen)
 
 1. **Results go back to the object.**
    - `GameObjectListener.onCircleHit`, `onSliderHit` and `onSpinnerHit` return the texture name of the judgement
@@ -215,6 +215,34 @@ Engine commit `9ff29f2` and the game commit after it. What differs from the step
    - `GameScene`'s estimate of the most active objects adds the judgement duration (about 1.22 s) to each lifetime.
 5. **Deleted:** `GameEffect.kt`, `ru/.../game/GameplayEffects.kt`, and `GameObjectPool.effects`, `getEffect` and
    `putEffect`.
+
+
+### As done
+
+Game commit after `0149249ab`, no engine change.
+
+- `GameObjectListener.onCircleHit`, `onSliderHit` and `onSpinnerHit` return the judgement's texture (null for none,
+  e.g. a missed tick or a bonus spin), and `onSliderReverse` is gone: the slider bursts its reverse arrow itself.
+  `HitResult` (`com/osudroid/game/`) is read from the texture (`HitResult.fromTexture`).
+- `GameObject.showJudgement` shows a judgement: its particles (`GameplayPlayfield.particles`, a
+  `GameplayParticles` in `judgements`, cleared on a seek), its lighting (one `HitLightingPiece` per object, proxied
+  into `underlay`, a plain choreography: it has a single animation) and the `JudgementPiece` from the pool, proxied
+  into `judgements` when it's played, so the order is the order of the judgements, as before.
+- `JudgementPiece` is an `AnimatedSprite` (one frame for the textures that aren't animated), pooled by texture
+  (`GameObjectPool.getJudgement`/`putJudgement`). Its `ChoreographyTransitions` is a member, not shared: its blocks
+  read the scale of the object, the miss's random rotation and whether it's animated or a spinner's miss, which a
+  stateless instance couldn't be given.
+- Bursts (`GameObject.burst`) are proxied into `judgements`, below the judgement as before. Circles burst their own
+  circle piece, without its number. Sliders have their own burst pieces for the head and the end (both stay shown
+  for the repeats) and a pool of reverse arrows.
+- The lifetime of an object never ends before the effects it played (`extendLifetime(endTime)`), whatever it sets
+  `lifetimeEnd` to afterwards. `releaseEffects()` in `onExpire` gives the pieces back. Spinners stay in their layer
+  until they expire, so their effects keep the gameplay clock, and skip `updateJudgement` once judged. Their
+  judgement is placed in the space gameplay is laid out in, through the playfield's mapping.
+- As judged objects stay active while their effects are shown, `GameObject.hasFinalJudgement()` tells them apart:
+  the end of the beatmap (lead out, flashlight) waits for it instead of an empty list, and a failed replay doesn't
+  count judged objects as misses anymore (it did for the ones still fading out).
+- `GameScene`'s estimate of the active objects adds `JudgementPiece.DURATION` to each lifetime.
 
 ---
 

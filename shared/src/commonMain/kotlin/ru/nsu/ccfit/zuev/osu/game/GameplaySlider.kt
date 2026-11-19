@@ -61,6 +61,15 @@ class GameplaySlider : GameObject() {
     private var beatmapSlider: Slider? = null
     private var controlPoints: BeatmapControlPoints? = null
     private var playfield: GameplayPlayfield? = null
+
+    // The playfield the effects of the judgements are shown in, until the slider expires.
+    private var effectsPlayfield: GameplayPlayfield? = null
+
+    // The bursts of the head and the end, which stay shown for the repeats, and of the reverse arrows.
+    private val headBurst = CirclePiece(sliderStartCircleTexture, sliderStartCircleOverlayTexture)
+    private val tailBurst = CirclePiece(sliderEndCircleTexture, sliderEndCircleOverlayTexture)
+    private val reverseBursts = ArrayList<Sprite>()
+    private val freeReverseBursts = ArrayList<Sprite>()
     private var stat: StatisticV2? = null
     private var listener: GameObjectListener? = null
     private var path: SliderPath? = null
@@ -193,6 +202,7 @@ class GameplaySlider : GameObject() {
              borderColor: Color4, sliderPath: SliderPath, renderPath: Path) {
         this.listener = listener
         this.playfield = playfield
+        effectsPlayfield = playfield
 
         // Newer objects are below older ones.
         playfield.objects.add(0, this)
@@ -514,6 +524,47 @@ class GameplaySlider : GameObject() {
         return rotation
     }
 
+    /**
+     * Gives the judgement of a part of the slider to the game, and shows it.
+     */
+    private fun judge(score: Int, at: Vector2, endCombo: Boolean, type: Int, incrementCombo: Boolean) {
+        val judgement = listener!!.onSliderHit(id, score, at, endCombo, bodyColor, type, incrementCombo)
+        val playfield = effectsPlayfield ?: return
+        val scale = beatmapSlider!!.gameplayScale
+
+        if (incrementCombo && score > 0 && areBurstsShown()) {
+            val piece = when (type) {
+                GameObjectListener.SLIDER_START -> headBurst
+                GameObjectListener.SLIDER_END -> tailBurst
+                else -> null
+            }
+
+            if (piece != null) {
+                piece.setPosition(at.x, at.y)
+                piece.setCircleColor(bodyColor)
+                burst(playfield, piece, scale)
+            }
+        }
+
+        if (judgement != null) {
+            showJudgement(playfield, judgement, at.x, at.y, scale, bodyColor)
+        }
+    }
+
+    private fun burstReverseArrow(at: Vector2, rotation: Float) {
+        val playfield = effectsPlayfield ?: return
+
+        val arrow = freeReverseBursts.removeLastOrNull() ?: Sprite().apply {
+            origin = Anchor.Center
+            texture = skinTexture("reversearrow")
+        }
+        reverseBursts += arrow
+
+        arrow.setPosition(at.x, at.y)
+        arrow.rotationZ = rotation
+        burst(playfield, arrow, beatmapSlider!!.gameplayScale)
+    }
+
     private fun removeFromScene() {
         if (playfield == null) {
             return
@@ -604,7 +655,20 @@ class GameplaySlider : GameObject() {
         ballOver.removeSelf()
         sliderBody.removeSelf()
         tickContainer.removeSelf()
-        removeProxies()
+
+        for (burst in arrayOf(headBurst, tailBurst)) {
+            burst.clearAnimations()
+            burst.removeSelf()
+        }
+        for (i in reverseBursts.indices) {
+            reverseBursts[i].clearAnimations()
+            reverseBursts[i].removeSelf()
+        }
+        freeReverseBursts += reverseBursts
+        reverseBursts.clear()
+
+        releaseEffects()
+        effectsPlayfield = null
         removeSelf()
 
         // removeFromScene() stops looping sounds and releases hit samples, but during a seek, onExpire() fires without
@@ -652,8 +716,7 @@ class GameplaySlider : GameObject() {
             }
 
             if (stillHasSpan) {
-                listener.onSliderHit(id, if (isTracking) 30 else -1, spanEndJudgementPosition, false,
-                    bodyColor, GameObjectListener.SLIDER_REPEAT, isTracking)
+                judge(if (isTracking) 30 else -1, spanEndJudgementPosition, false, GameObjectListener.SLIDER_REPEAT, isTracking)
             }
 
             updateSlidingSamplesVolume()
@@ -693,10 +756,9 @@ class GameplaySlider : GameObject() {
                 headCirclePiece.setCircleColor(newColor)
             }
 
-            listener.onSliderReverse(
-                spanEndJudgementPosition,
-                if (reverse) endArrow.rotationZ else startArrow.rotationZ,
-                bodyColor)
+            if (areBurstsShown()) {
+                burstReverseArrow(spanEndJudgementPosition, if (reverse) endArrow.rotationZ else startArrow.rotationZ)
+            }
 
             if (elapsedSpanTime >= spanDuration) {
                 // This condition can happen under low frame rate and/or short span duration, which will cause all
@@ -759,8 +821,7 @@ class GameplaySlider : GameObject() {
         // In replays older than version 6, slider ends always give combo even when not being tracked.
         val awardCombo = isTracking || (replayObjectData != null && GameHelper.getReplayVersion() < 6)
 
-        listener.onSliderHit(id, score, spanEndJudgementPosition, endsCombo, bodyColor,
-            GameObjectListener.SLIDER_END, awardCombo)
+        judge(score, spanEndJudgementPosition, endsCombo, GameObjectListener.SLIDER_END, awardCombo)
 
         listener.onSliderEnd(id, firstHitAccuracy, tickSet)
 
@@ -1066,6 +1127,8 @@ class GameplaySlider : GameObject() {
         return if (listener?.isRemoveSliderLock() == true) startHit else isOver
     }
 
+    override fun hasFinalJudgement() = isOver
+
     private fun getTrackingDistanceThresholdSquared(isTracking: Boolean): Float {
         val radius = beatmapSlider!!.gameplayRadius.toFloat()
         var distanceThresholdSquared = radius * radius
@@ -1106,11 +1169,9 @@ class GameplaySlider : GameObject() {
                 }
                 ticksGot++
                 shouldSnakeOut = true
-                listener.onSliderHit(id, 30, position,
-                    false, bodyColor, GameObjectListener.SLIDER_START, true)
+                judge(30, position, false, GameObjectListener.SLIDER_START, true)
             } else {
-                listener.onSliderHit(id, -1, position,
-                    false, bodyColor, GameObjectListener.SLIDER_START, false)
+                judge(-1, position, false, GameObjectListener.SLIDER_START, false)
             }
         } else if (hitOffset <= duration) {
             // In replays older than version 6, when the 50 hit window is longer than the duration of the slider,
@@ -1123,8 +1184,7 @@ class GameplaySlider : GameObject() {
             }
             ticksGot++
             shouldSnakeOut = true
-            listener.onSliderHit(id, 30, position,
-                false, bodyColor, GameObjectListener.SLIDER_START, true)
+            judge(30, position, false, GameObjectListener.SLIDER_START, true)
         }
 
         updateSlidingSamplesVolume()
@@ -1206,10 +1266,10 @@ class GameplaySlider : GameObject() {
                 }
                 ticksGot++
                 tickSet.set(replayTickIndex++, true)
-                listener.onSliderHit(id, if (isSliderTick) 10 else 30, tmpPoint, false, bodyColor, type, true)
+                judge(if (isSliderTick) 10 else 30, tmpPoint, false, type, true)
             } else {
                 tickSet.set(replayTickIndex++, false)
-                listener.onSliderHit(id, -1, tmpPoint, false, bodyColor, type, false)
+                judge(-1, tmpPoint, false, type, false)
             }
 
             if (!isSliderTick) {
@@ -1307,7 +1367,7 @@ class GameplaySlider : GameObject() {
             val tickPosition = nestedObjectToJudge.gameplayStackedPosition
             tmpPoint.set(tickPosition.x, tickPosition.y)
 
-            listener.onSliderHit(id, if (isTracking) 10 else -1, tmpPoint, false, bodyColor, GameObjectListener.SLIDER_TICK, isTracking)
+            judge(if (isTracking) 10 else -1, tmpPoint, false, GameObjectListener.SLIDER_TICK, isTracking)
             currentNestedObjectIndex++
 
             val tickSprite = tickContainer[currentTickSpriteIndex] as SliderTickSprite

@@ -5,7 +5,17 @@ import com.osudroid.beatmaps.hitobjects.HitObject
 import com.osudroid.game.CursorEvent
 import com.osudroid.math.MathUtils
 import com.osudroid.math.Vector2
+import com.osudroid.game.HitResult
 import com.osudroid.mods.ModRelax
+import com.osudroid.settings.OsuSettings
+import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.game.GameplayPlayfield
+import com.osudroid.ui.v2.game.HitLightingPiece
+import com.osudroid.ui.v2.game.JudgementPiece
+import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.settings.Settings
+import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.Choreography
 import com.reco1l.verktex.ui.Component
@@ -263,7 +273,7 @@ abstract class GameObject : Container() {
     /**
      * Removes the proxies [drawIn] added, giving the pieces back to this object.
      */
-    protected fun removeProxies() {
+    private fun removeProxies() {
         for (i in proxies.indices) {
             val proxy = proxies[i]
             proxy.removeSelf()
@@ -271,6 +281,114 @@ abstract class GameObject : Container() {
             freeProxies += proxy
         }
         proxies.clear()
+    }
+
+    //endregion
+
+    //region Judgement effects
+
+    private val judgementPieces = ArrayList<JudgementPiece>()
+
+    private var lighting: HitLightingPiece? = null
+
+    /**
+     * Shows the judgement with the texture [textureName] (`hit300`, `hit0`, `sliderpoint30`…) at ([x], [y]) in this
+     * object, for an object of the given [scale], now: the judgement, drawn above every object, its particles and its
+     * hit lighting, in [color]. The particles are thrown in the playfield, at ([particleX], [particleY]) and the
+     * given [particleScale]. A [spinnerMiss] only fades. The lifetime of this object is extended until they end.
+     */
+    protected fun showJudgement(
+        playfield: GameplayPlayfield,
+        textureName: String,
+        x: Float,
+        y: Float,
+        scale: Float,
+        color: Color4?,
+        particleX: Float = x,
+        particleY: Float = y,
+        particleScale: Float = scale,
+        spinnerMiss: Boolean = false
+    ) {
+        val time = currentClockTime
+        val result = HitResult.fromTexture(textureName)
+
+        playfield.particles.emit(particleX, particleY, textureName, particleScale)
+
+        if (result != HitResult.Miss && result != HitResult.SliderPoint && result != HitResult.Tick &&
+            Settings[OsuSettings.HitLighting] && SkinTextures["lighting"] != null) {
+
+            val lighting = lighting ?: HitLightingPiece().also { lighting = it }
+
+            if (lighting.parent == null) {
+                this += lighting
+                drawIn(playfield.underlay, lighting)
+            }
+            extendLifetime(lighting.play(x, y, color, scale, time))
+        }
+
+        val piece = GameObjectPool.getInstance().getJudgement(textureName)
+        judgementPieces += piece
+        this += piece
+        drawIn(playfield.judgements, piece)
+
+        extendLifetime(piece.play(x, y, result, scale, time, spinnerMiss))
+    }
+
+    /**
+     * Whether hit circles, slider ends and reverse arrows burst when they're hit: the setting, unless Hidden or
+     * Traceable hide them.
+     */
+    protected fun areBurstsShown(): Boolean {
+        return Settings[OsuSettings.BurstEffects] &&
+            (GameHelper.getHidden() == null || GameHelper.getHidden()!!.onlyFadeApproachCircles) &&
+            !GameHelper.isTraceable()
+    }
+
+    /**
+     * Bursts [piece], one of this object's, at the given [scale] now: it grows and fades out, drawn above every
+     * object as the judgements are, as osu!lazer's `LegacyMainCirclePiece` does. The lifetime of this object is
+     * extended until it ends.
+     */
+    protected fun burst(playfield: GameplayPlayfield, piece: Component, scale: Float) {
+        // Reference: https://github.com/ppy/osu/blob/c5893f245ce7a89d1900dbb620390823702481fe/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyMainCirclePiece.cs#L152-L174
+        val fadeDuration = 0.24f
+
+        if (piece.parent == null) {
+            this += piece
+        }
+        drawIn(playfield.judgements, piece)
+
+        piece.clearAnimations()
+        piece.scale = scale
+        piece.alpha = 1f
+        piece.choreographAt(currentClockTime) { sequence ->
+            sequence.scaleTo(scale * 1.4f, fadeDuration, Easing.OutQuad).fadeOut(fadeDuration)
+            extendLifetime(sequence)
+        }
+    }
+
+    /**
+     * Takes out the effects of the judgements, the proxies included, for this object to be pooled. Called when it
+     * expires.
+     */
+    protected fun releaseEffects() {
+        val pool = GameObjectPool.getInstance()
+
+        for (i in judgementPieces.indices) {
+            val piece = judgementPieces[i]
+            piece.clearAnimations()
+            piece.removeSelf()
+            pool.putJudgement(piece)
+        }
+        judgementPieces.clear()
+
+        lighting?.let {
+            it.clearAnimations()
+            it.removeSelf()
+        }
+
+        removeProxies()
+        effectsEndTime = Float.NEGATIVE_INFINITY
     }
 
     //endregion
@@ -286,6 +404,14 @@ abstract class GameObject : Container() {
     }
 
     /**
+     * Whether the underlying [HitObject] got its final judgement, which [isJudged] may not wait for (sliders and
+     * spinners without their lock). The object can stay alive afterwards, until its effects end.
+     */
+    open fun hasFinalJudgement(): Boolean {
+        return isJudged()
+    }
+
+    /**
      * Called when this [GameObject]'s lifetime expires.
      */
     open fun onExpire() {}
@@ -294,15 +420,27 @@ abstract class GameObject : Container() {
      * The time in seconds since the beatmap started at which this [GameObject]'s lifetime ends.
      */
     var lifetimeEnd = 0f
-        protected set
+        protected set(value) {
+            // Never before the effects this object plays end.
+            field = max(value, effectsEndTime)
+        }
+
+    // When the last effect this object played ends, see extendLifetime.
+    private var effectsEndTime = Float.NEGATIVE_INFINITY
 
     /**
      * Extends the lifetime of this [GameObject] to allow a [Choreography] to finish.
      *
      * @param choreography The [Choreography] to extend this [GameObject]'s lifetime with.
      */
-    protected fun extendLifetime(choreography: Choreography) {
-        lifetimeEnd = max(lifetimeEnd, choreography.endTime)
+    protected fun extendLifetime(choreography: Choreography) = extendLifetime(choreography.endTime)
+
+    /**
+     * Extends the lifetime of this [GameObject] to at least [endTime], even when it's set again afterwards.
+     */
+    protected fun extendLifetime(endTime: Float) {
+        effectsEndTime = max(effectsEndTime, endTime)
+        lifetimeEnd = max(lifetimeEnd, endTime)
     }
 
     //endregion

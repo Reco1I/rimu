@@ -15,21 +15,31 @@ import com.reco1l.verktex.data.Color4
  */
 interface GameObjectListener {
 
-    fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4)
+    /**
+     * Judges a hit circle.
+     *
+     * @return The texture of the judgement the circle shows (`hit300g`, `hit0`…), null for none.
+     */
+    fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4): String?
 
+    /**
+     * Judges a part of a slider, of the given [type] ([SLIDER_START]…); a [score] of -1 misses a nested object.
+     *
+     * @return The texture of the judgement the slider shows (`sliderpoint30`, `hit100`…), null for none.
+     */
     fun onSliderHit(id: Int, score: Int, judgementPos: Vector2,
-                    endCombo: Boolean, color: Color4, type: Int, incrementCombo: Boolean)
+                    endCombo: Boolean, color: Color4, type: Int, incrementCombo: Boolean): String?
 
     fun onSliderEnd(id: Int, accuracy: Int, tickSet: BitSet?)
 
-    /**
-     * Called when a slider reaches the end of a span and goes back, at the reverse arrow.
-     */
-    fun onSliderReverse(pos: Vector2, ang: Float, color: Color4)
-
     fun onSpinnerStart(id: Int)
 
-    fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int)
+    /**
+     * Judges a spinner, or gives it a bonus spin with a [score] of 1000.
+     *
+     * @return The texture of the judgement the spinner shows, null for none (bonus spins).
+     */
+    fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int): String?
 
     fun addObject(`object`: GameObject?)
 

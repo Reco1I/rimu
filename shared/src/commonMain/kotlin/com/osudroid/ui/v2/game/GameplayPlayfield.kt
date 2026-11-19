@@ -57,6 +57,11 @@ class GameplayPlayfield : ScalingContainer() {
      */
     val judgements = createLayer()
 
+    /**
+     * The particles of the judgements, in [judgements], which every object emits into.
+     */
+    val particles = GameplayParticles(judgements)
+
 
     init {
         mode = Mode.Height

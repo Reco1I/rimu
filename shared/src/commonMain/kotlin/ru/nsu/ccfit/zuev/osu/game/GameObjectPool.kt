@@ -1,14 +1,14 @@
 package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.game.JudgementPiece
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmStatic
 
 class GameObjectPool private constructor() {
     @JvmField
     var circles = ArrayDeque<GameplayHitCircle>()
-    @JvmField
-    var effects: MutableMap<String, ArrayDeque<GameEffect>> = HashMap()
+    private val judgements = HashMap<String, ArrayDeque<JudgementPiece>>()
     @JvmField
     var sliders = ArrayDeque<GameplaySlider>()
     @JvmField
@@ -55,21 +55,18 @@ class GameObjectPool private constructor() {
         spinners.add(spinner)
     }
 
-    fun getEffect(texname: String): GameEffect {
-        if (effects.containsKey(texname) && !effects[texname]!!.isEmpty()) {
-            return effects[texname]!!.removeFirst()
-        }
+    /**
+     * A judgement piece showing the texture [textureName], see [JudgementPiece].
+     */
+    fun getJudgement(textureName: String): JudgementPiece {
+        judgements[textureName]?.removeFirstOrNull()?.let { return it }
 
         objectsCreated++
-        return GameEffect(texname)
+        return JudgementPiece(textureName)
     }
 
-    fun putEffect(effect: GameEffect) {
-        if (!effects.containsKey(effect.texname)) {
-            effects[effect.texname] = ArrayDeque()
-        }
-
-        effects[effect.texname]!!.add(effect)
+    fun putJudgement(piece: JudgementPiece) {
+        judgements.getOrPut(piece.textureName) { ArrayDeque() }.add(piece)
     }
 
     val slider: GameplaySlider
@@ -87,7 +84,7 @@ class GameObjectPool private constructor() {
     }
 
     fun purge() {
-        effects.clear()
+        judgements.clear()
         circles.clear()
         sliders.clear()
         spinners.clear()

@@ -69,6 +69,7 @@ import com.osudroid.ui.v2.game.CursorEntity
 import com.osudroid.ui.v2.game.FlashLightEntity
 import com.osudroid.ui.v2.game.FollowPointConnection
 import com.osudroid.ui.v2.game.GameplayPlayfield
+import com.osudroid.ui.v2.game.JudgementPiece
 import com.osudroid.ui.v2.game.PauseMenu
 import com.osudroid.ui.v2.game.SliderTickSprite
 import com.osudroid.ui.v2.hud.GameplayHUD
@@ -241,7 +242,6 @@ class GameScene : GameObjectListener {
     @JvmField
     var hitWindow: HitWindow? = null
 
-    private val effects = GameplayEffects()
     private var lastMods: ModHashMap? = null
 
     private val loadingRequestId = AtomicInt(0)
@@ -408,8 +408,6 @@ class GameScene : GameObjectListener {
             PlayfieldMapping.REFERENCE_WIDTH,
             PlayfieldMapping.REFERENCE_WIDTH * window.windowHeight / window.windowWidth.coerceAtLeast(1)
         )
-
-        effects.setLayers(objectPlayfield.underlay, objectPlayfield.judgements)
 
         playfield += bgScene
         playfield += objectPlayfield
@@ -774,7 +772,6 @@ class GameScene : GameObjectListener {
         val hitObjects = playableBeatmap.hitObjects.objects
         val firstObject = hitObjects[0]
         scale = firstObject.gameplayScale
-        effects.setScale(scale)
 
         GameHelper.setOverallDifficulty(playableBeatmap.difficulty.od)
         GameHelper.setHealthDrain(playableBeatmap.difficulty.hp)
@@ -1731,7 +1728,7 @@ class GameScene : GameObjectListener {
         val activeObjects = activeObjects!!
         val expiredObjects = expiredObjects!!
 
-        if (objectIndex >= objects.size && activeObjects.isEmpty() && GameHelper.isFlashlight()) {
+        if (objectIndex >= objects.size && areObjectsJudged(activeObjects) && GameHelper.isFlashlight()) {
             flashlightSprite!!.onBreak(true)
         }
 
@@ -1870,7 +1867,7 @@ class GameScene : GameObjectListener {
                 val rps = 2 + 2 * playableBeatmap.difficulty.od / 10f
                 val gameplaySpinner = GameObjectPool.getInstance().spinner
 
-                gameplaySpinner.init(this, bgScene, obj, rps, stat)
+                gameplaySpinner.init(this, bgScene, objectPlayfield, obj, rps, stat)
                 addObject(gameplaySpinner)
 
                 if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
@@ -1937,7 +1934,7 @@ class GameScene : GameObjectListener {
                 OsuSettings.musicVolume * mutedMod.volumeAt(stat.combo)
         }
 
-        if (shouldBePunished || (!isGameOver && objectIndex >= objects.size && activeObjects.isEmpty() && leadOut > 2)) {
+        if (shouldBePunished || (!isGameOver && objectIndex >= objects.size && areObjectsJudged(activeObjects) && leadOut > 2)) {
 
             // Reset the game to continue the HUD editor session.
             if (startedFromHUDEditor && isHUDEditorMode) {
@@ -2016,7 +2013,7 @@ class GameScene : GameObjectListener {
             }
 
             parsedBeatmap = null
-        } else if (objectIndex >= objects.size && activeObjects.isEmpty()) {
+        } else if (objectIndex >= objects.size && areObjectsJudged(activeObjects)) {
             gameStarted = false
             leadOut += dt
         }
@@ -2086,6 +2083,16 @@ class GameScene : GameObjectListener {
         breakAnimator!!.update(deltaTime)
 
         countdownAnimator?.update(deltaTime)
+    }
+
+    // Whether every active object got its final judgement, the ones left only showing their effects.
+    private fun areObjectsJudged(activeObjects: List<GameObject>): Boolean {
+        for (i in activeObjects.indices) {
+            if (!activeObjects[i].hasFinalJudgement()) {
+                return false
+            }
+        }
+        return true
     }
 
     private fun searchJudgeableObject(startIndex: Int): GameObject? {
@@ -2310,9 +2317,9 @@ class GameScene : GameObjectListener {
     }
 
 
-    override fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4) {
+    override fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4): String? {
         val acc = accuracy
-        val playableBeatmap = this.playableBeatmap ?: return
+        val playableBeatmap = this.playableBeatmap ?: return null
         val hud = hud!!
 
         if (GameHelper.isAutoplay()) {
@@ -2345,9 +2352,8 @@ class GameScene : GameObjectListener {
         GameplayVibrations.circle()
 
         if (accuracy > playableBeatmap.hitWindow.mehWindow / 1000 || forcedScore == ResultType.MISS.id) {
-            effects.hit(pos, "hit0", color)
             registerHit(id, 0, endCombo)
-            return
+            return "hit0"
         }
 
         val scoreName: String
@@ -2361,9 +2367,6 @@ class GameScene : GameObjectListener {
             scoreName = registerHit(id, 50, endCombo)
         }
 
-        effects.burst(pos, color)
-        effects.hit(pos, scoreName, color)
-
         if (nearestCursorId >= 0) {
             val aimErrorCursorEvent = cursors[nearestCursorId]!!.getLatestNonUpEvent()
 
@@ -2374,14 +2377,11 @@ class GameScene : GameObjectListener {
         }
 
         hud.onNoteHit(stat)
-    }
-
-    override fun onSliderReverse(pos: Vector2, ang: Float, color: Color4) {
-        effects.burstSliderReverse(pos, ang, color)
+        return scoreName
     }
 
     override fun onSliderHit(id: Int, score: Int, judgementPos: Vector2, endCombo: Boolean,
-                             color: Color4, type: Int, incrementCombo: Boolean) {
+                             color: Color4, type: Int, incrementCombo: Boolean): String? {
         val hud = hud!!
 
         // Autoplay/Autopilot synthesize their own cursor movement rather than using real touch input, so
@@ -2409,9 +2409,8 @@ class GameScene : GameObjectListener {
 
         // Whole slider was missed.
         if (score == 0) {
-            effects.hit(judgementPos, "hit0", color)
             registerHit(id, 0, endCombo)
-            return
+            return "hit0"
         }
 
         // Nested object was missed.
@@ -2425,7 +2424,7 @@ class GameScene : GameObjectListener {
                 gameover()
             }
             stat.registerHit(0, true, false)
-            return
+            return null
         }
 
         var scoreName = "hit0"
@@ -2436,7 +2435,6 @@ class GameScene : GameObjectListener {
                     scoreName = "sliderpoint30"
                     stat.registerHit(30, false, false)
                     stat.addSliderHeadHit()
-                    effects.burstSliderStart(judgementPos, color)
 
                     if (nearestCursorId >= 0) {
                         val aimErrorCursorEvent = cursors[nearestCursorId]!!.getLatestNonUpEvent()
@@ -2477,16 +2475,11 @@ class GameScene : GameObjectListener {
                 }
 
                 scoreName = registerHit(id, score, endCombo, incrementCombo)
-
-                if (incrementCombo) {
-                    effects.burstSliderEnd(judgementPos, color)
-                }
             }
         }
 
-        effects.hit(judgementPos, scoreName, color)
-
         hud.onNoteHit(stat)
+        return scoreName
     }
 
     override fun onSpinnerStart(id: Int) {
@@ -2496,10 +2489,10 @@ class GameScene : GameObjectListener {
         }
     }
 
-    override fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int) {
+    override fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int): String? {
         if (score == 1000) {
             stat.registerHit(score, false, false)
-            return
+            return null
         }
 
         if (replay != null && !replaying) {
@@ -2512,24 +2505,11 @@ class GameScene : GameObjectListener {
             replay!!.addObjectResult(id, acc, null)
         }
 
-        // The center of the playfield, where spinners are.
-        val pos = Vector2(PlayfieldMapping.PLAYFIELD_WIDTH / 2, PlayfieldMapping.PLAYFIELD_HEIGHT / 2)
-
         GameplayVibrations.spinner()
 
         if (score == 0) {
-            val effect = GameObjectPool.getInstance().getEffect(
-                "hit0")
-            effect.init(
-                objectPlayfield.judgements,
-                pos,
-                scale,
-                { sequence -> sequence.fadeIn(0.15f)
-                    .then(0.35f)
-                    .fadeOut(0.25f) }
-            )
             registerHit(id, 0, endCombo)
-            return
+            return "hit0"
         }
 
         val scoreName: String
@@ -2558,10 +2538,9 @@ class GameScene : GameObjectListener {
             }
         }.toFloat() / 1000
 
-        effects.hit(pos, scoreName, null)
-
         hud!!.onAccuracyRegister(HitObjectType.Spinner, accuracy)
         hud!!.onNoteHit(stat)
+        return scoreName
     }
 
     override fun playHitSamples(samples: MutableList<GameplayHitSampleInfo>?) {
@@ -3119,6 +3098,11 @@ class GameScene : GameObjectListener {
 
             //write misses to replay
             for (obj in activeObjects!!) {
+                // Judged objects stay alive until their effects end.
+                if (obj.hasFinalJudgement()) {
+                    continue
+                }
+
                 stat.registerHit(0, false, false)
                 replay.addObjectScore(obj.getId(), ResultType.MISS)
             }
@@ -3275,7 +3259,8 @@ class GameScene : GameObjectListener {
                 lifetimeEnd = `object`.endTime
             }
 
-            lifetimeEnds.add(lifetimeEnd)
+            // Objects live until the effects of their judgement end.
+            lifetimeEnds.add(lifetimeEnd + JudgementPiece.DURATION * 1000)
             estimatedMaxActiveObjects = max(estimatedMaxActiveObjects, lifetimeEnds.size)
         }
 
@@ -3328,21 +3313,8 @@ class GameScene : GameObjectListener {
         processedExpiredObjects.clear()
         judgeableObject = null
 
-        // Detach any lingering hit effects from the gameplay scene.
-        for (i in objectPlayfield.judgements.childCount - 1 downTo 0) {
-            val child = objectPlayfield.judgements[i]
-
-            if (child is Sprite && child.choreography != null) {
-                // Hit effects need to be pooled, so we cannot directly detach.
-                // finish() fires the effect's fade-out callback, which schedules putEffect() so the GameEffect
-                // wrapper is returned to the pool rather than orphaned.
-                child.choreography!!.finish()
-            }
-
-            // We detach directly so that the next frame is not orphaned with hit effects that were not detached (since
-            // GameEffect's callback is scheduled for the next update tick).
-            child.removeSelf()
-        }
+        // The judgements went with their objects, their particles are the playfield's.
+        objectPlayfield.particles.clear()
 
         // Remove follow points spawned for objects before the seek point.
         FollowPointConnection.clearAll(objectPlayfield.underlay)
