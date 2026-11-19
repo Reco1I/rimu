@@ -182,61 +182,14 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
 
     fun load(source: Source, replayFilename: String, withGameplayData: Boolean): Boolean {
         try {
-            val file = ReplayJson.decodeFromString(ReplayFile.serializer(), source.buffer().readUtf8())
+            val buffered = source.buffer()
 
-            cursorMoves.clear()
-            replayVersion = file.version
-            beatmapsetName = file.beatmapsetName
-            beatmapName = file.beatmapName
-            md5 = file.md5
-
-            val fileStat = file.stat
-            if (fileStat != null) {
-                val stat = StatisticV2()
-                this.stat = stat
-                stat.replayFilename = replayFilename
-                stat.beatmapMD5 = md5
-                stat.time = fileStat.time
-                stat.hit300k = fileStat.hit300k
-                stat.hit300 = fileStat.hit300
-                stat.hit100k = fileStat.hit100k
-                stat.hit100 = fileStat.hit100
-                stat.hit50 = fileStat.hit50
-                stat.misses = fileStat.misses
-                stat.totalScore = fileStat.totalScore
-                stat.scoreMaxCombo = fileStat.maxCombo
-                stat.playerName = fileStat.playerName
-                stat.mod = deserializeMods(fileStat.mods.toString())
-            }
-
-            if (withGameplayData) {
-                val mods = stat?.mod ?: ModHashMap()
-
-                cursorIndex = IntArray(file.cursors.size)
-                lastMoveIndex = IntArray(file.cursors.size)
-
-                for (i in file.cursors.indices) {
-                    cursorMoves.add(MoveArray.fromCursor(file.cursors[i], mods))
-                    cursorIndex[i] = 0
-                    lastMoveIndex[i] = -1
-                }
-
-                val objectData = objectData!!
-                require(file.objects.size >= objectData.size) {
-                    "The replay has ${file.objects.size} objects, the beatmap ${objectData.size}"
-                }
-
-                for (i in objectData.indices) {
-                    val fileObject = file.objects[i]
-                    val data = ReplayObjectData()
-                    data.accuracy = fileObject.accuracy
-                    data.tickSet = fileObject.ticks?.let { ticks -> BitSet().also { set -> ticks.forEach { set.set(it) } } }
-                    data.result = fileObject.result
-                    objectData[i] = data
-                }
+            if (LegacyReplay.isLegacy(buffered)) {
+                loadLegacy(buffered, replayFilename, withGameplayData)
+            } else {
+                loadJson(buffered.readUtf8(), replayFilename, withGameplayData)
             }
         } catch (e: Exception) {
-            // Including replays written before version 10, which aren't JSON.
             Toasts.showLong(Res.string.replay_corrupted)
             Debug.e("Cannot load replay: " + e.message, e)
             return false
@@ -249,6 +202,62 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
         }
 
         return true
+    }
+
+    private fun loadJson(json: String, replayFilename: String, withGameplayData: Boolean) {
+        val file = ReplayJson.decodeFromString(ReplayFile.serializer(), json)
+
+        cursorMoves.clear()
+        replayVersion = file.version
+        beatmapsetName = file.beatmapsetName
+        beatmapName = file.beatmapName
+        md5 = file.md5
+
+        val fileStat = file.stat
+        if (fileStat != null) {
+            val stat = StatisticV2()
+            this.stat = stat
+            stat.replayFilename = replayFilename
+            stat.beatmapMD5 = md5
+            stat.time = fileStat.time
+            stat.hit300k = fileStat.hit300k
+            stat.hit300 = fileStat.hit300
+            stat.hit100k = fileStat.hit100k
+            stat.hit100 = fileStat.hit100
+            stat.hit50 = fileStat.hit50
+            stat.misses = fileStat.misses
+            stat.totalScore = fileStat.totalScore
+            stat.scoreMaxCombo = fileStat.maxCombo
+            stat.playerName = fileStat.playerName
+            stat.mod = deserializeMods(fileStat.mods.toString())
+        }
+
+        if (withGameplayData) {
+            val mods = stat?.mod ?: ModHashMap()
+
+            cursorIndex = IntArray(file.cursors.size)
+            lastMoveIndex = IntArray(file.cursors.size)
+
+            for (i in file.cursors.indices) {
+                cursorMoves.add(MoveArray.fromCursor(file.cursors[i], mods))
+                cursorIndex[i] = 0
+                lastMoveIndex[i] = -1
+            }
+
+            val objectData = objectData!!
+            require(file.objects.size >= objectData.size) {
+                "The replay has ${file.objects.size} objects, the beatmap ${objectData.size}"
+            }
+
+            for (i in objectData.indices) {
+                val fileObject = file.objects[i]
+                val data = ReplayObjectData()
+                data.accuracy = fileObject.accuracy
+                data.tickSet = fileObject.ticks?.let { ticks -> BitSet().also { set -> ticks.forEach { set.set(it) } } }
+                data.result = fileObject.result
+                objectData[i] = data
+            }
+        }
     }
 
     /**
@@ -374,7 +383,8 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
         Version 8: Slider head hit window is extended to its 50 hit window;
                    score stored as raw totalScore instead of totalScoreWithMultiplier
         Version 9: score stored as long
-        Version 10: stored as JSON (see ReplayFile) instead of Java's object serialization; older replays aren't read
+        Version 10: stored as JSON (see ReplayFile) instead of Java's object serialization; older replays are still
+                    read (see LegacyReplay), but never written
      */
 
     class ReplayObjectData {

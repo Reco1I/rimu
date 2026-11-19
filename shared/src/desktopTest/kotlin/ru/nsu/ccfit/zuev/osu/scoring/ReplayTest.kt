@@ -153,7 +153,7 @@ class ReplayTest {
 
     @Test
     fun testRejectsOtherFiles() {
-        // The start of a replay before version 10: a zip with Java's object serialization.
+        // The start of a replay before version 10 (a zip with Java's object serialization), cut short.
         val legacy = byteArrayOf(0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x08, 0x00, 0x08, 0x00, 0xAC.toByte(), 0xED.toByte(), 0x00, 0x05)
         assertFalse(Replay().load(Buffer().write(legacy), "legacy.odr", false))
         assertFalse(Replay().load(Buffer().writeUtf8("{}"), "empty.odr", false))

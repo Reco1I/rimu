@@ -5,7 +5,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
 // What a replay file holds, as JSON. Replays were written with Java's object serialization until
-// version 9; those files aren't read anymore.
+// version 9; LegacyReplay reads those.
 
 /**
  * The format replays are written in, encoded compactly and read ignoring what it doesn't know.
