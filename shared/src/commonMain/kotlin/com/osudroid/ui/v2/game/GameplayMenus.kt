@@ -2,13 +2,14 @@ package com.osudroid.ui.v2.game
 
 import com.osudroid.OsuGame
 import com.reco1l.verktex.data.ScaleType
-import com.osudroid.settings.GameResolution
+import com.osudroid.game.PlayfieldMapping
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
@@ -16,6 +17,7 @@ import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.ScalingContainer
 import com.reco1l.verktex.ui.fadeIn
 import kotlin.math.hypot
 import com.reco1l.verktex.ui.toast.Toasts
@@ -42,33 +44,37 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : Cont
             }
         }
 
-        +LinearContainer().apply {
-            orientation = LinearContainer.Orientation.Vertical
-            anchor = Anchor.Center
-            origin = Anchor.Center
-            scale = Verktex.graphics.window.windowWidth.toFloat() / GameResolution.width
+        // Laid out for a screen 1280 wide, as gameplay is.
+        +ScalingContainer().apply {
+            referenceSize = Vec2(PlayfieldMapping.REFERENCE_WIDTH, 720f)
 
-            if (isFail && !game.replaying) {
-                +MenuItem("pause-save-replay", ::saveReplay)
-            }
+            +LinearContainer().apply {
+                orientation = LinearContainer.Orientation.Vertical
+                anchor = Anchor.Center
+                origin = Anchor.Center
 
-            if (!isFail) {
-                +MenuItem("pause-continue") {
-                    SkinSounds["menuback"].play()
-                    game.resume()
+                if (isFail && !game.replaying) {
+                    +MenuItem("pause-save-replay", ::saveReplay)
                 }
-            }
 
-            +MenuItem("pause-retry") {
-                SkinSounds["failsound"].stop()
-                SkinSounds["menuhit"].play()
-                game.restartGame()
-            }
+                if (!isFail) {
+                    +MenuItem("pause-continue") {
+                        SkinSounds["menuback"].play()
+                        game.resume()
+                    }
+                }
 
-            +MenuItem("pause-back") {
-                game.scoring.replayID = -1
-                SkinSounds["menuback"].play()
-                game.quit()
+                +MenuItem("pause-retry") {
+                    SkinSounds["failsound"].stop()
+                    SkinSounds["menuhit"].play()
+                    game.restartGame()
+                }
+
+                +MenuItem("pause-back") {
+                    game.scoring.replayID = -1
+                    SkinSounds["menuback"].play()
+                    game.quit()
+                }
             }
         }
     }

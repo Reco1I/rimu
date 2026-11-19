@@ -1,6 +1,5 @@
 package com.osudroid.beatmaps.hitobjects
 
-import com.osudroid.settings.GameResolution
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.beatmaps.HitWindow
@@ -14,7 +13,6 @@ import com.osudroid.utils.CircleSizeCalculator
 import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
-import ru.nsu.ccfit.zuev.osu.Constants
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads
 
@@ -257,7 +255,6 @@ abstract class HitObject(
 
                 gameplayStackOffsetCache.invalidate()
                 gameplayStackedPositionCache.invalidate()
-                screenSpaceGameplayStackedPositionCache.invalidate()
             }
         }
 
@@ -266,18 +263,6 @@ abstract class HitObject(
      */
     val gameplayRadius
         get() = (OBJECT_RADIUS * gameplayScale).toDouble()
-
-    /**
-     * The scale of this [HitObject] in gameplay, in screen pixels.
-     */
-    val screenSpaceGameplayScale
-        get() = gameplayScale * GameResolution.height / 480
-
-    /**
-     * The radius of this [HitObject] in gameplay, in screen pixels.
-     */
-    val screenSpaceGameplayRadius
-        get() = (OBJECT_RADIUS * screenSpaceGameplayScale).toDouble()
 
     private val gameplayStackOffsetCache = Cached(Vector2(0))
 
@@ -312,43 +297,6 @@ abstract class HitObject(
      */
     open val gameplayStackedEndPosition
         get() = gameplayStackedPosition
-
-    private val screenSpaceGameplayPositionCache = Cached(convertPositionToRealCoordinates(position))
-
-    /**
-     * The position of this [HitObject] in gameplay, in screen pixels.
-     */
-    open val screenSpaceGameplayPosition: Vector2
-        get() {
-            if (!screenSpaceGameplayPositionCache.isValid) {
-                screenSpaceGameplayPositionCache.value =
-                    convertPositionToRealCoordinates(position)
-            }
-
-            return screenSpaceGameplayPositionCache.value
-        }
-
-    private val screenSpaceGameplayStackedPositionCache =
-        Cached(convertPositionToRealCoordinates(gameplayStackedPosition))
-
-    /**
-     * The stacked position of this [HitObject] in gameplay, in screen pixels.
-     */
-    open val screenSpaceGameplayStackedPosition: Vector2
-        get() {
-            if (!screenSpaceGameplayStackedPositionCache.isValid) {
-                screenSpaceGameplayStackedPositionCache.value =
-                    convertPositionToRealCoordinates(gameplayStackedPosition)
-            }
-
-            return screenSpaceGameplayStackedPositionCache.value
-        }
-
-    /**
-     * The stacked end position of this [HitObject] in gameplay, in screen pixels.
-     */
-    open val screenSpaceGameplayStackedEndPosition
-        get() = screenSpaceGameplayStackedPosition
 
     /**
      * Applies defaults to this [HitObject].
@@ -429,24 +377,6 @@ abstract class HitObject(
                 lastObj.isLastInCombo = true
             }
         }
-    }
-
-    /**
-     * Converts a position in osu!pixels to real screen coordinates.
-     *
-     * @param position The position in osu!pixels.
-     * @return The position in real screen coordinates.
-     */
-    protected fun convertPositionToRealCoordinates(position: Vector2): Vector2 {
-        // Scale the position to the actual playfield size on screen.
-        val xScale = Constants.MAP_ACTUAL_WIDTH / Constants.MAP_WIDTH.toFloat()
-        val yScale = Constants.MAP_ACTUAL_HEIGHT / Constants.MAP_HEIGHT.toFloat()
-
-        // Center the position on the screen.
-        val xOffset = (GameResolution.width - Constants.MAP_ACTUAL_WIDTH) / 2f
-        val yOffset = (GameResolution.height - Constants.MAP_ACTUAL_HEIGHT) / 2f
-
-        return Vector2(position.x * xScale + xOffset, position.y * yScale + yOffset)
     }
 
     /**

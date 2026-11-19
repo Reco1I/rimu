@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.test
 
-import com.osudroid.settings.GameResolution
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.data.Dimension
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.Platform
 import com.osudroid.math.Vector2
@@ -82,16 +83,18 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     val stat = StatisticV2()
 
+    // The size of the space gameplay is laid out in, as the game's: 1280 wide, in the proportions of the window.
+    private val spaceWidth = PlayfieldMapping.REFERENCE_WIDTH
+    private val spaceHeight = Verktex.graphics.window.let { spaceWidth * it.windowHeight / it.windowWidth.coerceAtLeast(1) }
+
     // Holds the layers of the playfield, scaled to fit the stage as the game fits it in the screen. It keeps the
     // size of the game's even when the stage is smaller, as what's in it is laid out for that size.
     private val area = object : Container() {
         override fun adjustParentConstraints(constraints: LayoutConstraints): LayoutConstraints {
-            val width = GameResolution.width.toFloat()
-            val height = GameResolution.height.toFloat()
-            return LayoutConstraints(width, width, height, height)
+            return LayoutConstraints(spaceWidth, spaceWidth, spaceHeight, spaceHeight)
         }
     }.apply {
-        setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+        setSize(spaceWidth, spaceHeight)
         anchor = Anchor.Center
         origin = Anchor.Center
         scaleOrigin = Anchor.Center
@@ -101,12 +104,13 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
      * The layer spinners are added to, in the space gameplay is laid out in, as the game's.
      */
     val spinnerLayer = Container().apply {
-        setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+        width = Dimension.FillAvailable
+        height = Dimension.FillAvailable
     }
 
     // The game's playfield, over the spinners.
     private val gameplayPlayfield = GameplayPlayfield().apply {
-        setSpaceSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+        setSpaceSize(spaceWidth, spaceHeight)
     }
 
     /**
@@ -161,7 +165,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         stage.onEachFrame { frame ->
             // Fits the playfield in the stage, as the game fits it in the screen.
             val bounds = stage.bounds
-            area.scale = min(bounds.width / GameResolution.width, bounds.height / GameResolution.height)
+            area.scale = min(bounds.width / spaceWidth, bounds.height / spaceHeight)
 
             val deltaTime = frame.elapsedFrameTime
             clock.time += deltaTime

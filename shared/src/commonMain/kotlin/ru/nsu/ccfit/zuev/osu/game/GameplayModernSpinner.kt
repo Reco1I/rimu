@@ -124,7 +124,7 @@ class GameplayModernSpinner : GameplaySpinner() {
             scene += middle2
         }
 
-        rpmCounter.attach(scene, hitTime, hitTime + duration)
+        rpmCounter.attach(scene, listener.playfieldMapping, hitTime, hitTime + duration)
 
         val timePreempt = beatmapSpinner.timePreempt.toFloat() / 1000f
         passedTime = -timePreempt

@@ -83,7 +83,6 @@ object OsuSettings {
     @JvmField val DisplayScoreStatistics = key("displayScoreStatistics", false)
     @JvmField val ShowScoreboard = key("showscoreboard", true)
     @JvmField val SafeBeatmapBackground = key("safebeatmapbg", false)
-    @JvmField val UseLegacyResolutionPolicy = key("use_legacy_resolution_policy", true)
 
     /**
      * The resolution scale, as a percentage, which the engine's own setting follows (see
@@ -283,7 +282,6 @@ object OsuSettings {
             installId
         }
 
-        GameResolution.measure()
         Languages.apply(Settings[Language])
     }
 }

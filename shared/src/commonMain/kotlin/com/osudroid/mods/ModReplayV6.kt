@@ -67,7 +67,8 @@ class ModReplayV6 : Mod(), IModApplicableToBeatmap, IModFacilitatesAdjustment {
                     next.difficultyStackHeight = current.difficultyStackHeight + 1
                 }
 
-                if (distanceSquared < current.screenSpaceGameplayScale) {
+                // osu!droid compared it with the scale on its screen.
+                if (distanceSquared < CircleSizeCalculator.droidOldGameplayScaleOsuPixelsToScreenPixels(current.gameplayScale)) {
                     next.gameplayStackHeight = current.gameplayStackHeight + 1
                 }
             }

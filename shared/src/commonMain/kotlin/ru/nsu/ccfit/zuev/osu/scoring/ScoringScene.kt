@@ -3,7 +3,7 @@ package ru.nsu.ccfit.zuev.osu.scoring
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
-import com.osudroid.settings.GameResolution
+import com.osudroid.game.PlayfieldMapping
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.GameMode
@@ -38,6 +38,7 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.texture.Textures
@@ -45,6 +46,7 @@ import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.ScalingContainer
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.Box
@@ -52,7 +54,6 @@ import com.reco1l.verktex.ui.text.Text
 import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import com.reco1l.verktex.ui.toast.Toasts
-import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
@@ -90,7 +91,7 @@ class ScoringScene(pGame: GameScene) {
      * Creates a sprite centered in the given position with a size relative to its texture.
      */
     private fun createHitSprite(texture: String, centerX: Float, centerY: Float): Sprite {
-        val sprite = createSprite(texture, Utils.toRes(centerX), Utils.toRes(centerY))
+        val sprite = createSprite(texture, centerX, centerY)
         sprite.origin = Anchor.Center
         return sprite
     }
@@ -170,16 +171,17 @@ class ScoringScene(pGame: GameScene) {
         backgroundSprite.scaleType = ScaleType.Crop
         scene.backgroundComponent = backgroundSprite
 
-        // Everything is placed in the coordinates of the game's resolution and scaled to fit the window.
-        val content = Container()
+        // Everything is placed in a space 1280 wide, as the game's, scaled to the width of the window.
+        val window = Verktex.graphics.window
+        val screenWidth = PlayfieldMapping.REFERENCE_WIDTH
+        val screenHeight = screenWidth * window.windowHeight / window.windowWidth.coerceAtLeast(1)
+        val content = ScalingContainer()
         this.content = content
-        content.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
-        content.scaleOrigin = Anchor.TopLeft
-        content.scale = Verktex.graphics.window.windowWidth.toFloat() / GameResolution.width
+        content.referenceSize = Vec2(screenWidth, screenHeight)
         scene += content
 
         val bgTopRect = Box()
-        bgTopRect.setSize(GameResolution.width.toFloat(), Utils.toRes(100).toFloat())
+        bgTopRect.setSize(screenWidth, 100f)
         bgTopRect.color = Color4(0f, 0f, 0f, 0.8f)
         content += bgTopRect
 
@@ -194,16 +196,16 @@ class ScoringScene(pGame: GameScene) {
             0f
 
         val scaledContainer = Container()
-        scaledContainer.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+        scaledContainer.setSize(screenWidth, screenHeight)
         scaledContainer.setPosition(0f, 100f)
         scaledContainer.scaleOrigin = Anchor.TopLeft
-        scaledContainer.scale = (GameResolution.height - paddingButtom) / GameResolution.height
+        scaledContainer.scale = (screenHeight - paddingButtom) / screenHeight
         content += scaledContainer
 
         val x = 0
         val y = 0
         val panel = createSprite("ranking-panel", x.toFloat(), y.toFloat())
-        panel.setSize(Utils.toRes(textureWidth("ranking-panel") * 0.9f), Utils.toRes(textureHeight("ranking-panel") * 0.9f))
+        panel.setSize(textureWidth("ranking-panel") * 0.9f, textureHeight("ranking-panel") * 0.9f)
         scaledContainer += panel
 
         scaledContainer += createHitSprite("hit300", (70 + x).toFloat(), (130 + y).toFloat())
@@ -214,54 +216,54 @@ class ScoringScene(pGame: GameScene) {
         scaledContainer += createHitSprite("hit0", (340 + x).toFloat(), (130 + 92 * 2 + y).toFloat())
 
         content += createSprite("ranking-title",
-            (GameResolution.width * 5).toFloat() / 6 - textureWidth("ranking-title") / 2, 0f)
+            screenWidth * 5 / 6 - textureWidth("ranking-title") / 2, 0f)
 
         val scoreStr = StringBuilder(stat.totalScoreWithMultiplier.toString())
         while (scoreStr.length < 8) {
             scoreStr.insert(0, "0")
         }
-        val scoreNum = ScoreNumber(Utils.toRes(220 + x).toFloat(),
-            Utils.toRes(18 + y).toFloat(), scoreStr.toString(), 1f, false)
+        val scoreNum = ScoreNumber((220 + x).toFloat(),
+            (18 + y).toFloat(), scoreStr.toString(), 1f, false)
         scaledContainer += scoreNum
 
-        val hit300num = ScoreNumber(Utils.toRes(138 + x).toFloat(),
-            Utils.toRes(110 + y).toFloat(), stat.hit300.toString() + "x", 1f,
+        val hit300num = ScoreNumber((138 + x).toFloat(),
+            (110 + y).toFloat(), stat.hit300.toString() + "x", 1f,
             false)
         scaledContainer += hit300num
-        val hit100num = ScoreNumber(Utils.toRes(138 + x).toFloat(),
-            Utils.toRes(110 + 85 + y).toFloat(), stat.hit100.toString() + "x",
+        val hit100num = ScoreNumber((138 + x).toFloat(),
+            (110 + 85 + y).toFloat(), stat.hit100.toString() + "x",
             1f, false)
         scaledContainer += hit100num
-        val hit50num = ScoreNumber(Utils.toRes(138 + x).toFloat(),
-            Utils.toRes(110 + 85 * 2 + y).toFloat(), stat.hit50.toString() + "x",
+        val hit50num = ScoreNumber((138 + x).toFloat(),
+            (110 + 85 * 2 + y).toFloat(), stat.hit50.toString() + "x",
             1f, false)
         scaledContainer += hit50num
 
-        val hit300knum = ScoreNumber(Utils.toRes(400 + x).toFloat(),
-            Utils.toRes(110 + y).toFloat(), stat.hit300k.toString() + "x", 1f,
+        val hit300knum = ScoreNumber((400 + x).toFloat(),
+            (110 + y).toFloat(), stat.hit300k.toString() + "x", 1f,
             false)
         scaledContainer += hit300knum
-        val hit100knum = ScoreNumber(Utils.toRes(400 + x).toFloat(),
-            Utils.toRes(110 + 85 + y).toFloat(), stat.hit100k.toString() + "x",
+        val hit100knum = ScoreNumber((400 + x).toFloat(),
+            (110 + 85 + y).toFloat(), stat.hit100k.toString() + "x",
             1f, false)
         scaledContainer += hit100knum
-        val hit0num = ScoreNumber(Utils.toRes(400 + x).toFloat(),
-            Utils.toRes(110 + 85 * 2 + y).toFloat(), stat.misses.toString() + "x",
+        val hit0num = ScoreNumber((400 + x).toFloat(),
+            (110 + 85 * 2 + y).toFloat(), stat.misses.toString() + "x",
             1f, false)
         scaledContainer += hit0num
 
-        scaledContainer += createSprite("ranking-maxcombo", Utils.toRes(20 + x).toFloat(), Utils.toRes(332 + y).toFloat())
-        scaledContainer += createSprite("ranking-accuracy", Utils.toRes(260 + x).toFloat(), Utils.toRes(332 + y).toFloat())
-        val maxCombo = ScoreNumber(Utils.toRes(20 + x).toFloat(),
-            Utils.toRes(332 + y + 38).toFloat(), stat.scoreMaxCombo.toString() + "x", 1f,
+        scaledContainer += createSprite("ranking-maxcombo", (20 + x).toFloat(), (332 + y).toFloat())
+        scaledContainer += createSprite("ranking-accuracy", (260 + x).toFloat(), (332 + y).toFloat())
+        val maxCombo = ScoreNumber((20 + x).toFloat(),
+            (332 + y + 38).toFloat(), stat.scoreMaxCombo.toString() + "x", 1f,
             false)
         scaledContainer += maxCombo
         val accStr = formatString("%2.2f%%", stat.accuracy * 100)
-        val accuracy = ScoreNumber(Utils.toRes(260 + x).toFloat(),
-            Utils.toRes(332 + y + 38).toFloat(), accStr, 1f, false)
+        val accuracy = ScoreNumber((260 + x).toFloat(),
+            (332 + y + 38).toFloat(), accStr, 1f, false)
         scaledContainer += accuracy
 
-        val markX = (GameResolution.width * 5).toFloat() / 6 - textureWidth("ranking-" + stat.mark) / 2
+        val markX = screenWidth * 5 / 6 - textureWidth("ranking-" + stat.mark) / 2
         val mark = createSprite("ranking-" + stat.mark, markX, 80f)
 
         if (beatmap != null) {
@@ -274,8 +276,8 @@ class ScoringScene(pGame: GameScene) {
         content += mark
 
         val backBtn = createButton("ranking-back") { back() }
-        val buttonX = GameResolution.width - textureWidth("ranking-back") - 10
-        val backY = GameResolution.height - textureHeight("ranking-back") - 10 - paddingButtom
+        val buttonX = screenWidth - textureWidth("ranking-back") - 10
+        val backY = screenHeight - textureHeight("ranking-back") - 10 - paddingButtom
         backBtn.setPosition(buttonX, backY)
         content += backBtn
 
@@ -302,7 +304,7 @@ class ScoringScene(pGame: GameScene) {
         }
 
         if (stat.isPerfect) {
-            scaledContainer += createSprite("ranking-perfect", 0f, Utils.toRes(332 + y + 38) + accuracy.letterHeight + 10)
+            scaledContainer += createSprite("ranking-perfect", 0f, 332 + y + 38 + accuracy.letterHeight + 10)
         }
 
         var modX = markX - 30
@@ -375,7 +377,7 @@ class ScoringScene(pGame: GameScene) {
         }
         val infoContainer = LinearContainer()
         infoContainer.orientation = LinearContainer.Orientation.Vertical
-        infoContainer.setPosition(Utils.toRes(4).toFloat(), Utils.toRes(2).toFloat())
+        infoContainer.setPosition(4f, 2f)
         infoContainer += createText(infoStr, 28f)
         infoContainer += createText(mapperStr, 21f)
         infoContainer += createText(playerStr, 21f)
@@ -501,7 +503,7 @@ class ScoringScene(pGame: GameScene) {
             val ppInfo = createText(ppinfo.toString(), 21f)
             ppInfo.background = Background.Color(Color4(0f, 0f, 0f, 0.5f))
             ppInfo.origin = Anchor.BottomLeft
-            ppInfo.setPosition(Utils.toRes(240).toFloat(), GameResolution.height - Utils.toRes(2) - paddingButtom)
+            ppInfo.setPosition(240f, screenHeight - 2 - paddingButtom)
             content += ppInfo
         }
         content += infoContainer

@@ -35,12 +35,6 @@ class Spinner(
     override val gameplayStackedEndPosition
         get() = position
 
-    override val screenSpaceGameplayStackedPosition
-        get() = screenSpaceGameplayPosition
-
-    override val screenSpaceGameplayStackedEndPosition
-        get() = screenSpaceGameplayPosition
-
     override fun applySamples(controlPoints: BeatmapControlPoints, scope: CoroutineScope?) {
         super.applySamples(controlPoints, scope)
 

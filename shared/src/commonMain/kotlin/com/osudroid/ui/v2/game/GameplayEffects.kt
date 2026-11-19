@@ -1,7 +1,6 @@
 package com.osudroid.ui.v2.game
 
 import kotlin.random.Random
-import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.mods.ModFlashlight
@@ -9,6 +8,7 @@ import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.math.FloatInterpolation
@@ -20,9 +20,6 @@ import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.Box
-import com.osudroid.math.Vector2
-import ru.nsu.ccfit.zuev.osu.Constants
-import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
@@ -63,13 +60,9 @@ class FlashLightEntity(flashlight: ModFlashlight) : Container() {
     private var isTrackingSliders = false
     private var isBreak = false
     private var currentSize = FLASHLIGHT_BASE_SIZE
-    private var nextX = 0f
-    private var nextY = 0f
-
-
-    init {
-        setPosition(GameResolution.width / 2f, GameResolution.height / 2f)
-    }
+    // Where the area goes in its parent, the space gameplay is laid out in: its center until the cursor moves.
+    private var nextX = Float.NaN
+    private var nextY = Float.NaN
 
 
     private fun changeArea(fromScale: Float, toScale: Float) {
@@ -92,8 +85,10 @@ class FlashLightEntity(flashlight: ModFlashlight) : Container() {
     }
 
     fun onMouseMove(x: Float, y: Float) {
-        nextX = x.coerceIn(0f, GameResolution.width.toFloat())
-        nextY = y.coerceIn(0f, GameResolution.height.toFloat())
+        val size = parent?.measuredSize
+
+        nextX = if (size != null) x.coerceIn(0f, size.x) else x
+        nextY = if (size != null) y.coerceIn(0f, size.y) else y
     }
 
     fun onTrackingSliders(isTrackingSliders: Boolean) {
@@ -132,6 +127,19 @@ class FlashLightEntity(flashlight: ModFlashlight) : Container() {
 
     override fun onUpdate(clock: com.reco1l.verktex.time.FrameClock) {
         super.onUpdate(clock)
+
+        if (nextX.isNaN() || nextY.isNaN()) {
+            val size = parent?.measuredSize ?: return
+
+            // Not laid out yet.
+            if (size.x <= 0f || size.y <= 0f) {
+                return
+            }
+
+            nextX = size.x / 2f
+            nextY = size.y / 2f
+            setPosition(nextX, nextY)
+        }
 
         if (followDelay == 0f) {
             setPosition(nextX, nextY)
@@ -184,18 +192,23 @@ class BreakAnimator(
 
 
     init {
-        val texture = arrows[0].textureRegion
-        val arrowWidth = texture?.displayWidth ?: 0f
-        val arrowHeight = texture?.displayHeight ?: 0f
-        val margin = Utils.toRes(64).toFloat()
-        val right = GameResolution.width - arrowWidth - margin
-        val bottom = GameResolution.height - arrowHeight
-        val top = Utils.toRes(72).toFloat()
+        // In the corners of the layer: a margin from its sides, below its top and at its bottom.
+        val margin = 64f
+        val top = 72f
 
         arrows[0].setPosition(margin, top)
-        arrows[1].setPosition(margin, bottom)
-        arrows[2].setPosition(right, top)
-        arrows[3].setPosition(right, bottom)
+
+        arrows[1].anchor = Anchor.BottomLeft
+        arrows[1].origin = Anchor.BottomLeft
+        arrows[1].setPosition(margin, 0f)
+
+        arrows[2].anchor = Anchor.TopRight
+        arrows[2].origin = Anchor.TopRight
+        arrows[2].setPosition(-margin, top)
+
+        arrows[3].anchor = Anchor.BottomRight
+        arrows[3].origin = Anchor.BottomRight
+        arrows[3].setPosition(-margin, 0f)
     }
 
 
@@ -371,9 +384,9 @@ class BreakAnimator(
 //region Combo bursts
 
 /**
- * Slides an image in from the sides and plays a voice when reaching certain combos.
+ * Slides an image in from the sides of its layer, [rightX] wide, and plays a voice when reaching certain combos.
  */
-class ComboBurst(private val rightX: Float, private val bottomY: Float) {
+class ComboBurst(private val rightX: Float) {
 
     private val sprites = mutableListOf<Sprite>()
     private val vocals = (listOf("comboburst") + List(10) { "comboburst-$it" }).mapNotNull(SkinSounds::getOrNull)
@@ -438,7 +451,10 @@ class ComboBurst(private val rightX: Float, private val bottomY: Float) {
         }
 
         sprite.choreography?.clear()
-        sprite.setPosition(0f, bottomY - texture.displayHeight)
+        // At the bottom of the layer.
+        sprite.anchor = Anchor.BottomLeft
+        sprite.origin = Anchor.BottomLeft
+        sprite.setPosition(0f, 0f)
         sprite.translationX = fromX.px
         sprite.alpha = 0f
 
@@ -489,18 +505,18 @@ class Countdown(
 
     private var timePassed = -time + COUNTDOWN_LENGTH * speed
 
-    private val center = Utils.trackToRealCoords(Vector2(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f))
+    // In the center of the layer, 3 at its left and 2 at its right.
+    private val ready = createSprite("ready", Anchor.Center, 0f)
+    private val count3 = createSprite("count3", Anchor.CenterLeft, (SkinTextures["count3"]?.displayWidth ?: 0f) / 2f)
+    private val count2 = createSprite("count2", Anchor.CenterRight, -(SkinTextures["count2"]?.displayWidth ?: 0f) / 2f)
+    private val count1 = createSprite("count1", Anchor.Center, 0f)
+    private val go = createSprite("go", Anchor.Center, 0f)
 
-    private val ready = createSprite("ready", center.x)
-    private val count3 = createSprite("count3", (SkinTextures["count3"]?.displayWidth ?: 0f) / 2f)
-    private val count2 = createSprite("count2", GameResolution.width - (SkinTextures["count2"]?.displayWidth ?: 0f) / 2f)
-    private val count1 = createSprite("count1", center.x)
-    private val go = createSprite("go", center.x)
 
-
-    private fun createSprite(texture: String, x: Float) = Sprite(SkinTextures[texture]).also {
+    private fun createSprite(texture: String, anchor: Vec2, x: Float) = Sprite(SkinTextures[texture]).also {
+        it.anchor = anchor
         it.origin = Anchor.Center
-        it.setPosition(x, center.y)
+        it.setPosition(x, 0f)
         it.isVisible = false
         layer?.add(0, it)
     }

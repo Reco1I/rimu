@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.game
 
-import com.osudroid.settings.GameResolution
+import com.osudroid.game.PlayfieldMapping
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.Anchor
@@ -16,24 +16,28 @@ import kotlin.math.roundToInt
  * The spins per minute of a spinner, shown under it as osu!stable does: the skin's `spinner-rpm` with the
  * number in its score font. It slides in when the spinner starts and out when it ends.
  *
- * Positions are osu!stable's at 1024x768, scaled to the height of the screen.
+ * Positions are osu!stable's at 1024x768, scaled to the height of the space gameplay is laid out in and centered
+ * in it.
  *
  * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacySpinner.cs
  */
 class SpinnerRpmCounter {
 
-    private val scale = GameResolution.height / STABLE_HEIGHT
-
-    private val container = Container()
+    // osu!stable's 1024x768, scaled to the space from its top center.
+    private val container = Container().apply {
+        setSize(STABLE_WIDTH, STABLE_HEIGHT)
+        anchor = Anchor.TopCenter
+        origin = Anchor.TopCenter
+        scaleOrigin = Anchor.TopCenter
+    }
 
     private val background = Sprite().apply {
         origin = Anchor.TopLeft
         texture = skinTexture("spinner-rpm")
-        this.scale = this@SpinnerRpmCounter.scale
-        setPosition(GameResolution.width / 2f + (BACKGROUND_X - STABLE_WIDTH / 2) * this@SpinnerRpmCounter.scale, BACKGROUND_Y * this@SpinnerRpmCounter.scale)
+        setPosition(BACKGROUND_X, BACKGROUND_Y)
     }
 
-    private val number = ScoreNumber(0f, NUMBER_Y * scale, "0", scale)
+    private val number = ScoreNumber(0f, NUMBER_Y, "0", 1f)
 
     // The rotation added up over time, sampled each update, to measure the rotations of the last moments.
     private val sampleTimes = FloatArray(SAMPLE_COUNT)
@@ -54,9 +58,10 @@ class SpinnerRpmCounter {
 
 
     /**
-     * Adds the counter to [scene] for a spinner from [startTime] to [endTime], in seconds of gameplay.
+     * Adds the counter to [scene], the space gameplay is laid out in as [mapping] maps it, for a spinner from
+     * [startTime] to [endTime], in seconds of gameplay.
      */
-    fun attach(scene: Container, startTime: Float, endTime: Float) {
+    fun attach(scene: Container, mapping: PlayfieldMapping, startTime: Float, endTime: Float) {
         // Only for skins that have it.
         if (SkinTextures["spinner-rpm"] == null) {
             return
@@ -69,6 +74,10 @@ class SpinnerRpmCounter {
         lastShownTime = Float.NEGATIVE_INFINITY
         show(0)
 
+        val scale = mapping.height / STABLE_HEIGHT
+        container.scale = scale
+
+        // In the space, the translation isn't scaled.
         val hideOffset = HIDE_OFFSET * scale
 
         container.clearAnimations()
@@ -147,7 +156,7 @@ class SpinnerRpmCounter {
         number.setText(rpm.toString())
 
         // Right aligned.
-        number.x = (GameResolution.width / 2f + (NUMBER_RIGHT - STABLE_WIDTH / 2) * scale - number.textWidth).px
+        number.x = (NUMBER_RIGHT - number.textWidth).px
     }
 
 

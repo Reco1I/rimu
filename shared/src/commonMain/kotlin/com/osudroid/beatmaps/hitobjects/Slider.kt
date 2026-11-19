@@ -245,19 +245,6 @@ class Slider(
             return gameplayStackedEndPositionCache.value
         }
 
-    private val screenSpaceGameplayStackedEndPositionCache =
-        Cached(convertPositionToRealCoordinates(gameplayStackedEndPosition))
-
-    override val screenSpaceGameplayStackedEndPosition: Vector2
-        get() {
-            if (!screenSpaceGameplayStackedEndPositionCache.isValid) {
-                screenSpaceGameplayStackedEndPositionCache.value =
-                    convertPositionToRealCoordinates(gameplayStackedEndPosition)
-            }
-
-            return screenSpaceGameplayStackedEndPositionCache.value
-        }
-
     override var gameplayStackHeight
         get() = super.gameplayStackHeight
         set(value) {
@@ -267,7 +254,6 @@ class Slider(
 
             if (!wasEqual) {
                 gameplayStackedEndPositionCache.invalidate()
-                screenSpaceGameplayStackedEndPositionCache.invalidate()
 
                 nestedHitObjects.forEach { it.gameplayStackHeight = value }
             }
@@ -282,7 +268,6 @@ class Slider(
 
             if (!wasEqual) {
                 gameplayStackedEndPositionCache.invalidate()
-                screenSpaceGameplayStackedEndPositionCache.invalidate()
 
                 nestedHitObjects.forEach { it.gameplayScale = value }
             }
@@ -480,7 +465,6 @@ class Slider(
         endPositionCache.invalidate()
         difficultyStackedEndPositionCache.invalidate()
         gameplayStackedEndPositionCache.invalidate()
-        screenSpaceGameplayStackedEndPositionCache.invalidate()
     }
 
     private fun createSlidingSamples(controlPoints: BeatmapControlPoints, scope: CoroutineScope?) {

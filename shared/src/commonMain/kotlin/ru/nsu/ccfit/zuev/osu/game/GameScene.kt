@@ -8,7 +8,6 @@ import com.osudroid.BeatmapSelection
 import com.osudroid.OsuGameHost
 import com.osudroid.game.GameplayVibrations
 import com.osudroid.settings.GameFolders
-import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Platform
@@ -92,6 +91,7 @@ import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.Input
 import com.reco1l.verktex.input.InputEvent
@@ -108,6 +108,7 @@ import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
 import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.ui.container.ScalingContainer
 import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.ui.text.Text
 import okio.FileNotFoundException
@@ -159,6 +160,7 @@ class GameScene : GameObjectListener {
     private var gameUIScene: GameUIScene
     private lateinit var root: Container
     private lateinit var backgroundLayer: Container
+    private lateinit var gameplaySpace: ScalingContainer
     private lateinit var playfield: Container
     private lateinit var bgScene: Container
     private lateinit var objectPlayfield: GameplayPlayfield
@@ -385,8 +387,14 @@ class GameScene : GameObjectListener {
         backgroundLayer.width = Dimension.FillAvailable
         backgroundLayer.height = Dimension.FillAvailable
 
+        // Gameplay is laid out in a space 1280 wide, as osu!droid's, scaled to the width of the window.
+        gameplaySpace = ScalingContainer()
+        gameplaySpace.referenceSize = Vec2(PlayfieldMapping.REFERENCE_WIDTH, 720f)
+
+        // Scaled and moved in it by the playfield size settings.
         playfield = Container()
-        playfield.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+        playfield.width = Dimension.FillAvailable
+        playfield.height = Dimension.FillAvailable
         playfield.scaleOrigin = Anchor.TopLeft
 
         bgScene = createLayer()
@@ -394,8 +402,12 @@ class GameScene : GameObjectListener {
 
         // Hit objects are in osu!pixels, in the playfield, over the spinners and below the cursors.
         objectPlayfield = GameplayPlayfield()
-        // Objects can be loaded before the first layout.
-        objectPlayfield.setSpaceSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+        // Objects can be loaded before the first layout, the space is as wide as the window in proportion.
+        val window = Verktex.graphics.window
+        objectPlayfield.setSpaceSize(
+            PlayfieldMapping.REFERENCE_WIDTH,
+            PlayfieldMapping.REFERENCE_WIDTH * window.windowHeight / window.windowWidth.coerceAtLeast(1)
+        )
 
         effects.setLayers(objectPlayfield.underlay, objectPlayfield.objects)
 
@@ -403,8 +415,10 @@ class GameScene : GameObjectListener {
         playfield += objectPlayfield
         playfield += fgScene
 
+        gameplaySpace += playfield
+
         root += backgroundLayer
-        root += playfield
+        root += gameplaySpace
 
         // The background of a scene isn't one of its children, so it doesn't inherit the scene's clock. The
         // timelines of the hit objects and the HUD are on the gameplay clock.
@@ -417,7 +431,8 @@ class GameScene : GameObjectListener {
 
     private fun createLayer(): Container {
         val layer = Container()
-        layer.setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+        layer.width = Dimension.FillAvailable
+        layer.height = Dimension.FillAvailable
         return layer
     }
 
@@ -553,7 +568,8 @@ class GameScene : GameObjectListener {
                 origin = Anchor.Center
                 border = Border(Dimension.Fixed.Pixels(5f), Color4.White, Color4.White)
                 alpha = Interpolation.linear(0.2f, 0.8f, brightness)
-                setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
             }
 
             playfield.add(0, sceneBorder)
@@ -1205,7 +1221,9 @@ class GameScene : GameObjectListener {
         }
 
         if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
-            autoCursor = AutoCursor()
+            // From the center of the playfield.
+            val start = objectPlayfield.mapping.toResolution(PlayfieldMapping.PLAYFIELD_WIDTH / 2, PlayfieldMapping.PLAYFIELD_HEIGHT / 2)
+            autoCursor = AutoCursor(start.x, start.y)
             autoCursor!!.attachToScene(fgScene)
         }
 
@@ -1221,11 +1239,12 @@ class GameScene : GameObjectListener {
         }
 
         if (Settings[OsuSettings.ComboBurst]) {
-            comboBurst = ComboBurst(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+            comboBurst = ComboBurst(PlayfieldMapping.REFERENCE_WIDTH)
             comboBurst!!.attachAll(bgScene)
         }
 
-        val position = Vector2(GameResolution.width - 130, 130)
+        // From the top right corner of the layer, to the left.
+        val position = Vector2(-130, 130)
 
         for (mod in lastMods.values) {
             if (!mod.isUserPlayable) {
@@ -1233,6 +1252,7 @@ class GameScene : GameObjectListener {
             }
 
             val icon = ModIcon(mod)
+            icon.anchor = Anchor.TopRight
             icon.setPosition(position.x, position.y)
             icon.origin = Anchor.Center
             icon.setSize(68f, 66f)
@@ -2012,7 +2032,7 @@ class GameScene : GameObjectListener {
                 val latestDownEvent = cursors[i]!!.getLatestNonUpEvent()
 
                 if (latestDownEvent != null && Utils.squaredDistance(latestDownEvent.position.x, latestDownEvent.position.y,
-                        GameResolution.width.toFloat(), GameResolution.height.toFloat()) < 250 * 250) {
+                        objectPlayfield.mapping.width, objectPlayfield.mapping.height) < 250 * 250) {
                     if (Multiplayer.isConnected) {
                         if (!isSkipRequested) {
                             isSkipRequested = true
@@ -3176,38 +3196,36 @@ class GameScene : GameObjectListener {
     }
 
     private fun applyPlayfieldSizeScale() {
-        val windowWidth = root.bounds.width
-
-        if (windowWidth <= 0f) {
+        if (root.bounds.width <= 0f) {
             return
         }
 
         val playfieldSize = OsuSettings.playfieldSize
-        val resolutionWidth = GameResolution.width.toFloat()
-        val resolutionHeight = GameResolution.height.toFloat()
+
+        // The space gameplay is laid out in, which the playfield fills.
+        val spaceWidth = objectPlayfield.mapping.width
+        val spaceHeight = objectPlayfield.mapping.height
 
         // The point of the playfield that ends up at the center of the window.
-        val centerX = resolutionWidth * Interpolation.linear(
+        val centerX = spaceWidth * Interpolation.linear(
             Interpolation.linear(0f, 0.5f, playfieldSize),
             Interpolation.linear(1f, 0.5f, playfieldSize),
             1 - OsuSettings.playfieldHorizontalPosition
         )
 
-        val centerY = resolutionHeight * Interpolation.linear(
+        val centerY = spaceHeight * Interpolation.linear(
             Interpolation.linear(0f, 0.5f, playfieldSize),
             Interpolation.linear(1f, 0.5f, playfieldSize),
             1 - OsuSettings.playfieldVerticalPosition
         )
 
-        val resolutionScale = windowWidth / resolutionWidth
-
-        playfield.scale = resolutionScale * playfieldSize
-        playfield.translationX = (resolutionScale * (resolutionWidth / 2f - centerX * playfieldSize)).px
-        playfield.translationY = (resolutionScale * (resolutionHeight / 2f - centerY * playfieldSize)).px
+        playfield.scale = playfieldSize
+        playfield.translationX = (spaceWidth / 2f - centerX * playfieldSize).px
+        playfield.translationY = (spaceHeight / 2f - centerY * playfieldSize).px
     }
 
     private fun resetPlayfieldSizeScale() {
-        playfield.scale = root.bounds.width / GameResolution.width
+        playfield.scale = 1f
         playfield.translationX = Dimension.Zero
         playfield.translationY = Dimension.Zero
     }
@@ -3827,6 +3845,7 @@ class GameScene : GameObjectListener {
 
         private val stopwatch = Stopwatch()
         private var lastRootWidth = 0f
+        private var lastRootHeight = 0f
         private var areModIconsAnimated = false
 
         init {
@@ -3868,8 +3887,9 @@ class GameScene : GameObjectListener {
             val deltaTimeSec = clock.elapsedFrameTime
 
             // The playfield follows the size of the window, which is only known after the first layout.
-            if (root.bounds.width != lastRootWidth) {
+            if (root.bounds.width != lastRootWidth || root.bounds.height != lastRootHeight) {
                 lastRootWidth = root.bounds.width
+                lastRootHeight = root.bounds.height
                 applyPlayfieldSizeScale()
                 applyBackground()
             }

@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.game
 
-import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.ui.v2.SkinTextures
@@ -258,9 +257,10 @@ private class CursorTrail(private val cursor: CursorSprite) : ParticleSystem(MAX
 }
 
 /**
- * The cursor used in autoplay, moving by itself from object to object.
+ * The cursor used in autoplay, moving by itself from object to object, from [startX] and [startY] in the space
+ * gameplay is laid out in.
  */
-class AutoCursor : CursorEntity(), ISliderListener {
+class AutoCursor(startX: Float, startY: Float) : CursorEntity(), ISliderListener {
 
     /**
      * The ID of the object that the cursor is currently active on.
@@ -281,7 +281,7 @@ class AutoCursor : CursorEntity(), ISliderListener {
 
 
     init {
-        setPosition(GameResolution.width / 2f, GameResolution.height / 2f)
+        setPosition(startX, startY)
         setShowing(true)
     }
 

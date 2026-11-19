@@ -1,7 +1,6 @@
 package com.acivev.ui
 
 import com.reco1l.verktex.Platform
-import com.osudroid.settings.GameResolution
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.graphics.BlendMode
 import com.reco1l.verktex.texture.Textures
@@ -18,7 +17,7 @@ import kotlin.random.Random
 private fun Random.nextFloat(from: Float, to: Float) = from + nextFloat() * (to - from)
 
 /**
- * Snow falling from the top of the screen.
+ * Snow falling from the top of its parent, across its width.
  */
 private class Snowfall(isLowEndDevice: Boolean) : ParticleSystem(if (isLowEndDevice) 15 else 75) {
 
@@ -35,11 +34,13 @@ private class Snowfall(isLowEndDevice: Boolean) : ParticleSystem(if (isLowEndDev
 
         val interval = 1f / Random.nextFloat(10f, 15f)
 
+        val parentWidth = parent?.measuredSize?.x ?: 0f
+
         while (spawnTimer >= interval) {
             spawnTimer -= interval
 
             emit(
-                x = Random.nextFloat() * GameResolution.width,
+                x = Random.nextFloat() * parentWidth,
                 y = 0f,
                 lifetime = Random.nextFloat(1f, 7f),
                 velocityX = Random.nextFloat(-50f, 50f),
@@ -56,7 +57,7 @@ private class Snowfall(isLowEndDevice: Boolean) : ParticleSystem(if (isLowEndDev
 }
 
 /**
- * Fireworks launched from the bottom of the screen.
+ * Fireworks launched from the bottom of their parent.
  */
 private class Fireworks(private val isLowEndDevice: Boolean) : Container() {
 
@@ -82,6 +83,9 @@ private class Fireworks(private val isLowEndDevice: Boolean) : Container() {
 
     private fun loadTexture(name: String) = Textures[name] ?: Textures.load(name, "$name.png", isInternal = true)
 
+    private val parentHeight
+        get() = parent?.measuredSize?.y ?: 0f
+
     override fun onUpdate(clock: FrameClock) {
         super.onUpdate(clock)
 
@@ -91,7 +95,7 @@ private class Fireworks(private val isLowEndDevice: Boolean) : Container() {
 
         if (launchTimer <= 0f) {
             launchTimer = Random.nextFloat(1.5f, 4f)
-            launchX = GameResolution.width * Random.nextFloat(0.05f, 0.95f)
+            launchX = (parent?.measuredSize?.x ?: 0f) * Random.nextFloat(0.05f, 0.95f)
             trailTimer = 0.8f
         }
 
@@ -104,7 +108,7 @@ private class Fireworks(private val isLowEndDevice: Boolean) : Container() {
 
                 trail.emit(
                     x = launchX,
-                    y = GameResolution.height * 0.9f,
+                    y = parentHeight * 0.9f,
                     lifetime = Random.nextFloat(0.3f, 0.6f),
                     velocityX = Random.nextFloat(-20f, 20f),
                     velocityY = Random.nextFloat(-800f, -600f),
@@ -129,7 +133,7 @@ private class Fireworks(private val isLowEndDevice: Boolean) : Container() {
         repeat(particles) {
             system.emit(
                 x = launchX,
-                y = GameResolution.height * 0.2f,
+                y = parentHeight * 0.2f,
                 lifetime = Random.nextFloat(0.8f, 1.5f),
                 velocityX = Random.nextFloat(-400f, 400f),
                 velocityY = Random.nextFloat(-400f, 400f),

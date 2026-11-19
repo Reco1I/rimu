@@ -243,7 +243,7 @@ open class GameplaySpinner : GameObject() {
         scene.add(0, metre)
         scene.add(0, background)
 
-        rpmCounter.attach(scene, hitTime, hitTime + duration)
+        rpmCounter.attach(scene, listener.playfieldMapping, hitTime, hitTime + duration)
 
         val fadeDuration = timePreempt * 0.25f
         val fadeInStartTime = hitTime - fadeDuration

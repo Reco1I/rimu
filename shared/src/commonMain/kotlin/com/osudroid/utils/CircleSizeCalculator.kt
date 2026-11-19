@@ -1,9 +1,10 @@
 package com.osudroid.utils
 
-import com.osudroid.settings.GameResolution
+import com.reco1l.verktex.Platform
 import com.osudroid.GameMode
 import com.osudroid.beatmaps.hitobjects.HitObject
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 
@@ -30,10 +31,23 @@ object CircleSizeCalculator {
     private const val BROKEN_GAMEFIELD_ROUNDING_ALLOWANCE = 1.00041f
 
     /**
+     * The height of the screen of this device scaled to 1280 pixels wide, osu!droid's fixed resolution, which its
+     * gameplay scale before replay version 7 depended on. It's 0 without a display, as in tests.
+     */
+    private val oldDroidScreenHeight: Int
+        get() {
+            val display = runCatching { Platform.currentDisplay }.getOrNull() ?: return 0
+            val longSide = max(display.width, display.height)
+            val shortSide = min(display.width, display.height)
+
+            return if (longSide > 0) (shortSide * (1280f / longSide)).toInt() else 0
+        }
+
+    /**
      * The offset used to convert between osu!droid and osu!standard circle sizes.
      *
      * `6.8556344386` was derived by converting the old osu!droid gameplay scale unit into osu!pixels (by dividing it
-     * with ([com.osudroid.settings.GameResolution.height] / 480)) and then fitting the function to the osu!standard scale function. The height in
+     * with ([oldDroidScreenHeight] / 480)) and then fitting the function to the osu!standard scale function. The height in
      * the old osu!droid gameplay scale function was set to 576, which was chosen after sampling the top 100 most used
      * devices by players from Firebase. This is done to ensure that the new scale is as close to the old scale as
      * possible for most players.
@@ -70,7 +84,7 @@ object CircleSizeCalculator {
      */
     @JvmStatic
     fun droidCSToOldDroidGameplayScale(cs: Float) =
-        max(1e-3f, (54.42f - cs * 4.48f) / HitObject.OBJECT_RADIUS + OLD_DROID_SCALE_MULTIPLIER * 480 / max(1, GameResolution.height))
+        max(1e-3f, (54.42f - cs * 4.48f) / HitObject.OBJECT_RADIUS + OLD_DROID_SCALE_MULTIPLIER * 480 / max(1, oldDroidScreenHeight))
 
     /**
      * Converts osu!droid scale to osu!droid circle size.
@@ -99,7 +113,7 @@ object CircleSizeCalculator {
      */
     @JvmStatic
     fun droidOldGameplayScaleToDroidCS(scale: Float) =
-        (54.42f - (max(1e-3f, scale) - OLD_DROID_SCALE_MULTIPLIER * 480 / max(1, GameResolution.height)) * HitObject.OBJECT_RADIUS) / 4.48f
+        (54.42f - (max(1e-3f, scale) - OLD_DROID_SCALE_MULTIPLIER * 480 / max(1, oldDroidScreenHeight)) * HitObject.OBJECT_RADIUS) / 4.48f
 
     /**
      * Converts old osu!droid difficulty scale that is in **screen pixels** to **osu!pixels**.
@@ -126,7 +140,7 @@ object CircleSizeCalculator {
      * @return The converted scale.
      */
     @JvmStatic
-    fun droidOldGameplayScaleScreenPixelsToOsuPixels(scale: Float) = scale * 480 / max(1, GameResolution.height)
+    fun droidOldGameplayScaleScreenPixelsToOsuPixels(scale: Float) = scale * 480 / max(1, oldDroidScreenHeight)
 
     /**
      * Converts old osu!droid scale that is in **osu!pixels** to **screen pixels**.
@@ -135,7 +149,7 @@ object CircleSizeCalculator {
      * @return The converted scale.
      */
     @JvmStatic
-    fun droidOldGameplayScaleOsuPixelsToScreenPixels(scale: Float) = scale * max(1, GameResolution.height) / 480
+    fun droidOldGameplayScaleOsuPixelsToScreenPixels(scale: Float) = scale * max(1, oldDroidScreenHeight) / 480
 
     /**
      * Converts osu!droid scale to osu!standard radius.

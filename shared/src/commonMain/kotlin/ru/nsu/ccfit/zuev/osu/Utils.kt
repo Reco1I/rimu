@@ -1,13 +1,11 @@
 package ru.nsu.ccfit.zuev.osu
 
-import com.osudroid.settings.GameResolution
 import com.osudroid.math.Vector2
 import kotlin.jvm.JvmStatic
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.hypot
 import kotlin.math.sqrt
-import ru.nsu.ccfit.zuev.osu.game.GameHelper
 
 object Utils {
     private const val FSReservedChars = "|\\?*<\":>+[]/"
@@ -37,83 +35,6 @@ object Utils {
     @JvmStatic
     fun inter(v1: Vector2, v2: Vector2, percent: Float): Vector2 {
         return Vector2(v1.x * (1 - percent) + v2.x * percent, v1.y * (1 - percent) + v2.y * percent)
-    }
-
-    @JvmStatic
-    fun trackToRealCoords(coords: Vector2): Vector2 {
-        return trackToRealCoords(coords, false)
-    }
-
-    @JvmStatic
-    fun trackToRealCoords(pos: Vector2, flipVertically: Boolean): Vector2 {
-        pos.x *= Constants.MAP_ACTUAL_WIDTH / Constants.MAP_WIDTH.toFloat()
-        pos.y *= Constants.MAP_ACTUAL_HEIGHT / Constants.MAP_HEIGHT.toFloat()
-
-        pos.y += (GameResolution.height - toRes(Constants.MAP_ACTUAL_HEIGHT)) / 2f
-        pos.x += (GameResolution.width - toRes(Constants.MAP_ACTUAL_WIDTH)) / 2f
-
-        if (flipVertically) {
-            flipRealCoordsVertically(pos)
-        }
-        return pos
-    }
-
-    @JvmStatic
-    fun flipRealCoordsVertically(coords: Vector2) {
-        coords.y -= GameResolution.height / 2f
-        coords.y *= -1f
-        coords.y += GameResolution.height / 2f
-    }
-
-    @JvmStatic
-    fun changeTrackToRealCoords(coords: Vector2) {
-        val pos = scaleToRealC(coords)
-        pos.y += (GameResolution.height - toRes(Constants.MAP_ACTUAL_HEIGHT)) / 2f
-        pos.x += (GameResolution.width - toRes(Constants.MAP_ACTUAL_WIDTH)) / 2f
-        if (GameHelper.isHardRock()) {
-            pos.y -= GameResolution.height.toFloat() / 2
-            pos.y *= -1f
-            pos.y += GameResolution.height.toFloat() / 2
-        }
-    }
-
-    @JvmStatic
-    fun realToTrackCoords(coords: Vector2): Vector2 {
-        return realToTrackCoords(coords, GameResolution.width.toFloat(), GameResolution.height.toFloat(), false)
-    }
-
-    @JvmStatic
-    fun realToTrackCoords(coords: Vector2, width: Float, height: Float, isOld: Boolean): Vector2 {
-        val pos = Vector2(coords.x, coords.y)
-        if (GameHelper.isHardRock()) {
-            pos.y -= height / 2
-            pos.y *= -1f
-            pos.y += height / 2
-        }
-        pos.y -= (height - toRes((if (isOld) Constants.MAP_ACTUAL_HEIGHT_OLD else Constants.MAP_ACTUAL_HEIGHT))) / 2f
-        pos.x -= (width - toRes((if (isOld) Constants.MAP_ACTUAL_WIDTH_OLD else Constants.MAP_ACTUAL_WIDTH))) / 2f
-        return scaleToTrack(pos, isOld)
-    }
-
-    @JvmStatic
-    fun flipY(y: Short): Short {
-        val height = GameResolution.height / 2
-        return (((y - height) * -1) + height).toShort()
-    }
-
-    @JvmStatic
-    fun scaleToRealC(v: Vector2): Vector2 {
-        v.x *= toRes(Constants.MAP_ACTUAL_WIDTH) / Constants.MAP_WIDTH.toFloat()
-        v.y *= toRes(Constants.MAP_ACTUAL_HEIGHT) / Constants.MAP_HEIGHT.toFloat()
-        return v
-    }
-
-    @JvmStatic
-    fun scaleToTrack(v: Vector2, isOld: Boolean): Vector2 {
-        val pos = Vector2(v.x, v.y)
-        pos.x *= Constants.MAP_WIDTH / toRes((if (isOld) Constants.MAP_ACTUAL_WIDTH_OLD else Constants.MAP_ACTUAL_WIDTH).toFloat())
-        pos.y *= Constants.MAP_HEIGHT / toRes((if (isOld) Constants.MAP_ACTUAL_HEIGHT_OLD else Constants.MAP_ACTUAL_HEIGHT).toFloat())
-        return pos
     }
 
     @JvmStatic
@@ -167,16 +88,6 @@ object Utils {
     @JvmStatic
     fun isEmpty(str: String?): Boolean {
         return str == null || str.isEmpty()
-    }
-
-    @JvmStatic
-    fun toRes(i: Int): Int {
-        return i / 1
-    }
-
-    @JvmStatic
-    fun toRes(i: Float): Float {
-        return i / 1
     }
 
     @JvmStatic
