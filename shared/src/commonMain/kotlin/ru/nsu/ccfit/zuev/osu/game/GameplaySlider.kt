@@ -405,8 +405,8 @@ class GameplaySlider : GameObject() {
         scene.add(0, tickContainer)
         scene.add(0, sliderBody)
 
-        // Ticks are as big on screen whatever the size of the objects.
-        tickContainer.init(beatmapSlider, 1f / mapping.scaleX)
+        // Ticks are scaled as the objects are, as osu!lazer's and osu!stable's.
+        tickContainer.init(beatmapSlider, scale)
 
         if (Settings[OsuSettings.DimHitObjects]) {
             applyDim(tailCirclePiece)
