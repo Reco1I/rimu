@@ -23,7 +23,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import ru.nsu.ccfit.zuev.osu.Utils
 
 /**
  * Replays written before version 10, as upstream's `Replay.save` wrote them.
@@ -173,14 +172,11 @@ class LegacyReplayTest {
                 assertEquals(e.type, a.touchType)
 
                 if (e.type != TouchType.UP) {
+                    // In the playfield's coordinates, which the first versions didn't store.
                     val point = Vector2(e.x, e.y)
-                    val real = if (version > 1) {
-                        Utils.trackToRealCoords(point, isHardRock)
-                    } else {
-                        Utils.trackToRealCoords(Utils.realToTrackCoords(point, 1024f, 600f, true), isHardRock)
-                    }
-                    assertEquals(real.x, a.x, 0f)
-                    assertEquals(real.y, a.y, 0f)
+                    val track = if (version > 1) point else firstVersionScreenToTrack(point, isHardRock)
+                    assertEquals(track.x, a.x, 0f)
+                    assertEquals(track.y, a.y, 0f)
                 }
             }
         }

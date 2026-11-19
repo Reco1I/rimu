@@ -19,7 +19,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 import kotlin.math.sin
-import ru.nsu.ccfit.zuev.osu.Constants
+import com.osudroid.game.PlayfieldMapping
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
@@ -36,39 +36,40 @@ class GameplayModernSpinner : GameplaySpinner() {
     private val bonusScore: ScoreNumber
 
     init {
-        position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f)
-        Utils.trackToRealCoords(position)
-
         middle = Sprite()
         middle.origin = Anchor.Center
-        middle.setPosition(position.x, position.y)
         middle.texture = skinTexture("spinner-middle")
 
         middle2 = Sprite()
         middle2.origin = Anchor.Center
-        middle2.setPosition(position.x, position.y)
         middle2.texture = skinTexture("spinner-middle2")
 
         bottom = Sprite()
         bottom.origin = Anchor.Center
-        bottom.setPosition(position.x, position.y)
         bottom.texture = skinTexture("spinner-bottom")
 
         top = Sprite()
         top.origin = Anchor.Center
-        top.setPosition(position.x, position.y)
         top.texture = skinTexture("spinner-top")
 
         glow = Sprite()
         glow.origin = Anchor.Center
-        glow.setPosition(position.x, position.y)
         glow.texture = skinTexture("spinner-glow")
         glow.blendMode = BlendMode.Additive
 
-        bonusScore = ScoreNumber(position.x, position.y + 100, "", 1.1f, true)
+        bonusScore = ScoreNumber(0f, 0f, "", 1.1f, true)
 
         // Spinners always end combo.
         endsCombo = true
+    }
+
+    override fun layoutInSpace(mapping: PlayfieldMapping) {
+        super.layoutInSpace(mapping)
+
+        for (sprite in arrayOf(middle, middle2, bottom, top, glow)) {
+            sprite.setPosition(center.x, center.y)
+        }
+        bonusScore.setPosition(center.x, center.y + 100)
     }
 
     override fun init(listener: GameObjectListener, scene: Container,
@@ -76,6 +77,7 @@ class GameplayModernSpinner : GameplaySpinner() {
         this.scene = scene
         this.beatmapSpinner = beatmapSpinner
         this.listener = listener
+        layoutInSpace(listener.playfieldMapping)
         this.stat = stat
         hitTime = beatmapSpinner.startTime.toFloat() / 1000
         duration = max(beatmapSpinner.duration.toFloat() / 1000f, 0f)
@@ -183,7 +185,7 @@ class GameplayModernSpinner : GameplaySpinner() {
 
             if (mouse == null) {
                 if (autoPlay) {
-                    mouse = position
+                    mouse = center
                 } else {
                     if (latestEvent != null && !latestEvent.isActionUp) {
                         mouse = latestEvent.position
@@ -192,7 +194,7 @@ class GameplayModernSpinner : GameplaySpinner() {
                         continue
                     }
                 }
-                currMouse.set(mouse.x - position.x, mouse.y - position.y)
+                currMouse.set(mouse.x - center.x, mouse.y - center.y)
             }
 
             if (oldMouse == null || (!autoPlay && latestEvent != null && latestEvent.isActionDown)) {
@@ -225,9 +227,11 @@ class GameplayModernSpinner : GameplaySpinner() {
                 top.rotationZ = degree
                 //auto时，FL光圈绕中心旋转
                 if (GameHelper.isAutopilot() || GameHelper.isAutoplay()) {
-                    val pX = position.x + 50 * sin(degree.toDouble()).toFloat()
-                    val pY = position.y + 50 * cos(degree.toDouble()).toFloat()
-                    listener.updateAutoBasedPos(pX, pY)
+                    val pX = center.x + 50 * sin(degree.toDouble()).toFloat()
+                    val pY = center.y + 50 * cos(degree.toDouble()).toFloat()
+                    // Around the center on screen, given in the playfield.
+                    val autoPosition = listener.playfieldMapping.toPlayfield(pX, pY)
+                    listener.updateAutoBasedPos(autoPosition.x, autoPosition.y)
                 }
                 // bottom.setRotation(-degree);
             }

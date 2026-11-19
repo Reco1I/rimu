@@ -9,7 +9,6 @@ import com.osudroid.beatmaps.hitobjects.sliderobject.SliderHead
 import com.osudroid.beatmaps.hitobjects.sliderobject.SliderRepeat
 import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTick
 import com.osudroid.math.Vector2
-import com.osudroid.mods.ModHardRock
 import com.osudroid.mods.ModPrecise
 import com.osudroid.resources.Res
 import com.osudroid.utils.BitSet
@@ -233,13 +232,11 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
         }
 
         if (withGameplayData) {
-            val mods = stat?.mod ?: ModHashMap()
-
             cursorIndex = IntArray(file.cursors.size)
             lastMoveIndex = IntArray(file.cursors.size)
 
             for (i in file.cursors.indices) {
-                cursorMoves.add(MoveArray.fromCursor(file.cursors[i], mods))
+                cursorMoves.add(MoveArray.fromCursor(file.cursors[i]))
                 cursorIndex[i] = 0
                 lastMoveIndex[i] = -1
             }
@@ -495,11 +492,10 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
 
         companion object {
             /**
-             * Reads the movements of a cursor of a replay file, converting their positions from the
-             * playfield's coordinates they were recorded in.
+             * Reads the movements of a cursor of a replay file. Their positions stay in the playfield's coordinates
+             * they were recorded in, in osu!pixels and not flipped by Hard Rock.
              */
-            internal fun fromCursor(cursor: ReplayCursor, mods: ModHashMap): MoveArray {
-                val isHardRock = ModHardRock::class in mods
+            internal fun fromCursor(cursor: ReplayCursor): MoveArray {
                 val size = cursor.time.size
                 require(cursor.x.size == size && cursor.y.size == size && cursor.type.size == size) {
                     "The arrays of a cursor have different sizes"
@@ -513,9 +509,8 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
                     movement.time = cursor.time[i]
                     movement.touchType = requireNotNull(TouchType.getByID(cursor.type[i])) { "Unknown touch type ${cursor.type[i]}" }
                     if (movement.touchType != TouchType.UP) {
-                        val realPoint = Utils.trackToRealCoords(Vector2(cursor.x[i], cursor.y[i]), isHardRock)
-                        movement.x = realPoint.x
-                        movement.y = realPoint.y
+                        movement.x = cursor.x[i]
+                        movement.y = cursor.y[i]
                     }
                 }
 

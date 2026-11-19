@@ -25,12 +25,19 @@ import kotlin.jvm.JvmStatic
 class SliderTickContainer : Container() {
     private var slider: Slider? = null
 
-    fun init(beatmapSlider: Slider) {
+    // The scale of the ticks, from the size of their texture.
+    private var tickScale = 1f
+
+    /**
+     * Shows the ticks of [beatmapSlider], scaled by [tickScale].
+     */
+    fun init(beatmapSlider: Slider, tickScale: Float) {
         slider = beatmapSlider
+        this.tickScale = tickScale
 
         clearChildren()
 
-        val position = beatmapSlider.screenSpaceGameplayStackedPosition
+        val position = beatmapSlider.gameplayStackedPosition
 
         x = position.x.px
         y = position.y.px
@@ -38,7 +45,7 @@ class SliderTickContainer : Container() {
         for (i in 1 until beatmapSlider.nestedHitObjects.size) {
 
             val tick = beatmapSlider.nestedHitObjects[i] as? SliderTick ?: break
-            val tickPosition = tick.screenSpaceGameplayStackedPosition
+            val tickPosition = tick.gameplayStackedPosition
 
             val sprite = SliderTickSprite.obtain()
 
@@ -48,7 +55,7 @@ class SliderTickContainer : Container() {
             sprite.y = (tickPosition.y - position.y).px
             +sprite
 
-            sprite.init(tick)
+            sprite.init(tick, tickScale)
         }
     }
 
@@ -73,7 +80,7 @@ class SliderTickContainer : Container() {
                 if (newSpanIndex % 2 != 0) childCount - (i - spanStartIndex) - 1 else i - spanStartIndex
             ] as? SliderTickSprite ?: break
 
-            sprite.init(tick)
+            sprite.init(tick, tickScale)
         }
     }
 
@@ -88,6 +95,7 @@ class SliderTickContainer : Container() {
 class SliderTickSprite : Sprite(), IPoolable {
     override var isRecycled = false
     private var tick: SliderTick? = null
+    private var baseScale = 1f
 
     init {
         texture = skinTexture("sliderscorepoint")
@@ -99,8 +107,9 @@ class SliderTickSprite : Sprite(), IPoolable {
      *
      * @param tick The [SliderTick] represented by this [SliderTickSprite].
      */
-    fun init(tick: SliderTick) {
+    fun init(tick: SliderTick, baseScale: Float) {
         this.tick = tick
+        this.baseScale = baseScale
 
         val startTime = (tick.startTime / 1000).toFloat()
         val timePreempt = (tick.timePreempt / 1000).toFloat()
@@ -109,11 +118,11 @@ class SliderTickSprite : Sprite(), IPoolable {
         choreography?.clear()
 
         alpha = 0f
-        scale = 0.5f
+        scale = 0.5f * baseScale
 
         choreograph {
             at(fadeInStartTime)
-            scaleTo(1f, ANIM_DURATION * 4, Easing.OutElasticHalf)
+            scaleTo(baseScale, ANIM_DURATION * 4, Easing.OutElasticHalf)
             fadeIn(ANIM_DURATION)
 
             if (GameHelper.isHidden() && !GameHelper.getHidden()!!.onlyFadeApproachCircles) {
@@ -140,7 +149,7 @@ class SliderTickSprite : Sprite(), IPoolable {
             fadeOut(ANIM_DURATION, Easing.OutQuint)
 
             if (isSuccessful) {
-                scaleTo(1.5f, ANIM_DURATION, Easing.OutQuad)
+                scaleTo(1.5f * baseScale, ANIM_DURATION, Easing.OutQuad)
             }
         }
 

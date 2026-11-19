@@ -104,7 +104,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                 val gameplaySpinner = if (isModern) GameplayModernSpinner() else GameplaySpinner()
                 val rps = 2 + 2 * harness.difficulty.od / 10f
 
-                gameplaySpinner.init(harness, harness.playfield, spinner, rps, harness.stat)
+                gameplaySpinner.init(harness, harness.spinnerLayer, spinner, rps, harness.stat)
                 spinner to gameplaySpinner
             }
 

@@ -57,7 +57,7 @@ class GameplayHitCircle : GameObject() {
         this.beatmapCircle = beatmapCircle
         replayObjectData = null
 
-        val stackedPosition = beatmapCircle.screenSpaceGameplayStackedPosition
+        val stackedPosition = beatmapCircle.gameplayStackedPosition
         position.set(stackedPosition.x, stackedPosition.y)
 
         endsCombo = beatmapCircle.isLastInCombo
@@ -76,7 +76,7 @@ class GameplayHitCircle : GameObject() {
         this.comboColor = comboColor
 
         val initialModifierTime = hitTime - timePreempt
-        val scale = beatmapCircle.screenSpaceGameplayScale
+        val scale = beatmapCircle.gameplayScale
         val fadeInDuration = beatmapCircle.timeFadeIn.toFloat() / 1000f
 
         // Initializing sprites

@@ -82,11 +82,12 @@ object FollowPointConnection {
 
         // Reference: https://github.com/ppy/osu/blob/7bc8908ca9c026fed1d831eb6e58df7624a8d614/osu.Game.Rulesets.Osu/Objects/Drawables/Connections/FollowPointConnection.cs
 
-        val scale = end.screenSpaceGameplayScale
+        val scale = end.gameplayScale
         val startTime = (start.endTime / 1000f).toFloat()
 
-        val startPosition = start.screenSpaceGameplayStackedEndPosition
-        val endPosition = end.screenSpaceGameplayStackedPosition
+        // In osu!pixels, as the playfield the follow points are added to.
+        val startPosition = start.gameplayStackedEndPosition
+        val endPosition = end.gameplayStackedPosition
 
         val distanceX = endPosition.x - startPosition.x
         val distanceY = endPosition.y - startPosition.y
@@ -102,20 +103,14 @@ object FollowPointConnection {
         // Note that this doesn't exactly match the AR>10 visuals as they're classically known, but it feels good.
         val preempt = PREEMPT * min(1.0, start.timePreempt / HitObject.PREEMPT_MIN).toFloat() / 1000f
 
-        // Since the unit of spacing is in osu!pixels, we cannot directly port the reference code. As such, we need to
-        // approach it with another method. We use the distance between the start and end positions in osu!pixels to
-        // determine the amount of sprites to spawn, and then map them into gameplay positions in pixels. These are the
-        // gameplay stacked positions, the ones the screen space positions above come from: the difficulty stacked
-        // ones may be stacked differently and give another amount of points.
-        val osuPixelsStartPosition = start.gameplayStackedEndPosition
-        val osuPixelsEndPosition = end.gameplayStackedPosition
-
-        val osuPixelsDistance = osuPixelsEndPosition.getDistance(osuPixelsStartPosition).toInt()
+        // The gameplay stacked positions: the difficulty stacked ones may be stacked differently and give another
+        // amount of points.
+        val distance = endPosition.getDistance(startPosition).toInt()
 
         var d = (SPACING * 1.5f).toInt()
-        while (d < osuPixelsDistance - SPACING) {
+        while (d < distance - SPACING) {
 
-            val fraction = d.toFloat() / osuPixelsDistance
+            val fraction = d.toFloat() / distance
 
             val pointStartX = startPosition.x + distanceX * (fraction - 0.1f)
             val pointStartY = startPosition.y + distanceY * (fraction - 0.1f)

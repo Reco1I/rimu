@@ -12,6 +12,8 @@ import com.osudroid.beatmaps.sections.BeatmapDifficulty
 import com.osudroid.game.Cursor
 import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayHitSampleInfo
+import com.osudroid.game.PlayfieldMapping
+import com.osudroid.ui.v2.game.GameplayPlayfield
 import com.osudroid.mods.ModAutoplay
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.SettingKey
@@ -95,17 +97,23 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         scaleOrigin = Anchor.Center
     }
 
-    // Under the objects, as the game's background layer, for the hit lighting.
-    private val background = Container().apply {
+    /**
+     * The layer spinners are added to, in the space gameplay is laid out in, as the game's.
+     */
+    val spinnerLayer = Container().apply {
         setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
     }
 
-    /**
-     * The container objects are added to, with the size of the gameplay playfield.
-     */
-    val playfield = Container().apply {
-        setSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+    // The game's playfield, over the spinners.
+    private val gameplayPlayfield = GameplayPlayfield().apply {
+        setSpaceSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
     }
+
+    /**
+     * The layer hit circles and sliders are added to, in osu!pixels, as the game's.
+     */
+    val playfield
+        get() = gameplayPlayfield.objects
 
     /**
      * How the objects are played. Changing it starts the loop again.
@@ -118,7 +126,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     private val clock = ManualClock()
 
-    private val effects = GameplayEffects().apply { setLayers(background, playfield) }
+    private val effects = GameplayEffects().apply { setLayers(gameplayPlayfield.underlay, gameplayPlayfield.objects) }
 
     private var cursor = Cursor()
 
@@ -131,8 +139,8 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     init {
         area.clock = clock
-        area += background
-        area += playfield
+        area += spinnerLayer
+        area += gameplayPlayfield
         stage += area
 
         // Left by a game that was played before.
@@ -248,7 +256,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         }
 
         current = Spawned(hitObject, gameObject)
-        effects.setScale(hitObject.screenSpaceGameplayScale)
+        effects.setScale(hitObject.gameplayScale)
     }
 
     private fun step(deltaTime: Float) {
@@ -286,11 +294,14 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         event.action = if (cursor.latestEvent == null) PointerEvent.Action.Down else PointerEvent.Action.Move
         event.systemTime = Platform.uptimeMillis
         event.trackTime = clock.time * 1000
+        val mapping = gameplayPlayfield.mapping
+        val center = mapping.toResolution(PlayfieldMapping.PLAYFIELD_WIDTH / 2, PlayfieldMapping.PLAYFIELD_HEIGHT / 2)
         event.position.set(
-            GameResolution.width / 2f + SPIN_RADIUS * cos(spinAngle).toFloat(),
-            GameResolution.height / 2f + SPIN_RADIUS * sin(spinAngle).toFloat()
+            center.x + SPIN_RADIUS * cos(spinAngle).toFloat(),
+            center.y + SPIN_RADIUS * sin(spinAngle).toFloat()
         )
-        event.trackPosition.set(event.position)
+        event.playfieldPosition.set(mapping.toPlayfield(event.position.x, event.position.y))
+        event.trackPosition.set(event.playfieldPosition)
         cursor.addEvent(event)
     }
 
@@ -385,7 +396,8 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
             return
         }
 
-        val center = Vector2(GameResolution.width / 2f, GameResolution.height / 2f)
+        // The center of the playfield, where spinners are.
+        val center = Vector2(PlayfieldMapping.PLAYFIELD_WIDTH / 2, PlayfieldMapping.PLAYFIELD_HEIGHT / 2)
         effects.hit(center, scoreName(score), null)
         stage.log(if (score == 0) "Spinner missed" else "Spinner judged $score")
     }
@@ -409,6 +421,9 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
     override fun onUpdatedAutoCursor(pX: Float, pY: Float) = Unit
 
     override fun playHitSamples(samples: MutableList<GameplayHitSampleInfo>?) = Unit
+
+    override val playfieldMapping
+        get() = gameplayPlayfield.mapping
 
     override val elapsedTime
         get() = clock.time

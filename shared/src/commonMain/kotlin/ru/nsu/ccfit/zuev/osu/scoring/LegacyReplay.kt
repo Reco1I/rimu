@@ -22,7 +22,7 @@ import okio.Inflater
 import okio.Source
 import okio.inflate
 import okio.use
-import ru.nsu.ccfit.zuev.osu.Utils
+import ru.nsu.ccfit.zuev.osu.Constants
 
 // Replays before version 10, upstream's: a zip with a single "data" entry, written with Java's object
 // serialization. They're read through com.reco1l.javaserialization, on any platform, and never
@@ -195,8 +195,8 @@ internal fun Replay.loadLegacy(source: BufferedSource, replayFilename: String, w
 }
 
 /**
- * Reads the movements of a cursor, converting their positions as [Replay.MoveArray.fromCursor] does,
- * from the coordinates of the first versions for replays older than version 2.
+ * Reads the movements of a cursor, in the playfield's coordinates as [Replay.MoveArray.fromCursor] keeps them,
+ * converted from the screen coordinates of the first versions for replays older than version 2.
  */
 private fun JavaObjectInputStream.readLegacyCursor(version: Int, mods: ModHashMap): Replay.MoveArray {
     val isHardRock = ModHardRock::class in mods
@@ -216,20 +216,33 @@ private fun JavaObjectInputStream.readLegacyCursor(version: Int, mods: ModHashMa
         if (movement.touchType != TouchType.UP) {
             // Positions were shorts until version 5.
             val point = if (version < 5) Vector2(readShort().toFloat(), readShort().toFloat()) else Vector2(readFloat(), readFloat())
+            val trackPoint = if (version > 1) point else firstVersionScreenToTrack(point, isHardRock)
 
-            val realPoint = if (version > 1) {
-                Utils.trackToRealCoords(point, isHardRock)
-            } else {
-                Utils.trackToRealCoords(Utils.realToTrackCoords(point, 1024f, 600f, true), isHardRock)
-            }
-
-            movement.x = realPoint.x
-            movement.y = realPoint.y
+            movement.x = trackPoint.x
+            movement.y = trackPoint.y
         }
     }
 
     return array
 }
+
+/**
+ * Converts a position on the screen of the first replay versions, 1024x600 with an 820x570 playfield in its center,
+ * to the playfield's coordinates, not flipped by Hard Rock.
+ */
+internal fun firstVersionScreenToTrack(point: Vector2, isHardRock: Boolean): Vector2 {
+    val y = if (isHardRock) FIRST_VERSION_SCREEN_HEIGHT - point.y else point.y
+
+    return Vector2(
+        (point.x - (FIRST_VERSION_SCREEN_WIDTH - FIRST_VERSION_PLAYFIELD_WIDTH) / 2f) * Constants.MAP_WIDTH / FIRST_VERSION_PLAYFIELD_WIDTH,
+        (y - (FIRST_VERSION_SCREEN_HEIGHT - FIRST_VERSION_PLAYFIELD_HEIGHT) / 2f) * Constants.MAP_HEIGHT / FIRST_VERSION_PLAYFIELD_HEIGHT
+    )
+}
+
+private const val FIRST_VERSION_SCREEN_WIDTH = 1024f
+private const val FIRST_VERSION_SCREEN_HEIGHT = 600f
+private const val FIRST_VERSION_PLAYFIELD_WIDTH = 820f
+private const val FIRST_VERSION_PLAYFIELD_HEIGHT = 570f
 
 /**
  * The object replays have started with since version 1, upstream's `Replay.ReplayVersion`.

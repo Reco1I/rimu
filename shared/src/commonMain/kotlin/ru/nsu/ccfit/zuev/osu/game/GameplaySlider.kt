@@ -1,6 +1,5 @@
 package ru.nsu.ccfit.zuev.osu.game
 
-import ru.nsu.ccfit.zuev.osu.Constants
 import com.osudroid.ui.v2.skinTexture
 import com.osudroid.ui.v2.skinFrames
 import com.osudroid.settings.OsuSettings
@@ -196,7 +195,7 @@ class GameplaySlider : GameObject() {
         this.beatmapSlider = beatmapSlider
         this.controlPoints = controlPoints
 
-        val stackedPosition = beatmapSlider.screenSpaceGameplayStackedPosition
+        val stackedPosition = beatmapSlider.gameplayStackedPosition
         position.set(stackedPosition.x, stackedPosition.y)
 
         hitTime = beatmapSlider.startTime.toFloat() / 1000
@@ -214,7 +213,7 @@ class GameplaySlider : GameObject() {
         reloadHitSounds()
 
         val initialModifierTime = hitTime - timePreempt
-        val scale = beatmapSlider.screenSpaceGameplayScale
+        val scale = beatmapSlider.gameplayScale
 
         isOver = false
         isInRadius = false
@@ -368,18 +367,16 @@ class GameplaySlider : GameObject() {
         }
 
         // Slider track
-        // The body is drawn in osu!pixels, scaled to the playfield like the slider's positions are.
-        val widthScale = Constants.MAP_ACTUAL_WIDTH.toFloat() / Constants.MAP_WIDTH
-        val heightScale = Constants.MAP_ACTUAL_HEIGHT.toFloat() / Constants.MAP_HEIGHT
+        // The widths of the skin are in the pixels of the space gameplay is laid out in, scaled as the objects are:
+        // the playfield scales osu!pixels horizontally by its own scale.
+        val mapping = listener.playfieldMapping
+        val skinScale = scale * mapping.objectScale / mapping.scaleX
 
-        val sliderBodyWidth = OsuSkin.get().sliderBodyWidth * scale / widthScale
-        val sliderBorderWidth = OsuSkin.get().sliderBorderWidth * scale / widthScale
+        val sliderBodyWidth = OsuSkin.get().sliderBodyWidth * skinScale
+        val sliderBorderWidth = OsuSkin.get().sliderBorderWidth * skinScale
 
         sliderBody.path = renderPath
         sliderBody.setPosition(stackedPosition.x, stackedPosition.y)
-        sliderBody.scaleOrigin = Anchor.TopLeft
-        sliderBody.scaleX = widthScale
-        sliderBody.scaleY = heightScale
         sliderBody.halfWidth = sliderBodyWidth
         sliderBody.borderWidth = sliderBorderWidth
         sliderBody.borderColor = borderColor
@@ -408,7 +405,8 @@ class GameplaySlider : GameObject() {
         scene.add(0, tickContainer)
         scene.add(0, sliderBody)
 
-        tickContainer.init(beatmapSlider)
+        // Ticks are as big on screen whatever the size of the objects.
+        tickContainer.init(beatmapSlider, 1f / mapping.scaleX)
 
         if (Settings[OsuSettings.DimHitObjects]) {
             applyDim(tailCirclePiece)
@@ -527,7 +525,7 @@ class GameplaySlider : GameObject() {
                 followCircle.clearAnimations()
 
                 followCircle.choreographAt(modifierStartTime) { sequence ->
-                    sequence.scaleTo(beatmapSlider.screenSpaceGameplayScale * 0.8f, 0.2f, Easing.OutQuad)
+                    sequence.scaleTo(beatmapSlider.gameplayScale * 0.8f, 0.2f, Easing.OutQuad)
                         .fadeOut(0.2f, Easing.InQuad)
 
                     extendLifetime(sequence)
@@ -817,7 +815,7 @@ class GameplaySlider : GameObject() {
         }
 
         val trackingDistanceThresholdSquared = getTrackingDistanceThresholdSquared(isTracking())
-        return Utils.squaredDistance(trackingPosition, cursorEvent.position) <= trackingDistanceThresholdSquared
+        return Utils.squaredDistance(trackingPosition, cursorEvent.playfieldPosition) <= trackingDistanceThresholdSquared
     }
 
     private fun isTracking(): Boolean {
@@ -827,7 +825,7 @@ class GameplaySlider : GameObject() {
     }
 
     private fun updateFollowCircleTrackingState() {
-        val scale = beatmapSlider!!.screenSpaceGameplayScale
+        val scale = beatmapSlider!!.gameplayScale
         val isTracking = isTracking()
 
         if (isTracking && !isInRadius) {
@@ -870,7 +868,7 @@ class GameplaySlider : GameObject() {
 
         val elapsedTime = completedSpanCount * spanDuration + elapsedSpanTime
 
-        pulseReverseArrows(listener.elapsedTime, beatmapSlider.screenSpaceGameplayScale)
+        pulseReverseArrows(listener.elapsedTime, beatmapSlider.gameplayScale)
 
         // If the slider head is not judged yet
         if (!startHit) {
@@ -961,7 +959,7 @@ class GameplaySlider : GameObject() {
         sliderSlideSample.update(dt)
         sliderWhistleSample.update(dt)
 
-        val scale = beatmapSlider.screenSpaceGameplayScale
+        val scale = beatmapSlider.gameplayScale
 
         // Note that this is not using ball.hasParent() because the ball's auto-detach animation can fire slightly
         // before onSpanFinish() due to float/double precision differences in end-time computation, causing
@@ -969,7 +967,9 @@ class GameplaySlider : GameObject() {
         if (!spanStarted) {
             spanStarted = true
 
-            ball.frameTime = 1f / (beatmapSlider.velocity.toFloat() * Slider.BASE_SCORING_DISTANCE * scale)
+            // The scale on screen, as the frames follow the distance on screen.
+            val screenScale = scale * listener!!.playfieldMapping.objectScale
+            ball.frameTime = 1f / (beatmapSlider.velocity.toFloat() * Slider.BASE_SCORING_DISTANCE * screenScale)
             ball.scale = scale
             ball.flippedHorizontal = false
             ball.alpha = 1f
@@ -1059,7 +1059,7 @@ class GameplaySlider : GameObject() {
     }
 
     private fun getTrackingDistanceThresholdSquared(isTracking: Boolean): Float {
-        val radius = beatmapSlider!!.screenSpaceGameplayRadius.toFloat()
+        val radius = beatmapSlider!!.gameplayRadius.toFloat()
         var distanceThresholdSquared = radius * radius
 
         if (isTracking) {
@@ -1162,7 +1162,7 @@ class GameplaySlider : GameObject() {
                     // When the first nested object that is further outside the follow area is reached,
                     // forcefully miss all other nested objects that would otherwise be valid to be hit.
                     // This covers a case of a slider overlapping itself that requires tracking to a tick on an outer edge.
-                    val nestedPosition = nestedObject.screenSpaceGameplayStackedPosition
+                    val nestedPosition = nestedObject.gameplayStackedPosition
                     val distanceSquared = Utils.squaredDistance(nestedPosition.x, nestedPosition.y, ballPos.x, ballPos.y)
 
                     if (distanceSquared > distanceTrackingThresholdSquared) {
@@ -1185,7 +1185,7 @@ class GameplaySlider : GameObject() {
                 break
             }
 
-            val nestedPosition = nestedObject.screenSpaceGameplayStackedPosition
+            val nestedPosition = nestedObject.gameplayStackedPosition
             tmpPoint.set(nestedPosition.x, nestedPosition.y)
 
             val isSliderTick = nestedObject is SliderTick
@@ -1272,7 +1272,7 @@ class GameplaySlider : GameObject() {
 
         val beatmapSlider = beatmapSlider!!
         val listener = listener!!
-        val scale = beatmapSlider.screenSpaceGameplayScale
+        val scale = beatmapSlider.gameplayScale
 
         val nestedObjects = beatmapSlider.nestedHitObjects
         var nestedObjectToJudge = nestedObjects[currentNestedObjectIndex]
@@ -1296,7 +1296,7 @@ class GameplaySlider : GameObject() {
                 tickSet.set(replayTickIndex++, false)
             }
 
-            val tickPosition = nestedObjectToJudge.screenSpaceGameplayStackedPosition
+            val tickPosition = nestedObjectToJudge.gameplayStackedPosition
             tmpPoint.set(tickPosition.x, tickPosition.y)
 
             listener.onSliderHit(id, if (isTracking) 10 else -1, tmpPoint, false, bodyColor, GameObjectListener.SLIDER_TICK, isTracking)

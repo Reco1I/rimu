@@ -338,8 +338,10 @@ class AutoCursor : CursorEntity(), ISliderListener {
         }
 
         val isSpinner = gameObject is GameplaySpinner
-        val moveX = gameObject.getPosition().x
-        val moveY = gameObject.getPosition().y + if (isSpinner) 50f else 0f
+        // Objects are in the playfield, the cursor in the space gameplay is laid out in.
+        val position = listener.playfieldMapping.toResolution(gameObject.getPosition())
+        val moveX = position.x
+        val moveY = position.y + if (isSpinner) 50f else 0f
         var deltaTime = gameObject.getHitTime() - secPassed
 
         currentObjectId = gameObject.getId()

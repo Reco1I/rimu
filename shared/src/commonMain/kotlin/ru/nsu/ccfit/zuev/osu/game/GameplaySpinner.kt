@@ -1,6 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.game
 
-import com.osudroid.settings.GameResolution
+import com.osudroid.game.PlayfieldMapping
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.ScaleType
 import com.osudroid.settings.OsuSettings
@@ -92,18 +92,26 @@ open class GameplaySpinner : GameObject() {
     @JvmField
     protected val currMouse = Vector2(0f)
 
+    /**
+     * The center of the spinner in the space gameplay is laid out in, where it's drawn and spun: the center of the
+     * playfield, see [layoutInSpace].
+     */
+    @JvmField
+    protected val center = Vector2(0f)
+
+    // The width of the space the background was scaled to, see layoutToBackground.
+    private var laidOutSpaceWidth = 0f
+
     init {
+        // The center of the playfield, where the cursor goes in autoplay.
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f)
-        Utils.trackToRealCoords(position)
 
         background = Sprite()
         background.origin = Anchor.Center
-        background.setPosition(position.x, position.y)
         background.texture = skinTexture("spinner-background")
 
         circle = Sprite()
         circle.origin = Anchor.Center
-        circle.setPosition(position.x, position.y)
         circle.texture = skinTexture("spinner-circle")
 
         // The metre fills from the bottom: the sprite keeps its size while the container shows a growing part of
@@ -117,29 +125,23 @@ open class GameplaySpinner : GameObject() {
         metre = ClipContainer()
         metre.origin = Anchor.Center
         metre.scaleOrigin = Anchor.Center
-        metre.setPosition(position.x, position.y)
         metre.clipAnchor = Anchor.BottomLeft
         metre.clipFactorY = 0f
         metre += metreSprite
 
-        layoutToBackground()
-
         approachCircle = Sprite()
         approachCircle.origin = Anchor.Center
-        approachCircle.setPosition(position.x, position.y)
         approachCircle.texture = skinTexture("spinner-approachcircle")
 
         spinText = Sprite()
         spinText.origin = Anchor.Center
-        spinText.setPosition(position.x, position.y * 1.5f)
         spinText.texture = skinTexture("spinner-spin")
 
         clearText = Sprite()
         clearText.origin = Anchor.Center
-        clearText.setPosition(position.x, position.y * 0.5f)
         clearText.texture = skinTexture("spinner-clear")
 
-        bonusScore = ScoreNumber(position.x, position.y + 100, "", 1.1f, true)
+        bonusScore = ScoreNumber(0f, 0f, "", 1.1f, true)
 
         isSpinnerFrequencyModulate = OsuSkin.get().isSpinnerFrequencyModulate
         spinnerSpinSample = GameplaySequenceHitSampleInfo()
@@ -150,21 +152,40 @@ open class GameplaySpinner : GameObject() {
     }
 
     /**
-     * Scales the background to the width of the screen and the metre as it, over the same centre, again whenever
-     * their textures changed, as when the skin does.
+     * Places the spinner in the center of the playfield in the space gameplay is laid out in, which it's drawn in
+     * as big as the space rather than the playfield.
      */
-    private fun layoutToBackground() {
+    protected open fun layoutInSpace(mapping: PlayfieldMapping) {
+        center.set(mapping.toResolution(position))
+
+        background.setPosition(center.x, center.y)
+        circle.setPosition(center.x, center.y)
+        metre.setPosition(center.x, center.y)
+        approachCircle.setPosition(center.x, center.y)
+        spinText.setPosition(center.x, center.y * 1.5f)
+        clearText.setPosition(center.x, center.y * 0.5f)
+        bonusScore.setPosition(center.x, center.y + 100)
+
+        layoutToBackground(mapping.width)
+    }
+
+    /**
+     * Scales the background to the width of the space and the metre as it, over the same centre, again whenever
+     * their textures changed, as when the skin does, or the space did.
+     */
+    private fun layoutToBackground(spaceWidth: Float = laidOutSpaceWidth) {
         val backgroundTexture = background.textureRegion
         val metreTexture = metreSprite.textureRegion
 
-        if (isLaidOut && backgroundTexture === laidOutBackground && metreTexture === laidOutMetre) {
+        if (isLaidOut && backgroundTexture === laidOutBackground && metreTexture === laidOutMetre && spaceWidth == laidOutSpaceWidth) {
             return
         }
         isLaidOut = true
         laidOutBackground = backgroundTexture
         laidOutMetre = metreTexture
+        laidOutSpaceWidth = spaceWidth
 
-        background.scale = if (backgroundTexture != null) GameResolution.width / backgroundTexture.displayWidth else 1f
+        background.scale = if (backgroundTexture != null) spaceWidth / backgroundTexture.displayWidth else 1f
 
         // The metre matches the background: its own size, so it isn't stretched into the background's when their
         // textures differ, and the background's scale and centre, so both line up. Sized to the screen instead, it
@@ -187,6 +208,7 @@ open class GameplaySpinner : GameObject() {
         }
 
         this.listener = listener
+        layoutInSpace(listener.playfieldMapping)
         this.stat = stat
         clear = duration <= 0f
         bonusScoreCounter = 1
@@ -376,7 +398,7 @@ open class GameplaySpinner : GameObject() {
 
             if (mouse == null) {
                 if (autoPlay) {
-                    mouse = position
+                    mouse = center
                 } else {
                     if (latestEvent != null && !latestEvent.isActionUp) {
                         mouse = latestEvent.position
@@ -385,7 +407,7 @@ open class GameplaySpinner : GameObject() {
                         continue
                     }
                 }
-                currMouse.set(mouse.x - position.x, mouse.y - position.y)
+                currMouse.set(mouse.x - center.x, mouse.y - center.y)
             }
 
             if (oldMouse == null || (!autoPlay && latestEvent != null && latestEvent.isActionDown)) {
@@ -416,9 +438,11 @@ open class GameplaySpinner : GameObject() {
                 //auto时，FL光圈绕中心旋转
                 if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
                     val angle = (rotations + dfill / 4f) * 360
-                    val pX = position.x + 50 * sin(angle.toDouble()).toFloat()
-                    val pY = position.y + 50 * cos(angle.toDouble()).toFloat()
-                    listener.updateAutoBasedPos(pX, pY)
+                    val pX = center.x + 50 * sin(angle.toDouble()).toFloat()
+                    val pY = center.y + 50 * cos(angle.toDouble()).toFloat()
+                    // Around the center on screen, given in the playfield.
+                    val autoPosition = listener.playfieldMapping.toPlayfield(pX, pY)
+                    listener.updateAutoBasedPos(autoPosition.x, autoPosition.y)
                 }
             }
 

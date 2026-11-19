@@ -12,7 +12,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import ru.nsu.ccfit.zuev.osu.Utils
 
 class ReplayTest {
 
@@ -100,10 +99,9 @@ class ReplayTest {
                 assertEquals(e.touchType, a.touchType)
 
                 if (e.touchType != TouchType.UP) {
-                    // Positions are recorded in the playfield's coordinates and loaded in the screen's.
-                    val real = Utils.trackToRealCoords(Vector2(e.x, e.y), true)
-                    assertEquals(real.x, a.x, 0f)
-                    assertEquals(real.y, a.y, 0f)
+                    // Positions are recorded and loaded in the playfield's coordinates.
+                    assertEquals(e.x, a.x, 0f)
+                    assertEquals(e.y, a.y, 0f)
                 }
             }
         }

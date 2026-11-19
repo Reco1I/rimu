@@ -47,6 +47,7 @@ import com.osudroid.difficulty.calculator.StandardPerformanceCalculationParamete
 import com.osudroid.game.Cursor
 import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayHitSampleInfo
+import com.osudroid.game.PlayfieldMapping
 import com.osudroid.game.replay.ReplaySettingsPanel
 import com.osudroid.math.Interpolation
 import com.osudroid.math.MathUtils
@@ -68,6 +69,7 @@ import com.osudroid.ui.v2.game.Countdown
 import com.osudroid.ui.v2.game.CursorEntity
 import com.osudroid.ui.v2.game.FlashLightEntity
 import com.osudroid.ui.v2.game.FollowPointConnection
+import com.osudroid.ui.v2.game.GameplayPlayfield
 import com.osudroid.ui.v2.game.PauseMenu
 import com.osudroid.ui.v2.game.SliderTickSprite
 import com.osudroid.ui.v2.hud.GameplayHUD
@@ -159,7 +161,7 @@ class GameScene : GameObjectListener {
     private lateinit var backgroundLayer: Container
     private lateinit var playfield: Container
     private lateinit var bgScene: Container
-    private lateinit var mgScene: Container
+    private lateinit var objectPlayfield: GameplayPlayfield
     private lateinit var fgScene: Container
 
     /**
@@ -388,14 +390,17 @@ class GameScene : GameObjectListener {
         playfield.scaleOrigin = Anchor.TopLeft
 
         bgScene = createLayer()
-        mgScene = createLayer()
-        mgScene.clipping = ClipMode.Bounds
         fgScene = createLayer()
 
-        effects.setLayers(bgScene, mgScene)
+        // Hit objects are in osu!pixels, in the playfield, over the spinners and below the cursors.
+        objectPlayfield = GameplayPlayfield()
+        // Objects can be loaded before the first layout.
+        objectPlayfield.setSpaceSize(GameResolution.width.toFloat(), GameResolution.height.toFloat())
+
+        effects.setLayers(objectPlayfield.underlay, objectPlayfield.objects)
 
         playfield += bgScene
-        playfield += mgScene
+        playfield += objectPlayfield
         playfield += fgScene
 
         root += backgroundLayer
@@ -752,7 +757,7 @@ class GameScene : GameObjectListener {
 
         val hitObjects = playableBeatmap.hitObjects.objects
         val firstObject = hitObjects[0]
-        scale = firstObject.screenSpaceGameplayScale
+        scale = firstObject.gameplayScale
         effects.setScale(scale)
 
         GameHelper.setOverallDifficulty(playableBeatmap.difficulty.od)
@@ -1524,7 +1529,7 @@ class GameScene : GameObjectListener {
                     event.systemTime = movement.time.toLong()
                     event.trackTime = movement.time.toFloat()
                     event.offset = 0.0
-                    event.position.set(movement.x, movement.y)
+                    event.setTrackPosition(movement.x, movement.y, objectPlayfield.mapping)
 
                     if (movement.touchType == TouchType.DOWN) {
                         event.action = PointerEvent.Action.Down
@@ -1563,9 +1568,10 @@ class GameScene : GameObjectListener {
                     event.trackTime = mSecPassed.toLong().toFloat()
                     event.offset = 0.0
                     event.action = PointerEvent.Action.Move
-                    event.position.set(
+                    event.setTrackPosition(
                         lastMovement.x * t + movement.x * (1 - t),
-                        lastMovement.y * t + movement.y * (1 - t)
+                        lastMovement.y * t + movement.y * (1 - t),
+                        objectPlayfield.mapping
                     )
 
                     cursors[i]!!.addEvent(event)
@@ -1826,7 +1832,7 @@ class GameScene : GameObjectListener {
             if (obj is HitCircle) {
                 val gameplayCircle = GameObjectPool.getInstance().circle
 
-                gameplayCircle.init(this, mgScene, obj, comboColor)
+                gameplayCircle.init(this, objectPlayfield.objects, obj, comboColor)
                 addObject(gameplayCircle)
 
                 if (GameHelper.isAutoplay()) {
@@ -1860,7 +1866,7 @@ class GameScene : GameObjectListener {
             } else if (obj is Slider) {
                 val gameplaySlider = GameObjectPool.getInstance().slider
 
-                gameplaySlider.init(this, mgScene, stat, obj, playableBeatmap.controlPoints,
+                gameplaySlider.init(this, objectPlayfield.objects, stat, obj, playableBeatmap.controlPoints,
                     comboColor, sliderBorderColor!!, getSliderPath(sliderIndex)!!, getSliderRenderPath(sliderIndex))
 
                 ++sliderIndex
@@ -1883,7 +1889,7 @@ class GameScene : GameObjectListener {
             gameObject?.update(lifetimeDt)
 
             if (obj !is Spinner && nextObj != null && nextObj !is Spinner && !obj.isLastInCombo) {
-                FollowPointConnection.addConnection(bgScene, obj, nextObj)
+                FollowPointConnection.addConnection(objectPlayfield.underlay, obj, nextObj)
             }
         }
 
@@ -2342,8 +2348,8 @@ class GameScene : GameObjectListener {
             val aimErrorCursorEvent = cursors[nearestCursorId]!!.getLatestNonUpEvent()
 
             if (aimErrorCursorEvent != null) {
-                val objectRadius = parsedBeatmap!!.hitObjects.objects[id].screenSpaceGameplayRadius.toFloat()
-                hud.onAimJudgement(pos, aimErrorCursorEvent.position, objectRadius)
+                val objectRadius = parsedBeatmap!!.hitObjects.objects[id].gameplayRadius.toFloat()
+                hud.onAimJudgement(pos, aimErrorCursorEvent.playfieldPosition, objectRadius)
             }
         }
 
@@ -2416,8 +2422,8 @@ class GameScene : GameObjectListener {
                         val aimErrorCursorEvent = cursors[nearestCursorId]!!.getLatestNonUpEvent()
 
                         if (aimErrorCursorEvent != null) {
-                            val objectRadius = parsedBeatmap!!.hitObjects.objects[id].screenSpaceGameplayRadius.toFloat()
-                            hud.onAimJudgement(judgementPos, aimErrorCursorEvent.position, objectRadius)
+                            val objectRadius = parsedBeatmap!!.hitObjects.objects[id].gameplayRadius.toFloat()
+                            hud.onAimJudgement(judgementPos, aimErrorCursorEvent.playfieldPosition, objectRadius)
                         }
                     }
 
@@ -2486,8 +2492,8 @@ class GameScene : GameObjectListener {
             replay!!.addObjectResult(id, acc, null)
         }
 
-        val pos = Vector2(GameResolution.width.toFloat() / 2,
-            GameResolution.height.toFloat() / 2)
+        // The center of the playfield, where spinners are.
+        val pos = Vector2(PlayfieldMapping.PLAYFIELD_WIDTH / 2, PlayfieldMapping.PLAYFIELD_HEIGHT / 2)
 
         GameplayVibrations.spinner()
 
@@ -2495,7 +2501,7 @@ class GameScene : GameObjectListener {
             val effect = GameObjectPool.getInstance().getEffect(
                 "hit0")
             effect.init(
-                gameUIScene,
+                objectPlayfield.objects,
                 pos,
                 scale,
                 { sequence -> sequence.fadeIn(0.15f)
@@ -2623,8 +2629,8 @@ class GameScene : GameObjectListener {
         else
             null
 
-        val playfieldPosition = playfield.toLocalSpaceFromScene(event.x, event.y)
-        val cursorEvent = CursorEvent.obtain(event, playfieldPosition.x, playfieldPosition.y)
+        val position = playfield.toLocalSpaceFromScene(event.x, event.y)
+        val cursorEvent = CursorEvent.obtain(event, position.x, position.y, objectPlayfield.mapping)
 
         cursorEvent.trackTime = gameplayClock.time * 1000
         cursorEvent.offset = offset.toDouble()
@@ -2799,7 +2805,9 @@ class GameScene : GameObjectListener {
     private inner class FailAnimation(private val music: MusicService, private val initialFrequency: Float) {
         private var elapsedTime = 0f
 
-        private fun applyEffectToLayer(layer: Container) {
+        // The layers of the playfield are in osu!pixels: their objects move as they would in the space gameplay is
+        // laid out in, with the mapping of the playfield.
+        private fun applyEffectToLayer(layer: Container, mapping: PlayfieldMapping? = null) {
             if (layer.alpha > 0) {
                 layer.alpha = max(0f, layer.alpha - 0.007f)
             }
@@ -2808,7 +2816,11 @@ class GameScene : GameObjectListener {
                 val entity = layer[i]
 
                 val y = entity.y.resolve(0f)
-                entity.setPosition(entity.x.resolve(0f), if (y < 0f) y * 0.6f else y * 1.01f)
+                val resolutionY = if (mapping != null) y * mapping.scaleY + mapping.offsetY else y
+                val newResolutionY = if (resolutionY < 0f) resolutionY * 0.6f else resolutionY * 1.01f
+                val newY = if (mapping != null) (newResolutionY - mapping.offsetY) / mapping.scaleY else newResolutionY
+
+                entity.setPosition(entity.x.resolve(0f), newY)
 
                 if (entity.rotationZ == 0f) {
                     entity.rotationZ = entity.rotationZ + Random.Default.nextDouble(-0.02, 0.02).toFloat() * 180 / MathUtils.PI_F
@@ -2834,7 +2846,8 @@ class GameScene : GameObjectListener {
             elapsedTime -= sixtyFPS
 
             if (music.frequency > 101) {
-                applyEffectToLayer(mgScene)
+                applyEffectToLayer(objectPlayfield.objects, objectPlayfield.mapping)
+                applyEffectToLayer(objectPlayfield.underlay, objectPlayfield.mapping)
                 applyEffectToLayer(bgScene)
 
                 val decreasedFrequency = max(101f, music.frequency - 300)
@@ -2950,9 +2963,14 @@ class GameScene : GameObjectListener {
 
     override fun updateAutoBasedPos(pX: Float, pY: Float) {
         if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
-            autoCursor!!.setPosition(pX, pY, this)
+            // The cursor is in the space gameplay is laid out in.
+            val position = objectPlayfield.mapping.toResolution(pX, pY)
+            autoCursor!!.setPosition(position.x, position.y, this)
         }
     }
+
+    override val playfieldMapping
+        get() = objectPlayfield.mapping
 
     private fun getNearestCursorId(pX: Float, pY: Float): Int {
         var nearestDistance = Float.POSITIVE_INFINITY
@@ -2962,7 +2980,7 @@ class GameScene : GameObjectListener {
             val latestEvent = cursors[i]!!.getLatestNonUpEvent()
 
             if (latestEvent != null) {
-                val distance = Utils.squaredDistance(pX, pY, latestEvent.position.x, latestEvent.position.y)
+                val distance = Utils.squaredDistance(pX, pY, latestEvent.playfieldPosition.x, latestEvent.playfieldPosition.y)
 
                 if (distance < nearestDistance) {
                     id = i
@@ -3276,8 +3294,8 @@ class GameScene : GameObjectListener {
         judgeableObject = null
 
         // Detach any lingering hit effects from the gameplay scene.
-        for (i in mgScene.childCount - 1 downTo 0) {
-            val child = mgScene[i]
+        for (i in objectPlayfield.objects.childCount - 1 downTo 0) {
+            val child = objectPlayfield.objects[i]
 
             if (child is Sprite && child.choreography != null) {
                 // Hit effects need to be pooled, so we cannot directly detach.
@@ -3292,7 +3310,7 @@ class GameScene : GameObjectListener {
         }
 
         // Remove follow points spawned for objects before the seek point.
-        FollowPointConnection.clearAll(bgScene)
+        FollowPointConnection.clearAll(objectPlayfield.underlay)
 
         // Reset spawn counters.
         objectIndex = 0

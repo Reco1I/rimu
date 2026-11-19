@@ -16,7 +16,6 @@ import kotlin.jvm.JvmStatic
 import kotlin.math.abs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
-import ru.nsu.ccfit.zuev.osu.Constants
 
 object GameHelper {
     private var overallDifficulty: Float = 1f
@@ -164,7 +163,7 @@ object GameHelper {
     }
 
     /**
-     * Converts an osu!pixels-based path of a [Slider] to one that can be used in gameplay.
+     * Converts the path of a [Slider] to one that can be used in gameplay, in osu!pixels as the playfield is.
      *
      * @return The converted [SliderPath].
      */
@@ -174,9 +173,6 @@ object GameHelper {
         val cumulativeLength = slider.path.cumulativeLength
         val path = SliderPath(slider.path.pathType, calculatedPath.size)
 
-        val widthScale = Constants.MAP_ACTUAL_WIDTH.toFloat() / Constants.MAP_WIDTH
-        val heightScale = Constants.MAP_ACTUAL_HEIGHT.toFloat() / Constants.MAP_HEIGHT
-
         for (i in calculatedPath.indices) {
             if (scope != null) {
                 scope.coroutineContext.ensureActive()
@@ -184,7 +180,7 @@ object GameHelper {
 
             val p = calculatedPath[i]
 
-            path.set(i, p.x * widthScale, p.y * heightScale, cumulativeLength[i].toFloat())
+            path.set(i, p.x, p.y, cumulativeLength[i].toFloat())
         }
 
         return path

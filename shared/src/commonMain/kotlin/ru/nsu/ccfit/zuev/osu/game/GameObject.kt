@@ -25,6 +25,9 @@ abstract class GameObject {
     protected var replayObjectData: Replay.ReplayObjectData? = null
     @JvmField
     protected var startHit = false
+    /**
+     * The position of this object in the playfield, in osu!pixels.
+     */
     @JvmField
     protected var position = Vector2(0f)
 
@@ -217,7 +220,7 @@ abstract class GameObject {
             return false
         }
 
-        return Utils.squaredDistance(position, cursorEvent.position) <= Utils.sqr(hitObject.screenSpaceGameplayRadius.toFloat())
+        return Utils.squaredDistance(position, cursorEvent.playfieldPosition) <= Utils.sqr(hitObject.gameplayRadius.toFloat())
     }
 
     //region Lifetime management

@@ -1,6 +1,5 @@
 package com.osudroid.game
 
-import com.osudroid.settings.GameResolution
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Platform
@@ -8,7 +7,6 @@ import com.osudroid.math.Vector2
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import com.reco1l.verktex.input.PointerEvent
-import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmStatic
@@ -71,13 +69,20 @@ class CursorEvent : IPoolable {
         get() = trackTime + if (Settings[OsuSettings.FixFrameOffset]) offset else 0.0
 
     /**
-     * The position of the cursor in screen space.
+     * The position of the cursor in the space gameplay is laid out in (see [PlayfieldMapping]), kept within it.
      */
     @JvmField
     var position = Vector2(0f)
 
     /**
-     * The position of the cursor in playfield space.
+     * The position of the cursor in the playfield, in osu!pixels, as hit objects are placed: flipped as they are by
+     * Hard Rock. Hit objects are judged with it.
+     */
+    @JvmField
+    var playfieldPosition = Vector2(0f)
+
+    /**
+     * The position of the cursor in the playfield, in osu!pixels, as replays store it: not flipped by Hard Rock.
      */
     @JvmField
     var trackPosition = Vector2(0f)
@@ -98,35 +103,42 @@ class CursorEvent : IPoolable {
         copy.action = action
         copy.offset = offset
         copy.position.set(position)
+        copy.playfieldPosition.set(playfieldPosition)
         copy.trackPosition.set(trackPosition)
     }
 
-    private fun apply(event: PointerEvent, x: Float, y: Float) {
+    /**
+     * Sets the positions of this [CursorEvent] from a position in the playfield as replays store it, in osu!pixels.
+     */
+    fun setTrackPosition(x: Float, y: Float, mapping: PlayfieldMapping) {
+        trackPosition.set(x, y)
+        playfieldPosition.set(x, y)
+
+        if (GameHelper.isHardRock()) {
+            PlayfieldMapping.flipVertically(playfieldPosition)
+        }
+
+        position.set(mapping.toResolution(playfieldPosition))
+    }
+
+    private fun apply(event: PointerEvent, x: Float, y: Float, mapping: PlayfieldMapping) {
         systemTime = event.time
         trackTime = 0f
         action = event.action
         offset = 0.0
 
-        val width = GameResolution.width.toFloat()
-        val height = GameResolution.height.toFloat()
+        position.x = x.coerceIn(0f, mapping.width)
+        position.y = y.coerceIn(0f, mapping.height)
 
-        position.x = x.coerceIn(0f, width)
-        position.y = y.coerceIn(0f, height)
+        // Judged where the cursor is shown, within the space.
+        playfieldPosition.set(mapping.toPlayfield(position.x, position.y))
 
-        trackPosition.x = x
-        trackPosition.y = y
+        // Stored where it was.
+        trackPosition.set(mapping.toPlayfield(x, y))
 
         if (GameHelper.isHardRock()) {
-            trackPosition.y -= height / 2f
-            trackPosition.y *= -1
-            trackPosition.y += height / 2f
+            PlayfieldMapping.flipVertically(trackPosition)
         }
-
-        trackPosition.x -= (width - Constants.MAP_ACTUAL_WIDTH) / 2f
-        trackPosition.y -= (height - Constants.MAP_ACTUAL_HEIGHT) / 2f
-
-        trackPosition.x *= Constants.MAP_WIDTH / Constants.MAP_ACTUAL_WIDTH.toFloat()
-        trackPosition.y *= Constants.MAP_HEIGHT / Constants.MAP_ACTUAL_HEIGHT.toFloat()
     }
 
     companion object {
@@ -144,11 +156,12 @@ class CursorEvent : IPoolable {
          * Obtains an instance of [CursorEvent] from the pool or creates a new one if the pool is empty.
          *
          * @param event The [PointerEvent] to apply to the [CursorEvent].
-         * @param x The horizontal position of the event in the playfield.
-         * @param y The vertical position of the event in the playfield.
+         * @param x The horizontal position of the event in the space gameplay is laid out in.
+         * @param y The vertical position of the event in the space gameplay is laid out in.
+         * @param mapping The mapping of the playfield in that space.
          * @return An instance of [CursorEvent].
          */
         @JvmStatic
-        fun obtain(event: PointerEvent, x: Float, y: Float) = obtain().also { it.apply(event, x, y) }
+        fun obtain(event: PointerEvent, x: Float, y: Float, mapping: PlayfieldMapping) = obtain().also { it.apply(event, x, y, mapping) }
     }
 }
