@@ -95,32 +95,42 @@ flashlight's follow.
 
 ---
 
-## Phase 2: engine support for gameplay pieces
+## Phase 2: engine support for gameplay pieces (done)
 
-1. **`ChoreographyTransitions<S>`** (`verktex/.../ui/ChoreographyTransitions.kt`). The gameplay-clock counterpart of
-   `StateTransitions`: blocks keyed by any state, played into a component's `Choreography` at a given time.
+Engine commit `d9bc5b9`.
+
+1. **`ChoreographyTransitions<S>`** (`verktex/.../ui/ChoreographyTransitions.kt`, `docs/choreography.md`). The
+   gameplay-clock counterpart of `StateTransitions`: blocks keyed by any state, played into a component's
+   `Choreography` at a given time.
 
    ```kotlin
    val transitions = choreographyTransitions<HitResult> {
-       this[HitResult.Miss] = ChoreographyBlock { … }
+       this[HitResult.Miss] = { fadeInFromZero(0.15f).moveToY(40f, 0.5f, Easing.InQuad) }
        otherwise { … }
    }
-   transitions.play(piece, result, time)   // piece.choreographAt(time, block)
+   val endTime = transitions.play(piece, result, time)   // piece.choreography().at(time).block()
    ```
 
-   It's stateless and driven by time, so seeking stays correct. It returns the end time of the choreography, for
-   callers to extend lifetimes with.
+   - Blocks are `Choreography.() -> Unit`. A state without a block plays `otherwise`, or nothing.
+   - It keeps no state, so one instance (e.g. in a companion) serves every pooled piece. Nothing is polled or
+     cancelled: the steps stay in the choreography, so seeking stays correct. A pooled piece clears its choreography.
+   - `play` returns the choreography's `endTime`, or `time` when nothing played, for callers to extend lifetimes with.
+   - It's separate from `StateTransitions` on purpose: those run transforms, which are removed once they end and
+     can't be seeked back.
 
-2. **`Proxy` component** (`verktex/.../ui/Proxy.kt`). It draws a target component at another point of the draw
-   order. Each hit object owns all its pieces as a Container, but some pieces must draw in other layers: approach
-   circles and judgements above every object, hit lighting below every object.
-   - The proxy is a leaf whose `onDraw` calls `target.draw(renderer)`. `localToSceneMatrix` is absolute, so the
-     position comes with it.
-   - The target is marked `isProxied` (internal), so its parent's child-draw loop skips it. Its update, transforms
-     and choreography stay with its owner.
-   - Alpha: the proxy pushes the accumulated alpha of the target's parent chain, so fading an object's container
-     fades its proxied pieces too.
-   - A Verktex UI test (`VerktexUITests`), and unit tests for "skipped in its owner" and "drawn through the proxy".
+2. **`Proxy` component** (`verktex/.../ui/Proxy.kt`, `docs/proxies.md`). It draws a target component at another
+   point of the draw order. Each hit object owns all its pieces as a Container, but some pieces must draw in other
+   layers: approach circles and judgements above every object, hit lighting below every object.
+   - `Container.proxy(target)` adds one. While the proxy is attached, the target's `proxy` is set and
+     `Component.draw` skips it unless the proxy draws it. Detaching the proxy, or changing its `target`, gives the
+     target back to its parent. One proxy per target, the last attached.
+   - The target's transformation chain is brought up to date before it's drawn (`validateTransformationChain`), so a
+     layer drawn before the owner doesn't use last frame's matrices.
+   - Alpha and tint: the proxy pushes the accumulated alpha, and the tint of `tintChildren` ancestors, of the
+     target's parent chain, on top of its own layer's. An invisible ancestor hides the target.
+   - Culling goes through the target's bounds. A layer of proxies must be laid out over its targets (`fill()`).
+   - `ProxyTest`, `ChoreographyTransitionsTest`, and the `Verktex/Proxies` UI test: cards whose dots overlap the
+     next card, with buttons to toggle the proxies and fade the cards.
 
 ---
 
