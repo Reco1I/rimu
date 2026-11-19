@@ -31,9 +31,14 @@ import com.reco1l.verktex.ui.textButton
 import com.osudroid.ui.v2.test.GameplayObjectHarness.Play
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameplayHitCircle
-import ru.nsu.ccfit.zuev.osu.game.GameplayModernSpinner
 import ru.nsu.ccfit.zuev.osu.game.GameplaySlider
 import ru.nsu.ccfit.zuev.osu.game.GameplaySpinner
+import com.osudroid.ui.v2.skin.DefaultSpinnerPiece
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
+import com.osudroid.ui.v2.skin.SpinnerPiece
+import com.osudroid.ui.v2.skin.legacy.LegacyClassicSpinnerPiece
+import com.osudroid.ui.v2.skin.legacy.LegacyModernSpinnerPiece
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
@@ -97,11 +102,12 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
 
         test("Spinners") {
             val harness = GameplayObjectHarness(this)
-            var isModern = SkinTextures.isNewStyleSpinner()
+            // The skin's spinner, then each style of spinner in turn.
+            var style = 0
 
             fun play() = harness.loop { startTime ->
                 val spinner = harness.prepare(Spinner(startTime, startTime + 3000, true))
-                val gameplaySpinner = if (isModern) GameplayModernSpinner() else GameplaySpinner()
+                val gameplaySpinner = GameplaySpinner(spinnerStyles[style].second())
                 val rps = 2 + 2 * harness.difficulty.od / 10f
 
                 gameplaySpinner.init(harness, harness.spinnerLayer, harness.playfield, spinner, rps, harness.stat)
@@ -116,10 +122,10 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                 x = (-16f).dip
                 y = 72f.dip
                 variant = Button.Variant.Surface
-                text = styleName(isModern)
+                text = spinnerStyles[style].first
                 onActionUp = {
-                    isModern = !isModern
-                    text = styleName(isModern)
+                    style = (style + 1) % spinnerStyles.size
+                    text = spinnerStyles[style].first
                     play()
                 }
             }
@@ -178,7 +184,13 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
         if (OsuSkin.get().isForceOverrideSliderBorderColor) OsuSkin.get().sliderBorderColor!!
         else BeatmapSkinManager.getInstance().sliderColor
 
-    private fun styleName(isModern: Boolean) = if (isModern) "Modern style" else "Classic style"
+    // The spinners the Spinners test shows, by name.
+    private val spinnerStyles = listOf<Pair<String, () -> SpinnerPiece>>(
+        "Skin's style" to { SkinPieces.current.create(SkinComponent.Spinner) },
+        "Default skin" to { DefaultSpinnerPiece() },
+        "Classic style" to { LegacyClassicSpinnerPiece() },
+        "Modern style" to { LegacyModernSpinnerPiece() },
+    )
 
 
     private class SliderShape(

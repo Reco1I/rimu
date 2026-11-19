@@ -14,7 +14,9 @@ import com.osudroid.beatmaps.hitobjects.Spinner
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.GameplaySequenceHitSampleInfo
 import com.osudroid.math.Vector2
-import com.osudroid.ui.v2.game.ScoreNumber
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
+import com.osudroid.ui.v2.skin.SpinnerPiece
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.ui.Sprite
@@ -37,118 +39,57 @@ import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import com.osudroid.ui.v2.game.SpinnerRpmCounter
-import kotlin.jvm.JvmField
 import com.reco1l.verktex.data.fill
 import kotlin.random.Random
-import kotlin.jvm.JvmStatic
 
-open class GameplaySpinner : GameObject() {
-    private val spinnerBackground: Sprite
-    private val circle: Sprite
-    private val approachCircle: Sprite
-    private val metre: ClipContainer
-    private val metreSprite: Sprite
-    // The regions the sizes were derived from, see layoutToBackground.
-    private var laidOutBackground: Texture.Region? = null
-    private var laidOutMetre: Texture.Region? = null
-    private var isLaidOut = false
-    private val spinText: Sprite
-    private val clearText: Sprite
-    private val bonusScore: ScoreNumber
+/**
+ * A spinner: it judges the spins, and its skin's [piece] shows them.
+ */
+class GameplaySpinner(
 
-    @JvmField
-    protected val rpmCounter = SpinnerRpmCounter()
+    /**
+     * How the spinner looks, the skin's by default.
+     */
+    private val piece: SpinnerPiece = SkinPieces.current.create(SkinComponent.Spinner)
 
-    @JvmField
-    protected var beatmapSpinner: Spinner? = null
-    @JvmField
-    protected var oldMouse: Vector2? = null
-    @JvmField
-    protected var listener: GameObjectListener? = null
-    @JvmField
-    protected var scene: Container? = null
+) : GameObject() {
+
+    private val rpmCounter = SpinnerRpmCounter()
+
+    private var beatmapSpinner: Spinner? = null
+    private var oldMouse: Vector2? = null
+    private var listener: GameObjectListener? = null
+    private var scene: Container? = null
 
     // The playfield the judgement is shown in, until the spinner expires.
-    protected var effectsPlayfield: GameplayPlayfield? = null
-    @JvmField
-    protected var fullRotations = 0
-    @JvmField
-    protected var rotations = 0f
-    @JvmField
-    protected var needRotations = 0f
-    @JvmField
-    protected var clear = false
-    @JvmField
-    protected var bonusScoreCounter = 1
-    @JvmField
-    protected var stat: StatisticV2? = null
-    @JvmField
-    protected var passedTime = 0f
-    @JvmField
-    protected var duration = 0f
+    private var effectsPlayfield: GameplayPlayfield? = null
+    private var fullRotations = 0
+    private var rotations = 0f
+    private var needRotations = 0f
+    private var clear = false
+    private var bonusScoreCounter = 1
+    private var stat: StatisticV2? = null
+    private var passedTime = 0f
+    private var duration = 0f
 
-    @JvmField
-    protected val isSpinnerFrequencyModulate: Boolean
-    @JvmField
-    protected val hitSamples = ArrayList<GameplayHitSampleInfo>(5)
-    @JvmField
-    protected val spinnerSpinSample: GameplaySequenceHitSampleInfo
-    @JvmField
-    protected val spinnerBonusSample: GameplaySequenceHitSampleInfo
+    private val isSpinnerFrequencyModulate: Boolean
+    private val hitSamples = ArrayList<GameplayHitSampleInfo>(5)
+    private val spinnerSpinSample: GameplaySequenceHitSampleInfo
+    private val spinnerBonusSample: GameplaySequenceHitSampleInfo
 
-    @JvmField
-    protected val currMouse = Vector2(0f)
+    private val currMouse = Vector2(0f)
 
     /**
      * The center of the spinner in the space gameplay is laid out in, where it's drawn and spun: the center of the
      * playfield, see [layoutInSpace].
      */
-    @JvmField
-    protected val center = Vector2(0f)
-
-    // The width of the space the background was scaled to, see layoutToBackground.
-    private var laidOutSpaceWidth = 0f
+    private val center = Vector2(0f)
 
     init {
         // The center of the playfield, where the cursor goes in autoplay.
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f)
 
-        spinnerBackground = Sprite()
-        spinnerBackground.origin = Anchor.Center
-        spinnerBackground.texture = skinTexture("spinner-background")
-
-        circle = Sprite()
-        circle.origin = Anchor.Center
-        circle.texture = skinTexture("spinner-circle")
-
-        // The metre fills from the bottom: the sprite keeps its size while the container shows a growing part of
-        // it from its bottom, as osu!stable does.
-        metreSprite = Sprite()
-        metreSprite.scaleType = ScaleType.Stretch
-        metreSprite.texture = skinTexture("spinner-metre")
-        metreSprite.width = fill()
-        metreSprite.height = fill()
-
-        metre = ClipContainer()
-        metre.origin = Anchor.Center
-        metre.scaleOrigin = Anchor.Center
-        metre.clipAnchor = Anchor.BottomLeft
-        metre.clipFactorY = 0f
-        metre += metreSprite
-
-        approachCircle = Sprite()
-        approachCircle.origin = Anchor.Center
-        approachCircle.texture = skinTexture("spinner-approachcircle")
-
-        spinText = Sprite()
-        spinText.origin = Anchor.Center
-        spinText.texture = skinTexture("spinner-spin")
-
-        clearText = Sprite()
-        clearText.origin = Anchor.Center
-        clearText.texture = skinTexture("spinner-clear")
-
-        bonusScore = ScoreNumber(0f, 0f, "", 1.1f, true)
+        this += piece
 
         isSpinnerFrequencyModulate = OsuSkin.get().isSpinnerFrequencyModulate
         spinnerSpinSample = GameplaySequenceHitSampleInfo()
@@ -162,54 +103,20 @@ open class GameplaySpinner : GameObject() {
      * Places the spinner in the center of the playfield in the space gameplay is laid out in, which it's drawn in
      * as big as the space rather than the playfield.
      */
-    protected open fun layoutInSpace(mapping: PlayfieldMapping) {
+    private fun layoutInSpace(mapping: PlayfieldMapping) {
         center.set(mapping.toResolution(position))
-
-        spinnerBackground.setPosition(center.x, center.y)
-        circle.setPosition(center.x, center.y)
-        metre.setPosition(center.x, center.y)
-        approachCircle.setPosition(center.x, center.y)
-        spinText.setPosition(center.x, center.y * 1.5f)
-        clearText.setPosition(center.x, center.y * 0.5f)
-        bonusScore.setPosition(center.x, center.y + 100)
-
-        layoutToBackground(mapping.width)
+        piece.layout(center.x, center.y, mapping.width)
     }
 
-    /**
-     * Scales the background to the width of the space and the metre as it, over the same centre, again whenever
-     * their textures changed, as when the skin does, or the space did.
-     */
-    private fun layoutToBackground(spaceWidth: Float = laidOutSpaceWidth) {
-        val backgroundTexture = spinnerBackground.textureRegion
-        val metreTexture = metreSprite.textureRegion
-
-        if (isLaidOut && backgroundTexture === laidOutBackground && metreTexture === laidOutMetre && spaceWidth == laidOutSpaceWidth) {
-            return
-        }
-        isLaidOut = true
-        laidOutBackground = backgroundTexture
-        laidOutMetre = metreTexture
-        laidOutSpaceWidth = spaceWidth
-
-        spinnerBackground.scale = if (backgroundTexture != null) spaceWidth / backgroundTexture.displayWidth else 1f
-
-        // The metre matches the background: its own size, so it isn't stretched into the background's when their
-        // textures differ, and the background's scale and centre, so both line up. Sized to the screen instead, it
-        // would be cut to the height of its layer, the background being taller than the screen.
-        metre.setSize(metreTexture?.displayWidth ?: 0f, metreTexture?.displayHeight ?: 0f)
-        metre.scale = spinnerBackground.scaleX
-    }
-
-    open fun init(listener: GameObjectListener, scene: Container, playfield: GameplayPlayfield,
+    fun init(listener: GameObjectListener, scene: Container, playfield: GameplayPlayfield,
                   beatmapSpinner: Spinner, rps: Float, stat: StatisticV2) {
         effectsPlayfield = playfield
         fullRotations = 0
         rotations = 0f
         this.scene = scene
 
-        // Below what the layer already has, as the pieces were.
-        scene.add(0, this)
+        // Below what the layer already has, or above, as the pieces of the skin were.
+        if (piece.isBelowLayer) scene.add(0, this) else scene += this
         this.duration = max(beatmapSpinner.duration.toFloat() / 1000f, 0f)
         this.beatmapSpinner = beatmapSpinner
 
@@ -231,83 +138,25 @@ open class GameplaySpinner : GameObject() {
         val timePreempt = beatmapSpinner.timePreempt.toFloat() / 1000f
         passedTime = -timePreempt
 
-        spinnerBackground.isVisible = !GameHelper.isTraceable() ||
+        val isBackgroundVisible = !GameHelper.isTraceable() ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapSpinner)
 
-        metre.clipFactorY = 0f
-        spinnerBackground.color = OsuSkin.get().spinnerBackgroundColor
-
-        add(0, spinText)
-
-        if (!GameHelper.isHidden()) {
-            add(0, approachCircle)
-            approachCircle.alpha = 0f
-
-            approachCircle.choreographAt(hitTime) { sequence -> sequence
-                .fadeTo(0.75f)
-                .fadeTo(1f, duration)
-                .scaleTo(2f)
-                .scaleTo(0f, duration) }
-        }
-
-        add(0, circle)
-        add(0, metre)
-        add(0, spinnerBackground)
-
+        piece.start(hitTime, duration, timePreempt, isBackgroundVisible, isApproachCircleVisible = !GameHelper.isHidden())
         rpmCounter.attach(scene, listener.playfieldMapping, hitTime, hitTime + duration)
-
-        val fadeDuration = timePreempt * 0.25f
-        val fadeInStartTime = hitTime - fadeDuration
-
-        if (spinnerBackground.isVisible) {
-            spinnerBackground.alpha = 0f
-            spinnerBackground.choreographAt(fadeInStartTime) { sequence -> sequence.fadeIn(fadeDuration) }
-        }
-
-        circle.alpha = 0f
-        circle.choreographAt(fadeInStartTime) { sequence -> sequence.fadeIn(fadeDuration) }
-
-
-        metre.alpha = 0f
-        metre.choreographAt(fadeInStartTime) { sequence -> sequence.fadeIn(fadeDuration) }
-
-        spinText.alpha = 0f
-        spinText.choreographAt(fadeInStartTime) { sequence -> sequence
-            .fadeIn(fadeDuration)
-            .then(timePreempt / 2)
-            .fadeOut(fadeDuration) }
 
         oldMouse = null
 
         lifetimeEnd = Float.MAX_VALUE
     }
 
-    protected open fun detachFromScene() {
+    private fun detachFromScene() {
         if (scene == null) {
             return
         }
 
-        clearText.clearAnimations()
-        clearText.removeSelf()
-
-        spinText.clearAnimations()
-        spinText.removeSelf()
-
-        spinnerBackground.clearAnimations()
-        spinnerBackground.removeSelf()
-
-        approachCircle.clearAnimations()
-        approachCircle.removeSelf()
-
-        circle.clearAnimations()
-        circle.removeSelf()
-
-        metre.clearAnimations()
-        metre.removeSelf()
-
+        piece.end()
         rpmCounter.detach()
 
-        bonusScore.removeSelf()
         lifetimeEnd = hitTime + duration
         scene = null
     }
@@ -315,7 +164,7 @@ open class GameplaySpinner : GameObject() {
     /**
      * Shows the judgement the game gave the spinner, with the texture [judgement], at the center of the playfield.
      */
-    protected fun showResult(judgement: String?) {
+    private fun showResult(judgement: String?) {
         judgement ?: return
         val playfield = effectsPlayfield ?: return
 
@@ -335,8 +184,8 @@ open class GameplaySpinner : GameObject() {
     /**
      * Shows [piece] above everything the layer has, as the clear text and the bonus score are.
      */
-    protected fun showOnTop(piece: Component) {
-        if (piece.parent != null) {
+    private fun showOnTop(piece: Component?) {
+        if (piece == null || piece.parent != null) {
             return
         }
 
@@ -344,7 +193,7 @@ open class GameplaySpinner : GameObject() {
         drawIn(scene!!, piece)
     }
 
-    open fun removeFromScene() {
+    fun removeFromScene() {
         if (scene == null) {
             return
         }
@@ -407,8 +256,6 @@ open class GameplaySpinner : GameObject() {
         val listener = listener!!
         val stat = stat!!
 
-        layoutToBackground()
-
         passedTime = listener.elapsedTime - hitTime
 
         // Allow the spinner to fully fade in first before receiving spins.
@@ -425,12 +272,11 @@ open class GameplaySpinner : GameObject() {
                 applySeekRotations()
 
                 if (clear) {
-                    showOnTop(clearText)
+                    showOnTop(piece.playCleared(animate = false))
                 }
 
                 if (bonusScoreCounter > 1) {
-                    bonusScore.setText(((bonusScoreCounter - 1) * 1000).toString())
-                    showOnTop(bonusScore)
+                    showOnTop(piece.playBonus((bonusScoreCounter - 1) * 1000, animate = false))
                 }
             }
         }
@@ -471,7 +317,7 @@ open class GameplaySpinner : GameObject() {
         if (mouse != null) {
             val oldMouse = oldMouse!!
 
-            circle.rotationZ = toDegrees(Utils.direction(currMouse))
+            var rotation = toDegrees(Utils.direction(currMouse))
 
             val len1 = Utils.length(currMouse)
             val len2 = Utils.length(oldMouse)
@@ -482,7 +328,7 @@ open class GameplaySpinner : GameObject() {
 
             if (autoPlay) {
                 dfill = 5 * 4 * dt
-                circle.rotationZ = (rotations + dfill / 4f) * 360
+                rotation = (rotations + dfill / 4f) * 360
                 //auto时，FL光圈绕中心旋转
                 if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
                     val angle = (rotations + dfill / 4f) * 360
@@ -495,7 +341,7 @@ open class GameplaySpinner : GameObject() {
             }
 
             rotations += dfill / 4f
-            rpmCounter.update(hitTime + passedTime, circle.rotationZ)
+            rpmCounter.update(hitTime + passedTime, rotation)
             var percentfill = (abs(rotations) + fullRotations) / needRotations
 
             if (dfill != 0f) {
@@ -509,11 +355,7 @@ open class GameplaySpinner : GameObject() {
                 percentfill = 1f
 
                 if (!clear) {
-                    showOnTop(clearText)
-                    clearText.alpha = 0f
-                    clearText.fadeIn(0.25f)
-                    clearText.scale = 1.5f
-                    clearText.scaleTo(1f, 0.25f)
+                    showOnTop(piece.playCleared(animate = true))
 
                     clear = true
 
@@ -524,12 +366,9 @@ open class GameplaySpinner : GameObject() {
 
                 if (abs(rotations) > 1) {
                     rotations -= 1 * sign(rotations)
-                    bonusScore.setText((bonusScoreCounter * 1000).toString())
+                    showOnTop(piece.playBonus(bonusScoreCounter * 1000, animate = true))
                     listener.onSpinnerHit(id, 1000, false, 0)
                     bonusScoreCounter++
-                    if (bonusScore.parent == null) {
-                        showOnTop(bonusScore)
-                    }
                     spinnerBonusSample.play()
                     var rate = 0.375f
                     if (GameHelper.getHealthDrain() > 0) {
@@ -551,7 +390,7 @@ open class GameplaySpinner : GameObject() {
                 }
             }
 
-            metre.clipFactorY = metreFill(min(1f, abs(percentfill)))
+            piece.update(rotation, min(1f, abs(percentfill)))
 
             oldMouse.set(currMouse)
         }
@@ -559,30 +398,6 @@ open class GameplaySpinner : GameObject() {
         if (passedTime >= duration) {
             removeFromScene()
         }
-    }
-
-    /**
-     * The fraction of the metre that's shown for the given progress: it fills by whole bars, the one being
-     * filled blinking with a chance that grows as it fills, even once the spinner is cleared, unless the skin's
-     * SpinnerNoBlink turns the blinking off.
-     *
-     * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyOldStyleSpinner.cs
-     */
-    private fun metreFill(progress: Float): Float {
-        val isBlinking = !OsuSkin.get().isSpinnerNoBlink
-        var percent = progress * 100
-
-        if (isBlinking) {
-            percent = min(99f, percent)
-        }
-
-        var bars = percent.toInt() / 10
-
-        if (isBlinking && Random.nextFloat() < (percent.toInt() % 10) / 10f) {
-            bars++
-        }
-
-        return bars / METRE_BARS.toFloat()
     }
 
     override fun onExpire() {
@@ -609,7 +424,7 @@ open class GameplaySpinner : GameObject() {
         return listener?.isRemoveSliderLock() == true || passedTime >= duration
     }
 
-    protected fun applySeekRotations() {
+    private fun applySeekRotations() {
         val listener = listener!!
         val stat = stat!!
         val totalRotations = 5f * passedTime
@@ -667,7 +482,7 @@ open class GameplaySpinner : GameObject() {
         }
     }
 
-    protected fun reloadHitSounds() {
+    private fun reloadHitSounds() {
         val beatmapSpinner = beatmapSpinner!!
         val parsedSamples = beatmapSpinner.samples
         hitSamples.ensureCapacity(parsedSamples.size)
@@ -719,7 +534,7 @@ open class GameplaySpinner : GameObject() {
         }
     }
 
-    protected fun playAndFreeHitSamples(obtainedScore: Int) {
+    private fun playAndFreeHitSamples(obtainedScore: Int) {
         if (obtainedScore > 0) {
             listener!!.playHitSamples(hitSamples)
         }
@@ -735,12 +550,12 @@ open class GameplaySpinner : GameObject() {
         spinnerSpinSample.stopAll()
     }
 
-    protected fun updateSamples(dt: Float) {
+    private fun updateSamples(dt: Float) {
         spinnerSpinSample.update(dt)
         spinnerBonusSample.update(dt)
     }
 
-    protected fun updateSpinSampleFrequency(progress: Float) {
+    private fun updateSpinSampleFrequency(progress: Float) {
         val applyTrackRate = GameHelper.isSamplesMatchPlaybackRate()
 
         if (isSpinnerFrequencyModulate) {
@@ -760,13 +575,11 @@ open class GameplaySpinner : GameObject() {
         }
     }
 
-    companion object {
-        private const val METRE_BARS = 10
+    private companion object {
 
         /**
          * Converts [radians] to degrees as `Math.toDegrees` does.
          */
-        @JvmStatic
-        protected fun toDegrees(radians: Float) = (radians.toDouble() * (180.0 / PI)).toFloat()
+        fun toDegrees(radians: Float) = (radians.toDouble() * (180.0 / PI)).toFloat()
     }
 }

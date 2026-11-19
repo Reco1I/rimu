@@ -1,6 +1,5 @@
 package ru.nsu.ccfit.zuev.osu.game
 
-import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.skin.JudgementPiece
 import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
@@ -32,26 +31,15 @@ class GameObjectPool private constructor() {
         circles.add(circle)
     }
 
-    // The style of spinners the skin has, see SkinTextures.isNewStyleSpinner. Found once the game loads.
-    private var isNewStyleSpinner = true
-
     val spinner: GameplaySpinner
         get() {
-            while (!spinners.isEmpty()) {
-                val spinner = spinners.removeFirst()
-
-                // Pooled spinners can be of the style of a previous skin.
-                if ((spinner is GameplayModernSpinner) == isNewStyleSpinner) {
-                    return spinner
-                }
+            if (!spinners.isEmpty()) {
+                return spinners.removeFirst()
             }
 
             objectsCreated++
-
-            return createSpinner()
+            return GameplaySpinner()
         }
-
-    private fun createSpinner() = if (isNewStyleSpinner) GameplayModernSpinner() else GameplaySpinner()
 
     fun putSpinner(spinner: GameplaySpinner) {
         spinners.add(spinner)
@@ -101,11 +89,8 @@ class GameObjectPool private constructor() {
         for (i in 0 until 5) {
             putSlider(GameplaySlider())
         }
-        isNewStyleSpinner = SkinTextures.isNewStyleSpinner()
-        spinners.removeAll { (it is GameplayModernSpinner) != isNewStyleSpinner }
-
         for (i in 0 until 3) {
-            putSpinner(createSpinner())
+            putSpinner(GameplaySpinner())
         }
 
         objectsCreated = circles.size + sliders.size + spinners.size

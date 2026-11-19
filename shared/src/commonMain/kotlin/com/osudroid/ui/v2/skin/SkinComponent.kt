@@ -60,6 +60,11 @@ sealed class SkinComponent<T : Any> {
     data object SliderBody : SkinComponent<SliderBodyStyle>()
 
     /**
+     * The look of a spinner.
+     */
+    data object Spinner : SkinComponent<SpinnerPiece>()
+
+    /**
      * The light behind a judgement. Only texture skins have it.
      */
     data object HitLighting : SkinComponent<HitLightingPiece>()

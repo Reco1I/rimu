@@ -24,6 +24,7 @@ object DefaultSkin : GameplaySkin {
         SkinComponent.SliderBall,
         SkinComponent.FollowCircle,
         SkinComponent.SliderBody,
+        SkinComponent.Spinner,
         is SkinComponent.Judgement -> true
         SkinComponent.HitLighting -> false
     }
@@ -38,6 +39,7 @@ object DefaultSkin : GameplaySkin {
         SkinComponent.SliderBall -> DefaultSliderBallPiece()
         SkinComponent.FollowCircle -> DefaultFollowCirclePiece()
         SkinComponent.SliderBody -> DefaultSliderBodyStyle
+        SkinComponent.Spinner -> DefaultSpinnerPiece()
         is SkinComponent.Judgement -> DefaultJudgementPiece(component.textureName)
         SkinComponent.HitLighting -> null
     } as T?

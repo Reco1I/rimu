@@ -2,6 +2,8 @@ package com.osudroid.ui.v2.skin
 
 import com.osudroid.game.HitResult
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.shape.PathShape
 
@@ -114,6 +116,60 @@ interface SliderBodyStyle {
      * skin, which are in the pixels gameplay is laid out in, to the body's space.
      */
     fun apply(body: PathShape, bodyColor: Color4, borderColor: Color4, skinScale: Float)
+}
+
+/**
+ * How a spinner looks, filling the layer it's drawn in (the space gameplay is laid out in, 1280 wide). The spinner
+ * judges the spins and gives it their rotation and progress; it shows what it gives back on top of the layer.
+ */
+abstract class SpinnerPiece : Container() {
+
+    init {
+        width = Dimension.FillAvailable
+        height = Dimension.FillAvailable
+    }
+
+    /**
+     * Whether the spinner is added below what its layer has, as osu!stable's old style spinner, rather than above.
+     */
+    open val isBelowLayer: Boolean
+        get() = false
+
+    /**
+     * Places the pieces around ([centerX], [centerY]) in a layer [spaceWidth] wide.
+     */
+    abstract fun layout(centerX: Float, centerY: Float, spaceWidth: Float)
+
+    /**
+     * Shows a spinner from [hitTime] for [duration] seconds, fading in over the [timePreempt] before it. Its
+     * background isn't shown with Traceable ([isBackgroundVisible]), nor its approach circle with Hidden
+     * ([isApproachCircleVisible]).
+     */
+    abstract fun start(hitTime: Float, duration: Float, timePreempt: Float, isBackgroundVisible: Boolean, isApproachCircleVisible: Boolean)
+
+    /**
+     * Turns the spinner to [rotation], in degrees, at [progress] towards clearing it, from 0 to 1.
+     */
+    abstract fun update(rotation: Float, progress: Float)
+
+    /**
+     * The spinner is cleared now, animated unless it's found cleared after a seek ([animate]).
+     *
+     * @return What to show on top of the layer, null for nothing.
+     */
+    open fun playCleared(animate: Boolean): Component? = null
+
+    /**
+     * A bonus spin gives [score] in total, animated unless it's found after a seek ([animate]).
+     *
+     * @return What to show on top of the layer, null for nothing.
+     */
+    abstract fun playBonus(score: Int, animate: Boolean): Component?
+
+    /**
+     * The spinner is judged: takes every piece out, what was shown on top too.
+     */
+    abstract fun end()
 }
 
 /**

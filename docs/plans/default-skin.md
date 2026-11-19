@@ -263,7 +263,35 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
    - `FollowCirclePiece` got `setComboColor`, called when the span starts.
    - The `osu!/Default skin` UI test also shows the slider pieces of both skins.
 
-4. **Procedural spinner.** Adds the arc component in the engine.
+4. **Procedural spinner** (done). Adds the arc component in the engine.
+
+   ### Phase 4 as done
+
+   - **Engine:** `Arc` (`ui/shape/Arc.kt`, engine commit `555c9b9`), a ring or a part of one with `progress`,
+     `startAngle` and round caps, over `drawArcStroke`. It's shown in the Shapes UI test.
+   - **One spinner, its look in pieces.** `GameplaySpinner` is the only spinner: `GameplayModernSpinner`, which
+     repeated its judging with its own pieces, is gone. The spinner drives a `SpinnerPiece` (`skin/Pieces.kt`) with
+     `start`, then `update(rotation, progress)` on every spin. `playCleared` and `playBonus` give back what to show
+     on top of the layer (the clear text, the bonus number), and `end` takes the pieces out. The spinner shows the
+     judgement and the RPM counter, whatever the skin.
+   - **Texture skins** keep both styles (`LegacyClassicSpinnerPiece`, `LegacyModernSpinnerPiece` in
+     `skin/legacy/`). `LegacySkin` picks between them with `isNewStyleSpinner`. The classic style is still added
+     below its layer (`isBelowLayer`), the modern one above.
+   - **Judging now follows the classic spinner's for both styles.** A spinner shorter than 0.05 s is always
+     cleared, which the modern one didn't do. A replay's spins no longer reset an already cleared modern spinner.
+     The pool no longer checks the style of its spinners.
+   - **`DefaultSpinnerPiece`** is as big as `spinner-top` and grows from 0.9 to 1 with the progress, as the new
+     style does. It's built from:
+     - a dark disc, hidden by Traceable, in a white ring;
+     - 12 ticks turning with the spins;
+     - a white progress `Arc` with round caps, filling clockwise from the top;
+     - a centre growing with the progress;
+     - a blue glow lighting up.
+
+     "SPIN", "CLEAR" and the bonus are in Torus, and the centre flashes on each bonus spin. It has no approach
+     circle, as Argon's.
+   - The `osu!/Spinners` UI test cycles through the skin's spinner, the default skin's and both texture styles.
+
 5. **Procedural follow points, cursor and trail.** Adds the texture made at runtime, if the engine needs it.
 6. **HUD**: Torus counters with fixed-width digits (an engine change), and the procedural health bar.
 7. **Remove the replaced assets.**

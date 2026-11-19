@@ -30,6 +30,7 @@ object LegacySkin : GameplaySkin {
         SkinComponent.FollowCircle -> isAnimationSkinned("sliderfollowcircle")
         // The body is drawn with the skin's settings, which any skin of its own has.
         SkinComponent.SliderBody -> !SkinTextures.isDefaultSkin()
+        SkinComponent.Spinner -> SPINNER_TEXTURES.any { isSkinned(it) }
         SkinComponent.HitLighting -> isSkinned("lighting")
         is SkinComponent.Judgement -> isAnimationSkinned(component.textureName)
     }
@@ -49,6 +50,7 @@ object LegacySkin : GameplaySkin {
         SkinComponent.SliderBall -> LegacySliderBallPiece()
         SkinComponent.FollowCircle -> LegacyFollowCirclePiece()
         SkinComponent.SliderBody -> LegacySliderBodyStyle
+        SkinComponent.Spinner -> if (SkinTextures.isNewStyleSpinner()) LegacyModernSpinnerPiece() else LegacyClassicSpinnerPiece()
         SkinComponent.HitLighting -> if (SkinTextures["lighting"] != null) HitLightingPiece() else null
         is SkinComponent.Judgement -> LegacyJudgementPiece(component.textureName)
     } as T?
@@ -70,6 +72,12 @@ object LegacySkin : GameplaySkin {
         }
         return endTime
     }
+
+    // The textures of either style of spinner.
+    private val SPINNER_TEXTURES = listOf(
+        "spinner-background", "spinner-circle", "spinner-metre",
+        "spinner-top", "spinner-bottom", "spinner-middle", "spinner-glow",
+    )
 
     private fun sprite(texture: String) = Sprite().apply {
         origin = Anchor.Center
