@@ -9,10 +9,12 @@ import org.junit.Test
 class DefaultSkinTest {
 
     @Test
-    fun `it provides the circles, approach circles and judgements`() {
+    fun `it provides the circles, sliders, approach circles and judgements`() {
         for (component in listOf(
             SkinComponent.HitCircle, SkinComponent.SliderHeadCircle, SkinComponent.SliderTailCircle,
             SkinComponent.ApproachCircle, SkinComponent.TraceableApproachCircle, SkinComponent.Judgement("hit300"),
+            SkinComponent.SliderBody, SkinComponent.SliderBall, SkinComponent.FollowCircle, SkinComponent.ReverseArrow,
+            SkinComponent.SliderTick,
         )) {
             assertTrue("$component", DefaultSkin.provides(component))
         }

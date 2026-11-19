@@ -77,6 +77,11 @@ abstract class SliderBallPiece : Container() {
 abstract class FollowCirclePiece : Container() {
 
     /**
+     * Sets the combo colour, which a skin may tint the circle with.
+     */
+    open fun setComboColor(color: Color4) = Unit
+
+    /**
      * Tracking starts, with [remainingTime] seconds left in the slider.
      */
     abstract fun playTrackingStart(scale: Float, remainingTime: Float)

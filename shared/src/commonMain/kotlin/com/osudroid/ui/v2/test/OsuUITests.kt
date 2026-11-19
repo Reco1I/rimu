@@ -20,6 +20,8 @@ import com.reco1l.verktex.ui.Badge
 import com.osudroid.ui.v2.game.CursorEntity
 import com.osudroid.game.HitResult
 import com.osudroid.ui.v2.skin.DefaultSkin
+import com.osudroid.ui.v2.skin.FollowCirclePiece
+import com.osudroid.ui.v2.skin.SliderBallPiece
 import com.osudroid.ui.v2.skin.GameplaySkin
 import com.osudroid.ui.v2.skin.JudgementPiece
 import com.osudroid.ui.v2.skin.MainCirclePiece
@@ -170,8 +172,30 @@ object OsuUITests : UITestSuite("osu!") {
                                     judgements += skin.create(SkinComponent.Judgement(texture))!!.also { +it }
                                 }
                             }
+                        }
 
-                            rows += Row(circle, approach, judgements)
+                        linearContainer {
+                            spacing = 24f.dip
+
+                            // The pieces of sliders, the follow circle at half its size to fit.
+                            for (component in listOf(
+                                SkinComponent.SliderBall, SkinComponent.FollowCircle, SkinComponent.ReverseArrow,
+                                SkinComponent.SliderTick,
+                            )) {
+                                container {
+                                    width = 160f.px
+                                    height = 160f.px
+
+                                    +skin.create(component)!!.also {
+                                        it.anchor = Anchor.Center
+                                        if (it is SliderBallPiece) it.setComboColor(COMBO_COLORS[2])
+                                        if (it is FollowCirclePiece) {
+                                            it.setComboColor(COMBO_COLORS[2])
+                                            it.scale = 0.5f
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

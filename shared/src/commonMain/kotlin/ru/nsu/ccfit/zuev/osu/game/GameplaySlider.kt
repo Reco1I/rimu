@@ -977,6 +977,7 @@ class GameplaySlider : GameObject() {
             isInRadius = false
 
             ball.setComboColor(circleColor)
+            followCircle.setComboColor(circleColor)
 
             // Above the bodies of every object, as the approach circles.
             for (piece in arrayOf(ball, followCircle)) {

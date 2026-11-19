@@ -19,8 +19,13 @@ object DefaultSkin : GameplaySkin {
         SkinComponent.SliderTailCircle,
         SkinComponent.ApproachCircle,
         SkinComponent.TraceableApproachCircle,
+        SkinComponent.ReverseArrow,
+        SkinComponent.SliderTick,
+        SkinComponent.SliderBall,
+        SkinComponent.FollowCircle,
+        SkinComponent.SliderBody,
         is SkinComponent.Judgement -> true
-        else -> false
+        SkinComponent.HitLighting -> false
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -28,8 +33,13 @@ object DefaultSkin : GameplaySkin {
         SkinComponent.HitCircle, SkinComponent.SliderHeadCircle -> DefaultMainCirclePiece(hasNumber = true)
         SkinComponent.SliderTailCircle -> DefaultMainCirclePiece(hasNumber = false)
         SkinComponent.ApproachCircle, SkinComponent.TraceableApproachCircle -> DefaultApproachCircle()
+        SkinComponent.ReverseArrow -> DefaultReverseArrow()
+        SkinComponent.SliderTick -> DefaultSliderTick()
+        SkinComponent.SliderBall -> DefaultSliderBallPiece()
+        SkinComponent.FollowCircle -> DefaultFollowCirclePiece()
+        SkinComponent.SliderBody -> DefaultSliderBodyStyle
         is SkinComponent.Judgement -> DefaultJudgementPiece(component.textureName)
-        else -> null
+        SkinComponent.HitLighting -> null
     } as T?
 }
 

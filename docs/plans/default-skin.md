@@ -244,7 +244,25 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      an approach, a hit and every judgement. `DefaultSkinTest` covers what it provides and the approach circle's
      size. Pieces with text can't be built in unit tests, which have no fonts.
 
-3. **Procedural sliders**: body style, head, tail, reverse arrow, ticks, ball and follow circle.
+3. **Procedural sliders** (done): body style, head, tail, reverse arrow, ticks, ball and follow circle.
+
+   ### Phase 3 as done
+
+   - `DefaultSkin` provides every piece of sliders (`skin/DefaultSliderPieces.kt`):
+     - **Body** (`DefaultSliderBodyStyle`): continues the circles at its ends, as `ArgonSliderBody` does. Its
+       border is the circles' band of the combo colour, from 0.6 to 0.86 of their size. Inside is their dark centre,
+       at 0.9 alpha. There is no shadow. Argon ignores the slider border colour, and so does this body: its band is
+       the combo colour.
+     - **Ball** (`DefaultSliderBallPiece`, 118 like `sliderb`): a gradient disc of the combo colour in a white
+       ring, with a white dot ahead of it turning with the direction. It isn't mirrored on the spans going back.
+     - **Follow circle** (`DefaultFollowCirclePiece`, 256): a white ring with a glow around a faint disc of the
+       combo colour. Its reactions to tracking, ticks and the end are choreography at the gameplay clock's time.
+     - **Reverse arrow** (`DefaultReverseArrow`, 128): Font Awesome's white chevron with a soft shadow, which the
+       slider turns and pulses as before.
+     - **Tick** (`DefaultSliderTick`, 16): a white ring around a dark centre.
+   - `FollowCirclePiece` got `setComboColor`, called when the span starts.
+   - The `osu!/Default skin` UI test also shows the slider pieces of both skins.
+
 4. **Procedural spinner.** Adds the arc component in the engine.
 5. **Procedural follow points, cursor and trail.** Adds the texture made at runtime, if the engine needs it.
 6. **HUD**: Torus counters with fixed-width digits (an engine change), and the procedural health bar.
