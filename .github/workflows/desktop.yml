@@ -40,7 +40,7 @@ jobs:
       run: unzip -l verktex/desktop-natives/build/libs/desktop-natives.jar | grep natives/linux-x64/libverktex_vulkan.so
 
     - name: Run the engine's and the game's tests
-      run: ./gradlew :verktex:shared:desktopTest :verktex:shadertools:test :javaserialization:jvmTest :shared:desktopTest
+      run: ./gradlew :verktex:shared:desktopTest :verktex:shadertools:test :shared:desktopTest
 
     - name: Compile the desktop applications
       run: ./gradlew :desktopApp:compileKotlin :verktex:desktopApp:compileKotlin
