@@ -33,13 +33,18 @@ internal fun torusText(size: Float) = Text().apply {
 }
 
 /**
- * Moves [text], a [torusText] centred in its parent, so that the ink of its glyphs is centred rather than its line,
- * which has room above and below them, and the sides of its first and last glyphs.
+ * Places [text], a [torusText], with the centre of the ink of its glyphs at ([x], [y]) in its parent: not the centre
+ * of its line, which has room above and below the glyphs, and the sides of the first and last ones.
+ *
+ * It's placed by hand rather than by its anchor: it's laid out at the size it's rasterised at, which its parent's size
+ * would clamp, while it's drawn whole.
  */
-internal fun centreInk(text: Text) {
-    val content = text.text
-    if (content.isEmpty()) return
+internal fun placeText(text: Text, x: Float, y: Float) {
+    text.anchor = Anchor.TopLeft
+    text.origin = Anchor.TopLeft
+    text.scaleOrigin = Anchor.TopLeft
 
+    val content = text.text
     val font = BuiltIn.Fonts.Torus[text.fontSize]
     val baseline = -font.metrics.ascent
 
@@ -54,15 +59,23 @@ internal fun centreInk(text: Text) {
         bottom = max(bottom, baseline + glyph.bearingY + glyph.height)
     }
 
-    val first = font[content.first().code]
-    val last = font[content.last().code]
-    val left = first.bearingX
-    val right = width - last.advance + last.bearingX + last.width
+    if (content.isEmpty()) {
+        top = 0f
+        bottom = 0f
+    }
 
-    // In the parent's units: the text is rasterised larger and scaled down.
+    val left = if (content.isEmpty()) 0f else font[content.first().code].bearingX
+    val right = if (content.isEmpty()) 0f else {
+        val last = font[content.last().code]
+        width - last.advance + last.bearingX + last.width
+    }
+
+    // The text is rasterised larger and scaled down.
     val scale = text.scaleX
-    text.translationX = ((width - left - right) / 2f * scale).px
-    text.translationY = ((font.metrics.lineHeight - top - bottom) / 2f * scale).px
+    text.x = (x - (left + right) / 2f * scale).px
+    text.y = (y - (top + bottom) / 2f * scale).px
+    text.translationX = 0f.px
+    text.translationY = 0f.px
 }
 
 /**
@@ -150,7 +163,7 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
     override fun setComboNumber(value: Int) {
         number.text = value.toString()
         reset()
-        centreInk(number)
+        placeText(number, size / 2, size / 2)
     }
 
     override fun showNumber() {

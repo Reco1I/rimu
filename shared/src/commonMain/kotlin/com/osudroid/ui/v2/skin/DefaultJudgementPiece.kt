@@ -75,7 +75,7 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
         +explosion
         +text
 
-        centreInk(text)
+        placeText(text, size.width / 2, size.height / 2)
     }
 
 
@@ -101,7 +101,8 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
             explosion.choreographAt(time) { sequence ->
                 sequence.fadeTo(RING_ALPHA)
                     .scaleTo(1.1f, RING_DURATION, Easing.OutQuint)
-                    .fadeOut(RING_DURATION, Easing.OutQuint)
+                    // Seen as it grows, then gone.
+                    .fadeOut(RING_DURATION, Easing.InQuad)
                 endTime = maxOf(endTime, sequence.endTime)
             }
         }

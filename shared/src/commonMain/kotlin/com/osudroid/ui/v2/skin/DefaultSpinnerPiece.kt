@@ -87,17 +87,22 @@ class DefaultSpinnerPiece : SpinnerPiece() {
         +centre
     }
 
-    // Placed in the layer's space, from their centre.
-    private val spinText = torusText(36f).apply { anchor = Anchor.TopLeft; text = "SPIN"; centreInk(this) }
-    private val clearText = torusText(60f).apply { anchor = Anchor.TopLeft; text = "CLEAR"; centreInk(this) }
-    private val bonusScore = torusText(48f).apply { anchor = Anchor.TopLeft }
+    private val spinText = torusText(36f).apply { text = "SPIN" }
+    private val clearText = torusText(60f).apply { text = "CLEAR" }
+    private val bonusScore = torusText(48f)
+
+    // Where the bonus is centred, in the layer's space.
+    private var bonusX = 0f
+    private var bonusY = 0f
 
 
     override fun layout(centerX: Float, centerY: Float, spaceWidth: Float) {
         spinnerDisc.setPosition(centerX, centerY)
-        spinText.setPosition(centerX, centerY + size * 0.6f)
-        clearText.setPosition(centerX, centerY - size * 0.25f)
-        bonusScore.setPosition(centerX, centerY + size * 0.25f)
+        placeText(spinText, centerX, centerY + size * 0.6f)
+        placeText(clearText, centerX, centerY - size * 0.25f)
+        bonusX = centerX
+        bonusY = centerY + size * 0.25f
+        placeText(bonusScore, bonusX, bonusY)
     }
 
     override fun start(hitTime: Float, duration: Float, timePreempt: Float, isBackgroundVisible: Boolean, isApproachCircleVisible: Boolean) {
@@ -132,28 +137,22 @@ class DefaultSpinnerPiece : SpinnerPiece() {
     override fun playCleared(animate: Boolean): Component {
         if (animate) {
             clearText.clearAnimations()
+            // It fades in only: scaling it would move it, as it's placed from its top left corner.
             clearText.alpha = 0f
-            clearText.scale = 1.5f / DefaultSkin.TEXT_RESOLUTION
-            clearText.choreographNow { sequence -> sequence
-                .fadeIn(0.25f)
-                .scaleTo(1f / DefaultSkin.TEXT_RESOLUTION, 0.25f, Easing.OutQuint) }
+            clearText.choreographNow { sequence -> sequence.fadeIn(0.25f, Easing.OutQuint) }
         }
         return clearText
     }
 
     override fun playBonus(score: Int, animate: Boolean): Component {
         bonusScore.text = score.toString()
-        centreInk(bonusScore)
+        placeText(bonusScore, bonusX, bonusY)
 
         if (animate) {
             // The centre flashes with each bonus spin.
             centre.clearAnimations()
             centre.choreographNow { sequence -> sequence.colorTo(GLOW).colorTo(Color4.White, 0.2f) }
 
-            bonusScore.clearAnimations()
-            bonusScore.choreographNow { sequence -> sequence
-                .scaleTo(1.2f / DefaultSkin.TEXT_RESOLUTION)
-                .scaleTo(1f / DefaultSkin.TEXT_RESOLUTION, 0.2f, Easing.OutQuint) }
         }
         return bonusScore
     }
