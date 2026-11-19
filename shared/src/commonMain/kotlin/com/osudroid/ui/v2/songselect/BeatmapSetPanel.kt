@@ -18,8 +18,12 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.wrap
-import com.reco1l.verktex.math.interpolateColor
-import com.reco1l.verktex.math.interpolateFloat
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.ui.animatableColor
+import com.reco1l.verktex.ui.animatableFloat
+import com.reco1l.verktex.ui.animate
+import com.reco1l.verktex.ui.animateColor
+import com.reco1l.verktex.ui.transitionSlot
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.Sprite
@@ -37,13 +41,6 @@ import com.reco1l.verktex.ui.text.text
 import kotlin.math.abs
 import kotlin.random.*
 import com.reco1l.verktex.ui.themed
-
-/**
- * Moves towards [end], jumping to it once it is closer than [snapBy].
- */
-internal fun FrameClock.interpolateWithSnap(duration: Float, start: Float, end: Float, snapBy: Float): Float {
-    return if (abs(end - start) < snapBy) end else interpolateFloat(duration, start, end)
-}
 
 
 class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableComponent<BeatmapSetModel>(), IPanelContainer<BeatmapPanel> {
@@ -90,7 +87,12 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
      * Whether the panel is expanded or not.
      */
     var isExpanded = false
-        private set
+        private set(value) {
+            if (field != value) {
+                field = value
+                animateExpansion(value)
+            }
+        }
 
 
     /**
@@ -237,44 +239,53 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
 
 
     override fun onUpdate(clock: FrameClock) {
-        val accent = Verktex.theme.palette.accent
-
-        val targetExtraWidth = if (isExpanded) EXPANDED_EXTRA_WIDTH.dip.toPixels() else 0f
-        val targetBorderColor = if (isExpanded) accent else accent.alpha(0.3f)
-
-        buttonExtraWidth = clock.interpolateWithSnap(0.1f, buttonExtraWidth, targetExtraWidth, 0.5f)
-
-        buttonGlow = clock.interpolateWithSnap(0.1f, buttonGlow, if (isExpanded) 1f else 0f, 0.01f)
-
-        button.apply {
-            borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
-            shadow = if (buttonGlow > 0f) Shadow(accent.alpha(GLOW_ALPHA * buttonGlow), blur = GLOW_BLUR.dip, cutout = true) else Shadow.None
-        }
+        // The overhang of the carrousel can change while scrolling.
         updateTranslation()
-
-        // A fraction of the height of the content, measuring it with a fixed height would limit
-        // the panels to that height.
-        val targetPanelsExpansion = if (isExpanded) 1f else 0f
-        val targetPanelsAlpha = if (isExpanded) 1f else 0f
-
-        panelsExpansion = clock.interpolateWithSnap(0.1f, panelsExpansion, targetPanelsExpansion, 0.005f)
-
-        panelsContainer.apply {
-            height = wrap(panelsExpansion)
-            alpha = clock.interpolateWithSnap(0.1f, alpha, targetPanelsAlpha, 0.1f)
-        }
-
-        isTransitioning = buttonExtraWidth != targetExtraWidth
-            || buttonGlow != (if (isExpanded) 1f else 0f)
-            || button.borderColor != targetBorderColor
-            || panelsExpansion != targetPanelsExpansion
-            || panelsContainer.alpha != targetPanelsAlpha
-
-        if (!isExpanded && !isTransitioning && panelsContainer.childCount > 0) {
-            panelsContainer.clearChildren()
-        }
-
         super.onUpdate(clock)
+    }
+
+    private val expansion = transitionSlot()
+
+    private val buttonExtraWidthProperty = animatableFloat({ buttonExtraWidth }, {
+        buttonExtraWidth = it
+        updateTranslation()
+    })
+
+    private val buttonGlowProperty = animatableFloat({ buttonGlow }, {
+        buttonGlow = it
+        val accent = Verktex.theme.palette.accent
+        button.shadow = if (it > 0f) Shadow(accent.alpha(GLOW_ALPHA * it), blur = GLOW_BLUR.dip, cutout = true) else Shadow.None
+    })
+
+    private val buttonBorderColorProperty by lazy { animatableColor({ button.borderColor }, { button.borderColor = it }) }
+
+    // A fraction of the height of the content, measuring it with a fixed height would limit the panels to that height.
+    private val panelsExpansionProperty = animatableFloat({ panelsExpansion }, {
+        panelsExpansion = it
+        panelsContainer.height = wrap(it)
+    })
+
+    private val panelsAlphaProperty = animatableFloat({ panelsContainer.alpha }, { panelsContainer.alpha = it })
+
+    private fun animateExpansion(expanded: Boolean) {
+        val accent = Verktex.theme.palette.accent
+        val target = if (expanded) 1f else 0f
+
+        isTransitioning = true
+
+        expansion.run {
+            animate(buttonExtraWidthProperty, if (expanded) EXPANDED_EXTRA_WIDTH.dip.toPixels() else 0f, EXPANSION_DURATION, Easing.OutQuint)
+            animate(buttonGlowProperty, target, EXPANSION_DURATION, Easing.OutQuint)
+            animateColor(buttonBorderColorProperty, if (expanded) accent else accent.alpha(0.3f), EXPANSION_DURATION, Easing.OutQuint)
+            animate(panelsAlphaProperty, target, EXPANSION_DURATION, Easing.OutQuint)
+            animate(panelsExpansionProperty, target, EXPANSION_DURATION, Easing.OutQuint).after {
+                isTransitioning = false
+
+                if (!isExpanded) {
+                    panelsContainer.clearChildren()
+                }
+            }
+        }
     }
 
     fun expand() {
@@ -324,10 +335,15 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         isExpanded = false
         selectedPanel = null
 
-        // The next beatmap set must not show the difficulties of this one, even for a frame.
+        // Collapsed at once: the next beatmap set must not show the difficulties of this one, even for a frame.
+        expansion.cancel()
+        isTransitioning = false
         panelsContainer.clearChildren()
-        panelsContainer.alpha = 0f
-        panelsExpansion = 0f
+        panelsAlphaProperty.value = 0f
+        panelsExpansionProperty.value = 0f
+        buttonExtraWidthProperty.value = 0f
+        buttonGlowProperty.value = 0f
+        buttonBorderColorProperty.value = Verktex.theme.palette.accent.alpha(0.3f)
     }
 
 
@@ -342,5 +358,6 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         private const val EXPANDED_EXTRA_WIDTH = 48f
         private const val GLOW_ALPHA = 0.15f
         private const val GLOW_BLUR = 24f
+        private const val EXPANSION_DURATION = 0.1f
     }
 }

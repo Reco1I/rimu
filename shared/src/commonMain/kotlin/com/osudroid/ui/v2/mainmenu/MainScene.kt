@@ -44,7 +44,11 @@ import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.math.FloatInterpolation
+import com.reco1l.verktex.ui.animatableFloat
+import com.reco1l.verktex.ui.animate
+import com.reco1l.verktex.ui.fadeTo
+import com.reco1l.verktex.ui.moveToX
+import com.reco1l.verktex.ui.transitionSlot
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
@@ -116,6 +120,12 @@ class MainScene : Scene() {
     private lateinit var menuGradientBox: GradientBox
 
     private var isMenuExpanded = false
+        set(value) {
+            if (field != value) {
+                field = value
+                animateMenu(value)
+            }
+        }
     private var isExiting = false
     private var hasEntered = false
 
@@ -136,8 +146,18 @@ class MainScene : Scene() {
 
     private var menuWidth = 0f
     private var menuContentWidth = 0f
-    private var musicButtonTranslation = 0f
-    private var playerButtonTranslation = 0f
+    private var isMusicButtonShown = false
+
+    private val logoTransition by lazy { logo.transitionSlot() }
+    private val menuTransition by lazy { menuContainer.transitionSlot() }
+    private val menuGradientTransition by lazy { menuGradientBox.transitionSlot() }
+    private val playerButtonTransition by lazy { playerButton.transitionSlot() }
+    private val musicButtonTransition by lazy { musicButtonHolder.transitionSlot() }
+
+    private val menuWidthProperty = animatableFloat({ menuWidth }, {
+        menuWidth = it
+        menuContainer.width = it.px
+    })
 
 
     init {
@@ -215,6 +235,8 @@ class MainScene : Scene() {
                     onMenuInteraction()
                 }
 
+                // Bigger while the menu is folded, see animateMenu.
+                scale = 1.3f
                 logo = this
             }
 
@@ -307,6 +329,9 @@ class MainScene : Scene() {
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
                 scaleOrigin = Anchor.Center
+                // Hidden with the menu, see animateMenu.
+                alpha = 0f
+                translationX = (-32f).dip
                 playerButton = this
             }
 
@@ -332,15 +357,15 @@ class MainScene : Scene() {
         RythimManager.addOnBeatChangeListener(this) {
             if (!RythimManager.isKiai) {
                 if (RythimManager.beatIndex == 0) {
-                    leftFlash.alpha = 0.35f
-                    rightFlash.alpha = 0.35f
+                    flash(leftFlash, 0.35f)
+                    flash(rightFlash, 0.35f)
                 }
             } else {
                 // +1 Because 0 is also even and we don't want double flashes on the first beat
                 if ((RythimManager.beatIndex + 1) % 2 == 0) {
-                    leftFlash.alpha = 0.4f
+                    flash(leftFlash, 0.4f)
                 } else {
-                    rightFlash.alpha = 0.4f
+                    flash(rightFlash, 0.4f)
                 }
             }
 
@@ -563,106 +588,51 @@ class MainScene : Scene() {
             }
         }
 
-        logo.scale = FloatInterpolation.floatAt(
-            deltaTimeSec.coerceIn(0f, 0.1f),
-            logo.scaleX,
-            if (isMenuExpanded) 1f else 1.3f,
-            0f,
-            0.1f
-        )
-
-        // Music button
+        // Shown while it might be used: checked every update as it also depends on the time.
         val mightShowMusicButton =
             isMenuExpanded || musicPlayer.isShown || currentTimeMillis() - lastMusicChange < 3000
 
-        musicButtonTranslation = FloatInterpolation.floatAt(
-            deltaTimeSec.coerceIn(0f, 0.05f),
-            musicButtonTranslation,
-            if (mightShowMusicButton) 0f else 32f.dip.toPixels(),
-            0f,
-            0.05f
-        )
-        musicButtonHolder.translationX = musicButtonTranslation.px
-        musicButtonHolder.alpha = FloatInterpolation.floatAt(
-            deltaTimeSec.coerceIn(0f, 0.05f),
-            musicButtonHolder.alpha,
-            if (mightShowMusicButton) 1f else 0f,
-            0f,
-            0.05f
-        )
+        if (mightShowMusicButton != isMusicButtonShown) {
+            isMusicButtonShown = mightShowMusicButton
+            musicButtonTransition.run {
+                moveToX(if (mightShowMusicButton) 0f else 32f.dip.toPixels(), BUTTON_SLIDE_DURATION, Easing.OutQuint)
+                fadeTo(if (mightShowMusicButton) 1f else 0f, BUTTON_SLIDE_DURATION, Easing.OutQuint)
+            }
+        }
 
         updateKiaiParticles(deltaTimeSec)
 
-        // Beat animations
-        val beatLengthSeconds =
-            RythimManager.beatLength.toFloat() / 1000f * (if (RythimManager.isKiai) 1f else RythimManager.beatSignature.toFloat())
-        leftFlash.alpha = FloatInterpolation.floatAt(
-            deltaTimeSec.coerceIn(0f, beatLengthSeconds),
-            leftFlash.alpha,
-            0f,
-            0f,
-            beatLengthSeconds
-        )
-        rightFlash.alpha = FloatInterpolation.floatAt(
-            deltaTimeSec.coerceIn(0f, beatLengthSeconds),
-            rightFlash.alpha,
-            0f,
-            0f,
-            beatLengthSeconds
-        )
+        super.onUpdate(clock)
+    }
 
-        // Menu expansion animations
+    private fun animateMenu(expanded: Boolean) {
         // The content is measured by itself, inside the container it would be limited to the width being animated.
         if (menuContentWidth <= 0f && menuContainer.childCount > 0) {
-            val unbounded =
-                LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
-            menuContentWidth =
-                menuContainer[0].measure(unbounded).x + menuContainer.paddingLeft.toPixels()
+            val unbounded = LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
+            menuContentWidth = menuContainer[0].measure(unbounded).x + menuContainer.paddingLeft.toPixels()
         }
 
-        menuWidth = FloatInterpolation.floatAt(
-            deltaTimeSec.coerceIn(0f, 0.2f),
-            menuWidth,
-            if (isMenuExpanded) menuContentWidth else 0f,
-            0f,
-            0.2f,
-            Easing.OutQuint
-        )
-        menuContainer.width = menuWidth.px
-        menuContainer.alpha = FloatInterpolation.floatAt(
-            deltaTimeSec.coerceIn(0f, 0.2f),
-            menuContainer.alpha,
-            if (isMenuExpanded) 1f else 0f,
-            0f,
-            0.2f,
-            Easing.OutQuint
-        )
-        menuGradientBox.alpha = FloatInterpolation.floatAt(
-            deltaTimeSec.coerceIn(0f, 0.4f),
-            menuGradientBox.alpha,
-            if (isMenuExpanded) 1f else 0f,
-            0f,
-            0.4f,
-            Easing.OutQuint
-        )
+        logoTransition.run { scaleTo(if (expanded) 1f else 1.3f, LOGO_SCALE_DURATION, Easing.OutQuint) }
 
-        playerButtonTranslation = FloatInterpolation.floatAt(
-            deltaTimeSec.coerceIn(0f, 0.05f),
-            playerButtonTranslation,
-            if (isMenuExpanded) 0f else (-32f).dip.toPixels(),
-            0f,
-            0.05f
-        )
-        playerButton.translationX = playerButtonTranslation.px
-        playerButton.alpha = FloatInterpolation.floatAt(
-            deltaTimeSec.coerceIn(0f, 0.05f),
-            playerButton.alpha,
-            if (isMenuExpanded) 1f else 0f,
-            0f,
-            0.05f
-        )
+        menuTransition.run {
+            animate(menuWidthProperty, if (expanded) menuContentWidth else 0f, MENU_DURATION, Easing.OutQuint)
+            fadeTo(if (expanded) 1f else 0f, MENU_DURATION, Easing.OutQuint)
+        }
+        menuGradientTransition.run { fadeTo(if (expanded) 1f else 0f, MENU_GRADIENT_DURATION, Easing.OutQuint) }
 
-        super.onUpdate(clock)
+        playerButtonTransition.run {
+            moveToX(if (expanded) 0f else (-32f).dip.toPixels(), BUTTON_SLIDE_DURATION, Easing.OutQuint)
+            fadeTo(if (expanded) 1f else 0f, BUTTON_SLIDE_DURATION, Easing.OutQuint)
+        }
+    }
+
+    // On a beat, a flash lights up and fades out over the length of the beat.
+    private fun flash(flash: GradientBox, alpha: Float) {
+        val beatLengthSeconds =
+            RythimManager.beatLength.toFloat() / 1000f * (if (RythimManager.isKiai) 1f else RythimManager.beatSignature.toFloat())
+
+        flash.alpha = alpha
+        flash.fadeOut(beatLengthSeconds * 2f, Easing.OutQuad)
     }
 
 
@@ -670,6 +640,11 @@ class MainScene : Scene() {
 
         // Seconds the expanded menu waits without being used before folding back.
         private const val MENU_IDLE_TIMEOUT = 10f
+
+        private const val LOGO_SCALE_DURATION = 0.4f
+        private const val MENU_DURATION = 0.3f
+        private const val MENU_GRADIENT_DURATION = 0.5f
+        private const val BUTTON_SLIDE_DURATION = 0.25f
 
         private const val BACKGROUND_FADE_DURATION = 1.5f
         private const val KIAI_PARTICLE_DURATION = 2f

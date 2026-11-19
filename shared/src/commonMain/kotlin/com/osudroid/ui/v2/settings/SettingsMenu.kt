@@ -18,7 +18,7 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.math.interpolateFloat
+import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.Button.Variant
@@ -210,6 +210,7 @@ class SettingsMenu : Scene() {
 
     fun generateSection(content: List<SettingsCategory>) {
         sectionContainer.alpha = 0f
+        sectionContainer.fadeIn(0.2f, Easing.OutQuint)
         sectionContainer.clearChildren()
         sectionScroll.scrollY = 0f
 
@@ -337,12 +338,6 @@ class SettingsMenu : Scene() {
         }
 
         return control
-    }
-
-
-    override fun onUpdate(clock: FrameClock) {
-        sectionContainer.alpha = clock.interpolateFloat(0.2f, sectionContainer.alpha, 1f)
-        super.onUpdate(clock)
     }
 
 

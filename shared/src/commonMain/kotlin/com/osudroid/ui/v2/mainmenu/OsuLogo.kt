@@ -8,7 +8,10 @@ import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.rgb
 import com.reco1l.verktex.graphics.CompareFunction
 import com.reco1l.verktex.graphics.DepthState
-import com.reco1l.verktex.math.FloatInterpolation
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.math.interpolateFloat
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.GradientBox
 import com.reco1l.verktex.ui.container.ClickableContainer
@@ -24,6 +27,12 @@ class OsuLogo(withExternalEffects: Boolean = true) : ClickableContainer() {
      * Whether to play music effects.
      */
     var playEffects = withExternalEffects
+        set(value) {
+            if (field != value) {
+                field = value
+                if (!value) stopEffects()
+            }
+        }
 
 
     private lateinit var inputFeedbackCircle: Circle
@@ -123,28 +132,26 @@ class OsuLogo(withExternalEffects: Boolean = true) : ClickableContainer() {
 
     fun playClickEffect() {
         inputFeedbackCircle.alpha = 0.9f
+        inputFeedbackCircle.fadeOut(0.4f, Easing.OutQuint)
+    }
+
+    // Stops the music effects, fading them out and settling the bounce.
+    private fun stopEffects() {
+        bounceContainer.scaleTo(1f, 0.4f, Easing.OutQuint)
+        radialVisualizer?.fadeOut(0.4f, Easing.OutQuint)
+        rippleDispenser?.fadeOut(0.4f, Easing.OutQuint)
     }
 
     override fun onUpdate(clock: FrameClock) {
-        val deltaTimeSec = clock.elapsedFrameTime
-
         if (playEffects) {
+            // The bounce follows the position in the beat of the music, so it's smoothed towards it: it shrinks in
+            // the last quarter of the beat and grows back over the rest.
             val beatLengthSeconds = RythimManager.beatLength.toFloat() / 1000f
+            val isInLastQuarter = RythimManager.beatElapsed / 1000f >= beatLengthSeconds * 0.75f
+            val smoothing = beatLengthSeconds * (if (isInLastQuarter) 0.25f else 0.75f) * 5f
 
-            if (RythimManager.beatElapsed / 1000f < beatLengthSeconds * 0.75f) {
-                val threeQuarts = beatLengthSeconds * 0.75f
-                bounceContainer.scale = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, threeQuarts), bounceContainer.scaleX, 1f, 0f, threeQuarts)
-            } else {
-                val oneQuart = beatLengthSeconds * 0.25f
-                bounceContainer.scale = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, oneQuart), bounceContainer.scaleX, 0.9f, 0f, oneQuart)
-            }
-        } else {
-            bounceContainer.scale = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), bounceContainer.scaleX, 1f, 0f, 0.1f)
-            radialVisualizer?.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), radialVisualizer?.alpha ?: 0f, 0f, 0f, 0.1f)
-            rippleDispenser?.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), rippleDispenser?.alpha ?: 0f, 0f, 0f, 0.1f)
+            bounceContainer.scale = clock.interpolateFloat(smoothing, bounceContainer.scaleX, if (isInLastQuarter) 0.9f else 1f)
         }
-
-        inputFeedbackCircle.alpha = FloatInterpolation.floatAt(deltaTimeSec.coerceIn(0f, 0.1f), inputFeedbackCircle.alpha, 0f, 0f, 0.1f)
 
         super.onUpdate(clock)
     }

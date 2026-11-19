@@ -13,7 +13,12 @@ import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.math.interpolateColor
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.ui.animatableColor
+import com.reco1l.verktex.ui.animatableFloat
+import com.reco1l.verktex.ui.animate
+import com.reco1l.verktex.ui.animateColor
+import com.reco1l.verktex.ui.transitionSlot
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.Badge
 import com.reco1l.verktex.ui.container.ClickableContainer
@@ -26,6 +31,12 @@ import com.reco1l.verktex.ui.themed
 open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: BeatmapInfo) : ClickableContainer() {
 
     private var isExpanded = false
+        set(value) {
+            if (field != value) {
+                field = value
+                animateExpansion(value)
+            }
+        }
 
     private var currentExtraWidth = 0f
 
@@ -85,20 +96,34 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
     }
 
     override fun onUpdate(clock: FrameClock) {
+        // The overhang of the carrousel can change while scrolling.
+        updateTranslation()
+        super.onUpdate(clock)
+    }
+
+    private val expansion = transitionSlot()
+
+    private val extraWidthProperty = animatableFloat({ currentExtraWidth }, {
+        currentExtraWidth = it
+        updateTranslation()
+    })
+
+    private val glowProperty = animatableFloat({ glow }, {
+        glow = it
+        val accent = Verktex.theme.palette.accent
+        shadow = if (it > 0f) Shadow(accent.alpha(GLOW_ALPHA * it), blur = GLOW_BLUR.dip, cutout = true) else Shadow.None
+    })
+
+    private val borderColorProperty = animatableColor({ borderColor }, { borderColor = it })
+
+    private fun animateExpansion(expanded: Boolean) {
         val accent = Verktex.theme.palette.accent
 
-        val targetBorderColor = if (isExpanded) accent else accent.alpha(0.3f)
-        val targetExtraWidth = if (isExpanded) EXPANDED_EXTRA_WIDTH.dip.toPixels() else 0f
-
-        borderColor = clock.interpolateColor(0.1f, borderColor, targetBorderColor)
-
-        currentExtraWidth = clock.interpolateWithSnap(0.1f, currentExtraWidth, targetExtraWidth, 0.5f)
-        updateTranslation()
-
-        glow = clock.interpolateWithSnap(0.1f, glow, if (isExpanded) 1f else 0f, 0.01f)
-        shadow = if (glow > 0f) Shadow(accent.alpha(GLOW_ALPHA * glow), blur = GLOW_BLUR.dip, cutout = true) else Shadow.None
-
-        super.onUpdate(clock)
+        expansion.run {
+            animateColor(borderColorProperty, if (expanded) accent else accent.alpha(0.3f), EXPANSION_DURATION, Easing.OutQuint)
+            animate(extraWidthProperty, if (expanded) EXPANDED_EXTRA_WIDTH.dip.toPixels() else 0f, EXPANSION_DURATION, Easing.OutQuint)
+            animate(glowProperty, if (expanded) 1f else 0f, EXPANSION_DURATION, Easing.OutQuint)
+        }
     }
 
 
@@ -120,5 +145,6 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         const val EXPANDED_EXTRA_WIDTH = 96f
         const val GLOW_ALPHA = 0.15f
         const val GLOW_BLUR = 24f
+        const val EXPANSION_DURATION = 0.1f
     }
 }
