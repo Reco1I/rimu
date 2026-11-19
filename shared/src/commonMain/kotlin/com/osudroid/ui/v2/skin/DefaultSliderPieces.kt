@@ -92,7 +92,7 @@ class DefaultFollowCirclePiece : FollowCirclePiece() {
 
     private val size = SkinDimensions.FOLLOW_CIRCLE.width
 
-    private val fill = disc(size * 0.96f).apply { alpha = 0.25f }
+    private val fill = disc(size * 0.96f).apply { color = Color4.White.alpha(FILL_ALPHA) }
 
     init {
         width = size.px
@@ -107,7 +107,8 @@ class DefaultFollowCirclePiece : FollowCirclePiece() {
 
 
     override fun setComboColor(color: Color4) {
-        fill.color = color
+        // The colour carries the alpha.
+        fill.color = color.alpha(FILL_ALPHA)
     }
 
     override fun playTrackingStart(scale: Float, remainingTime: Float) {
@@ -146,6 +147,10 @@ class DefaultFollowCirclePiece : FollowCirclePiece() {
             endTime = sequence.endTime
         }
         return endTime
+    }
+
+    private companion object {
+        const val FILL_ALPHA = 0.1f
     }
 }
 

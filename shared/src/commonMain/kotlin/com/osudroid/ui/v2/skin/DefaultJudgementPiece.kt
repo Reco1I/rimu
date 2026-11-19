@@ -64,7 +64,9 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
     }
 
     init {
-        val size = SkinDimensions.JUDGEMENT_GREAT
+        // As big as the ring bursting out of it, so its layout doesn't squeeze the ring. The text is the size of
+        // the default `hit300`, centred as it is.
+        val size = SkinDimensions.HIT_CIRCLE
 
         width = size.width.px
         height = size.height.px
@@ -72,6 +74,8 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
 
         +explosion
         +text
+
+        centreInk(text)
     }
 
 

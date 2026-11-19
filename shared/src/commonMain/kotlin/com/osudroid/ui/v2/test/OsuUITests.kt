@@ -172,6 +172,8 @@ object OsuUITests : UITestSuite("osu!") {
                                     judgements += skin.create(SkinComponent.Judgement(texture))!!.also { +it }
                                 }
                             }
+
+                            rows += Row(circle, approach, judgements)
                         }
 
                         linearContainer {

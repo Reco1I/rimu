@@ -34,11 +34,14 @@ class DefaultNumberText(private val digitHeight: Float) : NumberText() {
     init {
         // The size whose digits are digitHeight tall, from their height at 100 pixels.
         val probe = BuiltIn.Fonts.Torus[100f.px]
-        val digitRatio = probe['0'.code].bearingY / 100f
+        // The bearing is negative upwards from the baseline.
+        val digitRatio = -probe['0'.code].bearingY / 100f
         val fontSize = digitHeight / max(digitRatio, 0.01f)
 
         font = BuiltIn.Fonts.Torus[(fontSize * resolution).px]
-        digitTop = (font.metrics.ascent - font['0'.code].bearingY) / resolution
+        // The baseline is below the top of a line by the ascent, which is negative, and the top of the digits
+        // above it by their bearing, negative too.
+        digitTop = (-font.metrics.ascent + font['0'.code].bearingY) / resolution
     }
 
     override var text = ""

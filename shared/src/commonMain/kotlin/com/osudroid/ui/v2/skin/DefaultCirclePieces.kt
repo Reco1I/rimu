@@ -17,6 +17,7 @@ import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.ui.text.Text
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Text drawn in Torus at [size] in its parent's units, rasterised at [DefaultSkin.TEXT_RESOLUTION] times that, as the
@@ -29,6 +30,39 @@ internal fun torusText(size: Float) = Text().apply {
     fontSize = (size * DefaultSkin.TEXT_RESOLUTION).px
     scale = 1f / DefaultSkin.TEXT_RESOLUTION
     color = Color4.White
+}
+
+/**
+ * Moves [text], a [torusText] centred in its parent, so that the ink of its glyphs is centred rather than its line,
+ * which has room above and below them, and the sides of its first and last glyphs.
+ */
+internal fun centreInk(text: Text) {
+    val content = text.text
+    if (content.isEmpty()) return
+
+    val font = BuiltIn.Fonts.Torus[text.fontSize]
+    val baseline = -font.metrics.ascent
+
+    var width = 0f
+    var top = Float.MAX_VALUE
+    var bottom = -Float.MAX_VALUE
+    for (char in content) {
+        val glyph = font[char.code]
+        width += glyph.advance
+        // The bearing is negative upwards from the baseline.
+        top = min(top, baseline + glyph.bearingY)
+        bottom = max(bottom, baseline + glyph.bearingY + glyph.height)
+    }
+
+    val first = font[content.first().code]
+    val last = font[content.last().code]
+    val left = first.bearingX
+    val right = width - last.advance + last.bearingX + last.width
+
+    // In the parent's units: the text is rasterised larger and scaled down.
+    val scale = text.scaleX
+    text.translationX = ((width - left - right) / 2f * scale).px
+    text.translationY = ((font.metrics.lineHeight - top - bottom) / 2f * scale).px
 }
 
 /**
@@ -116,6 +150,7 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
     override fun setComboNumber(value: Int) {
         number.text = value.toString()
         reset()
+        centreInk(number)
     }
 
     override fun showNumber() {
@@ -143,6 +178,8 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
             part.alpha = 1f
         }
         flash.alpha = 0f
+        // The number is rasterised larger and shown smaller.
+        number.scale = 1f / DefaultSkin.TEXT_RESOLUTION
         number.alpha = if (isNumberShown) 1f else 0f
     }
 

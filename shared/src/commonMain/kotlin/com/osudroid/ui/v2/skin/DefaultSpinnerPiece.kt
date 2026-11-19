@@ -87,9 +87,10 @@ class DefaultSpinnerPiece : SpinnerPiece() {
         +centre
     }
 
-    private val spinText = torusText(36f).apply { text = "SPIN" }
-    private val clearText = torusText(60f).apply { text = "CLEAR" }
-    private val bonusScore = torusText(48f)
+    // Placed in the layer's space, from their centre.
+    private val spinText = torusText(36f).apply { anchor = Anchor.TopLeft; text = "SPIN"; centreInk(this) }
+    private val clearText = torusText(60f).apply { anchor = Anchor.TopLeft; text = "CLEAR"; centreInk(this) }
+    private val bonusScore = torusText(48f).apply { anchor = Anchor.TopLeft }
 
 
     override fun layout(centerX: Float, centerY: Float, spaceWidth: Float) {
@@ -142,6 +143,7 @@ class DefaultSpinnerPiece : SpinnerPiece() {
 
     override fun playBonus(score: Int, animate: Boolean): Component {
         bonusScore.text = score.toString()
+        centreInk(bonusScore)
 
         if (animate) {
             // The centre flashes with each bonus spin.
