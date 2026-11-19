@@ -15,7 +15,7 @@ class DefaultSkinTest {
             SkinComponent.ApproachCircle, SkinComponent.TraceableApproachCircle, SkinComponent.Judgement("hit300"),
             SkinComponent.SliderBody, SkinComponent.SliderBall, SkinComponent.FollowCircle, SkinComponent.ReverseArrow,
             SkinComponent.SliderTick, SkinComponent.Spinner, SkinComponent.FollowPoint, SkinComponent.Cursor,
-            SkinComponent.CursorTrail,
+            SkinComponent.CursorTrail, SkinComponent.HealthBar,
         )) {
             assertTrue("$component", DefaultSkin.provides(component))
         }

@@ -28,6 +28,9 @@ object DefaultSkin : GameplaySkin {
         SkinComponent.FollowPoint,
         SkinComponent.Cursor,
         SkinComponent.CursorTrail,
+        SkinComponent.ScoreFont,
+        SkinComponent.ComboFont,
+        SkinComponent.HealthBar,
         is SkinComponent.Judgement -> true
         SkinComponent.HitLighting -> false
     }
@@ -46,6 +49,8 @@ object DefaultSkin : GameplaySkin {
         SkinComponent.FollowPoint -> DefaultFollowPointPiece()
         SkinComponent.Cursor -> DefaultCursorPiece()
         SkinComponent.CursorTrail -> DefaultCursorTrailStyle
+        SkinComponent.ScoreFont, SkinComponent.ComboFont -> DefaultNumberText(SkinDimensions.SCORE_DIGIT_HEIGHT)
+        SkinComponent.HealthBar -> DefaultHealthBarPiece()
         is SkinComponent.Judgement -> DefaultJudgementPiece(component.textureName)
         SkinComponent.HitLighting -> null
     } as T?

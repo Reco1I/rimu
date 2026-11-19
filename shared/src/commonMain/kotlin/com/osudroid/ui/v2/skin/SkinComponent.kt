@@ -80,6 +80,21 @@ sealed class SkinComponent<T : Any> {
     data object CursorTrail : SkinComponent<CursorTrailStyle>()
 
     /**
+     * The numbers of the HUD but the combo: the score, the accuracy, the pp and the statistics.
+     */
+    data object ScoreFont : SkinComponent<NumberText>()
+
+    /**
+     * The combo of the HUD.
+     */
+    data object ComboFont : SkinComponent<NumberText>()
+
+    /**
+     * The health bar of the HUD.
+     */
+    data object HealthBar : SkinComponent<HealthBarPiece>()
+
+    /**
      * The light behind a judgement. Only texture skins have it.
      */
     data object HitLighting : SkinComponent<HitLightingPiece>()

@@ -315,7 +315,24 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      - `DefaultCursorTrailStyle` is a continuous trail of soft dots, a texture made once with
        `PixelsSource.softDot` and kept in `Textures` as `default-skin:cursortrail`.
 
-6. **HUD**: Torus counters with fixed-width digits (an engine change), and the procedural health bar.
+6. **HUD** (done): Torus counters with fixed-width digits (an engine change), and the procedural health bar.
+
+   ### Phase 6 as done
+
+   - **Numbers:** the HUD's numbers (score, accuracy, pp, combo and the statistics counters) are `NumberText`s from
+     the skin, `SkinComponent.ScoreFont` and `ComboFont`.
+     - `LegacyNumberText` wraps the texture font (`SpriteFont`) when the skin has its digits.
+     - `DefaultNumberText` is Torus, its digits as tall as the default `score-0` (46), so it takes a texture
+       font's space in the layout. Each character is a text in its own cell, so `useFixedDigitWidth` gives every
+       digit the widest one's width.
+     - This needed no engine change: `Text` didn't get fixed digit widths, the cells give them.
+   - **Health bar:** `HUDHealthBar` draws the skin's `HealthBarPiece`.
+     - `LegacyHealthBarPiece` is the old element, both texture styles.
+     - `DefaultHealthBarPiece` is laid out as `scorebar-bg` (695×44), with its fill where `scorebar-colour` is. It
+       has a rounded dark track, a glowing fill up to the health and a glowing marker at its end that bulges and
+       flashes with hits. It turns red under 30% health.
+   - Spinners' bonus and RPM numbers in texture skins still use their score font (`ScoreNumber`).
+
 7. **Remove the replaced assets.**
    - Delete from `gfx/`:
      - hitcircle and overlay, approachcircle, the `default-*` and `score-*` digits;

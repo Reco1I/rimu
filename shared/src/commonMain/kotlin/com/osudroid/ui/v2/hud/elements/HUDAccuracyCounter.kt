@@ -4,7 +4,8 @@ import com.reco1l.verktex.time.FrameClock
 
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.hud.HUDElementSkinData
-import com.osudroid.ui.v2.SpriteFont
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import com.reco1l.verktex.ui.text.TextAlign
 import com.rian.framework.RollingFloatCounter
 import ru.nsu.ccfit.zuev.osu.game.GameScene
@@ -13,7 +14,7 @@ import com.reco1l.verktex.localization.formatString
 
 class HUDAccuracyCounter : HUDElement() {
 
-    private val sprite = SpriteFont(OsuSkin.get().scorePrefix).apply {
+    private val sprite = SkinPieces.current.create(SkinComponent.ScoreFont).apply {
         useFixedDigitWidth()
 
         measureText = "100.00%"

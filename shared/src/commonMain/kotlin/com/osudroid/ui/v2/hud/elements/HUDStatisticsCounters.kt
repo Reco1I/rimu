@@ -5,7 +5,8 @@ import com.reco1l.verktex.data.px
 
 import com.reco1l.verktex.time.FrameClock
 
-import com.osudroid.ui.v2.SpriteFont
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import com.reco1l.framework.*
 import com.osudroid.ui.v2.hud.HUDElement
 import com.reco1l.verktex.data.Color4
@@ -23,7 +24,7 @@ sealed class HUDStatisticCounter(label: String) : HUDElement() {
         text = label
     }
 
-    protected val valueText = SpriteFont(OsuSkin.get().scorePrefix)
+    protected val valueText = SkinPieces.current.create(SkinComponent.ScoreFont)
 
     /**
      * The integer value displayed by [valueText].

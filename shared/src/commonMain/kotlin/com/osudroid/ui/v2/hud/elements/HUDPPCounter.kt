@@ -4,7 +4,8 @@ import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.time.FrameClock
 
 import com.osudroid.ui.v2.hud.HUDElement
-import com.osudroid.ui.v2.SpriteFont
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import com.rian.framework.RollingDoubleCounter
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import ru.nsu.ccfit.zuev.osu.game.GameScene
@@ -15,7 +16,7 @@ class HUDPPCounter : HUDElement() {
 
     override val name = "PP counter"
 
-    private val sprite = SpriteFont(OsuSkin.get().scorePrefix)
+    private val sprite = SkinPieces.current.create(SkinComponent.ScoreFont)
 
     private var value = 0
         set(value) {

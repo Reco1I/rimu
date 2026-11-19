@@ -4,6 +4,7 @@ import com.osudroid.game.HitResult
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.graphics.Texture
+import com.reco1l.verktex.ui.text.TextAlign
 import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.shape.PathShape
@@ -220,6 +221,58 @@ interface CursorTrailStyle {
      * Whether the parts are turned as the cursor is.
      */
     val rotates: Boolean
+}
+
+/**
+ * A number of the HUD in a skin's font (the score, the combo, the accuracy…): the font of a texture skin, or text.
+ */
+abstract class NumberText : Container() {
+
+    /**
+     * The text shown, digits and the characters a skin's font has (`.`, `%`, `x`, `d`, `p`).
+     */
+    abstract var text: String
+
+    /**
+     * The space added between characters, negative to overlap them.
+     */
+    abstract var spacing: Float
+
+    /**
+     * The text whose width the number is measured with instead of its own, so it doesn't move as it changes.
+     */
+    abstract var measureText: String?
+
+    /**
+     * Where the text is in the measured width, see [measureText].
+     */
+    abstract var textAlign: TextAlign
+
+    /**
+     * Whether it's drawn additively, as a combo's pop out.
+     */
+    abstract var isAdditive: Boolean
+
+    /**
+     * Gives every digit the same width, so numbers don't shift as they change.
+     */
+    abstract fun useFixedDigitWidth()
+}
+
+/**
+ * The health bar of the HUD.
+ */
+abstract class HealthBarPiece : Container() {
+
+    /**
+     * Shows the health [hp], from 0 to 1, [secondsElapsed] after the previous update.
+     */
+    abstract fun update(hp: Float, secondsElapsed: Float)
+
+    /**
+     * Flashes for a hit, at the health [hp].
+     */
+    abstract fun flash(hp: Float)
 }
 
 /**

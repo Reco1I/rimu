@@ -13,7 +13,8 @@ import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.transformSequence
 
 import com.osudroid.ui.v2.hud.HUDElement
-import com.osudroid.ui.v2.SpriteFont
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.skins.*
 import kotlin.math.abs
@@ -33,19 +34,19 @@ import kotlin.math.roundToInt
 class HUDComboCounter : HUDElement() {
 
 
-    private val popOutCount = if (Settings[OsuSettings.AnimateComboText]) SpriteFont(OsuSkin.get().comboPrefix).also {
+    private val popOutCount = if (Settings[OsuSettings.AnimateComboText]) SkinPieces.current.create(SkinComponent.ComboFont).also {
 
         it.alpha = 0f
         it.text = "0x"
         it.spacing = -OsuSkin.get().comboOverlap
-        it.blendMode = BlendMode.Additive
+        it.isAdditive = true
         it.useFixedDigitWidth()
 
         +it
 
     } else null
 
-    private val displayedCountTextSprite = SpriteFont(OsuSkin.get().comboPrefix).also {
+    private val displayedCountTextSprite = SkinPieces.current.create(SkinComponent.ComboFont).also {
 
         it.alpha = 0f
         it.text = "0x"

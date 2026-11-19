@@ -3,7 +3,8 @@ package com.osudroid.ui.v2.hud.elements
 import com.reco1l.verktex.time.FrameClock
 
 import com.osudroid.ui.v2.hud.HUDElement
-import com.osudroid.ui.v2.SpriteFont
+import com.osudroid.ui.v2.skin.SkinComponent
+import com.osudroid.ui.v2.skin.SkinPieces
 import com.rian.framework.RollingLongCounter
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.skins.OsuSkin
@@ -11,7 +12,7 @@ import com.reco1l.verktex.localization.formatString
 
 class HUDScoreCounter : HUDElement() {
 
-    private val sprite = SpriteFont(OsuSkin.get().scorePrefix)
+    private val sprite = SkinPieces.current.create(SkinComponent.ScoreFont)
     // Eight digits, padded with zeros.
     private fun format(value: Long) = formatString("%08d", value)
 
