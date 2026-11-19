@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.reco1l.verktex.ui.Component
+
 import com.osudroid.game.PlayfieldMapping
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.ScaleType
@@ -39,7 +41,7 @@ import kotlin.random.Random
 import kotlin.jvm.JvmStatic
 
 open class GameplaySpinner : GameObject() {
-    private val background: Sprite
+    private val spinnerBackground: Sprite
     private val circle: Sprite
     private val approachCircle: Sprite
     private val metre: ClipContainer
@@ -106,9 +108,9 @@ open class GameplaySpinner : GameObject() {
         // The center of the playfield, where the cursor goes in autoplay.
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f)
 
-        background = Sprite()
-        background.origin = Anchor.Center
-        background.texture = skinTexture("spinner-background")
+        spinnerBackground = Sprite()
+        spinnerBackground.origin = Anchor.Center
+        spinnerBackground.texture = skinTexture("spinner-background")
 
         circle = Sprite()
         circle.origin = Anchor.Center
@@ -158,7 +160,7 @@ open class GameplaySpinner : GameObject() {
     protected open fun layoutInSpace(mapping: PlayfieldMapping) {
         center.set(mapping.toResolution(position))
 
-        background.setPosition(center.x, center.y)
+        spinnerBackground.setPosition(center.x, center.y)
         circle.setPosition(center.x, center.y)
         metre.setPosition(center.x, center.y)
         approachCircle.setPosition(center.x, center.y)
@@ -174,7 +176,7 @@ open class GameplaySpinner : GameObject() {
      * their textures changed, as when the skin does, or the space did.
      */
     private fun layoutToBackground(spaceWidth: Float = laidOutSpaceWidth) {
-        val backgroundTexture = background.textureRegion
+        val backgroundTexture = spinnerBackground.textureRegion
         val metreTexture = metreSprite.textureRegion
 
         if (isLaidOut && backgroundTexture === laidOutBackground && metreTexture === laidOutMetre && spaceWidth == laidOutSpaceWidth) {
@@ -185,13 +187,13 @@ open class GameplaySpinner : GameObject() {
         laidOutMetre = metreTexture
         laidOutSpaceWidth = spaceWidth
 
-        background.scale = if (backgroundTexture != null) spaceWidth / backgroundTexture.displayWidth else 1f
+        spinnerBackground.scale = if (backgroundTexture != null) spaceWidth / backgroundTexture.displayWidth else 1f
 
         // The metre matches the background: its own size, so it isn't stretched into the background's when their
         // textures differ, and the background's scale and centre, so both line up. Sized to the screen instead, it
         // would be cut to the height of its layer, the background being taller than the screen.
         metre.setSize(metreTexture?.displayWidth ?: 0f, metreTexture?.displayHeight ?: 0f)
-        metre.scale = background.scaleX
+        metre.scale = spinnerBackground.scaleX
     }
 
     open fun init(listener: GameObjectListener, scene: Container,
@@ -199,6 +201,9 @@ open class GameplaySpinner : GameObject() {
         fullRotations = 0
         rotations = 0f
         this.scene = scene
+
+        // Below what the layer already has, as the pieces were.
+        scene.add(0, this)
         this.duration = max(beatmapSpinner.duration.toFloat() / 1000f, 0f)
         this.beatmapSpinner = beatmapSpinner
 
@@ -220,16 +225,16 @@ open class GameplaySpinner : GameObject() {
         val timePreempt = beatmapSpinner.timePreempt.toFloat() / 1000f
         passedTime = -timePreempt
 
-        background.isVisible = !GameHelper.isTraceable() ||
+        spinnerBackground.isVisible = !GameHelper.isTraceable() ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapSpinner)
 
         metre.clipFactorY = 0f
-        background.color = OsuSkin.get().spinnerBackgroundColor
+        spinnerBackground.color = OsuSkin.get().spinnerBackgroundColor
 
-        scene.add(0, spinText)
+        add(0, spinText)
 
         if (!GameHelper.isHidden()) {
-            scene.add(0, approachCircle)
+            add(0, approachCircle)
             approachCircle.alpha = 0f
 
             approachCircle.choreographAt(hitTime) { sequence -> sequence
@@ -239,18 +244,18 @@ open class GameplaySpinner : GameObject() {
                 .scaleTo(0f, duration) }
         }
 
-        scene.add(0, circle)
-        scene.add(0, metre)
-        scene.add(0, background)
+        add(0, circle)
+        add(0, metre)
+        add(0, spinnerBackground)
 
         rpmCounter.attach(scene, listener.playfieldMapping, hitTime, hitTime + duration)
 
         val fadeDuration = timePreempt * 0.25f
         val fadeInStartTime = hitTime - fadeDuration
 
-        if (background.isVisible) {
-            background.alpha = 0f
-            background.choreographAt(fadeInStartTime) { sequence -> sequence.fadeIn(fadeDuration) }
+        if (spinnerBackground.isVisible) {
+            spinnerBackground.alpha = 0f
+            spinnerBackground.choreographAt(fadeInStartTime) { sequence -> sequence.fadeIn(fadeDuration) }
         }
 
         circle.alpha = 0f
@@ -282,8 +287,8 @@ open class GameplaySpinner : GameObject() {
         spinText.clearAnimations()
         spinText.removeSelf()
 
-        background.clearAnimations()
-        background.removeSelf()
+        spinnerBackground.clearAnimations()
+        spinnerBackground.removeSelf()
 
         approachCircle.clearAnimations()
         approachCircle.removeSelf()
@@ -297,8 +302,22 @@ open class GameplaySpinner : GameObject() {
         rpmCounter.detach()
 
         bonusScore.removeSelf()
+        removeProxies()
+        removeSelf()
         lifetimeEnd = hitTime + duration
         scene = null
+    }
+
+    /**
+     * Shows [piece] above everything the layer has, as the clear text and the bonus score are.
+     */
+    protected fun showOnTop(piece: Component) {
+        if (piece.parent != null) {
+            return
+        }
+
+        this += piece
+        drawIn(scene!!, piece)
     }
 
     open fun removeFromScene() {
@@ -355,7 +374,7 @@ open class GameplaySpinner : GameObject() {
         playAndFreeHitSamples(score)
     }
 
-    override fun update(dt: Float) {
+    override fun updateJudgement(dt: Float) {
         val listener = listener!!
         val stat = stat!!
 
@@ -377,12 +396,12 @@ open class GameplaySpinner : GameObject() {
                 applySeekRotations()
 
                 if (clear) {
-                    scene!! += clearText
+                    showOnTop(clearText)
                 }
 
                 if (bonusScoreCounter > 1) {
                     bonusScore.setText(((bonusScoreCounter - 1) * 1000).toString())
-                    scene!! += bonusScore
+                    showOnTop(bonusScore)
                 }
             }
         }
@@ -461,7 +480,7 @@ open class GameplaySpinner : GameObject() {
                 percentfill = 1f
 
                 if (!clear) {
-                    scene!! += clearText
+                    showOnTop(clearText)
                     clearText.alpha = 0f
                     clearText.fadeIn(0.25f)
                     clearText.scale = 1.5f
@@ -480,7 +499,7 @@ open class GameplaySpinner : GameObject() {
                     listener.onSpinnerHit(id, 1000, false, 0)
                     bonusScoreCounter++
                     if (bonusScore.parent == null) {
-                        scene!! += bonusScore
+                        showOnTop(bonusScore)
                     }
                     spinnerBonusSample.play()
                     var rate = 0.375f
@@ -539,6 +558,8 @@ open class GameplaySpinner : GameObject() {
 
     override fun onExpire() {
         detachFromScene()
+        removeProxies()
+        removeSelf()
         stopLoopingSamples()
 
         for (i in hitSamples.size - 1 downTo 0) {

@@ -134,7 +134,7 @@ Engine commit `d9bc5b9`.
 
 ---
 
-## Phase 3: hit objects as Components
+## Phase 3: hit objects as Components (done, to be verified on screen)
 
 Files: `ru/nsu/ccfit/zuev/osu/game/GameObject.kt`, `GameplayHitCircle.kt`, `GameplaySlider.kt`, `GameplaySpinner.kt`,
 `GameplayModernSpinner.kt`, `GameObjectPool.kt`, `GameScene.kt`, `com/osudroid/ui/v2/game/GameplayPlayfield.kt`,
@@ -160,6 +160,28 @@ Files: `ru/nsu/ccfit/zuev/osu/game/GameObject.kt`, `GameplayHitCircle.kt`, `Game
 4. **Pooling and seeking.** `GameObjectPool` keeps pooling objects. `onExpire` removes the object's container and
    its proxies at once. The "detach lingering hit effects" loop in `GameScene` goes away.
 5. **No visual change** in this phase, verified before Phase 4.
+
+### As done
+
+Engine commit `9ff29f2` and the game commit after it. What differs from the steps above:
+
+- `GameObject` fills its layer with `FillAvailable` (the spinners' layer is the 1280 wide space, not the playfield).
+  `GameObject.drawIn(layer, piece)` adds a pooled `Proxy` on top of `layer`, and `removeProxies()` takes them all
+  out; `onExpire` calls it and removes the object.
+- A proxy doesn't draw a target without a parent (engine): pieces are still hidden with `removeSelf()`, and their
+  proxies follow.
+- The slider ball, its layers and the follow circle are proxied when the ball shows (the span starts), as they were
+  added to the layer then. Approach circles are proxied in `init`.
+- Spinners: the classic spinner adds itself at the bottom of its layer and the modern one on top, as their pieces
+  were. Their clear text and bonus score are drawn on top of the layer through proxies (`showOnTop`), above the
+  combo bursts as before. The RPM counter stays a child of the layer.
+- The judgement effects (`GameEffect`, still from `GameplayEffects` until Phase 4) moved to the `judgements` layer.
+  So did the "detach lingering hit effects" loop of the seek, which goes away in Phase 4. They now always draw above
+  the approach circles, instead of in the order they were added.
+- `GameEffect`, `BreakAnimator` and `Countdown` aren't `GameObject`s anymore: they only used it for `update(dt)`.
+- The fail animation goes into the objects: each of their pieces falls and turns as the layers' children do. It also
+  applies to the `judgements` layer.
+- `GameplaySpinner.background` is `spinnerBackground`, as it clashed with `Component.background`.
 
 ---
 

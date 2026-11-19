@@ -114,10 +114,10 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
     }
 
     /**
-     * The layer hit circles and sliders are added to, in osu!pixels, as the game's.
+     * The playfield hit circles and sliders are added to, in osu!pixels, as the game's.
      */
     val playfield
-        get() = gameplayPlayfield.objects
+        get() = gameplayPlayfield
 
     /**
      * How the objects are played. Changing it starts the loop again.
@@ -130,7 +130,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     private val clock = ManualClock()
 
-    private val effects = GameplayEffects().apply { setLayers(gameplayPlayfield.underlay, gameplayPlayfield.objects) }
+    private val effects = GameplayEffects().apply { setLayers(gameplayPlayfield.underlay, gameplayPlayfield.judgements) }
 
     private var cursor = Cursor()
 
@@ -274,7 +274,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
         // As the game scene does: objects are updated until their lifetime ends, then expired.
         if (!current.isExpired) {
-            current.gameObject.update(deltaTime)
+            current.gameObject.updateJudgement(deltaTime)
 
             if (clock.time >= lifetimeEnd) {
                 expire(current)

@@ -16,9 +16,10 @@ import com.reco1l.verktex.ui.container.ScalingContainer
  * rounded as osu!droid rounds them (see [PlayfieldMapping]). Positions are exactly osu!droid's; as the rounded
  * playfield isn't exactly 4:3, objects are stretched by as much, less than 0.3%.
  *
- * Its layers are [underlay], for what's below the hit objects (follow points, the hit lighting), and [objects],
- * for the hit objects and the effects of their judgements. Neither clips, objects can go past the playfield; the
- * playfield clips to the space instead.
+ * Its layers, from the bottom: [underlay], for what's below the hit objects (follow points, the hit lighting),
+ * [objects], for the hit objects, [approachCircles], for the pieces of the objects drawn above every object (their
+ * approach circles, the slider balls and follow circles, through proxies), and [judgements], for the effects of
+ * the judgements. None clips, objects can go past the playfield; the playfield clips to the space instead.
  */
 class GameplayPlayfield : ScalingContainer() {
 
@@ -46,6 +47,16 @@ class GameplayPlayfield : ScalingContainer() {
      */
     val objects = createLayer()
 
+    /**
+     * The layer of the pieces of the objects drawn above every object, through proxies.
+     */
+    val approachCircles = createLayer()
+
+    /**
+     * The layer of the effects of the judgements, above everything else.
+     */
+    val judgements = createLayer()
+
 
     init {
         mode = Mode.Height
@@ -54,6 +65,8 @@ class GameplayPlayfield : ScalingContainer() {
 
         content += underlay
         content += objects
+        content += approachCircles
+        content += judgements
         +content
     }
 

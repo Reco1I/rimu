@@ -75,6 +75,9 @@ class GameplayModernSpinner : GameplaySpinner() {
     override fun init(listener: GameObjectListener, scene: Container,
                       beatmapSpinner: Spinner, rps: Float, stat: StatisticV2) {
         this.scene = scene
+
+        // Above what the layer already has, as the pieces were.
+        scene += this
         this.beatmapSpinner = beatmapSpinner
         this.listener = listener
         layoutInSpace(listener.playfieldMapping)
@@ -115,13 +118,13 @@ class GameplayModernSpinner : GameplaySpinner() {
         top.alpha = 0f
         top.scale = 0.9f
 
-        scene += glow
-        scene += bottom
-        scene += top
+        this += glow
+        this += bottom
+        this += top
 
         if (isBackgroundVisible) {
-            scene += middle
-            scene += middle2
+            this += middle
+            this += middle2
         }
 
         rpmCounter.attach(scene, listener.playfieldMapping, hitTime, hitTime + duration)
@@ -146,7 +149,7 @@ class GameplayModernSpinner : GameplaySpinner() {
         sprite.choreographAt(hitTime - timePreempt) { sequence -> sequence.fadeIn(timePreempt) }
     }
 
-    override fun update(dt: Float) {
+    override fun updateJudgement(dt: Float) {
         val listener = listener!!
         val stat = stat!!
 
@@ -169,7 +172,7 @@ class GameplayModernSpinner : GameplaySpinner() {
                 // visually on next frame.
                 if (bonusScoreCounter > 1) {
                     bonusScore.setText(((bonusScoreCounter - 1) * 1000).toString())
-                    scene!! += bonusScore
+                    showOnTop(bonusScore)
                 }
             }
         }
@@ -278,9 +281,7 @@ class GameplayModernSpinner : GameplaySpinner() {
                     bonusScore.setText((bonusScoreCounter * 1000).toString())
                     listener.onSpinnerHit(id, 1000, false, 0)
                     bonusScoreCounter++
-                    if (bonusScore.parent == null) {
-                        scene!! += bonusScore
-                    }
+                    showOnTop(bonusScore)
                     spinnerBonusSample.play()
 
                     // Blinks white and goes back to its tint.
@@ -342,6 +343,8 @@ class GameplayModernSpinner : GameplaySpinner() {
         rpmCounter.detach()
 
         bonusScore.removeSelf()
+        removeProxies()
+        removeSelf()
         scene = null
     }
 

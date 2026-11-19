@@ -17,7 +17,7 @@ import com.reco1l.verktex.ui.container.Container
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.jvm.JvmField
 
-class GameEffect(texname: String) : GameObject() {
+class GameEffect(texname: String) {
     @JvmField
     var hit: Sprite
     var texname: String = texname
@@ -84,9 +84,6 @@ class GameEffect(texname: String) : GameObject() {
      */
     fun setBlendMode(blendMode: BlendMode) {
         nextBlendMode = blendMode
-    }
-
-    override fun update(dt: Float) {
     }
 
     companion object {

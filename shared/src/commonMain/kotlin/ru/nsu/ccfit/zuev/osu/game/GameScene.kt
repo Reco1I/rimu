@@ -409,7 +409,7 @@ class GameScene : GameObjectListener {
             PlayfieldMapping.REFERENCE_WIDTH * window.windowHeight / window.windowWidth.coerceAtLeast(1)
         )
 
-        effects.setLayers(objectPlayfield.underlay, objectPlayfield.objects)
+        effects.setLayers(objectPlayfield.underlay, objectPlayfield.judgements)
 
         playfield += bgScene
         playfield += objectPlayfield
@@ -1852,7 +1852,7 @@ class GameScene : GameObjectListener {
             if (obj is HitCircle) {
                 val gameplayCircle = GameObjectPool.getInstance().circle
 
-                gameplayCircle.init(this, objectPlayfield.objects, obj, comboColor)
+                gameplayCircle.init(this, objectPlayfield, obj, comboColor)
                 addObject(gameplayCircle)
 
                 if (GameHelper.isAutoplay()) {
@@ -1886,7 +1886,7 @@ class GameScene : GameObjectListener {
             } else if (obj is Slider) {
                 val gameplaySlider = GameObjectPool.getInstance().slider
 
-                gameplaySlider.init(this, objectPlayfield.objects, stat, obj, playableBeatmap.controlPoints,
+                gameplaySlider.init(this, objectPlayfield, stat, obj, playableBeatmap.controlPoints,
                     comboColor, sliderBorderColor!!, getSliderPath(sliderIndex)!!, getSliderRenderPath(sliderIndex))
 
                 ++sliderIndex
@@ -1906,7 +1906,7 @@ class GameScene : GameObjectListener {
                 gameObject = gameplaySlider
             }
 
-            gameObject?.update(lifetimeDt)
+            gameObject?.updateJudgement(lifetimeDt)
 
             if (obj !is Spinner && nextObj != null && nextObj !is Spinner && !obj.isLastInCombo) {
                 FollowPointConnection.addConnection(objectPlayfield.underlay, obj, nextObj)
@@ -2065,7 +2065,7 @@ class GameScene : GameObjectListener {
 
         for (i in 0 until activeObjects.size) {
             val obj = activeObjects[i]
-            obj.update(deltaTime)
+            obj.updateJudgement(deltaTime)
 
             // Advance to the next judgeable object if the current judgeable object is judged.
             // In remove slider lock mode, do this as soon as the current judgeable object is hit instead.
@@ -2521,7 +2521,7 @@ class GameScene : GameObjectListener {
             val effect = GameObjectPool.getInstance().getEffect(
                 "hit0")
             effect.init(
-                objectPlayfield.objects,
+                objectPlayfield.judgements,
                 pos,
                 scale,
                 { sequence -> sequence.fadeIn(0.15f)
@@ -2835,20 +2835,36 @@ class GameScene : GameObjectListener {
             for (i in 0 until layer.childCount) {
                 val entity = layer[i]
 
-                val y = entity.y.resolve(0f)
-                val resolutionY = if (mapping != null) y * mapping.scaleY + mapping.offsetY else y
-                val newResolutionY = if (resolutionY < 0f) resolutionY * 0.6f else resolutionY * 1.01f
-                val newY = if (mapping != null) (newResolutionY - mapping.offsetY) / mapping.scaleY else newResolutionY
-
-                entity.setPosition(entity.x.resolve(0f), newY)
-
-                if (entity.rotationZ == 0f) {
-                    entity.rotationZ = entity.rotationZ + Random.Default.nextDouble(-0.02, 0.02).toFloat() * 180 / MathUtils.PI_F
-                } else if (entity.rotationZ > 0) {
-                    entity.rotationZ = entity.rotationZ + 0.01f * 180 / MathUtils.PI_F
-                } else {
-                    entity.rotationZ = entity.rotationZ - 0.01f * 180 / MathUtils.PI_F
+                // Hit objects fill the layer, their pieces fall as the layer's own children do.
+                if (entity is GameObject) {
+                    applyEffectToPieces(entity, mapping)
+                    continue
                 }
+
+                applyEffectToEntity(entity, mapping)
+            }
+        }
+
+        private fun applyEffectToPieces(gameObject: GameObject, mapping: PlayfieldMapping?) {
+            for (i in 0 until gameObject.childCount) {
+                applyEffectToEntity(gameObject[i], mapping)
+            }
+        }
+
+        private fun applyEffectToEntity(entity: Component, mapping: PlayfieldMapping?) {
+            val y = entity.y.resolve(0f)
+            val resolutionY = if (mapping != null) y * mapping.scaleY + mapping.offsetY else y
+            val newResolutionY = if (resolutionY < 0f) resolutionY * 0.6f else resolutionY * 1.01f
+            val newY = if (mapping != null) (newResolutionY - mapping.offsetY) / mapping.scaleY else newResolutionY
+
+            entity.setPosition(entity.x.resolve(0f), newY)
+
+            if (entity.rotationZ == 0f) {
+                entity.rotationZ = entity.rotationZ + Random.Default.nextDouble(-0.02, 0.02).toFloat() * 180 / MathUtils.PI_F
+            } else if (entity.rotationZ > 0) {
+                entity.rotationZ = entity.rotationZ + 0.01f * 180 / MathUtils.PI_F
+            } else {
+                entity.rotationZ = entity.rotationZ - 0.01f * 180 / MathUtils.PI_F
             }
         }
 
@@ -2867,6 +2883,7 @@ class GameScene : GameObjectListener {
 
             if (music.frequency > 101) {
                 applyEffectToLayer(objectPlayfield.objects, objectPlayfield.mapping)
+                applyEffectToLayer(objectPlayfield.judgements, objectPlayfield.mapping)
                 applyEffectToLayer(objectPlayfield.underlay, objectPlayfield.mapping)
                 applyEffectToLayer(bgScene)
 
@@ -3312,8 +3329,8 @@ class GameScene : GameObjectListener {
         judgeableObject = null
 
         // Detach any lingering hit effects from the gameplay scene.
-        for (i in objectPlayfield.objects.childCount - 1 downTo 0) {
-            val child = objectPlayfield.objects[i]
+        for (i in objectPlayfield.judgements.childCount - 1 downTo 0) {
+            val child = objectPlayfield.judgements[i]
 
             if (child is Sprite && child.choreography != null) {
                 // Hit effects need to be pooled, so we cannot directly detach.

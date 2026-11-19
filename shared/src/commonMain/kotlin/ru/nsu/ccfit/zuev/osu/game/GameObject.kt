@@ -6,13 +6,26 @@ import com.osudroid.game.CursorEvent
 import com.osudroid.math.MathUtils
 import com.osudroid.math.Vector2
 import com.osudroid.mods.ModRelax
+import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.ui.Choreography
+import com.reco1l.verktex.ui.Component
+import com.reco1l.verktex.ui.Proxy
+import com.reco1l.verktex.ui.container.Container
 import kotlin.math.max
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import kotlin.jvm.JvmField
 
-abstract class GameObject {
+/**
+ * A hit object of gameplay, as osu!lazer's `DrawableHitObject`: a container filling the layer it's added to, at its
+ * origin, so its pieces keep the positions of the layer (osu!pixels in the playfield). Pieces that draw in another
+ * layer than the object's (approach circles above every object, for example) are drawn there through a [Proxy], see
+ * [drawIn].
+ *
+ * The game drives its judgement with [updateJudgement], in its own order. Its pieces are updated, animated and
+ * drawn as the children of any container.
+ */
+abstract class GameObject : Container() {
     @JvmField
     protected var endsCombo = false
     @JvmField
@@ -43,7 +56,15 @@ abstract class GameObject {
         autoPlay = true
     }
 
-    abstract fun update(dt: Float)
+    init {
+        width = Dimension.FillAvailable
+        height = Dimension.FillAvailable
+    }
+
+    /**
+     * Judges the object and updates what follows its judgement, [dt] seconds after the previous update.
+     */
+    abstract fun updateJudgement(dt: Float)
 
     fun getHitTime(): Float {
         return hitTime
@@ -222,6 +243,37 @@ abstract class GameObject {
 
         return Utils.squaredDistance(position, cursorEvent.playfieldPosition) <= Utils.sqr(hitObject.gameplayRadius.toFloat())
     }
+
+    //region Proxies
+
+    private val proxies = ArrayList<Proxy>()
+    private val freeProxies = ArrayList<Proxy>()
+
+    /**
+     * Draws [piece], one of this object's, in [layer] instead of in this object, through a [Proxy] added on top of
+     * the layer. It's removed by [removeProxies].
+     */
+    protected fun drawIn(layer: Container, piece: Component) {
+        val proxy = freeProxies.removeLastOrNull() ?: Proxy()
+        proxy.target = piece
+        layer += proxy
+        proxies += proxy
+    }
+
+    /**
+     * Removes the proxies [drawIn] added, giving the pieces back to this object.
+     */
+    protected fun removeProxies() {
+        for (i in proxies.indices) {
+            val proxy = proxies[i]
+            proxy.removeSelf()
+            proxy.target = null
+            freeProxies += proxy
+        }
+        proxies.clear()
+    }
+
+    //endregion
 
     //region Lifetime management
 

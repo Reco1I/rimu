@@ -1,5 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.game
 
+import com.osudroid.ui.v2.game.GameplayPlayfield
+
 import com.osudroid.ui.v2.skinTexture
 import com.osudroid.ui.v2.skinFrames
 import com.osudroid.settings.OsuSettings
@@ -58,7 +60,7 @@ class GameplaySlider : GameObject() {
     private val endArrow: Sprite
     private var beatmapSlider: Slider? = null
     private var controlPoints: BeatmapControlPoints? = null
-    private var scene: Container? = null
+    private var playfield: GameplayPlayfield? = null
     private var stat: StatisticV2? = null
     private var listener: GameObjectListener? = null
     private var path: SliderPath? = null
@@ -186,11 +188,14 @@ class GameplaySlider : GameObject() {
         sliderWhistleSample = GameplaySequenceHitSampleInfo()
     }
 
-    fun init(listener: GameObjectListener, scene: Container, stat: StatisticV2,
+    fun init(listener: GameObjectListener, playfield: GameplayPlayfield, stat: StatisticV2,
              beatmapSlider: Slider, controlPoints: BeatmapControlPoints, comboColor: Color4,
              borderColor: Color4, sliderPath: SliderPath, renderPath: Path) {
         this.listener = listener
-        this.scene = scene
+        this.playfield = playfield
+
+        // Newer objects are below older ones.
+        playfield.objects.add(0, this)
         this.stat = stat
         this.beatmapSlider = beatmapSlider
         this.controlPoints = controlPoints
@@ -271,8 +276,9 @@ class GameplaySlider : GameObject() {
         approachCircle.texture = skinTexture(
             if (GameHelper.isTraceable()) "defaultapproachcircle" else "approachcircle")
 
-        scene.add(0, headCirclePiece)
-        scene += approachCircle
+        add(0, headCirclePiece)
+        this += approachCircle
+        drawIn(playfield.approachCircles, approachCircle)
 
         // End circle
         getPositionAt(1f, false, false)
@@ -298,7 +304,7 @@ class GameplaySlider : GameObject() {
             getPositionAt(0f, true, false)
             startArrow.rotationZ = ballAngle
 
-            scene.add(0, startArrow)
+            add(0, startArrow)
         }
 
         // When snaking in is enabled, the first repeat or tail needs to be delayed until the snaking completes.
@@ -322,7 +328,7 @@ class GameplaySlider : GameObject() {
                 endArrow.setPosition(pathEndPosition.x, pathEndPosition.y)
             }
 
-            scene.add(0, endArrow)
+            add(0, endArrow)
 
             // We can use headFadeIn here since the tail's fade in time is the same as the head.
             endArrow.choreographAt(initialModifierTime) { sequence -> sequence
@@ -330,7 +336,7 @@ class GameplaySlider : GameObject() {
                 .fadeIn(headFadeIn) }
         }
 
-        scene.add(0, tailCirclePiece)
+        add(0, tailCirclePiece)
 
         choreographHead(fadesOutWhenMissed = true)
 
@@ -402,8 +408,8 @@ class GameplaySlider : GameObject() {
             sliderBody.bodyCenterColor = lighten(bodyColor, 0.5f).alpha(bodyAlpha)
         }
 
-        scene.add(0, tickContainer)
-        scene.add(0, sliderBody)
+        add(0, tickContainer)
+        add(0, sliderBody)
 
         // Ticks are scaled as the objects are, as osu!lazer's and osu!stable's.
         tickContainer.init(beatmapSlider, scale)
@@ -509,7 +515,7 @@ class GameplaySlider : GameObject() {
     }
 
     private fun removeFromScene() {
-        if (scene == null) {
+        if (playfield == null) {
             return
         }
 
@@ -571,7 +577,7 @@ class GameplaySlider : GameObject() {
         }
 
         path = null
-        scene = null
+        playfield = null
     }
 
     override fun onExpire() {
@@ -598,7 +604,8 @@ class GameplaySlider : GameObject() {
         ballOver.removeSelf()
         sliderBody.removeSelf()
         tickContainer.removeSelf()
-
+        removeProxies()
+        removeSelf()
 
         // removeFromScene() stops looping sounds and releases hit samples, but during a seek, onExpire() fires without
         // removeFromScene(). This causes looping sounds to continuously play after a seek, and nested hit samples
@@ -859,8 +866,8 @@ class GameplaySlider : GameObject() {
         isInRadius = isTracking
     }
 
-    override fun update(dt: Float) {
-        val scene = scene ?: return
+    override fun updateJudgement(dt: Float) {
+        val playfield = playfield ?: return
         val listener = listener!!
         val beatmapSlider = beatmapSlider!!
 
@@ -997,10 +1004,11 @@ class GameplaySlider : GameObject() {
                 layer.alpha = 1f
             }
 
-            scene += ballUnder
-            scene += ball
-            scene += ballOver
-            scene += followCircle
+            // Above the bodies of every object, as the approach circles.
+            for (piece in arrayOf(ballUnder, ball, ballOver, followCircle)) {
+                this += piece
+                drawIn(playfield.approachCircles, piece)
+            }
 
             for (layer in arrayOf(ball, ballUnder, ballOver)) {
                 layer.choreographAt(beatmapSlider.endTime.toFloat() / 1000) { sequence ->

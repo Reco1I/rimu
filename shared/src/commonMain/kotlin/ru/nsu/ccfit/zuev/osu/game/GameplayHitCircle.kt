@@ -10,6 +10,7 @@ import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.math.MathUtils
 import com.osudroid.mods.ModHidden
 import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.game.GameplayPlayfield
 import com.osudroid.ui.v2.game.NumberedCirclePiece
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Anchor
@@ -18,7 +19,6 @@ import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
-import com.reco1l.verktex.ui.container.Container
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -30,7 +30,7 @@ class GameplayHitCircle : GameObject() {
     private val approachCircle: Sprite
     private var comboColor = Color4()
     private var listener: GameObjectListener? = null
-    private var scene: Container? = null
+    private var playfield: GameplayPlayfield? = null
     private var beatmapCircle: HitCircle? = null
     private var passedTime = 0f
     private var timePreempt = 0f
@@ -51,7 +51,7 @@ class GameplayHitCircle : GameObject() {
         approachCircle.origin = Anchor.Center
     }
 
-    fun init(listener: GameObjectListener, pScene: Container, beatmapCircle: HitCircle,
+    fun init(listener: GameObjectListener, playfield: GameplayPlayfield, beatmapCircle: HitCircle,
              comboColor: Color4) {
         // Storing parameters into fields
         this.beatmapCircle = beatmapCircle
@@ -62,7 +62,7 @@ class GameplayHitCircle : GameObject() {
 
         endsCombo = beatmapCircle.isLastInCombo
         this.listener = listener
-        scene = pScene
+        this.playfield = playfield
         timePreempt = beatmapCircle.timePreempt.toFloat() / 1000
 
         val mehWindow = beatmapCircle.hitWindow!!.mehWindow.toFloat() / 1000
@@ -105,9 +105,11 @@ class GameplayHitCircle : GameObject() {
         approachCircle.texture = skinTexture(
             if (GameHelper.isTraceable()) "defaultapproachcircle" else "approachcircle")
 
-        val scene = scene!!
-        scene.add(0, circlePiece)
-        scene += approachCircle
+        // Newer objects are below older ones.
+        playfield.objects.add(0, this)
+        this += circlePiece
+        this += approachCircle
+        drawIn(playfield.approachCircles, approachCircle)
 
         val fadeOutCircle = GameHelper.isHidden() && !GameHelper.getHidden()!!.onlyFadeApproachCircles
 
@@ -170,7 +172,7 @@ class GameplayHitCircle : GameObject() {
     }
 
     private fun removeFromScene() {
-        if (scene == null) {
+        if (playfield == null) {
             return
         }
 
@@ -194,14 +196,14 @@ class GameplayHitCircle : GameObject() {
             }
         }
 
-        scene = null
+        playfield = null
     }
 
     private fun playHitSamples() {
         listener!!.playHitSamples(hitSamples)
     }
 
-    override fun update(dt: Float) {
+    override fun updateJudgement(dt: Float) {
         val beatmapCircle = beatmapCircle!!
         val listener = listener!!
 
@@ -304,6 +306,8 @@ class GameplayHitCircle : GameObject() {
 
         circlePiece.removeSelf()
         approachCircle.removeSelf()
+        removeProxies()
+        removeSelf()
 
         for (i in hitSamples.size - 1 downTo 0) {
             hitSamples[i].release()

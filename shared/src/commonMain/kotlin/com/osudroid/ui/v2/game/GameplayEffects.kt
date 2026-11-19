@@ -20,7 +20,6 @@ import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.Box
-import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.jvm.JvmOverloads
@@ -166,7 +165,7 @@ class BreakAnimator(
     private val layer: Container,
     private val stat: StatisticV2,
     private val hud: Container
-) : GameObject() {
+) {
 
     /**
      * Called when the warning arrows show up, a second before the break ends.
@@ -317,7 +316,7 @@ class BreakAnimator(
 
     private fun rankingTexture() = SkinTextures["ranking-${stat.mark}-small"]
 
-    override fun update(dt: Float) {
+    fun update(dt: Float) {
         if (length == 0f || time >= length) {
             return
         }
@@ -496,7 +495,7 @@ class Countdown(
     private val speed: Float,
     @Suppress("UNUSED_PARAMETER") offset: Float,
     time: Float
-) : GameObject() {
+) {
 
     /**
      * Called when the countdown finishes.
@@ -566,7 +565,7 @@ class Countdown(
         return timePassed >= threshold && timePassed - dt < threshold
     }
 
-    override fun update(dt: Float) {
+    fun update(dt: Float) {
         if (layer == null) {
             return
         }
