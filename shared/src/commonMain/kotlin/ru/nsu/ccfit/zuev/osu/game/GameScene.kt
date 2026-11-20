@@ -199,6 +199,9 @@ class GameScene : GameObjectListener {
     private var leadOut = 0f
     private var objects: Array<HitObject?>? = null
     private var objectIndex = 0
+
+    // The object whose follow points are added next, as they start to fade in, see FollowPointConnection.fadeInStartTime.
+    private var followPointIndex = 0
     private var postSeekFrameCount = 0
     private var comboColors: ArrayList<Color4>? = null
     private var comboWasMissed = false
@@ -795,6 +798,7 @@ class GameScene : GameObjectListener {
         judgeableObject = null
         breakPeriodIndex = 0
         objectIndex = 0
+        followPointIndex = 0
         lastObjectId = -1
         hitWindow = playableBeatmap.hitWindow
         videoStarted = false
@@ -1801,6 +1805,27 @@ class GameScene : GameObjectListener {
                 video.alpha = min(video.alpha + 0.03f, 1.0f)
         }
 
+        // Follow points are added as they start to fade in, apart from the objects: that can be before the object
+        // they start from spawns.
+        while (followPointIndex < objects.size - 1) {
+            val start = objects[followPointIndex]!!
+
+            if (gameplayClock.time < FollowPointConnection.fadeInStartTime(start)) {
+                break
+            }
+
+            val end = objects[++followPointIndex]!!
+
+            // A seek went past them.
+            if (gameplayClock.time >= end.startTime.toFloat() / 1000) {
+                continue
+            }
+
+            if (start !is Spinner && end !is Spinner && !start.isLastInCombo) {
+                FollowPointConnection.addConnection(objectPlayfield.underlay, start, end)
+            }
+        }
+
         var shouldBePunished = false
 
         while (objectIndex < objects.size) {
@@ -1904,10 +1929,6 @@ class GameScene : GameObjectListener {
             }
 
             gameObject?.updateJudgement(lifetimeDt)
-
-            if (obj !is Spinner && nextObj != null && nextObj !is Spinner && !obj.isLastInCombo) {
-                FollowPointConnection.addConnection(objectPlayfield.underlay, obj, nextObj)
-            }
         }
 
         if (GameHelper.isPerfect() && stat.hit100 + stat.hit50 + stat.misses > 0) {
@@ -3321,6 +3342,7 @@ class GameScene : GameObjectListener {
 
         // Reset spawn counters.
         objectIndex = 0
+        followPointIndex = 0
         sliderIndex = 0
         lastObjectId = -1
         gameStarted = false

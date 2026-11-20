@@ -78,6 +78,18 @@ object FollowPointConnection {
         }
     }
 
+    /**
+     * The time, in seconds, the follow points from [start] start to fade in at: none of them does before. They're
+     * added by then, which can be before [start] itself spawns: added later, they'd show halfway through their fade.
+     */
+    @JvmStatic
+    fun fadeInStartTime(start: HitObject) = (start.endTime / 1000f).toFloat() - preempt(start)
+
+    // Preempt time can go below 800ms. Normally, this is achieved via the DT mod which uniformly speeds up all animations game wide regardless of AR.
+    // This uniform speedup is hard to match 1:1, however we can at least make AR>10 (via mods) feel good by extending the upper linear preempt function.
+    // Note that this doesn't exactly match the AR>10 visuals as they're classically known, but it feels good.
+    private fun preempt(start: HitObject) = PREEMPT * min(1.0, start.timePreempt / HitObject.PREEMPT_MIN).toFloat() / 1000f
+
     @JvmStatic
     fun addConnection(scene: Container, start: HitObject, end: HitObject) {
 
@@ -99,10 +111,7 @@ object FollowPointConnection {
         val endFadeInTime = 0.4f
         val duration = (end.startTime - start.endTime).toFloat() / 1000f
 
-        // Preempt time can go below 800ms. Normally, this is achieved via the DT mod which uniformly speeds up all animations game wide regardless of AR.
-        // This uniform speedup is hard to match 1:1, however we can at least make AR>10 (via mods) feel good by extending the upper linear preempt function.
-        // Note that this doesn't exactly match the AR>10 visuals as they're classically known, but it feels good.
-        val preempt = PREEMPT * min(1.0, start.timePreempt / HitObject.PREEMPT_MIN).toFloat() / 1000f
+        val preempt = preempt(start)
 
         // The gameplay stacked positions: the difficulty stacked ones may be stacked differently and give another
         // amount of points.

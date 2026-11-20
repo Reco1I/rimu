@@ -73,8 +73,6 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
 
             // The connections still to add, each when the time to add it comes.
             val pending = mutableListOf<Pair<HitObject, HitObject>>()
-            // As the game adds them: as their first object spawns. Otherwise all as the loop starts.
-            var addsAtSpawn = true
 
             harness.onRestart = {
                 pending.clear()
@@ -85,7 +83,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
             harness.loopAll { startTime ->
                 var previous: HitObject? = null
                 val circles = FOLLOW_POINT_POSITIONS.mapIndexed { i, position ->
-                    // Each later than the previous by more as they get further apart.
+                    // At an even interval, so the further apart, the faster the follow points between them move.
                     val circle = HitCircle(startTime + i * FOLLOW_POINT_INTERVAL, position, i == 0, 0)
                     circle.updateComboInformation(previous)
                     previous = circle
@@ -102,31 +100,15 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
             }
 
             onEachFrame {
-                val time = harness.elapsedTime * 1000
                 val iterator = pending.iterator()
                 while (iterator.hasNext()) {
                     val (start, end) = iterator.next()
-                    // The game spawns an object, and adds its connection, once its preempt starts.
-                    if (addsAtSpawn && time < start.startTime - start.timePreempt) continue
+                    // As the game adds them: once they start to fade in, which can be before the circle they start from.
+                    if (harness.elapsedTime < FollowPointConnection.fadeInStartTime(start)) continue
 
                     log("Follow points from ${start.indexInCurrentCombo + 1} to ${end.indexInCurrentCombo + 1}")
                     FollowPointConnection.addConnection(harness.playfield.underlay, start, end)
                     iterator.remove()
-                }
-            }
-
-            textButton {
-                anchor = Anchor.TopRight
-                origin = Anchor.TopRight
-                x = (-16f).dip
-                y = 72f.dip
-                variant = Button.Variant.Surface
-                fun update() { text = if (addsAtSpawn) "Added at spawn" else "Added beforehand" }
-                update()
-                onActionUp = {
-                    addsAtSpawn = !addsAtSpawn
-                    update()
-                    harness.play = harness.play
                 }
             }
         }
