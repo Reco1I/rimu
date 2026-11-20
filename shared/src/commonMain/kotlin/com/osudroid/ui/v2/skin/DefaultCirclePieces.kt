@@ -33,8 +33,9 @@ internal fun torusText(size: Float) = Text().apply {
 }
 
 /**
- * Places [text], a [torusText], with the centre of the ink of its glyphs at ([x], [y]) in its parent: not the centre
- * of its line, which has room above and below the glyphs, and the sides of the first and last ones.
+ * Places [text], a [torusText], centred at ([x], [y]) in its parent: vertically on the ink of its glyphs, not its
+ * line, which has room above and below them, and horizontally on their advances, which the font balances by eye: a
+ * "1" centred on its ink, its flag on the left, looks pushed to the right.
  *
  * It's placed by hand rather than by its anchor: it's laid out at the size it's rasterised at, which its parent's size
  * would clamp, while it's drawn whole.
@@ -64,15 +65,9 @@ internal fun placeText(text: Text, x: Float, y: Float) {
         bottom = 0f
     }
 
-    val left = if (content.isEmpty()) 0f else font[content.first().code].bearingX
-    val right = if (content.isEmpty()) 0f else {
-        val last = font[content.last().code]
-        width - last.advance + last.bearingX + last.width
-    }
-
     // The text is rasterised larger and scaled down.
     val scale = text.scaleX
-    text.x = (x - (left + right) / 2f * scale).px
+    text.x = (x - width / 2f * scale).px
     text.y = (y - (top + bottom) / 2f * scale).px
     text.translationX = 0f.px
     text.translationY = 0f.px
