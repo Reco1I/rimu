@@ -23,7 +23,7 @@ object DefaultSliderBodyStyle : SliderBodyStyle {
     // The body and its band are the circles' band and their centre (see DefaultMainCirclePiece), in the pixels of
     // the 128 wide circle: the band from 0.7 to 0.86 of its size.
     private const val RADIUS = 0.86f * 64f
-    private const val BAND = (0.86f - 0.7f) * 64f
+    private const val BAND = (0.86f - 0.75f) * 64f
     private const val BODY_ALPHA = 0.9f
 
     override fun apply(body: PathShape, bodyColor: Color4, borderColor: Color4, skinScale: Float) {
@@ -31,7 +31,7 @@ object DefaultSliderBodyStyle : SliderBodyStyle {
         body.borderWidth = BAND * skinScale
         body.borderColor = bodyColor
         body.shadowWidth = 0f
-        body.bodyColor = bodyColor.darken(3f).alpha(BODY_ALPHA)
+        body.bodyColor = bodyColor.darken(2.5f).alpha(BODY_ALPHA)
         body.bodyCenterColor = bodyColor.darken(4f).alpha(BODY_ALPHA)
     }
 }
@@ -151,7 +151,7 @@ class DefaultFollowCirclePiece : FollowCirclePiece() {
 class DefaultReverseArrow : Container() {
 
     init {
-        val size = SkinDimensions.REVERSE_ARROW.width
+        val size = SkinDimensions.REVERSE_ARROW.width * 0.6f
 
         width = size.px
         height = size.px
