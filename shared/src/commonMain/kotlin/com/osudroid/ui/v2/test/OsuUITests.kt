@@ -23,6 +23,8 @@ import com.osudroid.ui.v2.skin.DefaultSkin
 import com.osudroid.ui.v2.skin.FollowCirclePiece
 import com.osudroid.ui.v2.skin.SliderBallPiece
 import com.osudroid.ui.v2.skin.GameplaySkin
+import com.osudroid.ui.v2.skin.HitLightingPiece
+import com.reco1l.verktex.ui.control.Checkbox
 import com.osudroid.ui.v2.skin.JudgementPiece
 import com.osudroid.ui.v2.skin.MainCirclePiece
 import com.osudroid.ui.v2.skin.legacy.LegacySkin
@@ -135,13 +137,28 @@ object OsuUITests : UITestSuite("osu!") {
 
         test("Default skin") {
             // The pieces of the default skin under those of the default textures, which they stand for: they have
-            // the same sizes. Loops an approach, a hit and every judgement.
-            class Row(val circle: MainCirclePiece, val approach: Component, val judgements: List<JudgementPiece>)
+            // the same sizes. Loops an approach, a hit and every judgement, with the hit lighting and the circle's
+            // burst unless they're turned off, as the settings do in gameplay.
+            class Row(
+                val circle: MainCirclePiece,
+                val approach: Component,
+                val judgements: List<JudgementPiece>,
+                val lightings: List<HitLightingPiece?>,
+            )
 
             val results = listOf("hit300" to HitResult.Great, "hit100" to HitResult.Ok, "hit50" to HitResult.Meh, "hit0" to HitResult.Miss)
             val rows = mutableListOf<Row>()
+            var isHitLightingShown = true
+            var areBurstsShown = true
 
             column {
+                section("Effects") {
+                    +Checkbox(isHitLightingShown).apply { onValueChange = { isHitLightingShown = it } }
+                    text { text = "Hit lighting"; anchor = Anchor.CenterLeft; origin = Anchor.CenterLeft }
+                    +Checkbox(areBurstsShown).apply { onValueChange = { areBurstsShown = it } }
+                    text { text = "Burst effects"; anchor = Anchor.CenterLeft; origin = Anchor.CenterLeft }
+                }
+
                 for ((name, skin) in listOf<Pair<String, GameplaySkin>>("Skin's textures" to LegacySkin, "Default skin" to DefaultSkin)) {
                     section(name) {
                         linearContainer {
@@ -150,6 +167,7 @@ object OsuUITests : UITestSuite("osu!") {
                             val circle = skin.create(SkinComponent.HitCircle)!!
                             val approach = skin.create(SkinComponent.ApproachCircle)!!
                             val judgements = mutableListOf<JudgementPiece>()
+                            val lightings = mutableListOf<HitLightingPiece?>()
 
                             container {
                                 width = 160f.px
@@ -165,15 +183,24 @@ object OsuUITests : UITestSuite("osu!") {
                                 +approach
                             }
 
-                            for ((texture, _) in results) {
+                            for ((texture, result) in results) {
                                 container {
                                     width = 160f.px
                                     height = 160f.px
+
+                                    // Under the judgement, and only for hits, as in gameplay. A texture skin without
+                                    // its lighting has none.
+                                    lightings += if (result == HitResult.Miss) null else {
+                                        skin.create(SkinComponent.HitLighting)?.also {
+                                            it.alpha = 0f
+                                            +it
+                                        }
+                                    }
                                     judgements += skin.create(SkinComponent.Judgement(texture))!!.also { +it }
                                 }
                             }
 
-                            rows += Row(circle, approach, judgements)
+                            rows += Row(circle, approach, judgements, lightings)
                         }
 
                         linearContainer {
@@ -222,9 +249,13 @@ object OsuUITests : UITestSuite("osu!") {
                     } else if (!wasHit) {
                         val now = row.circle.currentClockTime
                         row.approach.alpha = 0f
-                        row.circle.playHit(1f, now)
+                        // Without bursts, a hit circle disappears as soon as it's hit.
+                        if (areBurstsShown) row.circle.playHit(1f, now) else row.circle.alpha = 0f
                         row.judgements.forEachIndexed { index, piece ->
                             piece.play(80f, 80f, results[index].second, 1f, now)
+                        }
+                        if (isHitLightingShown) {
+                            row.lightings.forEach { it?.play(80f, 80f, COMBO_COLORS[2], 1f, now) }
                         }
                     }
                 }
