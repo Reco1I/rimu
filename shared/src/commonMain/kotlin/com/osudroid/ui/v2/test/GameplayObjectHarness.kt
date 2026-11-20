@@ -14,6 +14,7 @@ import com.osudroid.game.Cursor
 import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.PlayfieldMapping
+import com.osudroid.game.rules.HitJudging
 import com.osudroid.ui.v2.game.GameplayPlayfield
 import com.osudroid.mods.ModAutoplay
 import com.osudroid.settings.OsuSettings
@@ -31,7 +32,6 @@ import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.textButton
 import com.osudroid.utils.BitSet
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -40,7 +40,6 @@ import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
 import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
-import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
@@ -356,15 +355,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
     override fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4): String? {
         // The objects of a loop share their difficulty, and so their hit window.
         val hitWindow = current.firstOrNull()?.hitObject?.hitWindow ?: return null
-        val error = abs(accuracy) * 1000
-
-        // As the game scene judges it.
-        val score = when {
-            forcedScore == ResultType.MISS.id || error > hitWindow.mehWindow -> 0
-            forcedScore == ResultType.HIT300.id || forcedScore.toInt() == 0 && error <= hitWindow.greatWindow -> 300
-            forcedScore == ResultType.HIT100.id || forcedScore.toInt() == 0 && error <= hitWindow.okWindow -> 100
-            else -> 50
-        }
+        val score = HitJudging.judge(accuracy, hitWindow, forcedScore).score
 
         stage.log(if (score == 0) "Circle missed" else "Circle hit $score, offset ${(accuracy * 1000).toInt()}ms")
         return scoreName(score)

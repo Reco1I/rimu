@@ -18,6 +18,11 @@ import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.beatmaps.DroidPlayableBeatmap
 import com.osudroid.beatmaps.HitWindow
+import com.osudroid.game.rules.HealthProcessor
+import com.osudroid.game.rules.HitJudging
+import com.osudroid.game.rules.JudgementResult
+import com.osudroid.game.rules.ScoreProcessor
+import com.osudroid.game.rules.SliderPart
 import com.osudroid.beatmaps.constants.BeatmapCountdown
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitCircle
@@ -204,8 +209,6 @@ class GameScene : GameObjectListener {
     private var followPointIndex = 0
     private var postSeekFrameCount = 0
     private var comboColors: ArrayList<Color4>? = null
-    private var comboWasMissed = false
-    private var comboWas100 = false
     private var activeObjects: ArrayList<GameObject>? = null
     private var expiredObjects: ArrayList<GameObject>? = null
     // By identity: GameObject doesn't override equals or hashCode.
@@ -216,6 +219,8 @@ class GameScene : GameObjectListener {
     private var metronome: Metronome? = null
     private var scale = 0f
     lateinit var stat: StatisticV2
+    private lateinit var scoreProcessor: ScoreProcessor
+    private lateinit var healthProcessor: HealthProcessor
     private var gameStarted = false
     private val gameplayClock: FrameStableClock
     private var initialStartTimeValue = 0f
@@ -233,7 +238,6 @@ class GameScene : GameObjectListener {
         private set
     private var replayFilePath: String? = null
     private var comboBurst: ComboBurst? = null
-    private var failcount = 0
     private var sliderBorderColor: Color4? = null
     private var sliderPaths: Array<SliderPath?>? = null
     private var sliderRenderPaths: Array<Path?>? = null
@@ -998,7 +1002,6 @@ class GameScene : GameObjectListener {
         resetPlayfieldSizeScale()
 
         gameUIScene = createScene()
-        failcount = 0
         mainCursorId = -1
         gameplayClock.changeSource(null)
         modIcons.clear()
@@ -1197,8 +1200,8 @@ class GameScene : GameObjectListener {
             cursors[i] = Cursor()
         }
 
-        comboWas100 = false
-        comboWasMissed = false
+        scoreProcessor = ScoreProcessor(stat)
+        healthProcessor = HealthProcessor(stat, playableBeatmap.difficulty.hp, if (GameHelper.isEasy()) EasyLives else 0)
         previousFrameTime = 0
 
         metronome = null
@@ -1736,28 +1739,15 @@ class GameScene : GameObjectListener {
             flashlightSprite!!.onBreak(true)
         }
 
-        if (gameStarted) {
-            var rate = 0.375
-            if (playableBeatmap.difficulty.hp > 0 && distToNextObject > 0) {
-                rate = 1 + playableBeatmap.difficulty.hp / (2 * distToNextObject)
-            }
-            stat.changeHp((-rate).toFloat() * 0.01f * dt)
-
-            if (stat.hp <= 0 && stat.canFail) {
-                if (GameHelper.isEasy() && failcount < 3) {
-                    failcount++
-                    stat.changeHp(1f)
-                } else {
-                    if (Multiplayer.isMultiplayer) {
-                        if (!hasFailed) {
-                            Toasts.show("You failed but you can continue playing.")
-                        }
-                        hasFailed = true
-                    } else {
-                        gameover()
-                        return
-                    }
+        if (gameStarted && healthProcessor.drain(dt, distToNextObject)) {
+            if (Multiplayer.isMultiplayer) {
+                if (!hasFailed) {
+                    Toasts.show("You failed but you can continue playing.")
                 }
+                hasFailed = true
+            } else {
+                gameover()
+                return
             }
         }
 
@@ -2269,65 +2259,32 @@ class GameScene : GameObjectListener {
     }
 
     private fun registerHit(objectId: Int, score: Int, endCombo: Boolean, incrementCombo: Boolean): String {
+        return registerHit(objectId, JudgementResult.fromScore(score), endCombo, incrementCombo)
+    }
+
+    private fun registerHit(objectId: Int, result: JudgementResult, endCombo: Boolean, incrementCombo: Boolean = true,
+                            sliderTail: Boolean = false): String {
 
         if (isGameOver) {
             return "hit0"
         }
 
-        val writeReplay = objectId != -1 && replay != null && !replaying
-        if (score == 0) {
-            if (stat.combo > 30) {
-                val sound = SkinSounds.getBeatmap("combobreak", 1)
-                sound?.play()
-            }
-            comboWasMissed = true
-            stat.registerHit(0, false, false, incrementCombo)
-            if (writeReplay) replay!!.addObjectScore(objectId, ResultType.MISS)
-            if (GameHelper.isSuddenDeath()) {
-                stat.changeHp(-1.0f)
-                gameover()
-            }
-            if (objectId != -1) {
-                updatePPValue(objectId)
-            }
-            return "hit0"
+        if (result == JudgementResult.Miss) {
+            playComboBreak()
         }
 
-        var scoreName = "hit300"
-        if (score == 50) {
-            stat.registerHit(50, false, false, incrementCombo)
-            if (writeReplay) replay!!.addObjectScore(objectId, ResultType.HIT50)
-            scoreName = "hit50"
-            comboWas100 = true
-        } else if (score == 100) {
-            comboWas100 = true
-            if (writeReplay) replay!!.addObjectScore(objectId, ResultType.HIT100)
-            if (endCombo && !comboWasMissed) {
-                stat.registerHit(100, true, false, incrementCombo)
-                scoreName = "hit100k"
-            } else {
-                stat.registerHit(100, false, false, incrementCombo)
-                scoreName = "hit100"
-            }
-        } else if (score == 300) {
-            if (writeReplay) replay!!.addObjectScore(objectId, ResultType.HIT300)
-            if (endCombo && !comboWasMissed) {
-                if (!comboWas100) {
-                    stat.registerHit(300, true, true, incrementCombo)
-                    scoreName = "hit300g"
-                } else {
-                    stat.registerHit(300, true, false, incrementCombo)
-                    scoreName = "hit300k"
-                }
-            } else {
-                stat.registerHit(300, false, false, incrementCombo)
-                scoreName = "hit300"
-            }
+        val scoreName = if (sliderTail)
+            scoreProcessor.applySliderTail(result, endCombo, incrementCombo)
+        else
+            scoreProcessor.applyObject(result, endCombo, incrementCombo)
+
+        if (objectId != -1 && replay != null && !replaying) {
+            replay!!.addObjectScore(objectId, result.resultType)
         }
 
-        if (endCombo) {
-            comboWas100 = false
-            comboWasMissed = false
+        if (result == JudgementResult.Miss && GameHelper.isSuddenDeath()) {
+            stat.changeHp(-1.0f)
+            gameover()
         }
 
         if (objectId != -1) {
@@ -2335,6 +2292,12 @@ class GameScene : GameObjectListener {
         }
 
         return scoreName
+    }
+
+    private fun playComboBreak() {
+        if (stat.combo > 30) {
+            SkinSounds.getBeatmap("combobreak", 1)?.play()
+        }
     }
 
 
@@ -2372,21 +2335,14 @@ class GameScene : GameObjectListener {
         }
         GameplayVibrations.circle()
 
-        if (accuracy > playableBeatmap.hitWindow.mehWindow / 1000 || forcedScore == ResultType.MISS.id) {
-            registerHit(id, 0, endCombo)
+        val result = HitJudging.judge(accuracy, playableBeatmap.hitWindow, forcedScore)
+
+        if (result == JudgementResult.Miss) {
+            registerHit(id, result, endCombo)
             return "hit0"
         }
 
-        val scoreName: String
-        if (forcedScore == ResultType.HIT300.id ||
-            forcedScore.toInt() == 0 && accuracy <= playableBeatmap.hitWindow.greatWindow / 1000) {
-            scoreName = registerHit(id, 300, endCombo)
-        } else if (forcedScore == ResultType.HIT100.id ||
-            forcedScore.toInt() == 0 && accuracy <= playableBeatmap.hitWindow.okWindow / 1000) {
-            scoreName = registerHit(id, 100, endCombo)
-        } else {
-            scoreName = registerHit(id, 50, endCombo)
-        }
+        val scoreName = registerHit(id, result, endCombo)
 
         if (nearestCursorId >= 0) {
             val aimErrorCursorEvent = cursors[nearestCursorId]!!.getLatestNonUpEvent()
@@ -2436,15 +2392,13 @@ class GameScene : GameObjectListener {
 
         // Nested object was missed.
         if (score == -1) {
-            if (stat.combo > 30) {
-                val sound = SkinSounds.getBeatmap("combobreak", 1)
-                sound?.play()
-            }
+            playComboBreak()
+
             if (GameHelper.isSuddenDeath()) {
                 stat.changeHp(-1.0f)
                 gameover()
             }
-            stat.registerHit(0, true, false)
+            scoreProcessor.applySliderPartMiss()
             return null
         }
 
@@ -2453,9 +2407,7 @@ class GameScene : GameObjectListener {
         when (type) {
             GameObjectListener.SLIDER_START -> {
                 if (incrementCombo) {
-                    scoreName = "sliderpoint30"
-                    stat.registerHit(30, false, false)
-                    stat.addSliderHeadHit()
+                    scoreName = scoreProcessor.applySliderPart(SliderPart.Head)
 
                     if (nearestCursorId >= 0) {
                         val aimErrorCursorEvent = cursors[nearestCursorId]!!.getLatestNonUpEvent()
@@ -2474,28 +2426,19 @@ class GameScene : GameObjectListener {
 
             GameObjectListener.SLIDER_REPEAT -> {
                 if (incrementCombo) {
-                    scoreName = "sliderpoint30"
-                    stat.registerHit(30, false, false)
-                    stat.addSliderRepeatHit()
+                    scoreName = scoreProcessor.applySliderPart(SliderPart.Repeat)
                 }
             }
 
             GameObjectListener.SLIDER_TICK -> {
                 if (incrementCombo) {
-                    scoreName = "sliderpoint10"
-                    stat.registerHit(10, false, false)
-                    stat.addSliderTickHit()
+                    scoreName = scoreProcessor.applySliderPart(SliderPart.Tick)
                 }
             }
 
             GameObjectListener.SLIDER_END -> {
-                // Register the slider end hit to statistics first before calling registerHit so that updatePPValue
-                // receives the correct slider end hit count.
-                if (incrementCombo) {
-                    stat.addSliderEndHit()
-                }
-
-                scoreName = registerHit(id, score, endCombo, incrementCombo)
+                // The slider end hit is registered before updatePPValue, which reads the slider end hit count.
+                scoreName = registerHit(id, JudgementResult.fromScore(score), endCombo, incrementCombo, sliderTail = true)
             }
         }
 
@@ -2512,7 +2455,7 @@ class GameScene : GameObjectListener {
 
     override fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int): String? {
         if (score == 1000) {
-            stat.registerHit(score, false, false)
+            scoreProcessor.applySpinnerBonus()
             return null
         }
 
@@ -3347,9 +3290,8 @@ class GameScene : GameObjectListener {
         lastObjectId = -1
         gameStarted = false
         leadOut = 0f
-        comboWasMissed = false
-        comboWas100 = false
-        failcount = 0
+        scoreProcessor.resetCombo()
+        healthProcessor.reset()
         isGameOver = false
         hasFailed = false
 
@@ -3512,7 +3454,6 @@ class GameScene : GameObjectListener {
         }
 
         val timingControlPoints = timingControlPoints!!
-        val difficulty = playableBeatmap.difficulty
         var localTimingIdx = 0
         var localBreakIdx = 0
         val objectData = if (replaying) replay!!.objectData else null
@@ -3547,11 +3488,6 @@ class GameScene : GameObjectListener {
                 val msPerBeat = timingControlPoints[localTimingIdx].msPerBeat
                 val distToNextObject = max(segToObj.startTime - segFromObj.startTime, msPerBeat / 2) / 1000
 
-                val drainRate = if (difficulty.hp > 0 && distToNextObject > 0)
-                    1 + difficulty.hp / (2 * distToNextObject)
-                else
-                    0.375
-
                 val segEndMs = segToObj.startTime - segToObj.timePreempt
                 val stopAtMs = min(segEndMs, drainTargetMs)
 
@@ -3564,34 +3500,10 @@ class GameScene : GameObjectListener {
                         }
                     }
 
-                    val effectiveSecs = calculateEffectiveDrainDuration(drainCursorMs, stopAtMs, localBreakIdx)
+                    val effectiveSecs = HealthProcessor.drainingSeconds(drainCursorMs, stopAtMs, breakPeriods, localBreakIdx)
 
-                    // Apply drain incrementally so that a large drain section can consume multiple Easy lives.
-                    // A one-shot stat.changeHp clamps at 0 and loses the excess, causing at most one Easy revive per drain
-                    // section regardless of how deep HP would have gone.
-                    var remainingDrain = (drainRate * 0.01 * effectiveSecs).toFloat()
-
-                    while (remainingDrain > 0) {
-                        val currentHp = stat.hp
-
-                        if (remainingDrain < currentHp) {
-                            stat.changeHp(-remainingDrain)
-                            break
-                        }
-
-                        remainingDrain -= currentHp
-                        stat.changeHp(-currentHp)
-
-                        if (!stat.canFail) {
-                            break
-                        }
-
-                        if (GameHelper.isEasy() && failcount < 3) {
-                            failcount++
-                            stat.changeHp(1f)
-                        } else {
-                            return
-                        }
+                    if (healthProcessor.drainSegment(effectiveSecs, distToNextObject)) {
+                        return
                     }
 
                     drainCursorMs = stopAtMs
@@ -3655,47 +3567,20 @@ class GameScene : GameObjectListener {
     }
 
     private fun applyCircleResult(data: Replay.ReplayObjectData?, endCombo: Boolean) {
-        val result = data?.result ?: ResultType.HIT300.id
+        val result = JudgementResult.fromResultType(data?.result ?: ResultType.HIT300.id)
 
-        if (result == ResultType.MISS.id) {
-            comboWasMissed = true
-            stat.registerHit(0, false, false)
-        } else {
+        if (result != JudgementResult.Miss) {
             reconstructHitOffset(if (data != null) data.accuracy / 1000.0 else 0.0)
-
-            if (result == ResultType.HIT50.id) {
-                stat.registerHit(50, false, false)
-                comboWas100 = true
-            } else if (result == ResultType.HIT100.id) {
-                comboWas100 = true
-                stat.registerHit(100, endCombo && !comboWasMissed, false)
-            } else {
-                if (endCombo && !comboWasMissed) {
-                    stat.registerHit(300, true, !comboWas100)
-                } else {
-                    stat.registerHit(300, false, false)
-                }
-            }
         }
 
-        if (endCombo) {
-            comboWas100 = false
-            comboWasMissed = false
-        }
+        scoreProcessor.applyObject(result, endCombo)
     }
 
     private fun applySliderResult(slider: Slider, data: Replay.ReplayObjectData?, endCombo: Boolean) {
-        val result = data?.result ?: ResultType.HIT300.id
+        val result = JudgementResult.fromResultType(data?.result ?: ResultType.HIT300.id)
 
-        if (result == ResultType.MISS.id) {
-            comboWasMissed = true
-            stat.registerHit(0, false, false)
-
-            if (endCombo) {
-                comboWas100 = false
-                comboWasMissed = false
-            }
-
+        if (result == JudgementResult.Miss) {
+            scoreProcessor.applyObject(result, endCombo)
             return
         }
 
@@ -3705,7 +3590,7 @@ class GameScene : GameObjectListener {
         val accSeconds = if (data != null) data.accuracy / 1000.0 else 0.0
         val headHit: Boolean
 
-        if (data == null || result == ResultType.HIT300.id) {
+        if (data == null || result == JudgementResult.Great) {
             headHit = true
         } else {
             val replayVersion = GameHelper.getReplayVersion()
@@ -3722,8 +3607,7 @@ class GameScene : GameObjectListener {
 
         if (headHit) {
             reconstructHitOffset(accSeconds)
-            stat.registerHit(30, false, false)
-            stat.addSliderHeadHit()
+            scoreProcessor.applySliderPart(SliderPart.Head)
         }
 
         // Ticks and repeats from tickSet.
@@ -3734,48 +3618,24 @@ class GameScene : GameObjectListener {
             val wasHit = data == null || (data.tickSet != null && data.tickSet!![i - 1])
 
             if (!wasHit) {
-                stat.registerHit(0, true, false)
+                scoreProcessor.applySliderPartMiss()
                 continue
             }
 
             val nestedObj = nested[i]
 
             if (nestedObj is SliderTick) {
-                stat.registerHit(10, false, false)
-                stat.addSliderTickHit()
+                scoreProcessor.applySliderPart(SliderPart.Tick)
             } else if (nestedObj is SliderRepeat) {
-                stat.registerHit(30, false, false)
-                stat.addSliderRepeatHit()
+                scoreProcessor.applySliderPart(SliderPart.Repeat)
             }
         }
 
         // Slider tail: combo is only awarded when the player was tracking at the endpoint.
         // Unlike circles, the result score reflects ticks hit, not timing accuracy.
         val tailTracked = data == null || (data.tickSet != null && data.tickSet!![nested.size - 2])
-        val tailResult = data?.result ?: ResultType.HIT300.id
 
-        if (tailResult == ResultType.HIT50.id) {
-            comboWas100 = true
-            stat.registerHit(50, false, false, tailTracked)
-        } else if (tailResult == ResultType.HIT100.id) {
-            comboWas100 = true
-            stat.registerHit(100, endCombo && !comboWasMissed, false, tailTracked)
-        } else {
-            if (endCombo && !comboWasMissed) {
-                stat.registerHit(300, true, !comboWas100, tailTracked)
-            } else {
-                stat.registerHit(300, false, false, tailTracked)
-            }
-        }
-
-        if (endCombo) {
-            comboWas100 = false
-            comboWasMissed = false
-        }
-
-        if (tailTracked) {
-            stat.addSliderEndHit()
-        }
+        scoreProcessor.applySliderTail(result, endCombo, tailTracked)
     }
 
     private fun applySpinnerResult(spinner: Spinner, data: Replay.ReplayObjectData?, endCombo: Boolean) {
@@ -3806,46 +3666,14 @@ class GameScene : GameObjectListener {
         }
 
         for (s in 0 until preClear) {
-            stat.registerSpinnerHit()
+            scoreProcessor.applySpinnerRotation()
         }
 
         for (s in 0 until bonus) {
-            stat.registerHit(1000, false, false)
+            scoreProcessor.applySpinnerBonus()
         }
 
         applyCircleResult(data, endCombo)
-    }
-
-    /**
-     * Returns the effective drain duration in seconds for the segment [startMs, endMs], subtracting any time that falls
-     * within a break period. `startBreakIdx` should be the first break period index whose end time is >= startMs
-     * (caller advances this monotonically as segments progress forward in time).
-     */
-    private fun calculateEffectiveDrainDuration(startMs: Double, endMs: Double, startBreakIdx: Int): Double {
-        if (startMs >= endMs) {
-            return 0.0
-        }
-
-        var total = endMs - startMs
-
-        val breakPeriods = breakPeriods
-        if (breakPeriods != null) {
-            for (i in startBreakIdx until breakPeriods.size) {
-                val bp = breakPeriods[i]
-
-                if (bp.startTime >= endMs) {
-                    break
-                }
-
-                val overlap = min(bp.endTime.toDouble(), endMs) - max(bp.startTime.toDouble(), startMs)
-
-                if (overlap > 0) {
-                    total -= overlap
-                }
-            }
-        }
-
-        return max(0.0, total) / 1000
     }
 
     //endregion
@@ -3957,6 +3785,9 @@ class GameScene : GameObjectListener {
 
     companion object {
         const val CursorCount = Replay.CursorCount
+
+        // The lives Easy gives once health runs out.
+        private const val EasyLives = 3
 
         // The play started last, whose loading a new play stops first. Quitting it clears it, otherwise
         // it's kept until the next play starts.
