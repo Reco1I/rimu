@@ -27,7 +27,6 @@ import com.reco1l.framework.forEachTolerant
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.reco1l.verktex.ui.toast.Toasts
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.*
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import ru.nsu.ccfit.zuev.skins.SkinJsonReader
@@ -43,7 +42,7 @@ class GameplayHUD(
     /**
      * The play this HUD shows.
      */
-    val game: GameScene
+    val game: GameplayState
 ) : ScalingContainer(), IGameplayEvents {
 
     /**
@@ -315,7 +314,7 @@ class GameplayHUD(
     internal val elementChildren: List<Component>
         get() = children
 
-    override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
         forEachElement { it.onGameplayUpdate(gameScene, secondsElapsed) }
         elementSelector?.onGameplayUpdate(gameScene, secondsElapsed)
     }

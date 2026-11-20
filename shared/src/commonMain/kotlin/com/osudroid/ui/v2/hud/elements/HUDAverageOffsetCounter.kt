@@ -4,7 +4,7 @@ import com.reco1l.verktex.data.px
 
 import com.reco1l.verktex.ui.text.Text
 import com.osudroid.ui.v2.hud.HUDElement
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 import kotlin.math.roundToInt
 
 class HUDAverageOffsetCounter : HUDElement() {
@@ -28,7 +28,7 @@ class HUDAverageOffsetCounter : HUDElement() {
         +text
     }
 
-    override fun onGameplayUpdate(game: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {
         value = game.stat.averageHitOffset
     }
 }

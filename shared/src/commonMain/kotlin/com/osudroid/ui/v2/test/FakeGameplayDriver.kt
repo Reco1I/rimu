@@ -7,19 +7,18 @@ import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.hud.IGameplayEvents
 import com.reco1l.verktex.testing.UITestStage
 import kotlin.random.Random
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * Makes up a play on [gameScene], which isn't playing: hits notes with some error now and then, and
  * sends the gameplay events to [listeners] as the game scene sends them to the HUD.
  *
- * Only the statistics of [gameScene] follow the play: its time is the one of its gameplay clock,
- * which doesn't run. The play lasts [PLAY_LENGTH] and starts over after.
+ * Only the statistics and the time of [gameScene] follow the play. The play lasts [PLAY_LENGTH] and
+ * starts over after.
  */
 class FakeGameplayDriver(
     stage: UITestStage,
-    private val gameScene: GameScene,
+    private val gameScene: FakeGameplayState,
     private val listeners: List<IGameplayEvents>
 ) {
 
@@ -48,6 +47,7 @@ class FakeGameplayDriver(
                 nextNoteTime += NOTE_INTERVAL
             }
 
+            gameScene.elapsedTime = time
             listeners.forEach { it.onGameplayUpdate(gameScene, deltaTime) }
         }
 

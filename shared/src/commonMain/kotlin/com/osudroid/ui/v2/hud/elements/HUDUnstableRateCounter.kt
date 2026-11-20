@@ -4,7 +4,7 @@ import com.reco1l.verktex.data.px
 
 import com.reco1l.verktex.ui.text.Text
 import com.osudroid.ui.v2.hud.HUDElement
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 import com.reco1l.verktex.localization.formatString
 
 class HUDUnstableRateCounter : HUDElement() {
@@ -30,7 +30,7 @@ class HUDUnstableRateCounter : HUDElement() {
         +text
     }
 
-    override fun onGameplayUpdate(game: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {
         value = game.stat.unstableRate
     }
 }

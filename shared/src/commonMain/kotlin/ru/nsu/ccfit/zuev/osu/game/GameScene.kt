@@ -82,6 +82,7 @@ import com.osudroid.ui.v2.skin.JudgementPiece
 import com.osudroid.ui.v2.game.PauseMenu
 import com.osudroid.ui.v2.game.GameplaySliderTick
 import com.osudroid.ui.v2.hud.GameplayHUD
+import com.osudroid.ui.v2.hud.GameplayState
 import com.osudroid.ui.v2.hud.HUDElements
 import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
 import com.osudroid.ui.v2.modmenu.ModIcon
@@ -161,7 +162,7 @@ import com.reco1l.verktex.input.KeyboardEvent
  * A play of one beatmap: its gameplay, its retries and the replays watched from its [scoring] scene.
  * Created by whoever starts the play.
  */
-class GameScene : GameObjectListener {
+class GameScene : GameObjectListener, GameplayState {
     private val maximumActiveCursorCount = 3
     private var cursors = arrayOfNulls<Cursor>(CursorCount)
     @JvmField
@@ -178,14 +179,12 @@ class GameScene : GameObjectListener {
     /**
      * The scores of the leaderboard shown during gameplay, given by song select with the play.
      */
-    @JvmField
-    var leaderboardItems: () -> List<ScoreBoardItem> = { emptyList() }
+    override var leaderboardItems: () -> List<ScoreBoardItem> = { emptyList() }
 
     /**
      * Whether [leaderboardItems] are online scores.
      */
-    @JvmField
-    var isLeaderboardOnline = false
+    override var isLeaderboardOnline = false
     private var failAnimation: FailAnimation? = null
     private var pauseMenu: PauseMenu? = null
     private var replayText: Text? = null
@@ -194,7 +193,7 @@ class GameScene : GameObjectListener {
     private var beatmapBackgroundWidth = 0f
     private var beatmapBackgroundHeight = 0f
     private var parsedBeatmap: Beatmap? = null
-    var playableBeatmap: DroidPlayableBeatmap? = null
+    override var playableBeatmap: DroidPlayableBeatmap? = null
         private set
     private var lastBeatmapInfo: BeatmapInfo? = null
     private var timingControlPoints: Array<TimingControlPoint>? = null
@@ -221,7 +220,7 @@ class GameScene : GameObjectListener {
     private var breakPeriodIndex = 0
     private var metronome: Metronome? = null
     private var scale = 0f
-    lateinit var stat: StatisticV2
+    override lateinit var stat: StatisticV2
 
     /**
      * What the gameplay of this play depends on, made as it's loaded.
@@ -255,8 +254,7 @@ class GameScene : GameObjectListener {
     private val modIcons = ArrayList<ModIcon>()
     private val rateAdjustingMods = ArrayList<IModApplicableToTrackRate>()
 
-    @JvmField
-    var hitWindow: HitWindow? = null
+    override var hitWindow: HitWindow? = null
 
     private var lastMods: ModHashMap? = null
 
@@ -273,7 +271,7 @@ class GameScene : GameObjectListener {
 
     private var ppCalculationJob: Job? = null
 
-    var replaySettingsPanel: ReplaySettingsPanel? = null
+    override var replaySettingsPanel: ReplaySettingsPanel? = null
         private set
 
     // Game
@@ -312,8 +310,7 @@ class GameScene : GameObjectListener {
     /**
      * Whether the HUD editor mode is enabled.
      */
-    @JvmField
-    var isHUDEditorMode = false
+    override var isHUDEditorMode = false
 
     /**
      * Whether the game started in HUD editor mode.
@@ -334,14 +331,12 @@ class GameScene : GameObjectListener {
     /**
      * The start time of the first object in seconds.
      */
-    @JvmField
-    var firstObjectStartTime = 0f
+    override var firstObjectStartTime = 0f
 
     /**
      * The end time of the last object in seconds.
      */
-    @JvmField
-    var lastObjectEndTime = 0f
+    override var lastObjectEndTime = 0f
 
     // Video support
 
@@ -997,8 +992,11 @@ class GameScene : GameObjectListener {
         return true
     }
 
-    val scene: Scene
+    override val scene: Scene
         get() = gameUIScene
+
+    override val replayId: Int
+        get() = scoring.replayID
 
     fun restartGame() {
         startGame(null, null, null)
@@ -2659,7 +2657,7 @@ class GameScene : GameObjectListener {
         }
     }
 
-    fun pause() {
+    override fun pause() {
 
         if (paused) {
             return
@@ -3034,7 +3032,7 @@ class GameScene : GameObjectListener {
     /**
      * The time that gameplay started relative to the start of the [Beatmap], in seconds.
      */
-    val initialStartTime: Float
+    override val initialStartTime: Float
         get() = initialStartTimeValue
 
     /**

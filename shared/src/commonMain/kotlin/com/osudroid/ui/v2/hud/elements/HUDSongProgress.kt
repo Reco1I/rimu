@@ -11,13 +11,13 @@ import com.reco1l.verktex.data.Color4
 import com.osudroid.ui.v2.hud.HUDElement
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Dimension
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 import kotlin.math.roundToInt
 
 sealed class HUDSongProgress : HUDElement() {
     abstract fun setProgress(progress: Float, isIntro: Boolean)
 
-    override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
         if (gameScene.elapsedTime < gameScene.firstObjectStartTime) {
             setProgress((gameScene.elapsedTime - gameScene.initialStartTime) / (gameScene.firstObjectStartTime - gameScene.initialStartTime), true)
         } else {

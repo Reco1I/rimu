@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.hud.elements
 
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 import com.osudroid.OsuGame
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -22,7 +22,7 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import com.reco1l.verktex.data.px
 
-class HUDBackButton(private val game: GameScene) : HUDElement() {
+class HUDBackButton(private val game: GameplayState) : HUDElement() {
 
     override val shouldBeShown = true
 

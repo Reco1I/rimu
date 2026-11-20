@@ -12,7 +12,7 @@ import com.osudroid.ui.v2.hud.HUDElement
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.ui.text.Text
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.*
 
@@ -77,7 +77,7 @@ sealed class HUDHitStatisticCounter(label: String, tint: Color4) : HUDStatisticC
      */
     protected abstract fun getValue(statistics: StatisticV2): Int
 
-    override fun onGameplayUpdate(game: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {
         displayedValue = getValue(game.stat)
     }
 }

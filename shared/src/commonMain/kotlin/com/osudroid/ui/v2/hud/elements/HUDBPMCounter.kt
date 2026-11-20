@@ -4,7 +4,7 @@ import com.reco1l.verktex.time.FrameClock
 
 import com.rian.framework.RollingIntCounter
 import kotlin.math.roundToInt
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 
 class HUDBPMCounter : HUDStatisticCounter("BPM") {
 
@@ -15,7 +15,7 @@ class HUDBPMCounter : HUDStatisticCounter("BPM") {
     init {
     }
 
-    override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
         val beatmap = gameScene.playableBeatmap ?: return
         val replaySettingsPanel = gameScene.replaySettingsPanel
 

@@ -24,7 +24,7 @@ import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 class HUDElementSelector(private val hud: GameplayHUD) : Container(), IGameplayEvents {
@@ -131,7 +131,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : Container(), IGameplayE
         elements.forEach { it.onBreakStateChange(isBreak) }
     }
 
-    override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
         elements.forEach { it.onGameplayUpdate(gameScene, secondsElapsed) }
     }
 

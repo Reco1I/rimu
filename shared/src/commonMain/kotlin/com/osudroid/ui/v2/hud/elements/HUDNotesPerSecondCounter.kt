@@ -1,7 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
 import com.osudroid.beatmaps.hitobjects.HitObject
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 
 class HUDNotesPerSecondCounter : HUDStatisticCounter("Notes/sec") {
 
@@ -17,7 +17,7 @@ class HUDNotesPerSecondCounter : HUDStatisticCounter("Notes/sec") {
         objects.clear()
     }
 
-    override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
         val elapsedTimeMs = gameScene.elapsedTime * 1000
 
         while (objects.isNotEmpty()) {

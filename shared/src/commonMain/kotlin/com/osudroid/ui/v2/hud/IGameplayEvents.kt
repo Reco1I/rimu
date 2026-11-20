@@ -3,12 +3,11 @@ package com.osudroid.ui.v2.hud
 import com.osudroid.math.Vector2
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 interface IGameplayEvents {
 
-    fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float)
+    fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float)
 
     /**
      * Called when a pointer down event occurs in gameplay.

@@ -6,7 +6,7 @@ import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
 import com.rian.framework.RollingLongCounter
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import com.reco1l.verktex.localization.formatString
 
@@ -34,7 +34,7 @@ class HUDScoreCounter : HUDElement() {
         +sprite
     }
 
-    override fun onGameplayUpdate(game: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {
         counter.targetValue = game.stat.totalScoreWithMultiplier
     }
 

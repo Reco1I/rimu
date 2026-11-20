@@ -8,7 +8,7 @@ import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
 import com.reco1l.verktex.ui.text.TextAlign
 import com.rian.framework.RollingFloatCounter
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import com.reco1l.verktex.localization.formatString
 
@@ -48,7 +48,7 @@ class HUDAccuracyCounter : HUDElement() {
         }
     }
 
-    override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
         counter.targetValue = gameScene.stat.accuracy
     }
 

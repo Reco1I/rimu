@@ -1,6 +1,5 @@
 package com.osudroid.ui.v2.test
 
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.ui.v2.SkinTextures
@@ -186,7 +185,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
             useGameContext()
 
             val elements = mutableListOf<HUDElement>()
-            val gameScene = GameScene()
+            val gameScene = FakeGameplayState()
 
             column {
                 for (entry in HUDElements.entries) {

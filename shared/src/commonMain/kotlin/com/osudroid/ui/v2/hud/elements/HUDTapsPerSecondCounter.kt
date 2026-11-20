@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.hud.elements
 
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 
 class HUDTapsPerSecondCounter : HUDStatisticCounter("Taps/sec") {
 
@@ -16,7 +16,7 @@ class HUDTapsPerSecondCounter : HUDStatisticCounter("Taps/sec") {
         timestamps.clear()
     }
 
-    override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
         val earliestElapsedTime = gameScene.elapsedTime - gameScene.context.timing.speedMultiplier
 
         while (timestamps.isNotEmpty() && timestamps.first() < earliestElapsedTime) {

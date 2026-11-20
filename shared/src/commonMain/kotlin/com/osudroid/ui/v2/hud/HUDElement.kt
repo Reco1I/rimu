@@ -23,7 +23,6 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import kotlin.math.abs
 import kotlin.reflect.KClass
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 
@@ -31,7 +30,7 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
  * List all the elements that can be added to the HUD.
  */
 @Suppress("EnumEntryName")
-enum class HUDElements(val type: KClass<out HUDElement>, val create: (GameScene) -> HUDElement) {
+enum class HUDElements(val type: KClass<out HUDElement>, val create: (GameplayState) -> HUDElement) {
 
     accuracy_counter(HUDAccuracyCounter::class, { HUDAccuracyCounter() }),
     combo_counter(HUDComboCounter::class, { HUDComboCounter() }),
@@ -224,7 +223,7 @@ abstract class HUDElement : Container(), IGameplayEvents {
 
     //region Gameplay events
 
-    override fun onGameplayUpdate(gameScene: GameScene, secondsElapsed: Float) {}
+    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {}
 
     override fun onGameplayTouchDown(time: Float) {}
 

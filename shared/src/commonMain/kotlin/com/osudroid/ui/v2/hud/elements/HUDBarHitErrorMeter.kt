@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.hud.elements
 
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.CompareFunction
@@ -15,7 +15,7 @@ import com.osudroid.beatmaps.constants.HitObjectType
 import com.reco1l.verktex.data.Anchor
 import kotlin.math.abs
 
-class HUDBarHitErrorMeter(game: GameScene) : HUDHitErrorMeter(game) {
+class HUDBarHitErrorMeter(game: GameplayState) : HUDHitErrorMeter(game) {
 
     private val expiredIndicators = SynchronizedPool<Indicator>(20)
     private val activeIndicators = mutableListOf<Indicator>()

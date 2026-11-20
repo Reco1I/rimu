@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.hud.elements
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.ui.v2.hud.GameplayState
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
@@ -17,7 +17,7 @@ class HUDHealthBar : HUDElement() {
         +piece
     }
 
-    override fun onGameplayUpdate(game: GameScene, secondsElapsed: Float) {
+    override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {
         piece.update(game.stat.hp, secondsElapsed)
     }
 
