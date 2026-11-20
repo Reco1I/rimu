@@ -53,6 +53,7 @@ import com.osudroid.utils.currentTimeMillis
 import com.reco1l.verktex.localization.formatString
 import com.osudroid.utils.async
 import com.osudroid.utils.updateThread
+import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.input.KeyboardEvent
 import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.Button.Density
@@ -122,7 +123,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
             padding = Padding(16f.dip)
 
             container {
-                width = 0.67f.pct
+                width = fill()
                 height = fill()
 
                 if (beatmapInfo.epilepsyWarning) {
@@ -300,8 +301,9 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
     private inner class QuickSettingsLayout : ScrollableContainer() {
 
         init {
-            width = 0.3f.pct
+            width = wrap()
             height = fill()
+            maxWidth = fill(0.35f)
             anchor = Anchor.TopRight
             origin = Anchor.TopRight
             scrollAxes = Axis.Y
