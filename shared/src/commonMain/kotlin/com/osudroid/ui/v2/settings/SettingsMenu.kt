@@ -48,6 +48,8 @@ import kotlin.math.log10
 import com.reco1l.verktex.ui.themed
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
+import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
+import com.reco1l.verktex.ui.container.ignoreParentPaddingContainer
 
 
 class SettingsMenu : Scene() {
@@ -76,76 +78,90 @@ class SettingsMenu : Scene() {
     init {
         background = Background.Color(themed { palette.surface })
 
-        linearContainer {
+        ignoreParentPaddingContainer {
             width = fill()
             height = fill()
-            orientation = Orientation.Horizontal
 
-            // Sections
-            scrollableContainer {
-                scrollAxes = Axis.Y
-                height = fill()
-                padding = Padding(16f.dip)
-                background = Background.Color(themed { palette.buttonBackgroundSurface })
-
-                linearContainer {
-                    width = fill()
-                    orientation = Orientation.Vertical
-                    spacing = themed { gap.xs }
-
-                   textButton {
-                        text = "Back"
-                        leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
-                        variant = Variant.Ghost
-                        width = SIDEBAR_WIDTH
-                        alignment = Anchor.CenterLeft
-                        onActionUp = { back() }
-                    }
-
-                    box {
-                        width = SIDEBAR_WIDTH
-                        height = 2f.dip
-                        color = themed { palette.divider }
-                    }
-
-                    // In a room its settings come first, and the ones only meant for the menu are hidden.
-                    if (Multiplayer.isMultiplayer) {
-                        sidebarCaption("Multiplayer")
-                        +SectionButton(SettingsSection.Player, FAIcon.User)
-                        if (Multiplayer.isRoomHost) {
-                            +SectionButton(SettingsSection.Room, FAIcon.UserGroup)
-                        }
-                        sidebarCaption("Game")
-                    } else {
-                        +SectionButton(SettingsSection.General, FAIcon.Gears)
-                    }
-
-                    +SectionButton(SettingsSection.Gameplay, FAIcon.Gamepad)
-                    +SectionButton(SettingsSection.Graphics, FAIcon.Display)
-                    +SectionButton(SettingsSection.Audio, FAIcon.Headphones)
-                    if (!Multiplayer.isMultiplayer) {
-                        +SectionButton(SettingsSection.Library, FAIcon.Book)
-                    }
-                    +SectionButton(SettingsSection.Input, FAIcon.ComputerMouse)
-                    +SectionButton(SettingsSection.Advanced, FAIcon.ScrewdriverWrench)
-                }
-            }
-
-            sectionScroll = scrollableContainer {
-                scrollAxes = Axis.Y
+            linearContainer {
                 width = fill()
                 height = fill()
+                orientation = Orientation.Horizontal
 
-                sectionContainer = linearContainer {
-                    orientation = Orientation.Vertical
+                // Sections
+                extendIntoSafeAreaContainer {
+                    height = fill()
+                    background = Background.Color(themed { palette.buttonBackgroundSurface })
+
+                    scrollableContainer {
+                        scrollAxes = Axis.Y
+                        height = fill()
+                        padding = Padding(16f.dip)
+
+                        linearContainer {
+                            width = fill()
+                            orientation = Orientation.Vertical
+                            spacing = themed { gap.xs }
+
+                           textButton {
+                                text = "Back"
+                                leadingIcon = faSolidIcon(FAIcon.ArrowLeft)
+                                variant = Variant.Ghost
+                                width = SIDEBAR_WIDTH
+                                alignment = Anchor.CenterLeft
+                                onActionUp = { back() }
+                            }
+
+                            box {
+                                width = SIDEBAR_WIDTH
+                                height = 2f.dip
+                                color = themed { palette.divider }
+                            }
+
+                            // In a room its settings come first, and the ones only meant for the menu are hidden.
+                            if (Multiplayer.isMultiplayer) {
+                                sidebarCaption("Multiplayer")
+                                +SectionButton(SettingsSection.Player, FAIcon.User)
+                                if (Multiplayer.isRoomHost) {
+                                    +SectionButton(SettingsSection.Room, FAIcon.UserGroup)
+                                }
+                                sidebarCaption("Game")
+                            } else {
+                                +SectionButton(SettingsSection.General, FAIcon.Gears)
+                            }
+
+                            +SectionButton(SettingsSection.Gameplay, FAIcon.Gamepad)
+                            +SectionButton(SettingsSection.Graphics, FAIcon.Display)
+                            +SectionButton(SettingsSection.Audio, FAIcon.Headphones)
+                            if (!Multiplayer.isMultiplayer) {
+                                +SectionButton(SettingsSection.Library, FAIcon.Book)
+                            }
+                            +SectionButton(SettingsSection.Input, FAIcon.ComputerMouse)
+                            +SectionButton(SettingsSection.Advanced, FAIcon.ScrewdriverWrench)
+                        }
+                    }
+                }
+
+                sectionScroll = scrollableContainer {
+                    scrollAxes = Axis.Y
                     width = fill()
-                    spacing = themed { gap.lg }
-                    padding = themed { Padding(gap.xl, gap.lg) }
+                    height = fill()
+
+                    extendIntoSafeAreaContainer {
+                        width = fill()
+
+                        sectionContainer = linearContainer {
+                            orientation = Orientation.Vertical
+                            width = fill()
+                            spacing = themed { gap.lg }
+                            padding = themed { Padding(gap.xl, gap.lg) }
+                        }
+                    }
                 }
             }
+
+            +playfieldAreaDisplay
         }
 
-        +playfieldAreaDisplay
         onPlayfieldChanged = { playfieldAreaDisplay.update() }
 
         selectedSection = when {
