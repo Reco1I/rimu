@@ -88,7 +88,7 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
     }
 
     private companion object {
-        const val TEXT_SIZE = 34f
+        const val TEXT_SIZE = 28f
 
         const val FADE_IN = 0.12f
         const val HIT_FADE_IN = 0.3f
