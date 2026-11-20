@@ -4,6 +4,7 @@ import com.osudroid.ui.v2.game.GameplayPlayfield
 
 import com.reco1l.verktex.ui.Component
 
+import com.osudroid.game.rules.JudgementResult
 import com.osudroid.game.PlayfieldMapping
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.ScaleType
@@ -209,13 +210,13 @@ class GameplaySpinner(
             //int bonusRot = (int) (replayData.accuracy / 4 - needRotations + 1);
             //while (bonusRot < 0) {
             //    bonusRot++;
-            //    listener.onSpinnerHit(id, 1000, false, 0);
+            //    listener.onSpinnerBonus();
             //}
 
             //if (rotations count < the rotations in replay), let rotations count = the rotations in replay
             while (fullRotations + this.bonusScoreCounter < replayObjectData.accuracy / 4 + 1) {
                 fullRotations++
-                listener.onSpinnerHit(id, 1000, false, 0)
+                listener.onSpinnerBonus()
             }
             if (fullRotations >= needRotations)
                 clear = true
@@ -244,7 +245,7 @@ class GameplaySpinner(
             }
         }
         stopLoopingSamples()
-        showResult(listener.onSpinnerHit(id, score, endsCombo, this.bonusScoreCounter + fullRotations - 1))
+        showResult(listener.onSpinnerJudged(id, JudgementResult.fromScore(score), endsCombo, this.bonusScoreCounter + fullRotations - 1))
         playAndFreeHitSamples(score)
     }
 
@@ -368,7 +369,7 @@ class GameplaySpinner(
                 if (abs(rotations) > 1) {
                     rotations -= 1 * sign(rotations)
                     showOnTop(piece.playBonus(bonusScoreCounter * 1000, animate = true))
-                    listener.onSpinnerHit(id, 1000, false, 0)
+                    listener.onSpinnerBonus()
                     bonusScoreCounter++
                     spinnerBonusSample.play()
                     var rate = 0.375f
@@ -435,7 +436,7 @@ class GameplaySpinner(
             // Already cleared (e.g. zero-duration spinner); all whole rotations are bonus.
             for (i in 0 until wholeRotations) {
                 bonusScoreCounter++
-                listener.onSpinnerHit(id, 1000, false, 0)
+                listener.onSpinnerBonus()
                 var rate = 0.375f
 
                 if (context.healthDrain > 0) {
@@ -468,7 +469,7 @@ class GameplaySpinner(
 
                 for (i in 0 until bonus) {
                     bonusScoreCounter++
-                    listener.onSpinnerHit(id, 1000, false, 0)
+                    listener.onSpinnerBonus()
                     var rate = 0.375f
 
                     if (context.healthDrain > 0) {

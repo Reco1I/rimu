@@ -25,15 +25,15 @@ class HitJudgingTest {
 
     @Test
     fun `A recorded result is the result whatever the timing, within the window`() {
-        assertEquals(JudgementResult.Great, HitJudging.judge(0.15f, hitWindow, ResultType.HIT300.id))
-        assertEquals(JudgementResult.Ok, HitJudging.judge(0f, hitWindow, ResultType.HIT100.id))
-        assertEquals(JudgementResult.Meh, HitJudging.judge(0f, hitWindow, ResultType.HIT50.id))
-        assertEquals(JudgementResult.Miss, HitJudging.judge(0f, hitWindow, ResultType.MISS.id))
+        assertEquals(JudgementResult.Great, HitJudging.judge(0.15f, hitWindow, ResultType.HIT300))
+        assertEquals(JudgementResult.Ok, HitJudging.judge(0f, hitWindow, ResultType.HIT100))
+        assertEquals(JudgementResult.Meh, HitJudging.judge(0f, hitWindow, ResultType.HIT50))
+        assertEquals(JudgementResult.Miss, HitJudging.judge(0f, hitWindow, ResultType.MISS))
     }
 
     @Test
     fun `Hits outside the window miss even when a replay recorded a hit`() {
-        assertEquals(JudgementResult.Miss, HitJudging.judge(0.25f, hitWindow, ResultType.HIT300.id))
+        assertEquals(JudgementResult.Miss, HitJudging.judge(0.25f, hitWindow, ResultType.HIT300))
     }
 
     @Test
@@ -45,5 +45,10 @@ class HitJudgingTest {
 
         // Objects a replay has no result for are autoplay's.
         assertEquals(JudgementResult.Great, JudgementResult.fromResultType(0))
+
+        for (type in ResultType.entries) {
+            assertEquals(type, ResultType.fromId(type.id))
+        }
+        assertEquals(null, ResultType.fromId(0))
     }
 }

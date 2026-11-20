@@ -1442,15 +1442,6 @@ class GameplaySession(
         gameplayClock.changeSource(null)
     }
 
-    //CB打击处理
-    private fun registerHit(objectId: Int, score: Int, endCombo: Boolean): String {
-        return registerHit(objectId, score, endCombo, true)
-    }
-
-    private fun registerHit(objectId: Int, score: Int, endCombo: Boolean, incrementCombo: Boolean): String {
-        return registerHit(objectId, JudgementResult.fromScore(score), endCombo, incrementCombo)
-    }
-
     private fun registerHit(objectId: Int, result: JudgementResult, endCombo: Boolean, incrementCombo: Boolean = true,
                             sliderTail: Boolean = false): String {
 
@@ -1490,82 +1481,46 @@ class GameplaySession(
     }
 
 
-    override fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4): String? {
-        val acc = accuracy
-
+    override fun onCircleJudged(id: Int, hitOffset: Float, position: Vector2, endCombo: Boolean, forcedResult: ResultType?): String? {
         if (context.isAutoplay) {
             cursorPresenter.autoCursor!!.click()
             hud.onGameplayTouchDown(parsedBeatmap.hitObjects.objects[id].startTime.toFloat() / 1000)
         }
 
-        val accuracy = abs(acc)
-        val writeReplay = replay != null && !replaying
-        if (writeReplay) {
-            val sacc = (acc * 1000).toInt().toShort()
-            replay!!.addObjectResult(id, sacc, null)
+        if (replay != null && !replaying) {
+            replay!!.addObjectResult(id, (hitOffset * 1000).toInt().toShort(), null)
         }
 
         // Autoplay/Autopilot synthesize their own cursor movement rather than using real touch input, so
         // real touch events (e.g. a resting finger) must not be picked up as the "cursor position" here.
         val isCursorTrackingActive = !context.isAutoplay && !context.isAutopilot
-        val nearestCursorId = if (isCursorTrackingActive) cursorPresenter.nearestCursor(pos.x, pos.y) else -1
+        val nearestCursorId = if (isCursorTrackingActive) cursorPresenter.nearestCursor(position.x, position.y) else -1
 
         if (context.isFlashlight && isCursorTrackingActive && nearestCursorId >= 0) {
             cursorPresenter.followCursor(nearestCursorId)
         }
         GameplayVibrations.circle()
 
-        val result = HitJudging.judge(accuracy, playableBeatmap.hitWindow, forcedScore)
-
-        if (result == JudgementResult.Miss) {
-            registerHit(id, result, endCombo)
-            return "hit0"
-        }
-
+        val result = HitJudging.judge(hitOffset, playableBeatmap.hitWindow, forcedResult)
         val scoreName = registerHit(id, result, endCombo)
 
-        if (nearestCursorId >= 0) {
-            val aimErrorCursorEvent = cursors[nearestCursorId]!!.getLatestNonUpEvent()
-
-            if (aimErrorCursorEvent != null) {
-                val objectRadius = parsedBeatmap.hitObjects.objects[id].gameplayRadius.toFloat()
-                hud.onAimJudgement(pos, aimErrorCursorEvent.playfieldPosition, objectRadius)
-            }
+        if (result == JudgementResult.Miss) {
+            return scoreName
         }
+
+        registerAimJudgement(id, position, nearestCursorId)
 
         hud.onNoteHit(stat)
         return scoreName
     }
 
-    override fun onSliderHit(id: Int, score: Int, judgementPos: Vector2, endCombo: Boolean,
-                             color: Color4, type: Int, incrementCombo: Boolean): String? {
-
-        // Autoplay/Autopilot synthesize their own cursor movement rather than using real touch input, so
-        // real touch events (e.g. a resting finger) must not be picked up as the "cursor position" here.
-        val isCursorTrackingActive = !context.isAutoplay && !context.isAutopilot
-        val isFlashlightActive = context.isFlashlight && isCursorTrackingActive
-        val isSliderHeadHit = type == GameObjectListener.SLIDER_START && score > 0 && isCursorTrackingActive
-
-        var nearestCursorId = -1
-
-        if (isFlashlightActive || isSliderHeadHit) {
-            nearestCursorId = cursorPresenter.nearestCursor(judgementPos.x, judgementPos.y)
-        }
-
-        if (isFlashlightActive && nearestCursorId >= 0) {
-            cursorPresenter.followCursor(nearestCursorId)
-        }
+    override fun onSliderPartJudged(id: Int, part: SliderPart, isHit: Boolean, position: Vector2): String? {
+        val nearestCursorId = followSliderCursor(position, isHeadHit = isHit && part == SliderPart.Head)
 
         GameplayVibrations.slider()
 
-        // Whole slider was missed.
-        if (score == 0) {
-            registerHit(id, 0, endCombo)
-            return "hit0"
-        }
-
-        // Nested object was missed.
-        if (score == -1) {
+        // A missed part only breaks the combo.
+        if (!isHit) {
             playComboBreak()
 
             if (context.isSuddenDeath) {
@@ -1576,48 +1531,68 @@ class GameplaySession(
             return null
         }
 
-        var scoreName = "hit0"
+        val scoreName = scoreProcessor.applySliderPart(part)
 
-        when (type) {
-            GameObjectListener.SLIDER_START -> {
-                if (incrementCombo) {
-                    scoreName = scoreProcessor.applySliderPart(SliderPart.Head)
+        if (part == SliderPart.Head) {
+            registerAimJudgement(id, position, nearestCursorId)
 
-                    if (nearestCursorId >= 0) {
-                        val aimErrorCursorEvent = cursors[nearestCursorId]!!.getLatestNonUpEvent()
-
-                        if (aimErrorCursorEvent != null) {
-                            val objectRadius = parsedBeatmap.hitObjects.objects[id].gameplayRadius.toFloat()
-                            hud.onAimJudgement(judgementPos, aimErrorCursorEvent.playfieldPosition, objectRadius)
-                        }
-                    }
-
-                    if (context.isAutoplay) {
-                        hud.onGameplayTouchDown(parsedBeatmap.hitObjects.objects[id].startTime.toFloat() / 1000)
-                    }
-                }
-            }
-
-            GameObjectListener.SLIDER_REPEAT -> {
-                if (incrementCombo) {
-                    scoreName = scoreProcessor.applySliderPart(SliderPart.Repeat)
-                }
-            }
-
-            GameObjectListener.SLIDER_TICK -> {
-                if (incrementCombo) {
-                    scoreName = scoreProcessor.applySliderPart(SliderPart.Tick)
-                }
-            }
-
-            GameObjectListener.SLIDER_END -> {
-                // The slider end hit is registered before updatePPValue, which reads the slider end hit count.
-                scoreName = registerHit(id, JudgementResult.fromScore(score), endCombo, incrementCombo, sliderTail = true)
+            if (context.isAutoplay) {
+                hud.onGameplayTouchDown(parsedBeatmap.hitObjects.objects[id].startTime.toFloat() / 1000)
             }
         }
 
         hud.onNoteHit(stat)
         return scoreName
+    }
+
+    override fun onSliderJudged(id: Int, result: JudgementResult, position: Vector2, endCombo: Boolean, isTracked: Boolean): String? {
+        followSliderCursor(position, isHeadHit = false)
+
+        GameplayVibrations.slider()
+
+        // Whole slider was missed.
+        if (result == JudgementResult.Miss) {
+            return registerHit(id, result, endCombo)
+        }
+
+        // The slider end hit is registered before updatePPValue, which reads the slider end hit count.
+        val scoreName = registerHit(id, result, endCombo, isTracked, sliderTail = true)
+
+        hud.onNoteHit(stat)
+        return scoreName
+    }
+
+    // Makes Flashlight follow the cursor nearest to a part of a slider judged, returning it when it's needed for the
+    // aim of a slider head hit, -1 otherwise or for none.
+    private fun followSliderCursor(position: Vector2, isHeadHit: Boolean): Int {
+        // Autoplay/Autopilot synthesize their own cursor movement rather than using real touch input, so
+        // real touch events (e.g. a resting finger) must not be picked up as the "cursor position" here.
+        val isCursorTrackingActive = !context.isAutoplay && !context.isAutopilot
+        val isFlashlightActive = context.isFlashlight && isCursorTrackingActive
+
+        if (!isFlashlightActive && !(isHeadHit && isCursorTrackingActive)) {
+            return -1
+        }
+
+        val nearestCursorId = cursorPresenter.nearestCursor(position.x, position.y)
+
+        if (isFlashlightActive && nearestCursorId >= 0) {
+            cursorPresenter.followCursor(nearestCursorId)
+        }
+
+        return nearestCursorId
+    }
+
+    // Tells the HUD how far from the center of the object [id] the cursor that hit it was.
+    private fun registerAimJudgement(id: Int, position: Vector2, cursorId: Int) {
+        if (cursorId < 0) {
+            return
+        }
+
+        val aimErrorCursorEvent = cursors[cursorId]!!.getLatestNonUpEvent() ?: return
+        val objectRadius = parsedBeatmap.hitObjects.objects[id].gameplayRadius.toFloat()
+
+        hud.onAimJudgement(position, aimErrorCursorEvent.playfieldPosition, objectRadius)
     }
 
     override fun onSpinnerStart(id: Int) {
@@ -1627,53 +1602,35 @@ class GameplaySession(
         }
     }
 
-    override fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int): String? {
-        if (score == 1000) {
-            scoreProcessor.applySpinnerBonus()
-            return null
-        }
+    override fun onSpinnerBonus() {
+        scoreProcessor.applySpinnerBonus()
+    }
 
+    override fun onSpinnerJudged(id: Int, result: JudgementResult, endCombo: Boolean, spins: Int): String? {
         if (replay != null && !replaying) {
-            var acc = (totalScore * 4).toShort()
-            when (score) {
-                300 -> acc = (acc + 3).toShort()
-                100 -> acc = (acc + 2).toShort()
-                50 -> acc = (acc + 1).toShort()
+            // The spins, and the result in the last two bits.
+            val resultCode = when (result) {
+                JudgementResult.Great -> 3
+                JudgementResult.Ok -> 2
+                JudgementResult.Meh -> 1
+                JudgementResult.Miss -> 0
             }
-            replay!!.addObjectResult(id, acc, null)
+            replay!!.addObjectResult(id, (spins * 4 + resultCode).toShort(), null)
         }
 
         GameplayVibrations.spinner()
 
-        if (score == 0) {
-            registerHit(id, 0, endCombo)
-            return "hit0"
+        val scoreName = registerHit(id, result, endCombo)
+
+        if (result == JudgementResult.Miss) {
+            return scoreName
         }
 
-        val scoreName: String
-        val hitWindow = hitWindow
-
         // Simulate a hit for hit error meter registration.
-        val accuracy = when (score) {
-            300 -> {
-                scoreName = registerHit(id, 300, endCombo)
-                0.0
-            }
-
-            100 -> {
-                scoreName = registerHit(id, 100, endCombo)
-                hitWindow.greatWindow + 1
-            }
-
-            50 -> {
-                scoreName = registerHit(id, 50, endCombo)
-                hitWindow.okWindow + 1
-            }
-
-            else -> {
-                scoreName = "hit0"
-                hitWindow.mehWindow + 1
-            }
+        val accuracy = when (result) {
+            JudgementResult.Great -> 0.0
+            JudgementResult.Ok -> hitWindow.greatWindow + 1
+            else -> hitWindow.okWindow + 1
         }.toFloat() / 1000
 
         hud.onAccuracyRegister(HitObjectType.Spinner, accuracy)

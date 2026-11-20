@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.game.rules.JudgementResult
+import com.osudroid.game.rules.SliderPart
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Dimension
 import com.osudroid.multiplayer.Multiplayer
@@ -41,6 +43,7 @@ import kotlin.math.sin
 import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
 import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
+import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
@@ -353,52 +356,42 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     //region GameObjectListener
 
-    override fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4): String? {
+    override fun onCircleJudged(id: Int, hitOffset: Float, position: Vector2, endCombo: Boolean, forcedResult: ResultType?): String? {
         // The objects of a loop share their difficulty, and so their hit window.
         val hitWindow = current.firstOrNull()?.hitObject?.hitWindow ?: return null
-        val score = HitJudging.judge(accuracy, hitWindow, forcedScore).score
+        val score = HitJudging.judge(hitOffset, hitWindow, forcedResult).score
 
-        stage.log(if (score == 0) "Circle missed" else "Circle hit $score, offset ${(accuracy * 1000).toInt()}ms")
+        stage.log(if (score == 0) "Circle missed" else "Circle hit $score, offset ${(hitOffset * 1000).toInt()}ms")
         return scoreName(score)
     }
 
-    override fun onSliderHit(id: Int, score: Int, judgementPos: Vector2, endCombo: Boolean, color: Color4, type: Int, incrementCombo: Boolean): String? {
-        // The whole slider was missed.
-        if (score == 0) {
-            stage.log("Slider missed")
-            return "hit0"
-        }
+    override fun onSliderPartJudged(id: Int, part: SliderPart, isHit: Boolean, position: Vector2): String? {
+        val name = part.name.lowercase()
 
-        // A nested object was missed, it only breaks the combo.
-        if (score == -1) {
-            stage.log("Slider ${partName(type)} missed")
+        // A missed part only breaks the combo.
+        if (!isHit) {
+            stage.log("Slider $name missed")
             return null
         }
 
-        val name = when (type) {
-            GameObjectListener.SLIDER_START, GameObjectListener.SLIDER_REPEAT -> "sliderpoint30"
-            GameObjectListener.SLIDER_TICK -> "sliderpoint10"
-            else -> scoreName(score)
-        }
+        stage.log("Slider $name hit")
+        return if (part == SliderPart.Tick) "sliderpoint10" else "sliderpoint30"
+    }
 
-        stage.log("Slider ${partName(type)}, score $score")
-
-        // The end is judged as the whole slider.
-        return if (incrementCombo || type == GameObjectListener.SLIDER_END) name else null
+    override fun onSliderJudged(id: Int, result: JudgementResult, position: Vector2, endCombo: Boolean, isTracked: Boolean): String? {
+        stage.log(if (result == JudgementResult.Miss) "Slider missed" else "Slider end, score ${result.score}")
+        return scoreName(result.score)
     }
 
     override fun onSliderEnd(id: Int, accuracy: Int, tickSet: BitSet?) = Unit
 
     override fun onSpinnerStart(id: Int) = stage.log("Spinner started")
 
-    override fun onSpinnerHit(id: Int, score: Int, endCombo: Boolean, totalScore: Int): String? {
-        // Bonus spins.
-        if (score == 1000) {
-            return null
-        }
+    override fun onSpinnerBonus() = Unit
 
-        stage.log(if (score == 0) "Spinner missed" else "Spinner judged $score")
-        return scoreName(score)
+    override fun onSpinnerJudged(id: Int, result: JudgementResult, endCombo: Boolean, spins: Int): String? {
+        stage.log(if (result == JudgementResult.Miss) "Spinner missed" else "Spinner judged ${result.score}")
+        return scoreName(result.score)
     }
 
     override fun addObject(`object`: GameObject?) = Unit
@@ -433,13 +426,6 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     //endregion
 
-    private fun partName(type: Int) = when (type) {
-        GameObjectListener.SLIDER_START -> "head"
-        GameObjectListener.SLIDER_REPEAT -> "repeat"
-        GameObjectListener.SLIDER_END -> "end"
-        GameObjectListener.SLIDER_TICK -> "tick"
-        else -> "part"
-    }
 
 
     private class Spawned(val hitObject: HitObject, val gameObject: GameObject) {

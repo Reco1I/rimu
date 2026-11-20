@@ -15,6 +15,8 @@ import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.GameplaySequenceHitSampleInfo
 import com.osudroid.game.SliderPath
+import com.osudroid.game.rules.JudgementResult
+import com.osudroid.game.rules.SliderPart
 import com.reco1l.verktex.math.Path
 import com.reco1l.verktex.ui.shape.PathShape
 import com.osudroid.math.MathUtils
@@ -474,25 +476,33 @@ class GameplaySlider : GameObject() {
     }
 
     /**
-     * Gives the judgement of a part of the slider to the game, and shows it.
+     * Gives the judgement of the head, a repeat or a tick of the slider to the game, and shows it.
      */
-    private fun judge(score: Int, at: Vector2, endCombo: Boolean, type: Int, incrementCombo: Boolean) {
-        val judgement = listener!!.onSliderHit(id, score, at, endCombo, bodyColor, type, incrementCombo)
+    private fun judgePart(part: SliderPart, isHit: Boolean, at: Vector2) {
+        val judgement = listener!!.onSliderPartJudged(id, part, isHit, at)
+
+        showSliderJudgement(judgement, at, if (isHit && part == SliderPart.Head) headBurst else null)
+    }
+
+    /**
+     * Gives the judgement of the whole slider to the game as its end is reached, and shows it.
+     */
+    private fun judgeSlider(score: Int, at: Vector2, isTracked: Boolean) {
+        val result = JudgementResult.fromScore(score)
+        val judgement = listener!!.onSliderJudged(id, result, at, endsCombo, isTracked)
+
+        showSliderJudgement(judgement, at, if (isTracked && result != JudgementResult.Miss) tailBurst else null)
+    }
+
+    // Shows the judgement of a part of the slider at [at], with the piece bursting there when it's given.
+    private fun showSliderJudgement(judgement: String?, at: Vector2, burstPiece: MainCirclePiece?) {
         val playfield = effectsPlayfield ?: return
         val scale = beatmapSlider!!.gameplayScale
 
-        if (incrementCombo && score > 0 && areBurstsShown()) {
-            val piece = when (type) {
-                GameObjectListener.SLIDER_START -> headBurst
-                GameObjectListener.SLIDER_END -> tailBurst
-                else -> null
-            }
-
-            if (piece != null) {
-                piece.setPosition(at.x, at.y)
-                piece.setCircleColor(bodyColor)
-                burst(playfield, piece, scale)
-            }
+        if (burstPiece != null && areBurstsShown()) {
+            burstPiece.setPosition(at.x, at.y)
+            burstPiece.setCircleColor(bodyColor)
+            burst(playfield, burstPiece, scale)
         }
 
         if (judgement != null) {
@@ -651,7 +661,7 @@ class GameplaySlider : GameObject() {
             }
 
             if (stillHasSpan) {
-                judge(if (isTracking) 30 else -1, spanEndJudgementPosition, false, GameObjectListener.SLIDER_REPEAT, isTracking)
+                judgePart(SliderPart.Repeat, isTracking, spanEndJudgementPosition)
             }
 
             updateSlidingSamplesVolume()
@@ -756,7 +766,7 @@ class GameplaySlider : GameObject() {
         // In replays older than version 6, slider ends always give combo even when not being tracked.
         val awardCombo = isTracking || (replayObjectData != null && context.replayVersion < 6)
 
-        judge(score, spanEndJudgementPosition, endsCombo, GameObjectListener.SLIDER_END, awardCombo)
+        judgeSlider(score, spanEndJudgementPosition, awardCombo)
 
         listener.onSliderEnd(id, firstHitAccuracy, tickSet)
 
@@ -1077,9 +1087,9 @@ class GameplaySlider : GameObject() {
                 }
                 ticksGot++
                 shouldSnakeOut = true
-                judge(30, position, false, GameObjectListener.SLIDER_START, true)
+                judgePart(SliderPart.Head, true, position)
             } else {
-                judge(-1, position, false, GameObjectListener.SLIDER_START, false)
+                judgePart(SliderPart.Head, false, position)
             }
         } else if (hitOffset <= duration) {
             // In replays older than version 6, when the 50 hit window is longer than the duration of the slider,
@@ -1092,7 +1102,7 @@ class GameplaySlider : GameObject() {
             }
             ticksGot++
             shouldSnakeOut = true
-            judge(30, position, false, GameObjectListener.SLIDER_START, true)
+            judgePart(SliderPart.Head, true, position)
         }
 
         updateSlidingSamplesVolume()
@@ -1166,7 +1176,7 @@ class GameplaySlider : GameObject() {
 
             val isSliderTick = nestedObject is SliderTick
             val isHit = allTicksInRange || (replayObjectData != null && replayObjectData.tickSet!![replayTickIndex])
-            val type = if (isSliderTick) GameObjectListener.SLIDER_TICK else GameObjectListener.SLIDER_REPEAT
+            val part = if (isSliderTick) SliderPart.Tick else SliderPart.Repeat
 
             if (isHit) {
                 if (!listener.isAfterSeek()) {
@@ -1174,10 +1184,10 @@ class GameplaySlider : GameObject() {
                 }
                 ticksGot++
                 tickSet.set(replayTickIndex++, true)
-                judge(if (isSliderTick) 10 else 30, tmpPoint, false, type, true)
+                judgePart(part, true, tmpPoint)
             } else {
                 tickSet.set(replayTickIndex++, false)
-                judge(-1, tmpPoint, false, type, false)
+                judgePart(part, false, tmpPoint)
             }
 
             if (!isSliderTick) {
@@ -1271,7 +1281,7 @@ class GameplaySlider : GameObject() {
             val tickPosition = nestedObjectToJudge.gameplayStackedPosition
             tmpPoint.set(tickPosition.x, tickPosition.y)
 
-            judge(if (isTracking) 10 else -1, tmpPoint, false, GameObjectListener.SLIDER_TICK, isTracking)
+            judgePart(SliderPart.Tick, isTracking, tmpPoint)
             currentNestedObjectIndex++
 
             val tickSprite = tickContainer[currentTickSpriteIndex] as GameplaySliderTick

@@ -16,9 +16,8 @@ import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.rotateTo
 import com.reco1l.verktex.ui.scaleTo
 import ru.nsu.ccfit.zuev.osu.game.GameObject
-import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
+import ru.nsu.ccfit.zuev.osu.game.GameplayCursors
 import ru.nsu.ccfit.zuev.osu.game.GameplaySpinner
-import ru.nsu.ccfit.zuev.osu.game.ISliderListener
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.math.sqrt
 import com.reco1l.verktex.graphics.BlendMode
@@ -265,7 +264,7 @@ private class CursorTrail(private val cursor: CursorSprite, private val style: C
  * The cursor used in autoplay, moving by itself from object to object, from [startX] and [startY] in the space
  * gameplay is laid out in.
  */
-class AutoCursor(startX: Float, startY: Float) : CursorEntity(), ISliderListener {
+class AutoCursor(startX: Float, startY: Float) : CursorEntity() {
 
     /**
      * The ID of the object that the cursor is currently active on.
@@ -326,7 +325,7 @@ class AutoCursor(startX: Float, startY: Float) : CursorEntity(), ISliderListener
     /**
      * Directly moves the cursor to the specified position.
      */
-    fun setPosition(x: Float, y: Float, listener: GameObjectListener) {
+    fun setPosition(x: Float, y: Float, listener: GameplayCursors) {
         stopMoving()
         setPosition(x, y)
         listener.onUpdatedAutoCursor(x, y)
@@ -337,7 +336,7 @@ class AutoCursor(startX: Float, startY: Float) : CursorEntity(), ISliderListener
      *
      * @param secPassed The amount of seconds that have passed since the game has started.
      */
-    fun moveToObject(gameObject: GameObject?, secPassed: Float, listener: GameObjectListener) {
+    fun moveToObject(gameObject: GameObject?, secPassed: Float, listener: GameplayCursors) {
         if (gameObject == null || currentObjectId == gameObject.getId()) {
             return
         }
@@ -379,14 +378,14 @@ class AutoCursor(startX: Float, startY: Float) : CursorEntity(), ISliderListener
         releaseTimer = KEY_UP_DELAY
     }
 
-    override fun onSliderStart() {
+    fun onSliderStart() {
         isOnSlider = true
         setPressed(true)
     }
 
-    override fun onSliderTracking() = onSliderStart()
+    fun onSliderTracking() = onSliderStart()
 
-    override fun onSliderEnd() {
+    fun onSliderEnd() {
         isOnSlider = false
         setPressed(false)
     }

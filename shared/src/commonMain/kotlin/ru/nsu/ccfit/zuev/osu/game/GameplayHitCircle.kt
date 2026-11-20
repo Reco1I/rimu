@@ -234,7 +234,7 @@ class GameplayHitCircle : GameObject() {
                 startHit = true
                 successfulHit = abs(hitOffset).toDouble() <= mehWindow
                 // Remove circle and register hit in update thread
-                judgement = listener.onCircleHit(id, hitOffset, position, endsCombo, replayObjectData.result, comboColor)
+                judgement = listener.onCircleJudged(id, hitOffset, position, endsCombo, ResultType.fromId(replayObjectData.result))
                 if (successfulHit && !listener.isAfterSeek()) {
                     playHitSamples()
                 }
@@ -250,7 +250,7 @@ class GameplayHitCircle : GameObject() {
                 startHit = true
                 successfulHit = abs(hitOffset).toDouble() <= mehWindow
                 // Remove circle and register hit in update thread
-                judgement = listener.onCircleHit(id, hitOffset, position, endsCombo, 0.toByte(), comboColor)
+                judgement = listener.onCircleJudged(id, hitOffset, position, endsCombo, null)
                 if (successfulHit) {
                     playHitSamples()
                 }
@@ -282,7 +282,7 @@ class GameplayHitCircle : GameObject() {
             // Remove circle and register hit in update thread
             hitOffset = 0f
             listener.registerAccuracy(HitObjectType.Normal, 0.0)
-            judgement = listener.onCircleHit(id, 0f, position, endsCombo, ResultType.HIT300.id, comboColor)
+            judgement = listener.onCircleJudged(id, 0f, position, endsCombo, ResultType.HIT300)
             startHit = true
             successfulHit = true
             if (!listener.isAfterSeek()) {
@@ -296,10 +296,10 @@ class GameplayHitCircle : GameObject() {
             // If passed too much time, counting it as miss
             if (passedTime > mehWindow) {
                 startHit = true
-                val forcedScore = replayObjectData?.result ?: 0
+                val forcedResult = replayObjectData?.let { ResultType.fromId(it.result) }
 
                 listener.registerAccuracy(HitObjectType.Normal, mehWindow + 1)
-                judgement = listener.onCircleHit(id, 10f, position, false, forcedScore, comboColor)
+                judgement = listener.onCircleJudged(id, 10f, position, false, forcedResult)
                 removeFromScene()
             }
         }
