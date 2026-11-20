@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.multi
 
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.game.Gameplay
 import com.reco1l.verktex.data.Background
 import com.osudroid.OsuGame
 import com.osudroid.multiplayer.Multiplayer
@@ -172,7 +172,7 @@ class RoomChat : LinearContainer() {
 
     private fun appendMessage(message: Message) {
 
-        if (GameScene.current == null) {
+        if (Gameplay.current == null) {
             SkinSounds["heartbeat"].play(0.75f)
         }
 

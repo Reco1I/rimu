@@ -1,9 +1,9 @@
 package com.osudroid.ui.v2.test
 
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.debug.MockRoom
+import com.osudroid.game.Gameplay
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.PlayerStatus
@@ -185,7 +185,7 @@ object OsuSceneUITests : UITestSuite("Scenes") {
             return
         }
 
-        scene(GameLoaderScene(GameScene(), beatmap, testMods(), isRestart))
+        scene(GameLoaderScene(Gameplay(), beatmap, testMods(), isRestart))
     }
 
     private fun testMods() = ModHashMap().apply {

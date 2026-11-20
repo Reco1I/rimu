@@ -1,10 +1,11 @@
 package com.osudroid.ui.v2.multi
 
 import com.osudroid.beatmaplisting.BeatmapListing
+import com.osudroid.game.Gameplay
+import com.osudroid.game.loading.PlayRequest
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.beatmaplisting.BeatmapDownloader
@@ -139,7 +140,7 @@ class RoomScene(
     /**
      * The match started last, kept for its results.
      */
-    var game: GameScene? = null
+    var game: Gameplay? = null
         private set
 
     /**
@@ -795,7 +796,7 @@ class RoomScene(
             return
         }
 
-        if (GameScene.current != null) {
+        if (Gameplay.current != null) {
             return
         }
 
@@ -1167,8 +1168,8 @@ class RoomScene(
         val player = Multiplayer.player ?: return
 
         if (player.status == PlayerStatus.MissingBeatmap) {
-            // This client does not have the beatmap and will never call startGame(), so
-            // GameScene.onGameLoad() will never fire and notifyBeatmapLoaded() would never be
+            // This client does not have the beatmap and will never start a play, so
+            // its session never prepares its scene and notifyBeatmapLoaded() would never be
             // sent.  The server waits for every client's beatmapLoadComplete before sending
             // allPlayersBeatmapLoadComplete, so one missing-beatmap client would block the
             // match for everyone (EH-5).  Send the ACK immediately so the server can proceed
@@ -1179,7 +1180,7 @@ class RoomScene(
 
         updateThread {
 
-            if (player.status != PlayerStatus.MissingBeatmap && GameScene.current == null) {
+            if (player.status != PlayerStatus.MissingBeatmap && Gameplay.current == null) {
 
                 if (BeatmapSelection.beatmap == null) {
                     Multiplayer.log("WARNING: Attempt to start match with null track.")
@@ -1188,7 +1189,7 @@ class RoomScene(
 
                 allowAutomaticPlaybackRestart = false
                 OsuGame.music.stop()
-                game = GameScene().apply { startGame(BeatmapSelection.beatmap, null, mods) }
+                game = Gameplay().apply { start(PlayRequest(BeatmapSelection.beatmap!!, mods)) }
 
             }
         }
@@ -1209,7 +1210,7 @@ class RoomScene(
     override fun onRoomMatchSkip() {
 
         updateThread {
-            GameScene.current?.skip()
+            Gameplay.current?.skip()
         }
     }
 
@@ -1258,14 +1259,14 @@ class RoomScene(
             Multiplayer.log("Kicked from room.")
 
             updateThread {
-                if (GameScene.current != null) {
+                if (Gameplay.current != null) {
                     // Kicked while a game is in progress. We cannot navigate away from the
                     // game scene immediately — doing so would abruptly interrupt gameplay.
                     // Instead:
                     //   1. Show the toast so the player knows why they were kicked.
                     //   2. Tear down all multiplayer state (disconnect socket, null globals,
                     //      cancel coroutines, hide chat) so live-score events stop firing.
-                    //   3. Clear isMultiplayer so the scoring scene and GameScene treat the
+                    //   3. Clear isMultiplayer so the scoring scene and the gameplay treat the
                     //      remainder of the game as a solo session — submitFinalScore() will
                     //      not be called, and ScoringScene.back() will return to SongMenu
                     //      rather than trying to re-enter the (now-disconnected) room.

@@ -1,5 +1,8 @@
-package ru.nsu.ccfit.zuev.osu.game
+package com.osudroid.game.session
 
+import com.osudroid.game.Gameplay
+import com.osudroid.game.loading.LoadedPlay
+import com.osudroid.game.loading.PlayRequest
 import com.reco1l.verktex.math.Path
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
@@ -65,7 +68,6 @@ import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.toBoardItem
 import com.osudroid.resources.Res
-import com.osudroid.ui.v2.GameLoaderScene
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.skinFrames
@@ -86,14 +88,12 @@ import com.osudroid.ui.v2.hud.GameplayState
 import com.osudroid.ui.v2.hud.HUDElements
 import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
 import com.osudroid.ui.v2.modmenu.ModIcon
-import com.osudroid.ui.v2.multi.LobbyScene
 import com.osudroid.utils.BitSet
 import com.osudroid.utils.DoubleMinHeap
 import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.calculateRate
 import com.osudroid.utils.async
 import com.osudroid.utils.runSafe
-import com.osudroid.utils.stopAsync
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
@@ -126,11 +126,6 @@ import okio.FileNotFoundException
 import okio.Path.Companion.toPath
 import okio.IOException
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.concurrent.atomics.AtomicInt
-import kotlin.concurrent.atomics.incrementAndFetch
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.awaitAll
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
@@ -144,12 +139,13 @@ import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
+import ru.nsu.ccfit.zuev.osu.game.GameObject
+import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
+import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
-import ru.nsu.ccfit.zuev.osu.online.OnlineFileOperator
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
-import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.osu.scoring.TouchType
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
@@ -159,15 +155,23 @@ import kotlin.concurrent.Volatile
 import com.reco1l.verktex.input.KeyboardEvent
 
 /**
- * A play of one beatmap: its gameplay, its retries and the replays watched from its [scoring] scene.
- * Created by whoever starts the play.
+ * One attempt at a [LoadedPlay]: its scene, the state of its gameplay and its judgement.
+ *
+ * [Gameplay] makes one for each attempt, [prepare]s it while loading and [start]s it once the loader is done: its
+ * state starts afresh with it, apart from the HUD editor's loop, which plays the attempt again in place.
  */
-class GameScene : GameObjectListener, GameplayState {
+class GameplaySession(
+    /**
+     * The play this attempt is of.
+     */
+    val gameplay: Gameplay,
+    private val loaded: LoadedPlay,
+    request: PlayRequest
+) : GameObjectListener, GameplayState {
     private val maximumActiveCursorCount = 3
     private var cursors = arrayOfNulls<Cursor>(CursorCount)
-    @JvmField
-    var audioFilePath: String? = null
-    private var gameUIScene: GameUIScene
+    private val gameplayClock = FrameStableClock(SongClock(true, true, null))
+    private val gameUIScene: GameUIScene
     private lateinit var root: Container
     private lateinit var backgroundLayer: Container
     private lateinit var gameplaySpace: ScalingContainer
@@ -176,15 +180,12 @@ class GameScene : GameObjectListener, GameplayState {
     private lateinit var objectPlayfield: GameplayPlayfield
     private lateinit var fgScene: Container
 
-    /**
-     * The scores of the leaderboard shown during gameplay, given by song select with the play.
-     */
-    override var leaderboardItems: () -> List<ScoreBoardItem> = { emptyList() }
+    override val leaderboardItems = request.leaderboardItems
+    override val isLeaderboardOnline = request.isLeaderboardOnline
 
-    /**
-     * Whether [leaderboardItems] are online scores.
-     */
-    override var isLeaderboardOnline = false
+    // The replay to watch, a file.
+    private val replayPath = request.replay
+
     private var failAnimation: FailAnimation? = null
     private var pauseMenu: PauseMenu? = null
     private var replayText: Text? = null
@@ -192,45 +193,52 @@ class GameScene : GameObjectListener, GameplayState {
     private var beatmapBackground: Component? = null
     private var beatmapBackgroundWidth = 0f
     private var beatmapBackgroundHeight = 0f
-    private var parsedBeatmap: Beatmap? = null
-    override var playableBeatmap: DroidPlayableBeatmap? = null
-        private set
-    private var lastBeatmapInfo: BeatmapInfo? = null
-    private var timingControlPoints: Array<TimingControlPoint>? = null
+
+    private val parsedBeatmap
+        get() = loaded.parsedBeatmap
+    override val playableBeatmap: DroidPlayableBeatmap
+        get() = loaded.playableBeatmap
+    private val mods
+        get() = loaded.mods
+    private val objects
+        get() = loaded.objects
+    private val timingControlPoints
+        get() = loaded.timingControlPoints
+    private val effectControlPoints
+        get() = loaded.effectControlPoints
+    private val breakPeriods
+        get() = loaded.breakPeriods
+
     private var timingControlPointIndex = 0
-    private var effectControlPoints: Array<EffectControlPoint>? = null
     private var effectControlPointIndex = 0
     private var activeTimingPoint: TimingControlPoint? = null
     private var activeEffectPoint: EffectControlPoint? = null
     private var lastObjectId = -1
     private var leadOut = 0f
-    private var objects: Array<HitObject?>? = null
     private var objectIndex = 0
 
     // The object whose follow points are added next, as they start to fade in, see FollowPointConnection.fadeInStartTime.
     private var followPointIndex = 0
     private var postSeekFrameCount = 0
     private var comboColors: ArrayList<Color4>? = null
-    private var activeObjects: ArrayList<GameObject>? = null
-    private var expiredObjects: ArrayList<GameObject>? = null
+    private val activeObjects = ArrayList<GameObject>()
+    private val expiredObjects = ArrayList<GameObject>()
     // By identity: GameObject doesn't override equals or hashCode.
     private val processedExpiredObjects: MutableSet<GameObject> = HashSet()
     private var judgeableObject: GameObject? = null
-    private var breakPeriods: Array<BreakPeriod>? = null
     private var breakPeriodIndex = 0
     private var metronome: Metronome? = null
     private var scale = 0f
     override lateinit var stat: StatisticV2
 
     /**
-     * What the gameplay of this play depends on, made as it's loaded.
+     * What the gameplay of this attempt depends on, made as it's prepared.
      */
     override var context = GameplayContext()
         private set
     private lateinit var scoreProcessor: ScoreProcessor
     private lateinit var healthProcessor: HealthProcessor
     private var gameStarted = false
-    private val gameplayClock: FrameStableClock
     private var initialStartTimeValue = 0f
     private var totalLength = Int.MAX_VALUE
     private var paused = false
@@ -244,32 +252,18 @@ class GameScene : GameObjectListener, GameplayState {
     private var replay: Replay? = null
     var replaying = false
         private set
-    private var replayFilePath: String? = null
     private var comboBurst: ComboBurst? = null
     private var sliderBorderColor: Color4? = null
-    private var sliderPaths: Array<SliderPath?>? = null
-    private var sliderRenderPaths: Array<Path?>? = null
     private var sliderIndex = 0
     private var unrankedSprite: Sprite? = null
     private val modIcons = ArrayList<ModIcon>()
     private val rateAdjustingMods = ArrayList<IModApplicableToTrackRate>()
 
-    override var hitWindow: HitWindow? = null
-
-    private var lastMods: ModHashMap? = null
-
-    private val loadingRequestId = AtomicInt(0)
-    private var loadingPipeline: Job? = null
-    private var gameLoadingJob: Job? = null
+    override val hitWindow: HitWindow
+        get() = playableBeatmap.hitWindow
 
     private var performanceAttributes: PerformanceAttributes? = null
     private var performanceCalculationParameters: PerformanceCalculationParameters? = null
-    @Volatile
-    private var droidTimedDifficultyAttributes: Array<TimedDifficultyAttributes<DroidDifficultyAttributes>>? = null
-    @Volatile
-    private var standardTimedDifficultyAttributes: Array<TimedDifficultyAttributes<StandardDifficultyAttributes>>? = null
-
-    private var ppCalculationJob: Job? = null
 
     override var replaySettingsPanel: ReplaySettingsPanel? = null
         private set
@@ -282,6 +276,11 @@ class GameScene : GameObjectListener, GameplayState {
     private var isGameOver = false
 
     /**
+     * Whether the attempt ended, its results shown, or was left: nothing of it is updated anymore.
+     */
+    private var isFinished = false
+
+    /**
      * The break time animator.
      */
     private var breakAnimator: BreakAnimator? = null
@@ -289,34 +288,26 @@ class GameScene : GameObjectListener, GameplayState {
     /**
      * The countdown animator.
      */
-    @JvmField
-    var countdownAnimator: Countdown? = null
-
-    /**
-     * Whether the game is ready to start.
-     */
-    @JvmField
-    var isReadyToStart = false
+    private var countdownAnimator: Countdown? = null
 
 
     // UI
 
     /**
-     * The gameplay HUD
+     * The gameplay HUD, made as the attempt is prepared.
      */
-    @JvmField
-    var hud: GameplayHUD? = null
+    lateinit var hud: GameplayHUD
+        private set
 
     /**
      * Whether the HUD editor mode is enabled.
      */
-    override var isHUDEditorMode = false
+    override var isHUDEditorMode = request.isHUDEditor
 
     /**
      * Whether the game started in HUD editor mode.
      */
-    @JvmField
-    var startedFromHUDEditor = false
+    private val startedFromHUDEditor = request.isHUDEditor
 
 
     // Timing
@@ -331,12 +322,14 @@ class GameScene : GameObjectListener, GameplayState {
     /**
      * The start time of the first object in seconds.
      */
-    override var firstObjectStartTime = 0f
+    override val firstObjectStartTime
+        get() = loaded.firstObjectStartTime
 
     /**
      * The end time of the last object in seconds.
      */
-    override var lastObjectEndTime = 0f
+    override val lastObjectEndTime
+        get() = loaded.lastObjectEndTime
 
     // Video support
 
@@ -366,8 +359,8 @@ class GameScene : GameObjectListener, GameplayState {
     private var lastBackPressTime = -1f
 
     /**Indicates that the player has failed and the score shouldn't be submitted*/
-    @JvmField
     var hasFailed = false
+        private set
 
     /**Indicates that the player has requested skip*/
     private var isSkipRequested = false
@@ -383,8 +376,6 @@ class GameScene : GameObjectListener, GameplayState {
 
 
     init {
-        gameplayClock = FrameStableClock(SongClock(true, true, null))
-
         gameUIScene = createScene()
     }
 
@@ -445,11 +436,6 @@ class GameScene : GameObjectListener, GameplayState {
         return layer
     }
 
-    /**
-     * The results of this play.
-     */
-    val scoring: ScoringScene by lazy { ScoringScene(this) }
-
     private fun loadBackground() {
         if (sceneBorder != null) {
             sceneBorder!!.removeSelf()
@@ -457,8 +443,6 @@ class GameScene : GameObjectListener, GameplayState {
         }
 
         releaseVideo()
-
-        val playableBeatmap = this.playableBeatmap ?: return
 
         val textureRegion = if (Settings[OsuSettings.SafeBeatmapBackground] || playableBeatmap.events.backgroundFilename == null)
             SkinTextures.get("menu-background")
@@ -483,8 +467,11 @@ class GameScene : GameObjectListener, GameplayState {
         }
     }
 
-    fun loadVideo(beatmapInfo: BeatmapInfo) {
-        val playableBeatmap = this.playableBeatmap ?: return
+    /**
+     * Loads the video of the beatmap, or releases it, as the settings changed.
+     */
+    fun loadVideo() {
+        val beatmapInfo = loaded.beatmapInfo
 
         // This is used instead of getBackgroundBrightness to directly obtain the
         // updated value from the brightness slider.
@@ -525,7 +512,7 @@ class GameScene : GameObjectListener, GameplayState {
 
                 ensureActive()
 
-                this@GameScene.video = video
+                this@GameplaySession.video = video
 
                 // applyBackground is called from the onReady callback once the decoder reports the video
                 // dimensions, rather than blocking here.
@@ -533,7 +520,7 @@ class GameScene : GameObjectListener, GameplayState {
                 video.setOnReady { updateThread { applyBackground() } }
             } catch (e: Exception) {
                 video = null
-                Logger.e("GameScene", "Error while loading video background.", e)
+                Logger.e(TAG, "Error while loading video background.", e)
             }
 
             videoLoadingJob = null
@@ -547,7 +534,7 @@ class GameScene : GameObjectListener, GameplayState {
         }
     }
 
-    private fun releaseVideo() {
+    internal fun releaseVideo() {
         if (video != null) {
             video!!.release()
             video = null
@@ -625,126 +612,43 @@ class GameScene : GameObjectListener, GameplayState {
     }
 
     /**
-     * Downloads the online replay at [url] into the cache, returning the file it was saved to, or
-     * `null` if it couldn't be downloaded.
+     * Prepares this attempt while the loader is shown: its background, its music, its clock and its replay.
+     *
+     * @param isNewBeatmap Whether the beatmap isn't the one of the attempt before, whose skin is loaded then.
+     * @return Whether the attempt can be played.
      */
-    private suspend fun downloadReplay(url: String): String? {
-        val path = GameFolders.cachePath + "/" + MD5Calculator.getStringMD5(url) + ".odr"
-        Logger.i("GameScene", "ReplayFile = $path")
-
-        if (!OnlineFileOperator.downloadFile(url, path)) {
-            Toasts.showLong(Res.string.replay_cantdownload)
-            return null
-        }
-
-        return path
-    }
-
-    private fun loadGame(beatmapInfo: BeatmapInfo, rFile: String?, mods: ModHashMap, scope: CoroutineScope?): Boolean {
-        if (!OsuGameHost.current.verifyFileIntegrity()) {
-            Toasts.showLong(Res.string.file_integrity_tampered)
-            return false
-        }
-
-        scope?.ensureActive()
-
-        // An online replay was downloaded before, see downloadReplay.
-        this.replayFilePath = rFile
-
-        scope?.ensureActive()
-
-        val shouldParseBeatmap = parsedBeatmap == null || parsedBeatmap!!.md5 != beatmapInfo.md5
-
-        if (shouldParseBeatmap) {
-            try {
-                parsedBeatmap = BeatmapCache.getBeatmap(beatmapInfo, true, GameMode.Droid, scope)
-            } catch (e: IOException) {
-                Logger.e("GameScene", "startGame: " + e.message)
-                Toasts.showLong(e.message.toString())
-                return false
-            } catch (e: IllegalArgumentException) {
-                Logger.e("GameScene", "startGame: " + e.message)
-                Toasts.showLong(e.message.toString())
-                return false
-            }
-        }
-
-        val parsedBeatmap = parsedBeatmap ?: return false
-
-        if (parsedBeatmap.md5 != beatmapInfo.md5) {
-            Toasts.showLong(Res.string.file_integrity_tampered)
-            return false
-        }
-
-        if (parsedBeatmap.hitObjects.objects.isEmpty()) {
-            Toasts.showLong("Empty Beatmap")
-            return false
-        }
-
-        // Ensure that only relevant mods are applied.
-        mods.values.removeAll { m -> !m.isRelevant }
-
-        val differentPlayableBeatmap = shouldParseBeatmap || lastMods == null || lastMods != mods
-
-        val playableBeatmap = if (differentPlayableBeatmap)
-            parsedBeatmap.createDroidPlayableBeatmap(mods.values)
-        else
-            this.playableBeatmap!!
-
-        this.playableBeatmap = playableBeatmap
-
+    fun prepare(scope: CoroutineScope, isNewBeatmap: Boolean): Boolean {
         if (isHUDEditorMode || OsuSkin.get().hudSkinData.hasElement(HUDElements.pp_counter.name)) {
-            val finalParsedBeatmap = parsedBeatmap
-
-            // Calculate timed difficulty attributes
             when (OsuSettings.difficultyAlgorithm) {
                 DifficultyAlgorithm.droid -> {
                     performanceAttributes = DroidPerformanceAttributes()
                     performanceCalculationParameters = DroidPerformanceCalculationParameters()
-
-                    if (droidTimedDifficultyAttributes == null || differentPlayableBeatmap) {
-                        val finalPlayableBeatmap = playableBeatmap
-
-                        ppCalculationJob = async {
-                            droidTimedDifficultyAttributes = BeatmapDifficultyCalculator.calculateDroidTimedDifficulty(
-                                finalParsedBeatmap, finalPlayableBeatmap, this
-                            )
-
-                            updateThread {
-                                if (objectIndex > 0) {
-                                    updatePPValue(objectIndex - 1)
-                                }
-                            }
-                        }
-                    }
                 }
 
                 DifficultyAlgorithm.standard -> {
                     performanceAttributes = StandardPerformanceAttributes()
                     performanceCalculationParameters = StandardPerformanceCalculationParameters()
-
-                    if (standardTimedDifficultyAttributes == null || differentPlayableBeatmap) {
-                        val modValues = mods.values
-
-                        ppCalculationJob = async {
-                            standardTimedDifficultyAttributes = BeatmapDifficultyCalculator.calculateStandardTimedDifficulty(
-                                finalParsedBeatmap, modValues, this
-                            )
-
-                            updateThread {
-                                if (objectIndex > 0) {
-                                    updatePPValue(objectIndex - 1)
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
 
+        // The difficulty at each object may be calculated while playing: the pp so far is shown then.
+        loaded.timedDifficulty.onCalculated = {
+            if (gameplay.session === this && objectIndex > 0) {
+                updatePPValue(objectIndex - 1)
+            }
+        }
+
+        return prepareAttempt(scope, replayPath, isNewBeatmap)
+    }
+
+    // Sets up the background, the music, the clock and the replay of the attempt, and the state of its gameplay as it
+    // starts: the HUD editor plays the attempt again in place with it.
+    private fun prepareAttempt(scope: CoroutineScope?, replayPath: String?, loadBeatmapSkin: Boolean): Boolean {
+
         // Load backgrounds early to minimize waiting time.
         loadBackground()
-        loadVideo(beatmapInfo)
+        loadVideo()
 
         rateAdjustingMods.clear()
 
@@ -755,29 +659,8 @@ class GameScene : GameObjectListener, GameplayState {
         }
 
         // TODO skin manager
-        if (shouldParseBeatmap) {
+        if (loadBeatmapSkin) {
             BeatmapSkinManager.getInstance().loadBeatmapSkin(playableBeatmap.beatmapsetPath)
-        }
-
-        val breaks = playableBeatmap.events.breaks
-
-        if (shouldParseBeatmap || breakPeriods == null || breakPeriods!!.size != breaks.size) {
-            breakPeriods = breaks.toTypedArray()
-        }
-
-        try {
-            val musicFile = beatmapInfo.audioPath.toPath()
-
-            if (!Platform.fileSystem.exists(musicFile)) {
-                throw FileNotFoundException(musicFile.toString())
-            }
-
-            audioFilePath = musicFile.toString()
-
-        } catch (e: Exception) {
-            Logger.e("GameScene", "Load Music: " + e.message)
-            Toasts.showLong(e.message.toString())
-            return false
         }
 
         val hitObjects = playableBeatmap.hitObjects.objects
@@ -788,7 +671,7 @@ class GameScene : GameObjectListener, GameplayState {
 
         scope?.ensureActive()
 
-        OsuGame.music.preLoad(audioFilePath, initialSpeedMultiplier,
+        OsuGame.music.preLoad(loaded.audioPath, initialSpeedMultiplier,
             initialSpeedMultiplier != 1f &&
                 (Settings[OsuSettings.ShiftPitchInRateChange] || ModNightCore::class in mods || ModOldNightCore::class in mods))
 
@@ -802,38 +685,15 @@ class GameScene : GameObjectListener, GameplayState {
         objectIndex = 0
         followPointIndex = 0
         lastObjectId = -1
-        hitWindow = playableBeatmap.hitWindow
         videoStarted = false
         videoOffset = playableBeatmap.events.videoStartTime / 1000f
 
-        if (shouldParseBeatmap || objects == null || objects!!.size != hitObjects.size) {
-            objects = arrayOfNulls<HitObject>(hitObjects.size)
-        }
-
-        val objects = objects!!
-
-        if (differentPlayableBeatmap || objects[0] == null) {
-            hitObjects.toTypedArray().copyInto(objects, 0, 0, objects.size)
-        }
-
-        firstObjectStartTime = firstObject.startTime.toFloat() / 1000
-        lastObjectEndTime = objects[objects.size - 1]!!.endTime.toFloat() / 1000
-
         val estimatedMaxActiveObjects = max(10, estimateMaximumActiveObjects())
 
-        if (activeObjects != null) {
-            activeObjects!!.clear()
-            activeObjects!!.ensureCapacity(estimatedMaxActiveObjects)
-        } else {
-            activeObjects = ArrayList(estimatedMaxActiveObjects)
-        }
-
-        if (expiredObjects != null) {
-            expiredObjects!!.clear()
-            expiredObjects!!.ensureCapacity(estimatedMaxActiveObjects)
-        } else {
-            expiredObjects = ArrayList(estimatedMaxActiveObjects)
-        }
+        activeObjects.clear()
+        activeObjects.ensureCapacity(estimatedMaxActiveObjects)
+        expiredObjects.clear()
+        expiredObjects.ensureCapacity(estimatedMaxActiveObjects)
 
         val firstObjectTimePreempt = firstObject.timePreempt.toFloat() / 1000
         val skipTargetTime = firstObjectStartTime - max(2f, firstObjectTimePreempt)
@@ -881,22 +741,10 @@ class GameScene : GameObjectListener, GameplayState {
 
         scope?.ensureActive()
 
-        val timingControlPointManager = playableBeatmap.controlPoints.timing
-        val effectControlPointManager = playableBeatmap.controlPoints.effect
-
-        if (shouldParseBeatmap || timingControlPoints == null) {
-            timingControlPoints = timingControlPointManager.controlPoints.toTypedArray()
-        }
-
-        if (shouldParseBeatmap || effectControlPoints == null) {
-            effectControlPoints = effectControlPointManager.controlPoints.toTypedArray()
-        }
-
-        activeTimingPoint = if (timingControlPoints!!.isNotEmpty()) timingControlPoints!![0] else timingControlPointManager.defaultControlPoint
-        activeEffectPoint = if (effectControlPoints!!.isNotEmpty()) effectControlPoints!![0] else effectControlPointManager.defaultControlPoint
+        activeTimingPoint = timingControlPoints.firstOrNull() ?: playableBeatmap.controlPoints.timing.defaultControlPoint
+        activeEffectPoint = effectControlPoints.firstOrNull() ?: playableBeatmap.controlPoints.effect.defaultControlPoint
         timingControlPointIndex = 0
         effectControlPointIndex = 0
-
 
         GameObjectPool.getInstance().purge()
 
@@ -910,9 +758,9 @@ class GameScene : GameObjectListener, GameplayState {
         var replay: Replay? = Replay(true)
         this.replay = replay
         replay!!.setObjectCount(hitObjects.size)
-        replay.setBeatmap(beatmapInfo.fullBeatmapsetName, beatmapInfo.fullBeatmapName, playableBeatmap.md5)
+        replay.setBeatmap(loaded.beatmapInfo.fullBeatmapsetName, loaded.beatmapInfo.fullBeatmapName, playableBeatmap.md5)
 
-        if (replayFilePath != null) {
+        if (replayPath != null) {
             // Replay decoding may be dependent on the used mods, so we must do this.
             val replayStat = StatisticV2()
             replayStat.mod = mods
@@ -920,7 +768,7 @@ class GameScene : GameObjectListener, GameplayState {
 
             scope?.ensureActive()
 
-            replaying = replay.load(replayFilePath!!, true)
+            replaying = replay.load(replayPath, true)
 
             if (!replaying) {
                 Toasts.showLong(Res.string.replay_invalid)
@@ -969,13 +817,6 @@ class GameScene : GameObjectListener, GameplayState {
 
         sliderIndex = 0
 
-        if (sliderPaths == null || sliderRenderPaths == null || differentPlayableBeatmap) {
-            calculateAllSliderPaths(scope)
-        }
-
-        lastMods = mods
-        lastBeatmapInfo = beatmapInfo
-
         // Resetting variables before starting the game.
         Multiplayer.finalData = null
         hasFailed = false
@@ -996,174 +837,23 @@ class GameScene : GameObjectListener, GameplayState {
         get() = gameUIScene
 
     override val replayId: Int
-        get() = scoring.replayID
+        get() = gameplay.scoring.replayID
 
-    fun restartGame() {
-        startGame(null, null, null)
-    }
-
-
-    fun startGame(beatmapInfo: BeatmapInfo?, replayFile: String?, mods: ModHashMap?) {
-        startGame(beatmapInfo, replayFile, mods, false)
-    }
-
-    fun startGame(beatmapInfo: BeatmapInfo?, replayFile: String?, mods: ModHashMap?, isHUDEditor: Boolean) {
-        isReadyToStart = false
-        isHUDEditorMode = isHUDEditor
-        startedFromHUDEditor = isHUDEditor
-        resetPlayfieldSizeScale()
-
-        gameUIScene = createScene()
-        mainCursorId = -1
-        gameplayClock.changeSource(null)
-        modIcons.clear()
-
-        val rfile = if (beatmapInfo != null) replayFile else this.replayFilePath
-        val requestId = loadingRequestId.incrementAndFetch()
-
-        val beatmapToUse = beatmapInfo ?: lastBeatmapInfo
-        val isRestart = beatmapInfo == null && replayFile == null && mods == null
-        val modsToUse: ModHashMap?
-
-        if (isHUDEditor) {
-            modsToUse = ModHashMap()
-            modsToUse.put(ModAutoplay::class)
-        } else {
-            modsToUse = mods?.deepCopy() ?: lastMods
-        }
-
-        val scene = GameLoaderScene(this, beatmapToUse!!, modsToUse!!, isRestart)
-        Verktex.withTreeLock {
-            Verktex.pushScene(scene)
-        }
-
-        SkinSounds.get("failsound")!!.stop()
-
-        // A play loading while another starts is stopped first, the loads share the object pool.
-        val previousGame = lastStartedGame?.takeIf { it !== this }
-        lastStartedGame = this
-
-        val stopping = cancelLoading(false)
-
-        val pipeline = async {
-            stopping.await()
-            previousGame?.cancelLoading(false)?.await()
-            DifficultyCalculationManager.stopCalculation().await()
-
-            if (requestId != loadingRequestId.load()) {
-                return@async
-            }
-
-            // Not a child of the pipeline (com.osudroid.utils.async, not CoroutineScope.async):
-            // the pipeline completes once the loading has started, as before.
-            gameLoadingJob = com.osudroid.utils.async {
-                var succeeded = false
-                var cancelled = false
-
-                try {
-                    if (requestId != loadingRequestId.load()) {
-                        return@async
-                    }
-
-                    // Online replays are downloaded first, loadGame reads a file.
-                    val replayToLoad = if (rfile != null && rfile.startsWith("https://")) {
-                        downloadReplay(rfile) ?: return@async
-                    } else rfile
-
-                    if (requestId != loadingRequestId.load()) {
-                        return@async
-                    }
-
-                    succeeded = loadGame(beatmapToUse!!, replayToLoad, modsToUse!!, this)
-
-                    if (succeeded && requestId == loadingRequestId.load()) {
-                        prepareScene()
-                    }
-                } catch (e: Exception) {
-                    if (e is CancellationException) {
-                        cancelled = true
-                        throw e
-                    }
-
-                    Logger.e("GameScene", "Failed to load gameplay", e)
-                } finally {
-                    if (requestId == loadingRequestId.load()) {
-                        if (!succeeded && !cancelled) {
-                            updateThread { quit() }
-                        }
-
-                        gameLoadingJob = null
-                    }
-                }
-            }
-        }
-
-        loadingPipeline = pipeline
-
-        pipeline.invokeOnCompletion {
-            if (loadingPipeline === pipeline) {
-                loadingPipeline = null
-            }
-        }
+    /**
+     * Takes the job loading the video, to stop it with the loading of the play.
+     */
+    fun takeVideoLoadingJob(): Job? {
+        val job = videoLoadingJob
+        videoLoadingJob = null
+        return job
     }
 
     /**
-     * Stops loading this play. The returned [Deferred] completes once every loading job has stopped.
+     * Makes the statistics, the cursors, the HUD and the rest of the scene of this attempt, once it's [prepare]d. It's
+     * ready to start then, or once every player is in multiplayer.
      */
-    fun cancelLoading(): Deferred<Unit> {
-        return cancelLoading(true)
-    }
-
-    private fun cancelLoading(invalidatePendingStart: Boolean): Deferred<Unit> {
-        if (invalidatePendingStart) {
-            loadingRequestId.incrementAndFetch()
-        }
-
-        val gameLoadingJob = this.gameLoadingJob
-        val videoLoadingJob = this.videoLoadingJob
-        val ppCalculationJob = this.ppCalculationJob
-        val loadingPipeline = this.loadingPipeline
-
-        this.gameLoadingJob = null
-        this.videoLoadingJob = null
-        this.ppCalculationJob = null
-
-        val jobCancellation = listOf(
-            gameLoadingJob.stopAsync(),
-            videoLoadingJob.stopAsync(),
-            ppCalculationJob.stopAsync()
-        )
-
-        val stopped = CompletableDeferred<Unit>()
-
-        async {
-            jobCancellation.awaitAll()
-            // Whether it completed, failed or was cancelled.
-            loadingPipeline?.join()
-            stopped.complete(Unit)
-        }
-
-        return stopped
-    }
-
-    private fun replaceCurrentScene(newScene: Scene) {
-        Verktex.withTreeLock {
-            Verktex.popScene()
-            Verktex.pushScene(newScene)
-        }
-    }
-
-    private fun returnToPreviousScene() {
-        Verktex.withTreeLock {
-            Verktex.popScene()
-        }
-    }
-
-    private suspend fun prepareScene() {
-        val playableBeatmap = this.playableBeatmap ?: return
-        val parsedBeatmap = parsedBeatmap!!
-        val lastMods = lastMods!!
-        val objects = objects!!
+    fun prepareScene() {
+        val lastMods = mods
 
         stat = StatisticV2()
         stat.mod = lastMods
@@ -1279,11 +969,6 @@ class GameScene : GameObjectListener, GameplayState {
 
         // HUD should be to the last so we ensure everything is initialized and ready to be used by
         // the HUD elements in their constructors.
-        if (hud != null) {
-            hud!!.removeSelf()
-        }
-        replaySettingsPanel?.removeSelf()
-
         val hud = GameplayHUD(this)
         this.hud = hud
 
@@ -1308,7 +993,7 @@ class GameScene : GameObjectListener, GameplayState {
 
         if (context.isAutoplay || replaying) {
             val metadata = playableBeatmap.metadata
-            playname = if (replaying) scoring.replayStat!!.playerName else "osu!"
+            playname = if (replaying) gameplay.scoring.replayStat!!.playerName else "osu!"
 
             if (!Settings[OsuSettings.HideReplayMarquee]) {
                 val replayText = Text()
@@ -1371,8 +1056,8 @@ class GameScene : GameObjectListener, GameplayState {
 
             seekControl.updateSeekPosition(
                 gameplayClock.time,
-                (objects[0]!!.startTime / 1000).toFloat(),
-                (objects[objects.size - 1]!!.endTime / 1000).toFloat()
+                (objects[0].startTime / 1000).toFloat(),
+                (objects[objects.size - 1].endTime / 1000).toFloat()
             )
 
             seekControl.onSeek = { targetTime ->
@@ -1383,7 +1068,7 @@ class GameScene : GameObjectListener, GameplayState {
         if (Multiplayer.isMultiplayer) {
             RoomAPI.notifyBeatmapLoaded()
         } else {
-            isReadyToStart = true
+            gameplay.isReadyToStart = true
         }
     }
 
@@ -1393,8 +1078,6 @@ class GameScene : GameObjectListener, GameplayState {
      * @param beatmapOffset The offset of the beatmap set, in milliseconds, from its options.
      */
     fun start(beatmapOffset: Int) {
-        val playableBeatmap = this.playableBeatmap ?: return
-        val hud = hud!!
 
         val music = OsuGame.music
 
@@ -1438,7 +1121,7 @@ class GameScene : GameObjectListener, GameplayState {
 
         root += hud
         replaySettingsPanel?.let { root += it }
-        replaceCurrentScene(gameUIScene)
+        Gameplay.replaceCurrentScene(gameUIScene)
 
         if (isHUDEditorMode) {
             Toasts.show(Res.string.hudEditor_back_for_menu)
@@ -1446,9 +1129,7 @@ class GameScene : GameObjectListener, GameplayState {
     }
 
     fun getComboColor(hitObject: HitObject): Color4 {
-        val playableBeatmap = this.playableBeatmap
-
-        if (playableBeatmap != null && context.isSynesthesia) {
+        if (context.isSynesthesia) {
             return ModSynesthesia.getColorFor(playableBeatmap.controlPoints.getClosestBeatDivisor(hitObject.startTime))
         }
 
@@ -1456,14 +1137,11 @@ class GameScene : GameObjectListener, GameplayState {
     }
 
     private fun update(dt: Float) {
-        if (!isReadyToStart) {
+        if (!gameplay.isReadyToStart || isFinished) {
             return
         }
 
         previousFrameTime = Platform.uptimeMillis
-
-        val playableBeatmap = this.playableBeatmap ?: return
-        val hud = hud!!
 
         if (Multiplayer.isMultiplayer) {
             val mSecElapsed = (dt / context.timing.speedMultiplier * 1000).toLong()
@@ -1508,12 +1186,11 @@ class GameScene : GameObjectListener, GameplayState {
             }
         }
 
-        val objects = objects!!
 
         replaySettingsPanel?.playbackControl?.seekControl?.updateSeekPosition(
             gameplayClock.time,
-            (objects[0]!!.startTime / 1000).toFloat(),
-            (objects[objects.size - 1]!!.endTime / 1000).toFloat()
+            (objects[0].startTime / 1000).toFloat(),
+            (objects[objects.size - 1].endTime / 1000).toFloat()
         )
 
         if (replaying) {
@@ -1659,7 +1336,6 @@ class GameScene : GameObjectListener, GameplayState {
             flashlightSprite.updateCombo(stat.combo)
         }
 
-        val timingControlPoints = timingControlPoints!!
         while (timingControlPointIndex + 1 < timingControlPoints.size) {
             val nextTimingPoint = timingControlPoints[timingControlPointIndex + 1]
 
@@ -1671,7 +1347,6 @@ class GameScene : GameObjectListener, GameplayState {
             ++timingControlPointIndex
         }
 
-        val effectControlPoints = effectControlPoints!!
         while (effectControlPointIndex + 1 < effectControlPoints.size) {
             val nextEffectPoint = effectControlPoints[effectControlPointIndex + 1]
 
@@ -1691,7 +1366,6 @@ class GameScene : GameObjectListener, GameplayState {
         timing.currentBeatTime = max(0.0, gameplayClock.time - activeTimingPoint.time / 1000) % timing.beatLength
 
         if (!isGameOver) {
-            val breakPeriods = breakPeriods!!
             val breakAnimator = breakAnimator!!
 
             if (breakPeriodIndex < breakPeriods.size) {
@@ -1727,8 +1401,7 @@ class GameScene : GameObjectListener, GameplayState {
             }
         }
 
-        val activeObjects = activeObjects!!
-        val expiredObjects = expiredObjects!!
+        val expiredObjects = expiredObjects
 
         if (objectIndex >= objects.size && areObjectsJudged(activeObjects) && context.isFlashlight) {
             flashlightSprite!!.onBreak(true)
@@ -1793,13 +1466,13 @@ class GameScene : GameObjectListener, GameplayState {
         // Follow points are added as they start to fade in, apart from the objects: that can be before the object
         // they start from spawns.
         while (followPointIndex < objects.size - 1) {
-            val start = objects[followPointIndex]!!
+            val start = objects[followPointIndex]
 
             if (gameplayClock.time < FollowPointConnection.fadeInStartTime(start)) {
                 break
             }
 
-            val end = objects[++followPointIndex]!!
+            val end = objects[++followPointIndex]
 
             // A seek went past them.
             if (gameplayClock.time >= end.startTime.toFloat() / 1000) {
@@ -1814,7 +1487,7 @@ class GameScene : GameObjectListener, GameplayState {
         var shouldBePunished = false
 
         while (objectIndex < objects.size) {
-            val obj = objects[objectIndex]!!
+            val obj = objects[objectIndex]
 
             // The casts can be simplified, but it is necessary to prevent floating point errors (see how
             // GameplayHitCircle and GameplaySlider track their passed time, where startTime and timePreempt
@@ -1894,7 +1567,7 @@ class GameScene : GameObjectListener, GameplayState {
                 val gameplaySlider = GameObjectPool.getInstance().slider
 
                 gameplaySlider.init(this, objectPlayfield, stat, obj, playableBeatmap.controlPoints,
-                    comboColor, sliderBorderColor!!, getSliderPath(sliderIndex)!!, getSliderRenderPath(sliderIndex))
+                    comboColor, sliderBorderColor!!, getSliderPath(sliderIndex), getSliderRenderPath(sliderIndex))
 
                 ++sliderIndex
                 addObject(gameplaySlider)
@@ -1920,7 +1593,7 @@ class GameScene : GameObjectListener, GameplayState {
             gameover()
 
             if (!Multiplayer.isMultiplayer) {
-                restartGame()
+                gameplay.retry()
             }
         }
 
@@ -1945,80 +1618,14 @@ class GameScene : GameObjectListener, GameplayState {
             // Reset the game to continue the HUD editor session.
             if (startedFromHUDEditor && isHUDEditorMode) {
                 gameplayClock.seek(initialStartTimeValue)
-                loadGame(lastBeatmapInfo!!, null, lastMods!!, null)
+                prepareAttempt(null, null, false)
                 applyBackground()
                 stat.reset()
                 skip(true)
                 return
             }
 
-            gameUIScene = createScene()
-            BeatmapSkinManager.setSkinEnabled(false)
-            GameObjectPool.getInstance().purge()
-            this.timingControlPoints = null
-            this.effectControlPoints = null
-            this.objects = null
-            activeObjects.clear()
-            expiredObjects.clear()
-            replaySettingsPanel = null
-            this.breakPeriods = null
-            cursorSprites = null
-            this.playableBeatmap = null
-            performanceAttributes = null
-            performanceCalculationParameters = null
-            droidTimedDifficultyAttributes = null
-            standardTimedDifficultyAttributes = null
-            sliderPaths = null
-            sliderRenderPaths = null
-            var replayPath: String? = null
-            stat.time = currentTimeMillis()
-            if (replay != null && !replaying) {
-                val ctime = currentTimeMillis().toString()
-                replayPath = GameFolders.corePath + "Scores/" +
-                    MD5Calculator.getStringMD5(lastBeatmapInfo!!.filename + ctime) +
-                    ctime.substring(0, min(3, ctime.length)) + ".odr"
-                replay!!.setStat(stat)
-                replay!!.save(replayPath)
-            }
-            resetPlayfieldSizeScale()
-            cancelVideoLoading()
-
-            val scoringScene = scoring
-            if (!startedFromHUDEditor) {
-                if (replaying)
-                    scoringScene.load(scoringScene.replayStat!!, null, OsuGame.music, replayPath, null, lastBeatmapInfo)
-                else {
-                    if (ModAutoplay::class in stat.mod) {
-                        stat.playerName = "osu!"
-                    }
-
-                    if (Multiplayer.isConnected) {
-                        Multiplayer.log("Match ended, moving to results scene.")
-                        Multiplayer.roomScene!!.chat.show()
-
-                        async { runSafe { RoomAPI.submitFinalScore(stat.toJson()) } }
-
-                        Toasts.show("Loading room statistics...")
-                    }
-                    scoringScene.load(stat, lastBeatmapInfo, OsuGame.music, replayPath, parsedBeatmap!!.md5, null)
-                }
-                OsuGame.music.volume = 0.2f
-                replaceCurrentScene(scoringScene.scene!!)
-            } else {
-                returnToPreviousScene()
-            }
-
-            // Resume difficulty calculation.
-            DifficultyCalculationManager.calculateDifficulties()
-            Input.dispatchHistoricalMoves = false
-
-            if (video != null) {
-                video!!.release()
-                video = null
-                videoStarted = false
-            }
-
-            parsedBeatmap = null
+            finish()
         } else if (objectIndex >= objects.size && areObjectsJudged(activeObjects)) {
             gameStarted = false
             leadOut += dt
@@ -2062,8 +1669,64 @@ class GameScene : GameObjectListener, GameplayState {
         }
     }
 
+    // Ends the attempt once its objects are judged: its replay is saved and its results are shown.
+    private fun finish() {
+        isFinished = true
+
+        BeatmapSkinManager.setSkinEnabled(false)
+        GameObjectPool.getInstance().purge()
+        activeObjects.clear()
+        expiredObjects.clear()
+
+        var replayPath: String? = null
+        stat.time = currentTimeMillis()
+        if (replay != null && !replaying) {
+            val ctime = currentTimeMillis().toString()
+            replayPath = GameFolders.corePath + "Scores/" +
+                MD5Calculator.getStringMD5(loaded.beatmapInfo.filename + ctime) +
+                ctime.substring(0, min(3, ctime.length)) + ".odr"
+            replay!!.setStat(stat)
+            replay!!.save(replayPath)
+        }
+        resetPlayfieldSizeScale()
+        cancelVideoLoading()
+
+        val scoringScene = gameplay.scoring
+        if (!startedFromHUDEditor) {
+            if (replaying)
+                scoringScene.load(scoringScene.replayStat!!, null, OsuGame.music, replayPath, null, loaded.beatmapInfo)
+            else {
+                if (ModAutoplay::class in stat.mod) {
+                    stat.playerName = "osu!"
+                }
+
+                if (Multiplayer.isConnected) {
+                    Multiplayer.log("Match ended, moving to results scene.")
+                    Multiplayer.roomScene!!.chat.show()
+
+                    async { runSafe { RoomAPI.submitFinalScore(stat.toJson()) } }
+
+                    Toasts.show("Loading room statistics...")
+                }
+                scoringScene.load(stat, loaded.beatmapInfo, OsuGame.music, replayPath, parsedBeatmap.md5, null)
+            }
+            OsuGame.music.volume = 0.2f
+            Gameplay.replaceCurrentScene(scoringScene.scene!!)
+        } else {
+            Gameplay.returnToPreviousScene()
+        }
+
+        // The next attempt loads the beatmap again.
+        gameplay.onFinished()
+
+        // Resume difficulty calculation.
+        DifficultyCalculationManager.calculateDifficulties()
+        Input.dispatchHistoricalMoves = false
+
+        releaseVideo()
+    }
+
     private fun updateActiveObjects(deltaTime: Float) {
-        val activeObjects = activeObjects!!
         judgeableObject = searchJudgeableObject(0)
 
         for (i in 0 until activeObjects.size) {
@@ -2077,14 +1740,14 @@ class GameScene : GameObjectListener, GameplayState {
             }
 
             if (gameplayClock.time >= obj.lifetimeEnd) {
-                expiredObjects!!.add(obj)
+                expiredObjects.add(obj)
             }
         }
     }
 
     private fun updatePassiveObjects(deltaTime: Float) {
 
-        hud!!.onGameplayUpdate(this, deltaTime)
+        hud.onGameplayUpdate(this, deltaTime)
 
         breakAnimator!!.update(deltaTime)
 
@@ -2102,7 +1765,6 @@ class GameScene : GameObjectListener, GameplayState {
     }
 
     private fun searchJudgeableObject(startIndex: Int): GameObject? {
-        val activeObjects = activeObjects!!
 
         for (i in startIndex until activeObjects.size) {
             val obj = activeObjects[i]
@@ -2147,31 +1809,32 @@ class GameScene : GameObjectListener, GameplayState {
         }
     }
 
-    private fun onExit() {
-        BeatmapSkinManager.setSkinEnabled(false)
-        GameObjectPool.getInstance().purge()
-        stopLoopingSamples()
-        activeObjects?.clear()
-        expiredObjects?.clear()
-        hud?.removeSelf()
-        replaySettingsPanel?.removeSelf()
-        breakPeriods = null
-        replaySettingsPanel = null
-        objects = null
-        timingControlPoints = null
-        effectControlPoints = null
-        parsedBeatmap = null
-        playableBeatmap = null
-        cursorSprites = null
-        lastMods = null
-        performanceAttributes = null
-        performanceCalculationParameters = null
-        droidTimedDifficultyAttributes = null
-        standardTimedDifficultyAttributes = null
-        sliderPaths = null
-        sliderRenderPaths = null
+    /**
+     * Leaves the play, see [Gameplay.quit].
+     */
+    fun quit() {
+        gameplay.quit()
+    }
 
-        BeatmapSkinManager.getInstance().clearSkin()
+    /**
+     * Ends this attempt as the play is left: its sounds and its video stop, and the music goes back to the preview of
+     * the selected beatmap.
+     */
+    internal fun exit() {
+        isFinished = true
+
+        if (sceneBorder != null) {
+            sceneBorder!!.removeSelf()
+            sceneBorder = null
+        }
+
+        stopLoopingSamples()
+        activeObjects.clear()
+        expiredObjects.clear()
+        if (::hud.isInitialized) {
+            hud.removeSelf()
+        }
+        replaySettingsPanel?.removeSelf()
 
         cancelVideoLoading()
 
@@ -2194,58 +1857,19 @@ class GameScene : GameObjectListener, GameplayState {
             }
         }
 
-        if (replaying) {
-            replayFilePath = null
-        }
-    }
-
-    fun quit() {
-        if (lastStartedGame === this) {
-            lastStartedGame = null
-        }
-
-        // Disable historical event processing for more efficient ACTION_MOVE reports, since frequent reports are
-        Input.dispatchHistoricalMoves = false
-
-
-        if (sceneBorder != null) {
-            sceneBorder!!.removeSelf()
-            sceneBorder = null
-        }
-
-        onExit()
         resetPlayfieldSizeScale()
-        gameUIScene = GameUIScene()
-
-        if (Multiplayer.isMultiplayer) {
-            releaseVideo()
-
-            OsuGame.music?.stop()
-
-            val roomScene = Multiplayer.roomScene
-
-            if (Multiplayer.isConnected && roomScene != null) {
-                returnToPreviousScene()
-
-                if (Verktex.scene !== roomScene) {
-                    roomScene.show()
-                }
-            } else {
-                replaceCurrentScene(LobbyScene())
-            }
-
-            return
-        }
-        SkinSounds.get("failsound")!!.stop()
-        returnToPreviousScene()
-        releaseVideo()
-
-        // Resume difficulty calculation.
-        DifficultyCalculationManager.calculateDifficulties()
     }
 
+    /**
+     * Lets this attempt go as another one replaces it, from the pause menu: nothing of it plays anymore.
+     */
+    internal fun release() {
+        isFinished = true
 
-    fun reset() {
+        stopLoopingSamples()
+        cancelVideoLoading()
+        releaseVideo()
+        gameplayClock.changeSource(null)
     }
 
     //CB打击处理
@@ -2298,12 +1922,10 @@ class GameScene : GameObjectListener, GameplayState {
 
     override fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4): String? {
         val acc = accuracy
-        val playableBeatmap = this.playableBeatmap ?: return null
-        val hud = hud!!
 
         if (context.isAutoplay) {
             autoCursor!!.click()
-            hud.onGameplayTouchDown(parsedBeatmap!!.hitObjects.objects[id].startTime.toFloat() / 1000)
+            hud.onGameplayTouchDown(parsedBeatmap.hitObjects.objects[id].startTime.toFloat() / 1000)
         }
 
         val accuracy = abs(acc)
@@ -2343,7 +1965,7 @@ class GameScene : GameObjectListener, GameplayState {
             val aimErrorCursorEvent = cursors[nearestCursorId]!!.getLatestNonUpEvent()
 
             if (aimErrorCursorEvent != null) {
-                val objectRadius = parsedBeatmap!!.hitObjects.objects[id].gameplayRadius.toFloat()
+                val objectRadius = parsedBeatmap.hitObjects.objects[id].gameplayRadius.toFloat()
                 hud.onAimJudgement(pos, aimErrorCursorEvent.playfieldPosition, objectRadius)
             }
         }
@@ -2354,7 +1976,6 @@ class GameScene : GameObjectListener, GameplayState {
 
     override fun onSliderHit(id: Int, score: Int, judgementPos: Vector2, endCombo: Boolean,
                              color: Color4, type: Int, incrementCombo: Boolean): String? {
-        val hud = hud!!
 
         // Autoplay/Autopilot synthesize their own cursor movement rather than using real touch input, so
         // real touch events (e.g. a resting finger) must not be picked up as the "cursor position" here.
@@ -2408,13 +2029,13 @@ class GameScene : GameObjectListener, GameplayState {
                         val aimErrorCursorEvent = cursors[nearestCursorId]!!.getLatestNonUpEvent()
 
                         if (aimErrorCursorEvent != null) {
-                            val objectRadius = parsedBeatmap!!.hitObjects.objects[id].gameplayRadius.toFloat()
+                            val objectRadius = parsedBeatmap.hitObjects.objects[id].gameplayRadius.toFloat()
                             hud.onAimJudgement(judgementPos, aimErrorCursorEvent.playfieldPosition, objectRadius)
                         }
                     }
 
                     if (context.isAutoplay) {
-                        hud.onGameplayTouchDown(parsedBeatmap!!.hitObjects.objects[id].startTime.toFloat() / 1000)
+                        hud.onGameplayTouchDown(parsedBeatmap.hitObjects.objects[id].startTime.toFloat() / 1000)
                     }
                 }
             }
@@ -2444,7 +2065,7 @@ class GameScene : GameObjectListener, GameplayState {
     override fun onSpinnerStart(id: Int) {
         if (context.isAutoplay) {
             autoCursor!!.click()
-            hud!!.onGameplayTouchDown(parsedBeatmap!!.hitObjects.objects[id].startTime.toFloat() / 1000)
+            hud.onGameplayTouchDown(parsedBeatmap.hitObjects.objects[id].startTime.toFloat() / 1000)
         }
     }
 
@@ -2483,22 +2104,22 @@ class GameScene : GameObjectListener, GameplayState {
 
             100 -> {
                 scoreName = registerHit(id, 100, endCombo)
-                hitWindow!!.greatWindow + 1
+                hitWindow.greatWindow + 1
             }
 
             50 -> {
                 scoreName = registerHit(id, 50, endCombo)
-                hitWindow!!.okWindow + 1
+                hitWindow.okWindow + 1
             }
 
             else -> {
                 scoreName = "hit0"
-                hitWindow!!.mehWindow + 1
+                hitWindow.mehWindow + 1
             }
         }.toFloat() / 1000
 
-        hud!!.onAccuracyRegister(HitObjectType.Spinner, accuracy)
-        hud!!.onNoteHit(stat)
+        hud.onAccuracyRegister(HitObjectType.Spinner, accuracy)
+        hud.onNoteHit(stat)
         return scoreName
     }
 
@@ -2518,23 +2139,19 @@ class GameScene : GameObjectListener, GameplayState {
     }
 
     private fun playLoopingSamples() {
-        val activeObjects = activeObjects ?: return
-
         for (i in 0 until activeObjects.size) {
             activeObjects[i].playLoopingSamples()
         }
     }
 
     private fun stopLoopingSamples() {
-        val activeObjects = activeObjects ?: return
-
         for (i in 0 until activeObjects.size) {
             activeObjects[i].stopLoopingSamples()
         }
     }
 
     override fun addObject(`object`: GameObject?) {
-        activeObjects!!.add(`object`!!)
+        activeObjects.add(`object`!!)
     }
 
     override fun isObjectHittable(`object`: GameObject?): Boolean {
@@ -2600,7 +2217,7 @@ class GameScene : GameObjectListener, GameplayState {
             sprite?.setShowing(true)
 
             if (!context.isAutoplay) {
-                hud!!.onGameplayTouchDown(eventTime / 1000f)
+                hud.onGameplayTouchDown(eventTime / 1000f)
             }
 
             cursor.addEvent(cursorEvent)
@@ -2664,7 +2281,7 @@ class GameScene : GameObjectListener, GameplayState {
         }
 
         if (isHUDEditorMode) {
-            hud!!.onBackPress()
+            hud.onBackPress()
             return
         }
 
@@ -2705,7 +2322,7 @@ class GameScene : GameObjectListener, GameplayState {
         paused = true
 
         gameUIScene.ignoreUpdate = true
-        hud!!.ignoreUpdate = true
+        hud.ignoreUpdate = true
 
         showPauseMenu(false)
     }
@@ -2744,7 +2361,7 @@ class GameScene : GameObjectListener, GameplayState {
             gameplayClock.pause()
             paused = true
             gameUIScene.ignoreUpdate = true
-            hud!!.ignoreUpdate = true
+            hud.ignoreUpdate = true
             return
         }
 
@@ -2844,7 +2461,7 @@ class GameScene : GameObjectListener, GameplayState {
                 paused = true
 
                 gameUIScene.ignoreUpdate = true
-                hud!!.ignoreUpdate = true
+                hud.ignoreUpdate = true
 
                 failAnimation = null
 
@@ -2859,7 +2476,7 @@ class GameScene : GameObjectListener, GameplayState {
         }
 
         gameUIScene.ignoreUpdate = false
-        hud!!.ignoreUpdate = false
+        hud.ignoreUpdate = false
 
         if (pauseMenu != null) {
             pauseMenu!!.hide()
@@ -2894,7 +2511,7 @@ class GameScene : GameObjectListener, GameplayState {
 
 
     override fun registerAccuracy(type: HitObjectType?, acc: Double) {
-        val mehWindow = hitWindow!!.mehWindow / 1000
+        val mehWindow = hitWindow.mehWindow / 1000
 
         if (abs(acc) <= mehWindow) {
             if (type != HitObjectType.Spinner) {
@@ -2902,11 +2519,11 @@ class GameScene : GameObjectListener, GameplayState {
             }
 
             if (replaying) {
-                scoring.replayStat!!.addHitOffset(acc)
+                gameplay.scoring.replayStat!!.addHitOffset(acc)
             }
         }
 
-        hud!!.onAccuracyRegister(type!!, acc.toFloat())
+        hud.onAccuracyRegister(type!!, acc.toFloat())
     }
 
 
@@ -2967,67 +2584,9 @@ class GameScene : GameObjectListener, GameplayState {
         return id
     }
 
-    private fun calculateAllSliderPaths(scope: CoroutineScope?) {
-        scope?.ensureActive()
+    private fun getSliderPath(index: Int): SliderPath = loaded.sliderPaths[index]
 
-        val playableBeatmap = this.playableBeatmap
-
-        if (playableBeatmap == null || playableBeatmap.hitObjects.sliderCount == 0) {
-            return
-        }
-
-        val sliderPaths = arrayOfNulls<SliderPath>(playableBeatmap.hitObjects.sliderCount)
-        val sliderRenderPaths = arrayOfNulls<Path>(playableBeatmap.hitObjects.sliderCount)
-        var index = 0
-
-        for (obj in playableBeatmap.hitObjects.objects) {
-            scope?.ensureActive()
-
-            if (obj !is Slider) {
-                continue
-            }
-            val slider = obj
-
-            sliderPaths[index] = convertSliderPath(slider, scope)
-
-            scope?.ensureActive()
-
-            sliderRenderPaths[index] = createSliderRenderPath(slider, scope)
-
-            ++index
-        }
-
-
-        this.sliderPaths = sliderPaths
-        this.sliderRenderPaths = sliderRenderPaths
-    }
-
-    private fun getSliderPath(index: Int): SliderPath? {
-        val sliderPaths = sliderPaths
-        return if (sliderPaths != null && index < sliderPaths.size && index >= 0) {
-            sliderPaths[index]
-        } else {
-            null
-        }
-    }
-
-    private fun getSliderRenderPath(index: Int): Path {
-        val sliderRenderPaths = sliderRenderPaths ?: throw IllegalStateException(
-            "Slider render paths have not been calculated; sliderRenderPaths is null, index=$index"
-        )
-
-        if (index < 0 || index >= sliderRenderPaths.size) {
-            throw IndexOutOfBoundsException(
-                "Invalid slider render path index " + index + " for sliderRenderPaths.length=" + sliderRenderPaths.size
-            )
-        }
-
-        val renderPath = sliderRenderPaths[index] ?: throw IllegalStateException(
-            "Slider render path at index " + index + " is null after calculation; sliderRenderPaths.length=" + sliderRenderPaths.size
-        )
-
-        return renderPath
-    }
+    private fun getSliderRenderPath(index: Int): Path = loaded.sliderRenderPaths[index]
 
     /**
      * The time that gameplay started relative to the start of the [Beatmap], in seconds.
@@ -3053,10 +2612,9 @@ class GameScene : GameObjectListener, GameplayState {
         stat.time = currentTimeMillis()
         if (replay != null && !replaying) {
             val replay = replay!!
-            val objects = objects!!
 
             //write misses to replay
-            for (obj in activeObjects!!) {
+            for (obj in activeObjects) {
                 // Judged objects stay alive until their effects end.
                 if (obj.hasFinalJudgement()) {
                     continue
@@ -3072,15 +2630,14 @@ class GameScene : GameObjectListener, GameplayState {
             }
 
             val currentTime = currentTimeMillis().toString()
-            val odrFilename = MD5Calculator.getStringMD5(lastBeatmapInfo!!.filename + currentTime) + currentTime.substring(0, min(3, currentTime.length)) + ".odr"
+            val odrFilename = MD5Calculator.getStringMD5(loaded.beatmapInfo.filename + currentTime) + currentTime.substring(0, min(3, currentTime.length)) + ".odr"
 
-            replayFilePath = GameFolders.scorePath + odrFilename
             replay.setStat(stat)
-            replay.save(replayFilePath!!)
+            replay.save(GameFolders.scorePath + odrFilename)
 
             if (stat.totalScoreWithMultiplier > 0 && ModAutoplay::class !in stat.mod) {
                 stat.replayFilename = odrFilename
-                stat.beatmapMD5 = lastBeatmapInfo!!.md5
+                stat.beatmapMD5 = loaded.beatmapInfo.md5
 
                 val scoreInfo = stat.toScoreInfo()
 
@@ -3088,13 +2645,12 @@ class GameScene : GameObjectListener, GameplayState {
                     try {
                         DatabaseManager.scoreInfoTable.insertScore(scoreInfo)
                     } catch (e: Exception) {
-                        Logger.e("GameScene", "Failed to save score to database", e)
+                        Logger.e(TAG, "Failed to save score to database", e)
                     }
                 }
             }
 
             Toasts.showLong(Res.string.message_save_replay_successful)
-            replayFilePath = null
             return true
         } else {
             Toasts.showLong(Res.string.message_save_replay_failed)
@@ -3116,7 +2672,7 @@ class GameScene : GameObjectListener, GameplayState {
     }
 
     private fun getDroidPPAt(objectId: Int): Double {
-        val droidTimedDifficultyAttributes = droidTimedDifficultyAttributes
+        val droidTimedDifficultyAttributes = loaded.timedDifficulty.droid
         val performanceCalculationParameters = performanceCalculationParameters
 
         if (droidTimedDifficultyAttributes == null || performanceCalculationParameters == null || objectId < 0 ||
@@ -3136,7 +2692,7 @@ class GameScene : GameObjectListener, GameplayState {
     }
 
     private fun getStandardPPAt(objectId: Int): Double {
-        val standardTimedDifficultyAttributes = standardTimedDifficultyAttributes
+        val standardTimedDifficultyAttributes = loaded.timedDifficulty.standard
         val performanceCalculationParameters = performanceCalculationParameters
 
         if (standardTimedDifficultyAttributes == null || performanceCalculationParameters == null || objectId < 0 ||
@@ -3191,15 +2747,12 @@ class GameScene : GameObjectListener, GameplayState {
     }
 
     private fun estimateMaximumActiveObjects(): Int {
-        val objects = objects ?: return 0
-
         // Estimate the maximum number of simultaneously active objects to pre-size the lists and minimize
         // array reallocations.
         val lifetimeEnds = DoubleMinHeap(max(1, objects.size / 4))
         var estimatedMaxActiveObjects = 0
 
         for (`object` in objects) {
-            `object`!!
             val lifetimeStart = `object`.startTime - `object`.timePreempt
 
             // Remove all objects that have expired by the time this object's lifetime starts.
@@ -3229,22 +2782,17 @@ class GameScene : GameObjectListener, GameplayState {
     //region Seeking
 
     private fun seekTo(targetTimeSeconds: Float) {
-        val playableBeatmap = this.playableBeatmap
-        val objects = objects
-
-        if (playableBeatmap == null || objects == null) {
+        if (isFinished) {
             return
         }
 
-        val activeObjects = activeObjects!!
-        val expiredObjects = expiredObjects!!
-        val hud = hud!!
+        val expiredObjects = expiredObjects
         val breakAnimator = breakAnimator!!
 
         val clampedTime = MathUtils.clamp(
             targetTimeSeconds,
-            (objects[0]!!.startTime / 1000).toFloat(),
-            (objects[objects.size - 1]!!.endTime / 1000).toFloat()
+            (objects[0].startTime / 1000).toFloat(),
+            (objects[objects.size - 1].endTime / 1000).toFloat()
         )
 
         val targetMs = clampedTime * 1000
@@ -3308,8 +2856,7 @@ class GameScene : GameObjectListener, GameplayState {
         timingControlPointIndex = 0
         effectControlPointIndex = 0
 
-        val timingControlPoints = timingControlPoints!!
-        val effectControlPoints = effectControlPoints!!
+        val effectControlPoints = effectControlPoints
 
         while (timingControlPointIndex + 1 < timingControlPoints.size && timingControlPoints[timingControlPointIndex + 1].time <= targetMs) {
             timingControlPointIndex++
@@ -3330,12 +2877,9 @@ class GameScene : GameObjectListener, GameplayState {
         // Advance break period index past fully elapsed breaks.
         breakPeriodIndex = 0
 
-        val breakPeriods = breakPeriods
 
-        if (breakPeriods != null) {
-            while (breakPeriodIndex < breakPeriods.size && breakPeriods[breakPeriodIndex].endTime <= targetMs) {
-                breakPeriodIndex++
-            }
+        while (breakPeriodIndex < breakPeriods.size && breakPeriods[breakPeriodIndex].endTime <= targetMs) {
+            breakPeriodIndex++
         }
 
         // Reset replay cursor movement indices.
@@ -3351,7 +2895,7 @@ class GameScene : GameObjectListener, GameplayState {
         // Reset any in-progress break animation, then re-initialize if the seek target is inside a break.
         breakAnimator.reset()
 
-        if (breakPeriods != null && breakPeriodIndex < breakPeriods.size) {
+        if (breakPeriodIndex < breakPeriods.size) {
             val bp = breakPeriods[breakPeriodIndex]
 
             if (bp.startTime <= targetMs && targetMs < bp.endTime) {
@@ -3376,7 +2920,7 @@ class GameScene : GameObjectListener, GameplayState {
         if (context.isAutoplay || replaying) {
             if (context.isAutoplay) {
                 for (i in objects.indices) {
-                    val tapTime = objects[i]!!.startTime.toFloat() / 1000f
+                    val tapTime = objects[i].startTime.toFloat() / 1000f
 
                     if (tapTime > clampedTime) {
                         break
@@ -3441,14 +2985,7 @@ class GameScene : GameObjectListener, GameplayState {
     }
 
     private fun reconstructStatAtTime(targetMs: Float) {
-        val playableBeatmap = this.playableBeatmap
-        val objects = objects
 
-        if (playableBeatmap == null || objects == null || objects.isEmpty()) {
-            return
-        }
-
-        val timingControlPoints = timingControlPoints!!
         var localTimingIdx = 0
         var localBreakIdx = 0
         val objectData = if (replaying) replay!!.objectData else null
@@ -3457,11 +2994,11 @@ class GameScene : GameObjectListener, GameplayState {
         // it's currently within ([objects[rateSegIdx].startTime - timePreempt,
         // objects[rateSegIdx + 1].startTime - timePreempt)). Both advance with elapsed
         // time and is independent of which object's own judgement has been applied yet.
-        var drainCursorMs = objects[0]!!.startTime - objects[0]!!.timePreempt
+        var drainCursorMs = objects[0].startTime - objects[0].timePreempt
         var rateSegIdx = 0
 
         for (i in objects.indices) {
-            val obj = objects[i]!!
+            val obj = objects[i]
 
             val judgementTimeMs = getJudgementTimeMs(i, obj, objectData)
 
@@ -3472,8 +3009,8 @@ class GameScene : GameObjectListener, GameplayState {
             val drainTargetMs = min(judgementTimeMs, targetMs.toDouble())
 
             while (drainCursorMs < drainTargetMs && rateSegIdx < objects.size - 1) {
-                val segFromObj = objects[rateSegIdx]!!
-                val segToObj = objects[rateSegIdx + 1]!!
+                val segFromObj = objects[rateSegIdx]
+                val segToObj = objects[rateSegIdx + 1]
 
                 // Advance local timing point index to this segment's own "to" object.
                 while (localTimingIdx + 1 < timingControlPoints.size && timingControlPoints[localTimingIdx + 1].time <= segToObj.startTime) {
@@ -3488,11 +3025,8 @@ class GameScene : GameObjectListener, GameplayState {
 
                 if (stopAtMs > drainCursorMs) {
                     // Advance past breaks that fully precede the current segment.
-                    val breakPeriods = breakPeriods
-                    if (breakPeriods != null) {
-                        while (localBreakIdx < breakPeriods.size && breakPeriods[localBreakIdx].endTime <= drainCursorMs) {
-                            localBreakIdx++
-                        }
+                    while (localBreakIdx < breakPeriods.size && breakPeriods[localBreakIdx].endTime <= drainCursorMs) {
+                        localBreakIdx++
                     }
 
                     val effectiveSecs = HealthProcessor.drainingSeconds(drainCursorMs, stopAtMs, breakPeriods, localBreakIdx)
@@ -3556,7 +3090,7 @@ class GameScene : GameObjectListener, GameplayState {
     }
 
     private fun reconstructHitOffset(accSeconds: Double) {
-        if (abs(accSeconds) <= hitWindow!!.mehWindow / 1000) {
+        if (abs(accSeconds) <= hitWindow.mehWindow / 1000) {
             stat.addHitOffset(accSeconds)
         }
     }
@@ -3589,7 +3123,7 @@ class GameScene : GameObjectListener, GameplayState {
             headHit = true
         } else {
             val replayVersion = context.replayVersion
-            val mehWindowSecs = hitWindow!!.mehWindow / 1000.0
+            val mehWindowSecs = hitWindow.mehWindow / 1000.0
             val sliderDurationSecs = slider.duration / 1000.0
             val lateHitThreshold = if (replayVersion <= 7) min(mehWindowSecs, sliderDurationSecs) else mehWindowSecs
 
@@ -3635,7 +3169,7 @@ class GameScene : GameObjectListener, GameplayState {
 
     private fun applySpinnerResult(spinner: Spinner, data: Replay.ReplayObjectData?, endCombo: Boolean) {
         val duration = spinner.duration.toFloat() / 1000
-        var needRotations = (2 + 2 * playableBeatmap!!.difficulty.od / 10f) * duration
+        var needRotations = (2 + 2 * playableBeatmap.difficulty.od / 10f) * duration
 
         if (duration < 0.05f) {
             needRotations = 0.1f
@@ -3675,7 +3209,7 @@ class GameScene : GameObjectListener, GameplayState {
 
     private inner class GameUIScene : Scene() {
         val game
-            get() = this@GameScene
+            get() = this@GameplaySession
 
         private val stopwatch = Stopwatch()
         private var lastRootWidth = 0f
@@ -3694,7 +3228,7 @@ class GameScene : GameObjectListener, GameplayState {
                 return true
             }
 
-            if (hud != null && hud!!.onInputEvent(event)) {
+            if (hud.onInputEvent(event)) {
                 return true
             }
 
@@ -3756,7 +3290,7 @@ class GameScene : GameObjectListener, GameplayState {
                 // The scene's clock only paces the animations, it must be advanced here. Each step moves it
                 // at most a frame-stable amount, more steps are taken while it is catching up.
                 gameplayClock.processFrame()
-                this@GameScene.update(gameplayClock.elapsedFrameTime)
+                this@GameplaySession.update(gameplayClock.elapsedFrameTime)
 
                 for (i in cursors.indices) {
                     cursors[i]!!.reset(previousFrameTime, gameplayClock.time * 1000)
@@ -3770,7 +3304,7 @@ class GameScene : GameObjectListener, GameplayState {
         private fun updateReplayText(deltaTimeSec: Float) {
             val replayText = replayText!!
             val textWidth = replayText.bounds.width
-            val hudWidth = hud?.bounds?.width ?: GameplayHUD.REFERENCE_WIDTH
+            val hudWidth = hud.bounds?.width ?: GameplayHUD.REFERENCE_WIDTH
             val distance = hudWidth + 5 + textWidth
             val x = replayText.x.resolve(0f) - distance / 40f * deltaTimeSec
 
@@ -3781,19 +3315,15 @@ class GameScene : GameObjectListener, GameplayState {
     companion object {
         const val CursorCount = Replay.CursorCount
 
+        private const val TAG = "GameplaySession"
+
         // The lives Easy gives once health runs out.
         private const val EasyLives = 3
 
-        // The play started last, whose loading a new play stops first. Quitting it clears it, otherwise
-        // it's kept until the next play starts.
-        @Volatile
-        private var lastStartedGame: GameScene? = null
-
         /**
-         * The play shown in the current scene, null when gameplay isn't the current scene.
+         * The attempt shown in the current scene, null when gameplay isn't the current scene.
          */
-        @JvmStatic
-        val current: GameScene?
+        val current: GameplaySession?
             get() = (Verktex.scene as? GameUIScene)?.game
     }
 }

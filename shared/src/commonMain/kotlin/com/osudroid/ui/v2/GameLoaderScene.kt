@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.game.Gameplay
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
@@ -47,7 +48,6 @@ import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import kotlin.math.*
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.ui.themed
 import com.osudroid.utils.currentTimeMillis
 import com.reco1l.verktex.localization.formatString
@@ -60,7 +60,7 @@ import com.reco1l.verktex.ui.Button.Density
 import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.icon
 
-class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : Scene() {
+class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : Scene() {
 
     // Back cancels the play, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -208,7 +208,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
      * Cancels loading and goes back to the song menu, or to the multiplayer room if in multiplayer.
      */
     fun cancel() {
-        gameScene.cancelLoading()
+        gameplay.cancelLoading()
 
         if (Multiplayer.isMultiplayer) {
             // Inform that the player has canceled loading.
@@ -251,7 +251,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
 
         if (!isStarting) {
 
-            if (Multiplayer.isMultiplayer && !gameScene.isReadyToStart) {
+            if (Multiplayer.isMultiplayer && !gameplay.isReadyToStart) {
                 multiplayerLoadElapsed += clock.elapsedFrameTime
 
                 if (multiplayerLoadElapsed >= MULTIPLAYER_LOAD_TIMEOUT_SEC) {
@@ -262,7 +262,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                 }
             }
 
-            if (gameScene.isReadyToStart && isBeatmapOptionsLoaded) {
+            if (gameplay.isReadyToStart && isBeatmapOptionsLoaded) {
 
                 // Multiplayer will skip the minimum timeout if it's ready to start.
                 if (currentTimeMillis() - lastTimeTouched > minimumTimeout || Multiplayer.isMultiplayer) {
@@ -275,7 +275,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                     dimBox.clearTransforms()
                     dimBox.fadeTo(1f - backgroundBrightness / 100f, 0.2f).after {
 
-                        gameScene.hud.apply {
+                        gameplay.session!!.hud.apply {
                             alpha = 0f
                             scaleX = 0.9f
                             scaleY = 0.9f
@@ -285,7 +285,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                             fadeIn(0.1f, Easing.OutExpo)
                         }
 
-                        gameScene.start(beatmapOptions.offset)
+                        gameplay.begin(beatmapOptions.offset)
                     }
                 }
 
@@ -393,7 +393,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                             onValueChanged = {
                                 // Storyboard and video should not be enabled if the background brightness is too low,
                                 // so we trigger a reload when changing brightness.
-                                gameScene.loadVideo(beatmapInfo)
+                                gameplay.session?.loadVideo()
 
                                 if (!isStarting) {
                                     dimBox.alpha = 1f - it / 100f
@@ -411,7 +411,7 @@ class GameLoaderScene(private val gameScene: GameScene, private val beatmapInfo:
                         +PreferenceCheckbox(OsuSettings.EnableVideo).apply {
                             label = Res.string.opt_video_title
                             onValueChanged = {
-                                gameScene.loadVideo(beatmapInfo)
+                                gameplay.session?.loadVideo()
                             }
                         }
 

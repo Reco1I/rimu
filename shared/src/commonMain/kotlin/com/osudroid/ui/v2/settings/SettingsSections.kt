@@ -1,9 +1,10 @@
 package com.osudroid.ui.v2.settings
 
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
+import com.osudroid.game.Gameplay
 import com.osudroid.game.GameplayVibrations
+import com.osudroid.game.loading.PlayRequest
 import com.osudroid.settings.SettingsBackup
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.SkinFolders
@@ -416,14 +417,10 @@ val gameplaySection = listOf(
                     } else if (LibraryManager.getSizeOfBeatmaps() == 0 || selectedBeatmap == null) {
                         Toasts.showLong("Cannot enter HUD editor with empty beatmap library!")
                     } else {
-                        val modMap = ModHashMap().apply {
-                            put(ModAutoplay::class)
-                        }
-
                         // The editor returns to the menu, as the settings closed before it.
                         (Verktex.scene as? SettingsMenu)?.back()
 
-                        GameScene().startGame(selectedBeatmap, null, modMap, true)
+                        Gameplay().start(PlayRequest.hudEditor(selectedBeatmap))
                     }
                 }
             ),

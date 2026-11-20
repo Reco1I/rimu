@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.game
 
 import com.osudroid.OsuGame
+import com.osudroid.game.session.GameplaySession
 import com.reco1l.verktex.data.ScaleType
 import com.osudroid.game.PlayfieldMapping
 import com.osudroid.resources.Res
@@ -21,13 +22,12 @@ import com.reco1l.verktex.ui.container.ScalingContainer
 import com.reco1l.verktex.ui.fadeIn
 import kotlin.math.hypot
 import com.reco1l.verktex.ui.toast.Toasts
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 
 /**
  * The menu shown when pausing or failing, on top of the frozen gameplay.
  */
-class PauseMenu(private val game: GameScene, private val isFail: Boolean) : Container() {
+class PauseMenu(private val game: GameplaySession, private val isFail: Boolean) : Container() {
 
     private var isReplaySaved = false
 
@@ -67,11 +67,11 @@ class PauseMenu(private val game: GameScene, private val isFail: Boolean) : Cont
                 +MenuItem("pause-retry") {
                     SkinSounds["failsound"].stop()
                     SkinSounds["menuhit"].play()
-                    game.restartGame()
+                    game.gameplay.retry()
                 }
 
                 +MenuItem("pause-back") {
-                    game.scoring.replayID = -1
+                    game.gameplay.scoring.replayID = -1
                     SkinSounds["menuback"].play()
                     game.quit()
                 }

@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.game.Gameplay
+import com.osudroid.game.loading.PlayRequest
 import com.reco1l.verktex.data.ScaleType
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
@@ -307,11 +308,12 @@ class SongSelect : Scene() {
             return
         }
 
-        val gameScene = GameScene()
-
-        gameScene.leaderboardItems = { leaderboard.scoreBoardItems }
-        gameScene.isLeaderboardOnline = isLeaderboardOnline
-        gameScene.startGame(beatmapInfo, null, mods)
+        Gameplay().start(PlayRequest(
+            beatmap = beatmapInfo,
+            mods = mods,
+            leaderboardItems = { leaderboard.scoreBoardItems },
+            isLeaderboardOnline = isLeaderboardOnline
+        ))
     }
 
     private fun resetMultiplayerRoomBeatmap() {

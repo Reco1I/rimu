@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
+import com.osudroid.game.Gameplay
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
@@ -57,7 +58,6 @@ import com.reco1l.verktex.ui.text.Text
 import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import com.reco1l.verktex.ui.toast.Toasts
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
 import ru.nsu.ccfit.zuev.osu.online.OnlineScoring
 import com.osudroid.utils.formatDateTime
@@ -66,8 +66,8 @@ import okio.Path.Companion.toPath
 import com.osudroid.utils.async
 import com.reco1l.verktex.input.KeyboardEvent
 
-class ScoringScene(pGame: GameScene) {
-    private val game: GameScene = pGame
+class ScoringScene(pGame: Gameplay) {
+    private val game: Gameplay = pGame
     var scene: Scene? = null
         private set
     private var content: Container? = null
@@ -292,7 +292,7 @@ class ScoringScene(pGame: GameScene) {
                 SkinSounds.get("applause")!!.stop()
                 stopMusic()
                 this.scene = null
-                leaveAndRun { game.startGame(null, null, null) }
+                leaveAndRun { game.retry() }
             }
             retryBtn.setPosition(buttonX, backY - textureHeight("ranking-retry") - 10)
             content += retryBtn
@@ -301,7 +301,7 @@ class ScoringScene(pGame: GameScene) {
                 SkinSounds.get("applause")!!.stop()
                 stopMusic()
                 this.scene = null
-                leaveAndRun { game.startGame(beatmapToReplay, replayPath, mods) }
+                leaveAndRun { beatmapToReplay?.let { game.watchReplay(it, replayPath, mods) } }
             }
             replayBtn.setPosition(buttonX, backY - textureHeight("ranking-replay") - 10)
             content += replayBtn
@@ -552,7 +552,7 @@ class ScoringScene(pGame: GameScene) {
                 try {
                     DatabaseManager.scoreInfoTable.insertScore(scoreInfo)
                 } catch (e: Exception) {
-                    Logger.e("GameScene", "Failed to save score to database", e)
+                    Logger.e("ScoringScene", "Failed to save score to database", e)
                 }
             }
 

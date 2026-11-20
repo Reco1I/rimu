@@ -36,7 +36,7 @@ import okio.buffer
 import okio.sink
 import okio.source
 import com.osudroid.AndroidSecurityUtils
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.game.Gameplay
 
 /**
  * The game's host on Android: the activity running the engine, which starts the game
@@ -222,7 +222,7 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         if (inviteLink != null) {
             updateThread {
                 // Gameplay is left first, its state would linger in the lobby.
-                GameScene.current?.quit()
+                Gameplay.current?.quit()
                 Multiplayer.connectFromLink(inviteLink.pathSegments)
             }
             return

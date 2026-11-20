@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
-import ru.nsu.ccfit.zuev.osu.game.GameScene
+import com.osudroid.game.Gameplay
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
@@ -678,7 +678,7 @@ class MainScene : Scene() {
             stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
 
             // The replay is played by this game when asked from the results.
-            val scoring = GameScene().scoring
+            val scoring = Gameplay().scoring
             scoring.load(stat, null, OsuGame.music, replayFile, null, beatmap)
             Verktex.pushScene(scoring.scene!!)
         }

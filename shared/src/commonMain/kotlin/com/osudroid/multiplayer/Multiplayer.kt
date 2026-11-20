@@ -1,8 +1,8 @@
 package com.osudroid.multiplayer
 
 import com.osudroid.beatmaps.LibraryImport
-import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.osudroid.OsuGame
+import com.osudroid.game.Gameplay
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.utils.*
@@ -183,7 +183,7 @@ object Multiplayer {
 
     fun onLiveLeaderboard(array: JsonArray) {
 
-        val hud = GameScene.current?.hud ?: return
+        val hud = Gameplay.current?.hud ?: return
 
         if (hud.hasElement(HUDLeaderboard::class)) {
 
@@ -226,7 +226,7 @@ object Multiplayer {
 
         // Replace server statistics with local in Head-to-Head mode.
         if (room?.isTeamVersus == false) {
-            val ownScore = roomScene?.game?.stat
+            val ownScore = roomScene?.game?.session?.stat
             val ownScoreIndex = list.indexOfFirst { it.uid == OnlineManager.getInstance().userId }.takeUnless { it == -1 }
 
             if (ownScore != null) {
@@ -294,7 +294,7 @@ object Multiplayer {
 
             // Do not interrupt an active game session; the teardown will happen naturally
             // when the player finishes (or abandons) the game.
-            if (GameScene.current == null) {
+            if (Gameplay.current == null) {
                 updateThread { roomScene?.back() }
             }
         }
