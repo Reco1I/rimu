@@ -6,6 +6,7 @@ import com.osudroid.mods.*
 import com.osudroid.multiplayer.*
 import com.osudroid.utils.searchContiguously
 import com.reco1l.verktex.BuiltIn
+import com.reco1l.verktex.fonts.Font
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
@@ -62,7 +63,7 @@ class ModMenuToggle(var mod: Mod, private val selectedMods: ModHashMap) : Button
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
                 spans {
-                    font(BuiltIn.Fonts.Torus) { +mod.name }
+                    font(BuiltIn.Fonts.Fredoka) { weight(Font.Weight.Bold) { +mod.name } }
                     +"\n"
                     size(Verktex.theme.typography.smallCaption.size) { +mod.description }
                 }

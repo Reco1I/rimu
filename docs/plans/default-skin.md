@@ -7,7 +7,7 @@ it's finished (any engine change in `verktex/` first, then the game with the sub
 
 Every gameplay visual is a sprite of a skin texture. When the custom skin lacks a texture, `SkinTextures` falls
 back to the default skin's `gfx/` folder in `shared/assets/`, which has 164 PNGs at a single resolution with no
-`@2x`. The goal is a default skin drawn in code, the way osu!lazer's Argon skin is: shapes, gradients, Torus text and
+`@2x`. The goal is a default skin drawn in code, the way osu!lazer's Argon skin is: shapes, gradients, Fredoka text and
 choreography, at any resolution and in combo colours, with nothing to load.
 
 Hit objects can now take pieces like these. They are Components that own their pieces and play their judgement
@@ -101,7 +101,7 @@ pieces draw inside those bounds.
 | Cursor | 128×128 |
 | Spinner | stable's pieces in the 640×480 space: `spinner-circle` 512, the approach circle 320 at 1x, the metre over the playfield, "clear" and the bonus at stable's positions |
 | Health bar | `scorebar-bg`'s size, with the fill and marker where the textures put them |
-| Score, combo and accuracy numbers | the height and digit advance of the default `score-*` digits, so a Torus number takes the space of a texture one |
+| Score, combo and accuracy numbers | the height and digit advance of the default `score-*` digits, so a Fredoka number takes the space of a texture one |
 
 The sizes in this table are checked against stable and against today's default textures in phase 1, before any
 procedural piece is drawn. A unit test checks that each procedural piece reports the size of the texture it
@@ -116,13 +116,13 @@ The pieces are built from what Verktex already has:
 - `Shadow(cutout = true)`: glows;
 - `Circle.setPortion` and `drawArcStroke`: arcs;
 - `PathShape`'s bands: the slider body;
-- `Text` in Torus (`torus-bold.otf`, already in Verktex) and FontAwesome icons (`fa-solid.otf`): numbers and
+- `Text` in Fredoka (`fredoka-variable-wdth-wght.ttf`, in Verktex, at its bold weight) and FontAwesome icons (`fa-solid.otf`): numbers and
   arrows;
 - `BlendMode.Additive`: flashes.
 
 | Piece | How it looks |
 |---|---|
-| Hit circle | A white outer ring (`border`). The inner fill is a vertical gradient from the combo colour to a darker one. The number is in Torus Bold. On a hit it flashes white, the ring expands and the fill fades. On a miss it fades. Kiai adds a flash on each beat, unless `isDisableKiai`. |
+| Hit circle | A white outer ring (`border`). The inner fill is a vertical gradient from the combo colour to a darker one. The number is in Fredoka Bold. On a hit it flashes white, the ring expands and the fill fades. On a miss it fades. Kiai adds a flash on each beat, unless `isDisableKiai`. |
 | Approach circle | A thin ring in the combo colour. |
 | Slider body | `PathShape`: a light border, and a body in the darkened combo colour at about 0.7 alpha, with a gradient across its width. |
 | Slider head and tail | The hit circle; the tail has no number. |
@@ -130,8 +130,8 @@ The pieces are built from what Verktex already has:
 | Slider tick | A small ring. |
 | Slider ball | A disc in the combo colour. |
 | Follow circle | A ring with a soft glow. It scales up while tracking and down when tracking is lost or the slider ends. |
-| Spinner | A ring with a progress arc (`drawArcStroke`), short ticks around it that rotate with the spin, and a centre disc that grows with the progress. The RPM, the bonus and "clear" are in Torus. There is one style: classic or modern is only a choice for legacy skins. |
-| Judgement | "GREAT", "OK", "MEH" or "MISS" in Torus, coloured by the result. Hits grow slowly as they fade, and a miss drops and rotates. Slider points and ticks get a small dot, or nothing. Hit lighting and particles stay legacy-only. |
+| Spinner | A ring with a progress arc (`drawArcStroke`), short ticks around it that rotate with the spin, and a centre disc that grows with the progress. The RPM, the bonus and "clear" are in Fredoka. There is one style: classic or modern is only a choice for legacy skins. |
+| Judgement | "GREAT", "OK", "MEH" or "MISS" in Fredoka, coloured by the result. Hits grow slowly as they fade, and a miss drops and rotates. Slider points and ticks get a small dot, or nothing. Hit lighting and particles stay legacy-only. |
 | Follow points | Small chevrons, or rounded boxes, fading in sequence. |
 | Cursor | A white ring with a glow. It expands while pressed, following `isExpandCursor`. |
 | Cursor trail | Soft dots through the trail's `ParticleSystem`, from a small texture generated once (a falloff into a `PixelBuffer`), with no asset. |
@@ -149,7 +149,7 @@ Colours:
 They are small, and each is added only when a phase needs it:
 
 - **An arc component** over `drawArcStroke`, with `progress` and rounded caps, for the spinner and the health bar.
-- **Fixed-width digits in `Text`** (Torus has tabular figures; otherwise each digit gets a fixed advance), so
+- **Fixed-width digits in `Text`** (Fredoka has tabular figures; otherwise each digit gets a fixed advance), so
   counters don't jitter. `TextureText.fixedCharWidths` already does this for texture fonts.
 - **A texture from a `PixelBuffer`**, made at runtime, for the trail's particles. Check first whether `Textures`
   can already do it.
@@ -160,7 +160,7 @@ They are small, and each is added only when a phase needs it:
 The HUD already has a registry of components (`HUDElements` and its skin data).
 
 - **Numbers:** `HUDScoreCounter`, `HUDAccuracyCounter`, `HUDPPCounter` and `HUDComboCounter` use the skin's
-  `SpriteFont` when it has the font's digits (`score-0`… with its prefix), and otherwise a Torus `Text` with
+  `SpriteFont` when it has the font's digits (`score-0`… with its prefix), and otherwise a Fredoka `Text` with
   fixed-width digits.
 - **Health bar:** `HUDHealthBar` gets a procedural style for skins without `scorebar-bg`: a rounded track with a fill
   gradient and a glowing marker at its end. It sits next to the existing new and old texture styles.
@@ -222,7 +222,7 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      `hitcircle` (128). It has:
      - a dark disc;
      - a band in a vertical gradient of the combo colour;
-     - a dark centre with the number in Torus;
+     - a dark centre with the number in Fredoka;
      - a white outer ring.
 
      Its hit is choreography: a white additive flash, the ring growing out and fading, the whole circle growing and
@@ -230,7 +230,7 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      start clean. Kiai lightens the band through `setCircleColor`, as with textures.
    - `DefaultApproachCircle` is a white ring with a soft glow (`Shadow` with `cutout`), 128 across, which the
      object tints.
-   - `DefaultJudgementPiece` (`skin/DefaultJudgementPiece.kt`) shows "GREAT", "OK", "MEH" or "MISS" in Torus, in
+   - `DefaultJudgementPiece` (`skin/DefaultJudgementPiece.kt`) shows "GREAT", "OK", "MEH" or "MISS" in Fredoka, in
      osu!lazer's colours for the results. It's played through `ChoreographyTransitions` keyed by `HitResult`.
      - A miss drops and turns.
      - Slider points and ticks show nothing, as in Argon.
@@ -287,7 +287,7 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      - a centre growing with the progress;
      - a blue glow lighting up.
 
-     "SPIN", "CLEAR" and the bonus are in Torus, and the centre flashes on each bonus spin. It has no approach
+     "SPIN", "CLEAR" and the bonus are in Fredoka, and the centre flashes on each bonus spin. It has no approach
      circle, as Argon's.
    - The `osu!/Spinners` UI test cycles through the skin's spinner, the default skin's and both texture styles.
 
@@ -314,14 +314,14 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      - `DefaultCursorTrailStyle` is a continuous trail of soft dots, a texture made once with
        `PixelsSource.softDot` and kept in `Textures` as `default-skin:cursortrail`.
 
-6. **HUD** (done): Torus counters with fixed-width digits (an engine change), and the procedural health bar.
+6. **HUD** (done): Fredoka counters with fixed-width digits (an engine change), and the procedural health bar.
 
    ### Phase 6 as done
 
    - **Numbers:** the HUD's numbers (score, accuracy, pp, combo and the statistics counters) are `NumberText`s from
      the skin, `SkinComponent.ScoreFont` and `ComboFont`.
      - `LegacyNumberText` wraps the texture font (`SpriteFont`) when the skin has its digits.
-     - `DefaultNumberText` is Torus, its digits as tall as the default `score-0` (46), so it takes a texture
+     - `DefaultNumberText` is Fredoka, its digits as tall as the default `score-0` (46), so it takes a texture
        font's space in the layout. Each character is a text in its own cell, so `useFixedDigitWidth` gives every
        digit the widest one's width.
      - This needed no engine change: `Text` didn't get fixed digit widths, the cells give them.
@@ -351,7 +351,7 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      - **Hit lighting:** `DefaultSkin` provides it. `HitLightingPiece`, now in `skin/`, shows a soft glow made with
        `PixelsSource.softDot`, as big as `lighting`, so the Hit lighting setting still works without the texture.
      - **Numbers:** `ScoreNumber` (the results screen, the spinners' bonus and the RPM counter) draws the skin's
-       `ScoreFont`: the skin's digits, or Torus without them.
+       `ScoreFont`: the skin's digits, or Fredoka without them.
      - **Results screen:** it shows the skin's judgement pieces for its counts, still, rather than the `hit300`…
        textures.
    - **Asked by the user on the way:**
@@ -370,7 +370,7 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      - `isNewStyleSpinner` still treats the default skin as new style, which only matters for a beatmap skin with some
        spinner textures.
    - **On screen** (desktop UI tests, after the deletion): the default skin draws every piece, sliders end on their
-     body, and the HUD and spinners show their numbers in Torus.
+     body, and the HUD and spinners show their numbers in Fredoka.
    - **Found by checking on screen**, before the deletion:
      - Texts of the default skin are placed by the ink of their glyphs, by hand (`placeText`). They're laid out at
        the size they're rasterised at, and their piece's size clamped them, which moved the circles' number down and

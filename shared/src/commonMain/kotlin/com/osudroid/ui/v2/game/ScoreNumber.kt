@@ -8,7 +8,7 @@ import com.reco1l.verktex.ui.container.Container
 import kotlin.jvm.JvmOverloads
 
 /**
- * A number in the skin's score font ([SkinComponent.ScoreFont]): its texture digits, or Torus in the default skin
+ * A number in the skin's score font ([SkinComponent.ScoreFont]): its texture digits, or Fredoka in the default skin
  * and in skins without them. Placed from its top left corner, its top centre if [isCentered], where it pops each time
  * it changes, or its top right corner if [isRightAligned].
  */

@@ -9,7 +9,7 @@ import com.reco1l.verktex.ui.choreographyTransitions
 import kotlin.random.Random
 
 /**
- * The judgement of the default skin, modelled on osu!lazer's `ArgonJudgementPiece`: the result in Torus, in its
+ * The judgement of the default skin, modelled on osu!lazer's `ArgonJudgementPiece`: the result in Fredoka, in its
  * colour, growing slowly as it fades. A miss drops and turns as osu!stable's does. Slider points and ticks show nothing, as in Argon.
  *
  * Its size is that of the default `hit300`… textures, so it lines up with the judgements of a texture skin.
@@ -18,7 +18,7 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
 
     private val result = HitResult.fromTexture(textureName)
 
-    private val text = torusText(TEXT_SIZE).apply {
+    private val text = fredokaText(TEXT_SIZE).apply {
         text = when (result) {
             HitResult.Great -> "GREAT"
             HitResult.Ok -> "OK"

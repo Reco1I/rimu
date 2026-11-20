@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.skin
 
 import com.reco1l.verktex.BuiltIn
+import com.reco1l.verktex.fonts.Font
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
@@ -20,20 +21,21 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Text drawn in Torus at [size] in its parent's units, rasterised at [DefaultSkin.TEXT_RESOLUTION] times that, as the
+ * Text drawn in Fredoka at [size] in its parent's units, rasterised at [DefaultSkin.TEXT_RESOLUTION] times that, as the
  * pieces it's in are scaled up on screen.
  */
-internal fun torusText(size: Float) = Text().apply {
+internal fun fredokaText(size: Float) = Text().apply {
     anchor = Anchor.Center
     origin = Anchor.Center
-    fontFamily = BuiltIn.Fonts.Torus
+    fontFamily = BuiltIn.Fonts.Fredoka
+    fontWeight = Font.Weight.Bold
     fontSize = (size * DefaultSkin.TEXT_RESOLUTION).px
     scale = 1f / DefaultSkin.TEXT_RESOLUTION
     color = Color4.White
 }
 
 /**
- * Places [text], a [torusText], centred at ([x], [y]) in its parent: vertically on the ink of its glyphs, not its
+ * Places [text], a [fredokaText], centred at ([x], [y]) in its parent: vertically on the ink of its glyphs, not its
  * line, which has room above and below them, and horizontally on their advances, which the font balances by eye: a
  * "1" centred on its ink, its flag on the left, looks pushed to the right.
  *
@@ -46,7 +48,7 @@ internal fun placeText(text: Text, x: Float, y: Float) {
     text.scaleOrigin = Anchor.TopLeft
 
     val content = text.text
-    val font = BuiltIn.Fonts.Torus[text.fontSize]
+    val font = BuiltIn.Fonts.Fredoka[text.fontSize, text.fontWeight]
     val baseline = -font.metrics.ascent
 
     var width = 0f
@@ -110,7 +112,7 @@ internal fun ring(size: Float, thickness: Float, color: Color4 = Color4.White) =
 
 /**
  * The circle of the default skin, modelled on osu!lazer's `ArgonMainCirclePiece`: a white ring around a band of the
- * combo colour, a dark centre with the number in Torus, and a white flash when it's hit, as the circle grows and
+ * combo colour, a dark centre with the number in Fredoka, and a white flash when it's hit, as the circle grows and
  * fades.
  */
 class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece() {
@@ -122,7 +124,7 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
     private val innerFill = disc(size * INNER_FILL_SIZE)
     private val outerRing = ring(size, size * BORDER_THICKNESS)
 
-    private val number = torusText(size * NUMBER_SIZE).apply { isVisible = hasNumber }
+    private val number = fredokaText(size * NUMBER_SIZE).apply { isVisible = hasNumber }
 
     private val flash = disc(size).apply {
         color = Color4.White
