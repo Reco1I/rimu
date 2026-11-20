@@ -2,6 +2,7 @@ package com.osudroid.ui.v2.skin
 
 import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.fonts.Font
+import com.reco1l.verktex.fonts.FontFamily
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
@@ -24,18 +25,25 @@ import kotlin.math.min
  * Text drawn in Fredoka at [size] in its parent's units, rasterised at [DefaultSkin.TEXT_RESOLUTION] times that, as the
  * pieces it's in are scaled up on screen.
  */
-internal fun fredokaText(size: Float) = Text().apply {
+internal fun fredokaText(size: Float) = skinText(size, BuiltIn.Fonts.Fredoka, Font.Weight.Bold)
+
+/**
+ * Text drawn in Anta, at its single weight, as the HUD's numbers ([DefaultNumberText]), otherwise as [fredokaText].
+ */
+internal fun antaText(size: Float) = skinText(size, BuiltIn.Fonts.Anta, Font.Weight.Normal)
+
+private fun skinText(size: Float, family: FontFamily, weight: Font.Weight) = Text().apply {
     anchor = Anchor.Center
     origin = Anchor.Center
-    fontFamily = BuiltIn.Fonts.Fredoka
-    fontWeight = Font.Weight.Bold
+    fontFamily = family
+    fontWeight = weight
     fontSize = (size * DefaultSkin.TEXT_RESOLUTION).px
     scale = 1f / DefaultSkin.TEXT_RESOLUTION
     color = Color4.White
 }
 
 /**
- * Places [text], a [fredokaText], centred at ([x], [y]) in its parent: vertically on the ink of its glyphs, not its
+ * Places [text], a [fredokaText] or an [antaText], centred at ([x], [y]) in its parent: vertically on the ink of its glyphs, not its
  * line, which has room above and below them, and horizontally on their advances, which the font balances by eye: a
  * "1" centred on its ink, its flag on the left, looks pushed to the right.
  *
@@ -48,7 +56,7 @@ internal fun placeText(text: Text, x: Float, y: Float) {
     text.scaleOrigin = Anchor.TopLeft
 
     val content = text.text
-    val font = BuiltIn.Fonts.Fredoka[text.fontSize, text.fontWeight]
+    val font = text.fontFamily[text.fontSize, text.fontWeight]
     val baseline = -font.metrics.ascent
 
     var width = 0f

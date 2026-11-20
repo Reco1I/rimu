@@ -17,7 +17,7 @@ import com.reco1l.verktex.ui.shape.Box
  * The spinner of the default skin, modelled on osu!lazer's `ArgonSpinnerDisc`: a dark disc in a white ring, ticks
  * around it turning with the spins, a progress ring filling clockwise from the top and a centre growing with it. The
  * whole disc grows with the progress, as osu!stable's new style spinner, and is as big as its `spinner-top`. Its
- * texts are in Fredoka.
+ * texts are in Fredoka, its bonus in Anta as the HUD's numbers.
  */
 class DefaultSpinnerPiece : SpinnerPiece() {
 
@@ -89,7 +89,7 @@ class DefaultSpinnerPiece : SpinnerPiece() {
 
     private val spinText = fredokaText(36f).apply { text = "SPIN" }
     private val clearText = fredokaText(60f).apply { text = "CLEAR" }
-    private val bonusScore = fredokaText(48f)
+    private val bonusScore = antaText(48f)
 
     // Where the bonus is centred, in the layer's space.
     private var bonusX = 0f

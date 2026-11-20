@@ -130,7 +130,7 @@ The pieces are built from what Verktex already has:
 | Slider tick | A small ring. |
 | Slider ball | A disc in the combo colour. |
 | Follow circle | A ring with a soft glow. It scales up while tracking and down when tracking is lost or the slider ends. |
-| Spinner | A ring with a progress arc (`drawArcStroke`), short ticks around it that rotate with the spin, and a centre disc that grows with the progress. The RPM, the bonus and "clear" are in Fredoka. There is one style: classic or modern is only a choice for legacy skins. |
+| Spinner | A ring with a progress arc (`drawArcStroke`), short ticks around it that rotate with the spin, and a centre disc that grows with the progress. "Clear" is in Fredoka, the RPM and the bonus in Anta. There is one style: classic or modern is only a choice for legacy skins. |
 | Judgement | "GREAT", "OK", "MEH" or "MISS" in Fredoka, coloured by the result. Hits grow slowly as they fade, and a miss drops and rotates. Slider points and ticks get a small dot, or nothing. Hit lighting and particles stay legacy-only. |
 | Follow points | Small chevrons, or rounded boxes, fading in sequence. |
 | Cursor | A white ring with a glow. It expands while pressed, following `isExpandCursor`. |
@@ -287,7 +287,7 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      - a centre growing with the progress;
      - a blue glow lighting up.
 
-     "SPIN", "CLEAR" and the bonus are in Fredoka, and the centre flashes on each bonus spin. It has no approach
+     "SPIN" and "CLEAR" are in Fredoka, the bonus in Anta, and the centre flashes on each bonus spin. It has no approach
      circle, as Argon's.
    - The `osu!/Spinners` UI test cycles through the skin's spinner, the default skin's and both texture styles.
 
