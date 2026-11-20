@@ -5,14 +5,12 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographyTransitions
 import kotlin.random.Random
 
 /**
  * The judgement of the default skin, modelled on osu!lazer's `ArgonJudgementPiece`: the result in Torus, in its
- * colour, growing slowly as it fades, with a ring bursting out of it for a 300 and a 100. A miss drops and turns as
- * osu!stable's does. Slider points and ticks show nothing, as in Argon.
+ * colour, growing slowly as it fades. A miss drops and turns as osu!stable's does. Slider points and ticks show nothing, as in Argon.
  *
  * Its size is that of the default `hit300`… textures, so it lines up with the judgements of a texture skin.
  */
@@ -29,10 +27,6 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
             HitResult.SliderPoint, HitResult.Tick -> ""
         }
         color = colorOf(result)
-    }
-
-    private val explosion = ring(SkinDimensions.HIT_CIRCLE.width, RING_THICKNESS, colorOf(result)).apply {
-        alpha = 0f
     }
 
     // What the animation of the current judgement is played with.
@@ -64,15 +58,13 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
     }
 
     init {
-        // As big as the ring bursting out of it, so its layout doesn't squeeze the ring. The text is the size of
-        // the default `hit300`, centred as it is.
+        // As big as a hit circle, centred on it. The text is the size of the default `hit300`, centred as it is.
         val size = SkinDimensions.HIT_CIRCLE
 
         width = size.width.px
         height = size.height.px
         origin = Anchor.Center
 
-        +explosion
         +text
 
         placeText(text, size.width / 2, size.height / 2)
@@ -81,7 +73,6 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
 
     override fun play(x: Float, y: Float, result: HitResult, scale: Float, time: Float, spinnerMiss: Boolean): Float {
         clearAnimations()
-        explosion.clearAnimations()
 
         startTime = time
         baseScale = scale
@@ -91,29 +82,13 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
         translationY = 0f.px
         rotationZ = 0f
         alpha = 1f
-        explosion.alpha = 0f
         this.scale = if (result == HitResult.Miss && !spinnerMiss) scale * 1.6f else scale
 
-        var endTime = judgementTransitions.play(this, result, time)
-
-        if (result == HitResult.Great || result == HitResult.Ok) {
-            explosion.scale = 0.6f
-            explosion.choreographAt(time) { sequence ->
-                sequence.fadeTo(RING_ALPHA)
-                    .scaleTo(1.1f, RING_DURATION, Easing.OutQuint)
-                    // Seen as it grows, then gone.
-                    .fadeOut(RING_DURATION, Easing.InQuad)
-                endTime = maxOf(endTime, sequence.endTime)
-            }
-        }
-        return endTime
+        return judgementTransitions.play(this, result, time)
     }
 
     private companion object {
         const val TEXT_SIZE = 34f
-        const val RING_THICKNESS = 4f
-        const val RING_ALPHA = 0.8f
-        const val RING_DURATION = 0.4f
 
         const val FADE_IN = 0.12f
         const val HIT_FADE_IN = 0.3f

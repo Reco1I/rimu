@@ -131,7 +131,7 @@ The pieces are built from what Verktex already has:
 | Slider ball | A disc in the combo colour. |
 | Follow circle | A ring with a soft glow. It scales up while tracking and down when tracking is lost or the slider ends. |
 | Spinner | A ring with a progress arc (`drawArcStroke`), short ticks around it that rotate with the spin, and a centre disc that grows with the progress. The RPM, the bonus and "clear" are in Torus. There is one style: classic or modern is only a choice for legacy skins. |
-| Judgement | "GREAT", "OK", "MEH" or "MISS" in Torus, coloured by the result. Hits get a ring explosion (rings with a border, scaling out and fading), and a miss drops and rotates. Slider points and ticks get a small dot, or nothing. Hit lighting and particles stay legacy-only. |
+| Judgement | "GREAT", "OK", "MEH" or "MISS" in Torus, coloured by the result. Hits grow slowly as they fade, and a miss drops and rotates. Slider points and ticks get a small dot, or nothing. Hit lighting and particles stay legacy-only. |
 | Follow points | Small chevrons, or rounded boxes, fading in sequence. |
 | Cursor | A white ring with a glow. It expands while pressed, following `isExpandCursor`. |
 | Cursor trail | Soft dots through the trail's `ParticleSystem`, from a small texture generated once (a falloff into a `PixelBuffer`), with no asset. |
@@ -232,10 +232,9 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      object tints.
    - `DefaultJudgementPiece` (`skin/DefaultJudgementPiece.kt`) shows "GREAT", "OK", "MEH" or "MISS" in Torus, in
      osu!lazer's colours for the results. It's played through `ChoreographyTransitions` keyed by `HitResult`.
-     - A 300 or a 100 also bursts a ring of the circle's size.
      - A miss drops and turns.
      - Slider points and ticks show nothing, as in Argon.
-     - It is `hit300`'s size (103×60) and lasts at most 1.1 s, within `JudgementPiece.DURATION`.
+     - It is a hit circle's size (128×128), its text `hit300`'s, and lasts at most 1.1 s, within `JudgementPiece.DURATION`.
    - Texts are rasterised at twice their size (`DefaultSkin.TEXT_RESOLUTION`) and scaled down, as the playfield
      scales the pieces up on screen.
    - The hit lighting still shows under the default skin's judgements, from the default `lighting` texture, until
