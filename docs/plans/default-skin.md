@@ -249,7 +249,7 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
 
    - `DefaultSkin` provides every piece of sliders (`skin/DefaultSliderPieces.kt`):
      - **Body** (`DefaultSliderBodyStyle`): continues the circles at its ends, as `ArgonSliderBody` does. Its
-       border is the circles' band of the combo colour, from 0.6 to 0.86 of their size. Inside is their dark centre,
+       border is the circles' band of the combo colour, from 0.7 to 0.86 of their size. Inside is their dark centre,
        at 0.9 alpha. There is no shadow. Argon ignores the slider border colour, and so does this body: its band is
        the combo colour.
      - **Ball** (`DefaultSliderBallPiece`, 118 like `sliderb`): a gradient disc of the combo colour in a white

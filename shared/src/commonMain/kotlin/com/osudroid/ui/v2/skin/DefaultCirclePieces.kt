@@ -225,9 +225,10 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
     private companion object {
         // Sizes relative to the circle.
         const val OUTER_GRADIENT_SIZE = 0.86f
-        const val INNER_FILL_SIZE = 0.6f
+        // The slider body's band is the same (DefaultSliderBodyStyle), so a slider's head continues it.
+        const val INNER_FILL_SIZE = 0.7f
         const val BORDER_THICKNESS = 0.055f
-        const val NUMBER_SIZE = 0.5f
+        const val NUMBER_SIZE = 0.38f
 
         const val FLASH_ALPHA = 0.9f
         const val FLASH_IN = 0.04f

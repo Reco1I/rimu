@@ -21,9 +21,9 @@ import kotlin.math.min
 object DefaultSliderBodyStyle : SliderBodyStyle {
 
     // The body and its band are the circles' band and their centre (see DefaultMainCirclePiece), in the pixels of
-    // the 128 wide circle: the band from 0.6 to 0.86 of its size.
+    // the 128 wide circle: the band from 0.7 to 0.86 of its size.
     private const val RADIUS = 0.86f * 64f
-    private const val BAND = (0.86f - 0.6f) * 64f
+    private const val BAND = (0.86f - 0.7f) * 64f
     private const val BODY_ALPHA = 0.9f
 
     override fun apply(body: PathShape, bodyColor: Color4, borderColor: Color4, skinScale: Float) {
@@ -47,7 +47,7 @@ class DefaultSliderBallPiece : SliderBallPiece() {
     private val fill = gradientDisc(size)
 
     // A chevron in the middle, pointing where the ball goes, turned around the ball's centre.
-    private val direction = chevron(size, size * 0.18f, size * 0.07f)
+    private val direction = chevron(size, size * 0.13f, size * 0.06f)
 
     init {
         width = size.px
@@ -190,9 +190,12 @@ internal fun chevron(size: Float, reach: Float, thickness: Float) = Container().
     anchor = Anchor.Center
     origin = Anchor.Center
 
+    // Centred on the triangle its strokes outline rather than on their bounds, which have the open side on the left:
+    // centred on its bounds, it looks pushed to the left.
     val centre = size / 2
-    val tip = Vec2(centre + reach / 2, centre)
-    val ends = listOf(Vec2(centre - reach / 2, centre - reach), Vec2(centre - reach / 2, centre + reach))
+    val centreX = centre + reach / 6
+    val tip = Vec2(centreX + reach / 2, centre)
+    val ends = listOf(Vec2(centreX - reach / 2, centre - reach), Vec2(centreX - reach / 2, centre + reach))
 
     for (end in ends) {
         +Line().apply {
