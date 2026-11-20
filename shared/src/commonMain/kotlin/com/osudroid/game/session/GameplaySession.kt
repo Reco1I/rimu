@@ -209,10 +209,10 @@ class GameplaySession(
     private val breakPeriods
         get() = loaded.breakPeriods
 
-    private var timingControlPointIndex = 0
-    private var effectControlPointIndex = 0
-    private var activeTimingPoint: TimingControlPoint? = null
-    private var activeEffectPoint: EffectControlPoint? = null
+    private lateinit var controlPoints: ControlPointTracker
+    private lateinit var breaks: BreakController
+    private lateinit var scoreReconstruction: ScoreReconstruction
+    private var multiplayer = MultiplayerSync()
     private var lastObjectId = -1
     private var leadOut = 0f
     private var objectIndex = 0
@@ -226,7 +226,6 @@ class GameplaySession(
     // By identity: GameObject doesn't override equals or hashCode.
     private val processedExpiredObjects: MutableSet<GameObject> = HashSet()
     private var judgeableObject: GameObject? = null
-    private var breakPeriodIndex = 0
     private var metronome: Metronome? = null
     private var scale = 0f
     override lateinit var stat: StatisticV2
@@ -355,24 +354,10 @@ class GameplaySession(
 
     // Multiplayer
 
-    /**Indicates the last time that the user pressed the back button, used to reset `backPressCount`*/
-    private var lastBackPressTime = -1f
-
     /**Indicates that the player has failed and the score shouldn't be submitted*/
     var hasFailed = false
         private set
 
-    /**Indicates that the player has requested skip*/
-    private var isSkipRequested = false
-
-    /**Real time elapsed in milliseconds since the game has started*/
-    private var realTimeElapsed = 0L
-
-    /**Real time elapsed in milliseconds since the latest statistic data was sent*/
-    private var statisticDataTimeElapsed = 0L
-
-    /**Last score data chunk sent to server, used to determine if the data was changed.*/
-    private var lastScoreSent: ScoreBoardItem? = null
 
 
     init {
@@ -681,7 +666,10 @@ class GameplaySession(
 
         totalLength = OsuGame.music.length
         judgeableObject = null
-        breakPeriodIndex = 0
+
+        if (::breaks.isInitialized) {
+            breaks.reset()
+        }
         objectIndex = 0
         followPointIndex = 0
         lastObjectId = -1
@@ -740,11 +728,6 @@ class GameplaySession(
         }
 
         scope?.ensureActive()
-
-        activeTimingPoint = timingControlPoints.firstOrNull() ?: playableBeatmap.controlPoints.timing.defaultControlPoint
-        activeEffectPoint = effectControlPoints.firstOrNull() ?: playableBeatmap.controlPoints.effect.defaultControlPoint
-        timingControlPointIndex = 0
-        effectControlPointIndex = 0
 
         GameObjectPool.getInstance().purge()
 
@@ -807,10 +790,13 @@ class GameplaySession(
         )
 
         context.timing.speedMultiplier = initialSpeedMultiplier
-        context.timing.beatLength = activeTimingPoint!!.msPerBeat / 1000
-        context.timing.isKiai = activeEffectPoint!!.isKiai
-        context.timing.currentBeatTime = 0.0
         this.context = context
+
+        controlPoints = ControlPointTracker(
+            timingControlPoints, effectControlPoints,
+            playableBeatmap.controlPoints.timing.defaultControlPoint, playableBeatmap.controlPoints.effect.defaultControlPoint,
+            context.timing
+        )
 
         SkinTextures.preloadGameplay()
         GameObjectPool.getInstance().preload()
@@ -820,12 +806,8 @@ class GameplaySession(
         // Resetting variables before starting the game.
         Multiplayer.finalData = null
         hasFailed = false
-        lastBackPressTime = -1f
-        isSkipRequested = false
-        realTimeElapsed = 0
-        statisticDataTimeElapsed = 0
+        multiplayer = MultiplayerSync()
         leadOut = 0f
-        lastScoreSent = null
         isGameOver = false
 
         paused = false
@@ -885,6 +867,10 @@ class GameplaySession(
 
         scoreProcessor = ScoreProcessor(stat)
         healthProcessor = HealthProcessor(stat, playableBeatmap.difficulty.hp, if (context.isEasy) EasyLives else 0)
+        scoreReconstruction = ScoreReconstruction(
+            objects, timingControlPoints, breakPeriods, hitWindow, playableBeatmap.difficulty.od, context.replayVersion,
+            stat, scoreProcessor, healthProcessor
+        )
         previousFrameTime = 0
 
         metronome = null
@@ -1017,6 +1003,30 @@ class GameplaySession(
         }
         this.breakAnimator = breakAnimator
 
+        breaks = BreakController(breakPeriods, breakAnimator,
+            onBreakStart = {
+                gameStarted = false
+
+                if (context.isFlashlight) {
+                    flashlightSprite!!.onBreak(true)
+                }
+
+                multiplayer.showChat()
+                hud.onBreakStateChange(true)
+            },
+            onBreakEnd = {
+                // Ensure the chat is dismissed if it's still shown
+                multiplayer.hideChat()
+
+                gameStarted = true
+                hud.onBreakStateChange(false)
+
+                if (context.isFlashlight) {
+                    flashlightSprite!!.onBreak(false)
+                }
+            }
+        )
+
         if (!startedFromHUDEditor && (context.isAutoplay || replaying)) {
             val replaySettingsPanel = ReplaySettingsPanel()
             this.replaySettingsPanel = replaySettingsPanel
@@ -1143,25 +1153,7 @@ class GameplaySession(
 
         previousFrameTime = Platform.uptimeMillis
 
-        if (Multiplayer.isMultiplayer) {
-            val mSecElapsed = (dt / context.timing.speedMultiplier * 1000).toLong()
-            realTimeElapsed += mSecElapsed
-            statisticDataTimeElapsed += mSecElapsed
-
-            // Sending statistics data every 3000ms if data was changed
-            if (statisticDataTimeElapsed > 3000) {
-                statisticDataTimeElapsed %= 3000
-
-                if (Multiplayer.isConnected) {
-                    val liveScore = stat.toBoardItem()
-
-                    if (liveScore != lastScoreSent) {
-                        lastScoreSent = liveScore
-                        async { runSafe { RoomAPI.submitLiveScore(lastScoreSent!!.toJson()) } }
-                    }
-                }
-            }
-        }
+        multiplayer.update(dt, context.timing.speedMultiplier, stat)
 
         val mSecPassed = gameplayClock.time * 1000
 
@@ -1336,69 +1328,12 @@ class GameplaySession(
             flashlightSprite.updateCombo(stat.combo)
         }
 
-        while (timingControlPointIndex + 1 < timingControlPoints.size) {
-            val nextTimingPoint = timingControlPoints[timingControlPointIndex + 1]
+        controlPoints.update(gameplayClock.time)
 
-            if (nextTimingPoint.time > mSecPassed) {
-                break
-            }
-
-            activeTimingPoint = nextTimingPoint
-            ++timingControlPointIndex
-        }
-
-        while (effectControlPointIndex + 1 < effectControlPoints.size) {
-            val nextEffectPoint = effectControlPoints[effectControlPointIndex + 1]
-
-            if (nextEffectPoint.time > mSecPassed) {
-                break
-            }
-
-            activeEffectPoint = nextEffectPoint
-            ++effectControlPointIndex
-        }
-
-        val activeTimingPoint = activeTimingPoint!!
-
-        val timing = context.timing
-        timing.beatLength = activeTimingPoint.msPerBeat / 1000
-        timing.isKiai = activeEffectPoint!!.isKiai
-        timing.currentBeatTime = max(0.0, gameplayClock.time - activeTimingPoint.time / 1000) % timing.beatLength
+        val activeTimingPoint = controlPoints.timingPoint
 
         if (!isGameOver) {
-            val breakAnimator = breakAnimator!!
-
-            if (breakPeriodIndex < breakPeriods.size) {
-                if (!breakAnimator.isBreak() && breakPeriods[breakPeriodIndex].startTime / 1000 <= gameplayClock.time) {
-                    val period = breakPeriods[breakPeriodIndex++]
-
-                    gameStarted = false
-                    breakAnimator.init(period.duration / 1000)
-                    if (context.isFlashlight) {
-                        flashlightSprite!!.onBreak(true)
-                    }
-
-                    if (Multiplayer.isConnected)
-                        Multiplayer.roomScene!!.chat.show()
-
-                    hud.onBreakStateChange(true)
-                }
-            }
-
-            if (breakAnimator.isOver()) {
-
-                // Ensure the chat is dismissed if it's still shown
-                if (Multiplayer.isConnected) {
-                    Multiplayer.roomScene!!.chat.hide()
-                }
-
-                gameStarted = true
-                hud.onBreakStateChange(false)
-
-                if (context.isFlashlight) {
-                    flashlightSprite!!.onBreak(false)
-                }
-            }
+            breaks.update(gameplayClock.time)
         }
 
         val expiredObjects = expiredObjects
@@ -1632,9 +1567,7 @@ class GameplaySession(
         }
 
         if (gameplayClock.time > skipTime - 1f && skipBtn != null) {
-            if (Multiplayer.isConnected) {
-                Multiplayer.roomScene!!.chat.hide()
-            }
+            multiplayer.hideChat()
             skipBtn!!.removeSelf()
             skipBtn = null
         } else if (skipBtn != null) {
@@ -1644,13 +1577,9 @@ class GameplaySession(
                 if (latestDownEvent != null && Utils.squaredDistance(latestDownEvent.position.x, latestDownEvent.position.y,
                         objectPlayfield.mapping.width, objectPlayfield.mapping.height) < 250 * 250) {
                     if (Multiplayer.isConnected) {
-                        if (!isSkipRequested) {
-                            isSkipRequested = true
+                        multiplayer.requestSkip {
                             SkinSounds.get("menuhit")!!.play()
                             skipBtn!!.isVisible = false
-
-                            async { RoomAPI.requestSkip() }
-                            Toasts.show("Skip requested")
                         }
                         return
                     }
@@ -1782,9 +1711,7 @@ class GameplaySession(
     }
 
     fun skip(force: Boolean) {
-        if (Multiplayer.isConnected) {
-            Multiplayer.roomScene!!.chat.hide()
-        }
+        multiplayer.hideChat()
 
         if (gameplayClock.time > skipTime - 1f && !force) {
             return
@@ -2286,19 +2213,13 @@ class GameplaySession(
         }
 
         if (Multiplayer.isMultiplayer) {
-            // Setting a delay of 300ms minimum for the player to tap back button again.
-            if (lastBackPressTime > 0 && realTimeElapsed - lastBackPressTime > max(300f, Settings[OsuSettings.BackButtonPressTime] * 1.5f)) {
+            if (multiplayer.onBackPress()) {
                 // Room being null can happen when the player disconnects from socket while playing
-                if (Multiplayer.isConnected)
-                    async { runSafe { RoomAPI.submitFinalScore(stat.toJson()) } }
+                multiplayer.submitFinalScore(stat)
 
                 Multiplayer.log("Player left the match.")
                 quit()
-                return
             }
-
-            lastBackPressTime = realTimeElapsed.toFloat()
-            Toasts.show("Tap twice to exit to room.")
             return
         }
 
@@ -2346,8 +2267,8 @@ class GameplaySession(
         if (Multiplayer.isMultiplayer) {
             if (Multiplayer.isConnected) {
                 Multiplayer.log("Player has lost, moving to room scene.")
-                async { runSafe { RoomAPI.submitFinalScore(stat.toJson()) } }
             }
+            multiplayer.submitFinalScore(stat)
             quit()
             return
         }
@@ -2787,8 +2708,6 @@ class GameplaySession(
         }
 
         val expiredObjects = expiredObjects
-        val breakAnimator = breakAnimator!!
-
         val clampedTime = MathUtils.clamp(
             targetTimeSeconds,
             (objects[0].startTime / 1000).toFloat(),
@@ -2853,34 +2772,7 @@ class GameplaySession(
         }
 
         // Advance timing and effect control points to the target time.
-        timingControlPointIndex = 0
-        effectControlPointIndex = 0
-
-        val effectControlPoints = effectControlPoints
-
-        while (timingControlPointIndex + 1 < timingControlPoints.size && timingControlPoints[timingControlPointIndex + 1].time <= targetMs) {
-            timingControlPointIndex++
-        }
-
-        while (effectControlPointIndex + 1 < effectControlPoints.size && effectControlPoints[effectControlPointIndex + 1].time <= targetMs) {
-            effectControlPointIndex++
-        }
-
-        val controlPoints = playableBeatmap.controlPoints
-
-        activeTimingPoint = if (timingControlPoints.isNotEmpty())
-            timingControlPoints[timingControlPointIndex] else controlPoints.timing.defaultControlPoint
-
-        activeEffectPoint = if (effectControlPoints.isNotEmpty())
-            effectControlPoints[effectControlPointIndex] else controlPoints.effect.defaultControlPoint
-
-        // Advance break period index past fully elapsed breaks.
-        breakPeriodIndex = 0
-
-
-        while (breakPeriodIndex < breakPeriods.size && breakPeriods[breakPeriodIndex].endTime <= targetMs) {
-            breakPeriodIndex++
-        }
+        controlPoints.seekTo(targetMs)
 
         // Reset replay cursor movement indices.
         if (replaying) {
@@ -2889,28 +2781,24 @@ class GameplaySession(
         }
 
         // Reconstruct scoring state up to the seek target.
-        stat.reset()
-        reconstructStatAtTime(targetMs)
+        val reconstruction = scoreReconstruction.reconstruct(targetMs, if (replaying) replay!!.objectData else null)
+
+        objectIndex = reconstruction.objectCount
+        lastObjectId = objectIndex - 1
+        sliderIndex = (0 until objectIndex).count { objects[it] is Slider }
+
+        if (reconstruction.isStarted) {
+            gameStarted = true
+        }
 
         // Reset any in-progress break animation, then re-initialize if the seek target is inside a break.
-        breakAnimator.reset()
+        val isInBreak = breaks.seekTo(targetMs)
 
-        if (breakPeriodIndex < breakPeriods.size) {
-            val bp = breakPeriods[breakPeriodIndex]
-
-            if (bp.startTime <= targetMs && targetMs < bp.endTime) {
-                gameStarted = false
-                val totalDuration = bp.duration / 1000f
-                val elapsedTime = ((targetMs - bp.startTime) / 1000.0).toFloat()
-                breakAnimator.init(totalDuration, elapsedTime)
-                breakPeriodIndex++
-                hud.onBreakStateChange(true)
-            } else {
-                hud.onBreakStateChange(false)
-            }
-        } else {
-            hud.onBreakStateChange(false)
+        if (isInBreak) {
+            gameStarted = false
         }
+
+        hud.onBreakStateChange(isInBreak)
 
         hud.onNoteHit(stat)
         hud.onSeek()
@@ -2983,229 +2871,6 @@ class GameplaySession(
         // so the flag must survive 2 update frames.
         postSeekFrameCount = 2
     }
-
-    private fun reconstructStatAtTime(targetMs: Float) {
-
-        var localTimingIdx = 0
-        var localBreakIdx = 0
-        val objectData = if (replaying) replay!!.objectData else null
-
-        // How far continuous HP drain has been applied, and which object-to-object rate segment
-        // it's currently within ([objects[rateSegIdx].startTime - timePreempt,
-        // objects[rateSegIdx + 1].startTime - timePreempt)). Both advance with elapsed
-        // time and is independent of which object's own judgement has been applied yet.
-        var drainCursorMs = objects[0].startTime - objects[0].timePreempt
-        var rateSegIdx = 0
-
-        for (i in objects.indices) {
-            val obj = objects[i]
-
-            val judgementTimeMs = getJudgementTimeMs(i, obj, objectData)
-
-            if (judgementTimeMs > targetMs) {
-                break
-            }
-
-            val drainTargetMs = min(judgementTimeMs, targetMs.toDouble())
-
-            while (drainCursorMs < drainTargetMs && rateSegIdx < objects.size - 1) {
-                val segFromObj = objects[rateSegIdx]
-                val segToObj = objects[rateSegIdx + 1]
-
-                // Advance local timing point index to this segment's own "to" object.
-                while (localTimingIdx + 1 < timingControlPoints.size && timingControlPoints[localTimingIdx + 1].time <= segToObj.startTime) {
-                    localTimingIdx++
-                }
-
-                val msPerBeat = timingControlPoints[localTimingIdx].msPerBeat
-                val distToNextObject = max(segToObj.startTime - segFromObj.startTime, msPerBeat / 2) / 1000
-
-                val segEndMs = segToObj.startTime - segToObj.timePreempt
-                val stopAtMs = min(segEndMs, drainTargetMs)
-
-                if (stopAtMs > drainCursorMs) {
-                    // Advance past breaks that fully precede the current segment.
-                    while (localBreakIdx < breakPeriods.size && breakPeriods[localBreakIdx].endTime <= drainCursorMs) {
-                        localBreakIdx++
-                    }
-
-                    val effectiveSecs = HealthProcessor.drainingSeconds(drainCursorMs, stopAtMs, breakPeriods, localBreakIdx)
-
-                    if (healthProcessor.drainSegment(effectiveSecs, distToNextObject)) {
-                        return
-                    }
-
-                    drainCursorMs = stopAtMs
-                }
-
-                if (drainCursorMs >= segEndMs) {
-                    rateSegIdx++
-                } else {
-                    // Capped short of this segment's own end by drainTargetMs - stop crossing
-                    // further for now. The remainder of this same segment continues once a
-                    // later object's own judgement time lets drain proceed past it.
-                    break
-                }
-            }
-
-            if (!gameStarted) {
-                gameStarted = true
-            }
-
-            val data = if (objectData != null && i < objectData.size) objectData[i] else null
-
-            val endCombo = obj.isLastInCombo
-
-            if (obj is HitCircle) {
-                applyCircleResult(data, endCombo)
-            } else if (obj is Slider) {
-                sliderIndex++
-                applySliderResult(obj, data, endCombo)
-            } else if (obj is Spinner) {
-                applySpinnerResult(obj, data, endCombo)
-            }
-
-            lastObjectId = i
-            objectIndex = i + 1
-        }
-    }
-
-    private fun getJudgementTimeMs(idx: Int, obj: HitObject, objectData: Array<Replay.ReplayObjectData?>?): Double {
-        if (obj is Slider || obj is Spinner) {
-            return obj.endTime
-        }
-
-        // Circle: judged when hit (or miss window expires).
-        if (objectData != null && idx < objectData.size) {
-            val data = objectData[idx]
-
-            if (data != null && data.result != ResultType.MISS.id) {
-                return obj.startTime + abs(data.accuracy.toInt())
-            }
-        }
-
-        val mehWindow = obj.hitWindow?.mehWindow ?: HitWindow.MISS_WINDOW
-
-        return obj.startTime + mehWindow
-    }
-
-    private fun reconstructHitOffset(accSeconds: Double) {
-        if (abs(accSeconds) <= hitWindow.mehWindow / 1000) {
-            stat.addHitOffset(accSeconds)
-        }
-    }
-
-    private fun applyCircleResult(data: Replay.ReplayObjectData?, endCombo: Boolean) {
-        val result = JudgementResult.fromResultType(data?.result ?: ResultType.HIT300.id)
-
-        if (result != JudgementResult.Miss) {
-            reconstructHitOffset(if (data != null) data.accuracy / 1000.0 else 0.0)
-        }
-
-        scoreProcessor.applyObject(result, endCombo)
-    }
-
-    private fun applySliderResult(slider: Slider, data: Replay.ReplayObjectData?, endCombo: Boolean) {
-        val result = JudgementResult.fromResultType(data?.result ?: ResultType.HIT300.id)
-
-        if (result == JudgementResult.Miss) {
-            scoreProcessor.applyObject(result, endCombo)
-            return
-        }
-
-        // Slider head: HIT300 implies all ticks were hit; autoplay (data==null) always hits.
-        // For HIT50/HIT100, reconstruct whether the head was actually within the hit window,
-        // mirroring GameplaySlider.onSliderHeadHit.
-        val accSeconds = if (data != null) data.accuracy / 1000.0 else 0.0
-        val headHit: Boolean
-
-        if (data == null || result == JudgementResult.Great) {
-            headHit = true
-        } else {
-            val replayVersion = context.replayVersion
-            val mehWindowSecs = hitWindow.mehWindow / 1000.0
-            val sliderDurationSecs = slider.duration / 1000.0
-            val lateHitThreshold = if (replayVersion <= 7) min(mehWindowSecs, sliderDurationSecs) else mehWindowSecs
-
-            if (replayVersion >= 6 || mehWindowSecs <= sliderDurationSecs) {
-                headHit = -mehWindowSecs <= accSeconds && accSeconds <= lateHitThreshold
-            } else {
-                headHit = accSeconds <= sliderDurationSecs
-            }
-        }
-
-        if (headHit) {
-            reconstructHitOffset(accSeconds)
-            scoreProcessor.applySliderPart(SliderPart.Head)
-        }
-
-        // Ticks and repeats from tickSet.
-        val nested = slider.nestedHitObjects
-
-        // Skip head (index 0) and tail (last index).
-        for (i in 1 until nested.size - 1) {
-            val wasHit = data == null || (data.tickSet != null && data.tickSet!![i - 1])
-
-            if (!wasHit) {
-                scoreProcessor.applySliderPartMiss()
-                continue
-            }
-
-            val nestedObj = nested[i]
-
-            if (nestedObj is SliderTick) {
-                scoreProcessor.applySliderPart(SliderPart.Tick)
-            } else if (nestedObj is SliderRepeat) {
-                scoreProcessor.applySliderPart(SliderPart.Repeat)
-            }
-        }
-
-        // Slider tail: combo is only awarded when the player was tracking at the endpoint.
-        // Unlike circles, the result score reflects ticks hit, not timing accuracy.
-        val tailTracked = data == null || (data.tickSet != null && data.tickSet!![nested.size - 2])
-
-        scoreProcessor.applySliderTail(result, endCombo, tailTracked)
-    }
-
-    private fun applySpinnerResult(spinner: Spinner, data: Replay.ReplayObjectData?, endCombo: Boolean) {
-        val duration = spinner.duration.toFloat() / 1000
-        var needRotations = (2 + 2 * playableBeatmap.difficulty.od / 10f) * duration
-
-        if (duration < 0.05f) {
-            needRotations = 0.1f
-        }
-
-        val preClear: Int
-        val bonus: Int
-
-        if (data != null) {
-            // data.accuracy = totalSpins * 4 + resultCode, where totalSpins = fullRotations (pre-clear, 100 pts each)
-            // + (bonusScoreCounter - 1) (bonus, 1000 pts each). Split by needRotations to award the correct amounts.
-            val totalSpins = (data.accuracy.toInt() and 0xFFFF) shr 2
-            preClear = min(totalSpins, ceil(needRotations.toDouble()).toInt() - 1)
-            bonus = totalSpins - preClear
-        } else {
-            // Autoplay always clears the spinner. Reconstruct the pre-clear (100 pts each) and bonus (1000 pts each)
-            // rotation split from the spinner's parameters.
-            // ceil(needRotations) - 1 rotations are pre-clear; bonus rotations begin at ceil(needRotations) total.
-            val totalRotations = 5f * duration
-
-            preClear = ceil(needRotations.toDouble()).toInt() - 1
-            bonus = max(0, totalRotations.toInt() - ceil(needRotations.toDouble()).toInt() + 1)
-        }
-
-        for (s in 0 until preClear) {
-            scoreProcessor.applySpinnerRotation()
-        }
-
-        for (s in 0 until bonus) {
-            scoreProcessor.applySpinnerBonus()
-        }
-
-        applyCircleResult(data, endCombo)
-    }
-
-    //endregion
 
     private inner class GameUIScene : Scene() {
         val game
