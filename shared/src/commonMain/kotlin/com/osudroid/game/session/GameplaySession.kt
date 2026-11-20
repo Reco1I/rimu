@@ -5,19 +5,15 @@ import com.osudroid.game.loading.LoadedPlay
 import com.osudroid.game.loading.PlayRequest
 import com.reco1l.verktex.math.Path
 import com.reco1l.verktex.data.Background
-import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
-import com.osudroid.OsuGameHost
 import com.osudroid.game.GameplayVibrations
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Platform
-import com.osudroid.GameMode
 import com.osudroid.audio.MusicClock
 import com.osudroid.beatmaps.Beatmap
-import com.osudroid.beatmaps.BeatmapCache
 import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.beatmaps.DroidPlayableBeatmap
 import com.osudroid.beatmaps.HitWindow
@@ -32,22 +28,13 @@ import com.osudroid.beatmaps.hitobjects.HitCircle
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.hitobjects.Spinner
-import com.osudroid.beatmaps.hitobjects.sliderobject.SliderRepeat
-import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTick
 import com.osudroid.beatmaps.sections.BeatmapDifficulty
-import com.osudroid.beatmaps.timings.BreakPeriod
-import com.osudroid.beatmaps.timings.EffectControlPoint
-import com.osudroid.beatmaps.timings.TimingControlPoint
-import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.DatabaseManager
 import com.osudroid.data.toScoreInfo
 import com.osudroid.difficulty.BeatmapDifficultyCalculator
-import com.osudroid.difficulty.attributes.DroidDifficultyAttributes
 import com.osudroid.difficulty.attributes.DroidPerformanceAttributes
 import com.osudroid.difficulty.attributes.PerformanceAttributes
-import com.osudroid.difficulty.attributes.StandardDifficultyAttributes
 import com.osudroid.difficulty.attributes.StandardPerformanceAttributes
-import com.osudroid.difficulty.attributes.TimedDifficultyAttributes
 import com.osudroid.difficulty.calculator.DroidPerformanceCalculationParameters
 import com.osudroid.difficulty.calculator.PerformanceCalculationParameters
 import com.osudroid.difficulty.calculator.StandardPerformanceCalculationParameters
@@ -57,8 +44,6 @@ import com.osudroid.game.GameplayContext
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.PlayfieldMapping
 import com.osudroid.game.SliderPath
-import com.osudroid.game.convertSliderPath
-import com.osudroid.game.createSliderRenderPath
 import com.osudroid.game.replay.ReplaySettingsPanel
 import com.osudroid.math.Interpolation
 import com.osudroid.math.MathUtils
@@ -66,18 +51,13 @@ import com.osudroid.math.Vector2
 import com.osudroid.mods.*
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
-import com.osudroid.multiplayer.toBoardItem
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.skinFrames
-import com.reco1l.verktex.ui.Video
-import com.osudroid.ui.v2.game.AutoCursor
 import com.osudroid.ui.v2.game.BreakAnimator
 import com.osudroid.ui.v2.game.ComboBurst
 import com.osudroid.ui.v2.game.Countdown
-import com.osudroid.ui.v2.game.CursorEntity
-import com.osudroid.ui.v2.game.FlashLightEntity
 import com.osudroid.ui.v2.game.FollowPointConnection
 import com.osudroid.ui.v2.game.GameplayPlayfield
 import com.osudroid.ui.v2.skin.JudgementPiece
@@ -90,7 +70,6 @@ import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
 import com.osudroid.ui.v2.modmenu.ModIcon
 import com.osudroid.utils.BitSet
 import com.osudroid.utils.DoubleMinHeap
-import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.calculateRate
 import com.osudroid.utils.async
 import com.osudroid.utils.runSafe
@@ -99,7 +78,6 @@ import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Border
-import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Vec2
@@ -122,12 +100,7 @@ import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.ScalingContainer
 import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.ui.text.Text
-import okio.FileNotFoundException
-import okio.Path.Companion.toPath
-import okio.IOException
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.abs
-import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -143,15 +116,12 @@ import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
 import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
-import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
-import ru.nsu.ccfit.zuev.osu.scoring.TouchType
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import com.osudroid.utils.currentTimeMillis
-import kotlin.concurrent.Volatile
 import com.reco1l.verktex.input.KeyboardEvent
 
 /**
@@ -213,12 +183,7 @@ class GameplaySession(
     private lateinit var breaks: BreakController
     private lateinit var scoreReconstruction: ScoreReconstruction
     private var multiplayer = MultiplayerSync()
-    private var lastObjectId = -1
     private var leadOut = 0f
-    private var objectIndex = 0
-
-    // The object whose follow points are added next, as they start to fade in, see FollowPointConnection.fadeInStartTime.
-    private var followPointIndex = 0
     private var postSeekFrameCount = 0
     private var comboColors: ArrayList<Color4>? = null
     private val activeObjects = ArrayList<GameObject>()
@@ -243,17 +208,16 @@ class GameplaySession(
     private var paused = false
     private var skipBtn: Sprite? = null
     private var skipTime = 0f
-    private var distToNextObject = 0.0
-    private var cursorSprites: Array<CursorEntity>? = null
-    private var autoCursor: AutoCursor? = null
-    private var flashlightSprite: FlashLightEntity? = null
-    private var mainCursorId = -1
+    private lateinit var cursorPresenter: CursorPresenter
+    private lateinit var spawner: ObjectSpawner
+
+    // The replay played back into the cursors, null unless one is watched.
+    private var replayInput: ReplayInputSource? = null
     private var replay: Replay? = null
     var replaying = false
         private set
     private var comboBurst: ComboBurst? = null
     private var sliderBorderColor: Color4? = null
-    private var sliderIndex = 0
     private var unrankedSprite: Sprite? = null
     private val modIcons = ArrayList<ModIcon>()
     private val rateAdjustingMods = ArrayList<IModApplicableToTrackRate>()
@@ -330,26 +294,10 @@ class GameplaySession(
     override val lastObjectEndTime
         get() = loaded.lastObjectEndTime
 
-    // Video support
-
     /**
-     * The current video loading [Job].
+     * The video of the beatmap, shown as the background.
      */
-    private var videoLoadingJob: Job? = null
-
-    /**
-     * Whether video is enabled.
-     */
-    private var videoEnabled = false
-
-    /**The video sprite*/
-    private var video: Video? = null
-
-    /**Video offset aka video start time in seconds*/
-    private var videoOffset = 0f
-
-    /**Whether the video has started*/
-    private var videoStarted = false
+    private val video = VideoController(onReady = { applyBackground() })
 
 
     // Multiplayer
@@ -456,81 +404,23 @@ class GameplaySession(
      * Loads the video of the beatmap, or releases it, as the settings changed.
      */
     fun loadVideo() {
-        val beatmapInfo = loaded.beatmapInfo
-
-        // This is used instead of getBackgroundBrightness to directly obtain the
-        // updated value from the brightness slider.
-        val brightness = OsuSettings.backgroundBrightness
-        val videoFilename = playableBeatmap.events.videoFilename
-        // Some platforms can't play videos, e.g. Vulkan before Android 10 can't show their frames.
-        val videosSupported = Platform.canPlayVideos
-        videoEnabled = brightness > 0.02f && Settings[OsuSettings.EnableVideo] && videoFilename != null && videosSupported
-
-        if (!videoEnabled) {
-            cancelVideoLoading()
-            releaseVideo()
-            return
-        }
-
-        if (video != null) {
-            return
-        }
-
-        if (videoLoadingJob != null && !videoLoadingJob!!.isCompleted) {
-            return
-        }
-
-        // Check if video file exists before attempting to load.
-        val videoFile = (beatmapInfo.absoluteSetDirectory + "/" + videoFilename).toPath()
-
-        if (!Platform.fileSystem.exists(videoFile)) {
-            return
-        }
-
-        videoLoadingJob = async {
-            try {
-                val video = Video(beatmapInfo.absoluteSetDirectory + "/" + videoFilename)
-                if (!video.isAvailable) {
-                    return@async
-                }
-                video.alpha = 0f
-
-                ensureActive()
-
-                this@GameplaySession.video = video
-
-                // applyBackground is called from the onReady callback once the decoder reports the video
-                // dimensions, rather than blocking here.
-                // If dimensions are already known (fast local file), the callback fires immediately.
-                video.setOnReady { updateThread { applyBackground() } }
-            } catch (e: Exception) {
-                video = null
-                Logger.e(TAG, "Error while loading video background.", e)
-            }
-
-            videoLoadingJob = null
-        }
+        video.load(loaded.beatmapInfo, playableBeatmap)
     }
 
     private fun cancelVideoLoading() {
-        if (videoLoadingJob != null) {
-            videoLoadingJob!!.cancel(CancellationException("Video loading job cancelled"))
-            videoLoadingJob = null
-        }
+        video.cancelLoading()
     }
 
     internal fun releaseVideo() {
-        if (video != null) {
-            video!!.release()
-            video = null
-            videoStarted = false
-        }
+        video.release()
     }
 
     private fun applyBackground() {
         // Guard: video sprite exists but dimensions not yet reported by ExoPlayer.
         // onVideoSizeChanged will trigger another applyBackground call when they arrive.
-        if (video != null && (video!!.videoWidth == 0 || video!!.videoHeight == 0)) {
+        val loadedVideo = video.video
+
+        if (loadedVideo != null && (loadedVideo.videoWidth == 0 || loadedVideo.videoHeight == 0)) {
             return
         }
 
@@ -540,7 +430,7 @@ class GameplaySession(
 
         val playfieldSize = OsuSettings.playfieldSize
 
-        val video = this.video
+        val shownVideo = video.shown
         var sceneBorder = this.sceneBorder
 
         if (sceneBorder == null && Settings[OsuSettings.DisplayPlayfieldBorder] && playfieldSize < 1f) {
@@ -557,11 +447,10 @@ class GameplaySession(
             this.sceneBorder = sceneBorder
         }
 
-        val showVideo = videoEnabled && video != null
-        val background: Component? = if (showVideo) video else beatmapBackground
+        val background: Component? = shownVideo ?: beatmapBackground
 
-        val backgroundWidth = if (showVideo) video!!.videoWidth.toFloat() else beatmapBackgroundWidth
-        val backgroundHeight = if (showVideo) video!!.videoHeight.toFloat() else beatmapBackgroundHeight
+        val backgroundWidth = shownVideo?.videoWidth?.toFloat() ?: beatmapBackgroundWidth
+        val backgroundHeight = shownVideo?.videoHeight?.toFloat() ?: beatmapBackgroundHeight
 
         backgroundLayer.clearChildren()
 
@@ -619,8 +508,8 @@ class GameplaySession(
 
         // The difficulty at each object may be calculated while playing: the pp so far is shown then.
         loaded.timedDifficulty.onCalculated = {
-            if (gameplay.session === this && objectIndex > 0) {
-                updatePPValue(objectIndex - 1)
+            if (gameplay.session === this && ::spawner.isInitialized && spawner.objectIndex > 0) {
+                updatePPValue(spawner.objectIndex - 1)
             }
         }
 
@@ -670,11 +559,10 @@ class GameplaySession(
         if (::breaks.isInitialized) {
             breaks.reset()
         }
-        objectIndex = 0
-        followPointIndex = 0
-        lastObjectId = -1
-        videoStarted = false
-        videoOffset = playableBeatmap.events.videoStartTime / 1000f
+        if (::spawner.isInitialized) {
+            spawner.reset()
+        }
+        video.reset(offset = playableBeatmap.events.videoStartTime / 1000f)
 
         val estimatedMaxActiveObjects = max(10, estimateMaximumActiveObjects())
 
@@ -699,7 +587,7 @@ class GameplaySession(
         // Ensure the video has time to start.
         // Even when video is not activated, apply offset anyway to ensure that everyone in multiplayer starts at the
         // same time regardless of the setting.
-        gameplayClock.seek(min(gameplayClock.time, videoOffset))
+        gameplayClock.seek(min(gameplayClock.time, video.offset))
 
         sliderBorderColor = null
         if (playableBeatmap.colors.sliderBorderColor != null) {
@@ -801,8 +689,6 @@ class GameplaySession(
         SkinTextures.preloadGameplay()
         GameObjectPool.getInstance().preload()
 
-        sliderIndex = 0
-
         // Resetting variables before starting the game.
         Multiplayer.finalData = null
         hasFailed = false
@@ -825,9 +711,7 @@ class GameplaySession(
      * Takes the job loading the video, to stop it with the loading of the play.
      */
     fun takeVideoLoadingJob(): Job? {
-        val job = videoLoadingJob
-        videoLoadingJob = null
-        return job
+        return video.takeLoadingJob()
     }
 
     /**
@@ -880,25 +764,10 @@ class GameplaySession(
             metronome = Metronome()
         }
 
-        distToNextObject = 0.0
-
-        // TODO passive objects
-        if ((replaying || Settings[OsuSettings.ShowCursor]) && !context.isAutoplay && !context.isAutopilot) {
-            val cursorSprites = Array(cursorCount) { CursorEntity() }
-            this.cursorSprites = cursorSprites
-            for (i in 0 until cursorCount) {
-                cursorSprites[i].attachToScene(fgScene)
-            }
-        } else {
-            cursorSprites = null
-        }
-
-        if (context.isAutoplay || context.isAutopilot) {
-            // From the center of the playfield.
-            val start = objectPlayfield.mapping.toResolution(PlayfieldMapping.PLAYFIELD_WIDTH / 2, PlayfieldMapping.PLAYFIELD_HEIGHT / 2)
-            autoCursor = AutoCursor(start.x, start.y)
-            autoCursor!!.attachToScene(fgScene)
-        }
+        cursorPresenter = CursorPresenter(
+            cursors, context, fgScene, objectPlayfield.mapping,
+            showsCursors = (replaying || Settings[OsuSettings.ShowCursor]) && !context.isAutoplay && !context.isAutopilot
+        )
 
         val countdown = playableBeatmap.general.countdown
         if (Settings[OsuSettings.Corovans] && countdown != BeatmapCountdown.NoCountdown) {
@@ -947,16 +816,26 @@ class GameplaySession(
             fgScene += unrankedSprite
         }
 
-        if (context.isFlashlight) {
-            val flashlightSprite = FlashLightEntity(context.flashlight!!)
-            this.flashlightSprite = flashlightSprite
-            fgScene.add(0, flashlightSprite)
-        }
-
         // HUD should be to the last so we ensure everything is initialized and ready to be used by
         // the HUD elements in their constructors.
         val hud = GameplayHUD(this)
         this.hud = hud
+
+        spawner = ObjectSpawner(
+            listener = this,
+            loaded = loaded,
+            playfield = objectPlayfield,
+            spinnerLayer = bgScene,
+            stat = stat,
+            events = hud,
+            replayObjectData = if (replaying) replay!!.objectData else null,
+            comboColor = ::getComboColor,
+            sliderBorderColor = { sliderBorderColor!! }
+        )
+
+        if (replaying) {
+            replayInput = ReplayInputSource(replay!!, cursors, objectPlayfield, context.isHardRock, hud::onGameplayTouchDown)
+        }
 
         hud.setEditMode(isHUDEditorMode)
         hud.setSkinData(OsuSkin.get().hudSkinData)
@@ -1008,7 +887,7 @@ class GameplaySession(
                 gameStarted = false
 
                 if (context.isFlashlight) {
-                    flashlightSprite!!.onBreak(true)
+                    cursorPresenter.flashlight!!.onBreak(true)
                 }
 
                 multiplayer.showChat()
@@ -1022,7 +901,7 @@ class GameplaySession(
                 hud.onBreakStateChange(false)
 
                 if (context.isFlashlight) {
-                    flashlightSprite!!.onBreak(false)
+                    cursorPresenter.flashlight!!.onBreak(false)
                 }
             }
         )
@@ -1039,9 +918,7 @@ class GameplaySession(
                     gameplayClock.pause()
                     stopLoopingSamples()
 
-                    if (video != null && videoStarted) {
-                        video!!.pause()
-                    }
+                    video.pause()
                 } else {
                     if (!gameplayClock.isRunning) {
                         gameplayClock.start()
@@ -1049,9 +926,7 @@ class GameplaySession(
 
                     playLoopingSamples()
 
-                    if (video != null && videoStarted) {
-                        video!!.play()
-                    }
+                    video.resume()
                 }
             }
 
@@ -1152,377 +1027,47 @@ class GameplaySession(
         }
 
         previousFrameTime = Platform.uptimeMillis
+        val time = gameplayClock.time
 
         multiplayer.update(dt, context.timing.speedMultiplier, stat)
 
-        val mSecPassed = gameplayClock.time * 1000
+        if (!isGameOver) {
+            updateRate()
+        }
+
+        replaySettingsPanel?.playbackControl?.seekControl?.updateSeekPosition(time, firstObjectStartTime, lastObjectEndTime)
+
+        replayInput?.update(time, dt)
+        cursorPresenter.update(dt, replaying, stat.combo)
+        controlPoints.update(time)
 
         if (!isGameOver) {
-            val modRate = rateAdjustingMods.calculateRate(mSecPassed.toDouble())
-
-            val replaySettingsRate = replaySettingsPanel?.playbackControl?.rateControl?.rate ?: 1f
-
-            val currentSpeedMultiplier = modRate * replaySettingsRate
-
-            if (currentSpeedMultiplier != context.timing.speedMultiplier) {
-                context.timing.speedMultiplier = currentSpeedMultiplier
-                gameplayClock.rate = currentSpeedMultiplier
-
-                if (videoEnabled && video != null) {
-                    video!!.setPlaybackSpeed(currentSpeedMultiplier)
-                }
-
-                val music = OsuGame.music
-                music.speed = modRate
-                music.setPitchRate(replaySettingsRate)
-            }
+            breaks.update(time)
         }
 
-
-        replaySettingsPanel?.playbackControl?.seekControl?.updateSeekPosition(
-            gameplayClock.time,
-            (objects[0].startTime / 1000).toFloat(),
-            (objects[objects.size - 1].endTime / 1000).toFloat()
-        )
-
-        if (replaying) {
-            val replay = replay!!
-            val replayTimeMs = gameplayClock.time * 1000
-            val replayCatchUpTimeMs = (gameplayClock.time + dt / 4) * 1000
-            var cIndex: Int
-
-            for (i in 0 until replay.cursorIndex.size) {
-                if (replay.cursorMoves.size <= i) {
-                    break
-                }
-
-                val moveArray = replay.cursorMoves[i]
-
-                cIndex = replay.cursorIndex[i]
-                var movement: Replay.ReplayMovement? = null
-
-                // Emulating moves
-                while (cIndex < moveArray.size) {
-                    // As in the condition it was: the movement is kept even when it's not reached yet.
-                    movement = moveArray.movements[cIndex]
-
-                    if (movement.time > replayCatchUpTimeMs) {
-                        break
-                    }
-
-                    val event = CursorEvent.obtain()
-
-                    event.systemTime = movement.time.toLong()
-                    event.trackTime = movement.time.toFloat()
-                    event.offset = 0.0
-                    event.setTrackPosition(movement.x, movement.y, objectPlayfield.mapping, context.isHardRock)
-
-                    if (movement.touchType == TouchType.DOWN) {
-                        event.action = PointerEvent.Action.Down
-                        replay.lastMoveIndex[i] = -1
-                        hud.onGameplayTouchDown(movement.time / 1000f)
-                    } else if (movement.touchType == TouchType.MOVE) {
-                        event.action = PointerEvent.Action.Move
-                        replay.lastMoveIndex[i] = cIndex
-                    } else {
-                        event.action = PointerEvent.Action.Up
-                    }
-                    cursors[i]!!.addEvent(event)
-                    replay.cursorIndex[i]++
-                    cIndex++
-                }
-
-                // Interpolating cursor movements
-                if (movement != null && movement.touchType == TouchType.MOVE && replay.lastMoveIndex[i] >= 0) {
-                    val lIndex = replay.lastMoveIndex[i]
-                    val lastMovement = moveArray.movements[lIndex]
-                    val movementTime = movement.time
-                    val lastMovementTime = lastMovement.time
-                    val duration = lastMovementTime - movementTime
-
-                    if (duration == 0) {
-                        continue
-                    }
-
-                    val t = (replayTimeMs - movementTime) / duration
-
-                    val event = CursorEvent.obtain()
-
-                    // We don't exactly need systemTime to be accurate here since it's not used for anything important
-                    // in replays.
-                    event.systemTime = mSecPassed.toLong()
-                    event.trackTime = mSecPassed.toLong().toFloat()
-                    event.offset = 0.0
-                    event.action = PointerEvent.Action.Move
-                    event.setTrackPosition(
-                        lastMovement.x * t + movement.x * (1 - t),
-                        lastMovement.y * t + movement.y * (1 - t),
-                        objectPlayfield.mapping,
-                        context.isHardRock
-                    )
-
-                    cursors[i]!!.addEvent(event)
-                }
-            }
+        if (spawner.isDone && areObjectsJudged(activeObjects) && context.isFlashlight) {
+            cursorPresenter.flashlight!!.onBreak(true)
         }
 
-        if (context.isAutoplay || context.isAutopilot) {
-            autoCursor!!.update(dt)
-        } else if (cursorSprites != null) {
-            val cursorSprites = cursorSprites!!
-            for (i in cursorSprites.indices) {
-                val sprite = cursorSprites[i]
-                sprite.update(dt)
-
-                val cursor = cursors[i]!!
-                val latestEvent = cursor.latestEvent
-
-                if (replaying && latestEvent != null) {
-                    sprite.setPosition(latestEvent.position.x, latestEvent.position.y)
-                    sprite.setShowing(!latestEvent.isActionUp)
-                }
-
-                sprite.setPressed(cursor.getLatestNonUpEvent() != null)
-            }
+        if (gameStarted && healthProcessor.drain(dt, spawner.distanceToNextObject) && onHealthDepleted()) {
+            return
         }
 
-        if (context.isFlashlight) {
-            val flashlightSprite = flashlightSprite!!
-
-            if (!context.isAutoplay && !context.isAutopilot) {
-                // Check if the main cursor is still valid.
-                if (mainCursorId >= 0 && !cursors[mainCursorId]!!.mouseDown) {
-                    mainCursorId = -1
-                }
-
-                // If no cursor is valid, check for the latest pressed cursor.
-                if (mainCursorId < 0) {
-                    var index = -1
-                    var latestDownEvent: CursorEvent? = null
-
-                    for (i in cursors.indices) {
-                        val c = cursors[i]!!
-                        val latestCursorDownEvent = c.getLatestDownEvent() ?: continue
-
-                        if (latestDownEvent == null || latestDownEvent.systemTime < latestCursorDownEvent.systemTime) {
-                            latestDownEvent = latestCursorDownEvent
-                            index = i
-                        }
-                    }
-
-                    if (latestDownEvent != null) {
-                        mainCursorId = index
-                    }
-                }
-
-                if (mainCursorId != -1) {
-                    val cursor = cursors[mainCursorId]!!
-                    val latestNonUpEvent = cursor.getLatestNonUpEvent()
-
-                    if (latestNonUpEvent != null) {
-                        flashlightSprite.onMouseMove(latestNonUpEvent.position.x, latestNonUpEvent.position.y)
-                    }
-                }
-            }
-
-            flashlightSprite.updateCombo(stat.combo)
-        }
-
-        controlPoints.update(gameplayClock.time)
-
-        val activeTimingPoint = controlPoints.timingPoint
-
-        if (!isGameOver) {
-            breaks.update(gameplayClock.time)
-        }
-
-        val expiredObjects = expiredObjects
-
-        if (objectIndex >= objects.size && areObjectsJudged(activeObjects) && context.isFlashlight) {
-            flashlightSprite!!.onBreak(true)
-        }
-
-        if (gameStarted && healthProcessor.drain(dt, distToNextObject)) {
-            if (Multiplayer.isMultiplayer) {
-                if (!hasFailed) {
-                    Toasts.show("You failed but you can continue playing.")
-                }
-                hasFailed = true
-            } else {
-                gameover()
-                return
-            }
-        }
-
-        if (comboBurst != null) {
-            if (stat.combo == 0) {
-                comboBurst!!.breakCombo()
-            } else {
-                comboBurst!!.checkAndShow(stat.combo)
-            }
-        }
-
-        // Clearing expired objects.
-        processedExpiredObjects.clear()
-
-        if (!expiredObjects.isEmpty()) {
-            for (i in 0 until expiredObjects.size) {
-                val obj = expiredObjects[i]
-
-                if (processedExpiredObjects.add(obj)) {
-                    obj.onExpire()
-                }
-            }
-
-            activeObjects.removeAll(expiredObjects)
-            expiredObjects.clear()
-        }
+        updateComboBurst()
+        removeExpiredObjects()
 
         updatePassiveObjects(dt)
         updateActiveObjects(dt)
 
         if (judgeableObject != null && (context.isAutoplay || context.isAutopilot)) {
-            autoCursor!!.moveToObject(judgeableObject, gameplayClock.time, this)
+            cursorPresenter.autoCursor!!.moveToObject(judgeableObject, time, this)
         }
 
-        if (videoEnabled && video != null && gameplayClock.time >= videoOffset) {
-            val video = video!!
+        video.update(time, context.timing.speedMultiplier)
 
-            if (!videoStarted) {
-                video.play()
-                video.setPlaybackSpeed(context.timing.speedMultiplier)
-                videoStarted = true
-            }
+        spawner.spawnFollowPoints(time)
 
-            if (video.alpha < 1.0f)
-                video.alpha = min(video.alpha + 0.03f, 1.0f)
-        }
-
-        // Follow points are added as they start to fade in, apart from the objects: that can be before the object
-        // they start from spawns.
-        while (followPointIndex < objects.size - 1) {
-            val start = objects[followPointIndex]
-
-            if (gameplayClock.time < FollowPointConnection.fadeInStartTime(start)) {
-                break
-            }
-
-            val end = objects[++followPointIndex]
-
-            // A seek went past them.
-            if (gameplayClock.time >= end.startTime.toFloat() / 1000) {
-                continue
-            }
-
-            if (start !is Spinner && end !is Spinner && !start.isLastInCombo) {
-                FollowPointConnection.addConnection(objectPlayfield.underlay, start, end)
-            }
-        }
-
-        var shouldBePunished = false
-
-        while (objectIndex < objects.size) {
-            val obj = objects[objectIndex]
-
-            // The casts can be simplified, but it is necessary to prevent floating point errors (see how
-            // GameplayHitCircle and GameplaySlider track their passed time, where startTime and timePreempt
-            // are cast and converted to seconds individually).
-            val lifetimeStart = obj.startTime.toFloat() / 1000 - obj.timePreempt.toFloat() / 1000
-            val lifetimeDt = gameplayClock.time - lifetimeStart
-
-            if (lifetimeDt < 0) {
-                break
-            }
-
-            gameStarted = true
-            ++objectIndex
-
-            if (unrankedSprite != null) {
-                unrankedSprite!!.choreographAt(1.5f) { sequence -> sequence
-                    .scaleTo(1.5f, 0.5f)
-                    .fadeOut(0.5f) }
-
-                // Make it null to avoid multiple entity modifier registration
-                unrankedSprite = null
-            }
-
-            if (obj.startTime > totalLength) {
-                shouldBePunished = true
-                break
-            }
-
-            val nextObj = if (objectIndex < objects.size) objects[objectIndex] else null
-
-            distToNextObject = if (nextObj != null)
-                max(nextObj.startTime - obj.startTime, activeTimingPoint.msPerBeat / 2) / 1000
-            else
-                0.0
-
-            hud.onHitObjectLifetimeStart(obj)
-
-            val comboColor = getComboColor(obj)
-
-            var gameObject: GameObject? = null
-
-            if (obj is HitCircle) {
-                val gameplayCircle = GameObjectPool.getInstance().circle
-
-                gameplayCircle.init(this, objectPlayfield, obj, comboColor)
-                addObject(gameplayCircle)
-
-                if (context.isAutoplay) {
-                    gameplayCircle.setAutoPlay()
-                }
-
-                gameplayCircle.setId(++lastObjectId)
-
-                if (replaying) {
-                    gameplayCircle.setReplayData(replay!!.objectData!![gameplayCircle.getId()])
-                }
-
-                gameObject = gameplayCircle
-            } else if (obj is Spinner) {
-                val rps = 2 + 2 * playableBeatmap.difficulty.od / 10f
-                val gameplaySpinner = GameObjectPool.getInstance().spinner
-
-                gameplaySpinner.init(this, bgScene, objectPlayfield, obj, rps, stat)
-                addObject(gameplaySpinner)
-
-                if (context.isAutoplay || context.isAutopilot) {
-                    gameplaySpinner.setAutoPlay()
-                }
-
-                gameplaySpinner.setId(++lastObjectId)
-                if (replaying) {
-                    gameplaySpinner.setReplayData(replay!!.objectData!![gameplaySpinner.getId()])
-                }
-
-                gameObject = gameplaySpinner
-            } else if (obj is Slider) {
-                val gameplaySlider = GameObjectPool.getInstance().slider
-
-                gameplaySlider.init(this, objectPlayfield, stat, obj, playableBeatmap.controlPoints,
-                    comboColor, sliderBorderColor!!, getSliderPath(sliderIndex), getSliderRenderPath(sliderIndex))
-
-                ++sliderIndex
-                addObject(gameplaySlider)
-
-                if (context.isAutoplay) {
-                    gameplaySlider.setAutoPlay()
-                }
-
-                gameplaySlider.setId(++lastObjectId)
-                if (replaying) {
-                    gameplaySlider.setReplayData(replay!!.objectData!![gameplaySlider.getId()])
-                    if (gameplaySlider.getReplayData()!!.tickSet == null)
-                        gameplaySlider.getReplayData()!!.tickSet = BitSet()
-                }
-
-                gameObject = gameplaySlider
-            }
-
-            gameObject?.updateJudgement(lifetimeDt)
-        }
+        val isPastMusic = spawner.spawn(time, controlPoints.timingPoint, totalLength, ::onObjectLifetimeStart)
 
         if (context.isPerfect && stat.hit100 + stat.hit50 + stat.misses > 0) {
             gameover()
@@ -1532,11 +1077,102 @@ class GameplaySession(
             }
         }
 
+        updateMetronomeAndMuted()
+
+        if (updateEnd(dt, isPastMusic)) {
+            return
+        }
+
+        if (updateSkipButton()) {
+            return
+        }
+
+        if (postSeekFrameCount > 0) {
+            postSeekFrameCount--
+        }
+    }
+
+    // Follows the rate of the mods changing it over time and of the replay panel.
+    private fun updateRate() {
+        val modRate = rateAdjustingMods.calculateRate((gameplayClock.time * 1000).toDouble())
+        val replaySettingsRate = replaySettingsPanel?.playbackControl?.rateControl?.rate ?: 1f
+        val currentSpeedMultiplier = modRate * replaySettingsRate
+
+        if (currentSpeedMultiplier != context.timing.speedMultiplier) {
+            context.timing.speedMultiplier = currentSpeedMultiplier
+            gameplayClock.rate = currentSpeedMultiplier
+
+            video.setPlaybackSpeed(currentSpeedMultiplier)
+
+            val music = OsuGame.music
+            music.speed = modRate
+            music.setPitchRate(replaySettingsRate)
+        }
+    }
+
+    // Called once health ran out and no life is left: the play fails, though it goes on in multiplayer.
+    // Returns whether the frame ends there.
+    private fun onHealthDepleted(): Boolean {
+        if (Multiplayer.isMultiplayer) {
+            if (!hasFailed) {
+                Toasts.show("You failed but you can continue playing.")
+            }
+            hasFailed = true
+            return false
+        }
+
+        gameover()
+        return true
+    }
+
+    private fun updateComboBurst() {
+        val comboBurst = comboBurst ?: return
+
+        if (stat.combo == 0) {
+            comboBurst.breakCombo()
+        } else {
+            comboBurst.checkAndShow(stat.combo)
+        }
+    }
+
+    private fun removeExpiredObjects() {
+        processedExpiredObjects.clear()
+
+        if (expiredObjects.isEmpty()) {
+            return
+        }
+
+        for (i in 0 until expiredObjects.size) {
+            val obj = expiredObjects[i]
+
+            if (processedExpiredObjects.add(obj)) {
+                obj.onExpire()
+            }
+        }
+
+        activeObjects.removeAll(expiredObjects)
+        expiredObjects.clear()
+    }
+
+    private fun onObjectLifetimeStart() {
+        gameStarted = true
+
+        if (unrankedSprite != null) {
+            unrankedSprite!!.choreographAt(1.5f) { sequence -> sequence
+                .scaleTo(1.5f, 0.5f)
+                .fadeOut(0.5f) }
+
+            // Make it null to avoid multiple entity modifier registration
+            unrankedSprite = null
+        }
+    }
+
+    // The metronome, and the volume of the music under Muted.
+    private fun updateMetronomeAndMuted() {
         val mutedMod = context.muted
 
-        // 节拍器
         if (metronome != null) {
-            metronome!!.update(gameplayClock.time, activeTimingPoint)
+            metronome!!.update(gameplayClock.time, controlPoints.timingPoint)
 
             if (mutedMod != null) {
                 metronome!!.setVolume(1 - mutedMod.volumeAt(stat.combo))
@@ -1547,8 +1183,14 @@ class GameplaySession(
             OsuGame.music.volume =
                 OsuSettings.musicVolume * mutedMod.volumeAt(stat.combo)
         }
+    }
 
-        if (shouldBePunished || (!isGameOver && objectIndex >= objects.size && areObjectsJudged(activeObjects) && leadOut > 2)) {
+    // Ends the attempt two seconds after its last object is judged, or once an object starts after the music.
+    // Returns whether the frame ends there, as the HUD editor plays the attempt again.
+    private fun updateEnd(dt: Float, isPastMusic: Boolean): Boolean {
+        val isJudged = spawner.isDone && areObjectsJudged(activeObjects)
+
+        if (isPastMusic || (!isGameOver && isJudged && leadOut > 2)) {
 
             // Reset the game to continue the HUD editor session.
             if (startedFromHUDEditor && isHUDEditorMode) {
@@ -1557,15 +1199,20 @@ class GameplaySession(
                 applyBackground()
                 stat.reset()
                 skip(true)
-                return
+                return true
             }
 
             finish()
-        } else if (objectIndex >= objects.size && areObjectsJudged(activeObjects)) {
+        } else if (isJudged) {
             gameStarted = false
             leadOut += dt
         }
 
+        return false
+    }
+
+    // Removes the skip button once the intro is over, or skips once it's pressed. Returns whether the frame ends there.
+    private fun updateSkipButton(): Boolean {
         if (gameplayClock.time > skipTime - 1f && skipBtn != null) {
             multiplayer.hideChat()
             skipBtn!!.removeSelf()
@@ -1581,21 +1228,19 @@ class GameplaySession(
                             SkinSounds.get("menuhit")!!.play()
                             skipBtn!!.isVisible = false
                         }
-                        return
+                        return true
                     }
                     if (skipBtn != null) {
                         skipBtn!!.removeSelf()
                         skipBtn = null
                     }
                     skip()
-                    return
+                    return true
                 }
             }
         }
 
-        if (postSeekFrameCount > 0) {
-            postSeekFrameCount--
-        }
+        return false
     }
 
     // Ends the attempt once its objects are judged: its replay is saved and its results are shown.
@@ -1725,9 +1370,7 @@ class GameplaySession(
         updateThread {
             updatePassiveObjects(difference)
 
-            if (videoEnabled && video != null) {
-                video!!.seekTo(max(0, ((gameplayClock.time - videoOffset) * 1000).toInt()))
-            }
+            video.seekTo(gameplayClock.time)
 
             if (skipBtn != null) {
                 skipBtn!!.removeSelf()
@@ -1851,7 +1494,7 @@ class GameplaySession(
         val acc = accuracy
 
         if (context.isAutoplay) {
-            autoCursor!!.click()
+            cursorPresenter.autoCursor!!.click()
             hud.onGameplayTouchDown(parsedBeatmap.hitObjects.objects[id].startTime.toFloat() / 1000)
         }
 
@@ -1865,17 +1508,10 @@ class GameplaySession(
         // Autoplay/Autopilot synthesize their own cursor movement rather than using real touch input, so
         // real touch events (e.g. a resting finger) must not be picked up as the "cursor position" here.
         val isCursorTrackingActive = !context.isAutoplay && !context.isAutopilot
-        val nearestCursorId = if (isCursorTrackingActive) getNearestCursorId(pos.x, pos.y) else -1
+        val nearestCursorId = if (isCursorTrackingActive) cursorPresenter.nearestCursor(pos.x, pos.y) else -1
 
-        if (context.isFlashlight && isCursorTrackingActive) {
-            if (nearestCursorId >= 0) {
-                mainCursorId = nearestCursorId
-                val latestNonUpEvent = cursors[mainCursorId]!!.getLatestNonUpEvent()
-
-                if (latestNonUpEvent != null) {
-                    flashlightSprite!!.onMouseMove(latestNonUpEvent.position.x, latestNonUpEvent.position.y)
-                }
-            }
+        if (context.isFlashlight && isCursorTrackingActive && nearestCursorId >= 0) {
+            cursorPresenter.followCursor(nearestCursorId)
         }
         GameplayVibrations.circle()
 
@@ -1913,16 +1549,11 @@ class GameplaySession(
         var nearestCursorId = -1
 
         if (isFlashlightActive || isSliderHeadHit) {
-            nearestCursorId = getNearestCursorId(judgementPos.x, judgementPos.y)
+            nearestCursorId = cursorPresenter.nearestCursor(judgementPos.x, judgementPos.y)
         }
 
         if (isFlashlightActive && nearestCursorId >= 0) {
-            mainCursorId = nearestCursorId
-            val latestNonUpEvent = cursors[mainCursorId]!!.getLatestNonUpEvent()
-
-            if (latestNonUpEvent != null) {
-                flashlightSprite!!.onMouseMove(latestNonUpEvent.position.x, latestNonUpEvent.position.y)
-            }
+            cursorPresenter.followCursor(nearestCursorId)
         }
 
         GameplayVibrations.slider()
@@ -1991,7 +1622,7 @@ class GameplaySession(
 
     override fun onSpinnerStart(id: Int) {
         if (context.isAutoplay) {
-            autoCursor!!.click()
+            cursorPresenter.autoCursor!!.click()
             hud.onGameplayTouchDown(parsedBeatmap.hitObjects.objects[id].startTime.toFloat() / 1000)
         }
     }
@@ -2126,10 +1757,7 @@ class GameplaySession(
             }
         }
 
-        val sprite = if (!context.isAutoplay && !context.isAutopilot && cursorSprites != null)
-            cursorSprites!![id]
-        else
-            null
+        val sprite = cursorPresenter.sprite(id)
 
         val position = playfield.toLocalSpaceFromScene(event.x, event.y)
         val cursorEvent = CursorEvent.obtain(event, position.x, position.y, objectPlayfield.mapping, context.isHardRock)
@@ -2197,7 +1825,7 @@ class GameplaySession(
                 replay?.addUp(time.toInt(), i)
             }
 
-            cursorSprites?.get(i)?.setShowing(false)
+            cursorPresenter.sprite(i)?.setShowing(false)
         }
     }
 
@@ -2229,9 +1857,7 @@ class GameplaySession(
             return
         }
 
-        if (video != null && videoStarted) {
-            video!!.pause()
-        }
+        video.pause()
 
         stopLoopingSamples()
 
@@ -2277,7 +1903,7 @@ class GameplaySession(
         val music = OsuGame.music
 
         if (context.isPerfect) {
-            video?.pause()
+            video.pause()
 
             gameplayClock.pause()
             paused = true
@@ -2366,15 +1992,11 @@ class GameplaySession(
                 val decreasedFrequency = max(101f, music.frequency - 300)
                 val decreasedSpeed = context.timing.speedMultiplier * (1 - (initialFrequency - decreasedFrequency) / initialFrequency)
 
-                if (videoEnabled && video != null) {
-                    video!!.setPlaybackSpeed(decreasedSpeed)
-                }
+                video.setPlaybackSpeed(decreasedSpeed)
 
                 music.setFrequencyForcefully(decreasedFrequency)
             } else {
-                if (videoEnabled && video != null) {
-                    video!!.pause()
-                }
+                video.pause()
 
                 // Ensure music frequency is reset back to what it was.
                 music.setFrequencyForcefully(initialFrequency)
@@ -2415,9 +2037,7 @@ class GameplaySession(
             && (replaySettingsPanel == null || !replaySettingsPanel!!.playbackControl.seekControl.isPlaybackPaused)) {
             gameplayClock.start()
 
-            if (video != null && videoStarted) {
-                video!!.play()
-            }
+            video.resume()
 
             playLoopingSamples()
         }
@@ -2451,7 +2071,7 @@ class GameplaySession(
     override fun onSliderEnd(id: Int, accuracy: Int, tickSet: BitSet?) {
         onTrackingSliders(false)
         if (context.isAutoplay) {
-            autoCursor!!.onSliderEnd()
+            cursorPresenter.autoCursor!!.onSliderEnd()
         }
         if (replay != null && !replaying) {
             val acc = accuracy.toShort()
@@ -2461,16 +2081,16 @@ class GameplaySession(
 
     override fun onTrackingSliders(isTrackingSliders: Boolean) {
         if (context.isAutoplay && isTrackingSliders) {
-            autoCursor!!.onSliderTracking()
+            cursorPresenter.autoCursor!!.onSliderTracking()
         }
         if (context.isFlashlight) {
-            flashlightSprite!!.onTrackingSliders(isTrackingSliders)
+            cursorPresenter.flashlight!!.onTrackingSliders(isTrackingSliders)
         }
     }
 
     override fun onUpdatedAutoCursor(pX: Float, pY: Float) {
         if (context.isFlashlight) {
-            flashlightSprite!!.onMouseMove(pX, pY)
+            cursorPresenter.flashlight!!.onMouseMove(pX, pY)
         }
     }
 
@@ -2478,32 +2098,12 @@ class GameplaySession(
         if (context.isAutoplay || context.isAutopilot) {
             // The cursor is in the space gameplay is laid out in.
             val position = objectPlayfield.mapping.toResolution(pX, pY)
-            autoCursor!!.setPosition(position.x, position.y, this)
+            cursorPresenter.autoCursor!!.setPosition(position.x, position.y, this)
         }
     }
 
     override val playfieldMapping
         get() = objectPlayfield.mapping
-
-    private fun getNearestCursorId(pX: Float, pY: Float): Int {
-        var nearestDistance = Float.POSITIVE_INFINITY
-        var id = -1
-
-        for (i in cursors.indices) {
-            val latestEvent = cursors[i]!!.getLatestNonUpEvent()
-
-            if (latestEvent != null) {
-                val distance = Utils.squaredDistance(pX, pY, latestEvent.playfieldPosition.x, latestEvent.playfieldPosition.y)
-
-                if (distance < nearestDistance) {
-                    id = i
-                    nearestDistance = distance
-                }
-            }
-        }
-
-        return id
-    }
 
     private fun getSliderPath(index: Int): SliderPath = loaded.sliderPaths[index]
 
@@ -2544,10 +2144,9 @@ class GameplaySession(
                 stat.registerHit(0, false, false)
                 replay.addObjectScore(obj.getId(), ResultType.MISS)
             }
-            while (objectIndex < objects.size) {
-                ++objectIndex
+            spawner.skipRemaining { id ->
                 stat.registerHit(0, false, false)
-                replay.addObjectScore(++lastObjectId, ResultType.MISS)
+                replay.addObjectScore(id, ResultType.MISS)
             }
 
             val currentTime = currentTimeMillis().toString()
@@ -2745,11 +2344,6 @@ class GameplaySession(
         // Remove follow points spawned for objects before the seek point.
         FollowPointConnection.clearAll(objectPlayfield.underlay)
 
-        // Reset spawn counters.
-        objectIndex = 0
-        followPointIndex = 0
-        sliderIndex = 0
-        lastObjectId = -1
         gameStarted = false
         leadOut = 0f
         scoreProcessor.resetCombo()
@@ -2758,7 +2352,7 @@ class GameplaySession(
         hasFailed = false
 
         // Reset auto cursor modifiers.
-        autoCursor?.stopMoving()
+        cursorPresenter.autoCursor?.stopMoving()
 
         // Clear pending cursor events.
         for (i in cursors.indices) {
@@ -2774,18 +2368,11 @@ class GameplaySession(
         // Advance timing and effect control points to the target time.
         controlPoints.seekTo(targetMs)
 
-        // Reset replay cursor movement indices.
-        if (replaying) {
-            replay!!.cursorIndex.fill(0)
-            replay!!.lastMoveIndex.fill(-1)
-        }
-
         // Reconstruct scoring state up to the seek target.
         val reconstruction = scoreReconstruction.reconstruct(targetMs, if (replaying) replay!!.objectData else null)
 
-        objectIndex = reconstruction.objectCount
-        lastObjectId = objectIndex - 1
-        sliderIndex = (0 until objectIndex).count { objects[it] is Slider }
+        // Objects are spawned again from the first one not judged.
+        spawner.seekTo(reconstruction.objectCount)
 
         if (reconstruction.isStarted) {
             gameStarted = true
@@ -2804,43 +2391,23 @@ class GameplaySession(
         hud.onSeek()
 
         // Replay all touch-down events up to the seek target so HUD elements
-        // that depend on touch history can reconstruct their state correctly.
-        if (context.isAutoplay || replaying) {
-            if (context.isAutoplay) {
-                for (i in objects.indices) {
-                    val tapTime = objects[i].startTime.toFloat() / 1000f
+        // that depend on touch history can reconstruct their state correctly. A replay's cursor movements are
+        // played back from the start again.
+        if (context.isAutoplay) {
+            for (i in objects.indices) {
+                val tapTime = objects[i].startTime.toFloat() / 1000f
 
-                    if (tapTime > clampedTime) {
-                        break
-                    }
-
-                    hud.onGameplayTouchDown(tapTime)
+                if (tapTime > clampedTime) {
+                    break
                 }
-            } else {
-                val replay = replay!!
-                val cursorCount = replay.cursorMoves.size
 
-                for (i in 0 until cursorCount) {
-                    val moveArray = replay.cursorMoves[i]
-
-                    for (j in 0 until moveArray.size) {
-                        val movement = moveArray.movements[j]
-
-                        val tapTime = movement.time / 1000f
-
-                        if (tapTime > clampedTime) {
-                            break
-                        }
-
-                        if (movement.touchType == TouchType.DOWN) {
-                            hud.onGameplayTouchDown(tapTime)
-                        }
-                    }
-                }
+                hud.onGameplayTouchDown(tapTime)
             }
+        } else {
+            replayInput?.seekTo(clampedTime)
         }
 
-        updatePPValue(objectIndex - 1)
+        updatePPValue(spawner.objectIndex - 1)
 
         // For variable-rate mods (WindUp/WindDown), the rate at the seek target may differ from
         // the current rate. FramedBeatmapClock.seek() subtracts (userGlobalOffset * rate) from the
@@ -2862,9 +2429,7 @@ class GameplaySession(
         gameplayClock.seek(clampedTime)
 
         // Seek video.
-        if (videoEnabled && video != null) {
-            video!!.seekTo(max(0, ((clampedTime - videoOffset) * 1000).toInt()))
-        }
+        video.seekTo(clampedTime)
 
         // Suppress hitsounds for slider objects (head, ticks, repeats) that have already passed the seek target.
         // Objects are spawned in the same frame as seekTo runs, but updated in the next frame,
