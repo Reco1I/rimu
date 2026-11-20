@@ -12,7 +12,7 @@ import com.reco1l.verktex.ui.text.TextAlign
 import kotlin.math.max
 
 /**
- * A number of the HUD in the default skin: Fredoka, as tall as the digits of the font it replaces ([digitHeight], the
+ * A number of the HUD in the default skin: Anta, at its own single weight, as tall as the digits of the font it replaces ([digitHeight], the
  * height of the default `score-0`…), so it takes the space of a texture font in the HUD's layout.
  *
  * Each character is its own text in a cell, so digits can all have the width of the widest, as a texture font's do
@@ -33,12 +33,12 @@ class DefaultNumberText(override val digitHeight: Float) : NumberText() {
 
     init {
         // The size whose digits are digitHeight tall, from their height at 100 pixels.
-        val probe = BuiltIn.Fonts.Fredoka[100f.px, Font.Weight.Bold]
+        val probe = BuiltIn.Fonts.Anta[100f.px]
         // The bearing is negative upwards from the baseline.
         val digitRatio = -probe['0'.code].bearingY / 100f
         val fontSize = digitHeight / max(digitRatio, 0.01f)
 
-        font = BuiltIn.Fonts.Fredoka[(fontSize * resolution).px, Font.Weight.Bold]
+        font = BuiltIn.Fonts.Anta[(fontSize * resolution).px]
         // The baseline is below the top of a line by the ascent, which is negative, and the top of the digits
         // above it by their bearing, negative too.
         digitTop = (-font.metrics.ascent + font['0'.code].bearingY) / resolution
@@ -105,7 +105,7 @@ class DefaultNumberText(override val digitHeight: Float) : NumberText() {
             texts += Text().apply {
                 origin = Anchor.TopLeft
                 scaleOrigin = Anchor.TopLeft
-                fontFamily = BuiltIn.Fonts.Fredoka
+                fontFamily = BuiltIn.Fonts.Anta
                 fontWeight = font.descriptor.weight
                 fontSize = font.descriptor.size
                 scale = 1f / resolution

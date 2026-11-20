@@ -101,7 +101,7 @@ pieces draw inside those bounds.
 | Cursor | 128×128 |
 | Spinner | stable's pieces in the 640×480 space: `spinner-circle` 512, the approach circle 320 at 1x, the metre over the playfield, "clear" and the bonus at stable's positions |
 | Health bar | `scorebar-bg`'s size, with the fill and marker where the textures put them |
-| Score, combo and accuracy numbers | the height and digit advance of the default `score-*` digits, so a Fredoka number takes the space of a texture one |
+| Score, combo and accuracy numbers | the height and digit advance of the default `score-*` digits, so an Anta number takes the space of a texture one |
 
 The sizes in this table are checked against stable and against today's default textures in phase 1, before any
 procedural piece is drawn. A unit test checks that each procedural piece reports the size of the texture it
@@ -116,7 +116,7 @@ The pieces are built from what Verktex already has:
 - `Shadow(cutout = true)`: glows;
 - `Circle.setPortion` and `drawArcStroke`: arcs;
 - `PathShape`'s bands: the slider body;
-- `Text` in Fredoka (`fredoka-variable-wdth-wght.ttf`, in Verktex, at its bold weight) and FontAwesome icons (`fa-solid.otf`): numbers and
+- `Text` in Fredoka (`fredoka-variable-wdth-wght.ttf`, in Verktex, at its bold weight) and FontAwesome icons (`fa-solid.otf`): the circles' numbers, the spinner and the judgements; the HUD's numbers in Anta (`anta-regular-static.ttf`, its single weight); and
   arrows;
 - `BlendMode.Additive`: flashes.
 
@@ -149,7 +149,7 @@ Colours:
 They are small, and each is added only when a phase needs it:
 
 - **An arc component** over `drawArcStroke`, with `progress` and rounded caps, for the spinner and the health bar.
-- **Fixed-width digits in `Text`** (Fredoka has tabular figures; otherwise each digit gets a fixed advance), so
+- **Fixed-width digits in `Text`** (each digit gets the advance of the widest), so
   counters don't jitter. `TextureText.fixedCharWidths` already does this for texture fonts.
 - **A texture from a `PixelBuffer`**, made at runtime, for the trail's particles. Check first whether `Textures`
   can already do it.
@@ -160,7 +160,7 @@ They are small, and each is added only when a phase needs it:
 The HUD already has a registry of components (`HUDElements` and its skin data).
 
 - **Numbers:** `HUDScoreCounter`, `HUDAccuracyCounter`, `HUDPPCounter` and `HUDComboCounter` use the skin's
-  `SpriteFont` when it has the font's digits (`score-0`… with its prefix), and otherwise a Fredoka `Text` with
+  `SpriteFont` when it has the font's digits (`score-0`… with its prefix), and otherwise an Anta `Text` with
   fixed-width digits.
 - **Health bar:** `HUDHealthBar` gets a procedural style for skins without `scorebar-bg`: a rounded track with a fill
   gradient and a glowing marker at its end. It sits next to the existing new and old texture styles.
