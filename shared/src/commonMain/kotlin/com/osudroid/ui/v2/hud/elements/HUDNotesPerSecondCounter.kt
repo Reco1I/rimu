@@ -1,7 +1,6 @@
 package com.osudroid.ui.v2.hud.elements
 
 import com.osudroid.beatmaps.hitobjects.HitObject
-import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 
 class HUDNotesPerSecondCounter : HUDStatisticCounter("Notes/sec") {
@@ -24,7 +23,7 @@ class HUDNotesPerSecondCounter : HUDStatisticCounter("Notes/sec") {
         while (objects.isNotEmpty()) {
             val obj = objects.first()
 
-            if (obj.startTime - obj.timePreempt + 1000 * GameHelper.getSpeedMultiplier() >= elapsedTimeMs) {
+            if (obj.startTime - obj.timePreempt + 1000 * gameScene.context.timing.speedMultiplier >= elapsedTimeMs) {
                 break
             }
 

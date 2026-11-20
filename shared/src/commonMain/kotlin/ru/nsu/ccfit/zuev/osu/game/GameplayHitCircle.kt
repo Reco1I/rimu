@@ -59,6 +59,7 @@ class GameplayHitCircle : GameObject() {
 
         endsCombo = beatmapCircle.isLastInCombo
         this.listener = listener
+        context = listener.context
         this.playfield = playfield
         timePreempt = beatmapCircle.timePreempt.toFloat() / 1000
 
@@ -70,7 +71,7 @@ class GameplayHitCircle : GameObject() {
         startHit = false
         successfulHit = false
         judgement = null
-        kiai = (GameHelper.isKiai() && !OsuSkin.get().isDisableKiai)
+        kiai = (context.timing.isKiai && !OsuSkin.get().isDisableKiai)
         this.comboColor = comboColor
 
         val initialModifierTime = hitTime - timePreempt
@@ -90,16 +91,16 @@ class GameplayHitCircle : GameObject() {
 
         circlePiece.setComboNumber(comboNum)
         circlePiece.showNumber()
-        circlePiece.isVisible = !GameHelper.isTraceable() ||
-            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapCircle)
+        circlePiece.isVisible = !context.isTraceable ||
+            (Settings[OsuSettings.ShowFirstApproachCircle] && context.traceable!!.firstObject === beatmapCircle)
 
-        approachCircle = if (GameHelper.isTraceable()) traceableApproachCircle else normalApproachCircle
+        approachCircle = if (context.isTraceable) traceableApproachCircle else normalApproachCircle
         approachCircle.color = comboColor
-        approachCircle.scale = scale * 3 * (beatmapCircle.timePreempt / GameHelper.getOriginalTimePreempt()).toFloat()
+        approachCircle.scale = scale * 3 * (beatmapCircle.timePreempt / context.originalTimePreempt).toFloat()
         approachCircle.alpha = 0f
         approachCircle.setPosition(this.position.x, this.position.y)
-        approachCircle.isVisible = !GameHelper.isHidden() ||
-            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getHidden()!!.firstObject === beatmapCircle)
+        approachCircle.isVisible = !context.isHidden ||
+            (Settings[OsuSettings.ShowFirstApproachCircle] && context.hidden!!.firstObject === beatmapCircle)
 
         // Newer objects are below older ones.
         playfield.objects.add(0, this)
@@ -107,7 +108,7 @@ class GameplayHitCircle : GameObject() {
         this += approachCircle
         drawIn(playfield.approachCircles, approachCircle)
 
-        val fadeOutCircle = GameHelper.isHidden() && !GameHelper.getHidden()!!.onlyFadeApproachCircles
+        val fadeOutCircle = context.fadesOutObjects
 
         circlePiece.choreographAt(initialModifierTime) { sequence ->
             sequence.fadeIn(fadeInDuration)
@@ -126,7 +127,7 @@ class GameplayHitCircle : GameObject() {
 
         if (approachCircle.isVisible) {
             val easing: Easing
-            val approachDifferentMod = GameHelper.getApproachDifferent()
+            val approachDifferentMod = context.approachDifferent
 
             if (approachDifferentMod != null) {
                 approachCircle.scale = scale * approachDifferentMod.scale
@@ -157,8 +158,8 @@ class GameplayHitCircle : GameObject() {
             val gameplaySample = GameplayHitSampleInfo.obtain()
             gameplaySample.init(parsedSamples[i])
 
-            if (GameHelper.isSamplesMatchPlaybackRate()) {
-                gameplaySample.frequency = GameHelper.getSpeedMultiplier()
+            if (context.samplesMatchPlaybackRate) {
+                gameplaySample.frequency = context.timing.speedMultiplier
             }
 
             hitSamples.add(gameplaySample)
@@ -259,8 +260,8 @@ class GameplayHitCircle : GameObject() {
         }
 
         if (circlePiece.isVisible) {
-            if ((GameHelper.isKiai() && !OsuSkin.get().isDisableKiai)) {
-                val kiaiModifier = max(0.0, 1 - GameHelper.getCurrentBeatTime() / GameHelper.getBeatLength()).toFloat() * 0.5f
+            if ((context.timing.isKiai && !OsuSkin.get().isDisableKiai)) {
+                val kiaiModifier = max(0.0, 1 - context.timing.currentBeatTime / context.timing.beatLength).toFloat() * 0.5f
                 val r = min(1f, comboColor.red + (1 - comboColor.red) * kiaiModifier)
                 val g = min(1f, comboColor.green + (1 - comboColor.green) * kiaiModifier)
                 val b = min(1f, comboColor.blue + (1 - comboColor.blue) * kiaiModifier)

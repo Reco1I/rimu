@@ -126,6 +126,7 @@ class GameplaySpinner(
         }
 
         this.listener = listener
+        context = listener.context
         layoutInSpace(listener.playfieldMapping)
         this.stat = stat
         clear = duration <= 0f
@@ -138,10 +139,10 @@ class GameplaySpinner(
         val timePreempt = beatmapSpinner.timePreempt.toFloat() / 1000f
         passedTime = -timePreempt
 
-        val isBackgroundVisible = !GameHelper.isTraceable() ||
-            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapSpinner)
+        val isBackgroundVisible = !context.isTraceable ||
+            (Settings[OsuSettings.ShowFirstApproachCircle] && context.traceable!!.firstObject === beatmapSpinner)
 
-        piece.start(hitTime, duration, timePreempt, isBackgroundVisible, isApproachCircleVisible = !GameHelper.isHidden())
+        piece.start(hitTime, duration, timePreempt, isBackgroundVisible, isApproachCircleVisible = !context.isHidden)
         rpmCounter.attach(scene, listener.playfieldMapping, hitTime, hitTime + duration)
 
         oldMouse = null
@@ -330,7 +331,7 @@ class GameplaySpinner(
                 dfill = 5 * 4 * dt
                 rotation = (rotations + dfill / 4f) * 360
                 //auto时，FL光圈绕中心旋转
-                if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
+                if (context.isAutoplay || context.isAutopilot) {
                     val angle = (rotations + dfill / 4f) * 360
                     val pX = center.x + 50 * sin(angle.toDouble()).toFloat()
                     val pY = center.y + 50 * cos(angle.toDouble()).toFloat()
@@ -371,8 +372,8 @@ class GameplaySpinner(
                     bonusScoreCounter++
                     spinnerBonusSample.play()
                     var rate = 0.375f
-                    if (GameHelper.getHealthDrain() > 0) {
-                        rate = 1 + (GameHelper.getHealthDrain() / 4f)
+                    if (context.healthDrain > 0) {
+                        rate = 1 + (context.healthDrain / 4f)
                     }
                     stat.changeHp(rate * 0.01f * duration / needRotations)
                 }
@@ -383,8 +384,8 @@ class GameplaySpinner(
                     fullRotations++
                     stat.registerSpinnerHit()
                     var rate = 0.375f
-                    if (GameHelper.getHealthDrain() > 0) {
-                        rate = 1 + (GameHelper.getHealthDrain() / 2f)
+                    if (context.healthDrain > 0) {
+                        rate = 1 + (context.healthDrain / 2f)
                     }
                     stat.changeHp(rate * 0.01f * duration / needRotations)
                 }
@@ -437,8 +438,8 @@ class GameplaySpinner(
                 listener.onSpinnerHit(id, 1000, false, 0)
                 var rate = 0.375f
 
-                if (GameHelper.getHealthDrain() > 0) {
-                    rate = 1 + (GameHelper.getHealthDrain() / 4f)
+                if (context.healthDrain > 0) {
+                    rate = 1 + (context.healthDrain / 4f)
                 }
 
                 stat.changeHp(rate * 0.01f * duration / needRotations)
@@ -454,8 +455,8 @@ class GameplaySpinner(
                 stat.registerSpinnerHit()
                 var rate = 0.375f
 
-                if (GameHelper.getHealthDrain() > 0) {
-                    rate = 1 + (GameHelper.getHealthDrain() / 2f)
+                if (context.healthDrain > 0) {
+                    rate = 1 + (context.healthDrain / 2f)
                 }
 
                 stat.changeHp(rate * 0.01f * duration / needRotations)
@@ -470,8 +471,8 @@ class GameplaySpinner(
                     listener.onSpinnerHit(id, 1000, false, 0)
                     var rate = 0.375f
 
-                    if (GameHelper.getHealthDrain() > 0) {
-                        rate = 1 + (GameHelper.getHealthDrain() / 4f)
+                    if (context.healthDrain > 0) {
+                        rate = 1 + (context.healthDrain / 4f)
                     }
 
                     stat.changeHp(rate * 0.01f * duration / needRotations)
@@ -491,8 +492,8 @@ class GameplaySpinner(
             val gameplaySample = GameplayHitSampleInfo.obtain()
             gameplaySample.init(parsedSamples[i])
 
-            if (GameHelper.isSamplesMatchPlaybackRate()) {
-                gameplaySample.frequency = GameHelper.getSpeedMultiplier()
+            if (context.samplesMatchPlaybackRate) {
+                gameplaySample.frequency = context.timing.speedMultiplier
             }
 
             hitSamples.add(gameplaySample)
@@ -524,7 +525,7 @@ class GameplaySpinner(
 
         spinnerSpinSample.isLooping = true
 
-        val muted = GameHelper.getMuted()
+        val muted = context.muted
 
         if (muted != null && muted.affectsHitSounds) {
             val volume = muted.volumeAt(stat!!.combo)
@@ -556,7 +557,7 @@ class GameplaySpinner(
     }
 
     private fun updateSpinSampleFrequency(progress: Float) {
-        val applyTrackRate = GameHelper.isSamplesMatchPlaybackRate()
+        val applyTrackRate = context.samplesMatchPlaybackRate
 
         if (isSpinnerFrequencyModulate) {
             // Note that osu!stable sets the frequency directly at BassSoundProvider level.
@@ -564,12 +565,12 @@ class GameplaySpinner(
             var frequency = min(100000f, 20000 + 40000 * progress) / MusicService.DEFAULT_FREQUENCY
 
             if (applyTrackRate) {
-                frequency *= GameHelper.getSpeedMultiplier()
+                frequency *= context.timing.speedMultiplier
             }
 
             spinnerSpinSample.frequency = frequency
         } else if (applyTrackRate) {
-            spinnerSpinSample.frequency = GameHelper.getSpeedMultiplier()
+            spinnerSpinSample.frequency = context.timing.speedMultiplier
         } else {
             spinnerSpinSample.frequency = 1f
         }

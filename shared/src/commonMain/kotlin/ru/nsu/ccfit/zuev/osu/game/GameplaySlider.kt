@@ -14,6 +14,7 @@ import com.osudroid.beatmaps.sections.BeatmapControlPoints
 import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.GameplaySequenceHitSampleInfo
+import com.osudroid.game.SliderPath
 import com.reco1l.verktex.math.Path
 import com.reco1l.verktex.ui.shape.PathShape
 import com.osudroid.math.MathUtils
@@ -41,7 +42,6 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.Utils
-import ru.nsu.ccfit.zuev.osu.game.GameHelper.SliderPath
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
@@ -167,6 +167,7 @@ class GameplaySlider : GameObject() {
              beatmapSlider: Slider, controlPoints: BeatmapControlPoints, comboColor: Color4,
              borderColor: Color4, sliderPath: SliderPath, renderPath: Path) {
         this.listener = listener
+        context = listener.context
         this.playfield = playfield
         effectsPlayfield = playfield
 
@@ -209,7 +210,7 @@ class GameplaySlider : GameObject() {
         replayTickIndex = 0
         firstHitAccuracy = 0
         tickSet.clear()
-        kiai = (GameHelper.isKiai() && !OsuSkin.get().isDisableKiai)
+        kiai = (context.timing.isKiai && !OsuSkin.get().isDisableKiai)
         preStageFinish = false
         superPathMaxLength = 0f
         lastSnakeInLength = Float.NaN
@@ -223,8 +224,8 @@ class GameplaySlider : GameObject() {
         circleColor = comboColor
         currentNestedObjectIndex = 0
 
-        val applyIncreasedVisibilityToCirclePiece = !GameHelper.isTraceable() ||
-            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getTraceable()!!.firstObject === beatmapSlider)
+        val applyIncreasedVisibilityToCirclePiece = !context.isTraceable ||
+            (Settings[OsuSettings.ShowFirstApproachCircle] && context.traceable!!.firstObject === beatmapSlider)
 
         // Start circle piece
         headCirclePiece.showAsSliderEnd(false)
@@ -240,13 +241,13 @@ class GameplaySlider : GameObject() {
         headCirclePiece.setComboNumber(comboNum)
         headCirclePiece.isVisible = applyIncreasedVisibilityToCirclePiece
 
-        approachCircle = if (GameHelper.isTraceable()) traceableApproachCircle else normalApproachCircle
+        approachCircle = if (context.isTraceable) traceableApproachCircle else normalApproachCircle
         approachCircle.color = comboColor
-        approachCircle.scale = scale * 3 * (beatmapSlider.timePreempt / GameHelper.getOriginalTimePreempt()).toFloat()
+        approachCircle.scale = scale * 3 * (beatmapSlider.timePreempt / context.originalTimePreempt).toFloat()
         approachCircle.alpha = 0f
         approachCircle.setPosition(this.position.x, this.position.y)
-        approachCircle.isVisible = !GameHelper.isHidden() ||
-            (Settings[OsuSettings.ShowFirstApproachCircle] && GameHelper.getHidden()!!.firstObject === beatmapSlider)
+        approachCircle.isVisible = !context.isHidden ||
+            (Settings[OsuSettings.ShowFirstApproachCircle] && context.hidden!!.firstObject === beatmapSlider)
 
         add(0, headCirclePiece)
         this += approachCircle
@@ -256,7 +257,7 @@ class GameplaySlider : GameObject() {
         getPositionAt(1f, false, false)
         pathEndPosition.set(tmpPoint.x, tmpPoint.y)
 
-        val initialTailColor = if (GameHelper.isSynesthesia())
+        val initialTailColor = if (context.isSynesthesia)
             getSynesthesiaComboColor(beatmapSlider.startTime + beatmapSlider.spanDuration)
         else
             comboColor
@@ -312,7 +313,7 @@ class GameplaySlider : GameObject() {
 
         choreographHead(fadesOutWhenMissed = true)
 
-        if (GameHelper.isHidden() && !GameHelper.getHidden()!!.onlyFadeApproachCircles) {
+        if (context.fadesOutObjects) {
             val fadeOutDuration = timePreempt * ModHidden.FADE_OUT_DURATION_MULTIPLIER.toFloat()
             val finalTailAlpha = (headFadeIn - fadeInDelay) / headFadeIn
 
@@ -329,7 +330,7 @@ class GameplaySlider : GameObject() {
 
         if (approachCircle.isVisible) {
             val easing: Easing
-            val approachDifferentMod = GameHelper.getApproachDifferent()
+            val approachDifferentMod = context.approachDifferent
 
             if (approachDifferentMod != null) {
                 approachCircle.scale = scale * approachDifferentMod.scale
@@ -361,7 +362,7 @@ class GameplaySlider : GameObject() {
         superPathMaxLength = sliderBody.length
 
         // Head circle not being visible means Traceable is applied to this slider: only the border is drawn.
-        if (GameHelper.isTraceable() && !headCirclePiece.isVisible) {
+        if (context.isTraceable && !headCirclePiece.isVisible) {
             sliderBody.bodyColor = Color4(0f, 0f, 0f, 0f)
             sliderBody.bodyCenterColor = null
         }
@@ -370,7 +371,7 @@ class GameplaySlider : GameObject() {
         add(0, sliderBody)
 
         // Ticks are scaled as the objects are, as osu!lazer's and osu!stable's.
-        tickContainer.init(beatmapSlider, scale)
+        tickContainer.init(beatmapSlider, scale, context.fadesOutObjects)
 
         if (Settings[OsuSettings.DimHitObjects]) {
             applyDim(tailCirclePiece)
@@ -382,7 +383,7 @@ class GameplaySlider : GameObject() {
             val fadeInDuration = beatmapSlider.timeFadeIn.toFloat() / 1000
             sequence.fadeInFromZero(fadeInDuration)
 
-            if (GameHelper.isHidden() && !GameHelper.getHidden()!!.onlyFadeApproachCircles) {
+            if (context.fadesOutObjects) {
                 // New duration from completed fade in to end (before fading out)
                 val fadeOutDuration = duration.toFloat() + timePreempt - fadeInDuration
 
@@ -530,7 +531,7 @@ class GameplaySlider : GameObject() {
             followCircle.removeSelf()
         }
 
-        if (GameHelper.getHidden() != null && !GameHelper.getHidden()!!.onlyFadeApproachCircles) {
+        if (context.fadesOutObjects) {
             sliderBody.removeSelf()
         } else {
             sliderBody.choreographAt(modifierStartTime) { sequence ->
@@ -675,7 +676,7 @@ class GameplaySlider : GameObject() {
                 if (remainingSpans <= 2) {
                     endArrow.choreographNow { sequence -> sequence.fadeOut() }
                     tailCirclePiece.choreographNow { sequence -> sequence.fadeOut() }
-                } else if (GameHelper.isSynesthesia()) {
+                } else if (context.isSynesthesia) {
                     val newColor = getSynesthesiaComboColor(beatmapSlider.nestedHitObjects[currentNestedObjectIndex])
 
                     tailCirclePiece.color = newColor
@@ -683,7 +684,7 @@ class GameplaySlider : GameObject() {
             } else if (remainingSpans <= 2 && startHit) {
                 startArrow.choreographNow { sequence -> sequence.fadeOut() }
                 headCirclePiece.choreographNow { sequence -> sequence.fadeOut() }
-            } else if (GameHelper.isSynesthesia()) {
+            } else if (context.isSynesthesia) {
                 val newColor =
                     getSynesthesiaComboColor(beatmapSlider.nestedHitObjects[currentNestedObjectIndex])
 
@@ -720,7 +721,7 @@ class GameplaySlider : GameObject() {
         if (replayObjectData == null) {
             var firstHitScore = 0
 
-            if (GameHelper.isScoreV2()) {
+            if (context.isScoreV2) {
                 // If ScoreV2 is active, the accuracy of hitting the slider head is additionally accounted for when judging the entire slider:
                 // Getting a 300 for a slider requires getting a 300 judgement for the slider head.
                 // Getting a 100 for a slider requires getting a 100 judgement or better for the slider head.
@@ -737,11 +738,11 @@ class GameplaySlider : GameObject() {
                 score = 50
             }
 
-            if (ticksGot >= totalTicks / 2 && (!GameHelper.isScoreV2() || firstHitScore >= 100)) {
+            if (ticksGot >= totalTicks / 2 && (!context.isScoreV2 || firstHitScore >= 100)) {
                 score = 100
             }
 
-            if (ticksGot >= totalTicks && (!GameHelper.isScoreV2() || firstHitScore == 300)) {
+            if (ticksGot >= totalTicks && (!context.isScoreV2 || firstHitScore == 300)) {
                 score = 300
             }
         } else if (replayObjectData.result == ResultType.HIT300.id) {
@@ -753,7 +754,7 @@ class GameplaySlider : GameObject() {
         }
 
         // In replays older than version 6, slider ends always give combo even when not being tracked.
-        val awardCombo = isTracking || (replayObjectData != null && GameHelper.getReplayVersion() < 6)
+        val awardCombo = isTracking || (replayObjectData != null && context.replayVersion < 6)
 
         judge(score, spanEndJudgementPosition, endsCombo, GameObjectListener.SLIDER_END, awardCombo)
 
@@ -812,7 +813,7 @@ class GameplaySlider : GameObject() {
             return false
         }
 
-        if (GameHelper.isAutopilot()) {
+        if (context.isAutopilot) {
             return true
         }
 
@@ -892,8 +893,8 @@ class GameplaySlider : GameObject() {
         }
 
         if (headCirclePiece.isVisible) {
-            if ((GameHelper.isKiai() && !OsuSkin.get().isDisableKiai)) {
-                val kiaiModifier = max(0.0, 1 - GameHelper.getCurrentBeatTime() / GameHelper.getBeatLength()).toFloat() * 0.5f
+            if ((context.timing.isKiai && !OsuSkin.get().isDisableKiai)) {
+                val kiaiModifier = max(0.0, 1 - context.timing.currentBeatTime / context.timing.beatLength).toFloat() * 0.5f
                 val r = min(1f, circleColor.red + (1 - circleColor.red) * kiaiModifier)
                 val g = min(1f, circleColor.green + (1 - circleColor.green) * kiaiModifier)
                 val b = min(1f, circleColor.blue + (1 - circleColor.blue) * kiaiModifier)
@@ -1020,7 +1021,7 @@ class GameplaySlider : GameObject() {
         ball.setPosition(ballPos.x, ballPos.y)
         ball.setBallRotation(ballAngle)
 
-        if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
+        if (context.isAutoplay || context.isAutopilot) {
             listener.updateAutoBasedPos(ballPos.x, ballPos.y)
         }
 
@@ -1066,7 +1067,7 @@ class GameplaySlider : GameObject() {
         firstHitAccuracy = replayObjectData?.accuracy?.toInt() ?: (hitOffset * 1000).toInt()
         val mehWindow = hitWindow.mehWindow / 1000
 
-        if (replayObjectData == null || GameHelper.getReplayVersion() >= 6 || mehWindow <= duration) {
+        if (replayObjectData == null || context.replayVersion >= 6 || mehWindow <= duration) {
             listener.registerAccuracy(HitObjectType.Slider, hitOffset)
             headWasHit = -mehWindow <= hitOffset && hitOffset <= getLateHitThreshold()
 
@@ -1221,7 +1222,7 @@ class GameplaySlider : GameObject() {
         val mehWindow = hitWindow!!.mehWindow / 1000
 
         // In replays older than version 7, the slider head's hit window is capped to the slider's duration.
-        if (replayObjectData != null && GameHelper.getReplayVersion() <= 7) {
+        if (replayObjectData != null && context.replayVersion <= 7) {
             return min(mehWindow, duration)
         }
 
@@ -1308,8 +1309,8 @@ class GameplaySlider : GameObject() {
                 val gameplaySample = GameplayHitSampleInfo.obtain()
                 gameplaySample.init(nestedObjectSamples[j])
 
-                if (GameHelper.isSamplesMatchPlaybackRate()) {
-                    gameplaySample.frequency = GameHelper.getSpeedMultiplier()
+                if (context.samplesMatchPlaybackRate) {
+                    gameplaySample.frequency = context.timing.speedMultiplier
                 }
 
                 nestedHitSample.add(gameplaySample)
@@ -1340,9 +1341,9 @@ class GameplaySlider : GameObject() {
             }
         }
 
-        if (GameHelper.isSamplesMatchPlaybackRate()) {
-            sliderSlideSample.frequency = GameHelper.getSpeedMultiplier()
-            sliderWhistleSample.frequency = GameHelper.getSpeedMultiplier()
+        if (context.samplesMatchPlaybackRate) {
+            sliderSlideSample.frequency = context.timing.speedMultiplier
+            sliderWhistleSample.frequency = context.timing.speedMultiplier
         }
 
         sliderSlideSample.isLooping = true
@@ -1383,7 +1384,7 @@ class GameplaySlider : GameObject() {
         val initialModifierTime = hitTime - timePreempt
         val headFadeIn = beatmapSlider!!.head.timeFadeIn.toFloat() / 1000
 
-        if (GameHelper.isHidden() && !GameHelper.getHidden()!!.onlyFadeApproachCircles) {
+        if (context.fadesOutObjects) {
             val fadeOutDuration = timePreempt * ModHidden.FADE_OUT_DURATION_MULTIPLIER.toFloat()
 
             headCirclePiece.choreographAt(initialModifierTime) { sequence -> sequence
@@ -1440,7 +1441,7 @@ class GameplaySlider : GameObject() {
     }
 
     private fun updateSlidingSamplesVolume() {
-        val muted = GameHelper.getMuted()
+        val muted = context.muted
 
         if (muted != null && muted.affectsHitSounds) {
             val volume = muted.volumeAt(stat!!.combo)

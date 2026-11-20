@@ -4,7 +4,6 @@ import com.reco1l.verktex.time.FrameClock
 
 import com.rian.framework.RollingIntCounter
 import kotlin.math.roundToInt
-import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameScene
 
 class HUDBPMCounter : HUDStatisticCounter("BPM") {
@@ -22,10 +21,10 @@ class HUDBPMCounter : HUDStatisticCounter("BPM") {
 
         val timingPoint = beatmap.controlPoints.timing.controlPointAt(gameScene.elapsedTime * 1000.0)
 
-        // GameHelper.getSpeedMultiplier accounts for rate set by ReplaySettingsPanel, so it is not a representative of
+        // The speed multiplier accounts for rate set by ReplaySettingsPanel, so it is not a representative of
         // the actual playback rate. We need to divide by the replay playback rate to get the correct BPM.
         val replayPlaybackRate = (replaySettingsPanel?.playbackControl?.rateControl?.rate ?: 1f)
-        val bpm = timingPoint.bpm * GameHelper.getSpeedMultiplier() / replayPlaybackRate
+        val bpm = timingPoint.bpm * gameScene.context.timing.speedMultiplier / replayPlaybackRate
 
         counter.targetValue = bpm.roundToInt()
     }

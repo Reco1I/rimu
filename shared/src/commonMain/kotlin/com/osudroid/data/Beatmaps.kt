@@ -8,11 +8,11 @@ import androidx.room.*
 import com.osudroid.difficulty.BeatmapDifficultyCalculator
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm.*
-import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import kotlin.math.max
 import kotlin.math.min
 import com.osudroid.beatmaps.Beatmap
 import com.osudroid.beatmaps.sections.BeatmapDifficulty
+import com.osudroid.math.roundExactHalfUp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
@@ -437,8 +437,8 @@ fun BeatmapInfo(data: Beatmap, lastModified: Long, calculateDifficulty: Boolean,
             val droidAttributes = BeatmapDifficultyCalculator.calculateDroidDifficulty(data, scope = scope)
             val standardAttributes = BeatmapDifficultyCalculator.calculateStandardDifficulty(data, scope = scope)
 
-            droidStarRating = GameHelper.Round(droidAttributes.starRating, 2)
-            standardStarRating = GameHelper.Round(standardAttributes.starRating, 2)
+            droidStarRating = roundExactHalfUp(droidAttributes.starRating, 2)
+            standardStarRating = roundExactHalfUp(standardAttributes.starRating, 2)
         } catch (e: Exception) {
             if (e is CancellationException) {
                 throw e

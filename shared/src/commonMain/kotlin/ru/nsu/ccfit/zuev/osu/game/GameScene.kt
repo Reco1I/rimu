@@ -50,8 +50,12 @@ import com.osudroid.difficulty.calculator.PerformanceCalculationParameters
 import com.osudroid.difficulty.calculator.StandardPerformanceCalculationParameters
 import com.osudroid.game.Cursor
 import com.osudroid.game.CursorEvent
+import com.osudroid.game.GameplayContext
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.PlayfieldMapping
+import com.osudroid.game.SliderPath
+import com.osudroid.game.convertSliderPath
+import com.osudroid.game.createSliderRenderPath
 import com.osudroid.game.replay.ReplaySettingsPanel
 import com.osudroid.math.Interpolation
 import com.osudroid.math.MathUtils
@@ -139,7 +143,6 @@ import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
-import ru.nsu.ccfit.zuev.osu.game.GameHelper.SliderPath
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.osu.online.OnlineFileOperator
@@ -219,6 +222,12 @@ class GameScene : GameObjectListener {
     private var metronome: Metronome? = null
     private var scale = 0f
     lateinit var stat: StatisticV2
+
+    /**
+     * What the gameplay of this play depends on, made as it's loaded.
+     */
+    override var context = GameplayContext()
+        private set
     private lateinit var scoreProcessor: ScoreProcessor
     private lateinit var healthProcessor: HealthProcessor
     private var gameStarted = false
@@ -780,21 +789,15 @@ class GameScene : GameObjectListener {
         val firstObject = hitObjects[0]
         scale = firstObject.gameplayScale
 
-        GameHelper.setOverallDifficulty(playableBeatmap.difficulty.od)
-        GameHelper.setHealthDrain(playableBeatmap.difficulty.hp)
-        GameHelper.setSpeedMultiplier(mods.values.calculateRate(Double.NEGATIVE_INFINITY))
-
-        GameHelper.setOriginalTimePreempt(BeatmapDifficulty.difficultyRange(
-            playableBeatmap.difficulty.ar.toDouble(), HitObject.PREEMPT_MAX, HitObject.PREEMPT_MID, HitObject.PREEMPT_MIN
-        ).toFloat())
+        val initialSpeedMultiplier = mods.values.calculateRate(Double.NEGATIVE_INFINITY)
 
         scope?.ensureActive()
 
-        OsuGame.music.preLoad(audioFilePath, GameHelper.getSpeedMultiplier(),
-            GameHelper.getSpeedMultiplier() != 1f &&
+        OsuGame.music.preLoad(audioFilePath, initialSpeedMultiplier,
+            initialSpeedMultiplier != 1f &&
                 (Settings[OsuSettings.ShiftPitchInRateChange] || ModNightCore::class in mods || ModOldNightCore::class in mods))
 
-        gameplayClock.rate = GameHelper.getSpeedMultiplier()
+        gameplayClock.rate = initialSpeedMultiplier
 
         scope?.ensureActive()
 
@@ -899,10 +902,6 @@ class GameScene : GameObjectListener {
         timingControlPointIndex = 0
         effectControlPointIndex = 0
 
-        GameHelper.setBeatLength(activeTimingPoint!!.msPerBeat / 1000)
-        GameHelper.setKiai(activeEffectPoint!!.isKiai)
-        GameHelper.setCurrentBeatTime(0.0)
-        GameHelper.setSamplesMatchPlaybackRate(playableBeatmap.general.samplesMatchPlaybackRate)
 
         GameObjectPool.getInstance().purge()
 
@@ -947,13 +946,28 @@ class GameScene : GameObjectListener {
                 }
             }
 
-            GameHelper.setReplayVersion(replay.replayVersion)
         } else if (ModAutoplay::class in mods) {
             replay = null
             this.replay = null
         }
 
         scope?.ensureActive()
+
+        val context = GameplayContext(
+            mods = mods,
+            healthDrain = playableBeatmap.difficulty.hp,
+            originalTimePreempt = BeatmapDifficulty.difficultyRange(
+                playableBeatmap.difficulty.ar.toDouble(), HitObject.PREEMPT_MAX, HitObject.PREEMPT_MID, HitObject.PREEMPT_MIN
+            ).toFloat(),
+            samplesMatchPlaybackRate = playableBeatmap.general.samplesMatchPlaybackRate,
+            replayVersion = if (replaying) replay!!.replayVersion else 0
+        )
+
+        context.timing.speedMultiplier = initialSpeedMultiplier
+        context.timing.beatLength = activeTimingPoint!!.msPerBeat / 1000
+        context.timing.isKiai = activeEffectPoint!!.isKiai
+        context.timing.currentBeatTime = 0.0
+        this.context = context
 
         SkinTextures.preloadGameplay()
         GameObjectPool.getInstance().preload()
@@ -1027,8 +1041,7 @@ class GameScene : GameObjectListener {
 
         SkinSounds.get("failsound")!!.stop()
 
-        // A play loading while another starts is stopped first, the loads share global state (the
-        // object pool, GameHelper).
+        // A play loading while another starts is stopped first, the loads share the object pool.
         val previousGame = lastStartedGame?.takeIf { it !== this }
         lastStartedGame = this
 
@@ -1170,27 +1183,9 @@ class GameScene : GameObjectListener {
         difficultyScoreMultiplier += (min(parsedBeatmap.difficulty.gameplayCS, 17.62f) - 3) / 4f
 
         stat.diffModifier = difficultyScoreMultiplier
+        stat.healthDrain = context.healthDrain
         stat.beatmapNoteCount = objects.size
         stat.beatmapMaxCombo = parsedBeatmap.maxCombo
-
-        GameHelper.setHardRock(lastMods.ofType(ModHardRock::class))
-        GameHelper.setDoubleTime(lastMods.ofType(ModDoubleTime::class))
-        GameHelper.setNightCore(if (ModNightCore::class in lastMods) lastMods.ofType(ModNightCore::class) else lastMods.ofType(ModOldNightCore::class))
-        GameHelper.setHalfTime(lastMods.ofType(ModHalfTime::class))
-        GameHelper.setHidden(lastMods.ofType(ModHidden::class))
-        GameHelper.setTraceable(lastMods.ofType(ModTraceable::class))
-        GameHelper.setFlashlight(lastMods.ofType(ModFlashlight::class))
-        GameHelper.setRelax(lastMods.ofType(ModRelax::class))
-        GameHelper.setAutopilot(lastMods.ofType(ModAutopilot::class))
-        GameHelper.setAutoplay(lastMods.ofType(ModAutoplay::class))
-        GameHelper.setSuddenDeath(lastMods.ofType(ModSuddenDeath::class))
-        GameHelper.setPerfect(lastMods.ofType(ModPerfect::class))
-        GameHelper.setSynesthesia(lastMods.ofType(ModSynesthesia::class))
-        GameHelper.setScoreV2(lastMods.ofType(ModScoreV2::class))
-        GameHelper.setEasy(lastMods.ofType(ModEasy::class))
-        GameHelper.setMuted(lastMods.ofType(ModMuted::class))
-        GameHelper.setFreezeFrame(lastMods.ofType(ModFreezeFrame::class))
-        GameHelper.setApproachDifferent(lastMods.ofType(ModApproachDifferent::class))
 
         val cursorCount = if (replaying && replay != null) replay!!.cursorMoves.size else CursorCount
 
@@ -1201,12 +1196,12 @@ class GameScene : GameObjectListener {
         }
 
         scoreProcessor = ScoreProcessor(stat)
-        healthProcessor = HealthProcessor(stat, playableBeatmap.difficulty.hp, if (GameHelper.isEasy()) EasyLives else 0)
+        healthProcessor = HealthProcessor(stat, playableBeatmap.difficulty.hp, if (context.isEasy) EasyLives else 0)
         previousFrameTime = 0
 
         metronome = null
-        if ((OsuSettings.metronomeSwitch == 1 && GameHelper.isNightCore())
-            || (GameHelper.isMuted() && GameHelper.getMuted()!!.enableMetronome)
+        if ((OsuSettings.metronomeSwitch == 1 && context.isNightCore)
+            || (context.isMuted && context.muted!!.enableMetronome)
             || OsuSettings.metronomeSwitch == 2) {
             metronome = Metronome()
         }
@@ -1214,7 +1209,7 @@ class GameScene : GameObjectListener {
         distToNextObject = 0.0
 
         // TODO passive objects
-        if ((replaying || Settings[OsuSettings.ShowCursor]) && !GameHelper.isAutoplay() && !GameHelper.isAutopilot()) {
+        if ((replaying || Settings[OsuSettings.ShowCursor]) && !context.isAutoplay && !context.isAutopilot) {
             val cursorSprites = Array(cursorCount) { CursorEntity() }
             this.cursorSprites = cursorSprites
             for (i in 0 until cursorCount) {
@@ -1224,7 +1219,7 @@ class GameScene : GameObjectListener {
             cursorSprites = null
         }
 
-        if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
+        if (context.isAutoplay || context.isAutopilot) {
             // From the center of the playfield.
             val start = objectPlayfield.mapping.toResolution(PlayfieldMapping.PLAYFIELD_WIDTH / 2, PlayfieldMapping.PLAYFIELD_HEIGHT / 2)
             autoCursor = AutoCursor(start.x, start.y)
@@ -1278,8 +1273,8 @@ class GameScene : GameObjectListener {
             fgScene += unrankedSprite
         }
 
-        if (GameHelper.isFlashlight()) {
-            val flashlightSprite = FlashLightEntity(GameHelper.getFlashlight()!!)
+        if (context.isFlashlight) {
+            val flashlightSprite = FlashLightEntity(context.flashlight!!)
             this.flashlightSprite = flashlightSprite
             fgScene.add(0, flashlightSprite)
         }
@@ -1313,7 +1308,7 @@ class GameScene : GameObjectListener {
 
         var playname = OsuSettings.onlineUsername
 
-        if (GameHelper.isAutoplay() || replaying) {
+        if (context.isAutoplay || replaying) {
             val metadata = playableBeatmap.metadata
             playname = if (replaying) scoring.replayStat!!.playerName else "osu!"
 
@@ -1339,7 +1334,7 @@ class GameScene : GameObjectListener {
         }
         this.breakAnimator = breakAnimator
 
-        if (!startedFromHUDEditor && (GameHelper.isAutoplay() || replaying)) {
+        if (!startedFromHUDEditor && (context.isAutoplay || replaying)) {
             val replaySettingsPanel = ReplaySettingsPanel()
             this.replaySettingsPanel = replaySettingsPanel
             // Designed in dp, so it's not in the scaled HUD, it's added with it in start().
@@ -1439,7 +1434,7 @@ class GameScene : GameObjectListener {
             }
         }
 
-        if (!isHUDEditorMode && !replaying && !GameHelper.isAutoplay() && !GameHelper.isAutopilot()) {
+        if (!isHUDEditorMode && !replaying && !context.isAutoplay && !context.isAutopilot) {
             Input.dispatchHistoricalMoves = true
         }
 
@@ -1455,7 +1450,7 @@ class GameScene : GameObjectListener {
     fun getComboColor(hitObject: HitObject): Color4 {
         val playableBeatmap = this.playableBeatmap
 
-        if (playableBeatmap != null && GameHelper.isSynesthesia()) {
+        if (playableBeatmap != null && context.isSynesthesia) {
             return ModSynesthesia.getColorFor(playableBeatmap.controlPoints.getClosestBeatDivisor(hitObject.startTime))
         }
 
@@ -1473,7 +1468,7 @@ class GameScene : GameObjectListener {
         val hud = hud!!
 
         if (Multiplayer.isMultiplayer) {
-            val mSecElapsed = (dt / GameHelper.getSpeedMultiplier() * 1000).toLong()
+            val mSecElapsed = (dt / context.timing.speedMultiplier * 1000).toLong()
             realTimeElapsed += mSecElapsed
             statisticDataTimeElapsed += mSecElapsed
 
@@ -1501,8 +1496,8 @@ class GameScene : GameObjectListener {
 
             val currentSpeedMultiplier = modRate * replaySettingsRate
 
-            if (currentSpeedMultiplier != GameHelper.getSpeedMultiplier()) {
-                GameHelper.setSpeedMultiplier(currentSpeedMultiplier)
+            if (currentSpeedMultiplier != context.timing.speedMultiplier) {
+                context.timing.speedMultiplier = currentSpeedMultiplier
                 gameplayClock.rate = currentSpeedMultiplier
 
                 if (videoEnabled && video != null) {
@@ -1553,7 +1548,7 @@ class GameScene : GameObjectListener {
                     event.systemTime = movement.time.toLong()
                     event.trackTime = movement.time.toFloat()
                     event.offset = 0.0
-                    event.setTrackPosition(movement.x, movement.y, objectPlayfield.mapping)
+                    event.setTrackPosition(movement.x, movement.y, objectPlayfield.mapping, context.isHardRock)
 
                     if (movement.touchType == TouchType.DOWN) {
                         event.action = PointerEvent.Action.Down
@@ -1595,7 +1590,8 @@ class GameScene : GameObjectListener {
                     event.setTrackPosition(
                         lastMovement.x * t + movement.x * (1 - t),
                         lastMovement.y * t + movement.y * (1 - t),
-                        objectPlayfield.mapping
+                        objectPlayfield.mapping,
+                        context.isHardRock
                     )
 
                     cursors[i]!!.addEvent(event)
@@ -1603,7 +1599,7 @@ class GameScene : GameObjectListener {
             }
         }
 
-        if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
+        if (context.isAutoplay || context.isAutopilot) {
             autoCursor!!.update(dt)
         } else if (cursorSprites != null) {
             val cursorSprites = cursorSprites!!
@@ -1623,10 +1619,10 @@ class GameScene : GameObjectListener {
             }
         }
 
-        if (GameHelper.isFlashlight()) {
+        if (context.isFlashlight) {
             val flashlightSprite = flashlightSprite!!
 
-            if (!GameHelper.isAutoplay() && !GameHelper.isAutopilot()) {
+            if (!context.isAutoplay && !context.isAutopilot) {
                 // Check if the main cursor is still valid.
                 if (mainCursorId >= 0 && !cursors[mainCursorId]!!.mouseDown) {
                     mainCursorId = -1
@@ -1691,9 +1687,10 @@ class GameScene : GameObjectListener {
 
         val activeTimingPoint = activeTimingPoint!!
 
-        GameHelper.setBeatLength(activeTimingPoint.msPerBeat / 1000)
-        GameHelper.setKiai(activeEffectPoint!!.isKiai)
-        GameHelper.setCurrentBeatTime(max(0.0, gameplayClock.time - activeTimingPoint.time / 1000) % GameHelper.getBeatLength())
+        val timing = context.timing
+        timing.beatLength = activeTimingPoint.msPerBeat / 1000
+        timing.isKiai = activeEffectPoint!!.isKiai
+        timing.currentBeatTime = max(0.0, gameplayClock.time - activeTimingPoint.time / 1000) % timing.beatLength
 
         if (!isGameOver) {
             val breakPeriods = breakPeriods!!
@@ -1705,7 +1702,7 @@ class GameScene : GameObjectListener {
 
                     gameStarted = false
                     breakAnimator.init(period.duration / 1000)
-                    if (GameHelper.isFlashlight()) {
+                    if (context.isFlashlight) {
                         flashlightSprite!!.onBreak(true)
                     }
 
@@ -1726,7 +1723,7 @@ class GameScene : GameObjectListener {
                 gameStarted = true
                 hud.onBreakStateChange(false)
 
-                if (GameHelper.isFlashlight()) {
+                if (context.isFlashlight) {
                     flashlightSprite!!.onBreak(false)
                 }
             }
@@ -1735,7 +1732,7 @@ class GameScene : GameObjectListener {
         val activeObjects = activeObjects!!
         val expiredObjects = expiredObjects!!
 
-        if (objectIndex >= objects.size && areObjectsJudged(activeObjects) && GameHelper.isFlashlight()) {
+        if (objectIndex >= objects.size && areObjectsJudged(activeObjects) && context.isFlashlight) {
             flashlightSprite!!.onBreak(true)
         }
 
@@ -1778,7 +1775,7 @@ class GameScene : GameObjectListener {
         updatePassiveObjects(dt)
         updateActiveObjects(dt)
 
-        if (judgeableObject != null && (GameHelper.isAutoplay() || GameHelper.isAutopilot())) {
+        if (judgeableObject != null && (context.isAutoplay || context.isAutopilot)) {
             autoCursor!!.moveToObject(judgeableObject, gameplayClock.time, this)
         }
 
@@ -1787,7 +1784,7 @@ class GameScene : GameObjectListener {
 
             if (!videoStarted) {
                 video.play()
-                video.setPlaybackSpeed(GameHelper.getSpeedMultiplier())
+                video.setPlaybackSpeed(context.timing.speedMultiplier)
                 videoStarted = true
             }
 
@@ -1867,7 +1864,7 @@ class GameScene : GameObjectListener {
                 gameplayCircle.init(this, objectPlayfield, obj, comboColor)
                 addObject(gameplayCircle)
 
-                if (GameHelper.isAutoplay()) {
+                if (context.isAutoplay) {
                     gameplayCircle.setAutoPlay()
                 }
 
@@ -1885,7 +1882,7 @@ class GameScene : GameObjectListener {
                 gameplaySpinner.init(this, bgScene, objectPlayfield, obj, rps, stat)
                 addObject(gameplaySpinner)
 
-                if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
+                if (context.isAutoplay || context.isAutopilot) {
                     gameplaySpinner.setAutoPlay()
                 }
 
@@ -1904,7 +1901,7 @@ class GameScene : GameObjectListener {
                 ++sliderIndex
                 addObject(gameplaySlider)
 
-                if (GameHelper.isAutoplay()) {
+                if (context.isAutoplay) {
                     gameplaySlider.setAutoPlay()
                 }
 
@@ -1921,7 +1918,7 @@ class GameScene : GameObjectListener {
             gameObject?.updateJudgement(lifetimeDt)
         }
 
-        if (GameHelper.isPerfect() && stat.hit100 + stat.hit50 + stat.misses > 0) {
+        if (context.isPerfect && stat.hit100 + stat.hit50 + stat.misses > 0) {
             gameover()
 
             if (!Multiplayer.isMultiplayer) {
@@ -1929,7 +1926,7 @@ class GameScene : GameObjectListener {
             }
         }
 
-        val mutedMod = GameHelper.getMuted()
+        val mutedMod = context.muted
 
         // 节拍器
         if (metronome != null) {
@@ -2282,7 +2279,7 @@ class GameScene : GameObjectListener {
             replay!!.addObjectScore(objectId, result.resultType)
         }
 
-        if (result == JudgementResult.Miss && GameHelper.isSuddenDeath()) {
+        if (result == JudgementResult.Miss && context.isSuddenDeath) {
             stat.changeHp(-1.0f)
             gameover()
         }
@@ -2306,7 +2303,7 @@ class GameScene : GameObjectListener {
         val playableBeatmap = this.playableBeatmap ?: return null
         val hud = hud!!
 
-        if (GameHelper.isAutoplay()) {
+        if (context.isAutoplay) {
             autoCursor!!.click()
             hud.onGameplayTouchDown(parsedBeatmap!!.hitObjects.objects[id].startTime.toFloat() / 1000)
         }
@@ -2320,10 +2317,10 @@ class GameScene : GameObjectListener {
 
         // Autoplay/Autopilot synthesize their own cursor movement rather than using real touch input, so
         // real touch events (e.g. a resting finger) must not be picked up as the "cursor position" here.
-        val isCursorTrackingActive = !GameHelper.isAutoplay() && !GameHelper.isAutopilot()
+        val isCursorTrackingActive = !context.isAutoplay && !context.isAutopilot
         val nearestCursorId = if (isCursorTrackingActive) getNearestCursorId(pos.x, pos.y) else -1
 
-        if (GameHelper.isFlashlight() && isCursorTrackingActive) {
+        if (context.isFlashlight && isCursorTrackingActive) {
             if (nearestCursorId >= 0) {
                 mainCursorId = nearestCursorId
                 val latestNonUpEvent = cursors[mainCursorId]!!.getLatestNonUpEvent()
@@ -2363,8 +2360,8 @@ class GameScene : GameObjectListener {
 
         // Autoplay/Autopilot synthesize their own cursor movement rather than using real touch input, so
         // real touch events (e.g. a resting finger) must not be picked up as the "cursor position" here.
-        val isCursorTrackingActive = !GameHelper.isAutoplay() && !GameHelper.isAutopilot()
-        val isFlashlightActive = GameHelper.isFlashlight() && isCursorTrackingActive
+        val isCursorTrackingActive = !context.isAutoplay && !context.isAutopilot
+        val isFlashlightActive = context.isFlashlight && isCursorTrackingActive
         val isSliderHeadHit = type == GameObjectListener.SLIDER_START && score > 0 && isCursorTrackingActive
 
         var nearestCursorId = -1
@@ -2394,7 +2391,7 @@ class GameScene : GameObjectListener {
         if (score == -1) {
             playComboBreak()
 
-            if (GameHelper.isSuddenDeath()) {
+            if (context.isSuddenDeath) {
                 stat.changeHp(-1.0f)
                 gameover()
             }
@@ -2418,7 +2415,7 @@ class GameScene : GameObjectListener {
                         }
                     }
 
-                    if (GameHelper.isAutoplay()) {
+                    if (context.isAutoplay) {
                         hud.onGameplayTouchDown(parsedBeatmap!!.hitObjects.objects[id].startTime.toFloat() / 1000)
                     }
                 }
@@ -2447,7 +2444,7 @@ class GameScene : GameObjectListener {
     }
 
     override fun onSpinnerStart(id: Int) {
-        if (GameHelper.isAutoplay()) {
+        if (context.isAutoplay) {
             autoCursor!!.click()
             hud!!.onGameplayTouchDown(parsedBeatmap!!.hitObjects.objects[id].startTime.toFloat() / 1000)
         }
@@ -2509,7 +2506,7 @@ class GameScene : GameObjectListener {
 
     override fun playHitSamples(samples: MutableList<GameplayHitSampleInfo>?) {
         var volume = 1f
-        val muted = GameHelper.getMuted()
+        val muted = context.muted
 
         if (muted != null && muted.affectsHitSounds) {
             volume = muted.volumeAt(stat.combo)
@@ -2552,7 +2549,7 @@ class GameScene : GameObjectListener {
 
     private fun onPointerEvent(event: PointerEvent): Boolean {
         val offset = if (previousFrameTime > 0)
-            (event.time - previousFrameTime) * GameHelper.getSpeedMultiplier()
+            (event.time - previousFrameTime) * context.timing.speedMultiplier
         else
             0f
         val eventTime = (gameplayClock.time * 1000 + offset).toInt()
@@ -2587,13 +2584,13 @@ class GameScene : GameObjectListener {
             }
         }
 
-        val sprite = if (!GameHelper.isAutoplay() && !GameHelper.isAutopilot() && cursorSprites != null)
+        val sprite = if (!context.isAutoplay && !context.isAutopilot && cursorSprites != null)
             cursorSprites!![id]
         else
             null
 
         val position = playfield.toLocalSpaceFromScene(event.x, event.y)
-        val cursorEvent = CursorEvent.obtain(event, position.x, position.y, objectPlayfield.mapping)
+        val cursorEvent = CursorEvent.obtain(event, position.x, position.y, objectPlayfield.mapping, context.isHardRock)
 
         cursorEvent.trackTime = gameplayClock.time * 1000
         cursorEvent.offset = offset.toDouble()
@@ -2604,7 +2601,7 @@ class GameScene : GameObjectListener {
 
             sprite?.setShowing(true)
 
-            if (!GameHelper.isAutoplay()) {
+            if (!context.isAutoplay) {
                 hud!!.onGameplayTouchDown(eventTime / 1000f)
             }
 
@@ -2638,7 +2635,7 @@ class GameScene : GameObjectListener {
     private fun removeAllCursors() {
         val currentTime = Platform.uptimeMillis
         val offset = if (previousFrameTime > 0)
-            (currentTime - previousFrameTime) * GameHelper.getSpeedMultiplier()
+            (currentTime - previousFrameTime) * context.timing.speedMultiplier
         else
             0f
         val time = gameplayClock.time * 1000 + offset
@@ -2702,7 +2699,7 @@ class GameScene : GameObjectListener {
 
         stopLoopingSamples()
 
-        if (!GameHelper.isAutoplay() && !GameHelper.isAutopilot() && !replaying) {
+        if (!context.isAutoplay && !context.isAutopilot && !replaying) {
             removeAllCursors()
         }
 
@@ -2743,7 +2740,7 @@ class GameScene : GameObjectListener {
         stopLoopingSamples()
         val music = OsuGame.music
 
-        if (GameHelper.isPerfect()) {
+        if (context.isPerfect) {
             video?.pause()
 
             gameplayClock.pause()
@@ -2831,7 +2828,7 @@ class GameScene : GameObjectListener {
                 applyEffectToLayer(bgScene)
 
                 val decreasedFrequency = max(101f, music.frequency - 300)
-                val decreasedSpeed = GameHelper.getSpeedMultiplier() * (1 - (initialFrequency - decreasedFrequency) / initialFrequency)
+                val decreasedSpeed = context.timing.speedMultiplier * (1 - (initialFrequency - decreasedFrequency) / initialFrequency)
 
                 if (videoEnabled && video != null) {
                     video!!.setPlaybackSpeed(decreasedSpeed)
@@ -2917,7 +2914,7 @@ class GameScene : GameObjectListener {
 
     override fun onSliderEnd(id: Int, accuracy: Int, tickSet: BitSet?) {
         onTrackingSliders(false)
-        if (GameHelper.isAutoplay()) {
+        if (context.isAutoplay) {
             autoCursor!!.onSliderEnd()
         }
         if (replay != null && !replaying) {
@@ -2927,22 +2924,22 @@ class GameScene : GameObjectListener {
     }
 
     override fun onTrackingSliders(isTrackingSliders: Boolean) {
-        if (GameHelper.isAutoplay() && isTrackingSliders) {
+        if (context.isAutoplay && isTrackingSliders) {
             autoCursor!!.onSliderTracking()
         }
-        if (GameHelper.isFlashlight()) {
+        if (context.isFlashlight) {
             flashlightSprite!!.onTrackingSliders(isTrackingSliders)
         }
     }
 
     override fun onUpdatedAutoCursor(pX: Float, pY: Float) {
-        if (GameHelper.isFlashlight()) {
+        if (context.isFlashlight) {
             flashlightSprite!!.onMouseMove(pX, pY)
         }
     }
 
     override fun updateAutoBasedPos(pX: Float, pY: Float) {
-        if (GameHelper.isAutoplay() || GameHelper.isAutopilot()) {
+        if (context.isAutoplay || context.isAutopilot) {
             // The cursor is in the space gameplay is laid out in.
             val position = objectPlayfield.mapping.toResolution(pX, pY)
             autoCursor!!.setPosition(position.x, position.y, this)
@@ -2993,11 +2990,11 @@ class GameScene : GameObjectListener {
             }
             val slider = obj
 
-            sliderPaths[index] = GameHelper.convertSliderPath(slider, scope)
+            sliderPaths[index] = convertSliderPath(slider, scope)
 
             scope?.ensureActive()
 
-            sliderRenderPaths[index] = GameHelper.createRenderPath(slider, scope)
+            sliderRenderPaths[index] = createSliderRenderPath(slider, scope)
 
             ++index
         }
@@ -3378,8 +3375,8 @@ class GameScene : GameObjectListener {
 
         // Replay all touch-down events up to the seek target so HUD elements
         // that depend on touch history can reconstruct their state correctly.
-        if (GameHelper.isAutoplay() || replaying) {
-            if (GameHelper.isAutoplay()) {
+        if (context.isAutoplay || replaying) {
+            if (context.isAutoplay) {
                 for (i in objects.indices) {
                     val tapTime = objects[i]!!.startTime.toFloat() / 1000f
 
@@ -3425,8 +3422,8 @@ class GameScene : GameObjectListener {
 
             val targetSpeedMultiplier = modRate * replaySettingsRate
 
-            if (targetSpeedMultiplier != GameHelper.getSpeedMultiplier()) {
-                GameHelper.setSpeedMultiplier(targetSpeedMultiplier)
+            if (targetSpeedMultiplier != context.timing.speedMultiplier) {
+                context.timing.speedMultiplier = targetSpeedMultiplier
                 gameplayClock.rate = targetSpeedMultiplier
             }
         }
@@ -3593,7 +3590,7 @@ class GameScene : GameObjectListener {
         if (data == null || result == JudgementResult.Great) {
             headHit = true
         } else {
-            val replayVersion = GameHelper.getReplayVersion()
+            val replayVersion = context.replayVersion
             val mehWindowSecs = hitWindow!!.mehWindow / 1000.0
             val sliderDurationSecs = slider.duration / 1000.0
             val lateHitThreshold = if (replayVersion <= 7) min(mehWindowSecs, sliderDurationSecs) else mehWindowSecs

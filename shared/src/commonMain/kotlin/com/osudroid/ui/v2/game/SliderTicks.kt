@@ -18,7 +18,6 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.ui.container.Container
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.*
-import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import kotlin.jvm.JvmStatic
 
 class SliderTickContainer : Container() {
@@ -27,12 +26,18 @@ class SliderTickContainer : Container() {
     // The scale of the ticks, as the objects'.
     private var tickScale = 1f
 
+    // Whether the ticks fade out before they're hit.
+    private var fadeOut = false
+
     /**
      * Shows the ticks of [beatmapSlider], scaled by [tickScale].
+     *
+     * @param fadeOut Whether the ticks fade out before they're hit, as Hidden fades the objects.
      */
-    fun init(beatmapSlider: Slider, tickScale: Float) {
+    fun init(beatmapSlider: Slider, tickScale: Float, fadeOut: Boolean) {
         slider = beatmapSlider
         this.tickScale = tickScale
+        this.fadeOut = fadeOut
 
         clearChildren()
 
@@ -54,7 +59,7 @@ class SliderTickContainer : Container() {
             sprite.y = (tickPosition.y - position.y).px
             +sprite
 
-            sprite.init(tick, tickScale)
+            sprite.init(tick, tickScale, fadeOut)
         }
     }
 
@@ -79,7 +84,7 @@ class SliderTickContainer : Container() {
                 if (newSpanIndex % 2 != 0) childCount - (i - spanStartIndex) - 1 else i - spanStartIndex
             ] as? GameplaySliderTick ?: break
 
-            sprite.init(tick, tickScale)
+            sprite.init(tick, tickScale, fadeOut)
         }
     }
 
@@ -113,8 +118,9 @@ class GameplaySliderTick : Container(), IPoolable {
      * Initializes this [GameplaySliderTick] with the given [SliderTick].
      *
      * @param tick The [SliderTick] represented by this [GameplaySliderTick].
+     * @param fadeOut Whether the tick fades out before it's hit.
      */
-    fun init(tick: SliderTick, baseScale: Float) {
+    fun init(tick: SliderTick, baseScale: Float, fadeOut: Boolean) {
         this.tick = tick
         this.baseScale = baseScale
 
@@ -132,7 +138,7 @@ class GameplaySliderTick : Container(), IPoolable {
             scaleTo(baseScale, ANIM_DURATION * 4, Easing.OutElasticHalf)
             fadeIn(ANIM_DURATION)
 
-            if (GameHelper.isHidden() && !GameHelper.getHidden()!!.onlyFadeApproachCircles) {
+            if (fadeOut) {
                 val fadeOutDuration = min(timePreempt - ANIM_DURATION, 1f)
 
                 at(startTime - fadeOutDuration)

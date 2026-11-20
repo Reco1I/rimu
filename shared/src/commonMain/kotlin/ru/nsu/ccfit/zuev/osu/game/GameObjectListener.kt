@@ -2,6 +2,7 @@ package ru.nsu.ccfit.zuev.osu.game
 
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.game.Cursor
+import com.osudroid.game.GameplayContext
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.PlayfieldMapping
 import com.osudroid.math.Vector2
@@ -62,6 +63,11 @@ interface GameObjectListener {
     fun onUpdatedAutoCursor(pX: Float, pY: Float)
 
     fun playHitSamples(samples: MutableList<GameplayHitSampleInfo>?)
+
+    /**
+     * What the gameplay of the play depends on: its mods, its beatmap and its timing.
+     */
+    val context: GameplayContext
 
     /**
      * The mapping of the playfield into the space gameplay is laid out in, where spinners are drawn.

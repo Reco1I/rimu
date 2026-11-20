@@ -5,6 +5,7 @@ import com.osudroid.beatmaps.sections.BeatmapDifficulty
 import com.osudroid.mods.IMigratableMod
 import com.osudroid.mods.ModFlashlight
 import com.osudroid.mods.ModHidden
+import com.osudroid.mods.ModScoreV2
 import com.osudroid.scoring.ScoreMultiplierCalculator
 import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.deserializeMods
@@ -18,7 +19,6 @@ import kotlin.random.Random
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import ru.nsu.ccfit.zuev.osu.game.GameHelper
 
 class StatisticV2() {
     var hit300 = 0
@@ -39,6 +39,11 @@ class StatisticV2() {
     var hp = 1f
         private set
     var diffModifier = 1f
+
+    /**
+     * The HP of the beatmap, which makes misses cost more health.
+     */
+    var healthDrain = 0f
     var mod = ModHashMap()
     var playerName: String = OsuSettings.onlineUsername
     var replayFilename = ""
@@ -168,7 +173,7 @@ class StatisticV2() {
             return
         }
         if (score == 0 && k) {
-            changeHp(-(5 + GameHelper.getHealthDrain()) / 100f)
+            changeHp(-(5 + healthDrain) / 100f)
             if (currentCombo > scoreMaxComboValue) {
                 scoreMaxComboValue = currentCombo
             }
@@ -208,7 +213,7 @@ class StatisticV2() {
                 }
             }
             else -> {
-                changeHp(-(5 + GameHelper.getHealthDrain()) / 100f)
+                changeHp(-(5 + healthDrain) / 100f)
                 misses++
                 if (currentCombo > scoreMaxComboValue) {
                     scoreMaxComboValue = currentCombo
@@ -237,7 +242,7 @@ class StatisticV2() {
             return
         }
         //如果使用scorev2
-        if (GameHelper.isScoreV2()) {
+        if (ModScoreV2::class in mod) {
             if (amount == 1000) {
                 bonusScore += amount
             }

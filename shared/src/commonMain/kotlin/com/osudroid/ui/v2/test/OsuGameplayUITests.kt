@@ -4,6 +4,8 @@ import ru.nsu.ccfit.zuev.osu.game.GameScene
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.game.convertSliderPath
+import com.osudroid.game.createSliderRenderPath
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.HitCircle
 import com.osudroid.beatmaps.hitobjects.HitObject
@@ -31,7 +33,6 @@ import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.textButton
 import com.osudroid.ui.v2.test.GameplayObjectHarness.Play
-import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameplayHitCircle
 import ru.nsu.ccfit.zuev.osu.game.GameplaySlider
 import ru.nsu.ccfit.zuev.osu.game.GameplaySpinner
@@ -141,8 +142,8 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
                     harness.controlPoints,
                     harness.comboColor(index++),
                     sliderBorderColor(),
-                    GameHelper.convertSliderPath(slider, null),
-                    GameHelper.createRenderPath(slider, null)
+                    convertSliderPath(slider, null),
+                    createSliderRenderPath(slider, null)
                 )
                 slider to gameplaySlider
             }

@@ -12,6 +12,7 @@ import com.osudroid.beatmaps.sections.BeatmapControlPoints
 import com.osudroid.beatmaps.sections.BeatmapDifficulty
 import com.osudroid.game.Cursor
 import com.osudroid.game.CursorEvent
+import com.osudroid.game.GameplayContext
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.PlayfieldMapping
 import com.osudroid.game.rules.HitJudging
@@ -31,12 +32,12 @@ import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.textButton
 import com.osudroid.utils.BitSet
+import com.osudroid.utils.ModHashMap
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
-import ru.nsu.ccfit.zuev.osu.game.GameHelper
 import ru.nsu.ccfit.zuev.osu.game.GameObject
 import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
 import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
@@ -81,6 +82,12 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
     val controlPoints = BeatmapControlPoints()
 
     val stat = StatisticV2()
+
+    /**
+     * What the objects depend on: the difficulty of the harness, and autoplay while they're played by it.
+     */
+    override var context = createContext()
+        private set
 
     // The size of the space gameplay is laid out in, as the game's: 1280 wide, in the proportions of the window.
     private val spaceWidth = PlayfieldMapping.REFERENCE_WIDTH
@@ -144,19 +151,6 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         area += gameplayPlayfield
         stage += area
 
-        // Left by a game that was played before.
-        GameHelper.setHidden(null)
-        GameHelper.setTraceable(null)
-
-        GameHelper.setOverallDifficulty(difficulty.od)
-        GameHelper.setHealthDrain(difficulty.hp)
-        GameHelper.setSpeedMultiplier(1f)
-        GameHelper.setOriginalTimePreempt(BeatmapDifficulty.difficultyRange(
-            difficulty.ar.toDouble(), HitObject.PREEMPT_MAX, HitObject.PREEMPT_MID, HitObject.PREEMPT_MIN
-        ).toFloat())
-        GameHelper.setBeatLength(0.5)
-        GameHelper.setKiai(false)
-
         effectButtons()
 
         stage.onEachFrame { frame ->
@@ -171,9 +165,6 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
         stage.onDispose {
             expireAll()
-            GameHelper.setAutoplay(null)
-            GameHelper.setKiai(false)
-            GameHelper.setSpeedMultiplier(1f)
         }
     }
 
@@ -261,7 +252,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         val spawn = spawn ?: return
 
         // Objects check the mod as well as their own flag.
-        GameHelper.setAutoplay(if (play == Play.Autoplay) ModAutoplay() else null)
+        context = createContext(isAutoplay = play == Play.Autoplay)
         cursor = Cursor()
 
         // The clock only goes forward, effects of the previous objects are timed on it.
@@ -271,6 +262,16 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
             }
             Spawned(hitObject, gameObject)
         }
+    }
+
+    private fun createContext(isAutoplay: Boolean = false) = GameplayContext(
+        mods = ModHashMap().apply { if (isAutoplay) put(ModAutoplay::class) },
+        healthDrain = difficulty.hp,
+        originalTimePreempt = BeatmapDifficulty.difficultyRange(
+            difficulty.ar.toDouble(), HitObject.PREEMPT_MAX, HitObject.PREEMPT_MID, HitObject.PREEMPT_MIN
+        ).toFloat()
+    ).also {
+        it.timing.beatLength = 0.5
     }
 
     private fun step(deltaTime: Float) {

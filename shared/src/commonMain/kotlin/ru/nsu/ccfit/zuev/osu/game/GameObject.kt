@@ -3,6 +3,7 @@ package ru.nsu.ccfit.zuev.osu.game
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.osudroid.game.CursorEvent
+import com.osudroid.game.GameplayContext
 import com.osudroid.math.MathUtils
 import com.osudroid.math.Vector2
 import com.osudroid.game.HitResult
@@ -54,6 +55,11 @@ abstract class GameObject : Container() {
      */
     @JvmField
     protected var position = Vector2(0f)
+
+    /**
+     * What the gameplay of the play this object is in depends on, from its listener as it's initialized.
+     */
+    protected var context = GameplayContext()
 
     fun getReplayData(): Replay.ReplayObjectData? {
         return replayObjectData
@@ -114,7 +120,7 @@ abstract class GameObject : Container() {
         val cursorCount = listener.getCursorsCount()
 
         // For Autopilot, we only need to check if a cursor is pressed.
-        if (GameHelper.isAutopilot()) {
+        if (context.isAutopilot) {
             for (i in 0 until cursorCount) {
                 val cursor = listener.getCursor(i)
                 val events = cursor.downEvents
@@ -135,7 +141,7 @@ abstract class GameObject : Container() {
         // For Relax, we need to check two cases:
         // 1. If a cursor flows over the object when it is hittable.
         // 2. If a cursor is pressed while it is over the object when it is hittable.
-        if (GameHelper.isRelax()) {
+        if (context.isRelax) {
             for (i in 0 until cursorCount) {
                 val cursor = listener.getCursor(i)
                 val events = cursor.events
@@ -231,7 +237,7 @@ abstract class GameObject : Container() {
             return false
         }
 
-        val hittableRange = if (GameHelper.isAutopilot())
+        val hittableRange = if (context.isAutopilot)
             MathUtils.clamp(hitWindow.mehWindow + 100, 200.0, HitWindow.MISS_WINDOW).toFloat() / 1000
         else
             HitWindow.MISS_WINDOW.toFloat() / 1000
@@ -349,8 +355,8 @@ abstract class GameObject : Container() {
      */
     protected fun areBurstsShown(): Boolean {
         return Settings[OsuSettings.BurstEffects] &&
-            (GameHelper.getHidden() == null || GameHelper.getHidden()!!.onlyFadeApproachCircles) &&
-            !GameHelper.isTraceable()
+            !context.fadesOutObjects &&
+            !context.isTraceable
     }
 
     /**
