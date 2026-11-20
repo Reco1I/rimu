@@ -6,6 +6,8 @@ import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.hitobjects.HitCircle
+import com.osudroid.beatmaps.hitobjects.HitObject
+import com.osudroid.ui.v2.game.FollowPointConnection
 import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.hitobjects.SliderPath
 import com.osudroid.beatmaps.hitobjects.SliderPathType
@@ -62,6 +64,70 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
 
                 gameplayCircle.init(harness, harness.playfield, circle, harness.comboColor(index++))
                 circle to gameplayCircle
+            }
+        }
+
+        test("Follow points") {
+            val harness = GameplayObjectHarness(this)
+            harness.playButton(Play.Autoplay, Play.Miss)
+
+            // The connections still to add, each when the time to add it comes.
+            val pending = mutableListOf<Pair<HitObject, HitObject>>()
+            // As the game adds them: as their first object spawns. Otherwise all as the loop starts.
+            var addsAtSpawn = true
+
+            harness.onRestart = {
+                pending.clear()
+                FollowPointConnection.clearAll(harness.playfield.underlay)
+            }
+            onDispose { FollowPointConnection.clearAll(harness.playfield.underlay) }
+
+            harness.loopAll { startTime ->
+                var previous: HitObject? = null
+                val circles = FOLLOW_POINT_POSITIONS.mapIndexed { i, position ->
+                    // Each later than the previous by more as they get further apart.
+                    val circle = HitCircle(startTime + i * FOLLOW_POINT_INTERVAL, position, i == 0, 0)
+                    circle.updateComboInformation(previous)
+                    previous = circle
+                    harness.prepare(circle)
+                }
+                circles.last().isLastInCombo = true
+
+                pending += circles.zipWithNext()
+                circles.map { circle ->
+                    val gameplayCircle = GameplayHitCircle()
+                    gameplayCircle.init(harness, harness.playfield, circle, harness.comboColor(0))
+                    circle to gameplayCircle
+                }
+            }
+
+            onEachFrame {
+                val time = harness.elapsedTime * 1000
+                val iterator = pending.iterator()
+                while (iterator.hasNext()) {
+                    val (start, end) = iterator.next()
+                    // The game spawns an object, and adds its connection, once its preempt starts.
+                    if (addsAtSpawn && time < start.startTime - start.timePreempt) continue
+
+                    log("Follow points from ${start.indexInCurrentCombo + 1} to ${end.indexInCurrentCombo + 1}")
+                    FollowPointConnection.addConnection(harness.playfield.underlay, start, end)
+                    iterator.remove()
+                }
+            }
+
+            textButton {
+                anchor = Anchor.TopRight
+                origin = Anchor.TopRight
+                x = (-16f).dip
+                y = 72f.dip
+                variant = Button.Variant.Surface
+                fun update() { text = if (addsAtSpawn) "Added at spawn" else "Added beforehand" }
+                update()
+                onActionUp = {
+                    addsAtSpawn = !addsAtSpawn
+                    update()
+                    harness.play = harness.play
+                }
             }
         }
 
@@ -219,6 +285,16 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
         Vector2(128f, 288f),
         Vector2(256f, 192f),
     )
+
+    // A combo zigzagging across the playfield, further apart each time.
+    private val FOLLOW_POINT_POSITIONS = listOf(
+        Vector2(64f, 288f),
+        Vector2(160f, 160f),
+        Vector2(288f, 300f),
+        Vector2(448f, 64f),
+    )
+
+    private const val FOLLOW_POINT_INTERVAL = 500.0
 
     private val SAMPLE_LEADERBOARD = listOf(
         ScoreBoardItem("Rei", 9_870_000, 900, 0.995f, true),

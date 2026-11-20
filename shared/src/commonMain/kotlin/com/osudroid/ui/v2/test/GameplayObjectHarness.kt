@@ -33,6 +33,7 @@ import com.osudroid.utils.BitSet
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 import ru.nsu.ccfit.zuev.osu.game.GameHelper
@@ -133,9 +134,9 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     private var spinAngle = 0.0
 
-    private var current: Spawned? = null
+    private var current = emptyList<Spawned>()
 
-    private var spawn: ((Double) -> Pair<HitObject, GameObject>)? = null
+    private var spawn: ((Double) -> List<Pair<HitObject, GameObject>>)? = null
 
 
     init {
@@ -170,7 +171,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         }
 
         stage.onDispose {
-            current?.let { expire(it) }
+            expireAll()
             GameHelper.setAutoplay(null)
             GameHelper.setKiai(false)
             GameHelper.setSpeedMultiplier(1f)
@@ -183,10 +184,23 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
      * start at, in milliseconds on the clock of the harness, and returns the gameplay object, already
      * initialized.
      */
-    fun loop(factory: (startTime: Double) -> Pair<HitObject, GameObject>) {
+    fun loop(factory: (startTime: Double) -> Pair<HitObject, GameObject>) = loopAll { listOf(factory(it)) }
+
+    /**
+     * Plays the objects [factory] creates together in a loop, as [loop] plays one: each is updated
+     * until its own lifetime ends, and the loop starts again once all of them have expired. The
+     * factory is given the time the first object should start at.
+     */
+    fun loopAll(factory: (startTime: Double) -> List<Pair<HitObject, GameObject>>) {
         spawn = factory
         restart()
     }
+
+    /**
+     * Called as the loop starts again, before the objects are created, to clear what the previous
+     * objects left on the playfield (e.g. their follow points).
+     */
+    var onRestart: (() -> Unit)? = null
 
     /**
      * Adds buttons turning the effects of the hits on and off, which are settings of the game.
@@ -241,8 +255,9 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
 
     private fun restart() {
-        current?.let { expire(it) }
-        current = null
+        expireAll()
+        current = emptyList()
+        onRestart?.invoke()
 
         val spawn = spawn ?: return
 
@@ -251,30 +266,34 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         cursor = Cursor()
 
         // The clock only goes forward, effects of the previous objects are timed on it.
-        val (hitObject, gameObject) = spawn(clock.time * 1000.0 + SPAWN_DELAY)
-        if (play == Play.Autoplay) {
-            gameObject.setAutoPlay()
+        current = spawn(clock.time * 1000.0 + SPAWN_DELAY).map { (hitObject, gameObject) ->
+            if (play == Play.Autoplay) {
+                gameObject.setAutoPlay()
+            }
+            Spawned(hitObject, gameObject)
         }
-
-        current = Spawned(hitObject, gameObject)
     }
 
     private fun step(deltaTime: Float) {
-        val current = current ?: return
+        val current = current
+        if (current.isEmpty()) return
 
         if (play == Play.Spin) {
             moveSpinningCursor(deltaTime)
         }
 
-        val lifetimeEnd = current.gameObject.lifetimeEnd
+        var lifetimeEnd = 0f
 
         // As the game scene does: objects are updated until their lifetime ends, then expired.
-        if (!current.isExpired) {
-            current.gameObject.updateJudgement(deltaTime)
+        for (spawned in current) {
+            if (!spawned.isExpired) {
+                spawned.gameObject.updateJudgement(deltaTime)
 
-            if (clock.time >= lifetimeEnd) {
-                expire(current)
+                if (clock.time >= spawned.gameObject.lifetimeEnd) {
+                    expire(spawned)
+                }
             }
+            lifetimeEnd = max(lifetimeEnd, spawned.gameObject.lifetimeEnd)
         }
 
         // As the game scene does once the objects of the frame were updated.
@@ -284,6 +303,10 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         if (clock.time >= lifetimeEnd + 0.5f) {
             restart()
         }
+    }
+
+    private fun expireAll() {
+        for (spawned in current) expire(spawned)
     }
 
     // A finger pressing at the start, then going around the center of the playfield.
@@ -331,7 +354,8 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
     //region GameObjectListener
 
     override fun onCircleHit(id: Int, accuracy: Float, pos: Vector2, endCombo: Boolean, forcedScore: Byte, color: Color4): String? {
-        val hitWindow = current?.hitObject?.hitWindow ?: return null
+        // The objects of a loop share their difficulty, and so their hit window.
+        val hitWindow = current.firstOrNull()?.hitObject?.hitWindow ?: return null
         val error = abs(accuracy) * 1000
 
         // As the game scene judges it.
