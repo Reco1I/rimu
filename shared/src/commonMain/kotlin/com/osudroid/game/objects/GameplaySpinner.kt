@@ -86,6 +86,9 @@ class GameplaySpinner(
      */
     private val center = Vector2(0f)
 
+    // The mapping the spinner was placed with, to place it again when the window is resized.
+    private var laidOutMapping: PlayfieldMapping? = null
+
     init {
         // The center of the playfield, where the cursor goes in autoplay.
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f)
@@ -105,6 +108,7 @@ class GameplaySpinner(
      * as big as the space rather than the playfield.
      */
     private fun layoutInSpace(mapping: PlayfieldMapping) {
+        laidOutMapping = mapping
         center.set(mapping.toResolution(position))
         piece.layout(center.x, center.y, mapping.width)
     }
@@ -257,6 +261,10 @@ class GameplaySpinner(
 
         val listener = listener!!
         val stat = stat!!
+
+        if (listener.playfieldMapping !== laidOutMapping) {
+            layoutInSpace(listener.playfieldMapping)
+        }
 
         passedTime = listener.elapsedTime - hitTime
 

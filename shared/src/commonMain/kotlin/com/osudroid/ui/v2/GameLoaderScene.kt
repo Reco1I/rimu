@@ -275,7 +275,7 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
                     dimBox.clearTransforms()
                     dimBox.fadeTo(1f - backgroundBrightness / 100f, 0.2f).after {
 
-                        gameplay.session!!.hud.apply {
+                        gameplay.session!!.hudLayer.apply {
                             alpha = 0f
                             scaleX = 0.9f
                             scaleY = 0.9f

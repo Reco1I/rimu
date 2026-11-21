@@ -3,6 +3,7 @@ package com.osudroid.ui.v2.skin
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.CornerRadius
+import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
@@ -74,7 +75,12 @@ class DefaultSpinnerPiece : SpinnerPiece() {
 
     private val centre = disc(size * 0.12f).apply { color = Color4.White }
 
-    private val spinnerDisc = Container().apply {
+    // Its size is fixed in the space gameplay is laid out in, which is shorter than the disc on wide screens: limited
+    // to the space's height, it would be squeezed into an ellipse.
+    private val spinnerDisc = object : Container() {
+        override fun adjustParentConstraints(constraints: LayoutConstraints) =
+            constraints.copy(maxWidth = Float.POSITIVE_INFINITY, maxHeight = Float.POSITIVE_INFINITY)
+    }.apply {
         width = size.px
         height = size.px
         origin = Anchor.Center

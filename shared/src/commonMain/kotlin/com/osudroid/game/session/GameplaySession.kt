@@ -263,6 +263,15 @@ class GameplaySession(
         private set
 
     /**
+     * The layer the [hud] is in, which the HUD's entrance animates: the HUD scales itself to the window, as a
+     * [ScalingContainer], so its own scale can't be animated.
+     */
+    val hudLayer = Container().apply {
+        width = Dimension.FillAvailable
+        height = Dimension.FillAvailable
+    }
+
+    /**
      * Whether the HUD editor mode is enabled.
      */
     override var isHUDEditorMode = request.isHUDEditor
@@ -1004,7 +1013,8 @@ class GameplaySession(
             Input.dispatchHistoricalMoves = true
         }
 
-        root += hud
+        hudLayer += hud
+        root += hudLayer
         replaySettingsPanel?.let { root += it }
         Gameplay.replaceCurrentScene(gameUIScene)
 
@@ -1404,6 +1414,7 @@ class GameplaySession(
         if (::hud.isInitialized) {
             hud.removeSelf()
         }
+        hudLayer.removeSelf()
         replaySettingsPanel?.removeSelf()
 
         cancelVideoLoading()
