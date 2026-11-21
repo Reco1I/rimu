@@ -1,4 +1,4 @@
-package ru.nsu.ccfit.zuev.osu.game
+package com.osudroid.game.objects
 
 import com.osudroid.ui.v2.skin.JudgementPiece
 import com.osudroid.ui.v2.skin.SkinComponent

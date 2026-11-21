@@ -32,9 +32,9 @@ import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.textButton
 import com.osudroid.ui.v2.test.GameplayObjectHarness.Play
-import ru.nsu.ccfit.zuev.osu.game.GameplayHitCircle
-import ru.nsu.ccfit.zuev.osu.game.GameplaySlider
-import ru.nsu.ccfit.zuev.osu.game.GameplaySpinner
+import com.osudroid.game.objects.GameplayHitCircle
+import com.osudroid.game.objects.GameplaySlider
+import com.osudroid.game.objects.GameplaySpinner
 import com.osudroid.ui.v2.skin.DefaultSpinnerPiece
 import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces

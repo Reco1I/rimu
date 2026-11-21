@@ -3,6 +3,7 @@ package com.osudroid.game.session
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.toBoardItem
+import com.osudroid.scoring.Statistic
 import com.osudroid.settings.OsuSettings
 import com.osudroid.utils.async
 import com.osudroid.utils.runSafe
@@ -10,7 +11,6 @@ import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
 import kotlin.math.max
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * What an attempt tells the multiplayer room, and asks of it: its live score, skipping, leaving and its final score.
@@ -39,7 +39,7 @@ class MultiplayerSync {
      * @param deltaTime The gameplay time of the frame, in seconds.
      * @param speedMultiplier The rate gameplay goes at, to tell the real time of the frame.
      */
-    fun update(deltaTime: Float, speedMultiplier: Float, stat: StatisticV2) {
+    fun update(deltaTime: Float, speedMultiplier: Float, stat: Statistic) {
         if (!Multiplayer.isMultiplayer) {
             return
         }
@@ -97,7 +97,7 @@ class MultiplayerSync {
     /**
      * Sends the final score of the attempt, when connected.
      */
-    fun submitFinalScore(stat: StatisticV2) {
+    fun submitFinalScore(stat: Statistic) {
         if (Multiplayer.isConnected) {
             async { runSafe { RoomAPI.submitFinalScore(stat.toJson()) } }
         }

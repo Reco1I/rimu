@@ -30,7 +30,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitAll
-import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
+import com.osudroid.game.objects.GameObjectPool
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.online.OnlineFileOperator
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene

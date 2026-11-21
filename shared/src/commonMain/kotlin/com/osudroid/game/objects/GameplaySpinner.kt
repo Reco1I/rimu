@@ -1,5 +1,6 @@
-package ru.nsu.ccfit.zuev.osu.game
+package com.osudroid.game.objects
 
+import com.osudroid.scoring.Statistic
 import com.osudroid.ui.v2.game.GameplayPlayfield
 
 import com.reco1l.verktex.ui.Component
@@ -37,7 +38,6 @@ import kotlin.math.sin
 import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.Utils
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import com.osudroid.ui.v2.game.SpinnerRpmCounter
 import com.reco1l.verktex.data.fill
@@ -69,7 +69,7 @@ class GameplaySpinner(
     private var needRotations = 0f
     private var clear = false
     private var bonusScoreCounter = 1
-    private var stat: StatisticV2? = null
+    private var stat: Statistic? = null
     private var passedTime = 0f
     private var duration = 0f
 
@@ -110,7 +110,7 @@ class GameplaySpinner(
     }
 
     fun init(listener: GameObjectListener, scene: Container, playfield: GameplayPlayfield,
-                  beatmapSpinner: Spinner, rps: Float, stat: StatisticV2) {
+                  beatmapSpinner: Spinner, rps: Float, stat: Statistic) {
         effectsPlayfield = playfield
         fullRotations = 0
         rotations = 0f

@@ -4,6 +4,7 @@ import com.osudroid.data.DatabaseManager
 import com.osudroid.data.OsuDatabase
 import com.osudroid.data.ScoreInfo
 import com.osudroid.math.Vector2
+import com.osudroid.scoring.Statistic
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import java.io.File
@@ -18,7 +19,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 class ReplayImporterTest {
 
@@ -61,7 +61,7 @@ class ReplayImporterTest {
         replay.setObjectCount(1)
         replay.addPress(100, Vector2(10f, 20f), 0)
         replay.addUp(200, 0)
-        replay.stat = StatisticV2().apply {
+        replay.stat = Statistic().apply {
             time = 1_700_000_000_000L
             hit300 = 1
             totalScore = 300

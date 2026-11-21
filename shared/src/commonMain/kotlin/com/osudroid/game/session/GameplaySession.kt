@@ -3,6 +3,7 @@ package com.osudroid.game.session
 import com.osudroid.game.Gameplay
 import com.osudroid.game.loading.LoadedPlay
 import com.osudroid.game.loading.PlayRequest
+import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.math.Path
 import com.reco1l.verktex.data.Background
 import com.osudroid.OsuGame
@@ -112,13 +113,12 @@ import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
-import ru.nsu.ccfit.zuev.osu.game.GameObject
-import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
-import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
+import com.osudroid.game.objects.GameObject
+import com.osudroid.game.objects.GameObjectListener
+import com.osudroid.game.objects.GameObjectPool
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import com.osudroid.utils.currentTimeMillis
@@ -193,7 +193,7 @@ class GameplaySession(
     private var judgeableObject: GameObject? = null
     private var metronome: Metronome? = null
     private var scale = 0f
-    override lateinit var stat: StatisticV2
+    override lateinit var stat: Statistic
 
     /**
      * What the gameplay of this attempt depends on, made as it's prepared.
@@ -633,7 +633,7 @@ class GameplaySession(
 
         if (replayPath != null) {
             // Replay decoding may be dependent on the used mods, so we must do this.
-            val replayStat = StatisticV2()
+            val replayStat = Statistic()
             replayStat.mod = mods
             replay.setStat(replayStat)
 
@@ -721,7 +721,7 @@ class GameplaySession(
     fun prepareScene() {
         val lastMods = mods
 
-        stat = StatisticV2()
+        stat = Statistic()
         stat.mod = lastMods
         stat.migrateLegacyMods(parsedBeatmap.difficulty)
         stat.calculateModScoreMultiplier(parsedBeatmap.difficulty)

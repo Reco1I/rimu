@@ -4,10 +4,10 @@ import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitCircle
 import com.osudroid.math.Vector2
+import com.osudroid.scoring.Statistic
 import com.osudroid.ui.v2.hud.IGameplayEvents
 import com.reco1l.verktex.testing.UITestStage
 import kotlin.random.Random
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * Makes up a play on [gameScene], which isn't playing: hits notes with some error now and then, and
@@ -56,7 +56,7 @@ class FakeGameplayDriver(
 
     private fun resetPlay() {
         time = 0f
-        gameScene.stat = StatisticV2()
+        gameScene.stat = Statistic()
         gameScene.hitWindow = DroidHitWindow(8f)
         gameScene.firstObjectStartTime = 0f
         gameScene.lastObjectEndTime = PLAY_LENGTH

@@ -5,10 +5,10 @@ import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.hitobjects.sliderobject.SliderRepeat
 import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTail
 import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTick
+import com.osudroid.scoring.Statistic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
 import ru.nsu.ccfit.zuev.osu.scoring.Replay.ReplayObjectData
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import kotlin.jvm.JvmField
 
 /**
@@ -64,15 +64,15 @@ open class PerformanceCalculationParameters(
         get() = nonComboBreakingSliderNestedMisses == null || comboBreakingSliderNestedMisses == null
 
     /**
-     * Populates this [PerformanceCalculationParameters] with the given [IBeatmap] and [StatisticV2].
+     * Populates this [PerformanceCalculationParameters] with the given [IBeatmap] and [Statistic].
      *
      * @param beatmap The [IBeatmap] to populate this [PerformanceCalculationParameters] with.
-     * @param stat The [StatisticV2] to populate this [PerformanceCalculationParameters]
+     * @param stat The [Statistic] to populate this [PerformanceCalculationParameters]
      */
-    open fun populate(beatmap: IBeatmap, stat: StatisticV2) =
+    open fun populate(beatmap: IBeatmap, stat: Statistic) =
         populate(stat, beatmap.hitObjects.sliderCount, beatmap.hitObjects.sliderTickCount, beatmap.hitObjects.sliderRepeatCount)
 
-    open fun populate(stat: StatisticV2, sliderCount: Int, sliderTickCount: Int, sliderRepeatCount: Int) {
+    open fun populate(stat: Statistic, sliderCount: Int, sliderTickCount: Int, sliderRepeatCount: Int) {
         maxCombo = stat.scoreMaxCombo
         countGreat = stat.hit300
         countOk = stat.hit100

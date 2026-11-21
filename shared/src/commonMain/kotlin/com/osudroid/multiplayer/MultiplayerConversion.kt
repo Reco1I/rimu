@@ -2,6 +2,7 @@
 
 package com.osudroid.multiplayer
 
+import com.osudroid.scoring.Statistic
 import com.osudroid.utils.*
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -10,7 +11,6 @@ import com.osudroid.multiplayer.api.data.RoomTeam
 import com.osudroid.multiplayer.api.data.WinCondition
 import com.osudroid.utils.deserializeMods
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import com.osudroid.utils.currentTimeMillis
 
 
@@ -31,7 +31,7 @@ fun jsonToScoreboardItem(json: JsonObject) = ScoreBoardItem().apply {
 /**
  * Specifically made to handle `scoreSubmission` event.
  */
-fun jsonToStatistic(json: JsonObject) = StatisticV2().apply {
+fun jsonToStatistic(json: JsonObject) = Statistic().apply {
 
     uid = json.optLong("uid", -1L)
     playerName = json.getString("username")
@@ -51,7 +51,7 @@ fun jsonToStatistic(json: JsonObject) = StatisticV2().apply {
 /**
  * Converts the statistic to a [ScoreBoardItem], used specifically for Multiplayer.
  */
-fun StatisticV2.toBoardItem(): ScoreBoardItem {
+fun Statistic.toBoardItem(): ScoreBoardItem {
     //noinspection DataFlowIssue
     val combo = if (!Multiplayer.isConnected || Multiplayer.room!!.winCondition != WinCondition.MaxCombo) combo else lastScoreMaxCombo
     return ScoreBoardItem(playerName, totalScoreWithMultiplier, combo, accuracy, isAlive)
@@ -60,5 +60,5 @@ fun StatisticV2.toBoardItem(): ScoreBoardItem {
 /**
  * Whether the statistic corresponds to a team.
  */
-fun StatisticV2.isTeamStatistic() =
+fun Statistic.isTeamStatistic() =
     Multiplayer.isConnected && (playerName == RoomTeam.Red.toString() || playerName == RoomTeam.Blue.toString())

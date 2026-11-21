@@ -11,10 +11,10 @@ import com.osudroid.mods.Mod
 import com.osudroid.replay.SliderCheeseChecker
 import com.osudroid.replay.ThreeFingerChecker
 import com.osudroid.replay.createCursorGroups
+import com.osudroid.scoring.Statistic
 import com.osudroid.utils.LRUCache
 import com.osudroid.utils.ModHashMap
 import ru.nsu.ccfit.zuev.osu.scoring.Replay.ReplayObjectData
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import kotlinx.coroutines.CoroutineScope
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import kotlin.jvm.JvmName
@@ -37,30 +37,30 @@ object BeatmapDifficultyCalculator {
     private val difficultyCacheManager = LRUCache<String, BeatmapDifficultyCacheManager>(10)
 
     /**
-     * Constructs a [DroidPerformanceCalculationParameters] from an [IBeatmap] and [StatisticV2].
+     * Constructs a [DroidPerformanceCalculationParameters] from an [IBeatmap] and [Statistic].
      *
      * @param beatmap The [IBeatmap] to construct the [DroidPerformanceCalculationParameters] from.
-     * @param stat The [StatisticV2] to construct the [DroidPerformanceCalculationParameters] from.
-     * @return The [DroidPerformanceCalculationParameters] representing the [StatisticV2],
-     * `null` if the [StatisticV2] instance is `null`.
+     * @param stat The [Statistic] to construct the [DroidPerformanceCalculationParameters] from.
+     * @return The [DroidPerformanceCalculationParameters] representing the [Statistic],
+     * `null` if the [Statistic] instance is `null`.
      */
     @JvmStatic
-    fun constructDroidPerformanceParameters(beatmap: IBeatmap, stat: StatisticV2?) = stat?.run {
+    fun constructDroidPerformanceParameters(beatmap: IBeatmap, stat: Statistic?) = stat?.run {
         DroidPerformanceCalculationParameters().also {
             it.populate(beatmap, this)
         }
     }
 
     /**
-     * Constructs a [StandardPerformanceCalculationParameters] from an [IBeatmap] and [StatisticV2].
+     * Constructs a [StandardPerformanceCalculationParameters] from an [IBeatmap] and [Statistic].
      *
      * @param beatmap The [IBeatmap] to construct the [StandardPerformanceCalculationParameters] from.
-     * @param stat The [StatisticV2] to construct the [StandardPerformanceCalculationParameters] from.
-     * @return The [StandardPerformanceCalculationParameters] representing the [StatisticV2],
-     * `null` if the [StatisticV2] instance is `null`.
+     * @param stat The [Statistic] to construct the [StandardPerformanceCalculationParameters] from.
+     * @return The [StandardPerformanceCalculationParameters] representing the [Statistic],
+     * `null` if the [Statistic] instance is `null`.
      */
     @JvmStatic
-    fun constructStandardPerformanceParameters(beatmap: IBeatmap, stat: StatisticV2?) = stat?.run {
+    fun constructStandardPerformanceParameters(beatmap: IBeatmap, stat: Statistic?) = stat?.run {
         StandardPerformanceCalculationParameters().also {
             it.populate(beatmap, this)
         }
@@ -205,16 +205,16 @@ object BeatmapDifficultyCalculator {
      *
      * @param beatmap The [IBeatmap] associated with the [DroidDifficultyAttributes].
      * @param attributes The [DroidDifficultyAttributes] to calculate.
-     * @param stat The [StatisticV2] to calculate for.
+     * @param stat The [Statistic] to calculate for.
      * @param perfAttributes The [DroidPerformanceAttributes] to populate. This can be used to avoid extra allocations.
-     * @return A [DroidPerformanceAttributes] relating to the [StatisticV2].
+     * @return A [DroidPerformanceAttributes] relating to the [Statistic].
      */
     @JvmStatic
     @JvmOverloads
     fun calculateDroidPerformance(
         beatmap: IBeatmap,
         attributes: DroidDifficultyAttributes,
-        stat: StatisticV2,
+        stat: Statistic,
         perfAttributes: DroidPerformanceAttributes? = null
     ) = calculateDroidPerformance(attributes, constructDroidPerformanceParameters(beatmap, stat), perfAttributes)
 
@@ -249,9 +249,9 @@ object BeatmapDifficultyCalculator {
      * @param beatmap The [Beatmap] to calculate.
      * @param attributes The [DroidDifficultyAttributes] of the [Beatmap].
      * @param replay The [Replay] to calculate for.
-     * @param stat The [StatisticV2] to calculate for.
+     * @param stat The [Statistic] to calculate for.
      * @param perfAttributes The [DroidPerformanceAttributes] to populate. This can be used to avoid extra allocations.
-     * @return A [DroidPerformanceAttributes] relating to the [StatisticV2].
+     * @return A [DroidPerformanceAttributes] relating to the [Statistic].
      */
     @JvmStatic
     @JvmOverloads
@@ -260,7 +260,7 @@ object BeatmapDifficultyCalculator {
         beatmap: Beatmap,
         attributes: DroidDifficultyAttributes,
         replay: Replay,
-        stat: StatisticV2? = null,
+        stat: Statistic? = null,
         perfAttributes: DroidPerformanceAttributes? = null
     ) = calculateDroidPerformance(
         beatmap, attributes, replay, constructDroidPerformanceParameters(beatmap, stat), perfAttributes
@@ -298,9 +298,9 @@ object BeatmapDifficultyCalculator {
      * @param beatmap The [DroidPlayableBeatmap] to calculate.
      * @param attributes The [DroidDifficultyAttributes] of the [DroidPlayableBeatmap].
      * @param replay The [Replay] to calculate for.
-     * @param stat The [StatisticV2] to calculate for.
+     * @param stat The [Statistic] to calculate for.
      * @param perfAttributes The [DroidPerformanceAttributes] to populate. This can be used to avoid extra allocations.
-     * @return A [DroidPerformanceAttributes] relating to the [StatisticV2].
+     * @return A [DroidPerformanceAttributes] relating to the [Statistic].
      */
     @JvmStatic
     @JvmOverloads
@@ -309,7 +309,7 @@ object BeatmapDifficultyCalculator {
         beatmap: DroidPlayableBeatmap,
         attributes: DroidDifficultyAttributes,
         replay: Replay,
-        stat: StatisticV2? = null,
+        stat: Statistic? = null,
         perfAttributes: DroidPerformanceAttributes? = null
     ) = calculateDroidPerformance(beatmap, attributes, replay, constructDroidPerformanceParameters(beatmap, stat))
 
@@ -363,14 +363,14 @@ object BeatmapDifficultyCalculator {
      *
      * @param beatmap The [IBeatmap] associated with the [StandardDifficultyAttributes].
      * @param attributes The [StandardDifficultyAttributes] to calculate.
-     * @param stat The [StatisticV2] to calculate for.
+     * @param stat The [Statistic] to calculate for.
      * @param perfAttributes The [StandardPerformanceAttributes] to populate. This can be used to avoid extra allocations.
-     * @return A [StandardPerformanceAttributes] relating to the [StatisticV2].
+     * @return A [StandardPerformanceAttributes] relating to the [Statistic].
      */
     @JvmStatic
     @JvmOverloads
     fun calculateStandardPerformance(
-        beatmap: IBeatmap, attributes: StandardDifficultyAttributes, stat: StatisticV2, perfAttributes: StandardPerformanceAttributes? = null
+        beatmap: IBeatmap, attributes: StandardDifficultyAttributes, stat: Statistic, perfAttributes: StandardPerformanceAttributes? = null
     ) = calculateStandardPerformance(attributes, constructStandardPerformanceParameters(beatmap, stat), perfAttributes)
 
     /**
@@ -404,9 +404,9 @@ object BeatmapDifficultyCalculator {
      * @param beatmap The [StandardPlayableBeatmap] to calculate.
      * @param attributes The [StandardDifficultyAttributes] of the [Beatmap].
      * @param replayObjectData The replay object data of the player.
-     * @param stat The [StatisticV2] to calculate for.
+     * @param stat The [Statistic] to calculate for.
      * @param perfAttributes The [StandardPerformanceAttributes] to populate. This can be used to avoid extra allocations.
-     * @return A [StandardPerformanceAttributes] relating to the [StatisticV2].
+     * @return A [StandardPerformanceAttributes] relating to the [Statistic].
      */
     @JvmStatic
     @JvmOverloads
@@ -415,7 +415,7 @@ object BeatmapDifficultyCalculator {
         beatmap: StandardPlayableBeatmap,
         attributes: StandardDifficultyAttributes,
         replayObjectData: Array<ReplayObjectData>,
-        stat: StatisticV2? = null,
+        stat: Statistic? = null,
         perfAttributes: StandardPerformanceAttributes? = null
     ) = calculateStandardPerformance(
         beatmap, attributes, replayObjectData, constructStandardPerformanceParameters(beatmap, stat), perfAttributes

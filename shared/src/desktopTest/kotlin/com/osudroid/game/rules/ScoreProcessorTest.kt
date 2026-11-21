@@ -1,14 +1,14 @@
 package com.osudroid.game.rules
 
+import com.osudroid.scoring.Statistic
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 class ScoreProcessorTest {
 
-    private val statistic = StatisticV2().apply {
+    private val statistic = Statistic().apply {
         beatmapNoteCount = 100
         beatmapMaxCombo = 100
     }

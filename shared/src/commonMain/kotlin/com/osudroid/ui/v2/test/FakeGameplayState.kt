@@ -4,16 +4,16 @@ import com.osudroid.beatmaps.DroidPlayableBeatmap
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.game.GameplayContext
 import com.osudroid.game.replay.ReplaySettingsPanel
+import com.osudroid.scoring.Statistic
 import com.osudroid.ui.v2.hud.GameplayState
 import com.reco1l.verktex.ui.Scene
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * A play that isn't playing, for HUD elements to be tried without one: [FakeGameplayDriver] makes it up.
  */
 class FakeGameplayState : GameplayState {
-    override var stat = StatisticV2()
+    override var stat = Statistic()
     override val context = GameplayContext()
     override var elapsedTime = 0f
     override val initialStartTime = 0f

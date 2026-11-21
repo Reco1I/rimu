@@ -1,6 +1,7 @@
 package ru.nsu.ccfit.zuev.osu.scoring
 
 import com.osudroid.game.Gameplay
+import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
@@ -72,14 +73,14 @@ class ScoringScene(pGame: Gameplay) {
         private set
     private var content: Container? = null
     private var music: MusicService? = null
-    var replayStat: StatisticV2? = null
+    var replayStat: Statistic? = null
     var replayID = -1
     @JvmField
     var beatmapInfo: BeatmapInfo? = null
 
     // Multiplayer
     @JvmField
-    var currentStatistic: StatisticV2? = null
+    var currentStatistic: Statistic? = null
 
     private var selector: StatisticSelector? = null
 
@@ -152,7 +153,7 @@ class ScoringScene(pGame: Gameplay) {
         action()
     }
 
-    fun load(stat: StatisticV2, beatmap: BeatmapInfo?,
+    fun load(stat: Statistic, beatmap: BeatmapInfo?,
              player: MusicService?, replayPath: String?, mapMD5: String?,
              beatmapToReplay: BeatmapInfo?) {
         val wasShown = scene != null && Verktex.scene === scene

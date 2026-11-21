@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.hud
 
 import com.osudroid.OsuGame
+import com.osudroid.scoring.Statistic
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.utils.LenientJson
 import kotlinx.serialization.json.Json
@@ -329,7 +330,7 @@ class GameplayHUD(
         elementSelector?.onHitObjectLifetimeStart(obj)
     }
 
-    override fun onNoteHit(statistics: StatisticV2) {
+    override fun onNoteHit(statistics: Statistic) {
         forEachElement { it.onNoteHit(statistics) }
         elementSelector?.onNoteHit(statistics)
     }

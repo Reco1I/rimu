@@ -6,12 +6,12 @@ import com.osudroid.beatmaps.hitobjects.HitCircle
 import com.osudroid.beatmaps.parser.BeatmapParser
 import com.osudroid.game.rules.HealthProcessor
 import com.osudroid.game.rules.ScoreProcessor
+import com.osudroid.scoring.Statistic
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 class ScoreReconstructionTest {
 
@@ -21,7 +21,7 @@ class ScoreReconstructionTest {
 
     private val objects = beatmap.hitObjects.objects.toTypedArray()
 
-    private val stat = StatisticV2().apply {
+    private val stat = Statistic().apply {
         beatmapNoteCount = objects.size
         beatmapMaxCombo = beatmap.maxCombo
         healthDrain = beatmap.difficulty.hp

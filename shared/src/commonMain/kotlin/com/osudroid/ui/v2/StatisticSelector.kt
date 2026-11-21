@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2
 
 import com.osudroid.OsuGame
+import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.data.Background
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.data.WinCondition.Accuracy
@@ -18,7 +19,6 @@ import com.reco1l.verktex.ui.container.ScrollableContainer
 import com.reco1l.verktex.ui.text.Text
 import kotlin.math.hypot
 import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import com.reco1l.verktex.localization.formatString
 import com.osudroid.utils.formatNumber
 
@@ -27,10 +27,10 @@ import com.osudroid.utils.formatNumber
  */
 class StatisticSelector(
     private val scoring: ScoringScene,
-    stats: Array<StatisticV2>?
+    stats: Array<Statistic>?
 ) : ScrollableContainer() {
 
-    private val selected: StatisticV2? = scoring.currentStatistic
+    private val selected: Statistic? = scoring.currentStatistic
 
 
     init {
@@ -49,7 +49,7 @@ class StatisticSelector(
     }
 
 
-    private fun select(stat: StatisticV2) {
+    private fun select(stat: Statistic) {
         if (stat == selected) {
             return
         }
@@ -59,7 +59,7 @@ class StatisticSelector(
     }
 
 
-    private inner class BoardItem(index: Int, private val stat: StatisticV2) : Container() {
+    private inner class BoardItem(index: Int, private val stat: Statistic) : Container() {
 
         private var pressX = 0f
         private var pressY = 0f

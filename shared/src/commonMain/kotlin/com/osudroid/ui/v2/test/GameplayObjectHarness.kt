@@ -2,6 +2,7 @@ package com.osudroid.ui.v2.test
 
 import com.osudroid.game.rules.JudgementResult
 import com.osudroid.game.rules.SliderPart
+import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Dimension
 import com.osudroid.multiplayer.Multiplayer
@@ -40,11 +41,10 @@ import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
-import ru.nsu.ccfit.zuev.osu.game.GameObject
-import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
-import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
+import com.osudroid.game.objects.GameObject
+import com.osudroid.game.objects.GameObjectListener
+import com.osudroid.game.objects.GameObjectPool
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * Plays gameplay objects (circles, sliders, spinners) on a playfield of their own, the way the
@@ -84,7 +84,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     val controlPoints = BeatmapControlPoints()
 
-    val stat = StatisticV2()
+    val stat = Statistic()
 
     /**
      * What the objects depend on: the difficulty of the harness, and autoplay while they're played by it.

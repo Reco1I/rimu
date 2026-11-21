@@ -6,6 +6,7 @@ import com.osudroid.beatmaps.hitobjects.Slider
 import com.osudroid.beatmaps.hitobjects.Spinner
 import com.osudroid.beatmaps.timings.TimingControlPoint
 import com.osudroid.game.loading.LoadedPlay
+import com.osudroid.scoring.Statistic
 import com.osudroid.ui.v2.game.FollowPointConnection
 import com.osudroid.ui.v2.game.GameplayPlayfield
 import com.osudroid.ui.v2.hud.IGameplayEvents
@@ -13,11 +14,10 @@ import com.osudroid.utils.BitSet
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.ui.container.Container
 import kotlin.math.max
-import ru.nsu.ccfit.zuev.osu.game.GameObject
-import ru.nsu.ccfit.zuev.osu.game.GameObjectListener
-import ru.nsu.ccfit.zuev.osu.game.GameObjectPool
+import com.osudroid.game.objects.GameObject
+import com.osudroid.game.objects.GameObjectListener
+import com.osudroid.game.objects.GameObjectPool
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * Adds the objects of a play, and the follow points between them, as their lifetime starts.
@@ -34,7 +34,7 @@ class ObjectSpawner(
     private val loaded: LoadedPlay,
     private val playfield: GameplayPlayfield,
     private val spinnerLayer: Container,
-    private val stat: StatisticV2,
+    private val stat: Statistic,
     private val events: IGameplayEvents,
     private val replayObjectData: Array<Replay.ReplayObjectData?>?,
     private val comboColor: (HitObject) -> Color4,

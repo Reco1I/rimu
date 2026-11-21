@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.hud
 import com.osudroid.math.Vector2
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
+import com.osudroid.scoring.Statistic
 
 interface IGameplayEvents {
 
@@ -18,7 +18,7 @@ interface IGameplayEvents {
 
     fun onHitObjectLifetimeStart(obj: HitObject)
 
-    fun onNoteHit(statistics: StatisticV2)
+    fun onNoteHit(statistics: Statistic)
 
     fun onBreakStateChange(isBreak: Boolean)
 

@@ -1,5 +1,6 @@
-package ru.nsu.ccfit.zuev.osu.game
+package com.osudroid.game.objects
 
+import com.osudroid.scoring.Statistic
 import com.osudroid.ui.v2.game.GameplayPlayfield
 
 import com.osudroid.settings.OsuSettings
@@ -45,7 +46,6 @@ import kotlin.math.max
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 
 class GameplaySlider : GameObject() {
@@ -68,7 +68,7 @@ class GameplaySlider : GameObject() {
     private val tailBurst = pieces.create(SkinComponent.SliderTailCircle)
     private val reverseBursts = ArrayList<Component>()
     private val freeReverseBursts = ArrayList<Component>()
-    private var stat: StatisticV2? = null
+    private var stat: Statistic? = null
     private var listener: GameObjectListener? = null
     private var path: SliderPath? = null
     private var hitWindow: HitWindow? = null
@@ -165,7 +165,7 @@ class GameplaySlider : GameObject() {
         sliderWhistleSample = GameplaySequenceHitSampleInfo()
     }
 
-    fun init(listener: GameObjectListener, playfield: GameplayPlayfield, stat: StatisticV2,
+    fun init(listener: GameObjectListener, playfield: GameplayPlayfield, stat: Statistic,
              beatmapSlider: Slider, controlPoints: BeatmapControlPoints, comboColor: Color4,
              borderColor: Color4, sliderPath: SliderPath, renderPath: Path) {
         this.listener = listener

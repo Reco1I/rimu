@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.hud
 
+import com.osudroid.scoring.Statistic
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.settings.Settings
@@ -23,7 +24,6 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
 import kotlin.math.abs
 import kotlin.reflect.KClass
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 
 /**
@@ -229,7 +229,7 @@ abstract class HUDElement : Container(), IGameplayEvents {
 
     override fun onHitObjectLifetimeStart(obj: HitObject) {}
 
-    override fun onNoteHit(statistics: StatisticV2) {}
+    override fun onNoteHit(statistics: Statistic) {}
 
     override fun onBreakStateChange(isBreak: Boolean) {}
 

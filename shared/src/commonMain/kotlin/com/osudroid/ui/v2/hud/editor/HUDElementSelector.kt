@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.hud.editor
 
+import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
@@ -25,7 +26,6 @@ import com.osudroid.beatmaps.hitobjects.HitObject
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.osudroid.ui.v2.hud.GameplayState
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 class HUDElementSelector(private val hud: GameplayHUD) : Container(), IGameplayEvents {
 
@@ -123,7 +123,7 @@ class HUDElementSelector(private val hud: GameplayHUD) : Container(), IGameplayE
 
     //region Gameplay Events
 
-    override fun onNoteHit(statistics: StatisticV2) {
+    override fun onNoteHit(statistics: Statistic) {
         elements.forEach { it.onNoteHit(statistics) }
     }
 

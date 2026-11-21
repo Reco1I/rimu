@@ -11,6 +11,7 @@ import com.osudroid.beatmaps.hitobjects.sliderobject.SliderTick
 import com.osudroid.math.Vector2
 import com.osudroid.mods.ModPrecise
 import com.osudroid.resources.Res
+import com.osudroid.scoring.Statistic
 import com.osudroid.utils.BitSet
 import com.osudroid.utils.ModHashMap
 import com.reco1l.verktex.Platform
@@ -42,7 +43,7 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
     @JvmField
     var replayVersion = 0
     @JvmField
-    var stat: StatisticV2? = null
+    var stat: Statistic? = null
     var md5 = ""
         private set
     var beatmapName = ""
@@ -214,7 +215,7 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
 
         val fileStat = file.stat
         if (fileStat != null) {
-            val stat = StatisticV2()
+            val stat = Statistic()
             this.stat = stat
             stat.replayFilename = replayFilename
             stat.beatmapMD5 = md5
@@ -258,12 +259,12 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
     }
 
     /**
-     * Populates a [StatisticV2] based on information from this [Replay].
+     * Populates a [Statistic] based on information from this [Replay].
      *
      * @param beatmap The [IBeatmap] that this [Replay] was played on.
-     * @param stat The [StatisticV2] to populate.
+     * @param stat The [Statistic] to populate.
      */
-    fun populateStatistics(beatmap: IBeatmap, stat: StatisticV2) {
+    fun populateStatistics(beatmap: IBeatmap, stat: Statistic) {
         val objectData = objectData
 
         // Check for a replay that is potentially malformed or failed to be loaded.
@@ -362,11 +363,11 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
         }
     }
 
-    fun getStat(): StatisticV2? {
+    fun getStat(): Statistic? {
         return stat
     }
 
-    fun setStat(stat: StatisticV2?) {
+    fun setStat(stat: Statistic?) {
         this.stat = stat
     }
 

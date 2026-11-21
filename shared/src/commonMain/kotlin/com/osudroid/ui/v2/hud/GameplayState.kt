@@ -4,9 +4,9 @@ import com.osudroid.beatmaps.DroidPlayableBeatmap
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.game.GameplayContext
 import com.osudroid.game.replay.ReplaySettingsPanel
+import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.ui.Scene
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * What the HUD shows of a play, and the little it does to it.
@@ -16,7 +16,7 @@ interface GameplayState {
     /**
      * The statistics of the play so far.
      */
-    val stat: StatisticV2
+    val stat: Statistic
 
     /**
      * What the gameplay of the play depends on: its mods and its timing.

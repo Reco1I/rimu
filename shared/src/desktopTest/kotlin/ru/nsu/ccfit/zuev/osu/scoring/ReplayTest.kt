@@ -4,6 +4,7 @@ import com.osudroid.math.Vector2
 import com.osudroid.mods.ModDoubleTime
 import com.osudroid.mods.ModHardRock
 import com.osudroid.mods.ModHidden
+import com.osudroid.scoring.Statistic
 import com.osudroid.utils.BitSet
 import java.io.File
 import okio.Buffer
@@ -32,7 +33,7 @@ class ReplayTest {
         replay.addObjectScore(1, ResultType.HIT100)
         replay.addObjectScore(2, ResultType.MISS)
 
-        replay.stat = StatisticV2().apply {
+        replay.stat = Statistic().apply {
             time = 1_700_000_000_123L
             hit300k = 1
             hit300 = 2

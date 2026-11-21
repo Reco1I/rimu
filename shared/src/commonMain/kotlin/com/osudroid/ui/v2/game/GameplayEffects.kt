@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.game
 
+import com.osudroid.scoring.Statistic
 import kotlin.random.Random
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -20,7 +21,6 @@ import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.Box
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.jvm.JvmOverloads
 
@@ -163,7 +163,7 @@ class FlashLightEntity(flashlight: ModFlashlight) : Container() {
  */
 class BreakAnimator(
     private val layer: Container,
-    private val stat: StatisticV2,
+    private val stat: Statistic,
     private val hud: Container
 ) {
 

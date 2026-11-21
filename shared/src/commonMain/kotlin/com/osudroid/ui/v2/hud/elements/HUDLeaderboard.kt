@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.osudroid.scoring.Statistic
 import com.osudroid.ui.v2.hud.GameplayState
 import com.osudroid.OsuGame
 import com.osudroid.multiplayer.Multiplayer
@@ -15,7 +16,6 @@ import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.text.Text
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import com.osudroid.utils.currentTimeMillis
 
 class HUDLeaderboard(private val game: GameplayState) : HUDElement() {
@@ -28,7 +28,7 @@ class HUDLeaderboard(private val game: GameplayState) : HUDElement() {
     private var lastTimeDataChange = 0L
 
 
-    private val stats: StatisticV2 = game.stat
+    private val stats: Statistic = game.stat
 
     private val replayId = game.replayId
 

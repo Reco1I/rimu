@@ -1,9 +1,9 @@
 package com.osudroid.game.rules
 
 import com.osudroid.beatmaps.timings.BreakPeriod
+import com.osudroid.scoring.Statistic
 import kotlin.math.max
 import kotlin.math.min
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * Drains the health of a play over time and decides when it fails.
@@ -13,7 +13,7 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
  * @param lives The lives the play has once its health runs out, three with Easy, each restoring all of it.
  */
 class HealthProcessor(
-    private val statistic: StatisticV2,
+    private val statistic: Statistic,
     private val drainRate: Float,
     private val lives: Int = 0
 ) {

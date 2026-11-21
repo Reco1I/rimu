@@ -1,4 +1,4 @@
-package ru.nsu.ccfit.zuev.osu.game
+package com.osudroid.game.objects
 
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.beatmaps.hitobjects.HitObject

@@ -1,15 +1,15 @@
 package com.osudroid.game.rules
 
 import com.osudroid.beatmaps.timings.BreakPeriod
+import com.osudroid.scoring.Statistic
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 class HealthProcessorTest {
 
-    private val statistic = StatisticV2()
+    private val statistic = Statistic()
 
     @Test
     fun `Drain depends on the HP and on the distance to the next object`() {

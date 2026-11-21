@@ -2,6 +2,7 @@
 
 package com.osudroid.data
 
+import com.osudroid.scoring.Statistic
 import com.osudroid.settings.GameFolders
 import androidx.room.Dao
 import androidx.room.Entity
@@ -16,7 +17,6 @@ import com.osudroid.mods.ModDifficultyAdjust
 import com.osudroid.scoring.ScoreMultiplierCalculator
 import com.osudroid.utils.deserializeMods
 import kotlin.math.roundToLong
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
 
@@ -125,8 +125,8 @@ data class ScoreInfo @JvmOverloads constructor(
     var sliderEndHits: Int?,
 
     /**
-     * Whether this score's [score] still holds [StatisticV2.totalScoreWithMultiplier] and needs on-the-fly conversion
-     * to raw [StatisticV2.totalScore] once the beatmap is available.
+     * Whether this score's [score] still holds [Statistic.totalScoreWithMultiplier] and needs on-the-fly conversion
+     * to raw [Statistic.totalScore] once the beatmap is available.
      *
      * This flag is set during database migration when a score uses a mod that requires beatmap data (e.g.
      * [ModDifficultyAdjust]) and the beatmap was not present in the library at migration time. Call
@@ -171,7 +171,7 @@ data class ScoreInfo @JvmOverloads constructor(
 
     @JvmOverloads
     @Throws(IllegalArgumentException::class)
-    fun toStatisticV2(difficulty: BeatmapDifficulty? = null) = StatisticV2().also {
+    fun toStatistic(difficulty: BeatmapDifficulty? = null) = Statistic().also {
 
         it.playerName = playerName
         it.beatmapMD5 = beatmapMD5
@@ -239,7 +239,7 @@ interface IScoreInfoDAO {
 /**
  * Converts the statistic to a [ScoreInfo].
  */
-fun StatisticV2.toScoreInfo() = ScoreInfo(
+fun Statistic.toScoreInfo() = ScoreInfo(
     beatmapMD5 = beatmapMD5,
     playerName = playerName,
     replayFilename = replayFilename,

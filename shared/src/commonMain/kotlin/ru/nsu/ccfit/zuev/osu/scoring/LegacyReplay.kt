@@ -4,6 +4,7 @@ import com.osudroid.math.Vector2
 import com.osudroid.mods.LegacyModConverter
 import com.osudroid.mods.ModHardRock
 import com.osudroid.mods.ModReplayV6
+import com.osudroid.scoring.Statistic
 import com.osudroid.utils.BitSet
 import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.deserializeMods
@@ -109,7 +110,7 @@ internal fun Replay.loadLegacy(source: BufferedSource, replayFilename: String, w
         setBeatmap(beatmapsetName, beatmapName, input.decodeObject<String>())
 
         if (version >= 3) {
-            val stat = StatisticV2()
+            val stat = Statistic()
             this.stat = stat
             stat.replayFilename = replayFilename
             stat.beatmapMD5 = md5

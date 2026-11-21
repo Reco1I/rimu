@@ -13,13 +13,13 @@ import com.osudroid.game.rules.HealthProcessor
 import com.osudroid.game.rules.JudgementResult
 import com.osudroid.game.rules.ScoreProcessor
 import com.osudroid.game.rules.SliderPart
+import com.osudroid.scoring.Statistic
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 
 /**
  * Rebuilds the statistic of a play at a time, as a seek does: from the results a replay recorded for each object,
@@ -35,7 +35,7 @@ class ScoreReconstruction(
     private val hitWindow: HitWindow,
     private val overallDifficulty: Float,
     private val replayVersion: Int,
-    private val stat: StatisticV2,
+    private val stat: Statistic,
     private val scoreProcessor: ScoreProcessor,
     private val healthProcessor: HealthProcessor
 ) {

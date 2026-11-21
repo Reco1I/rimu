@@ -3,6 +3,7 @@ package com.osudroid.multiplayer
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.OsuGame
 import com.osudroid.game.Gameplay
+import com.osudroid.scoring.Statistic
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.utils.*
@@ -30,7 +31,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import com.osudroid.utils.currentTimeMillis
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -74,7 +74,7 @@ object Multiplayer {
      * Array containing final leaderboard
      */
     @JvmField
-    var finalData: Array<StatisticV2>? = null
+    var finalData: Array<Statistic>? = null
 
 
     /**
@@ -213,7 +213,7 @@ object Multiplayer {
             return
         }
 
-        val list = mutableListOf<StatisticV2>()
+        val list = mutableListOf<Statistic>()
 
         for (i in 0 until array.size) {
             val json = array.optJsonObject(i) ?: continue

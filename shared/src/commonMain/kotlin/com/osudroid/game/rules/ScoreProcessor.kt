@@ -1,6 +1,7 @@
 package com.osudroid.game.rules
 
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
+import com.osudroid.scoring.Statistic
+
 
 /**
  * Applies judgements to the [statistic] of a play: its score, combo, counts and health.
@@ -8,7 +9,7 @@ import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
  * It's the one place the scoring rules live, for the play as it's played and as a seek reconstructs it. It has
  * no effects of its own: sounds, the HUD and failing are up to its caller.
  */
-class ScoreProcessor(val statistic: StatisticV2) {
+class ScoreProcessor(val statistic: Statistic) {
 
     /**
      * Whether an object of the current combo was missed, which gives the end of the combo no katu or geki.

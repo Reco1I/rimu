@@ -1,7 +1,7 @@
 package com.osudroid.difficulty.calculator
 
 import com.osudroid.replay.SliderCheesePenalty
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
+import com.osudroid.scoring.Statistic
 import kotlin.jvm.JvmField
 
 /**
@@ -26,7 +26,7 @@ class DroidPerformanceCalculationParameters : PerformanceCalculationParameters()
     @JvmField
     var totalScore = 0L
 
-    override fun populate(stat: StatisticV2, sliderCount: Int, sliderTickCount: Int, sliderRepeatCount: Int) {
+    override fun populate(stat: Statistic, sliderCount: Int, sliderTickCount: Int, sliderRepeatCount: Int) {
         super.populate(stat, sliderCount, sliderTickCount, sliderRepeatCount)
 
         totalScore = stat.totalScoreWithMultiplier

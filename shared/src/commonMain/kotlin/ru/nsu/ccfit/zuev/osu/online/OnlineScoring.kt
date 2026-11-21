@@ -1,5 +1,6 @@
 package ru.nsu.ccfit.zuev.osu.online
 
+import com.osudroid.scoring.Statistic
 import kotlin.time.Duration.Companion.seconds
 import com.reco1l.verktex.Platform
 import com.osudroid.data.BeatmapInfo
@@ -12,7 +13,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.helper.Debug
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import kotlin.coroutines.cancellation.CancellationException
 
 class OnlineScoring {
@@ -61,7 +61,7 @@ class OnlineScoring {
         }
     }
 
-    fun sendRecord(beatmap: BeatmapInfo, record: StatisticV2, panel: SendingPanel, replayPath: String?) {
+    fun sendRecord(beatmap: BeatmapInfo, record: Statistic, panel: SendingPanel, replayPath: String?) {
         if (!OnlineManager.getInstance().isStayOnline)
             return
 

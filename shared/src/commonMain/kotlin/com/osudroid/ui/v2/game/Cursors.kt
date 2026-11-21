@@ -15,9 +15,9 @@ import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.rotateTo
 import com.reco1l.verktex.ui.scaleTo
-import ru.nsu.ccfit.zuev.osu.game.GameObject
-import ru.nsu.ccfit.zuev.osu.game.GameplayCursors
-import ru.nsu.ccfit.zuev.osu.game.GameplaySpinner
+import com.osudroid.game.objects.GameObject
+import com.osudroid.game.objects.GameplayCursors
+import com.osudroid.game.objects.GameplaySpinner
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.math.sqrt
 import com.reco1l.verktex.graphics.BlendMode

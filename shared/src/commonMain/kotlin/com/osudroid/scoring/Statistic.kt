@@ -1,4 +1,4 @@
-package ru.nsu.ccfit.zuev.osu.scoring
+package com.osudroid.scoring
 
 import com.osudroid.settings.OsuSettings
 import com.osudroid.beatmaps.sections.BeatmapDifficulty
@@ -20,7 +20,11 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
-class StatisticV2() {
+/**
+ * The statistics of a score: its hits, combo, health and score, as a play makes them (through the game's
+ * `ScoreProcessor` and `HealthProcessor`), a replay stores them and the results show them.
+ */
+class Statistic() {
     var hit300 = 0
     var hit100 = 0
     var hit50 = 0

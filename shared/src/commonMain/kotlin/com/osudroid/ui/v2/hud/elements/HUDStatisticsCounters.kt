@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.data.px
 
 
@@ -13,7 +14,6 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.ui.text.Text
 import com.osudroid.ui.v2.hud.GameplayState
-import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2
 import ru.nsu.ccfit.zuev.skins.*
 
 @Suppress("LeakingThis")
@@ -75,7 +75,7 @@ sealed class HUDHitStatisticCounter(label: String, tint: Color4) : HUDStatisticC
      *
      * This is an abstract function rather than a lambda so that the returned [Int] is not boxed every frame.
      */
-    protected abstract fun getValue(statistics: StatisticV2): Int
+    protected abstract fun getValue(statistics: Statistic): Int
 
     override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {
         displayedValue = getValue(game.stat)
@@ -83,17 +83,17 @@ sealed class HUDHitStatisticCounter(label: String, tint: Color4) : HUDStatisticC
 }
 
 class HUDGreatCounter : HUDHitStatisticCounter("Great", Color4(0xFF46b4dc)) {
-    override fun getValue(statistics: StatisticV2) = statistics.hit300
+    override fun getValue(statistics: Statistic) = statistics.hit300
 }
 
 class HUDOkCounter : HUDHitStatisticCounter("Ok", Color4(0xFF64DC28)) {
-    override fun getValue(statistics: StatisticV2) = statistics.hit100
+    override fun getValue(statistics: Statistic) = statistics.hit100
 }
 
 class HUDMehCounter : HUDHitStatisticCounter("Meh", Color4(0xFFc8b46e)) {
-    override fun getValue(statistics: StatisticV2) = statistics.hit50
+    override fun getValue(statistics: Statistic) = statistics.hit50
 }
 
 class HUDMissCounter : HUDHitStatisticCounter("Miss", Color4(0xFFFF0000)) {
-    override fun getValue(statistics: StatisticV2) = statistics.misses
+    override fun getValue(statistics: Statistic) = statistics.misses
 }

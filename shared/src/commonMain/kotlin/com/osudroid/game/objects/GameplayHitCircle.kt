@@ -1,4 +1,4 @@
-package ru.nsu.ccfit.zuev.osu.game
+package com.osudroid.game.objects
 
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings

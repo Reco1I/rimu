@@ -1,4 +1,4 @@
-package ru.nsu.ccfit.zuev.osu.game
+package com.osudroid.game.objects
 
 import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.game.Cursor
