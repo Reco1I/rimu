@@ -302,7 +302,7 @@ The HUD already has a registry of components (`HUDElements` and its skin data).
      turns and fades them for every skin, as osu!lazer's `FollowPoint` does.
      - `LegacyFollowPointPiece` is the `followpoint` animation, synced to the clock from `animationStartTime`, at
        most 128×64.
-     - `DefaultFollowPointPiece` is a white chevron with a glow, 16×22.
+     - `DefaultFollowPointPiece` is a white line, 28×3, fading in from its tail to its head.
    - **Cursor:** `CursorSprite` is now a container growing and turning the skin's `CursorPiece`, placed from its
      centre or its top left corner as the piece says (`isCentred`).
      - `LegacyCursorPiece` is the `cursor` texture.

@@ -107,8 +107,7 @@ object SkinDimensions {
     val SPINNER_CLEAR = PieceSize(319f, 122f)
     val SPINNER_SPIN = PieceSize(343f, 119f)
 
-    // Follow points and the cursor.
-    val FOLLOW_POINT = PieceSize(16f, 22f)
+    // The cursor.
     val CURSOR = PieceSize(76f, 76f)
     val CURSOR_TRAIL = PieceSize(11f, 11f)
 

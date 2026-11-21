@@ -1,36 +1,40 @@
 package com.osudroid.ui.v2.skin
 
-import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
+import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.graphics.PixelsSource
 import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.texture.Textures
-import com.reco1l.verktex.ui.FAIcon
-import com.reco1l.verktex.ui.Icon
+import com.reco1l.verktex.ui.GradientBox
 import com.reco1l.verktex.ui.container.Container
 
 /**
- * The follow point of the default skin, as osu!lazer's `ArgonFollowPoint`: a white chevron with a soft glow,
- * pointing along the connection, at the size of the default `followpoint`.
+ * The follow point of the default skin: a short white line along the connection, fading in from its tail to its
+ * head, so the points read as a line fading towards the next object.
  */
 class DefaultFollowPointPiece : FollowPointPiece() {
 
     init {
-        val size = SkinDimensions.FOLLOW_POINT
+        width = LENGTH.px
+        height = THICKNESS.px
 
-        width = size.width.px
-        height = size.height.px
-
-        +Icon(FAIcon.ChevronRight).apply {
-            anchor = Anchor.Center
-            origin = Anchor.Center
-            iconSize = (size.height * DefaultSkin.TEXT_RESOLUTION).px
-            scale = 1f / DefaultSkin.TEXT_RESOLUTION
-            color = Color4.White
-            shadow = Shadow(Color4.White.alpha(0.4f), blur = (size.height * 0.3f).px)
+        +GradientBox().apply {
+            width = LENGTH.px
+            height = THICKNESS.px
+            radius = CornerRadius((THICKNESS / 2).px)
+            // From the tail, on the left as the connection turns the point, to the head.
+            gradientAngle = 0f
+            colorStart = Color4.White.alpha(0f)
+            colorEnd = Color4.White
         }
+    }
+
+    private companion object {
+        // In osu!pixels, before the objects' scale: shorter than the spacing of the points, 32, so they're apart.
+        const val LENGTH = 28f
+        const val THICKNESS = 3f
     }
 }
 
