@@ -15,6 +15,7 @@ import com.osudroid.beatmaps.sections.BeatmapControlPoints
 import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.GameplaySequenceHitSampleInfo
+import com.osudroid.game.Playfield
 import com.osudroid.game.SliderPath
 import com.osudroid.game.rules.JudgementResult
 import com.osudroid.game.rules.SliderPart
@@ -348,14 +349,10 @@ class GameplaySlider : GameObject() {
         }
 
         // Slider track
-        // The widths of the skin are in the pixels of the space gameplay is laid out in, scaled as the objects are:
-        // the playfield scales osu!pixels horizontally by its own scale.
-        val mapping = listener.playfieldMapping
-        val skinScale = scale * mapping.objectScale / mapping.scaleX
-
+        // The widths of the skin are in osu!pixels, scaled as the objects are.
         sliderBody.path = renderPath
         sliderBody.setPosition(stackedPosition.x, stackedPosition.y)
-        sliderBodyStyle.apply(sliderBody, bodyColor, borderColor, skinScale)
+        sliderBodyStyle.apply(sliderBody, bodyColor, borderColor, scale)
         sliderBody.startLength = 0f
         sliderBody.endLength = if (Settings[OsuSettings.SnakingInSliders]) 0f else Float.MAX_VALUE
         sliderBody.alpha = 0f
@@ -970,8 +967,8 @@ class GameplaySlider : GameObject() {
         if (!spanStarted) {
             spanStarted = true
 
-            // The scale on screen, as the frames follow the distance on screen.
-            val screenScale = scale * listener!!.playfieldMapping.objectScale
+            // The frames follow the distance in the pixels of osu!droid's 1280x720 screen, whatever the window's.
+            val screenScale = scale / Playfield.SCREEN_PIXEL
             ball.setSpeed(beatmapSlider.velocity.toFloat() * Slider.BASE_SCORING_DISTANCE * screenScale)
             ball.scale = scale
             ball.setFlipped(false)

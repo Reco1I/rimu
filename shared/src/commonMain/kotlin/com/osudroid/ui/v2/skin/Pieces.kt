@@ -2,7 +2,9 @@ package com.osudroid.ui.v2.skin
 
 import com.osudroid.game.HitResult
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.data.Dimension
+import com.osudroid.game.Playfield
+import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.ui.text.TextAlign
 import com.reco1l.verktex.ui.Component
@@ -114,22 +116,29 @@ abstract class FollowCirclePiece : Container() {
 interface SliderBodyStyle {
 
     /**
-     * Styles [body] for a slider of [bodyColor] with a border of [borderColor]. [skinScale] scales the widths of the
-     * skin, which are in the pixels gameplay is laid out in, to the body's space.
+     * Styles [body] for a slider of [bodyColor] with a border of [borderColor]. [skinScale], the object's scale, scales the
+     * widths of the skin, which are in osu!pixels.
      */
     fun apply(body: PathShape, bodyColor: Color4, borderColor: Color4, skinScale: Float)
 }
 
 /**
- * How a spinner looks, filling the layer it's drawn in (the space gameplay is laid out in, 1280 wide). The spinner
- * judges the spins and gives it their rotation and progress; it shows what it gives back on top of the layer.
+ * How a spinner looks. The spinner judges the spins and gives it their rotation and progress; it shows what it gives
+ * back on top of the layer.
+ *
+ * It's in the playfield, in osu!pixels, but laid out in the pixels of osu!droid's 1280x720 screen, which its sizes are
+ * made for: it's scaled by [Playfield.SCREEN_PIXEL] from the top left corner of the playfield. Its pieces take their
+ * own sizes whatever the size of the layer, as the spinner goes past the playfield.
  */
 abstract class SpinnerPiece : Container() {
 
     init {
-        width = Dimension.FillAvailable
-        height = Dimension.FillAvailable
+        scale = Playfield.SCREEN_PIXEL
+        scaleOrigin = Anchor.TopLeft
     }
+
+    override fun adjustParentConstraints(constraints: LayoutConstraints) =
+        LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
 
     /**
      * Whether the spinner is added below what its layer has, as osu!stable's old style spinner, rather than above.
@@ -138,9 +147,10 @@ abstract class SpinnerPiece : Container() {
         get() = false
 
     /**
-     * Places the pieces around ([centerX], [centerY]) in a layer [spaceWidth] wide.
+     * Places the pieces around ([centerX], [centerY]), the centre of the playfield, where the part of the playfield
+     * that's shown is [visibleWidth] wide, all in the pixels of the 1280x720 screen the piece is laid out in.
      */
-    abstract fun layout(centerX: Float, centerY: Float, spaceWidth: Float)
+    abstract fun layout(centerX: Float, centerY: Float, visibleWidth: Float)
 
     /**
      * Shows a spinner from [hitTime] for [duration] seconds, fading in over the [timePreempt] before it. Its

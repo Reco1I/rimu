@@ -4,7 +4,6 @@ import com.osudroid.game.rules.JudgementResult
 import com.osudroid.game.rules.SliderPart
 import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.Verktex
-import com.reco1l.verktex.data.Dimension
 import com.osudroid.multiplayer.Multiplayer
 import com.reco1l.verktex.Platform
 import com.osudroid.math.Vector2
@@ -17,7 +16,7 @@ import com.osudroid.game.Cursor
 import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayContext
 import com.osudroid.game.GameplayHitSampleInfo
-import com.osudroid.game.PlayfieldMapping
+import com.osudroid.game.Playfield
 import com.osudroid.game.rules.HitJudging
 import com.osudroid.ui.v2.game.GameplayPlayfield
 import com.osudroid.mods.ModAutoplay
@@ -93,7 +92,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         private set
 
     // The size of the space gameplay is laid out in, as the game's: 1280 wide, in the proportions of the window.
-    private val spaceWidth = PlayfieldMapping.REFERENCE_WIDTH
+    private val spaceWidth = Playfield.SPACE_WIDTH
     private val spaceHeight = Verktex.graphics.window.let { spaceWidth * it.windowHeight / it.windowWidth.coerceAtLeast(1) }
 
     // Holds the layers of the playfield, scaled to fit the stage as the game fits it in the screen. It keeps the
@@ -109,21 +108,13 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         scaleOrigin = Anchor.Center
     }
 
-    /**
-     * The layer spinners are added to, in the space gameplay is laid out in, as the game's.
-     */
-    val spinnerLayer = Container().apply {
-        width = Dimension.FillAvailable
-        height = Dimension.FillAvailable
-    }
-
-    // The game's playfield, over the spinners.
+    // The game's playfield.
     private val gameplayPlayfield = GameplayPlayfield().apply {
         setSpaceSize(spaceWidth, spaceHeight)
     }
 
     /**
-     * The playfield hit circles and sliders are added to, in osu!pixels, as the game's.
+     * The playfield the objects are added to, in osu!pixels, as the game's.
      */
     val playfield
         get() = gameplayPlayfield
@@ -150,7 +141,6 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     init {
         area.clock = clock
-        area += spinnerLayer
         area += gameplayPlayfield
         stage += area
 
@@ -320,13 +310,10 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         event.action = if (cursor.latestEvent == null) PointerEvent.Action.Down else PointerEvent.Action.Move
         event.systemTime = Platform.uptimeMillis
         event.trackTime = clock.time * 1000
-        val mapping = gameplayPlayfield.mapping
-        val center = mapping.toResolution(PlayfieldMapping.PLAYFIELD_WIDTH / 2, PlayfieldMapping.PLAYFIELD_HEIGHT / 2)
-        event.position.set(
-            center.x + SPIN_RADIUS * cos(spinAngle).toFloat(),
-            center.y + SPIN_RADIUS * sin(spinAngle).toFloat()
+        event.playfieldPosition.set(
+            Playfield.WIDTH / 2 + SPIN_RADIUS * cos(spinAngle).toFloat(),
+            Playfield.HEIGHT / 2 + SPIN_RADIUS * sin(spinAngle).toFloat()
         )
-        event.playfieldPosition.set(mapping.toPlayfield(event.position.x, event.position.y))
         event.trackPosition.set(event.playfieldPosition)
         cursor.addEvent(event)
     }
@@ -414,9 +401,6 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
     override fun playHitSamples(samples: MutableList<GameplayHitSampleInfo>?) = Unit
 
-    override val playfieldMapping
-        get() = gameplayPlayfield.mapping
-
     override val elapsedTime
         get() = clock.time
 
@@ -437,7 +421,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         // Longer than the time the objects are shown before their start, so they appear in a moment.
         private const val SPAWN_DELAY = 1000.0
 
-        private const val SPIN_RADIUS = 120f
+        private const val SPIN_RADIUS = 80f
 
         private const val SPIN_ROTATIONS_PER_SECOND = 3.0
 

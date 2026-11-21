@@ -7,7 +7,9 @@ import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.Verktex
+import com.osudroid.game.Playfield
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.ParticleSystem
 import com.reco1l.verktex.ui.Sprite
@@ -100,7 +102,8 @@ class CursorSprite : Container() {
 }
 
 /**
- * A cursor in the playfield, leaving a trail behind if the skin has one.
+ * A cursor in the playfield, leaving a trail behind if the skin has one. It's placed in osu!pixels and sized for
+ * osu!droid's 1280x720 screen, scaled by [Playfield.SCREEN_PIXEL].
  */
 open class CursorEntity : Container() {
 
@@ -123,10 +126,15 @@ open class CursorEntity : Container() {
     init {
         origin = Anchor.Center
         isVisible = false
+        scale = Playfield.SCREEN_PIXEL
         +cursorSprite
         +middleSprite
     }
 
+
+    // It keeps its size whatever the size of the layer, the cursor can be bigger than the playfield.
+    override fun adjustParentConstraints(constraints: LayoutConstraints) =
+        LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
 
     fun setShowing(showing: Boolean) {
         if (!showing) {
@@ -163,6 +171,9 @@ open class CursorEntity : Container() {
  * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyCursorTrail.cs
  */
 private class CursorTrail(private val cursor: CursorSprite, private val style: CursorTrailStyle) : ParticleSystem(MAX_PARTICLES) {
+
+    // The scale of the parts, the cursor's in the playfield.
+    private val partScale = cursor.baseSize * Playfield.SCREEN_PIXEL
 
     private val isContinuous = style.isContinuous
 
@@ -215,7 +226,7 @@ private class CursorTrail(private val cursor: CursorSprite, private val style: C
         }
 
         // Parts along the way, overlapping so they look like one.
-        val interval = texture.displayWidth * cursor.baseSize / 2.5f
+        val interval = texture.displayWidth * partScale / 2.5f
         val dx = x - lastX
         val dy = y - lastY
         var distance = sqrt(dx * dx + dy * dy)
@@ -237,14 +248,14 @@ private class CursorTrail(private val cursor: CursorSprite, private val style: C
 
     private fun emitPart(x: Float, y: Float, width: Float, height: Float) {
         // Particles are centred, a trail with its origin at the top left is offset by half their size.
-        val offsetX = if (isCentred) 0f else width * cursor.baseSize / 2f
-        val offsetY = if (isCentred) 0f else height * cursor.baseSize / 2f
+        val offsetX = if (isCentred) 0f else width * partScale / 2f
+        val offsetY = if (isCentred) 0f else height * partScale / 2f
 
         emit(
             x = x + offsetX,
             y = y + offsetY,
             lifetime = lifetime,
-            startScale = cursor.baseSize,
+            startScale = partScale,
             startAlpha = 1f,
             endAlpha = 0f,
             rotation = if (style.rotates) cursor.rotationZ else 0f
@@ -261,8 +272,7 @@ private class CursorTrail(private val cursor: CursorSprite, private val style: C
 }
 
 /**
- * The cursor used in autoplay, moving by itself from object to object, from [startX] and [startY] in the space
- * gameplay is laid out in.
+ * The cursor used in autoplay, moving by itself from object to object, from [startX] and [startY] in the playfield.
  */
 class AutoCursor(startX: Float, startY: Float) : CursorEntity() {
 
@@ -342,10 +352,10 @@ class AutoCursor(startX: Float, startY: Float) : CursorEntity() {
         }
 
         val isSpinner = gameObject is GameplaySpinner
-        // Objects are in the playfield, the cursor in the space gameplay is laid out in.
-        val position = listener.playfieldMapping.toResolution(gameObject.getPosition())
+        val position = gameObject.getPosition()
         val moveX = position.x
-        val moveY = position.y + if (isSpinner) 50f else 0f
+        // Below the centre of a spinner, by 50 pixels of osu!droid's 1280x720 screen.
+        val moveY = position.y + if (isSpinner) 50 * Playfield.SCREEN_PIXEL else 0f
         var deltaTime = gameObject.getHitTime() - secPassed
 
         currentObjectId = gameObject.getId()

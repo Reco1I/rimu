@@ -7,7 +7,9 @@ import com.reco1l.verktex.settings.Settings
 import com.osudroid.mods.ModFlashlight
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.game.Playfield
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.px
@@ -31,9 +33,16 @@ private const val FLASHLIGHT_AREA_CHANGE_DURATION = 0.8f
 private const val FLASHLIGHT_SLIDER_DIM_ALPHA = 0.8f
 
 /**
- * The area around the cursor that remains visible with the Flashlight mod.
+ * The area around the cursor that remains visible with the Flashlight mod. It's placed in the playfield, in
+ * osu!pixels, and sized for osu!droid's 1280x720 screen, scaled by [Playfield.SCREEN_PIXEL] around its position.
  */
 class FlashLightEntity(flashlight: ModFlashlight) : Container() {
+
+    init {
+        scale = Playfield.SCREEN_PIXEL
+        scaleOrigin = Anchor.TopLeft
+        setPosition(Playfield.WIDTH / 2f, Playfield.HEIGHT / 2f)
+    }
 
     private val followDelay = flashlight.followDelay
     private val sizeMultiplier = flashlight.sizeMultiplier
@@ -59,9 +68,14 @@ class FlashLightEntity(flashlight: ModFlashlight) : Container() {
     private var isTrackingSliders = false
     private var isBreak = false
     private var currentSize = FLASHLIGHT_BASE_SIZE
-    // Where the area goes in its parent, the space gameplay is laid out in: its center until the cursor moves.
-    private var nextX = Float.NaN
-    private var nextY = Float.NaN
+    // Where the area goes in its parent, the playfield: its center until the cursor moves.
+    private var nextX = Playfield.WIDTH / 2f
+    private var nextY = Playfield.HEIGHT / 2f
+
+
+    // It keeps its size, much bigger than the playfield.
+    override fun adjustParentConstraints(constraints: LayoutConstraints) =
+        LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
 
 
     private fun changeArea(fromScale: Float, toScale: Float) {
@@ -83,11 +97,12 @@ class FlashLightEntity(flashlight: ModFlashlight) : Container() {
         changeArea(fromScale, toScale)
     }
 
+    /**
+     * Moves the area to the cursor, at [x] and [y] in the playfield.
+     */
     fun onMouseMove(x: Float, y: Float) {
-        val size = parent?.measuredSize
-
-        nextX = if (size != null) x.coerceIn(0f, size.x) else x
-        nextY = if (size != null) y.coerceIn(0f, size.y) else y
+        nextX = x
+        nextY = y
     }
 
     fun onTrackingSliders(isTrackingSliders: Boolean) {
@@ -126,19 +141,6 @@ class FlashLightEntity(flashlight: ModFlashlight) : Container() {
 
     override fun onUpdate(clock: com.reco1l.verktex.time.FrameClock) {
         super.onUpdate(clock)
-
-        if (nextX.isNaN() || nextY.isNaN()) {
-            val size = parent?.measuredSize ?: return
-
-            // Not laid out yet.
-            if (size.x <= 0f || size.y <= 0f) {
-                return
-            }
-
-            nextX = size.x / 2f
-            nextY = size.y / 2f
-            setPosition(nextX, nextY)
-        }
 
         if (followDelay == 0f) {
             setPosition(nextX, nextY)

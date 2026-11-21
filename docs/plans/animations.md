@@ -238,7 +238,7 @@ Game commit after `0149249ab`, no engine change.
 - The lifetime of an object never ends before the effects it played (`extendLifetime(endTime)`), whatever it sets
   `lifetimeEnd` to afterwards. `releaseEffects()` in `onExpire` gives the pieces back. Spinners stay in their layer
   until they expire, so their effects keep the gameplay clock, and skip `updateJudgement` once judged. Their
-  judgement is placed in the space gameplay is laid out in, through the playfield's mapping.
+  judgement is placed at the centre of the playfield, in osu!pixels, as the other objects place theirs.
 - As judged objects stay active while their effects are shown, `GameObject.hasFinalJudgement()` tells them apart:
   the end of the beatmap (lead out, flashlight) waits for it instead of an empty list, and a failed replay doesn't
   count judged objects as misses anymore (it did for the ones still fading out).

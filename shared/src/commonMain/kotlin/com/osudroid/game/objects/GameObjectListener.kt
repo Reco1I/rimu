@@ -4,7 +4,6 @@ import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.game.Cursor
 import com.osudroid.game.GameplayContext
 import com.osudroid.game.GameplayHitSampleInfo
-import com.osudroid.game.PlayfieldMapping
 import com.osudroid.game.rules.JudgementResult
 import com.osudroid.game.rules.SliderPart
 import com.osudroid.math.Vector2
@@ -14,8 +13,9 @@ import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 /**
  * Judges the gameplay objects of a play.
  *
- * Positions are in the playfield, in osu!pixels, as hit objects are placed (see [PlayfieldMapping]). The judgements
- * return the texture of the judgement the object shows (`hit300g`, `sliderpoint30`, `hit0`…), null for none.
+ * Positions are in the playfield, in osu!pixels, as hit objects are placed (see
+ * [com.osudroid.ui.v2.game.GameplayPlayfield]). The judgements return the texture of the judgement the object shows
+ * (`hit300g`, `sliderpoint30`, `hit0`…), null for none.
  */
 interface JudgementListener {
 
@@ -96,15 +96,9 @@ interface GameplayCursors {
     fun updateAutoBasedPos(pX: Float, pY: Float)
 
     /**
-     * Called when the cursor of autoplay moved, to a position in the space gameplay is laid out in, not the
-     * playfield.
+     * Called when the cursor of autoplay moved, to a position in the playfield.
      */
     fun onUpdatedAutoCursor(pX: Float, pY: Float)
-
-    /**
-     * The mapping of the playfield into the space gameplay is laid out in, where spinners are drawn.
-     */
-    val playfieldMapping: PlayfieldMapping
 }
 
 /**

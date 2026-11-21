@@ -43,7 +43,7 @@ import com.osudroid.game.Cursor
 import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayContext
 import com.osudroid.game.GameplayHitSampleInfo
-import com.osudroid.game.PlayfieldMapping
+import com.osudroid.game.Playfield
 import com.osudroid.game.SliderPath
 import com.osudroid.game.replay.ReplaySettingsPanel
 import com.osudroid.math.Interpolation
@@ -333,7 +333,7 @@ class GameplaySession(
 
         // Gameplay is laid out in a space 1280 wide, as osu!droid's, scaled to the width of the window.
         gameplaySpace = ScalingContainer()
-        gameplaySpace.referenceSize = Vec2(PlayfieldMapping.REFERENCE_WIDTH, 720f)
+        gameplaySpace.referenceSize = Vec2(Playfield.SPACE_WIDTH, 720f)
 
         // Scaled and moved in it by the playfield size settings.
         playfield = Container()
@@ -349,8 +349,8 @@ class GameplaySession(
         // Objects can be loaded before the first layout, the space is as wide as the window in proportion.
         val window = Verktex.graphics.window
         objectPlayfield.setSpaceSize(
-            PlayfieldMapping.REFERENCE_WIDTH,
-            PlayfieldMapping.REFERENCE_WIDTH * window.windowHeight / window.windowWidth.coerceAtLeast(1)
+            Playfield.SPACE_WIDTH,
+            Playfield.SPACE_WIDTH * window.windowHeight / window.windowWidth.coerceAtLeast(1)
         )
 
         playfield += bgScene
@@ -774,7 +774,7 @@ class GameplaySession(
         }
 
         cursorPresenter = CursorPresenter(
-            cursors, context, fgScene, objectPlayfield.mapping,
+            cursors, context, objectPlayfield.cursors,
             showsCursors = (replaying || Settings[OsuSettings.ShowCursor]) && !context.isAutoplay && !context.isAutopilot
         )
 
@@ -790,7 +790,7 @@ class GameplaySession(
         }
 
         if (Settings[OsuSettings.ComboBurst]) {
-            comboBurst = ComboBurst(PlayfieldMapping.REFERENCE_WIDTH)
+            comboBurst = ComboBurst(Playfield.SPACE_WIDTH)
             comboBurst!!.attachAll(bgScene)
         }
 
@@ -834,7 +834,6 @@ class GameplaySession(
             listener = this,
             loaded = loaded,
             playfield = objectPlayfield,
-            spinnerLayer = bgScene,
             stat = stat,
             events = hud,
             replayObjectData = if (replaying) replay!!.objectData else null,
@@ -843,7 +842,7 @@ class GameplaySession(
         )
 
         if (replaying) {
-            replayInput = ReplayInputSource(replay!!, cursors, objectPlayfield, context.isHardRock, hud::onGameplayTouchDown)
+            replayInput = ReplayInputSource(replay!!, cursors, context.isHardRock, hud::onGameplayTouchDown)
         }
 
         hud.setEditMode(isHUDEditorMode)
@@ -1228,11 +1227,15 @@ class GameplaySession(
             skipBtn!!.removeSelf()
             skipBtn = null
         } else if (skipBtn != null) {
+            // Pressed within 250 pixels of the space from its bottom right corner, in osu!pixels.
+            val area = objectPlayfield.visibleArea
+            val radius = 250 * area.width / Playfield.SPACE_WIDTH
+
             for (i in cursors.indices) {
                 val latestDownEvent = cursors[i]!!.getLatestNonUpEvent()
 
-                if (latestDownEvent != null && Utils.squaredDistance(latestDownEvent.position.x, latestDownEvent.position.y,
-                        objectPlayfield.mapping.width, objectPlayfield.mapping.height) < 250 * 250) {
+                if (latestDownEvent != null && Utils.squaredDistance(latestDownEvent.playfieldPosition.x,
+                        latestDownEvent.playfieldPosition.y, area.z, area.w) < radius * radius) {
                     if (Multiplayer.isConnected) {
                         multiplayer.requestSkip {
                             SkinSounds.get("menuhit")!!.play()
@@ -1727,13 +1730,13 @@ class GameplaySession(
 
         val sprite = cursorPresenter.sprite(id)
 
-        val position = playfield.toLocalSpaceFromScene(event.x, event.y)
-        val cursorEvent = CursorEvent.obtain(event, position.x, position.y, objectPlayfield.mapping, context.isHardRock)
+        val position = objectPlayfield.toPlayfield(event.x, event.y)
+        val cursorEvent = CursorEvent.obtain(event, position.x, position.y, objectPlayfield.visibleArea, context.isHardRock)
 
         cursorEvent.trackTime = gameplayClock.time * 1000
         cursorEvent.offset = offset.toDouble()
 
-        sprite?.setPosition(cursorEvent.position.x, cursorEvent.position.y)
+        sprite?.setPosition(cursorEvent.playfieldPosition.x, cursorEvent.playfieldPosition.y)
 
         if (action == PointerEvent.Action.Down) {
 
@@ -1895,9 +1898,9 @@ class GameplaySession(
     private inner class FailAnimation(private val music: MusicService, private val initialFrequency: Float) {
         private var elapsedTime = 0f
 
-        // The layers of the playfield are in osu!pixels: their objects move as they would in the space gameplay is
-        // laid out in, with the mapping of the playfield.
-        private fun applyEffectToLayer(layer: Container, mapping: PlayfieldMapping? = null) {
+        // Things fall away from the top of the screen, which is at [top] in the layer: the top of the part of the
+        // playfield that's shown for its layers, in osu!pixels.
+        private fun applyEffectToLayer(layer: Container, top: Float = 0f) {
             if (layer.alpha > 0) {
                 layer.alpha = max(0f, layer.alpha - 0.007f)
             }
@@ -1907,25 +1910,23 @@ class GameplaySession(
 
                 // Hit objects fill the layer, their pieces fall as the layer's own children do.
                 if (entity is GameObject) {
-                    applyEffectToPieces(entity, mapping)
+                    applyEffectToPieces(entity, top)
                     continue
                 }
 
-                applyEffectToEntity(entity, mapping)
+                applyEffectToEntity(entity, top)
             }
         }
 
-        private fun applyEffectToPieces(gameObject: GameObject, mapping: PlayfieldMapping?) {
+        private fun applyEffectToPieces(gameObject: GameObject, top: Float) {
             for (i in 0 until gameObject.childCount) {
-                applyEffectToEntity(gameObject[i], mapping)
+                applyEffectToEntity(gameObject[i], top)
             }
         }
 
-        private fun applyEffectToEntity(entity: Component, mapping: PlayfieldMapping?) {
-            val y = entity.y.resolve(0f)
-            val resolutionY = if (mapping != null) y * mapping.scaleY + mapping.offsetY else y
-            val newResolutionY = if (resolutionY < 0f) resolutionY * 0.6f else resolutionY * 1.01f
-            val newY = if (mapping != null) (newResolutionY - mapping.offsetY) / mapping.scaleY else newResolutionY
+        private fun applyEffectToEntity(entity: Component, top: Float) {
+            val y = entity.y.resolve(0f) - top
+            val newY = top + if (y < 0f) y * 0.6f else y * 1.01f
 
             entity.setPosition(entity.x.resolve(0f), newY)
 
@@ -1952,9 +1953,11 @@ class GameplaySession(
             elapsedTime -= sixtyFPS
 
             if (music.frequency > 101) {
-                applyEffectToLayer(objectPlayfield.objects, objectPlayfield.mapping)
-                applyEffectToLayer(objectPlayfield.judgements, objectPlayfield.mapping)
-                applyEffectToLayer(objectPlayfield.underlay, objectPlayfield.mapping)
+                val top = objectPlayfield.visibleArea.y
+                applyEffectToLayer(objectPlayfield.objects, top)
+                applyEffectToLayer(objectPlayfield.judgements, top)
+                applyEffectToLayer(objectPlayfield.underlay, top)
+                applyEffectToLayer(objectPlayfield.spinners, top)
                 applyEffectToLayer(bgScene)
 
                 val decreasedFrequency = max(101f, music.frequency - 300)
@@ -2064,14 +2067,9 @@ class GameplaySession(
 
     override fun updateAutoBasedPos(pX: Float, pY: Float) {
         if (context.isAutoplay || context.isAutopilot) {
-            // The cursor is in the space gameplay is laid out in.
-            val position = objectPlayfield.mapping.toResolution(pX, pY)
-            cursorPresenter.autoCursor!!.setPosition(position.x, position.y, this)
+            cursorPresenter.autoCursor!!.setPosition(pX, pY, this)
         }
     }
-
-    override val playfieldMapping
-        get() = objectPlayfield.mapping
 
     private fun getSliderPath(index: Int): SliderPath = loaded.sliderPaths[index]
 
@@ -2207,8 +2205,8 @@ class GameplaySession(
         val playfieldSize = OsuSettings.playfieldSize
 
         // The space gameplay is laid out in, which the playfield fills.
-        val spaceWidth = objectPlayfield.mapping.width
-        val spaceHeight = objectPlayfield.mapping.height
+        val spaceWidth = gameplaySpace.measuredSize.x
+        val spaceHeight = gameplaySpace.measuredSize.y
 
         // The point of the playfield that ends up at the center of the window.
         val centerX = spaceWidth * Interpolation.linear(

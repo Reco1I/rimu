@@ -27,7 +27,7 @@ private fun centeredSprite(texture: String) = Sprite().apply {
 
 /**
  * osu!stable's old style spinner (`spinner-background`, `-circle`, `-metre`, `-approachcircle`), as osu!lazer's
- * `LegacyOldStyleSpinner`: the background as wide as the layer, the metre filling it by bars from the bottom, the
+ * `LegacyOldStyleSpinner`: the background as wide as the screen, the metre filling it by bars from the bottom, the
  * circle turning with the cursor, and "spin" and "clear" texts.
  */
 class LegacyClassicSpinnerPiece : SpinnerPiece() {
@@ -60,41 +60,41 @@ class LegacyClassicSpinnerPiece : SpinnerPiece() {
     private var laidOutBackground: Texture.Region? = null
     private var laidOutMetre: Texture.Region? = null
     private var isLaidOut = false
-    private var laidOutSpaceWidth = 0f
+    private var laidOutVisibleWidth = 0f
 
     override val isBelowLayer: Boolean
         get() = true
 
 
-    override fun layout(centerX: Float, centerY: Float, spaceWidth: Float) {
+    override fun layout(centerX: Float, centerY: Float, visibleWidth: Float) {
         spinnerBackground.setPosition(centerX, centerY)
         circle.setPosition(centerX, centerY)
         metre.setPosition(centerX, centerY)
         approachCircle.setPosition(centerX, centerY)
-        spinText.setPosition(centerX, centerY * 1.5f)
-        clearText.setPosition(centerX, centerY * 0.5f)
+        spinText.setPosition(centerX, centerY + TEXT_OFFSET)
+        clearText.setPosition(centerX, centerY - TEXT_OFFSET)
         bonusScore.setPosition(centerX, centerY + 100)
 
-        layoutToBackground(spaceWidth)
+        layoutToBackground(visibleWidth)
     }
 
     /**
-     * Scales the background to the width of the space and the metre as it, over the same centre, again whenever
-     * their textures changed, as when the skin does, or the space did.
+     * Scales the background to the width of the screen and the metre as it, over the same centre, again whenever
+     * their textures changed, as when the skin does, or the window did.
      */
-    private fun layoutToBackground(spaceWidth: Float = laidOutSpaceWidth) {
+    private fun layoutToBackground(visibleWidth: Float = laidOutVisibleWidth) {
         val backgroundTexture = spinnerBackground.textureRegion
         val metreTexture = metreSprite.textureRegion
 
-        if (isLaidOut && backgroundTexture === laidOutBackground && metreTexture === laidOutMetre && spaceWidth == laidOutSpaceWidth) {
+        if (isLaidOut && backgroundTexture === laidOutBackground && metreTexture === laidOutMetre && visibleWidth == laidOutVisibleWidth) {
             return
         }
         isLaidOut = true
         laidOutBackground = backgroundTexture
         laidOutMetre = metreTexture
-        laidOutSpaceWidth = spaceWidth
+        laidOutVisibleWidth = visibleWidth
 
-        spinnerBackground.scale = if (backgroundTexture != null) spaceWidth / backgroundTexture.displayWidth else 1f
+        spinnerBackground.scale = if (backgroundTexture != null) visibleWidth / backgroundTexture.displayWidth else 1f
 
         // The metre matches the background: its own size, so it isn't stretched into the background's when their
         // textures differ, and the background's scale and centre, so both line up. Sized to the screen instead, it
@@ -208,6 +208,9 @@ class LegacyClassicSpinnerPiece : SpinnerPiece() {
 
     private companion object {
         const val METRE_BARS = 10
+
+        // How far the "spin" and "clear" texts are below and above the centre: halfway to the edges of the screen.
+        const val TEXT_OFFSET = 180f
     }
 }
 
@@ -226,7 +229,7 @@ class LegacyModernSpinnerPiece : SpinnerPiece() {
     private val bonusScore = ScoreNumber(0f, 0f, "", 1.1f, true)
 
 
-    override fun layout(centerX: Float, centerY: Float, spaceWidth: Float) {
+    override fun layout(centerX: Float, centerY: Float, visibleWidth: Float) {
         for (sprite in arrayOf(middle, middle2, bottom, top, glow)) {
             sprite.setPosition(centerX, centerY)
         }

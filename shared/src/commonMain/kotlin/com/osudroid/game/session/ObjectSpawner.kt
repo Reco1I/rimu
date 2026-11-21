@@ -12,7 +12,6 @@ import com.osudroid.ui.v2.game.GameplayPlayfield
 import com.osudroid.ui.v2.hud.IGameplayEvents
 import com.osudroid.utils.BitSet
 import com.reco1l.verktex.data.Color4
-import com.reco1l.verktex.ui.container.Container
 import kotlin.math.max
 import com.osudroid.game.objects.GameObject
 import com.osudroid.game.objects.GameObjectListener
@@ -23,7 +22,6 @@ import ru.nsu.ccfit.zuev.osu.scoring.Replay
  * Adds the objects of a play, and the follow points between them, as their lifetime starts.
  *
  * @param listener The listener of the objects, which judges them and has the context of the play.
- * @param spinnerLayer The layer spinners are added to, in the space gameplay is laid out in.
  * @param events Told of each object whose lifetime starts.
  * @param replayObjectData The results a replay recorded for each object, null unless one is watched.
  * @param comboColor The color of the combo of an object.
@@ -33,7 +31,6 @@ class ObjectSpawner(
     private val listener: GameObjectListener,
     private val loaded: LoadedPlay,
     private val playfield: GameplayPlayfield,
-    private val spinnerLayer: Container,
     private val stat: Statistic,
     private val events: IGameplayEvents,
     private val replayObjectData: Array<Replay.ReplayObjectData?>?,
@@ -161,7 +158,7 @@ class ObjectSpawner(
                 val rps = 2 + 2 * loaded.playableBeatmap.difficulty.od / 10f
                 val gameplaySpinner = GameObjectPool.getInstance().spinner
 
-                gameplaySpinner.init(listener, spinnerLayer, playfield, obj, rps, stat)
+                gameplaySpinner.init(listener, playfield.spinners, playfield, obj, rps, stat)
                 listener.addObject(gameplaySpinner)
 
                 if (context.isAutoplay || context.isAutopilot) {

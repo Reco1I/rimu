@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.game
 import com.osudroid.OsuGame
 import com.osudroid.game.session.GameplaySession
 import com.reco1l.verktex.data.ScaleType
-import com.osudroid.game.PlayfieldMapping
+import com.osudroid.game.Playfield
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
@@ -46,7 +46,7 @@ class PauseMenu(private val game: GameplaySession, private val isFail: Boolean) 
 
         // Laid out for a screen 1280 wide, as gameplay is.
         +ScalingContainer().apply {
-            referenceSize = Vec2(PlayfieldMapping.REFERENCE_WIDTH, 720f)
+            referenceSize = Vec2(Playfield.SPACE_WIDTH, 720f)
 
             +LinearContainer().apply {
                 orientation = LinearContainer.Orientation.Vertical

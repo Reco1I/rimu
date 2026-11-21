@@ -6,6 +6,7 @@ import com.reco1l.verktex.Platform
 import com.osudroid.math.Vector2
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.input.PointerEvent
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmStatic
@@ -68,14 +69,9 @@ class CursorEvent : IPoolable {
         get() = trackTime + if (Settings[OsuSettings.FixFrameOffset]) offset else 0.0
 
     /**
-     * The position of the cursor in the space gameplay is laid out in (see [PlayfieldMapping]), kept within it.
-     */
-    @JvmField
-    var position = Vector2(0f)
-
-    /**
-     * The position of the cursor in the playfield, in osu!pixels, as hit objects are placed: flipped as they are by
-     * Hard Rock. Hit objects are judged with it.
+     * The position of the cursor in the playfield, in osu!pixels, where it's shown, kept within the part of the
+     * playfield that's shown. It's where hit objects are placed, already flipped by Hard Rock, and they're judged with
+     * it.
      */
     @JvmField
     var playfieldPosition = Vector2(0f)
@@ -101,7 +97,6 @@ class CursorEvent : IPoolable {
         copy.trackTime = trackTime
         copy.action = action
         copy.offset = offset
-        copy.position.set(position)
         copy.playfieldPosition.set(playfieldPosition)
         copy.trackPosition.set(trackPosition)
     }
@@ -112,34 +107,29 @@ class CursorEvent : IPoolable {
      * @param isFlipped Whether the playfield is flipped vertically, as Hard Rock flips it: replays store positions as
      * they would be without it.
      */
-    fun setTrackPosition(x: Float, y: Float, mapping: PlayfieldMapping, isFlipped: Boolean) {
+    fun setTrackPosition(x: Float, y: Float, isFlipped: Boolean) {
         trackPosition.set(x, y)
         playfieldPosition.set(x, y)
 
         if (isFlipped) {
-            PlayfieldMapping.flipVertically(playfieldPosition)
+            Playfield.flipVertically(playfieldPosition)
         }
-
-        position.set(mapping.toResolution(playfieldPosition))
     }
 
-    private fun apply(event: PointerEvent, x: Float, y: Float, mapping: PlayfieldMapping, isFlipped: Boolean) {
+    private fun apply(event: PointerEvent, x: Float, y: Float, visibleArea: Vec4, isFlipped: Boolean) {
         systemTime = event.time
         trackTime = 0f
         action = event.action
         offset = 0.0
 
-        position.x = x.coerceIn(0f, mapping.width)
-        position.y = y.coerceIn(0f, mapping.height)
-
-        // Judged where the cursor is shown, within the space.
-        playfieldPosition.set(mapping.toPlayfield(position.x, position.y))
+        // Judged where the cursor is shown, within the part of the playfield that's shown.
+        playfieldPosition.set(x.coerceIn(visibleArea.x, visibleArea.z), y.coerceIn(visibleArea.y, visibleArea.w))
 
         // Stored where it was.
-        trackPosition.set(mapping.toPlayfield(x, y))
+        trackPosition.set(x, y)
 
         if (isFlipped) {
-            PlayfieldMapping.flipVertically(trackPosition)
+            Playfield.flipVertically(trackPosition)
         }
     }
 
@@ -158,14 +148,15 @@ class CursorEvent : IPoolable {
          * Obtains an instance of [CursorEvent] from the pool or creates a new one if the pool is empty.
          *
          * @param event The [PointerEvent] to apply to the [CursorEvent].
-         * @param x The horizontal position of the event in the space gameplay is laid out in.
-         * @param y The vertical position of the event in the space gameplay is laid out in.
-         * @param mapping The mapping of the playfield in that space.
+         * @param x The horizontal position of the event in the playfield, in osu!pixels.
+         * @param y The vertical position of the event in the playfield, in osu!pixels.
+         * @param visibleArea The part of the playfield that's shown, see
+         * [com.osudroid.ui.v2.game.GameplayPlayfield.visibleArea]: the cursor is kept within it.
          * @param isFlipped Whether the playfield is flipped vertically, as Hard Rock flips it.
          * @return An instance of [CursorEvent].
          */
         @JvmStatic
-        fun obtain(event: PointerEvent, x: Float, y: Float, mapping: PlayfieldMapping, isFlipped: Boolean) =
-            obtain().also { it.apply(event, x, y, mapping, isFlipped) }
+        fun obtain(event: PointerEvent, x: Float, y: Float, visibleArea: Vec4, isFlipped: Boolean) =
+            obtain().also { it.apply(event, x, y, visibleArea, isFlipped) }
     }
 }

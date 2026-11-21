@@ -1,6 +1,7 @@
 package com.osudroid.ui.v2.game
 
-import com.osudroid.game.PlayfieldMapping
+import com.reco1l.verktex.data.LayoutConstraints
+import com.reco1l.verktex.data.Vec4
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.Anchor
@@ -16,19 +17,27 @@ import kotlin.math.roundToInt
  * The spins per minute of a spinner, shown under it as osu!stable does: the skin's `spinner-rpm` with the
  * number in its score font. It slides in when the spinner starts and out when it ends.
  *
- * Positions are osu!stable's at 1024x768, scaled to the height of the space gameplay is laid out in and centered
- * in it.
+ * Positions are osu!stable's at 1024x768, scaled to the height of the part of the playfield that's shown and
+ * centered in it, see [layout].
  *
  * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacySpinner.cs
  */
 class SpinnerRpmCounter {
 
-    // osu!stable's 1024x768, scaled to the space from its top center.
-    private val container = Container().apply {
+    // osu!stable's 1024x768, placed and scaled in the playfield from its top center. It keeps its size, bigger than the
+    // playfield.
+    private val screen = object : Container() {
+        override fun adjustParentConstraints(constraints: LayoutConstraints) =
+            LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
+    }.apply {
         setSize(STABLE_WIDTH, STABLE_HEIGHT)
-        anchor = Anchor.TopCenter
         origin = Anchor.TopCenter
         scaleOrigin = Anchor.TopCenter
+    }
+
+    // What slides in and out, in the pixels of osu!stable's screen.
+    private val container = Container().apply {
+        setSize(STABLE_WIDTH, STABLE_HEIGHT)
     }
 
     private val background = Sprite().apply {
@@ -55,14 +64,23 @@ class SpinnerRpmCounter {
     init {
         container += background
         container += number
+        screen += container
     }
 
 
     /**
-     * Adds the counter to [scene], the space gameplay is laid out in as [mapping] maps it, for a spinner from
-     * [startTime] to [endTime], in seconds of gameplay.
+     * Places the counter over the part of the playfield that's shown, [visibleArea] in osu!pixels.
      */
-    fun attach(scene: Container, mapping: PlayfieldMapping, startTime: Float, endTime: Float) {
+    fun layout(visibleArea: Vec4) {
+        screen.setPosition((visibleArea.x + visibleArea.z) / 2f, visibleArea.y)
+        screen.scale = visibleArea.height / STABLE_HEIGHT
+    }
+
+    /**
+     * Adds the counter to [scene], a layer of the playfield, for a spinner from [startTime] to [endTime], in seconds
+     * of gameplay. It's placed by [layout].
+     */
+    fun attach(scene: Container, startTime: Float, endTime: Float) {
         // Only for skins that have it.
         if (SkinTextures["spinner-rpm"] == null) {
             return
@@ -75,15 +93,9 @@ class SpinnerRpmCounter {
         lastShownTime = Float.NEGATIVE_INFINITY
         show(0)
 
-        val scale = mapping.height / STABLE_HEIGHT
-        container.scale = scale
-
-        // In the space, the translation isn't scaled.
-        val hideOffset = HIDE_OFFSET * scale
-
         container.clearAnimations()
         container.alpha = 0f
-        container.translationY = hideOffset.px
+        container.translationY = HIDE_OFFSET.px
 
         container.choreographAt(startTime) { sequence -> sequence
             .fadeIn(SLIDE_DURATION)
@@ -91,16 +103,16 @@ class SpinnerRpmCounter {
 
         container.choreographAt(endTime) { sequence -> sequence
             .fadeOut(SLIDE_DURATION)
-            .moveToY(hideOffset, SLIDE_DURATION, Easing.OutQuint) }
+            .moveToY(HIDE_OFFSET, SLIDE_DURATION, Easing.OutQuint) }
 
-        scene += container
+        scene += screen
     }
 
     /**
      * Measures the spins from the angle the spinner is shown at, in degrees, at [time] in seconds of gameplay.
      */
     fun update(time: Float, angle: Float) {
-        if (container.parent == null) {
+        if (screen.parent == null) {
             return
         }
 
@@ -132,7 +144,7 @@ class SpinnerRpmCounter {
 
     fun detach() {
         container.clearAnimations()
-        container.removeSelf()
+        screen.removeSelf()
     }
 
 

@@ -6,7 +6,7 @@ import com.osudroid.ui.v2.game.GameplayPlayfield
 import com.reco1l.verktex.ui.Component
 
 import com.osudroid.game.rules.JudgementResult
-import com.osudroid.game.PlayfieldMapping
+import com.osudroid.game.Playfield
 import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.ScaleType
 import com.osudroid.settings.OsuSettings
@@ -20,6 +20,7 @@ import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
 import com.osudroid.ui.v2.skin.SpinnerPiece
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
@@ -80,14 +81,9 @@ class GameplaySpinner(
 
     private val currMouse = Vector2(0f)
 
-    /**
-     * The center of the spinner in the space gameplay is laid out in, where it's drawn and spun: the center of the
-     * playfield, see [layoutInSpace].
-     */
-    private val center = Vector2(0f)
-
-    // The mapping the spinner was placed with, to place it again when the window is resized.
-    private var laidOutMapping: PlayfieldMapping? = null
+    // The part of the playfield that was shown when the spinner was laid out, to lay it out again when the window is
+    // resized, see layout.
+    private var laidOutArea: Vec4? = null
 
     init {
         // The center of the playfield, where the cursor goes in autoplay.
@@ -104,15 +100,21 @@ class GameplaySpinner(
     }
 
     /**
-     * Places the spinner in the center of the playfield in the space gameplay is laid out in, which it's drawn in
-     * as big as the space rather than the playfield.
+     * Places the spinner at its position, the center of the playfield, as big as the part of the playfield that's
+     * shown rather than the playfield, in the pixels the [piece] is laid out in.
      */
-    private fun layoutInSpace(mapping: PlayfieldMapping) {
-        laidOutMapping = mapping
-        center.set(mapping.toResolution(position))
-        piece.layout(center.x, center.y, mapping.width)
+    private fun layout(playfield: GameplayPlayfield) {
+        val area = playfield.visibleArea
+        laidOutArea = area
+
+        val pixel = Playfield.SCREEN_PIXEL
+        piece.layout(position.x / pixel, position.y / pixel, area.width / pixel)
+        rpmCounter.layout(area)
     }
 
+    /**
+     * Shows the spinner in [scene], a layer of [playfield], in osu!pixels.
+     */
     fun init(listener: GameObjectListener, scene: Container, playfield: GameplayPlayfield,
                   beatmapSpinner: Spinner, rps: Float, stat: Statistic) {
         effectsPlayfield = playfield
@@ -132,7 +134,6 @@ class GameplaySpinner(
 
         this.listener = listener
         context = listener.context
-        layoutInSpace(listener.playfieldMapping)
         this.stat = stat
         clear = duration <= 0f
         bonusScoreCounter = 1
@@ -148,7 +149,8 @@ class GameplaySpinner(
             (Settings[OsuSettings.ShowFirstApproachCircle] && context.traceable!!.firstObject === beatmapSpinner)
 
         piece.start(hitTime, duration, timePreempt, isBackgroundVisible, isApproachCircleVisible = !context.isHidden)
-        rpmCounter.attach(scene, listener.playfieldMapping, hitTime, hitTime + duration)
+        rpmCounter.attach(scene, hitTime, hitTime + duration)
+        layout(playfield)
 
         oldMouse = null
 
@@ -174,29 +176,20 @@ class GameplaySpinner(
         judgement ?: return
         val playfield = effectsPlayfield ?: return
 
-        // The spinner is in the space gameplay is laid out in, the playfield is mapped into it.
-        val mapping = listener!!.playfieldMapping
-        val centerX = PlayfieldMapping.PLAYFIELD_WIDTH / 2
-        val centerY = PlayfieldMapping.PLAYFIELD_HEIGHT / 2
-        val center = mapping.toResolution(centerX, centerY)
-        val scale = beatmapSpinner!!.gameplayScale
-
-        showJudgement(
-            playfield, judgement, center.x, center.y, scale * mapping.scaleY, null,
-            particleX = centerX, particleY = centerY, particleScale = scale, spinnerMiss = true
-        )
+        showJudgement(playfield, judgement, position.x, position.y, beatmapSpinner!!.gameplayScale, null, spinnerMiss = true)
     }
 
     /**
-     * Shows [piece] above everything the layer has, as the clear text and the bonus score are.
+     * Shows [shown], a piece of the [piece], above everything the layer has, as the clear text and the bonus score
+     * are. It's in the piece, which places it in its own pixels.
      */
-    private fun showOnTop(piece: Component?) {
-        if (piece == null || piece.parent != null) {
+    private fun showOnTop(shown: Component?) {
+        if (shown == null || shown.parent != null) {
             return
         }
 
-        this += piece
-        drawIn(scene!!, piece)
+        piece += shown
+        drawIn(scene!!, shown)
     }
 
     fun removeFromScene() {
@@ -262,8 +255,9 @@ class GameplaySpinner(
         val listener = listener!!
         val stat = stat!!
 
-        if (listener.playfieldMapping !== laidOutMapping) {
-            layoutInSpace(listener.playfieldMapping)
+        val playfield = effectsPlayfield!!
+        if (playfield.visibleArea != laidOutArea) {
+            layout(playfield)
         }
 
         passedTime = listener.elapsedTime - hitTime
@@ -302,16 +296,16 @@ class GameplaySpinner(
 
             if (mouse == null) {
                 if (autoPlay) {
-                    mouse = center
+                    mouse = position
                 } else {
                     if (latestEvent != null && !latestEvent.isActionUp) {
-                        mouse = latestEvent.position
+                        mouse = latestEvent.playfieldPosition
                     } else {
                         ++i
                         continue
                     }
                 }
-                currMouse.set(mouse.x - center.x, mouse.y - center.y)
+                currMouse.set(mouse.x - position.x, mouse.y - position.y)
             }
 
             if (oldMouse == null || (!autoPlay && latestEvent != null && latestEvent.isActionDown)) {
@@ -342,11 +336,9 @@ class GameplaySpinner(
                 //auto时，FL光圈绕中心旋转
                 if (context.isAutoplay || context.isAutopilot) {
                     val angle = (rotations + dfill / 4f) * 360
-                    val pX = center.x + 50 * sin(angle.toDouble()).toFloat()
-                    val pY = center.y + 50 * cos(angle.toDouble()).toFloat()
-                    // Around the center on screen, given in the playfield.
-                    val autoPosition = listener.playfieldMapping.toPlayfield(pX, pY)
-                    listener.updateAutoBasedPos(autoPosition.x, autoPosition.y)
+                    val pX = position.x + AUTO_RADIUS * sin(angle.toDouble()).toFloat()
+                    val pY = position.y + AUTO_RADIUS * cos(angle.toDouble()).toFloat()
+                    listener.updateAutoBasedPos(pX, pY)
                 }
             }
 
@@ -586,6 +578,9 @@ class GameplaySpinner(
     }
 
     private companion object {
+
+        // How far from the centre autoplay spins, 50 pixels of osu!droid's 1280x720 screen.
+        const val AUTO_RADIUS = 50 * Playfield.SCREEN_PIXEL
 
         /**
          * Converts [radians] to degrees as `Math.toDegrees` does.

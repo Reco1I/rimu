@@ -5,7 +5,7 @@ import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
-import com.osudroid.game.PlayfieldMapping
+import com.osudroid.game.Playfield
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.GameMode
@@ -178,7 +178,7 @@ class ScoringScene(pGame: Gameplay) {
 
         // Everything is placed in a space 1280 wide, as the game's, scaled to the width of the window.
         val window = Verktex.graphics.window
-        val screenWidth = PlayfieldMapping.REFERENCE_WIDTH
+        val screenWidth = Playfield.SPACE_WIDTH
         val screenHeight = screenWidth * window.windowHeight / window.windowWidth.coerceAtLeast(1)
         val content = ScalingContainer()
         this.content = content

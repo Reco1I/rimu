@@ -3,7 +3,7 @@ package com.osudroid.game.session
 import com.osudroid.game.Cursor
 import com.osudroid.game.CursorEvent
 import com.osudroid.game.GameplayContext
-import com.osudroid.game.PlayfieldMapping
+import com.osudroid.game.Playfield
 import com.osudroid.ui.v2.game.AutoCursor
 import com.osudroid.ui.v2.game.CursorEntity
 import com.osudroid.ui.v2.game.FlashLightEntity
@@ -14,15 +14,13 @@ import ru.nsu.ccfit.zuev.osu.Utils
  * What a play shows of its [cursors]: their sprites, the cursor of autoplay and autopilot, and Flashlight's light,
  * which follows the main cursor.
  *
- * @param layer The layer the cursors and the light are added to.
- * @param mapping The mapping of the playfield, where the cursor of autoplay starts at the center of.
+ * @param layer The layer the cursors and the light are added to, in the playfield.
  * @param showsCursors Whether the cursors of the player, or of the replay, are shown.
  */
 class CursorPresenter(
     private val cursors: Array<Cursor?>,
     private val context: GameplayContext,
     layer: Container,
-    mapping: PlayfieldMapping,
     showsCursors: Boolean
 ) {
 
@@ -48,8 +46,7 @@ class CursorPresenter(
 
         autoCursor = if (context.isAutoplay || context.isAutopilot) {
             // From the center of the playfield.
-            val start = mapping.toResolution(PlayfieldMapping.PLAYFIELD_WIDTH / 2, PlayfieldMapping.PLAYFIELD_HEIGHT / 2)
-            AutoCursor(start.x, start.y).also { it.attachToScene(layer) }
+            AutoCursor(Playfield.WIDTH / 2, Playfield.HEIGHT / 2).also { it.attachToScene(layer) }
         } else null
 
         // Below everything else of the layer.
@@ -75,7 +72,7 @@ class CursorPresenter(
                 val latestEvent = cursor.latestEvent
 
                 if (replaying && latestEvent != null) {
-                    sprite.setPosition(latestEvent.position.x, latestEvent.position.y)
+                    sprite.setPosition(latestEvent.playfieldPosition.x, latestEvent.playfieldPosition.y)
                     sprite.setShowing(!latestEvent.isActionUp)
                 }
 
@@ -159,7 +156,7 @@ class CursorPresenter(
         val latestNonUpEvent = cursors[mainCursorId]!!.getLatestNonUpEvent()
 
         if (latestNonUpEvent != null) {
-            flashlight!!.onMouseMove(latestNonUpEvent.position.x, latestNonUpEvent.position.y)
+            flashlight!!.onMouseMove(latestNonUpEvent.playfieldPosition.x, latestNonUpEvent.playfieldPosition.y)
         }
     }
 }
