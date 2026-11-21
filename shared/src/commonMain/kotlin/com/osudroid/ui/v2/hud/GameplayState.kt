@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.hud
 import com.osudroid.beatmaps.DroidPlayableBeatmap
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.game.GameplayContext
-import com.osudroid.game.replay.ReplaySettingsPanel
+import com.osudroid.game.replay.ReplayControls
 import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.ui.Scene
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
@@ -56,7 +56,7 @@ interface GameplayState {
     /**
      * The panel controlling the playback of a replay or of autoplay, null when not watching one.
      */
-    val replaySettingsPanel: ReplaySettingsPanel?
+    val replayControls: ReplayControls?
 
     /**
      * The id of the score whose replay is being watched, -1 when not watching one.

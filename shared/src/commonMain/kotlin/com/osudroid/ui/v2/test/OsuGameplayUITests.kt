@@ -31,6 +31,8 @@ import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.textButton
+import com.osudroid.game.replay.ReplayControls
+import com.reco1l.verktex.math.toFixed
 import com.osudroid.ui.v2.test.GameplayObjectHarness.Play
 import com.osudroid.game.objects.GameplayHitCircle
 import com.osudroid.game.objects.GameplaySlider
@@ -223,6 +225,38 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
             }
 
             FakeGameplayDriver(this, gameScene, elements)
+        }
+
+        test("Replay controls") {
+            container {
+                width = fill()
+                height = fill()
+                background = Background.Color(Color4(0.1f, 0.1f, 0.14f))
+            }
+
+            // A made up 3 minutes long play, which the controls drive.
+            val duration = 180f
+            var position = 0f
+            var isPaused = false
+            var lastRate = 1f
+
+            val controls = ReplayControls()
+            controls.onPauseToggle = { isPaused = it; log(if (it) "Paused" else "Resumed") }
+            controls.onSeek = { position = it; log("Seek to ${it.toFixed(1)}s") }
+            controls.onBackgroundBrightnessChanged = { log("Background brightness ${(it * 100).toInt()}%") }
+            +controls
+
+            onEachFrame { clock ->
+                val rate = controls.rate
+                if (rate != lastRate) {
+                    lastRate = rate
+                    log("Rate ${rate.toFixed(2)}x")
+                }
+                if (!isPaused) {
+                    position = (position + clock.elapsedFrameTime * rate).coerceAtMost(duration)
+                }
+                controls.updateSeekPosition(position, 0f, duration)
+            }
         }
     }
 

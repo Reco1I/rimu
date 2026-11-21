@@ -45,7 +45,7 @@ import com.osudroid.game.GameplayContext
 import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.Playfield
 import com.osudroid.game.SliderPath
-import com.osudroid.game.replay.ReplaySettingsPanel
+import com.osudroid.game.replay.ReplayControls
 import com.osudroid.math.Interpolation
 import com.osudroid.math.MathUtils
 import com.osudroid.math.Vector2
@@ -228,7 +228,7 @@ class GameplaySession(
     private var performanceAttributes: PerformanceAttributes? = null
     private var performanceCalculationParameters: PerformanceCalculationParameters? = null
 
-    override var replaySettingsPanel: ReplaySettingsPanel? = null
+    override var replayControls: ReplayControls? = null
         private set
 
     // Game
@@ -915,30 +915,30 @@ class GameplaySession(
         )
 
         if (!startedFromHUDEditor && (context.isAutoplay || replaying)) {
-            val replaySettingsPanel = ReplaySettingsPanel()
-            this.replaySettingsPanel = replaySettingsPanel
+            val replayControls = ReplayControls()
+            this.replayControls = replayControls
             // Designed in dp, so it's not in the scaled HUD, it's added with it in start().
 
-            val seekControl = replaySettingsPanel.playbackControl.seekControl
+            replayControls.onPauseToggle = { isPaused ->
+                updateThread {
+                    if (isPaused) {
+                        gameplayClock.pause()
+                        stopLoopingSamples()
 
-            seekControl.onPauseToggle = { isPaused ->
-                if (isPaused) {
-                    gameplayClock.pause()
-                    stopLoopingSamples()
+                        video.pause()
+                    } else if (!paused) {
+                        if (!gameplayClock.isRunning) {
+                            gameplayClock.start()
+                        }
 
-                    video.pause()
-                } else {
-                    if (!gameplayClock.isRunning) {
-                        gameplayClock.start()
+                        playLoopingSamples()
+
+                        video.resume()
                     }
-
-                    playLoopingSamples()
-
-                    video.resume()
                 }
             }
 
-            replaySettingsPanel.visualSettingsControl.onBackgroundBrightnessChanged = { brightness ->
+            replayControls.onBackgroundBrightnessChanged = { brightness ->
                 breakAnimator.setDimBrightness(brightness)
 
                 // We do not want
@@ -947,13 +947,13 @@ class GameplaySession(
                 }
             }
 
-            seekControl.updateSeekPosition(
+            replayControls.updateSeekPosition(
                 gameplayClock.time,
                 (objects[0].startTime / 1000).toFloat(),
                 (objects[objects.size - 1].endTime / 1000).toFloat()
             )
 
-            seekControl.onSeek = { targetTime ->
+            replayControls.onSeek = { targetTime ->
                 updateThread { seekTo(targetTime) }
             }
         }
@@ -998,7 +998,7 @@ class GameplaySession(
         applyPlayfieldSizeScale()
         applyBackground()
 
-        replaySettingsPanel?.visualSettingsControl?.defaultBackgroundBrightness = OsuSettings.backgroundBrightness
+        replayControls?.defaultBackgroundBrightness = OsuSettings.backgroundBrightness
 
         if (!isHUDEditorMode && !Settings[OsuSettings.ShowScoreboard]) {
             for (i in hud.childCount - 1 downTo 0) {
@@ -1014,7 +1014,7 @@ class GameplaySession(
 
         hudLayer += hud
         root += hudLayer
-        replaySettingsPanel?.let { root += it }
+        replayControls?.let { root += it }
         Gameplay.replaceCurrentScene(gameUIScene)
 
         if (isHUDEditorMode) {
@@ -1044,7 +1044,7 @@ class GameplaySession(
             updateRate()
         }
 
-        replaySettingsPanel?.playbackControl?.seekControl?.updateSeekPosition(time, firstObjectStartTime, lastObjectEndTime)
+        replayControls?.updateSeekPosition(time, firstObjectStartTime, lastObjectEndTime)
 
         replayInput?.update(time, dt)
         cursorPresenter.update(dt, replaying, stat.combo)
@@ -1101,10 +1101,10 @@ class GameplaySession(
         }
     }
 
-    // Follows the rate of the mods changing it over time and of the replay panel.
+    // Follows the rate of the mods changing it over time and of the replay controls.
     private fun updateRate() {
         val modRate = rateAdjustingMods.calculateRate((gameplayClock.time * 1000).toDouble())
-        val replaySettingsRate = replaySettingsPanel?.playbackControl?.rateControl?.rate ?: 1f
+        val replaySettingsRate = replayControls?.rate ?: 1f
         val currentSpeedMultiplier = modRate * replaySettingsRate
 
         if (currentSpeedMultiplier != context.timing.speedMultiplier) {
@@ -1418,7 +1418,7 @@ class GameplaySession(
             hud.removeSelf()
         }
         hudLayer.removeSelf()
-        replaySettingsPanel?.removeSelf()
+        replayControls?.removeSelf()
 
         cancelVideoLoading()
 
@@ -2005,7 +2005,7 @@ class GameplaySession(
         }
 
         if (!gameplayClock.isRunning
-            && (replaySettingsPanel == null || !replaySettingsPanel!!.playbackControl.seekControl.isPlaybackPaused)) {
+            && replayControls?.isPlaybackPaused != true) {
             gameplayClock.start()
 
             video.resume()
@@ -2381,7 +2381,7 @@ class GameplaySession(
         if (!rateAdjustingMods.isEmpty()) {
             val modRate = rateAdjustingMods.calculateRate(targetMs.toDouble())
 
-            val replaySettingsRate = replaySettingsPanel?.playbackControl?.rateControl?.rate ?: 1f
+            val replaySettingsRate = replayControls?.rate ?: 1f
 
             val targetSpeedMultiplier = modRate * replaySettingsRate
 
@@ -2417,10 +2417,13 @@ class GameplaySession(
         }
 
         override fun onInputEvent(event: InputEvent): Boolean {
-            val panel = replaySettingsPanel
-            if (panel != null && panel.parent != null
-                && (event !is PointerEvent || event.action != PointerEvent.Action.Down || panel.containsScenePoint(event.x, event.y))
-                && panel.onInputEvent(event)) {
+            // The replay controls take every touch, gameplay ignores them while replaying, but autoplay's
+            // skip button, which is pressed through the cursors.
+            val controls = replayControls
+            if (controls != null && controls.parent != null && event is PointerEvent
+                && !(event.action == PointerEvent.Action.Down && skipBtn?.containsScenePoint(event.x, event.y) == true)
+                // Its gestures are timed on the update thread.
+                && Verktex.withTreeLock { controls.onInputEvent(event) }) {
                 return true
             }
 

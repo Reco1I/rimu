@@ -3,7 +3,7 @@ package com.osudroid.ui.v2.test
 import com.osudroid.beatmaps.DroidPlayableBeatmap
 import com.osudroid.beatmaps.HitWindow
 import com.osudroid.game.GameplayContext
-import com.osudroid.game.replay.ReplaySettingsPanel
+import com.osudroid.game.replay.ReplayControls
 import com.osudroid.scoring.Statistic
 import com.osudroid.ui.v2.hud.GameplayState
 import com.reco1l.verktex.ui.Scene
@@ -21,7 +21,7 @@ class FakeGameplayState : GameplayState {
     override var lastObjectEndTime = 0f
     override val playableBeatmap: DroidPlayableBeatmap? = null
     override var hitWindow: HitWindow? = null
-    override val replaySettingsPanel: ReplaySettingsPanel? = null
+    override val replayControls: ReplayControls? = null
     override val replayId = -1
     override val leaderboardItems: () -> List<ScoreBoardItem> = { emptyList() }
     override val isLeaderboardOnline = false
