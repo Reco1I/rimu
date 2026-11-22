@@ -281,6 +281,9 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
             width = wrap()
             height = fill()
             maxWidth = fill(0.35f)
+            // Wide enough for a slider's label, reset button and value on one line, which 35% of
+            // a small screen isn't.
+            minWidth = 320f.dip
             anchor = Anchor.TopRight
             origin = Anchor.TopRight
             scrollAxes = Axis.Y
