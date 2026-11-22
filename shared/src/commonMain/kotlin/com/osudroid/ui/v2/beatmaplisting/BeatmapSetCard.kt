@@ -214,9 +214,9 @@ internal fun addDifficultyDots(container: LinearContainer, set: BeatmapSetModel,
         container.box {
             anchor = Anchor.CenterLeft
             origin = Anchor.CenterLeft
-            width = 10f.dip
-            height = 10f.dip
-            radius = CornerRadius(5f.dip)
+            width = 8f.dip
+            height = 8f.dip
+            radius = CornerRadius(4f.dip)
             color = OsuColors.getStarRatingColor(beatmap.starRating)
             // The hardest ones are black, outlined to be seen on the dark card.
             border = Border(1f.dip, Color4.White.alpha(0.3f))
@@ -258,6 +258,16 @@ class BeatmapSetCard(private val state: BeatmapListingState) : RecyclableCompone
     private lateinit var mapperText: Text
 
 
+    companion object {
+
+        /**
+         * The width a card needs, columns of the listing are at least as wide. Phones in landscape
+         * (640dp and wider, less their cutouts) fit two of them, tablets three or four.
+         */
+        val MIN_WIDTH = 280f.dip
+    }
+
+
     init {
         width = fill()
 
@@ -280,7 +290,7 @@ class BeatmapSetCard(private val state: BeatmapListingState) : RecyclableCompone
                     width = fill()
                     height = 26f.dip
                     padding = Padding(12f.dip, 0f.dip)
-                    spacing = 4f.dip
+                    spacing = 3f.dip
                 }
 
                 linearContainer {
@@ -308,7 +318,7 @@ class BeatmapSetCard(private val state: BeatmapListingState) : RecyclableCompone
 
                         noVideoButton = textButton {
                             leadingIcon = faSolidIcon(FAIcon.VideoSlash)
-                            text = Res.string.beatmap_listing_download_no_video
+                            text = Res.string.beatmap_listing_no_video
                             density = Button.Density.Small
                             onActionUp = { boundData?.let { state.download(it, withVideo = false) } }
                         }

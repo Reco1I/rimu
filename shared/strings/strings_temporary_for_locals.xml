@@ -92,6 +92,7 @@
     <string name="beatmap_listing_preview">Preview</string>
     <string name="beatmap_listing_download">Download</string>
     <string name="beatmap_listing_download_no_video">Download (no video)</string>
+    <string name="beatmap_listing_no_video">No video</string>
     <string name="beatmap_listing_downloaded">Downloaded</string>
     <string name="beatmap_listing_importing">Importing</string>
     <string name="beatmap_listing_mapped_by">Mapped by %s</string>

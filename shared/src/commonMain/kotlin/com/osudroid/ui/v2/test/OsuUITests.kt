@@ -543,11 +543,12 @@ object OsuUITests : UITestSuite("osu!") {
             state.download = BeatmapDownloader.Download(sets[1].id, BeatmapDownloader.Phase.Downloading, 0.4f)
             state.downloadedSetIds = setOf(sets[2].id)
 
+            // As wide as a small phone in landscape, which fits two columns.
             +RecyclerContainer<ListingSet, BeatmapSetCard>().apply {
-                width = fill()
+                width = 600f.dip
                 height = fill()
                 padding = Padding(12f.dip)
-                minColumnWidth = 395f.dip
+                minColumnWidth = BeatmapSetCard.MIN_WIDTH
                 columnSpacing = 8f.dip
                 spacing = 8f.dip
 
