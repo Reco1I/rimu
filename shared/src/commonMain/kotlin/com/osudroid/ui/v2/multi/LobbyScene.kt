@@ -69,11 +69,14 @@ class LobbyScene : Scene() {
     }
 
     init {
+        // On the scene, so it also covers the safe area its padding keeps the content out of.
+        background = Background.Color(themed { palette.accent.shade(0.1f).alpha(0.9f) })
+
         linearContainer {
             width = fill()
             height = fill()
             orientation = Orientation.Vertical
-            background = Background.Color(themed { palette.accent.shade(0.1f).alpha(0.9f) })
+
 
             // Top bar
             extendIntoSafeAreaContainer {
