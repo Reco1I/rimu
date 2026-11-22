@@ -2,6 +2,7 @@ package com.osudroid.game.replay
 
 import com.osudroid.resources.Res
 import com.osudroid.settings.OsuSettings
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.Color4
@@ -266,6 +267,10 @@ class ReplayControls : Container() {
     init {
         width = fill()
         height = fill()
+
+        // Its animations follow the engine's time, not the gameplay clock the scene paces its children with: a seek
+        // back would date them in the future (they'd wait for playback to catch up), and pausing would freeze them.
+        clock = Verktex.clock
 
         +GradientBox().apply {
             width = fill()
