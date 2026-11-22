@@ -10,6 +10,7 @@ import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.resources.Languages
 import com.reco1l.verktex.Platform
+import com.osudroid.ui.v2.BeatmapBackground
 import com.osudroid.ui.v2.LoaderScene
 import kotlin.math.ceil
 import kotlin.math.min
@@ -1172,6 +1173,7 @@ val advancedSection = listOf(
                 setting = OsuSettings.SafeBeatmapBackground,
                 title = Res.string.opt_safe_beatmap_bg_title,
                 summary = Res.string.opt_safe_beatmap_bg_summary,
+                onChange = { BeatmapBackground.refresh() },
             )
         )
     )
@@ -1194,6 +1196,8 @@ fun loadSkin(path: String): Job {
             Skin.load(path)
             SkinSounds.onSkinChanged()
             Verktex.withTreeLock { SkinTextures.onSkinChanged() }
+            // The skin's menu-background may be the one shown.
+            BeatmapBackground.refresh()
         } finally {
             Verktex.withTreeLock {
                 if (Verktex.scene == loading) {

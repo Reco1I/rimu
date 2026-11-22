@@ -15,6 +15,7 @@ import com.osudroid.utils.delayed
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.ui.v2.Skin
 import com.osudroid.ui.v2.SkinSounds
+import com.osudroid.ui.v2.BeatmapBackground
 import com.osudroid.ui.v2.SplashScene
 import com.osudroid.ui.v2.mainmenu.MainScene
 import com.reco1l.verktex.Logger
@@ -100,6 +101,10 @@ object OsuGame {
             delayed(2500) {
                 SplashScene.info = ""
                 SplashScene.progress = 100
+
+                // Every scene from the menu on is drawn over the selected beatmap's background,
+                // the splash over black.
+                BeatmapBackground.install()
 
                 // The splash can't be gone back to.
                 val menu = MainScene()

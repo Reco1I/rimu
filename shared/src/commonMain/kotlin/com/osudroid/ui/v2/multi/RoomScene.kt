@@ -4,7 +4,6 @@ import com.osudroid.beatmaplisting.BeatmapListing
 import com.osudroid.game.Gameplay
 import com.osudroid.game.loading.PlayRequest
 import com.reco1l.verktex.data.Background
-import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
@@ -36,7 +35,7 @@ import com.osudroid.ui.v2.BeatmapInfoLayout
 import com.osudroid.ui.v2.GameLoaderScene
 import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.ModsIndicator
-import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.BeatmapBackground
 import com.osudroid.multiplayer.clearPlayerMods
 import com.osudroid.multiplayer.setRoomMods
 import com.osudroid.ui.v2.modmenu.ModMenu
@@ -55,14 +54,12 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.Badge
 import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.LabeledBadge
 import com.reco1l.verktex.ui.Scene
-import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.badge
 import com.reco1l.verktex.ui.container.Container
@@ -73,7 +70,6 @@ import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.dialog.MessageDialog
 import com.reco1l.verktex.ui.labeledBadge
 import com.reco1l.verktex.ui.shape.box
-import com.reco1l.verktex.ui.sprite
 import com.reco1l.verktex.ui.text.Text
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
@@ -169,7 +165,6 @@ class RoomScene(
     }
 
 
-    private lateinit var backgroundSprite: Sprite
     private lateinit var beatmapInfoLayout: BeatmapInfoLayout
     private lateinit var beatmapInfoAlert: Text
     private lateinit var modsButton: TextButton
@@ -190,6 +185,13 @@ class RoomScene(
     private var allowAutomaticPlaybackRestart = true
 
 
+    override fun onEnter() {
+        super.onEnter()
+
+        // Tinted by the scene, it's as bright as in the menu (gameplay may have dimmed it).
+        BeatmapBackground.fadeBrightness(1f)
+    }
+
     init {
         RoomAPI.playerEventListener = this
         RoomAPI.roomEventListener = this
@@ -198,17 +200,6 @@ class RoomScene(
         backgroundComponent = Container().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-
-            backgroundSprite = sprite {
-                width = Dimension.FillAvailable
-                height = Dimension.FillAvailable
-                scaleType = ScaleType.Crop
-                textureRegion = SkinTextures["menu-background"]
-
-                if (!Settings[OsuSettings.SafeBeatmapBackground]) {
-                    textureRegion = Textures["::background"] ?: textureRegion
-                }
-            }
 
             box {
                 width = Dimension.FillAvailable
@@ -513,16 +504,6 @@ class RoomScene(
     }
 
     // Update events
-
-    private fun updateBackground(path: String?) {
-        val textureRegion = if (path != null) Textures.load("::background", path) else null
-
-        if (textureRegion != null) {
-            backgroundSprite.textureRegion = textureRegion
-        } else {
-            backgroundSprite.textureRegion = SkinTextures["menu-background"]
-        }
-    }
 
     private fun updateInformation() {
 
@@ -951,8 +932,6 @@ class RoomScene(
 
         val beatmapInfo = LibraryManager.findBeatmapByMD5(newRoom.beatmap?.md5)
         BeatmapSelection.beatmap = beatmapInfo
-
-        updateBackground(beatmapInfo?.backgroundPath)
         updateBeatmap(newRoom.beatmap)
 
         show()
@@ -1037,7 +1016,6 @@ class RoomScene(
 
         val selectedBeatmap = BeatmapSelection.beatmap
         updateThread {
-            updateBackground(selectedBeatmap?.backgroundPath)
             updateBeatmap(beatmap)
         }
 

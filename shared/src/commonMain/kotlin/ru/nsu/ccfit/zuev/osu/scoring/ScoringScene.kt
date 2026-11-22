@@ -4,7 +4,6 @@ import com.osudroid.game.Gameplay
 import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.data.Background
-import com.reco1l.verktex.data.ScaleType
 import com.osudroid.game.Playfield
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -28,6 +27,7 @@ import com.osudroid.mods.ModOldNightCore
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.isTeamStatistic
 import com.osudroid.ui.SendingPanel
+import com.osudroid.ui.v2.BeatmapBackground
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.StatisticSelector
@@ -45,7 +45,6 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
-import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.Sprite
@@ -167,14 +166,8 @@ class ScoringScene(pGame: Gameplay) {
             replayStat = stat
         }
 
-        val backgroundSprite = Sprite(if (Textures.get("::background") != null)
-            Textures.get("::background")
-        else
-            SkinTextures.get("menu-background"))
-        backgroundSprite.width = Dimension.FillAvailable
-        backgroundSprite.height = Dimension.FillAvailable
-        backgroundSprite.scaleType = ScaleType.Crop
-        scene.backgroundComponent = backgroundSprite
+        // Over the game's background, which gameplay dimmed.
+        BeatmapBackground.fadeBrightness(1f)
 
         // Everything is placed in a space 1280 wide, as the game's, scaled to the width of the window.
         val window = Verktex.graphics.window

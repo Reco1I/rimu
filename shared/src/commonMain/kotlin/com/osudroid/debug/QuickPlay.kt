@@ -7,7 +7,6 @@ import com.osudroid.mods.ModAutoplay
 import com.osudroid.utils.ModHashMap
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
-import com.reco1l.verktex.texture.Textures
 import kotlin.jvm.JvmStatic
 import ru.nsu.ccfit.zuev.osu.LibraryManager
 
@@ -67,8 +66,6 @@ object QuickPlay {
         Logger.i(TAG, "Playing ${beatmap.artist} - ${beatmap.title} [${beatmap.version}] with ${mods.values}")
 
         BeatmapSelection.beatmap = beatmap
-        // Song select loads it otherwise, the game scene expects it.
-        beatmap.backgroundPath?.let { Textures.load("::background", it) }
         Gameplay().start(PlayRequest(beatmap, mods))
         return true
     }

@@ -1,19 +1,14 @@
 package com.osudroid.ui.v2
 
-import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.data.Background
-import com.reco1l.verktex.data.ScaleType
-import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.LoadingIndicator
 import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.shape.box
-import com.reco1l.verktex.ui.sprite
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
 
@@ -35,17 +30,6 @@ class LoaderScene : Scene() {
         backgroundComponent = Container().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-
-            sprite {
-                width = Dimension.FillAvailable
-                height = Dimension.FillAvailable
-                scaleType = ScaleType.Crop
-                textureRegion = SkinTextures["menu-background"]
-
-                if (!Settings[OsuSettings.SafeBeatmapBackground]) {
-                    textureRegion = Textures["::background"] ?: textureRegion
-                }
-            }
 
             box {
                 width = Dimension.FillAvailable

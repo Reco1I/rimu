@@ -5,17 +5,13 @@ import com.reco1l.verktex.data.Background
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.resources.Res.string
-import com.osudroid.settings.OsuSettings
-import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.BeatmapBackground
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.*
-import com.reco1l.verktex.settings.Settings
-import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.*
-import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.ui.container.*
 import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.control.textInput
@@ -65,18 +61,14 @@ class LobbyScene : Scene() {
     private val fetchScope = CoroutineScope(Dispatchers.Default)
 
 
+    override fun onEnter() {
+        super.onEnter()
+
+        // Tinted by the scene, it's as bright as in the menu (gameplay may have dimmed it).
+        BeatmapBackground.fadeBrightness(1f)
+    }
+
     init {
-        backgroundComponent = Sprite().apply {
-            width = fill()
-            height = fill()
-            scaleType = ScaleType.Crop
-            textureRegion = SkinTextures["menu-background"]
-
-            if (!Settings[OsuSettings.SafeBeatmapBackground]) {
-                textureRegion = Textures["::background"] ?: textureRegion
-            }
-        }
-
         linearContainer {
             width = fill()
             height = fill()

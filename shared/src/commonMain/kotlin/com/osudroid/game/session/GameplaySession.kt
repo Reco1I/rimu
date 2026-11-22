@@ -5,7 +5,6 @@ import com.osudroid.game.loading.LoadedPlay
 import com.osudroid.game.loading.PlayRequest
 import com.osudroid.scoring.Statistic
 import com.reco1l.verktex.math.Path
-import com.reco1l.verktex.data.Background
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.game.GameplayVibrations
@@ -53,6 +52,7 @@ import com.osudroid.mods.*
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.resources.Res
+import com.osudroid.ui.v2.BeatmapBackground
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.skinFrames
@@ -78,6 +78,7 @@ import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
@@ -86,7 +87,6 @@ import com.reco1l.verktex.data.px
 import com.reco1l.verktex.input.Input
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.PointerEvent
-import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.time.FrameStableClock
 import com.reco1l.verktex.time.SongClock
@@ -96,10 +96,10 @@ import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
+import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.choreographNow
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.ScalingContainer
-import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.ui.text.Text
 import kotlin.math.abs
 import kotlin.math.max
@@ -160,9 +160,8 @@ class GameplaySession(
     private var pauseMenu: PauseMenu? = null
     private var replayText: Text? = null
     private var sceneBorder: Container? = null
-    private var beatmapBackground: Component? = null
-    private var beatmapBackgroundWidth = 0f
-    private var beatmapBackgroundHeight = 0f
+    // What the background brightness and breaks dim: the game's background, or the layer of the video over it.
+    private var dimmedBackground: Component = BeatmapBackground
 
     private val parsedBeatmap
         get() = loaded.parsedBeatmap
@@ -325,7 +324,6 @@ class GameplaySession(
         root = Container()
         root.width = Dimension.FillAvailable
         root.height = Dimension.FillAvailable
-        root.background = Background.Color(Color4.Black)
 
         backgroundLayer = Container()
         backgroundLayer.width = Dimension.FillAvailable
@@ -386,27 +384,14 @@ class GameplaySession(
 
         releaseVideo()
 
-        val textureRegion = if (Settings[OsuSettings.SafeBeatmapBackground] || playableBeatmap.events.backgroundFilename == null)
-            SkinTextures.get("menu-background")
-        else
-            Textures.get("::background")
+        applyBackgroundStyle()
+    }
 
-        if (textureRegion == null) {
-            val backgroundColor = playableBeatmap.events.backgroundColor
-
-            val box = Box()
-            box.width = Dimension.FillAvailable
-            box.height = Dimension.FillAvailable
-            box.color = backgroundColor ?: Color4.Black
-
-            beatmapBackground = box
-            beatmapBackgroundWidth = 0f
-            beatmapBackgroundHeight = 0f
-        } else {
-            beatmapBackground = Sprite(textureRegion)
-            beatmapBackgroundWidth = textureRegion.width.toFloat()
-            beatmapBackgroundHeight = textureRegion.height.toFloat()
-        }
+    // The background is the game's, which shows the selected beatmap's, scaled as the settings say and in the
+    // color of the beatmap's events where it has no texture.
+    private fun applyBackgroundStyle() {
+        BeatmapBackground.scaleType = if (Settings[OsuSettings.KeepBackgroundAspectRatio]) ScaleType.Fit else ScaleType.Crop
+        BeatmapBackground.fallbackColor = playableBeatmap.events.backgroundColor ?: Color4.Black
     }
 
     /**
@@ -456,39 +441,40 @@ class GameplaySession(
             this.sceneBorder = sceneBorder
         }
 
-        val background: Component? = shownVideo ?: beatmapBackground
-
-        val backgroundWidth = shownVideo?.videoWidth?.toFloat() ?: beatmapBackgroundWidth
-        val backgroundHeight = shownVideo?.videoHeight?.toFloat() ?: beatmapBackgroundHeight
-
         backgroundLayer.clearChildren()
 
-        if (background != null) {
-            if (backgroundWidth > 0f && backgroundHeight > 0f) {
+        // The beatmap's background is the game's, a video is shown over it, which hides it.
+        val keepsAspectRatio = Settings[OsuSettings.KeepBackgroundAspectRatio]
+
+        if (shownVideo != null) {
+            val videoWidth = shownVideo.videoWidth.toFloat()
+            val videoHeight = shownVideo.videoHeight.toFloat()
+
+            if (videoWidth > 0f && videoHeight > 0f) {
                 // Fit in the window through the size instead of the scale, the size is relative to its parent.
-                val windowWidth = root.bounds.width
-                val windowHeight = root.bounds.height
+                val factor = if (keepsAspectRatio) root.bounds.height / videoHeight else root.bounds.width / videoWidth
 
-                val factor = if (Settings[OsuSettings.KeepBackgroundAspectRatio])
-                    windowHeight / backgroundHeight
-                else
-                    windowWidth / backgroundWidth
-
-                background.anchor = Anchor.Center
-                background.origin = Anchor.Center
-                background.setSize(backgroundWidth * factor, backgroundHeight * factor)
+                shownVideo.anchor = Anchor.Center
+                shownVideo.origin = Anchor.Center
+                shownVideo.setSize(videoWidth * factor, videoHeight * factor)
             }
 
-            backgroundLayer += background
+            backgroundLayer += shownVideo
+            BeatmapBackground.setBrightness(0f)
+            dimmedBackground = backgroundLayer
+        } else {
+            applyBackgroundStyle()
+            dimmedBackground = BeatmapBackground
         }
 
-        // Dimmed by fading it over the black of the root rather than covering it with black, which
+        // Dimmed by fading it over the black of the window rather than covering it with black, which
         // costs a fullscreen layer to the GPU, and a fully dimmed background isn't drawn at all.
-        backgroundLayer.alpha = brightness
+        BeatmapBackground.clearTransforms()
+        dimmedBackground.alpha = brightness
 
         if (breakAnimator != null) {
             breakAnimator!!.setDimBrightness(brightness)
-            breakAnimator!!.setDimmedLayer(backgroundLayer)
+            breakAnimator!!.setDimmedLayer(dimmedBackground)
         }
 
         // Storyboards are drawn here once they're available again, on top of the background and below the playfield.
@@ -943,7 +929,7 @@ class GameplaySession(
 
                 // We do not want
                 if (!breakAnimator.isBreak()) {
-                    backgroundLayer.alpha = brightness
+                    dimmedBackground.alpha = brightness
                 }
             }
 
@@ -2414,6 +2400,18 @@ class GameplaySession(
 
         init {
             clock = gameplayClock
+        }
+
+        override fun onEnter() {
+            super.onEnter()
+            applyBackgroundStyle()
+        }
+
+        // The scenes after gameplay show the game's background as everywhere else.
+        override fun onLeave() {
+            super.onLeave()
+            BeatmapBackground.scaleType = ScaleType.Crop
+            BeatmapBackground.fallbackColor = Color4.Black
         }
 
         override fun onInputEvent(event: InputEvent): Boolean {

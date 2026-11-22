@@ -2,12 +2,10 @@ package com.osudroid.ui.v2.mainmenu
 
 import com.osudroid.game.Gameplay
 import com.reco1l.verktex.data.Background
-import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.beatmaplisting.BeatmapListing
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.BeatmapSelection
-import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.ui.text.spans
@@ -16,11 +14,11 @@ import com.acivev.ui.addSnowfallWithPeriod
 import com.acivev.ui.addFireworksWithPeriod
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import com.reco1l.verktex.ui.dialog.ConfirmDialog
-import com.osudroid.data.BeatmapInfo
 import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.*
 import com.osudroid.multiplayer.*
 import com.osudroid.resources.Res
+import com.osudroid.ui.v2.BeatmapBackground
 import com.osudroid.ui.v2.LoaderScene
 import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.multi.*
@@ -29,8 +27,6 @@ import com.osudroid.ui.v2.songselect.SongSelect
 import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
 import kotlin.random.Random
-import kotlinx.coroutines.Job
-import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.ui.ParticleSystem
 import com.reco1l.verktex.ui.particleSystem
@@ -49,15 +45,12 @@ import com.reco1l.verktex.ui.animate
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.moveToX
 import com.reco1l.verktex.ui.transitionSlot
-import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.GradientBox
 import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.Sprite
-import com.reco1l.verktex.ui.CrossfadeSprite
-import com.reco1l.verktex.ui.crossfadeSprite
 import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
@@ -112,7 +105,6 @@ class MainScene : Scene() {
     private lateinit var musicButtonHolder: Container
     private lateinit var musicPlayer: MusicPlayer
     private lateinit var kiaiParticles: ParticleSystem
-    private lateinit var backgroundSprite: CrossfadeSprite
     private lateinit var leftFlash: GradientBox
     private lateinit var rightFlash: GradientBox
     private lateinit var logo: OsuLogo
@@ -133,11 +125,6 @@ class MainScene : Scene() {
     private var menuIdleTime = 0f
 
     private var lastMusicChange = currentTimeMillis()
-
-    private var backgroundLoadJob: Job? = null
-
-    // The beatmap whose background is shown, which follows the selection while this is the current scene.
-    private var backgroundBeatmap: BeatmapInfo? = null
 
     // Seconds left emitting stars after a kiai section started, and the emission not done yet.
     private var kiaiParticleTime = 0f
@@ -165,14 +152,6 @@ class MainScene : Scene() {
         backgroundComponent = Container().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-
-            backgroundSprite = crossfadeSprite {
-                width = Dimension.FillAvailable
-                height = Dimension.FillAvailable
-                scaleType = ScaleType.Crop
-                crossfadeDuration = BACKGROUND_FADE_DURATION
-                crossfadeTo(SkinTextures["menu-background"], 0f)
-            }
 
             +GradientBox().apply {
                 height = Dimension.FillAvailable
@@ -408,7 +387,7 @@ class MainScene : Scene() {
         OsuGame.music.stop()
         SkinSounds["seeya"].play()
 
-        backgroundSprite.fadeOut(0.4f)
+        BeatmapBackground.fadeBrightness(0f, 0.4f)
 
         logo.playEffects = false
         logo.scaleTo(0.5f, 3f)
@@ -437,16 +416,11 @@ class MainScene : Scene() {
         // Songs end on their own in the menu instead of stopping as in gameplay.
         OsuGame.music.isGaming = false
 
-        BeatmapSelection.addListener(this) { beatmap ->
-            changeBackground(beatmap)
-            updateMusicButton()
-        }
+        BeatmapSelection.addListener(this) { updateMusicButton() }
 
-        // The selection may have changed while another scene was shown.
-        val selectedBeatmap = BeatmapSelection.beatmap
-        if (selectedBeatmap != null && selectedBeatmap != backgroundBeatmap) {
-            changeBackground(selectedBeatmap)
-        }
+        // The background follows the selection on its own, slower in the menu.
+        BeatmapBackground.crossfadeDuration = BACKGROUND_FADE_DURATION
+        BeatmapBackground.fadeBrightness(1f)
 
         if (!hasEntered) {
             hasEntered = true
@@ -476,6 +450,7 @@ class MainScene : Scene() {
     override fun onLeave() {
         super.onLeave()
         BeatmapSelection.removeListener(this)
+        BeatmapBackground.crossfadeDuration = BeatmapBackground.CROSSFADE_DURATION
     }
 
     private fun updateMusicButton() {
@@ -483,35 +458,6 @@ class MainScene : Scene() {
         musicButton.text =
             if (beatmap != null) "${beatmap.titleText} - ${beatmap.artistText}" else ""
         lastMusicChange = currentTimeMillis()
-    }
-
-    /**
-     * Fades to the background of [beatmap], or the skin's one without it or with safe backgrounds.
-     * It is decoded off the update thread, the old menu froze while loading it.
-     */
-    private fun changeBackground(beatmap: BeatmapInfo?) {
-        backgroundLoadJob?.cancel()
-        backgroundBeatmap = beatmap
-
-        val path = beatmap?.backgroundPath
-        if (path == null || Settings[OsuSettings.SafeBeatmapBackground]) {
-            fadeToBackground(SkinTextures["menu-background"])
-            return
-        }
-
-        backgroundLoadJob = async {
-            val source = Platform.provider.createTextureSource(path, true)
-
-            Verktex.scheduleOnDraw {
-                val region = source?.let { Textures.load("::background-$backgroundKeyIndex", it) }
-                fadeToBackground(region ?: SkinTextures["menu-background"])
-            }
-        }
-    }
-
-    private fun fadeToBackground(region: Texture.Region?) {
-        backgroundSprite.crossfadeTo(region)
-        backgroundKeyIndex = 1 - backgroundKeyIndex
     }
 
     /**
@@ -651,11 +597,6 @@ class MainScene : Scene() {
 
         // Stars per second from each corner.
         private const val KIAI_PARTICLE_RATE = 40f
-
-        // The texture key the next background is loaded under. It alternates as the crossfade sprite
-        // does, so the background still shown while fading isn't released. Kept here so that a new
-        // menu doesn't load over the key of the background an old one may still show.
-        private var backgroundKeyIndex = 0
 
         /**
          * Shows the results screen of a replay file.

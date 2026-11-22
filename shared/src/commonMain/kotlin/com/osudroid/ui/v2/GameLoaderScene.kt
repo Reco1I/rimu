@@ -16,34 +16,27 @@ import com.osudroid.utils.ModHashMap
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
-import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.LoadingIndicator
 import com.reco1l.verktex.ui.Scene
-import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.ui.card
-import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.ScrollableContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
+import com.reco1l.verktex.ui.delay
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
-import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.form.*
 import com.reco1l.verktex.ui.scaleTo
-import com.reco1l.verktex.ui.shape.Box
-import com.reco1l.verktex.ui.shape.box
-import com.reco1l.verktex.ui.sprite
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
@@ -79,7 +72,6 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
     private var isStarting = false
     private var multiplayerLoadElapsed = 0f
 
-    private val dimBox: Box
     private val mainContainer: Container
 
     // The options of the beatmap set, read from the database once the scene opens. Gameplay starts
@@ -94,25 +86,6 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
     private var minimumTimeout = if (isRestart) 500L else 2000L
 
     init {
-        backgroundComponent = Container().apply {
-            width = fill()
-            height = fill()
-
-            sprite {
-                width = fill()
-                height = fill()
-                scaleType = ScaleType.Crop
-                textureRegion = if (Settings[OsuSettings.SafeBeatmapBackground]) SkinTextures["menu-background"] else Textures["::background"]
-            }
-
-            dimBox = box {
-                width = fill()
-                height = fill()
-                color = Color4.Black
-                alpha = 0.7f
-            }
-        }
-
         mainContainer = container {
             width = fill()
             height = fill()
@@ -226,6 +199,8 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
     override fun onEnter() {
         super.onEnter()
 
+        BeatmapBackground.fadeBrightness(LOADING_BRIGHTNESS)
+
         mainContainer.fadeIn(0.2f, Easing.OutCubic)
         mainContainer.scaleTo(1f, 0.2f, Easing.OutCubic)
     }
@@ -272,8 +247,10 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
 
                     mainContainer.fadeOut(0.1f, Easing.OutExpo)
 
-                    dimBox.clearTransforms()
-                    dimBox.fadeTo(1f - backgroundBrightness / 100f, 0.2f).after {
+                    BeatmapBackground.fadeBrightness(backgroundBrightness / 100f, START_DURATION)
+
+                    // Timed by the scene, gameplay changing the background mustn't keep it from starting.
+                    delay(START_DURATION).after {
 
                         gameplay.session!!.hudLayer.apply {
                             alpha = 0f
@@ -386,7 +363,7 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
                             control.precision = 1
                             control.onStopDragging = {
                                 if (!isStarting) {
-                                    dimBox.fadeTo(0.7f, 0.1f)
+                                    BeatmapBackground.fadeBrightness(LOADING_BRIGHTNESS, 0.1f)
                                 }
                             }
                             valueFormatter = { formatString("%.1f%%", it) }
@@ -396,7 +373,7 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
                                 gameplay.session?.loadVideo()
 
                                 if (!isStarting) {
-                                    dimBox.alpha = 1f - it / 100f
+                                    BeatmapBackground.setBrightness(it / 100f)
                                 }
                             }
                         }
@@ -463,5 +440,10 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
         private var settingsCardCollapsed = false
 
         private const val MULTIPLAYER_LOAD_TIMEOUT_SEC = 60f
+
+        // How bright the background is behind the loader, and how long it takes to fade to the
+        // gameplay's brightness once it starts.
+        private const val LOADING_BRIGHTNESS = 0.3f
+        private const val START_DURATION = 0.2f
     }
 }

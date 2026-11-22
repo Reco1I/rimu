@@ -2,11 +2,9 @@ package com.osudroid.ui.v2.songselect
 
 import com.osudroid.game.Gameplay
 import com.osudroid.game.loading.PlayRequest
-import com.reco1l.verktex.data.ScaleType
 import com.osudroid.OsuGame
 import com.osudroid.BeatmapSelection
 import com.osudroid.settings.OsuSettings
-import com.reco1l.verktex.settings.Settings
 import com.osudroid.beatmaps.parser.*
 import com.osudroid.data.*
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateDroidDifficulty
@@ -27,10 +25,8 @@ import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.Scene
-import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
@@ -101,7 +97,6 @@ class SongSelect : Scene() {
     private val leaderboard = SongSelectLeaderboard()
     private val beatmapCarrousel = BeatmapCarrousel()
     private val beatmapInfoWedge = BeatmapInfoWedge { mods }
-    private val backgroundSprite: Sprite
 
     private lateinit var modsIndicator: ModsIndicator
 
@@ -109,21 +104,11 @@ class SongSelect : Scene() {
     private var filterJob: Job? = null
 
     private var currentSongPath: String? = null
-    private var currentBackgroundPath: String? = null
     private var currentBeatmapLoadingJob: Job? = null
     private var currentCalculationJob: Job? = null
 
 
     init {
-        backgroundSprite = Sprite().apply {
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
-            textureRegion = SkinTextures["menu-background"]
-            scaleType = ScaleType.Crop
-            color = color.shade(0.4f)
-        }
-        backgroundComponent = backgroundSprite
-
         filterBar.onFilterChanged = { applyFilter() }
 
         beatmapCarrousel.apply {
@@ -497,26 +482,11 @@ class SongSelect : Scene() {
             ensureActive()
             if (beatmapInfo == null) {
                 currentSongPath = null
-                currentBackgroundPath = null
-
-                updateThread { backgroundSprite.textureRegion = SkinTextures["menu-background"] }
 
                 ensureActive()
                 OsuGame.music.stop()
 
                 return@launch
-            }
-
-            val backgroundPath = beatmapInfo.backgroundPath
-
-            if (!Settings[OsuSettings.SafeBeatmapBackground] && backgroundPath != null && currentBackgroundPath != backgroundPath) {
-                currentBackgroundPath = backgroundPath
-
-                ensureActive()
-                val textureRegion = Textures.load("::background", backgroundPath)
-
-                ensureActive()
-                updateThread { backgroundSprite.textureRegion = textureRegion ?: SkinTextures["menu-background"] }
             }
 
             if (currentSongPath != beatmapInfo.audioPath) {
@@ -605,15 +575,20 @@ class SongSelect : Scene() {
     override fun onEnter() {
         super.onEnter()
 
+        // The selection's background, dimmed behind the lists.
+        BeatmapBackground.fadeBrightness(BACKGROUND_BRIGHTNESS)
+
         updateThread {
             val currentBeatmapInfo = BeatmapSelection.beatmap
 
             currentSongPath = currentBeatmapInfo?.audioPath
-            currentBackgroundPath = null
 
             filterBar.updateCollections()
             currentBeatmapInfo?.let(::showBeatmap)
         }
     }
 
+    private companion object {
+        const val BACKGROUND_BRIGHTNESS = 0.4f
+    }
 }
