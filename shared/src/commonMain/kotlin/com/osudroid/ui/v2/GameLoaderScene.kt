@@ -368,8 +368,7 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
                             }
                             valueFormatter = { formatString("%.1f%%", it) }
                             onValueChanged = {
-                                // Storyboard and video should not be enabled if the background brightness is too low,
-                                // so we trigger a reload when changing brightness.
+                                // The video isn't shown while the background is too dark to see it, so it's reloaded.
                                 gameplay.session?.loadVideo()
 
                                 if (!isStarting) {
@@ -377,13 +376,6 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
                                 }
                             }
                         }
-
-                        // TODO: Add Storyboard support.
-                        /*+PreferenceCheckbox(OsuSettings.EnableStoryboard).apply {
-                            label = Res.string.opt_enableStoryboard_title
-                            onValueChanged = {
-                            }
-                        }*/
 
                         +PreferenceCheckbox(OsuSettings.EnableVideo).apply {
                             label = Res.string.opt_video_title

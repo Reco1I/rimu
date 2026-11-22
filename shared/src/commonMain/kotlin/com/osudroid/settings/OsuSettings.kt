@@ -59,7 +59,6 @@ object OsuSettings {
     @JvmField val Corovans = key("images", false)
     @JvmField val ShowFps = key("fps", true)
     @JvmField val ShowFirstApproachCircle = key("showfirstapproachcircle", false)
-    @JvmField val EnableStoryboard = key("enableStoryboard", false)
     @JvmField val EnableVideo = key("enableVideo", false)
     @JvmField val NoChangeDimInBreaks = key("noChangeDimInBreaks", false)
     @JvmField val DimHitObjects = key("dimHitObjects", true)
@@ -219,13 +218,6 @@ object OsuSettings {
     @JvmStatic
     val metronomeSwitch: Int
         get() = Settings[MetronomeSwitch].toIntOrNull() ?: 1
-
-    /**
-     * Whether storyboards are shown, which a background too dark to see them disables.
-     */
-    @JvmStatic
-    val isStoryboardEnabled: Boolean
-        get() = backgroundBrightness > 0.02 && Settings[EnableStoryboard]
 
     /**
      * Whether to stay logged in, only possible in builds with online access.

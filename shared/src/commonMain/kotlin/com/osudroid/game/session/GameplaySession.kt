@@ -471,8 +471,6 @@ class GameplaySession(
             breakAnimator!!.setDimBrightness(brightness)
             breakAnimator!!.setDimmedLayer(dimmedBackground)
         }
-
-        // Storyboards are drawn here once they're available again, on top of the background and below the playfield.
     }
 
     /**

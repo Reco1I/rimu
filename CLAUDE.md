@@ -48,13 +48,12 @@ The codebase is split across multiple main package roots, each in `shared/src/co
 
 - **`ru/nsu/ccfit/zuev/osu/`** — Legacy code, mostly converted to Kotlin: `ScoringScene`, replays (`scoring/`) and `LibraryManager` are in `:shared`, `MainActivity` (Java, only a launcher) in `:androidApp`. Most subsystems here are singletons.
 - **`com/acivev/`** — Vibration and haptic feedback management (`VibratorManager`, `VibratorCheckUtils`, etc.) as well as snow effects (`ui/Effect.kt`).
-- **`legacy/storyboard/`** — The storyboard renderer, outside the source set until it's rewritten on Verktex.
 - **`com/osudroid/replay/`** — Replay imports (`ReplayImporter`, from the settings' file picker). Replays themselves are JSON (`ru/nsu/ccfit/zuev/osu/scoring/ReplayData.kt`, version 10); the Java-serialized ones before them, upstream's, are still read (`LegacyReplay.kt`) but never written, through java-serialization-kotlinx (`com.github.Reco1I.java-serialization-kotlinx:java-serialization-kotlinx`, https://github.com/Reco1I/java-serialization-kotlinx, published with JitPack), a decoder of Java's object serialization streams and a decode-only kotlinx.serialization format over it, extracted from the game: changes to it go to its repository, released with a tag, and the game updates its version. Opening a replay from another app on Android plays it (`AndroidOsuGameHost`).
 - **`com/osudroid/`** — Modern Kotlin code. Contains beatmap parsing, difficulty calculation, the mod system, multiplayer, Room database, and newer UI scenes. Gameplay is in `com/osudroid/game/` (see Game Loop), its objects (`GameObject`, `GameplayHitCircle`, `GameplaySlider`, `GameplaySpinner`, `GameObjectPool` and the `GameObjectListener` they're given) in `game/objects/`, and the statistics of a score (`Statistic`) in `com/osudroid/scoring/`. `docs/plans/gameplay-structure.md` maps the names older plans use (`GameScene`, `GameHelper`, `StatisticV2`) to these.
 - **`verktex/`** — The engine. `verktex/src/commonMain/` holds rendering, audio, input, clocks (`time/`) and the UI components (`Component`, `Container`, `Scene`, `Sprite`, etc.). `src/androidMain/` holds the Android platform (`com/reco1l/verktex/android/`) and `src/desktopMain/` the desktop one. The built-in shaders (`shaders/`) and fonts (`fonts/`) are in `verktex/assets/`, which each platform packages.
 - **`com/reco1l/framework/`** — Kotlin extensions of existing classes, such as the tolerant iteration of lists.
 - **`com/rian/framework/`** — A couple of utility classes such as `RollingNumber`.
-- **`shared/src/desktopTest/`** — Unit tests for beatmap parsing, difficulty calculation, and other core logic, with their resources (beatmap and storyboard files).
+- **`shared/src/desktopTest/`** — Unit tests for beatmap parsing, difficulty calculation, and other core logic, with their resources (beatmap files).
 
 ### Game Loop
 

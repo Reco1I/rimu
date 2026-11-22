@@ -464,12 +464,6 @@ val gameplaySection = listOf(
             ),
             SettingsOption(
                 type = Type.Checkbox,
-                key = "enableStoryboard",
-                setting = OsuSettings.EnableStoryboard,
-                title = Res.string.opt_enableStoryboard_title,
-            ),
-            SettingsOption(
-                type = Type.Checkbox,
                 key = "enableVideo",
                 setting = OsuSettings.EnableVideo,
                 title = Res.string.opt_video_title,
