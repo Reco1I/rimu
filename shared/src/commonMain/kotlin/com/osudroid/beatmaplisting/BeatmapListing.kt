@@ -1,17 +1,22 @@
 package com.osudroid.beatmaplisting
 
-import com.reco1l.verktex.ui.toast.Toasts
+import com.osudroid.ui.v2.beatmaplisting.BeatmapListingScene
+import com.reco1l.verktex.Verktex
 
 /**
  * The listing to search beatmap sets on the selected mirror ([BeatmapMirror]) and download them
- * ([BeatmapDownloader]). It was an Android view and isn't written on Verktex yet.
+ * ([BeatmapDownloader]), see [BeatmapListingScene].
  */
 object BeatmapListing {
 
     /**
-     * Shows the listing. Until it's written, it only tells that it's a work in progress.
+     * Shows the listing above the current scene, unless it's the current one already.
      */
     fun show() {
-        Toasts.show("The beatmap listing is a work in progress.")
+        Verktex.withTreeLock {
+            if (Verktex.scene !is BeatmapListingScene) {
+                Verktex.pushScene(BeatmapListingScene())
+            }
+        }
     }
 }

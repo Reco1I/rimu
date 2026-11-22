@@ -61,4 +61,44 @@
         <item>Oboe</item>
     </string-array>
 
+    <!-- Beatmap listing -->
+    <string name="beatmap_listing_back">Back</string>
+    <string name="beatmap_listing_search">Search for...</string>
+    <string name="beatmap_listing_filters">Filters</string>
+    <string name="beatmap_listing_retry">Retry</string>
+    <string name="beatmap_listing_mirror">Beatmap mirror</string>
+    <string name="beatmap_listing_sort">Sort by</string>
+    <string name="beatmap_listing_order">Order</string>
+    <string name="beatmap_listing_status">Status</string>
+    <string name="beatmap_listing_status_all">All</string>
+    <string name="beatmap_listing_sort_title">Title</string>
+    <string name="beatmap_listing_sort_artist">Artist</string>
+    <string name="beatmap_listing_sort_bpm">BPM</string>
+    <string name="beatmap_listing_sort_difficulty_rating">Difficulty rating</string>
+    <string name="beatmap_listing_sort_hit_length">Hit length</string>
+    <string name="beatmap_listing_sort_pass_count">Pass count</string>
+    <string name="beatmap_listing_sort_play_count">Play count</string>
+    <string name="beatmap_listing_sort_total_length">Total length</string>
+    <string name="beatmap_listing_sort_favourite_count">Favourite count</string>
+    <string name="beatmap_listing_sort_last_updated">Last updated</string>
+    <string name="beatmap_listing_sort_ranked_date">Ranked date</string>
+    <string name="beatmap_listing_sort_submitted_date">Submitted date</string>
+    <string name="beatmap_listing_order_ascending">Ascending</string>
+    <string name="beatmap_listing_order_descending">Descending</string>
+    <string name="beatmap_listing_connection_failed">Failed to connect to server, please check your internet connection.</string>
+    <string name="beatmap_listing_no_results">No beatmap sets were found.</string>
+    <string name="beatmap_listing_preview_wait">Please wait a few seconds before trying again.</string>
+    <string name="beatmap_listing_preview_failed">The preview couldn\'t be played.</string>
+    <string name="beatmap_listing_preview">Preview</string>
+    <string name="beatmap_listing_download">Download</string>
+    <string name="beatmap_listing_download_no_video">Download (no video)</string>
+    <string name="beatmap_listing_downloaded">Downloaded</string>
+    <string name="beatmap_listing_importing">Importing</string>
+    <string name="beatmap_listing_mapped_by">Mapped by %s</string>
+    <string name="beatmap_listing_circles">Circles</string>
+    <string name="beatmap_listing_sliders">Sliders</string>
+    <string name="beatmap_listing_spinners">Spinners</string>
+    <string name="beatmap_listing_length">Length</string>
+    <string name="beatmap_listing_bpm">BPM</string>
+
 </resources>
