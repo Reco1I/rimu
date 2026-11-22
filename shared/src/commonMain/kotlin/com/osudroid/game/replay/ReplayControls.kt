@@ -352,6 +352,13 @@ class ReplayControls : Container() {
 
     //region Input
 
+    /**
+     * Whether a press at a point of the scene must reach the controls before what's below them (e.g. the HUD): it's
+     * on the bar, or a popup is open, which any press outside of it closes. Other presses go to the controls only
+     * if nothing below took them.
+     */
+    fun takesPressFirst(sceneX: Float, sceneY: Float) = openPopup != null || bar.containsScenePoint(sceneX, sceneY)
+
     override fun onInputEvent(event: InputEvent): Boolean {
         if (event !is PointerEvent) {
             return super.onInputEvent(event)

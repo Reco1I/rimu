@@ -2417,14 +2417,23 @@ class GameplaySession(
         }
 
         override fun onInputEvent(event: InputEvent): Boolean {
-            // The replay controls take every touch, gameplay ignores them while replaying, but autoplay's
-            // skip button, which is pressed through the cursors.
-            val controls = replayControls
-            if (controls != null && controls.parent != null && event is PointerEvent
-                && !(event.action == PointerEvent.Action.Down && skipBtn?.containsScenePoint(event.x, event.y) == true)
+            val controls = replayControls?.takeIf { it.parent != null }
+
+            if (controls != null && event is PointerEvent) {
                 // Its gestures are timed on the update thread.
-                && Verktex.withTreeLock { controls.onInputEvent(event) }) {
-                return true
+                fun controlsTake() = Verktex.withTreeLock { controls.onInputEvent(event) }
+
+                if (event.action != PointerEvent.Action.Down) {
+                    // Only the fingers whose press it took.
+                    if (controlsTake()) return true
+                } else {
+                    // Its bar and popups come first, then the HUD (e.g. the back button), and every other press is
+                    // a gesture of the controls (gameplay ignores touches while replaying), but on autoplay's skip
+                    // button, which is pressed through the cursors.
+                    if (controls.takesPressFirst(event.x, event.y) && controlsTake()) return true
+                    if (hud.onInputEvent(event)) return true
+                    if (skipBtn?.containsScenePoint(event.x, event.y) != true && controlsTake()) return true
+                }
             }
 
             if (hud.onInputEvent(event)) {
