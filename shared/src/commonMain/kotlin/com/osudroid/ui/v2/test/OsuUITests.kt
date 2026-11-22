@@ -44,7 +44,15 @@ import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.Color4
+import com.osudroid.beatmaplisting.BeatmapDownloader
+import com.osudroid.beatmaplisting.BeatmapSetModel as ListingSet
+import com.osudroid.ui.v2.beatmaplisting.BeatmapListingState
+import com.osudroid.ui.v2.beatmaplisting.BeatmapSetCard
+import com.osudroid.ui.v2.beatmaplisting.BeatmapSetDetails
+import com.osudroid.ui.v2.beatmaplisting.archiveName
+import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.ui.container.RecyclerContainer
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.testing.UITestSuite
 import com.reco1l.verktex.testing.column
@@ -515,6 +523,72 @@ object OsuUITests : UITestSuite("osu!") {
                 cursor.setPosition(bounds.width / 2f + cos(angle) * 150f, bounds.height / 2f + sin(angle) * 150f)
                 cursor.update(it.elapsedFrameTime)
             }
+        }
+
+        test("Beatmap listing cards") {
+            val sets = TestData.listingSets(count = 8)
+
+            // Previewing the first, downloading the second, the third downloaded, the others idle.
+            val state = object : BeatmapListingState() {
+                override fun togglePreview(set: ListingSet) {
+                    playingSetId = if (playingSetId == set.id) null else set.id
+                    log("Preview of ${set.title}: ${playingSetId == set.id}")
+                }
+
+                override fun download(set: ListingSet, withVideo: Boolean) = log("Download ${set.archiveName(withVideo)}")
+
+                override fun showDetails(set: ListingSet) = log("Details of ${set.title}")
+            }
+            state.playingSetId = sets[0].id
+            state.download = BeatmapDownloader.Download(sets[1].id, BeatmapDownloader.Phase.Downloading, 0.4f)
+            state.downloadedSetIds = setOf(sets[2].id)
+
+            +RecyclerContainer<ListingSet, BeatmapSetCard>().apply {
+                width = fill()
+                height = fill()
+                padding = Padding(12f.dip)
+                minColumnWidth = 395f.dip
+                columnSpacing = 8f.dip
+                spacing = 8f.dip
+
+                onCreateComponent = { BeatmapSetCard(state) }
+                data = sets
+
+                state.onChange = { boundComponents.values.forEach { it.refresh() } }
+            }
+        }
+
+        test("Beatmap set details") {
+            val sets = TestData.listingSets(count = 8)
+            lateinit var details: BeatmapSetDetails
+
+            val state = object : BeatmapListingState() {
+                override fun togglePreview(set: ListingSet) {
+                    playingSetId = if (playingSetId == set.id) null else set.id
+                }
+
+                override fun download(set: ListingSet, withVideo: Boolean) {
+                    download = BeatmapDownloader.Download(set.id, BeatmapDownloader.Phase.Downloading, 0.6f)
+                    log("Download ${set.archiveName(withVideo)}")
+                }
+            }
+            details = BeatmapSetDetails(state)
+            state.onChange = { details.refresh() }
+
+            column {
+                section("Sets") {
+                    sets.forEach { set ->
+                        textButton {
+                            text = "${set.title} (${set.beatmaps.size}${if (set.hasVideo) ", video" else ""})"
+                            onActionUp = { details.show(set) }
+                        }
+                    }
+                }
+            }
+
+            // The set with 20 difficulties.
+            details.show(sets[0])
+            onDispose { details.hide() }
         }
     }
 }

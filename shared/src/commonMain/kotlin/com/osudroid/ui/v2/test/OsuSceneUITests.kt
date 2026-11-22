@@ -14,7 +14,9 @@ import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.utils.ModHashMap
 import com.osudroid.ui.v2.mainmenu.MusicPlayer
 import com.osudroid.ui.v2.modmenu.ModMenu
+import com.osudroid.ui.v2.beatmaplisting.BeatmapListingScene
 import com.osudroid.ui.v2.multi.LobbyScene
+import kotlinx.coroutines.delay
 import com.osudroid.ui.v2.multi.RoomChat
 import com.osudroid.ui.v2.settings.SettingsMenu
 import com.osudroid.ui.v2.songselect.SongSelect
@@ -170,6 +172,29 @@ object OsuSceneUITests : UITestSuite("Scenes") {
                     else -> chat.onRoomChatMessage(players[index % players.size], SAMPLE_MESSAGES[index % SAMPLE_MESSAGES.size])
                 }
             }
+        }
+
+        test("Beatmap listing") {
+            useGameContext()
+
+            // Made up sets instead of a mirror's, 200 of them, filtered as a mirror would.
+            val sets = TestData.listingSets(count = 200)
+
+            scene(BeatmapListingScene { search, offset, limit ->
+                delay(300)
+                sets.filter { set ->
+                    (search.query.isEmpty() || set.title.contains(search.query, ignoreCase = true)) &&
+                        (search.status == null || set.status == search.status)
+                }.drop(offset).take(limit)
+            })
+
+            log("200 made up sets in pages of 50, without covers")
+        }
+
+        test("Beatmap listing (mirror)") {
+            useGameContext()
+            scene(BeatmapListingScene())
+            log("Searches the selected mirror, it needs a connection")
         }
     }
 

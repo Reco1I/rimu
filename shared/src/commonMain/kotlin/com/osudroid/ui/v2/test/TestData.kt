@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.test
 
+import com.osudroid.beatmaplisting.BeatmapModel as ListingBeatmap
+import com.osudroid.beatmaplisting.BeatmapSetModel as ListingSet
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.BeatmapSetInfo
 import com.osudroid.data.ModPreset
@@ -15,6 +17,7 @@ import com.osudroid.utils.ModHashMap
 import com.osudroid.utils.currentTimeMillis
 import com.reco1l.verktex.Platform
 import kotlin.random.Random
+import ru.nsu.ccfit.zuev.osu.RankedStatus
 import okio.ByteString
 import okio.ByteString.Companion.encodeUtf8
 
@@ -189,6 +192,46 @@ object TestData {
         maxCombo = 900,
         epilepsyWarning = false
     )
+
+
+    /**
+     * Sets as a mirror would list them, [count] of them from [offset], always the same ones: with every
+     * status, from 1 to 20 difficulties, some with a video. They have no cover.
+     */
+    fun listingSets(offset: Int = 0, count: Int = 50): List<ListingSet> = (offset until offset + count).map { index ->
+        val random = Random(index)
+        val title = TITLES[index % TITLES.size]
+
+        val beatmaps = List(if (index % 7 == 0) 20 else 1 + random.nextInt(8)) { i ->
+            ListingBeatmap(
+                id = index * 100L + i,
+                version = VERSIONS[i % VERSIONS.size] + if (i >= VERSIONS.size) " ${i / VERSIONS.size + 1}" else "",
+                starRating = 1.0 + i * 0.8 + random.nextDouble() * 0.5,
+                ar = 5.0 + i * 0.5,
+                cs = 4.0,
+                hp = 5.5,
+                od = 6.0 + i * 0.4,
+                bpm = 120.0 + random.nextInt(100),
+                lengthSec = 60L + random.nextInt(4000),
+                circleCount = 100 + random.nextInt(500),
+                sliderCount = 50 + random.nextInt(300),
+                spinnerCount = random.nextInt(4)
+            )
+        }.sortedBy { it.starRating }
+
+        ListingSet(
+            id = 1000L + index,
+            title = title,
+            titleUnicode = title,
+            artist = ARTIST,
+            artistUnicode = ARTIST,
+            status = RankedStatus.entries[index % RankedStatus.entries.size],
+            creator = CREATOR,
+            thumbnail = null,
+            beatmaps = beatmaps,
+            hasVideo = index % 3 == 0
+        )
+    }
 
 
     private const val ARTIST = "Artist"

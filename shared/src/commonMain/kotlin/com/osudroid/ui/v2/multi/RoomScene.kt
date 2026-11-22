@@ -350,14 +350,15 @@ class RoomScene(
                                 text = Res.string.multiplayer_room_change_beatmap
                                 onActionUp = {
                                     if (Multiplayer.isRoomHost) {
-                                        if (LibraryManager.getLibrary().isEmpty()) {
-                                            OsuGame.music.pause()
-                                            BeatmapListing.show()
-                                        }
-
                                         SongSelect().apply {
                                             loadBeatmaps()
                                             show()
+                                        }
+
+                                        // Above song select, which loads the sets imported from it once it's left.
+                                        if (LibraryManager.getLibrary().isEmpty()) {
+                                            OsuGame.music.pause()
+                                            BeatmapListing.show()
                                         }
 
                                         // We notify all clients that the host is changing beatmap
