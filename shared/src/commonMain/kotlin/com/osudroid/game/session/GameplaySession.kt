@@ -693,7 +693,7 @@ class GameplaySession(
         get() = gameUIScene
 
     override val replayId: Int
-        get() = gameplay.scoring.replayID
+        get() = gameplay.results.replayID
 
     /**
      * Takes the job loading the video, to stop it with the loading of the play.
@@ -845,7 +845,7 @@ class GameplaySession(
 
         if (context.isAutoplay || replaying) {
             val metadata = playableBeatmap.metadata
-            playname = if (replaying) gameplay.scoring.replayStat!!.playerName else "osu!"
+            playname = if (replaying) gameplay.results.replayStat!!.playerName else "osu!"
 
             if (!Settings[OsuSettings.HideReplayMarquee]) {
                 val replayText = Text()
@@ -1257,10 +1257,10 @@ class GameplaySession(
         resetPlayfieldSizeScale()
         cancelVideoLoading()
 
-        val scoringScene = gameplay.scoring
+        val results = gameplay.results
         if (!startedFromHUDEditor) {
             if (replaying)
-                scoringScene.load(scoringScene.replayStat!!, null, OsuGame.music, replayPath, null, loaded.beatmapInfo)
+                results.load(results.replayStat!!, null, OsuGame.music, replayPath, null, loaded.beatmapInfo)
             else {
                 if (ModAutoplay::class in stat.mod) {
                     stat.playerName = "osu!"
@@ -1274,10 +1274,10 @@ class GameplaySession(
 
                     Toasts.show("Loading room statistics...")
                 }
-                scoringScene.load(stat, loaded.beatmapInfo, OsuGame.music, replayPath, parsedBeatmap.md5, null)
+                results.load(stat, loaded.beatmapInfo, OsuGame.music, replayPath, parsedBeatmap.md5, null)
             }
             OsuGame.music.volume = 0.2f
-            Gameplay.replaceCurrentScene(scoringScene.scene!!)
+            Gameplay.replaceCurrentScene(results.scene!!)
         } else {
             Gameplay.returnToPreviousScene()
         }
@@ -2010,7 +2010,7 @@ class GameplaySession(
             }
 
             if (replaying) {
-                gameplay.scoring.replayStat!!.addHitOffset(acc)
+                gameplay.results.replayStat!!.addHitOffset(acc)
             }
         }
 

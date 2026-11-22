@@ -9,6 +9,13 @@ import com.osudroid.multiplayer.api.RoomAPI
 import com.osudroid.multiplayer.api.data.PlayerStatus
 import com.osudroid.mods.ModDoubleTime
 import com.osudroid.mods.ModHidden
+import com.osudroid.mods.ModDifficultyAdjust
+import com.osudroid.scoring.Statistic
+import com.osudroid.ui.v2.results.RankText
+import com.osudroid.ui.v2.results.ResultsLeaderboard
+import com.osudroid.ui.v2.results.ResultsScene
+import com.osudroid.ui.v2.results.ScoreSubmissionCard
+import com.osudroid.utils.currentTimeMillis
 import com.osudroid.ui.v2.GameLoaderScene
 import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.utils.ModHashMap
@@ -129,6 +136,57 @@ object OsuSceneUITests : UITestSuite("Scenes") {
             modMenu.show()
         }
 
+        test("Results") {
+            results()
+        }
+
+        test("Results (ranks)") {
+            linearContainer {
+                anchor = Anchor.Center
+                origin = Anchor.Center
+
+                for (mark in listOf("XH", "X", "SH", "S", "A", "B", "C", "D")) {
+                    +RankText(mark, 112f.dip)
+                }
+            }
+        }
+
+        test("Results (SS)") {
+            results(isPerfect = true)
+        }
+
+        test("Results (replay)") {
+            results(action = ResultsScene.Action.WatchReplay, isFreshPlay = false)
+        }
+
+        test("Results (submitting)") {
+            results { it.showSubmission(ScoreSubmissionCard(1234, 98_000_000, 0.97f, 4321f)) }
+        }
+
+        test("Results (submitted)") {
+            results {
+                val card = ScoreSubmissionCard(1234, 98_000_000, 0.97f, 4321f)
+                it.showSubmission(card)
+                card.show(52, 1201, 98_845_210, 0.9712f, 4352f)
+            }
+        }
+
+        test("Results (multiplayer)") {
+            Multiplayer.isMultiplayer = true
+            Multiplayer.room = MockRoom()
+
+            results(action = ResultsScene.Action.None) { scene ->
+                val stats = Array(8) { i ->
+                    testStatistic(400, false, "Player ${i + 1}").apply {
+                        setForcedScore(900_000L - i * 61_000L)
+                        isAlive = i != 5
+                    }
+                }
+
+                scene.showLeaderboard(ResultsLeaderboard(stats, stats[2]) { log("Selected ${it.playerName}") })
+            }
+        }
+
         test("Lobby") {
             useGameContext()
             Multiplayer.isMultiplayer = true
@@ -211,6 +269,71 @@ object OsuSceneUITests : UITestSuite("Scenes") {
         }
 
         scene(GameLoaderScene(Gameplay(), beatmap, testMods(), isRestart))
+    }
+
+    // Results of a made up score on the first beatmap, built as the results build them, but without
+    // saving or submitting the score.
+    private fun UITestStage.results(
+        action: ResultsScene.Action = ResultsScene.Action.Retry,
+        isFreshPlay: Boolean = true,
+        isPerfect: Boolean = false,
+        block: (ResultsScene) -> Unit = {},
+    ) {
+        useGameContext()
+
+        val beatmap = firstBeatmap()
+        if (beatmap == null) {
+            log("No beatmaps in the library")
+            return
+        }
+
+        val stat = testStatistic(beatmap.totalHitObjectCount, isPerfect)
+        val results = Gameplay().results
+        results.beatmapInfo = beatmap
+        results.currentStatistic = stat
+
+        val scene = ResultsScene(
+            results = results,
+            stat = stat,
+            beatmapInfo = beatmap,
+            action = action,
+            isFreshPlay = isFreshPlay,
+            showStatistics = true,
+            replayPath = null,
+            mapMD5 = null,
+            beatmapToReplay = null,
+        )
+
+        scene(scene)
+        block(scene)
+    }
+
+    private fun testStatistic(notes: Int, isPerfect: Boolean, name: String = "Player") = Statistic().apply {
+        playerName = name
+        time = currentTimeMillis()
+
+        if (isPerfect) {
+            hit300 = notes
+            hit300k = notes / 2
+            mod = ModHashMap().apply { put(ModHidden::class) }
+            setForcedScore(1_234_567L)
+        } else {
+            hit100 = notes / 10
+            hit50 = notes / 30
+            misses = notes / 50
+            hit300 = notes - hit100 - hit50 - misses
+            hit300k = hit300 / 3
+            hit100k = hit100 / 4
+            mod = testMods().apply { put(ModDifficultyAdjust::class, ModDifficultyAdjust(ar = 9.5f, od = 8f)) }
+            setForcedScore(845_210L)
+
+            // Hits a bit early or late, for an unstable rate.
+            for (i in 0 until 200) {
+                addHitOffset(((i * 7) % 21 - 9) * 0.0021)
+            }
+        }
+
+        scoreMaxCombo = notes - misses * 20
     }
 
     private fun testMods() = ModHashMap().apply {

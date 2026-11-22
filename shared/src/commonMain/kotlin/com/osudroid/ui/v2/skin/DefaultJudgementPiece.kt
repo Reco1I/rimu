@@ -87,7 +87,7 @@ class DefaultJudgementPiece(textureName: String) : JudgementPiece(textureName) {
         return judgementTransitions.play(this, result, time)
     }
 
-    private companion object {
+    internal companion object {
         const val TEXT_SIZE = 28f
 
         const val FADE_IN = 0.12f

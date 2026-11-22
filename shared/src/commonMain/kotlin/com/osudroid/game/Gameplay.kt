@@ -33,11 +33,11 @@ import kotlinx.coroutines.awaitAll
 import com.osudroid.game.objects.GameObjectPool
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.online.OnlineFileOperator
-import ru.nsu.ccfit.zuev.osu.scoring.ScoringScene
+import com.osudroid.ui.v2.results.Results
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
 
 /**
- * A play of one beatmap: its attempts, each a [GameplaySession], and the replays watched from its [scoring] scene.
+ * A play of one beatmap: its attempts, each a [GameplaySession], and the replays watched from its [results].
  * Created by whoever starts the play, with [start].
  */
 class Gameplay {
@@ -45,7 +45,7 @@ class Gameplay {
     /**
      * The results of this play.
      */
-    val scoring: ScoringScene by lazy { ScoringScene(this) }
+    val results: Results by lazy { Results(this) }
 
     /**
      * The attempt being played, or the last one played. Null before the first is loaded.

@@ -24,13 +24,23 @@ class ModIcon(val mod: Mod) : Container(), ISkinnable {
 
     private var shouldUpdateTexture = true
 
+    /**
+     * Whether the icon is the skin's texture of the mod when it has one, otherwise always the acronym drawn as text.
+     */
+    var useSkinTexture = true
+        set(value) {
+            if (field == value) return
+            field = value
+            shouldUpdateTexture = true
+        }
+
     constructor(acronym: String): this(allModsInstances.find { it.acronym.equals(acronym, ignoreCase = true) }!!)
 
 
     private fun setupContent() {
         clearChildren()
 
-        val texture = SkinTextures[mod.iconTextureName]
+        val texture = if (useSkinTexture) SkinTextures[mod.iconTextureName] else null
 
         if (texture != null) {
             background = Background.Color(Color4.Transparent)

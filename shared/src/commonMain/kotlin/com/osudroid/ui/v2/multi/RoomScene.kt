@@ -1245,9 +1245,9 @@ class RoomScene(
                     //   1. Show the toast so the player knows why they were kicked.
                     //   2. Tear down all multiplayer state (disconnect socket, null globals,
                     //      cancel coroutines, hide chat) so live-score events stop firing.
-                    //   3. Clear isMultiplayer so the scoring scene and the gameplay treat the
+                    //   3. Clear isMultiplayer so the results and the gameplay treat the
                     //      remainder of the game as a solo session — submitFinalScore() will
-                    //      not be called, and ScoringScene.back() will return to SongMenu
+                    //      not be called, and Results.back() will return to SongMenu
                     //      rather than trying to re-enter the (now-disconnected) room.
                     Toasts.showLong(Res.string.multiplayer_room_kicked_gameplay)
                     teardownSession()

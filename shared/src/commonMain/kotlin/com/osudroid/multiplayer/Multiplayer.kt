@@ -203,7 +203,7 @@ object Multiplayer {
 
         finalData = null
 
-        // Avoiding data parsing if user left from ScoringScene
+        // Avoiding data parsing if user left the results
         if (Verktex.scene == roomScene || Verktex.scene is SongSelect) {
             return
         }
@@ -246,7 +246,7 @@ object Multiplayer {
         finalData = list.toTypedArray()
 
         // Reloading results screen
-        roomScene?.game?.scoring?.updateLeaderboard()
+        roomScene?.game?.results?.updateLeaderboard()
     }
 
 

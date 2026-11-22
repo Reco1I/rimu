@@ -25,6 +25,17 @@ class ModsIndicator : LinearContainer() {
         }
 
     /**
+     * Whether the icons are the skin's textures of the mods, see [ModIcon.useSkinTexture].
+     */
+    var useSkinTextures: Boolean = true
+        set(value) {
+            if (field != value) {
+                field = value
+                forEach { (it as? ModIcon)?.useSkinTexture = value }
+            }
+        }
+
+    /**
      * The list of mods to display.
      */
     var mods: Iterable<Mod>? = null
@@ -40,6 +51,7 @@ class ModsIndicator : LinearContainer() {
                     }
 
                     +ModIcon(mod).apply {
+                        useSkinTexture = useSkinTextures
                         width = resolvedIconSize
                         height = resolvedIconSize
                     }

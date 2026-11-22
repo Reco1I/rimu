@@ -4,7 +4,7 @@ import com.osudroid.scoring.Statistic
 import kotlin.time.Duration.Companion.seconds
 import com.reco1l.verktex.Platform
 import com.osudroid.data.BeatmapInfo
-import com.osudroid.ui.SendingPanel
+import com.osudroid.ui.v2.results.ScoreSubmissionCard
 import com.osudroid.utils.async
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -61,7 +61,7 @@ class OnlineScoring {
         }
     }
 
-    fun sendRecord(beatmap: BeatmapInfo, record: Statistic, panel: SendingPanel, replayPath: String?) {
+    fun sendRecord(beatmap: BeatmapInfo, record: Statistic, panel: ScoreSubmissionCard, replayPath: String?) {
         if (!OnlineManager.getInstance().isStayOnline)
             return
 

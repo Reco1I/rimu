@@ -619,9 +619,9 @@ class MainScene : Scene() {
             stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
 
             // The replay is played by this game when asked from the results.
-            val scoring = Gameplay().scoring
-            scoring.load(stat, null, OsuGame.music, replayFile, null, beatmap)
-            Verktex.pushScene(scoring.scene!!)
+            val results = Gameplay().results
+            results.load(stat, null, OsuGame.music, replayFile, null, beatmap)
+            Verktex.pushScene(results.scene!!)
         }
     }
 }

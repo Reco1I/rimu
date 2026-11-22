@@ -102,4 +102,37 @@
     <string name="beatmap_listing_length">Length</string>
     <string name="beatmap_listing_bpm">BPM</string>
 
+    <string name="results_retry">Retry</string>
+    <string name="results_watch_replay">Watch replay</string>
+    <string name="results_perfect">Perfect</string>
+    <string name="results_accuracy">Accuracy</string>
+    <string name="results_max_combo">Max combo</string>
+    <string name="results_performance">Performance</string>
+    <string name="results_judgements">Judgements</string>
+    <string name="results_great">300</string>
+    <string name="results_ok">100</string>
+    <string name="results_meh">50</string>
+    <string name="results_miss">Miss</string>
+    <string name="results_geki">Geki</string>
+    <string name="results_katu">Katu</string>
+    <string name="results_star_rating">Star rating</string>
+    <string name="results_pp_of_max">%1$s of %2$s</string>
+    <string name="results_timing">Timing</string>
+    <string name="results_early">Early (average)</string>
+    <string name="results_late">Late (average)</string>
+    <string name="results_unstable_rate">Unstable rate</string>
+    <string name="results_beatmap">Beatmap</string>
+    <string name="results_mapped_by">Beatmap by %s</string>
+    <string name="results_adjusted">Adjusted</string>
+    <string name="results_play">Play</string>
+    <string name="results_played_by">Played by %s</string>
+    <string name="results_game_version">osu!droid %1$s (%2$s)</string>
+    <string name="results_submission">Online ranking</string>
+    <string name="results_submitting">Submitting the score…</string>
+    <string name="results_submission_failed">The score couldn\'t be submitted.</string>
+    <string name="results_map_rank">Map rank</string>
+    <string name="results_overall_rank">Overall rank</string>
+    <string name="results_ranked_score">Ranked score</string>
+    <string name="results_match">Match</string>
+
 </resources>

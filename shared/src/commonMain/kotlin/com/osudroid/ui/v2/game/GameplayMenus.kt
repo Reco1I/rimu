@@ -71,7 +71,7 @@ class PauseMenu(private val game: GameplaySession, private val isFail: Boolean) 
                 }
 
                 +MenuItem("pause-back") {
-                    game.gameplay.scoring.replayID = -1
+                    game.gameplay.results.replayID = -1
                     SkinSounds["menuback"].play()
                     game.quit()
                 }
