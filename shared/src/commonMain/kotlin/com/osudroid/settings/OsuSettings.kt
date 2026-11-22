@@ -61,7 +61,6 @@ object OsuSettings {
     @JvmField val ShowFirstApproachCircle = key("showfirstapproachcircle", false)
     @JvmField val EnableStoryboard = key("enableStoryboard", false)
     @JvmField val EnableVideo = key("enableVideo", false)
-    @JvmField val KeepBackgroundAspectRatio = key("keepBackgroundAspectRatio", false)
     @JvmField val NoChangeDimInBreaks = key("noChangeDimInBreaks", false)
     @JvmField val DimHitObjects = key("dimHitObjects", true)
     @JvmField val ForceMaxRefreshRate = key("forceMaxRefreshRate", false)

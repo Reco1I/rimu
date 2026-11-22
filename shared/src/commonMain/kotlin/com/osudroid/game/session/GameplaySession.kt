@@ -78,7 +78,6 @@ import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
-import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
@@ -387,10 +386,9 @@ class GameplaySession(
         applyBackgroundStyle()
     }
 
-    // The background is the game's, which shows the selected beatmap's, scaled as the settings say and in the
-    // color of the beatmap's events where it has no texture.
+    // The background is the game's, which shows the selected beatmap's, in the color of the beatmap's events where it
+    // has no texture.
     private fun applyBackgroundStyle() {
-        BeatmapBackground.scaleType = if (Settings[OsuSettings.KeepBackgroundAspectRatio]) ScaleType.Fit else ScaleType.Crop
         BeatmapBackground.fallbackColor = playableBeatmap.events.backgroundColor ?: Color4.Black
     }
 
@@ -444,15 +442,13 @@ class GameplaySession(
         backgroundLayer.clearChildren()
 
         // The beatmap's background is the game's, a video is shown over it, which hides it.
-        val keepsAspectRatio = Settings[OsuSettings.KeepBackgroundAspectRatio]
-
         if (shownVideo != null) {
             val videoWidth = shownVideo.videoWidth.toFloat()
             val videoHeight = shownVideo.videoHeight.toFloat()
 
             if (videoWidth > 0f && videoHeight > 0f) {
                 // Fit in the window through the size instead of the scale, the size is relative to its parent.
-                val factor = if (keepsAspectRatio) root.bounds.height / videoHeight else root.bounds.width / videoWidth
+                val factor = root.bounds.width / videoWidth
 
                 shownVideo.anchor = Anchor.Center
                 shownVideo.origin = Anchor.Center
@@ -463,7 +459,6 @@ class GameplaySession(
             BeatmapBackground.setBrightness(0f)
             dimmedBackground = backgroundLayer
         } else {
-            applyBackgroundStyle()
             dimmedBackground = BeatmapBackground
         }
 
@@ -2410,7 +2405,6 @@ class GameplaySession(
         // The scenes after gameplay show the game's background as everywhere else.
         override fun onLeave() {
             super.onLeave()
-            BeatmapBackground.scaleType = ScaleType.Crop
             BeatmapBackground.fallbackColor = Color4.Black
         }
 

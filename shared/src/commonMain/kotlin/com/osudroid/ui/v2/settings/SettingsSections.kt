@@ -464,13 +464,6 @@ val gameplaySection = listOf(
             ),
             SettingsOption(
                 type = Type.Checkbox,
-                key = "keepBackgroundAspectRatio",
-                setting = OsuSettings.KeepBackgroundAspectRatio,
-                title = Res.string.opt_keep_background_aspect_ratio_title,
-                summary = Res.string.opt_keep_background_aspect_ratio_summary,
-            ),
-            SettingsOption(
-                type = Type.Checkbox,
                 key = "enableStoryboard",
                 setting = OsuSettings.EnableStoryboard,
                 title = Res.string.opt_enableStoryboard_title,

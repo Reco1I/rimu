@@ -72,15 +72,6 @@ object BeatmapBackground : Container() {
     var crossfadeDuration = CROSSFADE_DURATION
 
     /**
-     * How the background is scaled to the window, cropped by default.
-     */
-    var scaleType: ScaleType
-        get() = sprite.scaleType
-        set(value) {
-            sprite.scaleType = value
-        }
-
-    /**
      * The color shown where there's no texture, or around one that doesn't fill the window, e.g.
      * the one of a beatmap's events. Black by default.
      */
