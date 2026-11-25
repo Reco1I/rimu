@@ -901,12 +901,8 @@ class GameplaySlider : GameObject() {
 
         if (headCirclePiece.isVisible) {
             if ((context.timing.isKiai && !OsuSkin.get().isDisableKiai)) {
-                val kiaiModifier = max(0.0, 1 - context.timing.currentBeatTime / context.timing.beatLength).toFloat() * 0.5f
-                val r = min(1f, circleColor.red + (1 - circleColor.red) * kiaiModifier)
-                val g = min(1f, circleColor.green + (1 - circleColor.green) * kiaiModifier)
-                val b = min(1f, circleColor.blue + (1 - circleColor.blue) * kiaiModifier)
                 kiai = true
-                headCirclePiece.setCircleColor(Color4(r, g, b))
+                headCirclePiece.setCircleColor(KiaiColors.at(context, circleColor))
             } else if (kiai) {
                 headCirclePiece.setCircleColor(circleColor)
                 kiai = false

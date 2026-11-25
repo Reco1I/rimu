@@ -7,6 +7,8 @@ import com.reco1l.verktex.data.LayoutConstraints
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.ScaleType
 import com.osudroid.beatmaps.hitobjects.HitObject
+import com.osudroid.beatmaps.hitobjects.Spinner
+import kotlin.jvm.JvmOverloads
 import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import com.osudroid.utils.updateThread
@@ -32,10 +34,21 @@ object FollowPointConnection {
 
     private const val PREEMPT = 800
 
+    /**
+     * How long a follow point takes to fade in and to fade out, in seconds.
+     */
+    const val FADE_DURATION = 0.4f
+
     private val pool = SynchronizedPool<IPoolable>(20)
 
+    /**
+     * The follow points created since the pool was renewed, as it had none left.
+     */
+    var misses = 0
+        private set
+
     private fun obtainFollowPoint(animationStartTime: Float): PoolableFollowPoint {
-        val fp = pool.acquire() as PoolableFollowPoint? ?: PoolableFollowPoint()
+        val fp = pool.acquire() as PoolableFollowPoint? ?: PoolableFollowPoint().also { misses++ }
         fp.piece.animationStartTime = animationStartTime
         return fp
     }
@@ -69,13 +82,40 @@ object FollowPointConnection {
         }
     }
 
+    /**
+     * Fills the pool with [size] follow points, with the pieces of the skin in use. Unless [keep], the ones it had are
+     * dropped first, as the skin changed.
+     */
     @JvmStatic
-    fun renew(size: Int) {
-        pool.clear()
+    @JvmOverloads
+    fun renew(size: Int, keep: Boolean = false) {
+        if (!keep) {
+            pool.clear()
+        }
+        pool.ensureCapacity(size)
+        misses = 0
 
-        repeat(size) {
+        repeat(size - pool.count) {
             pool.release(PoolableFollowPoint())
         }
+    }
+
+    /**
+     * Whether follow points go from [start] to [end], the object after it.
+     */
+    @JvmStatic
+    fun connects(start: HitObject, end: HitObject) = start !is Spinner && end !is Spinner && !start.isLastInCombo
+
+    /**
+     * How many follow points go from [start] to [end], see [addConnection].
+     */
+    @JvmStatic
+    fun pointCount(start: HitObject, end: HitObject): Int {
+        val distance = end.gameplayStackedPosition.getDistance(start.gameplayStackedEndPosition).toInt()
+        val first = (SPACING * 1.5f).toInt()
+        val last = distance - SPACING
+
+        return if (first < last) (last - first + SPACING - 1) / SPACING else 0
     }
 
     /**
@@ -108,7 +148,7 @@ object FollowPointConnection {
 
         // osu!stable's HitObjectManager.TimeFadeIn, a constant: HitObject.timeFadeIn isn't used, as mods such as
         // Hidden change it.
-        val endFadeInTime = 0.4f
+        val endFadeInTime = FADE_DURATION
         val duration = (end.startTime - start.endTime).toFloat() / 1000f
 
         val preempt = preempt(start)

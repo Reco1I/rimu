@@ -19,6 +19,7 @@ import com.osudroid.ui.v2.BeatmapBackground
 import com.osudroid.ui.v2.SplashScene
 import com.osudroid.ui.v2.mainmenu.MainScene
 import com.reco1l.verktex.Logger
+import com.reco1l.verktex.PerformanceStats
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.settings.Settings
@@ -74,6 +75,12 @@ object OsuGame {
 
         OsuSettings.load()
         createGameFolders()
+
+        // Debug builds log the frames that stall, with what they spent their time on. Setting
+        // PerformanceStats.slowComponentThreshold too logs the component that took long, at a cost on every frame.
+        if (Platform.application.isDebug) {
+            PerformanceStats.slowFrameThreshold = 50f
+        }
         OnlineManager.getInstance().init()
         isHeadless = false
 

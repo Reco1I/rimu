@@ -89,7 +89,7 @@ class ObjectSpawner(
                 continue
             }
 
-            if (start !is Spinner && end !is Spinner && !start.isLastInCombo) {
+            if (FollowPointConnection.connects(start, end)) {
                 FollowPointConnection.addConnection(playfield.underlay, start, end)
             }
         }

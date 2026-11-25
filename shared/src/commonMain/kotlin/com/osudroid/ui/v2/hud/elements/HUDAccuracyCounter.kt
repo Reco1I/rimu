@@ -11,6 +11,7 @@ import com.rian.framework.RollingFloatCounter
 import com.osudroid.ui.v2.hud.GameplayState
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 import com.reco1l.verktex.localization.formatString
+import kotlin.math.roundToInt
 
 class HUDAccuracyCounter : HUDElement() {
 
@@ -21,10 +22,11 @@ class HUDAccuracyCounter : HUDElement() {
         text = "100.00%"
     }
 
-    // 0.95 is 95.00%.
-    private fun format(value: Float) = formatString("%.2f%%", value * 100f)
+    // In hundredths of a percent, as shown: 0.95 is 9500, 95.00%.
+    private fun format(hundredths: Int) = formatString("%.2f%%", hundredths / 100f)
 
-    private var value = 0f
+    // Formatted only when what's shown changes, not on every frame the counter rolls.
+    private var value = 10000
         set(value) {
             if (field != value) {
                 field = value
@@ -55,7 +57,7 @@ class HUDAccuracyCounter : HUDElement() {
     override fun onUpdate(clock: FrameClock) {
         counter.onUpdate(clock.elapsedFrameTime)
 
-        value = counter.currentValue
+        value = (counter.currentValue * 10000f).roundToInt()
 
         super.onUpdate(clock)
     }

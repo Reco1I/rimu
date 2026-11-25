@@ -1,5 +1,6 @@
 package com.osudroid.game
 
+import kotlin.time.TimeSource
 import com.osudroid.OsuGame
 import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.data.BeatmapInfo
@@ -158,7 +159,9 @@ class Gameplay {
                     this@Gameplay.request = loadingRequest
 
                     val previous = loaded
+                    var mark = TimeSource.Monotonic.markNow()
                     val play = PlayLoader.load(loadingRequest, previous, this) { timedDifficultyJob = it } ?: return@async
+                    Logger.i(TAG, "Loading: beatmap loaded in ${mark.elapsedNow()}")
                     loaded = play
 
                     // The attempt before, still shown below the loader when retrying from the pause menu.
@@ -167,10 +170,14 @@ class Gameplay {
                     val session = GameplaySession(this@Gameplay, play, loadingRequest)
                     this@Gameplay.session = session
 
+                    mark = TimeSource.Monotonic.markNow()
                     succeeded = session.prepare(this, isNewBeatmap = previous?.parsedBeatmap !== play.parsedBeatmap)
+                    Logger.i(TAG, "Loading: attempt prepared in ${mark.elapsedNow()}")
 
                     if (succeeded && requestId == loadingRequestId.load()) {
+                        mark = TimeSource.Monotonic.markNow()
                         session.prepareScene()
+                        Logger.i(TAG, "Loading: scene prepared in ${mark.elapsedNow()}")
                     }
                 } catch (e: Exception) {
                     if (e is CancellationException) {

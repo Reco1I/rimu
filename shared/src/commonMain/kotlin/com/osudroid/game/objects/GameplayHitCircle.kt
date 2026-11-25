@@ -261,12 +261,8 @@ class GameplayHitCircle : GameObject() {
 
         if (circlePiece.isVisible) {
             if ((context.timing.isKiai && !OsuSkin.get().isDisableKiai)) {
-                val kiaiModifier = max(0.0, 1 - context.timing.currentBeatTime / context.timing.beatLength).toFloat() * 0.5f
-                val r = min(1f, comboColor.red + (1 - comboColor.red) * kiaiModifier)
-                val g = min(1f, comboColor.green + (1 - comboColor.green) * kiaiModifier)
-                val b = min(1f, comboColor.blue + (1 - comboColor.blue) * kiaiModifier)
                 kiai = true
-                circlePiece.setCircleColor(Color4(r, g, b))
+                circlePiece.setCircleColor(KiaiColors.at(context, comboColor))
             } else if (kiai) {
                 circlePiece.setCircleColor(comboColor)
                 kiai = false

@@ -1,5 +1,8 @@
 package com.osudroid.ui.v2
 
+import com.reco1l.verktex.Logger
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import com.osudroid.settings.GameFolders
 import com.osudroid.ui.ISkinnable
 import com.osudroid.ui.skinning.StringSkinData
@@ -43,6 +46,8 @@ object CachedTextures {
  * the default skin's assets. Textures of the beatmap skin take priority over those while it's enabled.
  */
 object SkinTextures {
+    private const val TAG = "SkinTextures"
+
 
     private const val KEY_PREFIX = "skin:"
 
@@ -91,7 +96,10 @@ object SkinTextures {
         "spinner-clear", "spinner-top", "spinner-bottom", "spinner-glow", "spinner-middle", "spinner-middle2",
         "spinner-osu", "cursor", "cursormiddle", "cursortrail",
         "scorebar-bg", "scorebar-marker", "scorebar-ki", "scorebar-kidanger", "scorebar-kidanger2",
-        "particle50", "particle100", "particle300"
+        "particle50", "particle100", "particle300", "sliderpoint10", "sliderpoint30",
+        // Shown by breaks and the leaderboard while playing.
+        "section-pass", "section-fail", "ranking-X-small", "ranking-XH-small", "ranking-S-small", "ranking-SH-small",
+        "ranking-A-small", "ranking-B-small", "ranking-C-small", "ranking-D-small"
     )
 
     private val GAMEPLAY_ANIMATIONS = arrayOf(
@@ -135,7 +143,32 @@ object SkinTextures {
      */
     @JvmStatic
     fun frames(name: String): List<Texture.Region> {
-        val frames = mutableListOf<Texture.Region>()
+        // Found once for each skin: finding them reads storage (the skin's files, the game's assets), and they're
+        // resolved again whenever any texture is loaded, by every component showing them (dozens of follow points).
+        // The loader looks them up while the game updates.
+        val names = synchronized(frameNamesLock) {
+            if (frameNamesRevision != revision) {
+                frameNames.clear()
+                frameNamesRevision = revision
+            }
+            frameNames[name]
+        } ?: findFrames(name).map { it.first }.also { synchronized(frameNamesLock) { frameNames[name] = it } }
+
+        val frames = ArrayList<Texture.Region>(names.size)
+        for (i in names.indices) {
+            frames += get(names[i]) ?: return frames
+        }
+        return frames
+    }
+
+    // The frames of each animation found by findFrames, by name, for the skin of frameNamesRevision.
+    private val frameNames = HashMap<String, List<String>>()
+    private var frameNamesRevision = -1
+    private val frameNamesLock = SynchronizedObject()
+
+    // The frames of the animated texture [name], with the name of each.
+    private fun findFrames(name: String): List<Pair<String, Texture.Region>> {
+        val frames = mutableListOf<Pair<String, Texture.Region>>()
 
         // The frames of a beatmap skin replace the whole animation, as its single image does.
         if (BeatmapSkinManager.isSkinEnabled()) {
@@ -148,7 +181,7 @@ object SkinTextures {
 
             if (delimiter != null) {
                 while ("$name$delimiter${frames.size}" in beatmapFiles) {
-                    frames += get("$name$delimiter${frames.size}") ?: return frames
+                    frames += "$name$delimiter${frames.size}".let { frameName -> frameName to (get(frameName) ?: return frames) }
                 }
 
                 return frames
@@ -166,16 +199,16 @@ object SkinTextures {
 
         if (skinDelimiter != null) {
             while (isInSkin("$name$skinDelimiter${frames.size}")) {
-                frames += get("$name$skinDelimiter${frames.size}") ?: return frames
+                frames += "$name$skinDelimiter${frames.size}".let { frameName -> frameName to (get(frameName) ?: return frames) }
             }
 
             return frames
         }
 
-        val delimiter = if (Platform.provider.exists("gfx/$name-0.png", false)) "-" else ""
+        val delimiter = if (assetExists("gfx/$name-0.png")) "-" else ""
 
-        while (Platform.provider.exists("gfx/$name$delimiter${frames.size}.png", false)) {
-            frames += get("$name$delimiter${frames.size}") ?: return frames
+        while (assetExists("gfx/$name$delimiter${frames.size}.png")) {
+            frames += "$name$delimiter${frames.size}".let { frameName -> frameName to (get(frameName) ?: return frames) }
         }
 
         return frames
@@ -328,9 +361,9 @@ object SkinTextures {
     }
 
     private fun isKnown(name: String): Boolean {
-        return Platform.fileSystem.metadataOrNull(SkinFolders.path.toPath() / "$name.png")?.isRegularFile == true
-            || Platform.provider.exists("gfx/$name.png", false)
-            || Platform.provider.exists("$name.png", false)
+        return isSkinFile("$name.png")
+            || assetExists("gfx/$name.png")
+            || assetExists("$name.png")
     }
 
     private fun lookupBeatmap(name: String): Texture.Region? {
@@ -342,7 +375,38 @@ object SkinTextures {
         val key = BEATMAP_KEY_PREFIX + name
         val density = if (path.substringBeforeLast('.').endsWith(HD_SUFFIX, ignoreCase = true)) 2f else 1f
 
-        return Textures[key] ?: Textures.load(key, path, isInternal = false, density = density)
+        return Textures[key] ?: run {
+            onLoad(key)
+            Textures.load(key, path, isInternal = false, density = density)
+        }
+    }
+
+    private var isTrackingPlay = false
+
+    /**
+     * The textures loaded since a play started, see [startPlayTracking]: each one is read from storage on the
+     * update thread, a stall, so they should be preloaded ([preloadGameplay]).
+     */
+    var loadsWhilePlaying = 0
+        private set
+
+    /**
+     * Counts and logs the textures loaded from now on, until [stopPlayTracking], as a play starts.
+     */
+    fun startPlayTracking() {
+        isTrackingPlay = true
+        loadsWhilePlaying = 0
+    }
+
+    fun stopPlayTracking() {
+        isTrackingPlay = false
+    }
+
+    private fun onLoad(key: String) {
+        if (isTrackingPlay) {
+            loadsWhilePlaying++
+            Logger.w(TAG, "Texture loaded while playing: $key")
+        }
     }
 
     private fun lookup(customName: String, defaultName: String): Texture.Region? {
@@ -360,6 +424,8 @@ object SkinTextures {
             return null
         }
 
+        onLoad(key)
+
         val region = when {
             isOptional(customName) -> null
             else -> loadFromSkin(key, customName)
@@ -375,15 +441,13 @@ object SkinTextures {
     }
 
     private fun loadFromSkin(key: String, name: String): Texture.Region? {
-        val path = SkinFolders.path + name + ".png"
-
-        if (Platform.provider.exists(path, true)) {
+        skinFile("$name.png")?.let { path ->
             return Textures.load(key, path, isInternal = false)
         }
 
-        val hdPath = SkinFolders.path + name + HD_SUFFIX + ".png"
+        val hdPath = skinFile("$name$HD_SUFFIX.png")
 
-        if (Platform.provider.exists(hdPath, true)) {
+        if (hdPath != null) {
             return Textures.load(key, hdPath, isInternal = false, density = 2f)
         }
 
@@ -397,8 +461,8 @@ object SkinTextures {
         val assetPath = "$name.png"
 
         return when {
-            Platform.provider.exists(defaultPath, false) -> Textures.load(key, defaultPath, isInternal = true)
-            Platform.provider.exists(assetPath, false) -> Textures.load(key, assetPath, isInternal = true)
+            assetExists(defaultPath) -> Textures.load(key, defaultPath, isInternal = true)
+            assetExists(assetPath) -> Textures.load(key, assetPath, isInternal = true)
             else -> null
         }
     }
@@ -407,8 +471,56 @@ object SkinTextures {
      * Whether the skin folder has the texture, at either resolution.
      */
     private fun isInSkin(name: String): Boolean {
-        return Platform.provider.exists(SkinFolders.path + name + ".png", true)
-            || Platform.provider.exists(SkinFolders.path + name + HD_SUFFIX + ".png", true)
+        return isSkinFile("$name.png") || isSkinFile("$name$HD_SUFFIX.png")
+    }
+
+    // The files of each folder of the skin (its root is ""), listed once for each skin: checking for each file reads
+    // the storage, slow on Android's shared storage, and a skin's animations have hundreds of frames. By their name in
+    // lower case, which they're looked up by, as osu!stable and Android's shared storage do. Fonts can be in a
+    // subfolder (HitCirclePrefix: fonts/default).
+    private val skinFiles = HashMap<String, Map<String, String>>()
+    private var skinFilesFolder: String? = null
+    private var skinFilesRevision = -1
+    private val skinFilesLock = SynchronizedObject()
+
+    private fun isSkinFile(fileName: String) = skinFile(fileName) != null
+
+    // The path of the file of the skin named [fileName], relative to its folder, whatever its case: null if it has
+    // none.
+    private fun skinFile(fileName: String): String? {
+        val folder = SkinFolders.path
+        val separator = fileName.lastIndexOf('/')
+        val directory = if (separator >= 0) fileName.substring(0, separator) else ""
+        val name = fileName.substring(separator + 1)
+
+        val files = synchronized(skinFilesLock) {
+            if (skinFilesFolder != folder || skinFilesRevision != revision) {
+                skinFiles.clear()
+                skinFilesFolder = folder
+                skinFilesRevision = revision
+            }
+            skinFiles[directory.lowercase()]
+        } ?: run {
+            val path = if (directory.isEmpty()) folder.toPath() else folder.toPath() / directory
+            val listed = Platform.fileSystem.listOrNull(path)?.associate { it.name.lowercase() to it.name } ?: emptyMap()
+
+            synchronized(skinFilesLock) { skinFiles[directory.lowercase()] = listed }
+            listed
+        }
+
+        val actual = files[name.lowercase()] ?: return null
+        return if (directory.isEmpty()) folder + actual else "$folder$directory/$actual"
+    }
+
+    // Whether the game has the asset [path]: they never change, and a missing one is costly to tell on Android.
+    private val assetsFound = HashMap<String, Boolean>()
+
+    private fun assetExists(path: String): Boolean {
+        synchronized(skinFilesLock) { assetsFound[path] }?.let { return it }
+
+        val exists = Platform.provider.exists(path, false)
+        synchronized(skinFilesLock) { assetsFound[path] = exists }
+        return exists
     }
 
     /**

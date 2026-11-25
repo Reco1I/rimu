@@ -18,6 +18,7 @@ import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.math.Path
+import com.reco1l.verktex.ui.shape.PathShape
 import com.reco1l.verktex.ui.toast.Toasts
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -160,7 +161,8 @@ object PlayLoader {
 
         val sliderRenderPaths = Array(sliders.size) {
             scope?.ensureActive()
-            createSliderRenderPath(sliders[it], scope)
+            // Simplified for its mesh now, not on the frame the slider spawns.
+            createSliderRenderPath(sliders[it], scope).also(PathShape::prepare)
         }
 
         return sliderPaths to sliderRenderPaths

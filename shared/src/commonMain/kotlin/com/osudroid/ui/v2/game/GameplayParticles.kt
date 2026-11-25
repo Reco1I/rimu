@@ -30,19 +30,20 @@ class GameplayParticles(private val layer: Container) {
      * given [scale], if the skin has a texture for them.
      */
     fun emit(x: Float, y: Float, name: String, scale: Float) {
-        val judgement = when {
-            name.startsWith("hit300") -> "300"
-            name.startsWith("hit100") -> "100"
-            name.startsWith("hit50") -> "50"
+        // The names are constants: this runs on every judgement.
+        val names = when {
+            name.startsWith("hit300") -> NAMES_300
+            name.startsWith("hit100") -> NAMES_100
+            name.startsWith("hit50") -> NAMES_50
             else -> return
         }
 
         // Only for skins that have their own judgement too.
-        if (!SkinTextures.isSkinned("hit$judgement") && !SkinTextures.isSkinned("hit$judgement-0")) {
+        if (!SkinTextures.isSkinned(names.judgement) && !SkinTextures.isSkinned(names.firstFrame)) {
             return
         }
 
-        val particleName = "particle$judgement"
+        val particleName = names.particle
         val texture = SkinTextures[particleName] ?: return
 
         // Reference: https://github.com/ppy/osu/blob/master/osu.Game/Skinning/LegacyJudgementPieceNew.cs
@@ -90,3 +91,15 @@ class GameplayParticles(private val layer: Container) {
         const val MAX_PARTICLES = 2048
     }
 }
+
+
+// The textures of the particles of a judgement, and of the judgement itself.
+private class ParticleNames(value: String) {
+    val judgement = "hit$value"
+    val firstFrame = "hit$value-0"
+    val particle = "particle$value"
+}
+
+private val NAMES_300 = ParticleNames("300")
+private val NAMES_100 = ParticleNames("100")
+private val NAMES_50 = ParticleNames("50")

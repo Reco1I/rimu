@@ -158,7 +158,15 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
     }
 
 
+    // The color set last, not darkened again while it's the same (kiai sets it on every frame).
+    private var circleColor: Color4? = null
+
     override fun setCircleColor(color: Color4) {
+        if (color === circleColor) {
+            return
+        }
+        circleColor = color
+
         outerFill.color = color.darken(4f)
         outerGradient.colorStart = color
         outerGradient.colorEnd = color.darken(0.1f)

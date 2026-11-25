@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.game
 
+import kotlin.jvm.JvmOverloads
 import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
 import com.reco1l.verktex.math.Easing
@@ -183,19 +184,31 @@ class GameplaySliderTick : Container(), IPoolable {
          * Renews the [GameplaySliderTick] pool with fresh instances, with the pieces of the skin in use.
          *
          * @param size The number of [GameplaySliderTick] instances to pre-populate the pool with.
+         * @param keep Whether the ticks it has are kept, the skin being the same.
          */
         @JvmStatic
-        fun renew(size: Int) {
-            pool.clear()
-            repeat(size) { pool.release(GameplaySliderTick()) }
+        @JvmOverloads
+        fun renew(size: Int, keep: Boolean = false) {
+            if (!keep) {
+                pool.clear()
+            }
+            pool.ensureCapacity(size)
+            misses = 0
+            repeat(size - pool.count) { pool.release(GameplaySliderTick()) }
         }
+
+        /**
+         * The ticks created since the pool was renewed, as it had none left.
+         */
+        var misses = 0
+            private set
 
         /**
          * Obtains a [GameplaySliderTick] from the pool, or creates a new one if the pool is empty.
          */
         @JvmStatic
         fun obtain(): GameplaySliderTick {
-            return pool.acquire() ?: GameplaySliderTick()
+            return pool.acquire() ?: GameplaySliderTick().also { misses++ }
         }
     }
 

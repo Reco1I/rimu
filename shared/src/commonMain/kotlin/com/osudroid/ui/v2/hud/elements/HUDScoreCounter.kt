@@ -14,7 +14,8 @@ class HUDScoreCounter : HUDElement() {
 
     private val sprite = SkinPieces.current.create(SkinComponent.ScoreFont)
     // Eight digits, padded with zeros.
-    private fun format(value: Long) = formatString("%08d", value)
+    // Formatted on every frame the counter rolls, without formatString's parsing and boxing.
+    private fun format(value: Long) = if (value < 0) formatString("%08d", value) else value.toString().padStart(8, '0')
 
     private var value = 0L
         set(value) {

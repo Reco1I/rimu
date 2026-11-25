@@ -70,7 +70,6 @@ import com.osudroid.ui.v2.hud.HUDElements
 import com.osudroid.ui.v2.hud.elements.HUDLeaderboard
 import com.osudroid.ui.v2.modmenu.ModIcon
 import com.osudroid.utils.BitSet
-import com.osudroid.utils.DoubleMinHeap
 import com.osudroid.utils.calculateRate
 import com.osudroid.utils.async
 import com.osudroid.utils.runSafe
@@ -115,6 +114,8 @@ import ru.nsu.ccfit.zuev.osu.Utils
 import com.osudroid.game.objects.GameObject
 import com.osudroid.game.objects.GameObjectListener
 import com.osudroid.game.objects.GameObjectPool
+import com.osudroid.game.objects.PoolSizes
+import kotlin.time.measureTime
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
@@ -552,7 +553,8 @@ class GameplaySession(
         }
         video.reset(offset = playableBeatmap.events.videoStartTime / 1000f)
 
-        val estimatedMaxActiveObjects = max(10, estimateMaximumActiveObjects())
+        val poolSizes = PoolSizes.of(objects)
+        val estimatedMaxActiveObjects = max(10, poolSizes.activeObjects)
 
         activeObjects.clear()
         activeObjects.ensureCapacity(estimatedMaxActiveObjects)
@@ -604,13 +606,6 @@ class GameplaySession(
         }
 
         scope?.ensureActive()
-
-        GameObjectPool.getInstance().purge()
-
-        scope?.ensureActive()
-
-        FollowPointConnection.renew(16)
-        GameplaySliderTick.renew(16)
 
         // TODO replay
         replaying = false
@@ -675,7 +670,15 @@ class GameplaySession(
         )
 
         SkinTextures.preloadGameplay()
-        GameObjectPool.getInstance().preload()
+
+        // The pools keep what they have on a retry, the skin being the same.
+        val keepPools: Boolean
+        val preloadTime = measureTime {
+            keepPools = GameObjectPool.getInstance().preload(poolSizes)
+            FollowPointConnection.renew(poolSizes.followPoints + 4, keep = keepPools)
+            GameplaySliderTick.renew(poolSizes.sliderTicks + 4, keep = keepPools)
+        }
+        Logger.i(TAG, "Pools filled in $preloadTime (kept: $keepPools): $poolSizes")
 
         // Resetting variables before starting the game.
         Multiplayer.finalData = null
@@ -969,6 +972,7 @@ class GameplaySession(
         music?.volume = OsuSettings.musicVolume
 
         gameplayClock.start()
+        SkinTextures.startPlayTracking()
 
         if (skipTime <= 1 && Multiplayer.isConnected) {
             Multiplayer.roomScene!!.chat.hide()
@@ -1015,9 +1019,11 @@ class GameplaySession(
         }
 
         previousFrameTime = Platform.uptimeMillis
+        profile.start()
         val time = gameplayClock.time
 
         multiplayer.update(dt, context.timing.speedMultiplier, stat)
+        profile.mark("multiplayer")
 
         if (!isGameOver) {
             updateRate()
@@ -1028,6 +1034,7 @@ class GameplaySession(
         replayInput?.update(time, dt)
         cursorPresenter.update(dt, replaying, stat.combo)
         controlPoints.update(time)
+        profile.mark("input and cursors")
 
         if (!isGameOver) {
             breaks.update(time)
@@ -1040,22 +1047,29 @@ class GameplaySession(
         if (gameStarted && healthProcessor.drain(dt, spawner.distanceToNextObject) && onHealthDepleted()) {
             return
         }
+        profile.mark("breaks and health")
 
         updateComboBurst()
         removeExpiredObjects()
+        profile.mark("expiry")
 
         updatePassiveObjects(dt)
+        profile.mark("HUD")
         updateActiveObjects(dt)
+        profile.mark("judgement")
 
         if (judgeableObject != null && (context.isAutoplay || context.isAutopilot)) {
             cursorPresenter.autoCursor!!.moveToObject(judgeableObject, time, this)
         }
 
         video.update(time, context.timing.speedMultiplier)
+        profile.mark("autoplay and video")
 
         spawner.spawnFollowPoints(time)
+        profile.mark("follow points")
 
         val isPastMusic = spawner.spawn(time, controlPoints.timingPoint, totalLength, ::onObjectLifetimeStart)
+        profile.mark("spawn")
 
         if (context.isPerfect && stat.hit100 + stat.hit50 + stat.misses > 0) {
             gameover()
@@ -1078,7 +1092,12 @@ class GameplaySession(
         if (postSeekFrameCount > 0) {
             postSeekFrameCount--
         }
+
+        profile.end("end")
     }
+
+    // Logs what a slow step of gameplay spent its time on, in debug builds.
+    private val profile = UpdateProfile(TAG, "gameplay step")
 
     // Follows the rate of the mods changing it over time and of the replay controls.
     private fun updateRate() {
@@ -1238,6 +1257,7 @@ class GameplaySession(
     // Ends the attempt once its objects are judged: its replay is saved and its results are shown.
     private fun finish() {
         isFinished = true
+        logPoolMisses()
 
         BeatmapSkinManager.setSkinEnabled(false)
         GameObjectPool.getInstance().purge()
@@ -1384,6 +1404,9 @@ class GameplaySession(
      * the selected beatmap.
      */
     internal fun exit() {
+        if (!isFinished) {
+            logPoolMisses()
+        }
         isFinished = true
 
         if (sceneBorder != null) {
@@ -1428,12 +1451,23 @@ class GameplaySession(
      * Lets this attempt go as another one replaces it, from the pause menu: nothing of it plays anymore.
      */
     internal fun release() {
+        if (!isFinished) {
+            logPoolMisses()
+        }
         isFinished = true
 
         stopLoopingSamples()
         cancelVideoLoading()
         releaseVideo()
         gameplayClock.changeSource(null)
+    }
+
+    // What the pools had to create while playing, each a stall: the pools should be filled with it beforehand.
+    private fun logPoolMisses() {
+        SkinTextures.stopPlayTracking()
+        Logger.i(TAG, "Created while playing: " + GameObjectPool.getInstance().missSummary() +
+            ", follow points: " + FollowPointConnection.misses + ", slider ticks: " + GameplaySliderTick.misses +
+            ", textures: " + SkinTextures.loadsWhilePlaying)
     }
 
     private fun registerHit(objectId: Int, result: JudgementResult, endCombo: Boolean, incrementCombo: Boolean = true,
@@ -2212,39 +2246,6 @@ class GameplaySession(
         playfield.translationY = Dimension.Zero
     }
 
-    private fun estimateMaximumActiveObjects(): Int {
-        // Estimate the maximum number of simultaneously active objects to pre-size the lists and minimize
-        // array reallocations.
-        val lifetimeEnds = DoubleMinHeap(max(1, objects.size / 4))
-        var estimatedMaxActiveObjects = 0
-
-        for (`object` in objects) {
-            val lifetimeStart = `object`.startTime - `object`.timePreempt
-
-            // Remove all objects that have expired by the time this object's lifetime starts.
-            while (!lifetimeEnds.isEmpty() && lifetimeEnds.peek() <= lifetimeStart) {
-                lifetimeEnds.poll()
-            }
-
-            val lifetimeEnd: Double
-
-            if (`object` is HitCircle) {
-                val hitWindow = `object`.hitWindow
-                lifetimeEnd = `object`.startTime + (hitWindow?.mehWindow ?: 0.0)
-            } else if (`object` is Slider) {
-                lifetimeEnd = max(`object`.startTime + `object`.head.hitWindow!!.mehWindow, `object`.endTime)
-            } else {
-                lifetimeEnd = `object`.endTime
-            }
-
-            // Objects live until the effects of their judgement end.
-            lifetimeEnds.add(lifetimeEnd + JudgementPiece.DURATION * 1000)
-            estimatedMaxActiveObjects = max(estimatedMaxActiveObjects, lifetimeEnds.size)
-        }
-
-        return estimatedMaxActiveObjects
-    }
-
     //region Seeking
 
     private fun seekTo(targetTimeSeconds: Float) {
@@ -2484,21 +2485,28 @@ class GameplaySession(
             }
 
             stopwatch.restart()
+            sceneProfile.start()
 
             do {
                 // The scene's clock only paces the animations, it must be advanced here. Each step moves it
                 // at most a frame-stable amount, more steps are taken while it is catching up.
                 gameplayClock.processFrame()
                 this@GameplaySession.update(gameplayClock.elapsedFrameTime)
+                sceneProfile.mark("gameplay steps")
 
                 for (i in cursors.indices) {
                     cursors[i]!!.reset(previousFrameTime, gameplayClock.time * 1000)
                 }
 
                 super.onUpdate(clock)
+                sceneProfile.mark("components")
                 // 10ms of allowance when catching up.
             } while (gameplayClock.requiresCatchUp && stopwatch.elapsedSeconds < 0.01f)
+
+            sceneProfile.end("end")
         }
+
+        private val sceneProfile = UpdateProfile(TAG, "scene update")
 
         private fun updateReplayText(deltaTimeSec: Float) {
             val replayText = replayText!!

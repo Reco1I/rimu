@@ -25,13 +25,28 @@ interface IPoolable {
  * @param T The type of objects in the pool, which must implement [IPoolable].
  */
 open class SynchronizedPool<T : IPoolable>(maxPoolSize: Int) {
-    private val pool: Array<IPoolable?>
+    private var pool: Array<IPoolable?>
     private var size = 0
     private val lock = SynchronizedObject()
 
     init {
         require(maxPoolSize > 0) { "The max pool size must be > 0" }
         pool = arrayOfNulls(maxPoolSize)
+    }
+
+    /**
+     * How many instances it holds.
+     */
+    val count: Int
+        get() = synchronized(lock) { size }
+
+    /**
+     * Lets this pool keep at least [maxPoolSize] instances: released ones past its size are otherwise dropped.
+     */
+    fun ensureCapacity(maxPoolSize: Int) = synchronized(lock) {
+        if (maxPoolSize > pool.size) {
+            pool = pool.copyOf(maxPoolSize)
+        }
     }
 
     /**
