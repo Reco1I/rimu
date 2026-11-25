@@ -344,6 +344,11 @@ tasks.withType<Test>().configureEach {
     providers.gradleProperty("socketIoTestUrl").orNull?.let { systemProperty("socketIoTestUrl", it) }
 }
 
+// Verktex's :shared builds a shared-desktop.jar too: the desktop distribution's lib/ would have two.
+tasks.named<Jar>("desktopJar") {
+    archiveBaseName.set("osudroid-shared")
+}
+
 dependencies {
     add("kspAndroid", "androidx.room:room-compiler:$roomVersion")
     add("kspDesktop", "androidx.room:room-compiler:$roomVersion")
