@@ -11,7 +11,8 @@ import com.reco1l.verktex.ui.container.Container
 
 /**
  * The follow point of the default skin, as osu!lazer's default `FollowPoint`: a white dot 8 across, half transparent
- * and added to what's below it, in a soft white glow.
+ * and added to what's below it. Without osu!lazer's soft glow, whose quad would be four times the dot's: many are shown
+ * at once and it's barely visible at their size.
  */
 class DefaultFollowPointPiece : FollowPointPiece() {
 
@@ -22,7 +23,6 @@ class DefaultFollowPointPiece : FollowPointPiece() {
         +disc(SIZE).apply {
             color = Color4.White.alpha(0.5f)
             blendMode = BlendMode.Additive
-            shadow = Shadow(Color4.White.alpha(0.2f), blur = 4f.px, cutout = true)
         }
     }
 

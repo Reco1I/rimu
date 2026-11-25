@@ -12,6 +12,9 @@ import com.reco1l.verktex.ui.choreographNow
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.shape.Arc
 import com.reco1l.verktex.ui.shape.Box
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * The spinner of the default skin, modelled on osu!lazer's `ArgonSpinnerDisc`: a dark disc in a white ring, ticks
@@ -50,24 +53,25 @@ class DefaultSpinnerPiece : SpinnerPiece() {
         anchor = Anchor.Center
         origin = Anchor.Center
 
-        for (i in 0 until TICKS) {
-            // Each tick stands in a container turned to its angle, at the top of it.
-            +Container().apply {
-                width = size.px
-                height = size.px
-                anchor = Anchor.Center
-                origin = Anchor.Center
-                rotationZ = i * 360f / TICKS
+        val tickWidth = size * 0.012f
+        val tickHeight = size * 0.05f
+        // From the centre to the middle of a tick: it starts a tenth of the disc in from its edge.
+        val tickDistance = size / 2f - size * 0.1f - tickHeight / 2f
 
-                +Box().apply {
-                    width = (size * 0.012f).px
-                    height = (size * 0.05f).px
-                    anchor = Anchor.TopCenter
-                    origin = Anchor.TopCenter
-                    y = (size * 0.1f).px
-                    radius = CornerRadius((size * 0.006f).px)
-                    color = Color4.White.alpha(0.6f)
-                }
+        for (i in 0 until TICKS) {
+            // Each tick placed around the centre and turned to point at it, turning about its own centre.
+            val degrees = i * 360f / TICKS
+            val radians = degrees * PI.toFloat() / 180f
+
+            +Box().apply {
+                width = tickWidth.px
+                height = tickHeight.px
+                origin = Anchor.Center
+                x = (size / 2f + sin(radians) * tickDistance).px
+                y = (size / 2f - cos(radians) * tickDistance).px
+                rotationZ = degrees
+                radius = CornerRadius((tickWidth / 2f).px)
+                color = Color4.White.alpha(0.6f)
             }
         }
     }

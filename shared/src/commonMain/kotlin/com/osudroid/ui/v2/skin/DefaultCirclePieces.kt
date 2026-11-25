@@ -4,6 +4,7 @@ import com.reco1l.verktex.BuiltIn
 import com.reco1l.verktex.fonts.Font
 import com.reco1l.verktex.fonts.FontFamily
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.CornerRadius
@@ -127,10 +128,13 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
 
     private val size = SkinDimensions.HIT_CIRCLE.width
 
-    private val outerFill = disc(size)
+    // The dark disc under the band, with the white ring around it as its border, drawn as one shape: a container's
+    // background and border are, while a Box would draw its fill over its border. The ring is drawn on its own
+    // (hitRing) only while a hit grows it and fades it out, as the disc does neither.
+    private val outerFill = ring(size, size * BORDER_THICKNESS)
     private val outerGradient = gradientDisc(size * OUTER_GRADIENT_SIZE)
     private val innerFill = disc(size * INNER_FILL_SIZE)
-    private val outerRing = ring(size, size * BORDER_THICKNESS)
+    private val hitRing = ring(size, size * BORDER_THICKNESS).apply { isVisible = false }
 
     private val number = fredokaText(size * NUMBER_SIZE).apply { isVisible = hasNumber }
 
@@ -150,7 +154,7 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
         +outerFill
         +outerGradient
         +innerFill
-        +outerRing
+        +hitRing
         +number
         +flash
 
@@ -167,7 +171,7 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
         }
         circleColor = color
 
-        outerFill.color = color.darken(4f)
+        outerFill.background = Background.Color(color.darken(4f))
         outerGradient.colorStart = color
         outerGradient.colorEnd = color.darken(0.1f)
         innerFill.color = color.darken(4f)
@@ -193,10 +197,13 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
     override fun showAsSliderEnd(value: Boolean) {
         if (value) hideNumber() else reset()
         for (part in parts) part.isVisible = !value
+        hitRing.isVisible = false
     }
 
-    private val parts: Array<Component>
-        get() = arrayOf(outerFill, outerGradient, innerFill, outerRing, number, flash)
+    private val parts = arrayOf<Component>(outerFill, outerGradient, innerFill, number, flash)
+
+    // The parts a hit animates.
+    private val animatedParts = arrayOf<Component>(outerGradient, innerFill, hitRing, number, flash)
 
     /**
      * Gives back the look before a hit, for the piece to be used again.
@@ -204,11 +211,13 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
     private fun reset() {
         for (part in parts) part.isVisible = true
 
-        for (part in arrayOf<Component>(outerGradient, innerFill, outerRing, number, flash)) {
+        for (part in animatedParts) {
             part.clearAnimations()
             part.scale = 1f
             part.alpha = 1f
         }
+        outerFill.border = RING_BORDER
+        hitRing.isVisible = false
         flash.alpha = 0f
         // The number is rasterised larger and shown smaller.
         number.scale = 1f / DefaultSkin.TEXT_RESOLUTION
@@ -218,10 +227,14 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
     override fun playHit(scale: Float, time: Float): Float {
         reset()
 
+        // The ring leaves the disc to grow and fade on its own.
+        outerFill.border = Border.None
+        hitRing.isVisible = true
+
         // Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Argon/ArgonMainCirclePiece.cs
         flash.choreographAt(time) { it.fadeTo(FLASH_ALPHA, FLASH_IN).then().fadeOut(HIT_DURATION, Easing.OutQuint) }
         number.choreographAt(time) { it.fadeOut(FLASH_IN * 2) }
-        outerRing.choreographAt(time) { it.scaleTo(1.1f, HIT_DURATION, Easing.OutQuint).fadeOut(HIT_DURATION, Easing.OutQuint) }
+        hitRing.choreographAt(time) { it.scaleTo(1.1f, HIT_DURATION, Easing.OutQuint).fadeOut(HIT_DURATION, Easing.OutQuint) }
         outerGradient.choreographAt(time) { it.scaleTo(1.08f, HIT_DURATION, Easing.OutQuint) }
         innerFill.choreographAt(time) { it.scaleTo(0.8f, HIT_DURATION, Easing.OutQuint) }
 
@@ -242,6 +255,8 @@ class DefaultMainCirclePiece(private val hasNumber: Boolean) : MainCirclePiece()
         const val INNER_FILL_SIZE = 0.7f
         const val BORDER_THICKNESS = 0.055f
         const val NUMBER_SIZE = 0.38f
+
+        val RING_BORDER = Border((SkinDimensions.HIT_CIRCLE.width * BORDER_THICKNESS).px, Color4.White)
 
         const val FLASH_ALPHA = 0.9f
         const val FLASH_IN = 0.04f
