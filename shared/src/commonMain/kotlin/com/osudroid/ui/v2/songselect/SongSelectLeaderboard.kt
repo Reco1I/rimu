@@ -43,6 +43,15 @@ import kotlin.coroutines.cancellation.CancellationException
 import com.reco1l.verktex.ui.themed
 import com.reco1l.verktex.localization.formatString
 import com.osudroid.utils.formatNumber
+import com.osudroid.OsuGame
+import com.osudroid.game.Gameplay
+import com.osudroid.resources.Res
+import com.osudroid.scoring.Statistic
+import com.reco1l.verktex.Logger
+import com.reco1l.verktex.Platform
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.ui.toast.Toasts
+import okio.Path.Companion.toPath
 
 class SongSelectLeaderboard : LinearContainer() {
 
@@ -54,7 +63,7 @@ class SongSelectLeaderboard : LinearContainer() {
         set(value) {
             if (field != value) {
                 field = value
-                scoresContainer.onCreateComponent = { LeaderboardItem(value == Global) }
+                scoresContainer.onCreateComponent = { LeaderboardItem(value == Global, ::openScore) }
                 onBeatmapSelected(BeatmapSelection.beatmap)
             }
         }
@@ -83,6 +92,13 @@ class SongSelectLeaderboard : LinearContainer() {
 
 
     private var currentLoadingJob: Job? = null
+
+    // Loading the score pressed, to show it in the results.
+    private var openingJob: Job? = null
+
+    // The beatmap and the type of the scores shown.
+    private var scoresBeatmap: BeatmapInfo? = null
+    private var scoresType: LeaderboardType = Local
 
 
     init {
@@ -125,7 +141,7 @@ class SongSelectLeaderboard : LinearContainer() {
                 componentWrapper.padding = Padding(bottom = 90f.px)
 
                 // Without avatars because local is chosen by default
-                onCreateComponent = { LeaderboardItem(false) }
+                onCreateComponent = { LeaderboardItem(false, ::openScore) }
             }
         }
 
@@ -202,6 +218,11 @@ class SongSelectLeaderboard : LinearContainer() {
         scoresContainer.data = listOf()
 
         currentLoadingJob?.cancel(CancellationException())
+        openingJob?.cancel(CancellationException())
+        openingJob = null
+
+        scoresBeatmap = beatmapInfo
+        scoresType = leaderboardType
 
         if (beatmapInfo == null) {
             return
@@ -254,7 +275,80 @@ class SongSelectLeaderboard : LinearContainer() {
     }
 
 
-    class LeaderboardItem(withAvatars: Boolean) : RecyclableComponent<BeatmapScoreModel>() {
+    /**
+     * Shows [score] of the leaderboard in the results, with its replay when it has one.
+     */
+    private fun openScore(score: BeatmapScoreModel) {
+        val beatmap = scoresBeatmap ?: return
+        val type = scoresType
+
+        if (openingJob?.isActive == true) {
+            return
+        }
+
+        openingJob = scoreLoadingScope.launch {
+            val stat: Statistic
+            val replay: String?
+
+            try {
+                when (type) {
+                    Local -> {
+                        val scoreInfo = DatabaseManager.scoreInfoTable.getScore(score.scoreId.toInt())
+
+                        if (scoreInfo == null) {
+                            updateThread { Toasts.show("Could not open score") }
+                            return@launch
+                        }
+
+                        stat = scoreInfo.toStatistic(beatmap.getBeatmapDifficulty())
+                        replay = scoreInfo.replayPath.takeIf {
+                            scoreInfo.replayFilename.isNotEmpty() && Platform.fileSystem.exists(it.toPath())
+                        }
+                    }
+
+                    Global -> {
+                        updateThread { Toasts.show(Res.string.online_loadrecord) }
+
+                        val onlineScore = IBanchoAPI.getScoreStatistic(score.scoreId, difficulty = beatmap.getBeatmapDifficulty())
+
+                        if (onlineScore == null) {
+                            updateThread { Toasts.show("Could not load score") }
+                            return@launch
+                        }
+
+                        stat = onlineScore.stat
+                        stat.playerName = score.playerName
+                        stat.beatmapMD5 = beatmap.md5
+                        stat.calculateModScoreMultiplier(beatmap.getBeatmapDifficulty())
+                        replay = if (onlineScore.hasReplay) IBanchoAPI.getReplayUrl(score.scoreId) else null
+                    }
+                }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                Logger.e("SongSelectLeaderboard", "Failed to open score", e)
+                updateThread { Toasts.show("Could not open score") }
+                return@launch
+            }
+
+            ensureActive()
+            updateThread {
+                // Another beatmap was selected meanwhile.
+                if (scoresBeatmap !== beatmap) {
+                    return@updateThread
+                }
+
+                val results = Gameplay().results
+                results.load(stat, null, OsuGame.music, replay, null, beatmap)
+                Verktex.pushScene(results.scene!!)
+            }
+        }
+    }
+
+
+    class LeaderboardItem(
+        withAvatars: Boolean,
+        private val onSelected: (BeatmapScoreModel) -> Unit,
+    ) : RecyclableComponent<BeatmapScoreModel>() {
 
         override val isRecyclable: Boolean
             get() = !button.isPressed
@@ -279,6 +373,7 @@ class SongSelectLeaderboard : LinearContainer() {
                 width = Dimension.FillAvailable
                 height = Dimension.WrapContent
                 padding = Padding.Zero
+                onActionUp = { boundData?.let(onSelected) }
 
                 linearContainer {
                     width = Dimension.FillAvailable

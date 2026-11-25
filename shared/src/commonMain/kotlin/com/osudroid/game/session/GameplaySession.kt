@@ -1260,7 +1260,8 @@ class GameplaySession(
         val results = gameplay.results
         if (!startedFromHUDEditor) {
             if (replaying)
-                results.load(results.replayStat!!, null, OsuGame.music, replayPath, null, loaded.beatmapInfo)
+                // The replay watched, so it can be watched again.
+                results.load(results.replayStat!!, null, OsuGame.music, this.replayPath, null, loaded.beatmapInfo)
             else {
                 if (ModAutoplay::class in stat.mod) {
                     stat.playerName = "osu!"
