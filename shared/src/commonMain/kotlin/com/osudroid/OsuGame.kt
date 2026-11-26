@@ -2,7 +2,6 @@ package com.osudroid
 
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.audio.MusicService
-import com.osudroid.beatmaps.DifficultyCalculationManager
 import com.osudroid.data.DatabaseManager
 import com.osudroid.mods.ModNightCore
 import com.osudroid.resources.Res
@@ -65,8 +64,12 @@ object OsuGame {
 
     /**
      * Starts the game, as each host does once the engine is initialized: loads the settings, shows the
-     * splash while the database, the skin and the library load in the background, and then the main
-     * menu, telling the host with [OsuGameHost.onGameStarted].
+     * splash while the database, the skin and the library (as the database has it) load in the
+     * background, and then the main menu, telling the host with [OsuGameHost.onGameStarted].
+     *
+     * Archives aren't imported nor the beatmaps folder scanned before the menu: the library is
+     * refreshed in the background once it shows ([LibraryImport.refresh]), its progress in the
+     * notifications.
      */
     @JvmStatic
     fun start() {
@@ -96,18 +99,14 @@ object OsuGame {
             // The resolution scale setting is stored as a percentage.
             Settings[VerktexSettings.ResolutionScale] = Settings[OsuSettings.ResolutionScale] / 100f
 
-            SplashScene.progress = 50
-            LibraryImport.importSkins()
             SkinFolders.load()
-            DifficultyCalculationManager.checkForOutdatedStarRatings()
-            LibraryImport.loadLibrary()
+
+            // The difficulties are calculated after the refresh, which resets the outdated ones first.
+            LibraryManager.loadFromDatabase()
 
             splashScene.playWelcomeAnimation()
 
             delayed(2500) {
-                SplashScene.info = ""
-                SplashScene.progress = 100
-
                 // Every scene from the menu on is drawn over the selected beatmap's background,
                 // the splash over black.
                 BeatmapBackground.install()
@@ -117,6 +116,9 @@ object OsuGame {
                 Verktex.resetScenes(menu)
 
                 Platform.forceMaxRefreshRate = Settings[OsuSettings.ForceMaxRefreshRate]
+
+                // Before the host's, so that a file the game was opened with is imported after it.
+                LibraryImport.refresh()
 
                 host.onGameStarted()
             }
@@ -163,10 +165,7 @@ object OsuGame {
     @JvmStatic
     fun init() {
         Verktex.audio.enumerateDevices()
-        SplashScene.progress = 10
-        SplashScene.info = "Loading skin..."
         Skin.load(SkinFolders.path)
-        SplashScene.progress = 40
         music.stop()
     }
 }

@@ -153,8 +153,8 @@ object Multiplayer {
             try {
                 LoaderScene().show()
 
-                LibraryImport.importSkins()
-                LibraryImport.loadLibrary()
+                // The room's beatmap may be among the archives not imported yet.
+                LibraryImport.refresh()
 
                 val roomID = pathSegments[0].toLong()
                 val password = if (pathSegments.size > 1) pathSegments[1] else null

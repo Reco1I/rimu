@@ -1,5 +1,12 @@
 package com.osudroid.ui.v2.test
 
+import com.reco1l.verktex.ui.iconButton
+import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.FAIcon
+import com.osudroid.utils.currentTimeMillis
+import com.osudroid.notifications.Notification
+import com.osudroid.notifications.Notifications
+import com.osudroid.ui.v2.notifications.NotificationCenter
 import kotlin.math.sin
 import kotlin.math.cos
 import com.reco1l.verktex.ui.Video
@@ -472,6 +479,53 @@ object OsuUITests : UITestSuite("osu!") {
             }
 
             onDispose { video.release() }
+        }
+
+        test("Notification center") {
+            Notifications.reset()
+            onDispose { Notifications.reset() }
+
+            Notifications.post("Library", "Skin Refreshed Skin imported.")
+            Notifications.post("Import failed", "broken.osz isn't a valid archive.", isError = true)
+            Notifications.startTask("Calculating beatmap difficulties", "42% of the beatmaps calculated.", isIndeterminate = false).progress = 0.42f
+            Notifications.startTask("123 Artist - Title", "Connecting...").setAction("Cancel") { log("Canceled") }
+
+            lateinit var center: NotificationCenter
+
+            linearContainer {
+                orientation = LinearContainer.Orientation.Horizontal
+                anchor = Anchor.TopRight
+                origin = Anchor.TopRight
+                spacing = 8f.dip
+                padding = Padding(16f.dip)
+
+                textButton {
+                    text = "Post"
+                    onActionUp = { Notifications.post("Message", "Posted at ${currentTimeMillis() % 100000}") }
+                }
+
+                textButton {
+                    text = "Task"
+                    onActionUp = {
+                        val task = Notifications.startTask("Task", "Running", isIndeterminate = false)
+                        var progress = 0f
+                        onEachFrame { clock ->
+                            if (task.state == Notification.State.Active) {
+                                progress += clock.elapsedFrameTime / 3f
+                                if (progress >= 1f) task.complete("Done") else task.progress = progress
+                            }
+                        }
+                    }
+                }
+
+                val bell = iconButton {
+                    icon = FAIcon.Bell
+                    onActionUp = { center.show() }
+                }
+                center = NotificationCenter(bell)
+            }
+
+            center.show()
         }
 
         test("Triangles") {

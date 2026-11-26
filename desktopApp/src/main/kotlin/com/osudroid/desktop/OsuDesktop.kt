@@ -1,5 +1,7 @@
 package com.osudroid.desktop
 
+import com.osudroid.beatmaps.LibraryImport
+import com.osudroid.utils.async
 import com.osudroid.OsuGame
 import com.osudroid.OsuGameHost
 import com.osudroid.debug.QuickPlay
@@ -34,7 +36,13 @@ class OsuDesktop(
 
     override fun onGameStarted() {
         // TEMPORARY: debug shortcut straight into gameplay.
-        quickPlay?.let { QuickPlay.start(it, quickPlayAutoplay) }
+        val query = quickPlay ?: return
+
+        // The beatmap may be one the library refresh started with the game imports.
+        async {
+            LibraryImport.awaitIdle()
+            QuickPlay.start(query, quickPlayAutoplay)
+        }
     }
 }
 

@@ -60,17 +60,19 @@ The codebase is split across multiple main package roots, each in `shared/src/co
 `OsuGame.start` starts the game on every host: the hosts (`AndroidOsuGameHost`, which extends Verktex's `AndroidGameHost` and which `MainActivity` only launches, and `OsuDesktop`) call it once the engine is initialized and give it their platform parts through `OsuGameHost` (e.g. `onGameStarted`, where Android opens the file or the room invite it was opened with). Scenes are kept in a stack through `Verktex.pushScene` and `Verktex.popScene`, and `Verktex.resetScenes` replaces the whole stack (the hosts do it with the main menu once the splash ends). The scene flow for singleplayer is:
 
 ```
-SplashScene → LoadingScreen → MainScene (menu hub)
-                                  ↓
-                              SongMenu → GameLoaderScene → GameplaySession (gameplay) → ResultsScene (results)
+SplashScene → MainScene (menu hub)
+                  ↓
+              SongSelect → GameLoaderScene → GameplaySession (gameplay) → ResultsScene (results)
 ```
+
+The splash shows a loading indicator while the database, the skin and the library (as the database has it, `LibraryManager.loadFromDatabase`) load, then the welcome animation and the menu: nothing is imported nor scanned before it. Once the menu shows, `LibraryImport.refresh()` brings the library up to date in the background (see Beatmaps & Difficulty).
 
 For multiplayer, the flow is:
 
 ```
-SplashScene → LoadingScreen → MainScene (menu hub) → LobbyScene
-                                                         ↓
-                                                     RoomScene → GameLoaderScene → GameplaySession (gameplay) → ResultsScene (results)
+SplashScene → MainScene (menu hub) → LobbyScene
+                                         ↓
+                                     RoomScene → GameLoaderScene → GameplaySession (gameplay) → ResultsScene (results)
 ```
 
 A play starts with `Gameplay().start(PlayRequest(...))` (`com/osudroid/game/`). `Gameplay` is the play and its retries: it shows the loader, loads the beatmap with `PlayLoader` into a `LoadedPlay` (`game/loading/`, reused while the same beatmap and mods are retried), and makes a `GameplaySession` (`game/session/`) for each attempt, which owns the attempt's scene, clock and state and drives the gameplay loop through its parts in `game/session/`: `ObjectSpawner` (objects and follow points), `ReplayInputSource` (a replay's cursors), `CursorPresenter` (cursor sprites, autoplay's cursor, Flashlight), `ControlPointTracker`, `BreakController`, `VideoController`, `MultiplayerSync` and, for seeking a replay, `ScoreReconstruction`; it judges the objects and records the replay. The scoring rules are in `game/rules/` (`ScoreProcessor`, `HealthProcessor`, `HitJudging`), and what the objects depend on of a play (its mods, its timing) is its `GameplayContext`, which they get from their listener. The HUD reads a play through `GameplayState`. Its results are `Gameplay.results`, a `Results` (`com/osudroid/ui/v2/results/`): it shows a score in a `ResultsScene`, whose performance is calculated in the background (`calculateResultsPerformance`), saves it and submits it (`ScoreSubmissionCard`), and in multiplayer lists the match's scores (`ResultsLeaderboard`).
@@ -118,7 +120,11 @@ Through Verktex's audio API: its driver (`Verktex.audio`) opens samples and stre
 
 ### Beatmaps & Difficulty
 
-Beatmap files are parsed in `com/osudroid/beatmaps/`. `BeatmapDownloader` (`com/osudroid/beatmaplisting/`) downloads a set from the selected mirror into the cache directory and imports it. Beatmap set (`.osz`) and skin (`.osk`) archives are extracted by `LibraryImport` (Okio's `openZip`), from the game's folders, the device's downloads folder (Verktex's `PlatformStorage.downloadsDirectory`) or a file the game was opened with, on both platforms; `LibraryManager` then scans the beatmaps folder into the database. Difficulty calculation (star rating and PP) lives in `com/osudroid/difficulty/` and implements both the osu!droid and osu!standard algorithms. `BeatmapDifficultyCalculator` is the main entry point.
+Beatmap files are parsed in `com/osudroid/beatmaps/`. `BeatmapDownloader` (`com/osudroid/beatmaplisting/`) downloads a set from the selected mirror into the cache directory and imports it. Beatmap set (`.osz`) and skin (`.osk`) archives are extracted by `LibraryImport` (Okio's `openZip`), from the game's folders, the device's downloads folder (Verktex's `PlatformStorage.downloadsDirectory`) or a file the game was opened with, on both platforms; `LibraryManager` then scans the beatmaps folder into the database. Both run in the background through `LibraryImport.refresh()`: one refresh at a time behind a mutex (a refresh of the whole library asked while one waits is that one), started as the menu shows, by Solo and Multi, and for a file the game was opened with; it imports the skins and beatmap sets found, resets the outdated star ratings (first refresh only), scans the folders the database lacks, loads the library, which starts the difficulty calculation, and reloads song select, the menu's music and a multiplayer room's beatmap. Downloads import through `LibraryImport.importDownloaded`, behind the same mutex, and `awaitIdle()` waits for them all (QuickPlay does). Their progress is told through `Notifications`.
+
+### Notifications
+
+`Notifications` (`com/osudroid/notifications/`) are what the game tells the player outside of a scene: messages (`post`, optionally with a button) and background tasks (`startTask`, then `complete`/`fail`, with a progress and a button), from any thread. A message pops up as one of Verktex's `Toasts`, and so does a task when it starts and when it ends; its progress only shows in the `NotificationCenter` (`com/osudroid/ui/v2/notifications/`, its rows `NotificationRow`s, a `Toast` with a progress and a button), which lists them (up to `MAX_ENTRIES`), opened from the bell of the main menu, which counts the tasks running or else the unread ones. The library refresh, the difficulty calculation, downloads, replay imports and connection failures report there. Verktex's `Toasts` are messages alone (a text, an optional title): one shows at a time, the others queued in order (one already shown or waiting isn't queued again), and the user can close or swipe them away. Difficulty calculation (star rating and PP) lives in `com/osudroid/difficulty/` and implements both the osu!droid and osu!standard algorithms. `BeatmapDifficultyCalculator` is the main entry point.
 
 ### Mod System
 

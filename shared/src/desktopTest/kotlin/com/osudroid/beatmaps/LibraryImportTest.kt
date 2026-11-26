@@ -1,5 +1,8 @@
 package com.osudroid.beatmaps
 
+import com.osudroid.data.DatabaseManager
+import com.osudroid.notifications.Notification
+import com.osudroid.notifications.Notifications
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.SkinFolders
 import com.reco1l.verktex.settings.Settings
@@ -15,6 +18,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import ru.nsu.ccfit.zuev.osu.LibraryManager
 
 /**
  * Without a platform the settings are only kept in memory, and the folders are temporary ones.
@@ -149,5 +155,37 @@ class LibraryImportTest {
 
         assertTrue(File(songs, "9 Opened/audio.mp3").isFile)
         assertTrue(File(skins, "Opened Skin/skin.ini").isFile)
+    }
+
+    @Test
+    fun testRefreshesImportAndScanInTheBackgroundOneAtATime() = runBlocking {
+        DatabaseManager.openInMemory()
+        Notifications.reset()
+
+        try {
+            val osu = File(javaClass.classLoader.getResource("beatmaps/Kenji Ninuma - DISCOPRINCE (peppy) [Normal].osu")!!.toURI()).readText()
+            archive(File(songs, "1 Kenji Ninuma - DISCOPRINCE.osz"), mapOf("Kenji Ninuma - DISCOPRINCE (peppy) [Normal].osu" to osu))
+            archive(File(skins, "Refreshed Skin.osk"), mapOf("skin.ini" to "[General]"))
+
+            val first = LibraryImport.refresh()
+            val second = LibraryImport.refresh()
+
+            withTimeout(30_000) { LibraryImport.awaitIdle() }
+
+            assertTrue(first.isCompleted && second.isCompleted)
+            assertFalse(LibraryImport.isRefreshing)
+
+            assertTrue(File(skins, "Refreshed Skin/skin.ini").isFile)
+            assertEquals(listOf("1 Kenji Ninuma - DISCOPRINCE"), LibraryManager.getLibrary().map { it.directory })
+            assertTrue(DatabaseManager.beatmapInfoTable.isBeatmapSetImported("1 Kenji Ninuma - DISCOPRINCE"))
+
+            // A single task told of it, and ended. The second refresh had nothing to do.
+            val tasks = Notifications.entries
+            assertEquals(1, tasks.size)
+            assertEquals(Notification.State.Completed, tasks[0].state)
+        } finally {
+            DatabaseManager.database.close()
+            Notifications.reset()
+        }
     }
 }

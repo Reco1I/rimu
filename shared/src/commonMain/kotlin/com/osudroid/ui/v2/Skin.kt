@@ -58,8 +58,6 @@ object Skin {
             return null
         }
 
-        SplashScene.info = ("Reading skin.ini...")
-
         val json = try {
             IniReader(iniFile.toString()).use { convertToJson(it) }
         } catch (e: Exception) {

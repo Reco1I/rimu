@@ -4,13 +4,14 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.settings.Settings
 import com.osudroid.settings.OsuSettings
-import com.reco1l.verktex.ui.toast.Toasts
+import com.osudroid.notifications.Notification
+import com.osudroid.notifications.Notifications
+import com.osudroid.resources.Res
 import com.osudroid.ui.v2.songselect.SongSelect
 
 import com.reco1l.verktex.Logger
 import com.osudroid.utils.async
 import com.osudroid.data.DatabaseManager
-import com.osudroid.utils.mainThread
 import com.osudroid.utils.stopAsync
 import com.osudroid.beatmaps.parser.BeatmapParser
 import com.osudroid.difficulty.calculator.DroidDifficultyCalculator
@@ -35,7 +36,7 @@ object DifficultyCalculationManager {
 
     private var job: Job? = null
 
-    private var badge: Toasts.Handle? = null
+    private var notification: Notification? = null
 
 
     /**
@@ -73,9 +74,9 @@ object DifficultyCalculationManager {
             return
         }
 
-        badge = Toasts.showPersistent(
-            title = "Calculating beatmap difficulties...",
-            text = "During this process, the game may suffer performance degradation.",
+        notification = Notifications.startTask(
+            title = Res.string.notification_difficulty_title,
+            text = Res.string.notification_difficulty_text,
             isIndeterminate = true
         )
 
@@ -129,12 +130,10 @@ object DifficultyCalculationManager {
                             }
 
                             val done = calculated.incrementAndFetch()
-                            mainThread {
-                                badge?.apply {
-                                    isIndeterminate = false
-                                    progress = done.toFloat() / totalBeatmaps
-                                    title = "Calculating beatmap difficulties... (${done * 100 / totalBeatmaps}%)"
-                                }
+                            notification?.apply {
+                                isIndeterminate = false
+                                progress = done.toFloat() / totalBeatmaps
+                                text = Res.string.notification_difficulty_progress.format(done * 100 / totalBeatmaps)
                             }
 
                         } catch (e: Exception) {
@@ -153,10 +152,9 @@ object DifficultyCalculationManager {
                 }
             }.joinAll()
 
-            mainThread {
-                badge?.dismiss()
-                badge = null
-            }
+            notification?.complete(Res.string.notification_difficulty_done)
+            notification = null
+
             // Song select shows the new star ratings, the next one loads them anyway.
             (Verktex.scene as? SongSelect)?.loadBeatmaps()
 
@@ -171,6 +169,11 @@ object DifficultyCalculationManager {
      */
     @JvmStatic
     fun stopCalculation(): Deferred<Unit> = job.stopAsync().also { stopping ->
-        stopping.invokeOnCompletion { job = null }
+        stopping.invokeOnCompletion {
+            job = null
+            // Stopped before it ended: it starts again later, there's nothing to tell.
+            notification?.dismiss()
+            notification = null
+        }
     }
 }

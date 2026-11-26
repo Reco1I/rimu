@@ -1,7 +1,6 @@
 package ru.nsu.ccfit.zuev.osu
 
 import com.osudroid.OsuGame
-import com.osudroid.ui.v2.SplashScene
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
@@ -18,8 +17,7 @@ import com.osudroid.data.DatabaseManager
 import com.osudroid.resources.Res
 import com.reco1l.verktex.Logger
 import kotlin.concurrent.atomics.AtomicInt
-import kotlin.concurrent.atomics.decrementAndFetch
-import kotlin.concurrent.atomics.fetchAndIncrement
+import kotlin.concurrent.atomics.incrementAndFetch
 import kotlin.jvm.JvmStatic
 import kotlin.math.ceil
 import kotlinx.atomicfu.locks.SynchronizedObject
@@ -71,7 +69,22 @@ object LibraryManager : MusicService.Playlist {
     }
 
 
+    /**
+     * Loads the library from the database, then calculates the difficulties it lacks.
+     */
     suspend fun loadLibrary() {
+        if (loadFromDatabase()) {
+            DifficultyCalculationManager.calculateDifficulties()
+        }
+    }
+
+    /**
+     * Loads the library from the database alone, as the game starts: the beatmaps folder is
+     * scanned afterwards, in the background (see [com.osudroid.beatmaps.LibraryImport.refresh]).
+     *
+     * @return Whether it was loaded, false headless or without the game's folders.
+     */
+    suspend fun loadFromDatabase(): Boolean {
 
         library = ArrayList()
 
@@ -80,17 +93,16 @@ object LibraryManager : MusicService.Playlist {
         if (OsuGame.isHeadless) {
             currentIndex = 0
             library = DatabaseManager.beatmapInfoTable.getBeatmapSetList().toMutableList()
-            return
+            return false
         }
 
         if (Platform.storage.externalDirectory == null || !checkDirectory(GameFolders.scorePath) && !checkDirectory(GameFolders.beatmapPath)) {
-            return
+            return false
         }
 
         currentIndex = 0
         library = DatabaseManager.beatmapInfoTable.getBeatmapSetList().toMutableList()
-
-        DifficultyCalculationManager.calculateDifficulties()
+        return true
     }
 
     /**
@@ -99,8 +111,15 @@ object LibraryManager : MusicService.Playlist {
      *
      * @param forceUpdateDirectories The directories to force update, even if they are already in the database.
      * Can be `null`.
+     * @param onStart Called once the folders to scan are known, with how many there are, which
+     * can be none.
+     * @param onProgress Called each time a folder is scanned, with how many were, from any thread.
      */
-    suspend fun scanDirectory(forceUpdateDirectories: Collection<String>?) {
+    suspend fun scanDirectory(
+        forceUpdateDirectories: Collection<String>?,
+        onStart: (total: Int) -> Unit = {},
+        onProgress: (scanned: Int, total: Int) -> Unit = { _, _ -> }
+    ) {
 
         if (!checkDirectory(GameFolders.beatmapPath)) {
             return
@@ -111,7 +130,7 @@ object LibraryManager : MusicService.Playlist {
             ?.filter { fileSystem.metadataOrNull(it)?.isDirectory == true }
             ?: return
 
-        LibraryDatabaseManager(directories, forceUpdateDirectories).start()
+        LibraryDatabaseManager(directories, forceUpdateDirectories).start(onStart, onProgress)
     }
 
 
@@ -274,33 +293,33 @@ object LibraryManager : MusicService.Playlist {
         private val forceUpdateDirectories: Collection<String>?
     ) {
 
-        private val directoryCount = AtomicInt(directories.size)
-
-        private val fileCached = AtomicInt(0)
+        private val scannedCount = AtomicInt(0)
 
 
-        suspend fun start() {
+        suspend fun start(onStart: (Int) -> Unit, onProgress: (Int, Int) -> Unit) {
 
-            val optimalChunkSize = ceil(directories.size.toDouble() / Platform.processorCount).toInt()
+            // Only the folders the database doesn't have, or that are to be updated, are scanned.
+            val pending = directories.filter { directory ->
+                forceUpdateDirectories?.contains(directory.name) == true ||
+                    !DatabaseManager.beatmapInfoTable.isBeatmapSetImported(directory.name)
+            }
+            onStart(pending.size)
+
+            // Half the processors, as the difficulty calculation, so that the game stays smooth
+            // while the library is scanned in the background.
+            val threadCount = ceil(Platform.processorCount / 2f).toInt().coerceAtLeast(1)
+            val dispatcher = Dispatchers.Default.limitedParallelism(threadCount)
+            val chunkSize = ceil(pending.size.toDouble() / threadCount).toInt().coerceAtLeast(1)
 
             // Returns once every chunk is scanned.
             coroutineScope {
-                for (directoriesSlice in directories.chunked(optimalChunkSize.coerceAtLeast(1))) {
+                for (directoriesSlice in pending.chunked(chunkSize)) {
 
-                    launch(Dispatchers.Default) {
+                    launch(dispatcher) {
 
                         for (i1 in directoriesSlice.size - 1 downTo 0) {
 
                             val directory = directoriesSlice[i1]
-
-                            if ((forceUpdateDirectories == null || !forceUpdateDirectories.contains(directory.name)) &&
-                                DatabaseManager.beatmapInfoTable.isBeatmapSetImported(directory.name)) {
-                                directoryCount.decrementAndFetch()
-                                continue
-                            }
-
-                            SplashScene.progress = 50 + 50 * fileCached.fetchAndIncrement() / directoryCount.load().coerceAtLeast(1)
-                            SplashScene.info = "Loading " + directory.name + "..."
 
                             // A folder that fails is logged and doesn't stop the others.
                             try {
@@ -308,6 +327,8 @@ object LibraryManager : MusicService.Playlist {
                             } catch (t: Throwable) {
                                 Logger.e("LibraryManager", "Failed to scan beatmap set folder: $directory", t)
                             }
+
+                            onProgress(scannedCount.incrementAndFetch(), pending.size)
                         }
                     }
                 }

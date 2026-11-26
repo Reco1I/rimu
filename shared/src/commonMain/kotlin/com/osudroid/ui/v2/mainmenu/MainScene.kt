@@ -49,6 +49,12 @@ import com.reco1l.verktex.ui.transitionSlot
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.Button
+import com.reco1l.verktex.ui.Badge
+import com.reco1l.verktex.ui.IconButton
+import com.reco1l.verktex.ui.badge
+import com.reco1l.verktex.ui.iconButton
+import com.osudroid.notifications.Notifications
+import com.osudroid.ui.v2.notifications.NotificationCenter
 import com.reco1l.verktex.ui.GradientBox
 import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.Sprite
@@ -105,6 +111,10 @@ class MainScene : Scene() {
     // Animated instead of the button, which drives its own alpha.
     private lateinit var musicButtonHolder: Container
     private lateinit var musicPlayer: MusicPlayer
+    private lateinit var notificationsButton: IconButton
+    private lateinit var notificationsBadge: Badge
+    private lateinit var notificationCenter: NotificationCenter
+    private var notificationsRevision = -1
     private lateinit var kiaiParticles: ParticleSystem
     private lateinit var leftFlash: GradientBox
     private lateinit var rightFlash: GradientBox
@@ -235,26 +245,28 @@ class MainScene : Scene() {
                     padding = Padding(0f.dip, 128f.dip)
 
                     +menuButton(FAIcon.User, "Solo") {
-                        async {
-                            LoaderScene().show()
+                        // Archives added since are imported in the background, song select shows
+                        // them once they are.
+                        LibraryImport.refresh()
 
-                            LibraryImport.importSkins()
-                            LibraryImport.loadLibrary()
+                        async {
+                            // With nothing to show yet, what's being imported is waited for.
+                            if (LibraryManager.getLibrary().isEmpty() && LibraryImport.isRefreshing) {
+                                LoaderScene().show()
+                                LibraryImport.awaitIdle()
+                                Verktex.withTreeLock { Verktex.popScene() }
+                            }
 
                             // Song select opens on the beatmap playing in the menu, the selection.
                             val songSelect = SongSelect()
                             songSelect.loadBeatmaps()
 
                             if (LibraryManager.getLibrary().isEmpty()) {
-                                Verktex.withTreeLock { Verktex.popScene() }
                                 BeatmapListing.show()
                             } else {
-                                Verktex.withTreeLock {
-                                    Verktex.popScene()
-                                    Verktex.pushScene(songSelect)
-                                }
+                                Verktex.withTreeLock { Verktex.pushScene(songSelect) }
 
-                                // After the menu was entered again by removing the loader, which resets it.
+                                // After the menu was entered again if the loader was shown, which resets it.
                                 OsuGame.music.isGaming = true
                             }
                         }
@@ -268,20 +280,10 @@ class MainScene : Scene() {
 
                         Multiplayer.isMultiplayer = true
 
-                        async {
-                            LoaderScene().show()
+                        LibraryImport.refresh()
 
-                            LibraryImport.importSkins()
-                            LibraryImport.loadLibrary()
-
-                            Verktex.withTreeLock {
-                                Verktex.popScene()
-                                Verktex.pushScene(LobbyScene())
-                            }
-
-                            // After the menu was entered again by removing the loader, which resets it.
-                            OsuGame.music.isGaming = true
-                        }
+                        Verktex.pushScene(LobbyScene())
+                        OsuGame.music.isGaming = true
                     }
 
                     +menuButton(FAIcon.TableList, "Browse") {
@@ -319,6 +321,8 @@ class MainScene : Scene() {
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
                 alpha = 0f
+                // Left of the notifications button.
+                padding = Padding(right = 52f.dip)
 
                 musicButton = textButton {
                     scaleOrigin = Anchor.Center
@@ -331,6 +335,26 @@ class MainScene : Scene() {
                     }
                 }
                 musicPlayer = MusicPlayer(musicButton)
+            }
+
+            container {
+                anchor = Anchor.TopRight
+                origin = Anchor.TopRight
+
+                notificationsButton = iconButton {
+                    icon = FAIcon.Bell
+                    scaleOrigin = Anchor.Center
+                    onActionUp = { notificationCenter.show() }
+                }
+                notificationCenter = NotificationCenter(notificationsButton)
+
+                notificationsBadge = badge {
+                    anchor = Anchor.TopRight
+                    origin = Anchor.Center
+                    variant = Badge.Variant.Solid
+                    density = Badge.Density.Small
+                    isVisible = false
+                }
             }
         }
 
@@ -548,8 +572,39 @@ class MainScene : Scene() {
         }
 
         updateKiaiParticles(deltaTimeSec)
+        updateNotificationsBadge()
 
         super.onUpdate(clock)
+    }
+
+    // The tasks running, or else the notifications not seen yet.
+    private fun updateNotificationsBadge() {
+        val revision = Notifications.revision
+        if (revision == notificationsRevision) {
+            return
+        }
+        notificationsRevision = revision
+
+        val active = Notifications.activeCount
+        val count = if (active > 0) active else Notifications.unreadCount
+
+        notificationsBadge.isVisible = count > 0
+        notificationsBadge.text = if (count > 9) "9+" else count.toString()
+        notificationsButton.icon = if (active > 0) FAIcon.Spinner else FAIcon.Bell
+    }
+
+    /**
+     * Called when the library was refreshed: the menu plays a song if it was silent, e.g. as the
+     * game starts for the first time with a full beatmaps folder.
+     */
+    fun onLibraryChanged() {
+        if (isExiting || OsuGame.music.isPlaying) {
+            return
+        }
+
+        val beatmap = BeatmapSelection.beatmap ?: LibraryManager.getLibrary().randomOrNull()?.beatmaps?.randomOrNull()
+        beatmap?.let { OsuGame.music.play(it) }
+        updateMusicButton()
     }
 
     private fun animateMenu(expanded: Boolean) {

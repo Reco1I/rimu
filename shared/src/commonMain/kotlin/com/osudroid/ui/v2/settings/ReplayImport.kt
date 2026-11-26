@@ -4,7 +4,7 @@ import com.osudroid.replay.ReplayImporter
 import com.osudroid.resources.Res
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
-import com.reco1l.verktex.ui.toast.Toasts
+import com.osudroid.notifications.Notifications
 import okio.Path
 import com.osudroid.utils.async
 
@@ -17,7 +17,7 @@ fun pickAndImportReplays() {
 
 // Called in a coroutine with copies of the picked files, deleted once imported.
 private suspend fun importReplays(files: List<Path>) {
-    val progress = Toasts.showPersistent(Res.string.replay_import_result.format(0, files.size), isIndeterminate = true)
+    val progress = Notifications.startTask(Res.string.replay_import_title, Res.string.replay_import_result.format(0, files.size), isIndeterminate = false)
     var importedCount = 0
 
     for ((i, file) in files.withIndex()) {
@@ -26,14 +26,14 @@ private suspend fun importReplays(files: List<Path>) {
             importedCount++
         } catch (e: Exception) {
             Logger.e("ReplayImport", "Failed to import the replay $file", e)
-            Toasts.show(Res.string.replay_import_error.format("#${i + 1}", e.message ?: "Unknown error"))
+            Notifications.post(Res.string.replay_import_title, Res.string.replay_import_error.format("#${i + 1}", e.message ?: "Unknown error"), isError = true)
         } finally {
             Platform.fileSystem.delete(file, mustExist = false)
         }
 
         progress.text = Res.string.replay_import_result.format(importedCount, files.size)
+        progress.progress = (i + 1f) / files.size
     }
 
-    progress.dismiss()
-    Toasts.showLong(Res.string.replay_import_result.format(importedCount, files.size))
+    progress.complete(Res.string.replay_import_result.format(importedCount, files.size))
 }

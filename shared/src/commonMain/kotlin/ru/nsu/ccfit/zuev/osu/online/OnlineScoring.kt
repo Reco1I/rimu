@@ -12,6 +12,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import com.reco1l.verktex.ui.toast.Toasts
+import com.osudroid.notifications.Notifications
 import ru.nsu.ccfit.zuev.osu.helper.Debug
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -148,9 +149,10 @@ private const val LOGIN_FAIL_HELP_URL = "https://neroyuki.github.io/osudroid-gui
  * troubleshooting guide.
  */
 private fun showConnectionFailure() {
-    Toasts.show(
-        "Cannot connect to server. Please check the following article for troubleshooting.",
-        duration = 10.seconds,
+    Notifications.post(
+        title = "Online",
+        text = "Cannot connect to server. Please check the troubleshooting article in the notifications.",
+        isError = true,
         action = "Check",
         onAction = { Platform.openUrl(LOGIN_FAIL_HELP_URL) }
     )

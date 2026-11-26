@@ -3,20 +3,18 @@ package com.osudroid.ui.v2
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.data.px
-import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreograph
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
-import com.reco1l.verktex.ui.text.Text
-import kotlin.concurrent.Volatile
+import com.reco1l.verktex.ui.LoadingIndicator
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
 
 /**
- * The scene shown while the game is loading, created by the host when it starts.
+ * The scene shown while the game starts: a loading indicator until the database and the skin are
+ * loaded, then the welcome animation.
  */
 class SplashScene : Scene() {
 
@@ -32,70 +30,20 @@ class SplashScene : Scene() {
         return false
     }
 
-    companion object {
-
-        /**
-         * How far the game's startup is, from 0 to 100, shown below the logo.
-         */
-        @JvmStatic
-        @Volatile
-        var progress = 0
-
-        /**
-         * What the startup is doing, shown below the progress, nothing if null.
-         */
-        @JvmStatic
-        @Volatile
-        var info: String? = null
-    }
-
-    private val loading = Sprite(SkinTextures["loading_start"]).also {
+    // Shown until the database and the skin are loaded.
+    private val loading = LoadingIndicator().also {
         it.anchor = Anchor.Center
         it.origin = Anchor.Center
-        it.scale = 0.4f
-        it.alpha = 0f
+        it.width = 48f.dip
+        it.height = 48f.dip
         +it
-    }
-
-    private val progressText = Text().also {
-        it.anchor = Anchor.Center
-        it.origin = Anchor.TopCenter
-        it.y = 100f.dip
-        +it
-    }
-
-    private val infoText = Text().also {
-        it.anchor = Anchor.BottomCenter
-        it.origin = Anchor.BottomCenter
-        it.y = (-16f).dip
-        +it
-    }
-
-    private var isStarting = true
-
-
-    override fun onUpdate(clock: FrameClock) {
-        super.onUpdate(clock)
-
-
-        if (isStarting) {
-            loading.alpha = minOf(1f, loading.alpha + 0.1f)
-            loading.rotationZ = (loading.rotationZ + 180f * clock.elapsedFrameTime) % 360f
-        }
-
-        progressText.text = "$progress %"
-        info?.let { infoText.text = it }
     }
 
     /**
-     * Fades out the loading indicators and plays the welcome animation.
+     * Fades out the loading indicator and plays the welcome animation.
      */
     fun playWelcomeAnimation() = Verktex.withTreeLock {
-        isStarting = false
-
         loading.fadeOut(0.2f)
-        progressText.removeSelf()
-        infoText.removeSelf()
 
         SkinSounds["welcome"].play()
         SkinSounds["welcome_piano"].play()

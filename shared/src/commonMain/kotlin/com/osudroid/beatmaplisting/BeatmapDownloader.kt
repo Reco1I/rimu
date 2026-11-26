@@ -2,6 +2,8 @@ package com.osudroid.beatmaplisting
 
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.multiplayer.Multiplayer
+import com.osudroid.notifications.Notification
+import com.osudroid.notifications.Notifications
 import com.osudroid.online.DownloadProgress
 import com.osudroid.online.downloadTo
 import com.osudroid.online.httpClient
@@ -11,7 +13,6 @@ import com.osudroid.utils.async
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.localization.formatString
 import com.reco1l.verktex.settings.Settings
-import com.reco1l.verktex.ui.toast.Toasts
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.CancellationException
@@ -24,7 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import okio.Path
 
 /**
- * Downloads beatmap sets and imports them, showing the progress in a toast and in [current].
+ * Downloads beatmap sets and imports them, showing the progress in a notification and in [current].
  *
  * Sets are downloaded to the cache directory ([com.reco1l.verktex.PlatformStorage.cacheDirectory]),
  * where the library doesn't look for archives, and imported from there.
@@ -97,7 +98,7 @@ object BeatmapDownloader {
 
         val file = downloadsFolder / "$filename.osz"
 
-        val toast = Toasts.showPersistent(Res.string.beatmap_downloader_connecting, isIndeterminate = true)
+        val toast = Notifications.startTask(filename, Res.string.beatmap_downloader_connecting, isIndeterminate = true)
 
         val download = async {
             toast.text = Res.string.beatmap_downloader_downloading.format(filename)
@@ -109,13 +110,11 @@ object BeatmapDownloader {
                     header(HttpHeaders.UserAgent, MIRROR_USER_AGENT)
                 }, onProgress = { onDownloadUpdate(toast, filename, beatmapSetId, it) })
             } catch (e: CancellationException) {
-                toast.dismiss()
-                Toasts.showLong("Download canceled.")
+                toast.fail(Res.string.notification_download_canceled)
                 currentDownload.value = null
                 throw e
             } catch (e: Exception) {
-                toast.dismiss()
-                Toasts.showLong("Download failed. " + e.message)
+                toast.fail(Res.string.notification_download_failed.format(e.message ?: e::class.simpleName))
                 currentDownload.value = null
                 return@async
             }
@@ -127,20 +126,20 @@ object BeatmapDownloader {
     }
 
 
-    private suspend fun onDownloadEnd(toast: Toasts.Handle, filename: String, beatmapSetId: Long?, file: Path) {
+    private suspend fun onDownloadEnd(toast: Notification, filename: String, beatmapSetId: Long?, file: Path) {
         toast.setAction(null)
         toast.isIndeterminate = true
         toast.text = Res.string.beatmap_downloader_importing.format(filename)
 
         currentDownload.value = Download(beatmapSetId, Phase.Importing)
 
+        var imported = false
         try {
-            if (LibraryImport.importBeatmapSet(file) == null) {
-                Toasts.showLong("Import failed, failed to extract ZIP file.")
+            // After the refresh running, if any: they'd scan the same folder.
+            if (!LibraryImport.importDownloaded(file)) {
                 return
             }
-
-            LibraryImport.loadLibrary()
+            imported = true
 
             if (beatmapSetId != null) {
                 importedSets.emit(beatmapSetId)
@@ -150,7 +149,11 @@ object BeatmapDownloader {
             // There's one download at a time, so nothing else is in the folder.
             Platform.fileSystem.deleteRecursively(downloadsFolder, mustExist = false)
 
-            toast.dismiss()
+            if (imported) {
+                toast.complete(Res.string.notification_download_done)
+            } else {
+                toast.fail(Res.string.notification_download_import_failed)
+            }
 
             if (Multiplayer.isConnected) {
                 Multiplayer.roomScene?.onRoomBeatmapChange(Multiplayer.room!!.beatmap)
@@ -160,7 +163,7 @@ object BeatmapDownloader {
         }
     }
 
-    private fun onDownloadUpdate(toast: Toasts.Handle, filename: String, beatmapSetId: Long?, download: DownloadProgress) {
+    private fun onDownloadUpdate(toast: Notification, filename: String, beatmapSetId: Long?, download: DownloadProgress) {
         val progress = download.percentage.toInt()
         val info = formatString("\n%.3f mb/s (%d%%)", download.speedKbps / 1024, progress.coerceAtLeast(0))
 

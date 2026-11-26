@@ -1,15 +1,30 @@
 package com.osudroid.beatmaps
 
+import com.osudroid.multiplayer.Multiplayer
+import com.osudroid.notifications.Notification
+import com.osudroid.notifications.Notifications
 import com.osudroid.resources.Res
 import com.osudroid.settings.GameFolders
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.SkinFolders
-import com.osudroid.ui.v2.SplashScene
+import com.osudroid.ui.v2.mainmenu.MainScene
+import com.osudroid.ui.v2.songselect.SongSelect
+import com.osudroid.utils.async
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Platform
+import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.settings.Settings
-import com.reco1l.verktex.ui.toast.Toasts
+import kotlin.concurrent.Volatile
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okio.FileSystem
 import okio.IOException
 import okio.Path
@@ -24,6 +39,9 @@ import ru.nsu.ccfit.zuev.osu.LibraryManager
  * Archives are found in the game's folders and, with [OsuSettings.ScanDownload], in the host's
  * [downloads directory][com.reco1l.verktex.PlatformStorage.downloadsDirectory]. One that isn't a valid archive is renamed to `<name>.badzip`, and one
  * that fails to extract to `<name>.bad<extension>`, so they aren't tried again.
+ *
+ * The library is kept up to date in the background ([refresh]), one refresh at a time, telling
+ * its progress through [Notifications].
  */
 object LibraryImport {
 
@@ -35,20 +53,195 @@ object LibraryImport {
     private val fileSystem: FileSystem
         get() = Platform.fileSystem
 
+    // One refresh or import of a download at a time, in the order they were asked for.
+    private val mutex = Mutex()
+
+    private val jobsLock = SynchronizedObject()
+
+    // The refreshes running or waiting for the mutex.
+    private val jobs = mutableSetOf<Job>()
+
+    // A refresh of the whole library waiting for the mutex, which another one asked for joins.
+    private var queuedRefresh: Job? = null
+
+    // The outdated star ratings are reset by the first refresh, before the difficulties are calculated.
+    @Volatile
+    private var hasCheckedStarRatings = false
+
 
     /**
-     * Imports the beatmap sets found, or only [openedFile] (a beatmap set or skin archive the game
-     * was opened with) if there's one, then scans the beatmaps folder and loads the library. The sets
-     * imported are scanned again even if the database has them.
+     * Brings the library up to date in the background: imports the skins and the beatmap sets
+     * found, or only [openedFile] (a beatmap set or skin archive the game was opened with) if
+     * there's one, scans the beatmaps folder, loads the library and calculates the difficulties it
+     * lacks. The sets imported are scanned again even if the database has them.
+     *
+     * Refreshes run one after the other; one asked for while another of the whole library is
+     * still waiting to run is that one.
      */
-    suspend fun loadLibrary(openedFile: String? = null) {
-        SplashScene.info = "Checking for new maps..."
+    @JvmStatic
+    @JvmOverloads
+    fun refresh(openedFile: String? = null): Job = synchronized(jobsLock) {
+        if (openedFile == null) {
+            queuedRefresh?.let { if (it.isActive) return it }
+        }
 
-        val importedSets = if (openedFile != null) importOpenedFile(openedFile.toPath()) else importBeatmapSets()
+        // The job waits for the lock to run, so it sees itself queued.
+        val job = async {
+            mutex.withLock {
+                val self = currentCoroutineContext()[Job]
+                synchronized(jobsLock) {
+                    if (queuedRefresh === self) {
+                        queuedRefresh = null
+                    }
+                }
+                runRefresh(openedFile?.toPath())
+            }
+        }
 
-        LibraryManager.scanDirectory(importedSets)
-        LibraryManager.loadLibrary()
+        jobs += job
+        if (openedFile == null) {
+            queuedRefresh = job
+        }
+        job.invokeOnCompletion { synchronized(jobsLock) { jobs -= job } }
+        job
     }
+
+    /**
+     * Waits for the refreshes running or waiting to run, e.g. to find a beatmap the game was
+     * started with.
+     */
+    suspend fun awaitIdle() {
+        while (true) {
+            val running = synchronized(jobsLock) { jobs.toList() }
+            if (running.isEmpty()) {
+                return
+            }
+            running.joinAll()
+        }
+    }
+
+    /**
+     * Whether a refresh runs or waits to run.
+     */
+    val isRefreshing: Boolean
+        get() = synchronized(jobsLock) { jobs.isNotEmpty() }
+
+    /**
+     * Imports a beatmap set downloaded to [file], once no refresh runs, and adds it to the
+     * library.
+     *
+     * @return Whether it was imported.
+     */
+    suspend fun importDownloaded(file: Path): Boolean = mutex.withLock {
+        val folder = importBeatmapSet(file) ?: return false
+
+        LibraryManager.scanDirectory(setOf(folder))
+        LibraryManager.loadLibrary()
+        notifyLibraryChanged()
+        true
+    }
+
+
+    private suspend fun runRefresh(openedFile: Path?) {
+        // Posted only when there's something to do.
+        var notification: Notification? = null
+
+        fun report(text: CharSequence, done: Int, total: Int) {
+            val progress = if (total > 0) done.toFloat() / total else 0f
+            val current = notification
+
+            if (current == null) {
+                notification = Notifications.startTask(Res.string.notification_library_title, text, isIndeterminate = false).also {
+                    it.progress = progress
+                }
+            } else {
+                current.text = text
+                current.progress = progress
+            }
+        }
+
+        var importedSkins = 0
+        var importedSets = 0
+
+        try {
+            val forceUpdate = when (openedFile?.extension) {
+                null -> {
+                    importedSkins = importSkins { done, total ->
+                        report(Res.string.notification_importing_skins.format(done, total), done, total)
+                    }
+                    importBeatmapSets { done, total ->
+                        report(Res.string.notification_importing_beatmaps.format(done, total), done, total)
+                    }
+                }
+
+                "osk" -> {
+                    report(Res.string.notification_importing_skins.format(0, 1), 0, 1)
+                    if (importSkin(openedFile)) importedSkins++
+                    emptySet()
+                }
+
+                "osz" -> {
+                    report(Res.string.notification_importing_beatmaps.format(0, 1), 0, 1)
+                    setOfNotNull(importBeatmapSet(openedFile))
+                }
+
+                else -> emptySet()
+            }
+
+            if (!hasCheckedStarRatings) {
+                hasCheckedStarRatings = true
+                DifficultyCalculationManager.checkForOutdatedStarRatings()
+            }
+
+            var scannedSets = 0
+            LibraryManager.scanDirectory(
+                forceUpdate,
+                onStart = { total ->
+                    scannedSets = total
+                    if (total > 0) {
+                        report(Res.string.notification_scanning_beatmaps.format(0, total), 0, total)
+                    }
+                },
+                onProgress = { done, total ->
+                    report(Res.string.notification_scanning_beatmaps.format(done, total), done, total)
+                }
+            )
+            // The sets imported are among the folders scanned.
+            importedSets = scannedSets
+
+            LibraryManager.loadLibrary()
+            notifyLibraryChanged()
+
+            notification?.complete(Res.string.notification_library_updated.format(importedSets, importedSkins))
+        } catch (e: CancellationException) {
+            notification?.dismiss()
+            throw e
+        } catch (e: Exception) {
+            Logger.e(TAG, "Failed to refresh the library", e)
+            notification?.fail(Res.string.message_error.format(e.message ?: e::class.simpleName))
+        }
+    }
+
+    // Song select and the menu show the library again.
+    private fun notifyLibraryChanged() {
+        if (!Verktex.isInitialized) {
+            return
+        }
+
+        Verktex.scheduleOnUpdate {
+            when (val scene = Verktex.scene) {
+                is SongSelect -> scene.loadBeatmaps()
+                is MainScene -> scene.onLibraryChanged()
+            }
+
+            // The room's beatmap may be one that was just imported.
+            val room = Multiplayer.room
+            if (Multiplayer.isConnected && room != null) {
+                Multiplayer.roomScene?.onRoomBeatmapChange(room.beatmap)
+            }
+        }
+    }
+
 
     /**
      * Imports an archive the game was opened with, a beatmap set or a skin, by its extension.
@@ -57,13 +250,9 @@ object LibraryImport {
      */
     @JvmStatic
     fun importOpenedFile(file: Path): Set<String> = when (file.extension) {
-        "osz" -> {
-            Toasts.show(Res.string.library_importing)
-            setOfNotNull(importBeatmapSet(file))
-        }
+        "osz" -> setOfNotNull(importBeatmapSet(file))
 
         "osk" -> {
-            Toasts.show(Res.string.library_skin_importing)
             importSkin(file)
             emptySet()
         }
@@ -75,10 +264,13 @@ object LibraryImport {
      * Imports the beatmap sets in the game's folder, the beatmaps folder and, if the setting allows
      * it, the downloads folder.
      *
+     * @param onProgress Called before each archive and after the last one, with how many were
+     * imported and how many there are.
      * @return The folders of the beatmap sets imported from the beatmaps and the downloads folders.
      */
     @JvmStatic
-    fun importBeatmapSets(): Set<String> {
+    @JvmOverloads
+    fun importBeatmapSets(onProgress: (done: Int, total: Int) -> Unit = { _, _ -> }): Set<String> {
         val inGameFolder = findArchives(GameFolders.corePath.toPath(), "osz")
         val inBeatmapsFolder = findArchives(GameFolders.beatmapPath.toPath(), "osz")
         val inDownloads = downloadsFolder()?.let { findArchives(it, "osz") }.orEmpty()
@@ -88,9 +280,11 @@ object LibraryImport {
             return emptySet()
         }
 
-        Toasts.show(Res.string.library_importing_several.format(archives.size))
-
-        val imported = archives.mapNotNull { archive -> importBeatmapSet(archive)?.let { archive to it } }.toMap()
+        val imported = archives.withIndex().mapNotNull { (i, archive) ->
+            onProgress(i, archives.size)
+            importBeatmapSet(archive)?.let { archive to it }
+        }.toMap()
+        onProgress(archives.size, archives.size)
 
         // As before, the sets of the game's folder aren't rescanned if the database has them.
         return (inBeatmapsFolder + inDownloads).mapNotNull { imported[it] }.toSet()
@@ -98,20 +292,27 @@ object LibraryImport {
 
     /**
      * Imports the skins in the skins folder and, if the setting allows it, the downloads folder.
+     *
+     * @param onProgress Called before each archive and after the last one, with how many were
+     * imported and how many there are.
+     * @return How many were imported.
      */
     @JvmStatic
-    fun importSkins() {
-        SplashScene.info = "Checking new skins..."
-
+    @JvmOverloads
+    fun importSkins(onProgress: (done: Int, total: Int) -> Unit = { _, _ -> }): Int {
         val archives = findArchives(SkinFolders.topPath.toPath(), "osk") +
             downloadsFolder()?.let { findArchives(it, "osk") }.orEmpty()
 
         if (archives.isEmpty()) {
-            return
+            return 0
         }
 
-        Toasts.show(Res.string.library_skin_importing_several.format(archives.size))
-        archives.forEach(::importSkin)
+        val imported = archives.withIndex().count { (i, archive) ->
+            onProgress(i, archives.size)
+            importSkin(archive)
+        }
+        onProgress(archives.size, archives.size)
+        return imported
     }
 
     /**
@@ -152,7 +353,6 @@ object LibraryImport {
         // The archive isn't needed anymore, the folder is the skin.
         deleteSafely(archive)
 
-        Toasts.showLong(Res.string.library_imported.format(folderName))
         SkinFolders.add(folderName, folder.toString())
         return true
     }
@@ -164,7 +364,7 @@ object LibraryImport {
         val zip = try {
             fileSystem.openZip(archive)
         } catch (e: IOException) {
-            Toasts.show(Res.string.message_error.format("Invalid file"))
+            Notifications.post(Res.string.notification_import_failed_title, Res.string.notification_import_invalid.format(archive.name), isError = true)
             Logger.e(TAG, "${archive.name} isn't a valid archive", e)
             renameSafely(archive, archive.name + ".badzip")
             return false
@@ -187,6 +387,7 @@ object LibraryImport {
                 }
             }
         } catch (e: IOException) {
+            Notifications.post(Res.string.notification_import_failed_title, Res.string.notification_import_extract_failed.format(archive.name), isError = true)
             Logger.e(TAG, "Failed to extract ${archive.name}", e)
             renameSafely(archive, archive.name.substringBeforeLast('.') + ".bad" + archive.extension)
             return false

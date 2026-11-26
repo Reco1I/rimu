@@ -135,4 +135,29 @@
     <string name="results_ranked_score">Ranked score</string>
     <string name="results_match">Match</string>
 
+
+    <!-- Notifications -->
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_clear">Clear</string>
+    <string name="notifications_empty">Nothing to see here.</string>
+    <string name="notifications_just_now">Just now</string>
+    <string name="notifications_minutes_ago">%d min ago</string>
+    <string name="notifications_hours_ago">%d h ago</string>
+    <string name="notification_library_title">Library</string>
+    <string name="replay_import_title">Replay import</string>
+    <string name="notification_importing_skins">Importing skins… (%1$d/%2$d)</string>
+    <string name="notification_importing_beatmaps">Importing beatmap sets… (%1$d/%2$d)</string>
+    <string name="notification_scanning_beatmaps">Scanning beatmap sets… (%1$d/%2$d)</string>
+    <string name="notification_library_updated">The library is up to date: %1$d beatmap sets and %2$d skins imported.</string>
+    <string name="notification_import_failed_title">Import failed</string>
+    <string name="notification_import_invalid">%s isn\'t a valid archive.</string>
+    <string name="notification_import_extract_failed">%s couldn\'t be extracted.</string>
+    <string name="notification_download_canceled">Download canceled.</string>
+    <string name="notification_download_failed">Download failed. %s</string>
+    <string name="notification_download_done">Added to the library.</string>
+    <string name="notification_download_import_failed">The beatmap set couldn\'t be imported.</string>
+    <string name="notification_difficulty_title">Calculating beatmap difficulties</string>
+    <string name="notification_difficulty_text">During this process, the game may suffer performance degradation.</string>
+    <string name="notification_difficulty_progress">%d%% of the beatmaps calculated.</string>
+    <string name="notification_difficulty_done">Every beatmap\'s difficulty is calculated.</string>
 </resources>

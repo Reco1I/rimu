@@ -236,7 +236,7 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
             when {
                 path == null -> Unit
                 path.lowercase().endsWith(".odr") -> updateThread { MainScene.watchReplay(path) }
-                else -> LibraryImport.loadLibrary(path)
+                else -> LibraryImport.refresh(path)
             }
         }
     }
