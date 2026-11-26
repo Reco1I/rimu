@@ -10,6 +10,7 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.audio.AudioStream
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.math.pow
 import kotlin.time.TimeSource
 import okio.Path.Companion.toPath
@@ -128,6 +129,35 @@ open class MusicService {
     open val frequency: Float
         get() = synchronized(lock) { stream?.frequency ?: 0f }
 
+    /**
+     * The cutoff of the song's low-pass filter in Hz, none at or above [AudioStream.MAX_LOW_PASS_CUTOFF].
+     */
+    open var lowPassCutoff: Float
+        get() = synchronized(lock) { stream?.lowPassCutoff ?: AudioStream.MAX_LOW_PASS_CUTOFF }
+        set(value) {
+            synchronized(lock) { stream?.lowPassCutoff = value }
+        }
+
+    /**
+     * The cutoff of the song's high-pass filter in Hz, none at 0.
+     */
+    open var highPassCutoff: Float
+        get() = synchronized(lock) { stream?.highPassCutoff ?: 0f }
+        set(value) {
+            synchronized(lock) { stream?.highPassCutoff = value }
+        }
+
+    /**
+     * Where the song starts over, in milliseconds, once it reaches its end, as song select's preview
+     * does: [update] doesn't play the next song, nor does gameplay stop it, and [consumePreviewEnd]
+     * tells it ended. Null by default, loading another song clears it.
+     */
+    var previewTime: Int?
+        get() = synchronized(lock) { previewTimeValue }
+        set(value) {
+            synchronized(lock) { previewTimeValue = value }
+        }
+
 
     private val lock = SynchronizedObject()
 
@@ -145,6 +175,11 @@ open class MusicService {
 
     // Whether the song is meant to be playing, set by play() and cleared by pause() and stop().
     private var isPlaybackWanted = false
+
+    private var previewTimeValue: Int? = null
+
+    // Whether the song reached its end with a preview time, set from the audio thread.
+    private val previewEnded = AtomicBoolean(false)
 
 
     //region Beatmap
@@ -188,7 +223,7 @@ open class MusicService {
      * the old menu did. Called every frame by the scenes that play songs one after another.
      */
     fun update() {
-        if (isPlaybackWanted && !isGaming && status == Status.STOPPED) {
+        if (isPlaybackWanted && !isGaming && previewTime == null && status == Status.STOPPED) {
             isPlaybackWanted = false
             next()
         }
@@ -229,11 +264,9 @@ open class MusicService {
                 lastVolume = Float.NaN
 
                 newStream.looping = isLoop
-                newStream.onEnd = {
-                    if (isGaming) {
-                        stopStream()
-                    }
-                }
+                newStream.onEnd = { onStreamEnd(newStream) }
+                previewTimeValue = null
+                previewEnded.store(false)
 
                 this.speed = speed
                 setAdjustPitch(adjustPitch)
@@ -246,14 +279,71 @@ open class MusicService {
     }
 
     /**
-     * Plays the song, from where it was paused or else from the start. Nothing changes if it's
-     * already playing.
+     * Plays the song, from where it was paused or else from the start, at [volume]. Nothing changes if
+     * it's already playing.
      */
-    fun play() {
+    fun play(volume: Float = OsuSettings.musicVolume) {
         if (status != Status.PLAYING) {
-            startStream()
+            startStream(volume)
         }
         // A song that can't be played is not waited for, see update().
+        isPlaybackWanted = status == Status.PLAYING
+        onPlaybackStateChanged(status)
+    }
+
+    /**
+     * Plays the song from [time], in milliseconds, at [volume] (silent by default, for the caller to
+     * fade it in), and starts it over at [loopTime] whenever it ends (see [previewTime]).
+     */
+    fun playPreview(time: Int, loopTime: Int = time, volume: Float = 0f) {
+        previewTime = loopTime
+        previewEnded.store(false)
+        play(volume)
+        seekTo(time)
+    }
+
+    /**
+     * The preview point of [beatmap] in milliseconds, once its song is loaded: the one it gives, or else
+     * 40% of the song.
+     */
+    fun previewPoint(beatmap: BeatmapInfo) =
+        if (beatmap.previewTime >= 0) beatmap.previewTime else (length * 0.4f).toInt()
+
+    /**
+     * Whether the song reached its end since the last call, with a [previewTime] to start over from.
+     */
+    fun consumePreviewEnd() = previewEnded.exchange(false)
+
+    /**
+     * Takes the song out of the service as it plays, for the caller to dispose of: loading another song
+     * then doesn't stop it, e.g. so a preview keeps playing while gameplay loads its own. Null without
+     * a song.
+     */
+    open fun detach(): AudioStream? {
+        val detached = synchronized(lock) {
+            val detached = stream ?: return null
+            detached.onEnd = null
+            stream = null
+            previewTimeValue = null
+            previewEnded.store(false)
+            release()
+            detached
+        }
+        isPlaybackWanted = false
+        onPlaybackStateChanged(status)
+        return detached
+    }
+
+    /**
+     * Makes a song [detach]ed before the song again, replacing the one loaded since.
+     */
+    open fun attach(stream: AudioStream) {
+        synchronized(lock) {
+            release()
+            this.stream = stream
+            lastVolume = Float.NaN
+            stream.onEnd = { onStreamEnd(stream) }
+        }
         isPlaybackWanted = status == Status.PLAYING
         onPlaybackStateChanged(status)
     }
@@ -360,14 +450,17 @@ open class MusicService {
     /**
      * Starts the stream, or continues it if it's paused.
      */
-    protected open fun startStream() {
+    protected open fun startStream(volume: Float) {
         synchronized(lock) {
             val stream = stream ?: return
+
+            // Before playing, a preview fading in mustn't be heard at full volume first.
+            lastVolume = volume
+            stream.volume = volume
 
             // A paused song continues from where it was, otherwise it starts over.
             stream.play(restart = !stream.isPaused)
         }
-        volume = OsuSettings.musicVolume
     }
 
     protected open fun pauseStream() {
@@ -382,6 +475,23 @@ open class MusicService {
      * Called after the song was loaded, played, paused or stopped. Does nothing by default.
      */
     protected open fun onPlaybackStateChanged(status: Status) = Unit
+
+    // From the audio thread: a song with a preview time is started over by its scene, otherwise
+    // gameplay stops it.
+    private fun onStreamEnd(ended: AudioStream) {
+        synchronized(lock) {
+            if (ended !== stream) return
+
+            if (previewTimeValue != null) {
+                previewEnded.store(true)
+                return
+            }
+        }
+
+        if (isGaming) {
+            stopStream()
+        }
+    }
 
     private fun release() {
         stream?.dispose()

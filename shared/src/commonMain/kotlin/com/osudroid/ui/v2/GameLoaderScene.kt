@@ -54,6 +54,11 @@ import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.Button.Density
 import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.icon
+import com.reco1l.verktex.ui.animate
+import com.reco1l.verktex.ui.animatableFloat
+import com.reco1l.verktex.ui.transitionSlot
+import com.reco1l.verktex.audio.AudioStream
+import com.osudroid.OsuGame
 
 class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: BeatmapInfo, mods: ModHashMap, private val isRestart: Boolean) : Scene() {
 
@@ -83,6 +88,16 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
 
     // Shows the offset of the options once they're read.
     private var offsetSlider: FormSeekBar? = null
+
+    // The song playing when the loader opened, the preview, kept playing through a tunnel effect while
+    // the play loads its own song, see onEnter. Null when retrying, the music is the attempt's then.
+    private var previewStream: AudioStream? = null
+    private var hasTakenPreview = false
+
+    private val previewTransition = transitionSlot()
+    private val previewVolume = animatableFloat({ previewStream?.volume ?: 0f }) { previewStream?.volume = it }
+    private val previewLowPass = animatableFloat({ previewStream?.lowPassCutoff ?: AudioStream.MAX_LOW_PASS_CUTOFF }) { previewStream?.lowPassCutoff = it }
+    private val previewHighPass = animatableFloat({ previewStream?.highPassCutoff ?: 0f }) { previewStream?.highPassCutoff = it }
 
     private var fadeTimeout = if (isRestart) 500L else 2000L
     private var minimumTimeout = if (isRestart) 500L else 2000L
@@ -200,6 +215,11 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
 
         BeatmapBackground.fadeBrightness(LOADING_BRIGHTNESS)
 
+        if (!isRestart && !hasTakenPreview) {
+            hasTakenPreview = true
+            takePreview()
+        }
+
         // Entrance: the content rises.
         mainContainer.apply {
             clearTransforms()
@@ -209,6 +229,53 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
                 fadeIn(0.4f, Easing.OutCubic)
                 moveToY(0f, 0.55f, Easing.OutCubic)
             }
+        }
+    }
+
+    /**
+     * Takes the preview out of the music service, which the play would stop loading its song, and
+     * muffles it as osu!lazer's player loader does: a low-pass closes in while a high-pass opens out.
+     */
+    private fun takePreview() {
+        val stream = OsuGame.music.detach() ?: return
+        previewStream = stream
+
+        stream.highPassCutoff = TUNNEL_HIGH_PASS
+
+        previewTransition.run {
+            // Song select may not have finished fading it in.
+            animate(previewVolume, OsuSettings.musicVolume, 0.3f, Easing.OutQuad)
+            animate(previewLowPass, TUNNEL_LOW_PASS, 0.65f, Easing.OutQuint)
+            animate(previewHighPass, 0f, 1.25f, Easing.OutQuint)
+        }
+    }
+
+    // Just before gameplay starts: the preview fades out as the filter opens.
+    private fun fadeOutPreview() {
+        previewTransition.run {
+            animate(previewVolume, 0f, START_DURATION, Easing.OutQuad)
+            animate(previewLowPass, AudioStream.MAX_LOW_PASS_CUTOFF, START_DURATION, Easing.OutQuad)
+        }
+    }
+
+    private fun releasePreview() {
+        previewTransition.cancel()
+        previewStream?.dispose()
+        previewStream = null
+    }
+
+    override fun onLeave() {
+        super.onLeave()
+
+        // Left without playing (back, a failed load): the preview goes back to the music service, for
+        // song select to keep playing and open its filters.
+        val stream = previewStream ?: return
+        if (isStarting) {
+            releasePreview()
+        } else {
+            previewTransition.cancel()
+            previewStream = null
+            OsuGame.music.attach(stream)
         }
     }
 
@@ -253,11 +320,13 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
                     val backgroundBrightness = Settings[OsuSettings.BackgroundBrightness]
 
                     mainContainer.fadeOut(0.1f, Easing.OutExpo)
+                    fadeOutPreview()
 
                     BeatmapBackground.fadeBrightness(backgroundBrightness / 100f, START_DURATION)
 
                     // Timed by the scene, gameplay changing the background mustn't keep it from starting.
                     delay(START_DURATION).after {
+                        releasePreview()
 
                         gameplay.session!!.hudLayer.apply {
                             alpha = 0f
@@ -446,6 +515,10 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
         // How bright the background is behind the loader, and how long it takes to fade to the
         // gameplay's brightness once it starts.
         private const val LOADING_BRIGHTNESS = 0.3f
-        private const val START_DURATION = 0.2f
+        private const val START_DURATION = 0.3f
+
+        // Where the preview's filters go while the play loads, in Hz, as osu!lazer's player loader.
+        private const val TUNNEL_LOW_PASS = 1000f
+        private const val TUNNEL_HIGH_PASS = 300f
     }
 }

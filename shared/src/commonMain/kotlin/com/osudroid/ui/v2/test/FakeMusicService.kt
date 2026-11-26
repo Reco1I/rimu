@@ -29,7 +29,8 @@ class FakeMusicService : MusicService() {
         return true
     }
 
-    override fun startStream() {
+    override fun startStream(volume: Float) {
+        this.volume = volume
         setPosition(positionPrecise)
         currentStatus = Status.PLAYING
     }

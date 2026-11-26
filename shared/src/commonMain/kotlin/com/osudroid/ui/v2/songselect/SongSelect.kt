@@ -23,6 +23,10 @@ import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.transformSequence
+import com.reco1l.verktex.ui.animate
+import com.reco1l.verktex.ui.animatableFloat
+import com.reco1l.verktex.ui.transitionSlot
+import com.reco1l.verktex.audio.AudioStream
 import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.ui.control.Dropdown
@@ -116,6 +120,13 @@ class SongSelect : Scene() {
     private var filterJob: Job? = null
 
     private var currentSongPath: String? = null
+
+    // The preview's fade in, and the filters a cancelled play left on the song opening.
+    private val musicFade = transitionSlot()
+    private val musicFilters = transitionSlot()
+    private val musicVolume = animatableFloat({ OsuGame.music.volume }) { OsuGame.music.volume = it }
+    private val musicLowPass = animatableFloat({ OsuGame.music.lowPassCutoff }) { OsuGame.music.lowPassCutoff = it }
+    private val musicHighPass = animatableFloat({ OsuGame.music.highPassCutoff }) { OsuGame.music.highPassCutoff = it }
     private var currentBeatmapLoadingJob: Job? = null
     private var currentCalculationJob: Job? = null
 
@@ -282,6 +293,9 @@ class SongSelect : Scene() {
 
         Verktex.withTreeLock { Verktex.popScene() }
         beatmapLoadingScope.cancel()
+
+        // The menu plays the next song at the end of this one.
+        OsuGame.music.previewTime = null
 
         if (Multiplayer.isMultiplayer) {
             if (resetMultiplayerBeatmap) {
@@ -524,16 +538,10 @@ class SongSelect : Scene() {
                 ensureActive()
                 OsuGame.applyModsToMusic(mods)
 
-                val previewTime = if (beatmapInfo.previewTime >= 0)
-                    beatmapInfo.previewTime
-                else
-                    (music.length * 0.4f).toInt()
+                val previewTime = music.previewPoint(beatmapInfo)
 
                 ensureActive()
-                music.play()
-
-                ensureActive()
-                music.seekTo(previewTime)
+                startPreview(previewTime)
             }
 
             ensureActive()
@@ -576,8 +584,25 @@ class SongSelect : Scene() {
         }
     }
 
+    /**
+     * Plays the song loaded from [time], silent, and fades it in. It starts over there once it ends,
+     * see [onUpdate]. Called from any thread.
+     */
+    private fun startPreview(time: Int) {
+        OsuGame.music.playPreview(time)
+
+        updateThread {
+            musicFade.run { animate(musicVolume, OsuSettings.musicVolume, PREVIEW_FADE_IN, Easing.OutQuad) }
+        }
+    }
+
     override fun onUpdate(clock: FrameClock) {
         val mods = mods
+
+        val music = OsuGame.music
+        if (music.consumePreviewEnd()) {
+            music.previewTime?.let(::startPreview)
+        }
 
         if (mods.version != shownModsVersion) {
             shownModsVersion = mods.version
@@ -641,6 +666,19 @@ class SongSelect : Scene() {
 
             currentSongPath = currentBeatmapInfo?.audioPath
 
+            // The song playing is the selection's (the menu's, or one a play gave back): it starts
+            // over at its preview point from now on.
+            val music = OsuGame.music
+            if (currentBeatmapInfo != null && music.isPlaying && music.previewTime == null) {
+                music.previewTime = music.previewPoint(currentBeatmapInfo)
+            }
+
+            // Opens the filters a cancelled play left on the song.
+            musicFilters.run {
+                animate(musicLowPass, AudioStream.MAX_LOW_PASS_CUTOFF, MUSIC_FILTER_DURATION, Easing.OutQuad)
+                animate(musicHighPass, 0f, MUSIC_FILTER_DURATION, Easing.OutQuad)
+            }
+
             filterBar.updateCollections()
             currentBeatmapInfo?.let(::showBeatmap)
         }
@@ -655,5 +693,9 @@ class SongSelect : Scene() {
 
     private companion object {
         const val BACKGROUND_BRIGHTNESS = 0.4f
+
+        // How long a preview fades in, and the filters of a cancelled play open, in seconds.
+        const val PREVIEW_FADE_IN = 0.3f
+        const val MUSIC_FILTER_DURATION = 0.3f
     }
 }

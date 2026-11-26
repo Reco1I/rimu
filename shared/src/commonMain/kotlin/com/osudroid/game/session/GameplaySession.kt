@@ -1432,14 +1432,16 @@ class GameplaySession(
         if (selectedBeatmap != null && !Multiplayer.isMultiplayer) {
             // osu!stable restarts the song back to preview time when the player is in the last 10 seconds *or* 2% of the beatmap.
             val continuePreview = mSecPassed < totalLength - 10000 && mSecPassed / totalLength < 0.98f
-            val previewTime = if (continuePreview) music.position else selectedBeatmap.previewTime
+            val position = music.position
 
             if (Settings[OsuSettings.PlayMusicPreview]) {
                 async {
                     music.stop()
                     music.preLoad(selectedBeatmap.audioPath)
-                    music.play()
-                    music.seekTo(previewTime)
+
+                    // Song select starts it over at the preview point whenever it ends.
+                    val previewPoint = music.previewPoint(selectedBeatmap)
+                    music.playPreview(if (continuePreview) position else previewPoint, previewPoint, OsuSettings.musicVolume)
                 }
             }
         }
