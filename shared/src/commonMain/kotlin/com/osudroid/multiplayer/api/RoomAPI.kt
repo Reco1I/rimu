@@ -28,7 +28,7 @@ import kotlin.concurrent.Volatile
 
 object RoomAPI {
 
-    private inline fun Listener(noinline block: (Array<out Any?>) -> Unit) = block
+    private fun Listener(block: (Array<out Any?>) -> Unit) = block
 
     /**
      * The API version.

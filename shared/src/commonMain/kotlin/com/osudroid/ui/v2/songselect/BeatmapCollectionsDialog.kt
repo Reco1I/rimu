@@ -81,7 +81,7 @@ class BeatmapCollectionsDialog(private val directory: String) : Dialog<Scrollabl
 
     private suspend fun readCollection(name: String): CollectionState {
         val table = DatabaseManager.beatmapCollectionsTable
-        return CollectionState(name, table.getBeatmaps(name)?.size ?: 0, table.inCollection(name, directory))
+        return CollectionState(name, table.getBeatmaps(name).size, table.inCollection(name, directory))
     }
 
     /**

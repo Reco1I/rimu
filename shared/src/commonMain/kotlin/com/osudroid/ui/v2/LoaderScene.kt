@@ -27,7 +27,7 @@ class LoaderScene : Scene() {
     }
 
     init {
-        backgroundComponent = Container().apply {
+        background = Background.Component(Container().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
@@ -37,7 +37,7 @@ class LoaderScene : Scene() {
                 color = Verktex.theme.palette.accent.shade(0.1f)
                 alpha = 0.9f
             }
-        }
+        })
 
         +LoadingIndicator().apply {
             anchor = Anchor.Center

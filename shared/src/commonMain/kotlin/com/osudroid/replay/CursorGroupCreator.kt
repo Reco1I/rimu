@@ -22,7 +22,7 @@ fun createCursorGroups(moves: List<MoveArray>) = mutableListOf<List<CursorGroup>
                 TouchType.MOVE -> moveMovements.add(it)
                 TouchType.UP -> {
                     if (downMovement != null) {
-                        groups.add(CursorGroup(downMovement!!, moveMovements, it))
+                        groups.add(CursorGroup(downMovement, moveMovements, it))
                     }
 
                     downMovement = null
@@ -34,7 +34,7 @@ fun createCursorGroups(moves: List<MoveArray>) = mutableListOf<List<CursorGroup>
 
         // Add the final group as the loop may not catch it for special cases.
         if (downMovement != null && moveMovements.isNotEmpty()) {
-            groups.add(CursorGroup(downMovement!!, moveMovements))
+            groups.add(CursorGroup(downMovement, moveMovements))
         }
 
         add(groups)

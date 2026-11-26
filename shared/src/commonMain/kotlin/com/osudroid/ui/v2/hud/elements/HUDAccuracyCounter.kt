@@ -50,8 +50,8 @@ class HUDAccuracyCounter : HUDElement() {
         }
     }
 
-    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
-        counter.targetValue = gameScene.stat.accuracy
+    override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {
+        counter.targetValue = game.stat.accuracy
     }
 
     override fun onUpdate(clock: FrameClock) {

@@ -30,9 +30,9 @@ class ScoreSubmissionCard(
     private val pp: Float,
 ) : ResultsSection(string.results_submission, FAIcon.CloudArrowUp) {
 
-    private lateinit var status: LinearContainer
+    private var status: LinearContainer
     private lateinit var statusText: Text
-    private lateinit var tiles: LinearContainer
+    private var tiles: LinearContainer
 
     init {
         status = linearContainer {

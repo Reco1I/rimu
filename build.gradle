@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:9.2.1'
+        classpath 'com.android.tools.build:gradle:9.5.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
     }
@@ -19,8 +19,8 @@ buildscript {
 allprojects {
     repositories {
         // Libraries Verktex uses that are published nowhere, see verktex/maven/README.md.
-        maven { url "$rootDir/verktex/maven" }
-        maven { url 'https://jitpack.io' }
+        maven { url = "$rootDir/verktex/maven" }
+        maven { url = 'https://jitpack.io' }
         google()
         mavenCentral()
     }

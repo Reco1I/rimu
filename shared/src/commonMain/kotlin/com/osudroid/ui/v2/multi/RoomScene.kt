@@ -197,7 +197,7 @@ class RoomScene(
         RoomAPI.roomEventListener = this
         chat = RoomChat()
 
-        backgroundComponent = Container().apply {
+        background = Background.Component(Container().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
@@ -207,7 +207,7 @@ class RoomScene(
                 color = Verktex.theme.palette.accent.shade(0.1f)
                 alpha = 0.9f
             }
-        }
+        })
 
         container {
             width = Dimension.FillAvailable

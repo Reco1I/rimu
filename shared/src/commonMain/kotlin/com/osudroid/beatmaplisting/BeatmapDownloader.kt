@@ -78,7 +78,7 @@ object BeatmapDownloader {
      */
     fun downloadBeatmapSet(setId: Long, filename: String) {
         val url = BeatmapMirror.selected.download.request(setId, !Settings[OsuSettings.PreferNoVideoDownloads])
-        download(url.toString(), filename, setId)
+        download(url, filename, setId)
     }
 
     /**

@@ -117,7 +117,7 @@ class Gameplay {
             Verktex.pushScene(GameLoaderScene(this, request.beatmap, request.mods, isRestart))
         }
 
-        SkinSounds.get("failsound")!!.stop()
+        SkinSounds.get("failsound").stop()
 
         // A play loading while another starts is stopped first, the loads share the object pool.
         val previousGame = lastStartedGame?.takeIf { it !== this }
@@ -289,7 +289,7 @@ class Gameplay {
         if (Multiplayer.isMultiplayer) {
             session?.releaseVideo()
 
-            OsuGame.music?.stop()
+            OsuGame.music.stop()
 
             val roomScene = Multiplayer.roomScene
 
@@ -306,7 +306,7 @@ class Gameplay {
             return
         }
 
-        SkinSounds.get("failsound")!!.stop()
+        SkinSounds.get("failsound").stop()
         returnToPreviousScene()
         session?.releaseVideo()
 

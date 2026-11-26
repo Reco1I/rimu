@@ -109,7 +109,7 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
 
     private lateinit var modPresetsSection: ModMenuPresetsSection
     private lateinit var customizeButton: TextButton
-    private lateinit var customizationMenu: ModCustomizationMenu
+    private var customizationMenu: ModCustomizationMenu
     private lateinit var selectedModsIndicator: ModsIndicator
     private lateinit var searchInput: ModMenuSearchInput
     private lateinit var rankedBadge: Badge

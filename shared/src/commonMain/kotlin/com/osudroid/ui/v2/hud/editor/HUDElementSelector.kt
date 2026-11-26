@@ -131,8 +131,8 @@ class HUDElementSelector(private val hud: GameplayHUD) : Container(), IGameplayE
         elements.forEach { it.onBreakStateChange(isBreak) }
     }
 
-    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
-        elements.forEach { it.onGameplayUpdate(gameScene, secondsElapsed) }
+    override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {
+        elements.forEach { it.onGameplayUpdate(game, secondsElapsed) }
     }
 
     override fun onGameplayTouchDown(time: Float) {

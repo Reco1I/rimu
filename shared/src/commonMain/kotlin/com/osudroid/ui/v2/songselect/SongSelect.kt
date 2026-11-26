@@ -354,7 +354,7 @@ class SongSelect : Scene() {
                 DatabaseManager.beatmapOptionsTable.getFavoriteDirectories().toSet()
             } else emptySet()
 
-            val collection = filter.collection?.let { DatabaseManager.beatmapCollectionsTable.getBeatmaps(it)?.toSet() }
+            val collection = filter.collection?.let { DatabaseManager.beatmapCollectionsTable.getBeatmaps(it).toSet() }
 
             ensureActive()
             val models = filter.apply(beatmapSets, OsuSettings.difficultyAlgorithm, favorites, collection).map {

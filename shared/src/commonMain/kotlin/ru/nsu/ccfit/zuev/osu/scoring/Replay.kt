@@ -284,7 +284,7 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
             PreciseDroidHitWindow(difficulty.od)
         else
             DroidHitWindow(difficulty.od)
-        val mehWindow = hitWindow.mehWindow.toDouble()
+        val mehWindow = hitWindow.mehWindow
 
         val objects = beatmap.hitObjects.objects
 

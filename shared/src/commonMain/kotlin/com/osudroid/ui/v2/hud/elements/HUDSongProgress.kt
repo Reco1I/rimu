@@ -17,11 +17,11 @@ import kotlin.math.roundToInt
 sealed class HUDSongProgress : HUDElement() {
     abstract fun setProgress(progress: Float, isIntro: Boolean)
 
-    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
-        if (gameScene.elapsedTime < gameScene.firstObjectStartTime) {
-            setProgress((gameScene.elapsedTime - gameScene.initialStartTime) / (gameScene.firstObjectStartTime - gameScene.initialStartTime), true)
+    override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {
+        if (game.elapsedTime < game.firstObjectStartTime) {
+            setProgress((game.elapsedTime - game.initialStartTime) / (game.firstObjectStartTime - game.initialStartTime), true)
         } else {
-            setProgress((gameScene.elapsedTime - gameScene.firstObjectStartTime) / (gameScene.lastObjectEndTime - gameScene.firstObjectStartTime), false)
+            setProgress((game.elapsedTime - game.firstObjectStartTime) / (game.lastObjectEndTime - game.firstObjectStartTime), false)
         }
     }
 }

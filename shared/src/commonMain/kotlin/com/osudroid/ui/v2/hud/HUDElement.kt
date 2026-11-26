@@ -67,7 +67,7 @@ abstract class HUDElement : Container(), IGameplayEvents {
      * Returns the name of this element.
      */
     open val name
-        get() = HUDElements[this::class].name.replace('_', ' ').capitalize()
+        get() = HUDElements[this::class].name.replace('_', ' ').replaceFirstChar { it.titlecase() }
 
     /**
      * Indicates whether the element is selected.
@@ -223,7 +223,7 @@ abstract class HUDElement : Container(), IGameplayEvents {
 
     //region Gameplay events
 
-    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {}
+    override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {}
 
     override fun onGameplayTouchDown(time: Float) {}
 

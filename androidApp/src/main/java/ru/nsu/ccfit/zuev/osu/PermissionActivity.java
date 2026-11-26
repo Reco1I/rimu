@@ -13,19 +13,31 @@ import android.net.Uri;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 
-import androidx.annotation.NonNull;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.PermissionChecker;
 
-import java.util.List;
+import java.util.Collections;
 
 import pub.devrel.easypermissions.AppSettingsDialog;
 import pub.devrel.easypermissions.EasyPermissions;
 import ru.nsu.ccfit.zuev.osuplus.R;
 
-public class PermissionActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
+public class PermissionActivity extends AppCompatActivity {
+
+    // Android 10 and older: the storage permission. Once it's denied for good, the app's settings are
+    // offered instead.
+    private final ActivityResultLauncher<String> requestStoragePermission = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(), granted -> {
+                if (granted) {
+                    checkPermissions();
+                } else if (EasyPermissions.somePermissionPermanentlyDenied(this,
+                        Collections.singletonList(Manifest.permission.WRITE_EXTERNAL_STORAGE))) {
+                    new AppSettingsDialog.Builder(this).build().show();
+                }
+            });
 
     /**
      * Whether the game can access the storage, which this screen asks for when it can't.
@@ -65,39 +77,11 @@ public class PermissionActivity extends AppCompatActivity implements EasyPermiss
         if (hasStorageAccess(this)) {
             startGameActivity();
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Access is checked again in onResume, once the player is back from the settings.
             Uri uri = Uri.parse("package:" + getPackageName());
-            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
-            startActivityForResult(intent, 2444);
+            startActivity(new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri));
         } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2333);
-        }
-    }
-
-    @Override  
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {  
-        super.onActivityResult(requestCode, resultCode, data);  
-        if(requestCode == 2444) {
-            checkPermissions();
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
-    }
-
-    @Override
-    public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
-        checkPermissions();
-    }
-
-    @Override
-    public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
-        if (PermissionChecker.checkCallingOrSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PermissionChecker.PERMISSION_GRANTED
-                && EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
-            new AppSettingsDialog.Builder(this).build().show();
+            requestStoragePermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         }
     }
 }

@@ -115,12 +115,14 @@ class MainScene : Scene() {
     private lateinit var notificationsBadge: Badge
     private lateinit var notificationCenter: NotificationCenter
     private var notificationsRevision = -1
-    private lateinit var kiaiParticles: ParticleSystem
-    private lateinit var leftFlash: GradientBox
-    private lateinit var rightFlash: GradientBox
+    // The scene's background: the kiai flashes and particles, and the seasonal effects.
+    private val backgroundLayer: Container
+    private var kiaiParticles: ParticleSystem
+    private var leftFlash: GradientBox
+    private var rightFlash: GradientBox
     private lateinit var logo: OsuLogo
     private lateinit var menuContainer: Container
-    private lateinit var menuGradientBox: GradientBox
+    private var menuGradientBox: GradientBox
 
     private var isMenuExpanded = false
         set(value) {
@@ -160,7 +162,7 @@ class MainScene : Scene() {
 
     init {
 
-        backgroundComponent = Container().apply {
+        backgroundLayer = Container().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
@@ -204,6 +206,7 @@ class MainScene : Scene() {
                 textureReference = skinTexture("star")
             }
         }
+        background = Background.Component(backgroundLayer)
 
         linearContainer {
             orientation = LinearContainer.Orientation.Horizontal
@@ -450,10 +453,8 @@ class MainScene : Scene() {
         if (!hasEntered) {
             hasEntered = true
 
-            (background as? Container)?.let {
-                addSnowfallWithPeriod(it)
-                addFireworksWithPeriod(it)
-            }
+            addSnowfallWithPeriod(backgroundLayer)
+            addFireworksWithPeriod(backgroundLayer)
 
             // Only logs in when staying online is enabled.
             OnlineScoring.getInstance().login()

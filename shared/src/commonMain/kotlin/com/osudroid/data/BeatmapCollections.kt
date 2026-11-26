@@ -43,7 +43,7 @@ interface IBeatmapCollectionsDAO {
 
 
     @Query("SELECT setDirectory FROM BeatmapSetCollection_BeatmapSetInfo WHERE collectionName = :collectionName")
-    suspend fun getBeatmaps(collectionName: String): List<String>?
+    suspend fun getBeatmaps(collectionName: String): List<String>
 
     @Query("INSERT OR IGNORE INTO BeatmapSetCollection_BeatmapSetInfo (collectionName, setDirectory) VALUES (:collectionName, :setDirectory)")
     suspend fun addBeatmap(collectionName: String, setDirectory: String): Long

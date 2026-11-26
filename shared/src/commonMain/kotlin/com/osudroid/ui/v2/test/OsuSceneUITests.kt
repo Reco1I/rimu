@@ -202,7 +202,7 @@ object OsuSceneUITests : UITestSuite("Scenes") {
             // The mock socket of debug builds answers as the server would, it ends up showing the
             // room scene, the first scene pushed into the stage.
             val online = OnlineManager.getInstance()
-            RoomAPI.connectToRoom(1, online.userId, online.sessionId ?: "")
+            RoomAPI.connectToRoom(1, online.userId, online.sessionId)
 
             roomEvents()
         }

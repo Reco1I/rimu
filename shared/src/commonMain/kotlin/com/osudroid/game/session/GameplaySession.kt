@@ -77,6 +77,7 @@ import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
@@ -360,12 +361,12 @@ class GameplaySession(
         root += backgroundLayer
         root += gameplaySpace
 
-        // The background of a scene isn't one of its children, so it doesn't inherit the scene's clock. The
-        // timelines of the hit objects and the HUD are on the gameplay clock.
+        // The timelines of the hit objects and the HUD are on the gameplay clock, not the scene's.
         root.clock = gameplayClock
 
+        // The root is the scene's background, laid out over the whole scene instead of in its safe area.
         val scene = GameUIScene()
-        scene.backgroundComponent = root
+        scene.background = Background.Component(root)
         return scene
     }
 
@@ -958,9 +959,7 @@ class GameplaySession(
         val music = OsuGame.music
 
         // Hook up the framed beatmap clock as the scene's clock. Use MusicService as the audio source.
-        if (music != null) {
-            gameplayClock.changeSource(MusicClock(music))
-        }
+        gameplayClock.changeSource(MusicClock(music))
 
         // Ensure user-defined offset has time to be applied.
         gameplayClock.userGlobalOffset = OsuSettings.offset / 1000
@@ -970,7 +969,7 @@ class GameplaySession(
         gameplayClock.seek(min(gameplayClock.time, firstObjectStartTime - firstObjectTimePreempt))
         initialStartTimeValue = gameplayClock.time
 
-        music?.volume = OsuSettings.musicVolume
+        music.volume = OsuSettings.musicVolume
 
         gameplayClock.start()
         SkinTextures.startPlayTracking()
@@ -1237,7 +1236,7 @@ class GameplaySession(
                         latestDownEvent.playfieldPosition.y, area.z, area.w) < radius * radius) {
                     if (Multiplayer.isConnected) {
                         multiplayer.requestSkip {
-                            SkinSounds.get("menuhit")!!.play()
+                            SkinSounds.get("menuhit").play()
                             skipBtn!!.isVisible = false
                         }
                         return true
@@ -1376,7 +1375,7 @@ class GameplaySession(
             return
         }
 
-        SkinSounds.get("menuhit")!!.play()
+        SkinSounds.get("menuhit").play()
 
         val difference = skipTime - gameplayClock.time
         gameplayClock.seek(skipTime)
@@ -1430,7 +1429,7 @@ class GameplaySession(
         val selectedBeatmap = BeatmapSelection.beatmap
         val music = OsuGame.music
 
-        if (music != null && selectedBeatmap != null && !Multiplayer.isMultiplayer) {
+        if (selectedBeatmap != null && !Multiplayer.isMultiplayer) {
             // osu!stable restarts the song back to preview time when the player is in the last 10 seconds *or* 2% of the beatmap.
             val continuePreview = mSecPassed < totalLength - 10000 && mSecPassed / totalLength < 0.98f
             val previewTime = if (continuePreview) music.position else selectedBeatmap.previewTime
@@ -1898,7 +1897,7 @@ class GameplaySession(
             return
         }
 
-        SkinSounds.get("failsound")!!.play()
+        SkinSounds.get("failsound").play()
         gameStarted = false
 
         val initialFrequency = music.frequency
@@ -2512,7 +2511,7 @@ class GameplaySession(
         private fun updateReplayText(deltaTimeSec: Float) {
             val replayText = replayText!!
             val textWidth = replayText.bounds.width
-            val hudWidth = hud.bounds?.width ?: GameplayHUD.REFERENCE_WIDTH
+            val hudWidth = hud.bounds.width
             val distance = hudWidth + 5 + textWidth
             val x = replayText.x.resolve(0f) - distance / 40f * deltaTimeSec
 

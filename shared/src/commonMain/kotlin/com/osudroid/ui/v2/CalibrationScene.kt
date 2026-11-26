@@ -104,11 +104,11 @@ class CalibrationScene(
 
     init {
         // Background
-        backgroundComponent = Box().apply {
+        background = Background.Component(Box().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             color = Verktex.theme.palette.accent.shade(0.08f)
-        }
+        })
 
         textButton {
             anchor = Anchor.TopLeft

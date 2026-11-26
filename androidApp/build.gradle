@@ -11,6 +11,8 @@ def getReleaseVersionName() {
     return versionName
 }
 
+def releaseVersionName = getReleaseVersionName()
+
 def localProperties = new Properties()
 def localPropertiesFile = new File(rootDir.getAbsolutePath(), 'local.properties')
 if (localPropertiesFile.exists()) {
@@ -21,30 +23,29 @@ if (localPropertiesFile.exists()) {
 // class, the other activities) and what an application decides: its id, version, signing and build
 // types. The game itself is :shared.
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 
 android {
     // :shared has the namespace the application had (ru.nsu.ccfit.zuev.osuplus), for its resources,
     // so the application takes another one and sets its id itself.
-    namespace 'ru.nsu.ccfit.zuev.osuplus.app'
+    namespace = 'ru.nsu.ccfit.zuev.osuplus.app'
     compileSdk {
         version = release(36) { minorApiLevel = 1 }
     }
-    ndkVersion '22.1.7171670'
+    ndkVersion = '22.1.7171670'
 
     defaultConfig {
-        applicationId 'com.reco1l.osudroid'
+        applicationId = 'com.reco1l.osudroid'
         manifestPlaceholders = [uiTestsEnabled: "false", profileable: "false"]
-        minSdkVersion 24
-        targetSdkVersion 29
-        versionCode getReleaseVersionCode()
-        versionName getReleaseVersionName()
-        multiDexEnabled true
+        minSdk = 24
+        targetSdk = 29
+        versionCode = getReleaseVersionCode()
+        versionName = releaseVersionName
+        multiDexEnabled = true
         ndk {
-            abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+            abiFilters += ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
         }
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes += ['META-INF/proguard/coroutines.pro']
         }
@@ -58,10 +59,10 @@ android {
     signingConfigs {
         if (releaseKeystore) {
             release {
-                storeFile file(releaseKeystore)
-                storePassword localProperties.getProperty('RELEASE_KEYSTORE_PASSWORD')
-                keyAlias localProperties.getProperty('RELEASE_KEY_ALIAS')
-                keyPassword localProperties.getProperty('RELEASE_KEY_PASSWORD')
+                storeFile = file(releaseKeystore)
+                storePassword = localProperties.getProperty('RELEASE_KEYSTORE_PASSWORD')
+                keyAlias = localProperties.getProperty('RELEASE_KEY_ALIAS')
+                keyPassword = localProperties.getProperty('RELEASE_KEY_PASSWORD')
             }
         }
     }
@@ -69,7 +70,7 @@ android {
     buildTypes {
         debug {
             resValue "string", "app_name", "osu!droid-reci-debug"
-            applicationIdSuffix '.debug'
+            applicationIdSuffix = '.debug'
             manifestPlaceholders = [uiTestsEnabled: "true", profileable: "false"]
         }
 
@@ -78,7 +79,7 @@ android {
 //            minifyEnabled true
 //            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
             if (releaseKeystore) {
-                signingConfig signingConfigs.release
+                signingConfig = signingConfigs.release
             }
         }
 
@@ -86,37 +87,47 @@ android {
         // profileable from the shell (simpleperf) and with the UI tests. Installs over the debug app.
         profile {
             initWith debug
-            debuggable false
+            debuggable = false
             matchingFallbacks = ['release']
             manifestPlaceholders = [uiTestsEnabled: "true", profileable: "true"]
-            signingConfig signingConfigs.debug
+            signingConfig = signingConfigs.debug
         }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-        kotlinOptions {
-            jvmTarget = '17'
-            freeCompilerArgs += ['-jvm-default=no-compatibility', '-Xexplicit-backing-fields']
-        }
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // The build type the activities give the engine (Platform.application).
+    // The build type the activities give the engine (Platform.application), and the application's
+    // name of each build type (resValue).
     buildFeatures {
-        buildConfig true
+        buildConfig = true
+        resValues = true
     }
 
     lint {
-        abortOnError true
-        disable 'MissingTranslation', 'ExpiredTargetSdkVersion', 'ProtectedPermissions', 'AppLinkUrlError'
-        ignoreWarnings true
+        abortOnError = true
+        disable += ['MissingTranslation', 'ExpiredTargetSdkVersion', 'ProtectedPermissions', 'AppLinkUrlError']
+        ignoreWarnings = true
     }
 
-    android.applicationVariants.configureEach { variant ->
-        variant.outputs.configureEach { output ->
-            def fileName = "osudroid-reci-${defaultConfig.versionName}-${variant.buildType.name}.apk"
-            outputFileName = fileName
+}
+
+// Kotlin is AGP's own (built-in Kotlin).
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        freeCompilerArgs.add('-jvm-default=no-compatibility')
+    }
+}
+
+// The APKs are named osudroid-reci-<version>-<build type>.apk. The variant API has no public way to
+// name them: outputFileName is a property of its implementation (VariantOutputImpl).
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.outputs.each { output ->
+            output.outputFileName.set("osudroid-reci-${releaseVersionName}-${variant.buildType}.apk")
         }
     }
 }

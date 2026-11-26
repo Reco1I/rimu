@@ -52,12 +52,12 @@ class BeatmapSetHeader(headerHeight: Dimension.Fixed) : Container() {
     var set: BeatmapSetModel? = null
         private set
 
-    private lateinit var cover: Sprite
-    private lateinit var statusBadge: Badge
-    private lateinit var downloadedBadge: Badge
+    private var cover: Sprite
+    private var statusBadge: Badge
+    private var downloadedBadge: Badge
     private lateinit var titleText: Text
     private lateinit var artistText: Text
-    private lateinit var progressBar: Box
+    private var progressBar: Box
 
     private var coverJob: Job? = null
 

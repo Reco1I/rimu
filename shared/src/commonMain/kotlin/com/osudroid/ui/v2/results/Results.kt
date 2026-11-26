@@ -123,7 +123,7 @@ class Results(private val gameplay: Gameplay) {
 
         if (isFreshPlay) {
             SkinSounds["applause"].play()
-            saveAndSubmit(stat, beatmap!!, replayPath, scene)
+            saveAndSubmit(stat, beatmap, replayPath, scene)
         }
     }
 

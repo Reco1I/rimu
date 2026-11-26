@@ -315,9 +315,9 @@ class GameplayHUD(
     internal val elementChildren: List<Component>
         get() = children
 
-    override fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float) {
-        forEachElement { it.onGameplayUpdate(gameScene, secondsElapsed) }
-        elementSelector?.onGameplayUpdate(gameScene, secondsElapsed)
+    override fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float) {
+        forEachElement { it.onGameplayUpdate(game, secondsElapsed) }
+        elementSelector?.onGameplayUpdate(game, secondsElapsed)
     }
 
     override fun onGameplayTouchDown(time: Float) {

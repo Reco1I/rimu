@@ -15,7 +15,6 @@ java {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
-        freeCompilerArgs.add("-Xexplicit-backing-fields")
         optIn.add("com.reco1l.verktex.VerktexPlatformApi")
     }
 }
@@ -34,7 +33,7 @@ sourceSets.main {
 
 // The version and build type OsuDesktop reads (DESKTOP_APPLICATION): a debug build without a version
 // unless built with -PdesktopVersion and -PdesktopBuildType=release, as the release workflow does.
-val generateApplicationProperties by tasks.registering(WriteProperties::class) {
+val generateApplicationProperties = tasks.register<WriteProperties>("generateApplicationProperties") {
     destinationFile.set(layout.buildDirectory.file("generated/application/osudroid-desktop.properties"))
     property("versionName", providers.gradleProperty("desktopVersion").orElse("desktop"))
     property("buildType", providers.gradleProperty("desktopBuildType").orElse("debug"))

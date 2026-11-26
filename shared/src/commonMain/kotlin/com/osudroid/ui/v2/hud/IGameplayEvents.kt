@@ -7,7 +7,7 @@ import com.osudroid.scoring.Statistic
 
 interface IGameplayEvents {
 
-    fun onGameplayUpdate(gameScene: GameplayState, secondsElapsed: Float)
+    fun onGameplayUpdate(game: GameplayState, secondsElapsed: Float)
 
     /**
      * Called when a pointer down event occurs in gameplay.

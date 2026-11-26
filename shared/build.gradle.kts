@@ -11,14 +11,14 @@ import org.w3c.dom.Element
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.kotlin.multiplatform.library")
-    id("com.google.devtools.ksp") version "2.3.12"
+    id("com.google.devtools.ksp") version "2.3.14"
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 // The localizations come from the language pack, an Android library. Its resources are read where
 // each platform runs: by Android itself, and from these same files on the other platforms. The game
 // refers to them through Res, generated from the language pack's names.
-val languagePack: Configuration by configurations.creating {
+val languagePack: Configuration = configurations.create("languagePack") {
     isCanBeConsumed = false
     isTransitive = false
 }
@@ -153,7 +153,7 @@ abstract class GenerateStringResources : DefaultTask() {
     }.trim(' ')
 }
 
-val generateStringResources by tasks.registering(GenerateStringResources::class) {
+val generateStringResources = tasks.register<GenerateStringResources>("generateStringResources") {
     languagePack.from(configurations.named("languagePack"))
     extraStrings.from(layout.projectDirectory.file("strings/strings_temporary_for_locals.xml"))
     outputDirectory.set(layout.buildDirectory.dir("generated/resources/commonMain/kotlin"))
@@ -229,7 +229,7 @@ abstract class CheckCommonSources : DefaultTask() {
     }
 }
 
-val checkCommonSources by tasks.registering(CheckCommonSources::class) {
+val checkCommonSources = tasks.register<CheckCommonSources>("checkCommonSources") {
     sources.from(layout.projectDirectory.dir("src/commonMain/kotlin"))
     report.set(layout.buildDirectory.file("reports/checkCommonSources.txt"))
 }
@@ -276,7 +276,8 @@ kotlin {
     }
 
     compilerOptions {
-        freeCompilerArgs.add("-Xexplicit-backing-fields")
+        // Room generates the expect/actual constructor of the database (OsuDatabaseConstructor).
+        freeCompilerArgs.add("-Xexpect-actual-classes")
         optIn.add("kotlin.uuid.ExperimentalUuidApi")
         optIn.add("kotlin.concurrent.atomics.ExperimentalAtomicApi")
         optIn.add("kotlin.time.ExperimentalTime")

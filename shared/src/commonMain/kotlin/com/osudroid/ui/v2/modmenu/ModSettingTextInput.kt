@@ -31,8 +31,8 @@ class NullableIntegerModSettingTextInput(mod: Mod, setting: ModSetting<Int?>) : 
     @Suppress("UNCHECKED_CAST")
     override fun createControl() = IntegerFormInput(
         setting.initialValue,
-        (setting as? RangeConstrainedModSetting<Int?>)?.minValue,
-        (setting as? RangeConstrainedModSetting<Int?>)?.maxValue
+        (setting as? RangeConstrainedModSetting<*>)?.minValue as Int?,
+        (setting as? RangeConstrainedModSetting<*>)?.maxValue as Int?
     ) as FormControl<String, Control<String>>
 
     override fun convertControlValue(value: String) = value.toIntOrNull()
@@ -53,8 +53,8 @@ class NullableFloatModSettingTextInput(mod: Mod, setting: ModSetting<Float?>) : 
     @Suppress("UNCHECKED_CAST")
     override fun createControl() = FloatFormInput(
         setting.initialValue,
-        (setting as? RangeConstrainedModSetting<Float?>)?.minValue,
-        (setting as? RangeConstrainedModSetting<Float?>)?.maxValue
+        (setting as? RangeConstrainedModSetting<*>)?.minValue as Float?,
+        (setting as? RangeConstrainedModSetting<*>)?.maxValue as Float?
     ) as FormControl<String, Control<String>>
 
     override fun convertControlValue(value: String) = value.toFloatOrNull()

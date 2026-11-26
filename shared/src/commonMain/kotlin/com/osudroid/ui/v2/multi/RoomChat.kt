@@ -77,7 +77,7 @@ class RoomChat : LinearContainer() {
 
     private val button = ChatButton()
 
-    private lateinit var content: LinearContainer
+    private var content: LinearContainer
     private lateinit var input: TextInput
     private lateinit var messageContainer: LinearContainer
 
@@ -284,7 +284,7 @@ class RoomChat : LinearContainer() {
 
     inner class ChatButton : ClickableContainer() {
 
-        private lateinit var summaryText: Text
+        private var summaryText: Text
 
 
         init {
