@@ -25,7 +25,10 @@ import kotlinx.coroutines.Job
  * The background of the whole game, the engine's ([Verktex.background]): the background of the
  * selected beatmap ([BeatmapSelection]), or the skin's `menu-background` without one or with safe
  * backgrounds, crossfading as the selection changes whatever scene is shown. Scenes don't draw
- * their own, they set how bright it is ([fadeBrightness]) and draw over it.
+ * their own, they set how bright it is ([fadeBrightness]) and draw over it. The ones where the
+ * selection changes keep it at full brightness and dim it with a box of their own, as song select
+ * does: [CrossfadeSprite] multiplies the alpha into each of its sprites, so a crossfade under a
+ * lowered brightness shows the old texture through the new one, brightening while it runs.
  *
  * It's dimmed by its alpha, over the black of the window, rather than covered with black, which
  * would cost a fullscreen layer, and a fully dimmed background isn't drawn at all.
@@ -35,7 +38,7 @@ object BeatmapBackground : Container() {
     /**
      * How long the fade to another background takes by default, in seconds, see [crossfadeDuration].
      */
-    const val CROSSFADE_DURATION = 0.5f
+    const val CROSSFADE_DURATION = 0.35f
 
     /**
      * How long [fadeBrightness] takes by default, in seconds.

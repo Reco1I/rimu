@@ -10,7 +10,6 @@ import com.osudroid.BeatmapSelection
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.toast.Toasts
 import com.reco1l.verktex.ui.text.spans
-import com.reco1l.verktex.data.LayoutConstraints
 import com.acivev.ui.addSnowfallWithPeriod
 import com.acivev.ui.addFireworksWithPeriod
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
@@ -41,11 +40,6 @@ import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.Easing
-import com.reco1l.verktex.ui.animatableFloat
-import com.reco1l.verktex.ui.animate
-import com.reco1l.verktex.ui.fadeTo
-import com.reco1l.verktex.ui.moveToX
-import com.reco1l.verktex.ui.transitionSlot
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.Button
@@ -56,8 +50,8 @@ import com.reco1l.verktex.ui.iconButton
 import com.osudroid.notifications.Notifications
 import com.osudroid.ui.v2.notifications.NotificationCenter
 import com.reco1l.verktex.ui.GradientBox
+import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.Scene
-import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
@@ -67,6 +61,7 @@ import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.dialog.Dialog
+import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.rotateTo
@@ -77,6 +72,7 @@ import com.reco1l.verktex.ui.text.buildSpannedText
 import com.reco1l.verktex.ui.text.faSolidIcon
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
+import com.reco1l.verktex.ui.transformSequence
 import ru.nsu.ccfit.zuev.osu.*
 import ru.nsu.ccfit.zuev.osu.helper.*
 import ru.nsu.ccfit.zuev.osu.online.*
@@ -108,8 +104,6 @@ class MainScene : Scene() {
     private lateinit var playerButton: PlayerButton
     private lateinit var musicButton: TextButton
 
-    // Animated instead of the button, which drives its own alpha.
-    private lateinit var musicButtonHolder: Container
     private lateinit var musicPlayer: MusicPlayer
     private lateinit var notificationsButton: IconButton
     private lateinit var notificationsBadge: Badge
@@ -120,44 +114,17 @@ class MainScene : Scene() {
     private var kiaiParticles: ParticleSystem
     private var leftFlash: GradientBox
     private var rightFlash: GradientBox
-    private lateinit var logo: OsuLogo
+    private lateinit var logo: RimuLogo
     private lateinit var menuContainer: Container
-    private var menuGradientBox: GradientBox
+    private lateinit var topBar: Container
 
-    private var isMenuExpanded = false
-        set(value) {
-            if (field != value) {
-                field = value
-                animateMenu(value)
-            }
-        }
     private var isExiting = false
     private var hasEntered = false
-
-    // Seconds the menu has been expanded without being used.
-    private var menuIdleTime = 0f
-
-    private var lastMusicChange = currentTimeMillis()
 
     // Seconds left emitting stars after a kiai section started, and the emission not done yet.
     private var kiaiParticleTime = 0f
     private var kiaiParticleBacklog = 0f
     private var wasKiai = false
-
-    private var menuWidth = 0f
-    private var menuContentWidth = 0f
-    private var isMusicButtonShown = false
-
-    private val logoTransition by lazy { logo.transitionSlot() }
-    private val menuTransition by lazy { menuContainer.transitionSlot() }
-    private val menuGradientTransition by lazy { menuGradientBox.transitionSlot() }
-    private val playerButtonTransition by lazy { playerButton.transitionSlot() }
-    private val musicButtonTransition by lazy { musicButtonHolder.transitionSlot() }
-
-    private val menuWidthProperty = animatableFloat({ menuWidth }, {
-        menuWidth = it
-        menuContainer.width = it.px
-    })
 
 
     init {
@@ -194,10 +161,26 @@ class MainScene : Scene() {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 gradientAngle = 270f
-                alpha = 0f
                 colorStart = Verktex.theme.palette.accent.shade(0.1f)
                 colorEnd = (Verktex.theme.palette.accent.shade(0.1f)).alpha(0.5f)
-                menuGradientBox = this
+            }
+
+            // The music's spectrum along the top and bottom edges.
+            +LinearVisualizer().apply {
+                width = Dimension.FillAvailable
+                height = SPECTRUM_HEIGHT
+                anchor = Anchor.TopLeft
+                origin = Anchor.TopLeft
+                fromTop = true
+                alpha = SPECTRUM_ALPHA
+            }
+
+            +LinearVisualizer().apply {
+                width = Dimension.FillAvailable
+                height = SPECTRUM_HEIGHT
+                anchor = Anchor.BottomLeft
+                origin = Anchor.BottomLeft
+                alpha = SPECTRUM_ALPHA
             }
 
             kiaiParticles = particleSystem(maxParticles = 128) {
@@ -213,23 +196,11 @@ class MainScene : Scene() {
             anchor = Anchor.Center
             origin = Anchor.Center
 
-            +OsuLogo().apply {
+            +RimuLogo().apply {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
                 scaleOrigin = Anchor.Center
                 rotationOrigin = Anchor.Center
-                width = 256f.dip
-                height = 256f.dip
-
-                onActionUp = {
-                    playClickEffect()
-                    SkinSounds["menuhit"].play()
-                    isMenuExpanded = !isMenuExpanded
-                    onMenuInteraction()
-                }
-
-                // Bigger while the menu is folded, see animateMenu.
-                scale = 1.3f
                 logo = this
             }
 
@@ -239,8 +210,6 @@ class MainScene : Scene() {
                 anchor = Anchor.CenterLeft
                 origin = Anchor.CenterLeft
                 padding = Padding(left = 32f.dip)
-                width = 0f.px
-                alpha = 0f
 
                 +CarrouselLinearContainer(logo).apply {
                     orientation = LinearContainer.Orientation.Vertical
@@ -306,7 +275,7 @@ class MainScene : Scene() {
         }
 
         // Top bar
-        container {
+        topBar = container {
             width = fill()
             padding = Padding(16f.dip)
 
@@ -314,16 +283,12 @@ class MainScene : Scene() {
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
                 scaleOrigin = Anchor.Center
-                // Hidden with the menu, see animateMenu.
-                alpha = 0f
-                translationX = (-32f).dip
                 playerButton = this
             }
 
-            musicButtonHolder = container {
+            container {
                 anchor = Anchor.TopRight
                 origin = Anchor.TopRight
-                alpha = 0f
                 // Left of the notifications button.
                 padding = Padding(right = 52f.dip)
 
@@ -331,11 +296,7 @@ class MainScene : Scene() {
                     scaleOrigin = Anchor.Center
                     leadingIcon = faSolidIcon(FAIcon.Music)
 
-                    onActionUp = {
-                        if (musicButtonHolder.alpha > 0f) {
-                            musicPlayer.show()
-                        }
-                    }
+                    onActionUp = { musicPlayer.show() }
                 }
                 musicPlayer = MusicPlayer(musicButton)
             }
@@ -410,7 +371,7 @@ class MainScene : Scene() {
         }
 
         isExiting = true
-        isMenuExpanded = false
+        menuContainer.fadeOut(0.3f, Easing.OutQuint)
 
         OsuGame.music.stop()
         SkinSounds["seeya"].play()
@@ -471,6 +432,26 @@ class MainScene : Scene() {
         }
 
         updateMusicButton()
+
+        // Entrance: the top bar slides down, the logo and then the menu rise.
+        topBar.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = (-20f).dip
+            transformSequence {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
+        listOf(logo, menuContainer).forEachIndexed { index, part ->
+            part.clearTransforms()
+            part.alpha = 0f
+            part.translationY = 32f.dip
+            part.transformSequence(0.05f + index * 0.05f) {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
     }
 
     override fun onLeave() {
@@ -483,7 +464,6 @@ class MainScene : Scene() {
         val beatmap = BeatmapSelection.beatmap
         musicButton.text =
             if (beatmap != null) "${beatmap.titleText} - ${beatmap.artistText}" else ""
-        lastMusicChange = currentTimeMillis()
     }
 
     /**
@@ -531,17 +511,11 @@ class MainScene : Scene() {
         }
     }
 
-    // Resets the time until the expanded menu folds back.
-    private fun onMenuInteraction() {
-        menuIdleTime = 0f
-    }
-
-    // A menu button that clicks and keeps the menu expanded before running its action.
+    // A menu button that clicks before running its action.
     private fun menuButton(icon: Int, title: String, action: () -> Unit) =
         MenuButton(icon, title).apply {
             onActionUp = {
                 SkinSounds["menuhit"].play()
-                onMenuInteraction()
                 action()
             }
         }
@@ -551,26 +525,6 @@ class MainScene : Scene() {
         val deltaTimeSec = clock.elapsedFrameTime
 
         RythimManager.onUpdate(deltaTimeSec)
-
-        // The expanded menu folds back after a while without being used, as the old menu did.
-        if (isMenuExpanded) {
-            menuIdleTime += deltaTimeSec
-            if (menuIdleTime >= MENU_IDLE_TIMEOUT) {
-                isMenuExpanded = false
-            }
-        }
-
-        // Shown while it might be used: checked every update as it also depends on the time.
-        val mightShowMusicButton =
-            isMenuExpanded || musicPlayer.isShown || currentTimeMillis() - lastMusicChange < 3000
-
-        if (mightShowMusicButton != isMusicButtonShown) {
-            isMusicButtonShown = mightShowMusicButton
-            musicButtonTransition.run {
-                moveToX(if (mightShowMusicButton) 0f else 32f.dip.toPixels(), BUTTON_SLIDE_DURATION, Easing.OutQuint)
-                fadeTo(if (mightShowMusicButton) 1f else 0f, BUTTON_SLIDE_DURATION, Easing.OutQuint)
-            }
-        }
 
         updateKiaiParticles(deltaTimeSec)
         updateNotificationsBadge()
@@ -608,27 +562,6 @@ class MainScene : Scene() {
         updateMusicButton()
     }
 
-    private fun animateMenu(expanded: Boolean) {
-        // The content is measured by itself, inside the container it would be limited to the width being animated.
-        if (menuContentWidth <= 0f && menuContainer.childCount > 0) {
-            val unbounded = LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
-            menuContentWidth = menuContainer[0].measure(unbounded).x + menuContainer.paddingLeft.toPixels()
-        }
-
-        logoTransition.run { scaleTo(if (expanded) 1f else 1.3f, LOGO_SCALE_DURATION, Easing.OutQuint) }
-
-        menuTransition.run {
-            animate(menuWidthProperty, if (expanded) menuContentWidth else 0f, MENU_DURATION, Easing.OutQuint)
-            fadeTo(if (expanded) 1f else 0f, MENU_DURATION, Easing.OutQuint)
-        }
-        menuGradientTransition.run { fadeTo(if (expanded) 1f else 0f, MENU_GRADIENT_DURATION, Easing.OutQuint) }
-
-        playerButtonTransition.run {
-            moveToX(if (expanded) 0f else (-32f).dip.toPixels(), BUTTON_SLIDE_DURATION, Easing.OutQuint)
-            fadeTo(if (expanded) 1f else 0f, BUTTON_SLIDE_DURATION, Easing.OutQuint)
-        }
-    }
-
     // On a beat, a flash lights up and fades out over the length of the beat.
     private fun flash(flash: GradientBox, alpha: Float) {
         val beatLengthSeconds =
@@ -641,15 +574,10 @@ class MainScene : Scene() {
 
     companion object {
 
-        // Seconds the expanded menu waits without being used before folding back.
-        private const val MENU_IDLE_TIMEOUT = 10f
+        private val SPECTRUM_HEIGHT = 96f.dip
+        private const val SPECTRUM_ALPHA = 0.4f
 
-        private const val LOGO_SCALE_DURATION = 0.4f
-        private const val MENU_DURATION = 0.3f
-        private const val MENU_GRADIENT_DURATION = 0.5f
-        private const val BUTTON_SLIDE_DURATION = 0.25f
-
-        private const val BACKGROUND_FADE_DURATION = 1.5f
+        private const val BACKGROUND_FADE_DURATION = 1f
         private const val KIAI_PARTICLE_DURATION = 2f
 
         // Stars per second from each corner.
@@ -706,15 +634,22 @@ class MenuButton(icon: Int, title: String) : TextButton() {
 }
 
 
-class CarrouselLinearContainer(private val logo: OsuLogo) : LinearContainer() {
+/**
+ * A column whose items lean away from the vertical center of [logo] the farther they are from it,
+ * [shear] at [shearDistance] away.
+ */
+class CarrouselLinearContainer(private val logo: Component) : LinearContainer() {
 
     var shear: Dimension.Fixed = 32f.dip
 
+    var shearDistance: Dimension.Fixed = 128f.dip
+
     override fun onUpdate(clock: FrameClock) {
         val logoHalfHeight = logo.bounds.height / 2f
+        val shearDistance = shearDistance.toPixels()
 
-        // Before the first layout the logo has no size yet, and dividing by it would leave the buttons at NaN.
-        if (logoHalfHeight <= 0f) {
+        // Before the first layout the logo has no size yet.
+        if (logoHalfHeight <= 0f || shearDistance <= 0f) {
             super.onUpdate(clock)
             return
         }
@@ -725,7 +660,7 @@ class CarrouselLinearContainer(private val logo: OsuLogo) : LinearContainer() {
         forEach { component ->
             val componentMiddleY = component.toSceneSpace(0f, component.bounds.height / 2f).y
 
-            val percentageDistance = (componentMiddleY - logoCenterY) / logoHalfHeight
+            val percentageDistance = (componentMiddleY - logoCenterY) / shearDistance
 
             component.translationX = (-shear * abs(percentageDistance)).px
         }

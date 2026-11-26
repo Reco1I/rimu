@@ -26,6 +26,7 @@ import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.transformSequence
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.container.ScrollableContainer
@@ -71,6 +72,7 @@ class SettingsMenu : Scene() {
 
     private lateinit var sectionScroll: ScrollableContainer
     private lateinit var sectionContainer: LinearContainer
+    private lateinit var sidebar: Container
 
     private val playfieldAreaDisplay = PlayfieldAreaDisplay()
 
@@ -88,7 +90,7 @@ class SettingsMenu : Scene() {
                 orientation = Orientation.Horizontal
 
                 // Sections
-                extendIntoSafeAreaContainer {
+                sidebar = extendIntoSafeAreaContainer {
                     height = fill()
                     background = Background.Color(themed { palette.buttonBackgroundSurface })
 
@@ -177,6 +179,17 @@ class SettingsMenu : Scene() {
     override fun onEnter() {
         super.onEnter()
         generateSection(contentOf(selectedSection))
+
+        // Entrance: the sidebar and then the section rise.
+        listOf(sidebar, sectionScroll).forEachIndexed { index, part ->
+            part.clearTransforms()
+            part.alpha = 0f
+            part.translationY = 32f.dip
+            part.transformSequence(0.05f + index * 0.05f) {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
     }
 
     private fun contentOf(section: SettingsSection) = when (section) {

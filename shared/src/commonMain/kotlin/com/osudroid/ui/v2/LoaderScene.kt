@@ -4,6 +4,10 @@ import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.math.Easing
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.transformSequence
 import com.reco1l.verktex.ui.LoadingIndicator
 import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.Sprite
@@ -26,6 +30,11 @@ class LoaderScene : Scene() {
         return false
     }
 
+    private val loadingIndicator = LoadingIndicator().apply {
+        anchor = Anchor.Center
+        origin = Anchor.Center
+    }
+
     init {
         background = Background.Component(Container().apply {
             width = Dimension.FillAvailable
@@ -39,9 +48,21 @@ class LoaderScene : Scene() {
             }
         })
 
-        +LoadingIndicator().apply {
-            anchor = Anchor.Center
-            origin = Anchor.Center
+        +loadingIndicator
+    }
+
+    override fun onEnter() {
+        super.onEnter()
+
+        // Entrance: the indicator rises.
+        loadingIndicator.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = 32f.dip
+            transformSequence(0.05f) {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
         }
     }
 

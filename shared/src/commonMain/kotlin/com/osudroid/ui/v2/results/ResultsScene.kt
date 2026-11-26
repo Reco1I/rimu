@@ -41,6 +41,7 @@ import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.animatableFloat
 import com.reco1l.verktex.ui.badge
+import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.LinearContainer.Orientation
@@ -101,6 +102,8 @@ class ResultsScene(
     private lateinit var sections: LinearContainer
     private lateinit var submissionSlot: LinearContainer
     private lateinit var leaderboardSlot: Container
+    private lateinit var topBar: Container
+    private lateinit var body: LinearContainer
 
     private var performanceSection: ResultsSection? = null
 
@@ -116,9 +119,9 @@ class ResultsScene(
             height = fill()
             orientation = Orientation.Vertical
 
-            topBar()
+            topBar = topBar()
 
-            linearContainer {
+            body = linearContainer {
                 width = fill()
                 height = fill()
                 spacing = 16f.dip
@@ -564,6 +567,29 @@ class ResultsScene(
 
         // Tinted by the scene, it's as bright as in the menu (gameplay dimmed it).
         BeatmapBackground.fadeBrightness(1f)
+
+        // Entrance: the top bar slides down and the body rises, but for a score just played,
+        // whose rank and sections have an entrance of their own (see enter()).
+        topBar.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = (-20f).dip
+            transformSequence {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
+        if (hasEntered || !isFreshPlay) {
+            body.apply {
+                clearTransforms()
+                alpha = 0f
+                translationY = 32f.dip
+                transformSequence(0.05f) {
+                    fadeIn(0.4f, Easing.OutCubic)
+                    moveToY(0f, 0.55f, Easing.OutCubic)
+                }
+            }
+        }
 
         if (hasEntered) {
             return

@@ -39,7 +39,7 @@ import com.reco1l.verktex.data.px
 import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
 import com.reco1l.verktex.ui.Component
-import com.osudroid.ui.v2.mainmenu.OsuLogo
+import com.osudroid.ui.v2.mainmenu.RimuLogo
 import com.osudroid.ui.v2.mainmenu.TrianglesDispenser
 import com.osudroid.ui.v2.modmenu.ModIcon
 import com.osudroid.ui.v2.ModsIndicator
@@ -411,16 +411,10 @@ object OsuUITests : UITestSuite("osu!") {
         }
 
         test("Logo") {
-            +OsuLogo(withExternalEffects = false).apply {
+            // Without music its glow stays at rest.
+            +RimuLogo().apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                // It fills its size, which must be square and fit the stage.
-                width = 240f.dip
-                height = 240f.dip
-                onActionUp = {
-                    playClickEffect()
-                    log("Logo clicked")
-                }
             }
         }
 

@@ -53,6 +53,7 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.FAIcon
@@ -62,6 +63,8 @@ import com.reco1l.verktex.ui.LabeledBadge
 import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.badge
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.transformSequence
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.container
@@ -166,6 +169,9 @@ class RoomScene(
 
 
     private lateinit var beatmapInfoLayout: BeatmapInfoLayout
+    private lateinit var header: Container
+    private lateinit var sections: LinearContainer
+    private lateinit var footer: Container
     private lateinit var beatmapInfoAlert: Text
     private lateinit var modsButton: TextButton
     private lateinit var startButton: TextButton
@@ -190,6 +196,35 @@ class RoomScene(
 
         // Tinted by the scene, it's as bright as in the menu (gameplay may have dimmed it).
         BeatmapBackground.fadeBrightness(1f)
+
+        // Entrance: the header slides down, the sections rise, the bottom row slides up.
+        header.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = (-20f).dip
+            transformSequence {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
+        sections.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = 32f.dip
+            transformSequence(0.05f) {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
+        footer.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = 20f.dip
+            transformSequence(0.1f) {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
     }
 
     init {
@@ -224,7 +259,7 @@ class RoomScene(
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
 
-                container {
+                header = container {
                     width = Dimension.FillAvailable
                     padding = Padding(0f.dip, 10f.dip)
 
@@ -281,7 +316,7 @@ class RoomScene(
                     }
                 }
 
-                linearContainer {
+                sections = linearContainer {
                     width = Dimension.FillAvailable
                     height = Dimension.FillAvailable
                     padding = Padding(0f.dip, 8f.dip)
@@ -377,7 +412,7 @@ class RoomScene(
                     }
                 }
 
-                container {
+                footer = container {
                     width = Dimension.FillAvailable
                     padding = Padding(0f.dip, 8f.dip)
 

@@ -18,15 +18,23 @@ import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.data.Anchor
+import com.reco1l.verktex.data.Background
+import com.reco1l.verktex.data.fill
+import com.reco1l.verktex.ui.clearTransforms
+import com.reco1l.verktex.ui.fadeTo
+import com.reco1l.verktex.ui.transformSequence
+import com.reco1l.verktex.ui.shape.Box
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.ui.control.Dropdown
 import com.reco1l.verktex.ui.dialog.ConfirmDialog
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.Scene
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
@@ -100,6 +108,10 @@ class SongSelect : Scene() {
 
     private lateinit var modsIndicator: ModsIndicator
 
+    private lateinit var leftSide: LinearContainer
+    private lateinit var rightSide: Container
+    private lateinit var bottomBar: LinearContainer
+
     private var beatmapSets = listOf<BeatmapSetInfo>()
     private var filterJob: Job? = null
 
@@ -107,8 +119,20 @@ class SongSelect : Scene() {
     private var currentBeatmapLoadingJob: Job? = null
     private var currentCalculationJob: Job? = null
 
+    // Dims the selection's background behind the lists. The background itself stays at full
+    // brightness: a crossfade under a lowered alpha shows the old texture through the new one,
+    // brightening while it runs.
+    private val backgroundDim = Box().apply {
+        width = fill()
+        height = fill()
+        color = Color4.Black
+        alpha = 0f
+    }
+
 
     init {
+        background = Background.Component(backgroundDim)
+
         filterBar.onFilterChanged = { applyFilter() }
 
         beatmapCarrousel.apply {
@@ -122,7 +146,7 @@ class SongSelect : Scene() {
             height = Dimension.FillAvailable
 
             // Left side
-            linearContainer {
+            leftSide = linearContainer {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 orientation = Orientation.Vertical
@@ -133,7 +157,7 @@ class SongSelect : Scene() {
             }
 
             // Right side
-            container {
+            rightSide = container {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
 
@@ -142,7 +166,7 @@ class SongSelect : Scene() {
             }
         }
 
-        linearContainer {
+        bottomBar = linearContainer {
             orientation = Orientation.Horizontal
             anchor = Anchor.BottomLeft
             origin = Anchor.BottomLeft
@@ -576,7 +600,41 @@ class SongSelect : Scene() {
         super.onEnter()
 
         // The selection's background, dimmed behind the lists.
-        BeatmapBackground.fadeBrightness(BACKGROUND_BRIGHTNESS)
+        backgroundDim.alpha = 0f
+        backgroundDim.fadeTo(1f - BACKGROUND_BRIGHTNESS, BeatmapBackground.BRIGHTNESS_DURATION)
+        BeatmapBackground.fadeBrightness(1f)
+
+        // Entrance: the wedge slides in from the left and the panels from the right, from a
+        // whole window's width away while fading in, and the bottom bar slides up.
+        val windowWidth = Verktex.graphics.window.windowWidth.toFloat()
+
+        leftSide.apply {
+            clearTransforms()
+            alpha = 0f
+            translationX = (-windowWidth).px
+            transformSequence(0.05f) {
+                fadeIn(0.4f, Easing.OutQuart)
+                moveToX(0f, 0.4f, Easing.OutQuart)
+            }
+        }
+        rightSide.apply {
+            clearTransforms()
+            alpha = 0f
+            translationX = windowWidth.px
+            transformSequence(0.1f) {
+                fadeIn(0.4f, Easing.OutQuart)
+                moveToX(0f, 0.4f, Easing.OutQuart)
+            }
+        }
+        bottomBar.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = 20f.dip
+            transformSequence(0.1f) {
+                fadeIn(0.3f, Easing.OutQuart)
+                moveToY(0f, 0.4f, Easing.OutQuart)
+            }
+        }
 
         updateThread {
             val currentBeatmapInfo = BeatmapSelection.beatmap
@@ -586,6 +644,13 @@ class SongSelect : Scene() {
             filterBar.updateCollections()
             currentBeatmapInfo?.let(::showBeatmap)
         }
+    }
+
+    override fun onLeave() {
+        super.onLeave()
+
+        // The dim goes with the scene: the next one fades the background from how bright it looked.
+        BeatmapBackground.setBrightness(BeatmapBackground.alpha * (1f - backgroundDim.alpha))
     }
 
     private companion object {

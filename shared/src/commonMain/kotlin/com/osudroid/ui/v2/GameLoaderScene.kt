@@ -27,6 +27,7 @@ import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.LoadingIndicator
 import com.reco1l.verktex.ui.Scene
 import com.reco1l.verktex.ui.card
+import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.ScrollableContainer
@@ -42,6 +43,7 @@ import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
 import kotlin.math.*
 import com.reco1l.verktex.ui.themed
+import com.reco1l.verktex.ui.transformSequence
 import com.osudroid.utils.currentTimeMillis
 import com.reco1l.verktex.localization.formatString
 import com.osudroid.utils.async
@@ -90,9 +92,6 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
             width = fill()
             height = fill()
             alpha = 0f
-            scaleX = 0.9f
-            scaleY = 0.9f
-            scaleOrigin = Anchor.Center
             padding = Padding(16f.dip)
 
             container {
@@ -201,8 +200,16 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
 
         BeatmapBackground.fadeBrightness(LOADING_BRIGHTNESS)
 
-        mainContainer.fadeIn(0.2f, Easing.OutCubic)
-        mainContainer.scaleTo(1f, 0.2f, Easing.OutCubic)
+        // Entrance: the content rises.
+        mainContainer.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = 32f.dip
+            transformSequence(0.05f) {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
     }
 
     init {

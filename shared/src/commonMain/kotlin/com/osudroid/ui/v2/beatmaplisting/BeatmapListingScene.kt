@@ -19,6 +19,7 @@ import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.*
 import com.reco1l.verktex.input.InputEvent
+import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.input.KeyboardEvent
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.*
@@ -75,6 +76,8 @@ class BeatmapListingScene(private val source: BeatmapSearchSource = MirrorSearch
     private lateinit var orderButton: TextButton
     private lateinit var searchInput: TextInput
     private lateinit var messageText: Text
+    private lateinit var topBar: Container
+    private lateinit var results: Container
 
     private var search = BeatmapSearch()
     private var searchJob: Job? = null
@@ -106,10 +109,10 @@ class BeatmapListingScene(private val source: BeatmapSearchSource = MirrorSearch
             orientation = Orientation.Vertical
 
 
-            topBar()
+            topBar = topBar()
             filtersBar()
 
-            extendIntoSafeAreaContainer {
+            results = extendIntoSafeAreaContainer {
                 width = fill()
                 height = fill()
 
@@ -423,6 +426,26 @@ class BeatmapListingScene(private val source: BeatmapSearchSource = MirrorSearch
     override fun onEnter() {
         super.onEnter()
         BeatmapBackground.fadeBrightness(0.3f)
+
+        // Entrance: the top bar slides down, the results rise.
+        topBar.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = (-20f).dip
+            transformSequence {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
+        results.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = 32f.dip
+            transformSequence(0.05f) {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
     }
 
     override fun onLeave() {

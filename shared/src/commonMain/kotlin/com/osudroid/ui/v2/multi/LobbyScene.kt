@@ -10,6 +10,7 @@ import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Logger
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.*
+import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
 import com.reco1l.verktex.ui.*
 import com.reco1l.verktex.ui.container.*
@@ -57,6 +58,8 @@ class LobbyScene : Scene() {
     private lateinit var messageContainer: LinearContainer
     private lateinit var roomContainer: LinearContainer
     private lateinit var refreshButton: TextButton
+    private lateinit var topBar: Container
+    private lateinit var roomList: Container
 
     private val fetchScope = CoroutineScope(Dispatchers.Default)
 
@@ -66,6 +69,26 @@ class LobbyScene : Scene() {
 
         // Tinted by the scene, it's as bright as in the menu (gameplay may have dimmed it).
         BeatmapBackground.fadeBrightness(1f)
+
+        // Entrance: the top bar slides down, the room list rises.
+        topBar.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = (-20f).dip
+            transformSequence {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
+        roomList.apply {
+            clearTransforms()
+            alpha = 0f
+            translationY = 32f.dip
+            transformSequence(0.05f) {
+                fadeIn(0.4f, Easing.OutCubic)
+                moveToY(0f, 0.55f, Easing.OutCubic)
+            }
+        }
     }
 
     init {
@@ -79,7 +102,7 @@ class LobbyScene : Scene() {
 
 
             // Top bar
-            extendIntoSafeAreaContainer {
+            topBar = extendIntoSafeAreaContainer {
                 width = fill()
                 background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
                 border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
@@ -128,7 +151,7 @@ class LobbyScene : Scene() {
             }
 
             // Room list
-            extendIntoSafeAreaContainer {
+            roomList = extendIntoSafeAreaContainer {
                 width = fill()
                 height = fill()
 
