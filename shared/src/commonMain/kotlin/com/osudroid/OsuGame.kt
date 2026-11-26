@@ -112,7 +112,7 @@ object OsuGame {
                 BeatmapBackground.install()
 
                 // The splash can't be gone back to.
-                val menu = MainScene()
+                val menu = MainScene(playIntro = true)
                 Verktex.resetScenes(menu)
 
                 Platform.forceMaxRefreshRate = Settings[OsuSettings.ForceMaxRefreshRate]

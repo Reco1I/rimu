@@ -67,6 +67,10 @@ import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.rotateTo
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.box
+import com.reco1l.verktex.ui.shape.Box
+import com.reco1l.verktex.ui.animatableFloat
+import com.reco1l.verktex.data.LayoutConstraints
+import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.ui.spans
 import com.reco1l.verktex.ui.text.buildSpannedText
 import com.reco1l.verktex.ui.text.faSolidIcon
@@ -86,7 +90,12 @@ import com.reco1l.verktex.input.KeyboardEvent
 /**
  * The main menu, created by the host once the game has started.
  */
-class MainScene : Scene() {
+/**
+ * The menu. With [playIntro], its first entrance continues the splash's welcome animation: the logo,
+ * left in the center at [SPLASH_LOGO_SCALE], lifts and stamps down to its own scale, the background
+ * flashes white and fades to the beatmap's, and the menu expands from behind the logo.
+ */
+class MainScene(playIntro: Boolean = false) : Scene() {
 
     // Back asks to leave the game, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -115,8 +124,18 @@ class MainScene : Scene() {
     private var leftFlash: GradientBox
     private var rightFlash: GradientBox
     private lateinit var logo: RimuLogo
-    private lateinit var menuContainer: Container
+    private lateinit var menuContainer: ScrollableContainer
     private lateinit var topBar: Container
+    private val flash: Box
+
+    private var isIntroPending = playIntro
+
+    // The menu's width while it expands from behind the logo, see playIntro.
+    private var menuWidth = 0f
+    private val menuWidthProperty = animatableFloat({ menuWidth }, {
+        menuWidth = it
+        menuContainer.width = it.px
+    })
 
     private var isExiting = false
     private var hasEntered = false
@@ -187,6 +206,14 @@ class MainScene : Scene() {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 textureReference = skinTexture("star")
+            }
+
+            // The intro's white flash, see playIntro.
+            flash = box {
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                color = Color4.White
+                alpha = 0f
             }
         }
         background = Background.Component(backgroundLayer)
@@ -433,6 +460,12 @@ class MainScene : Scene() {
 
         updateMusicButton()
 
+        if (isIntroPending) {
+            isIntroPending = false
+            playIntro()
+            return
+        }
+
         // Entrance: the top bar slides down, the logo and then the menu rise.
         topBar.apply {
             clearTransforms()
@@ -451,6 +484,70 @@ class MainScene : Scene() {
                 fadeIn(0.4f, Easing.OutCubic)
                 moveToY(0f, 0.55f, Easing.OutCubic)
             }
+        }
+    }
+
+    // The splash's logo stamped down, the flash and the menu's expansion, see the class.
+    private fun playIntro() {
+        // As the splash left it: black, the logo alone in the center over the folded menu.
+        BeatmapBackground.setBrightness(0f)
+        backgroundLayer.alpha = 0f
+
+        val restingMenuWidth = menuContainer.width
+        menuWidth = 0f
+        menuContainer.width = 0f.px
+        menuContainer.alpha = 0f
+        // Revealed as it widens rather than overflowing it, until it's done. Scrolling on both
+        // axes, its content is measured without its width: the buttons keep theirs instead of
+        // being squeezed into it, their text wrapping into taller buttons.
+        menuContainer.clipping = ClipMode.Bounds
+        menuContainer.scrollAxes = Axis.Both
+        topBar.alpha = 0f
+
+        logo.clearTransforms()
+        logo.scale = SPLASH_LOGO_SCALE
+
+        // A stamp: lifted, slammed down past its scale and settling on it.
+        logo.transformSequence {
+            scaleTo(SPLASH_LOGO_SCALE * 1.12f, STAMP_LIFT_DURATION, Easing.OutCubic)
+            then()
+            scaleTo(0.94f, STAMP_DROP_DURATION, Easing.InCubic)
+            then()
+            scaleTo(1f, 0.25f, Easing.OutCubic)
+        }
+
+        val impact = STAMP_LIFT_DURATION + STAMP_DROP_DURATION
+
+        // On the impact the background flashes white and fades to the beatmap's.
+        backgroundLayer.transformSequence(impact) { fadeIn() }.after {
+            BeatmapBackground.setBrightness(1f)
+        }
+        flash.alpha = 0f
+        flash.transformSequence(impact) {
+            fadeIn()
+            then()
+            fadeOut(FLASH_DURATION, Easing.OutCubic)
+        }
+
+        // The menu expands from behind the logo, which moves aside as it's centered with it.
+        // Its content is measured by itself, inside the container it would be limited to the
+        // width being animated.
+        val unbounded = LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
+        val menuContentWidth = menuContainer[0].measure(unbounded).x + menuContainer.paddingLeft.toPixels()
+
+        menuContainer.transformSequence(impact + 0.1f) {
+            animate(menuWidthProperty, menuContentWidth, MENU_EXPAND_DURATION, Easing.OutQuint)
+            fadeIn(MENU_EXPAND_DURATION, Easing.OutQuint)
+        }.after {
+            menuContainer.width = restingMenuWidth
+            menuContainer.clipping = ClipMode.Disabled
+            menuContainer.scrollAxes = Axis.Y
+        }
+
+        topBar.translationY = (-20f).dip
+        topBar.transformSequence(impact + 0.2f) {
+            fadeIn(0.4f, Easing.OutCubic)
+            moveToY(0f, 0.55f, Easing.OutCubic)
         }
     }
 
@@ -573,6 +670,16 @@ class MainScene : Scene() {
 
 
     companion object {
+
+        /**
+         * The scale of the logo on the splash, bigger than the menu's, which stamps it down to its own.
+         */
+        const val SPLASH_LOGO_SCALE = 1.3f
+
+        private const val STAMP_LIFT_DURATION = 0.25f
+        private const val STAMP_DROP_DURATION = 0.18f
+        private const val FLASH_DURATION = 1.2f
+        private const val MENU_EXPAND_DURATION = 0.45f
 
         private val SPECTRUM_HEIGHT = 96f.dip
         private const val SPECTRUM_ALPHA = 0.4f

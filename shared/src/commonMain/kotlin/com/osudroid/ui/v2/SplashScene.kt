@@ -1,20 +1,23 @@
 package com.osudroid.ui.v2
 
+import com.osudroid.ui.v2.mainmenu.MainScene
+import com.osudroid.ui.v2.mainmenu.RimuLogo
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.Scene
-import com.reco1l.verktex.ui.Sprite
-import com.reco1l.verktex.ui.choreograph
-import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.LoadingIndicator
+import com.reco1l.verktex.ui.transformSequence
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
 
 /**
  * The scene shown while the game starts: a loading indicator until the database and the skin are
- * loaded, then the welcome animation.
+ * loaded, then the welcome animation, the rimu! logo of the menu growing in at the center, bigger
+ * than the menu shows it ([MainScene.SPLASH_LOGO_SCALE]). The menu then takes the logo from where
+ * it's left and stamps it down to its own scale.
  */
 class SplashScene : Scene() {
 
@@ -48,19 +51,17 @@ class SplashScene : Scene() {
         SkinSounds["welcome"].play()
         SkinSounds["welcome_piano"].play()
 
-        +Sprite(SkinTextures["welcome"]).apply {
+        // Where the menu's logo is when it shows: in the center, with the menu folded.
+        +RimuLogo().apply {
             anchor = Anchor.Center
             origin = Anchor.Center
+            scaleOrigin = Anchor.Center
             alpha = 0f
-            scaleY = 0f
+            scale = MainScene.SPLASH_LOGO_SCALE * 0.85f
 
-            fadeIn(2.5f)
-
-            choreograph {
-                at(currentClockTime)
-                addScaleY(1f, 0.25f)
-                then()
-                scaleTo(1.1f, 2.25f)
+            transformSequence(0.2f) {
+                fadeIn(0.8f, Easing.OutCubic)
+                scaleTo(MainScene.SPLASH_LOGO_SCALE, 1.6f, Easing.OutCubic)
             }
         }
     }

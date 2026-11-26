@@ -59,6 +59,11 @@ object OsuSceneUITests : UITestSuite("Scenes") {
             scene(MainScene())
         }
 
+        test("Main menu intro") {
+            useGameContext()
+            scene(MainScene(playIntro = true))
+        }
+
         test("Music panel") {
             useGameContext()
 

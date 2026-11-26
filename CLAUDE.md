@@ -62,7 +62,7 @@ SplashScene → MainScene (menu hub)
               SongSelect → GameLoaderScene → GameplaySession (gameplay) → ResultsScene (results)
 ```
 
-The splash shows a loading indicator while the database, the skin and the library (as the database has it, `LibraryManager.loadFromDatabase`) load, then the welcome animation and the menu: nothing is imported nor scanned before it. Once the menu shows, `LibraryImport.refresh()` brings the library up to date in the background (see Beatmaps & Difficulty).
+The splash shows a loading indicator while the database, the skin and the library (as the database has it, `LibraryManager.loadFromDatabase`) load, then the welcome animation, the menu's rimu! logo growing in at the center, a bit bigger than the menu shows it (`MainScene.SPLASH_LOGO_SCALE`), and the menu: nothing is imported nor scanned before it. The menu's first entrance (`MainScene(playIntro = true)`) continues it: the logo lifts and stamps down to its own scale, the background flashes white and fades to the beatmap's, and the menu expands from behind the logo. Once the menu shows, `LibraryImport.refresh()` brings the library up to date in the background (see Beatmaps & Difficulty).
 
 For multiplayer, the flow is:
 
