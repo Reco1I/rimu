@@ -34,7 +34,7 @@ android {
     ndkVersion = '22.1.7171670'
 
     defaultConfig {
-        applicationId = 'com.reco1l.osudroid'
+        applicationId = 'com.reco1l.rimu'
         manifestPlaceholders = [uiTestsEnabled: "false", profileable: "false"]
         minSdk = 24
         targetSdk = 29
@@ -69,13 +69,13 @@ android {
 
     buildTypes {
         debug {
-            resValue "string", "app_name", "osu!droid-reci-debug"
+            resValue "string", "app_name", "rimu!-debug"
             applicationIdSuffix = '.debug'
             manifestPlaceholders = [uiTestsEnabled: "true", profileable: "false"]
         }
 
         release {
-            resValue "string", "app_name", "osu!droid-reci"
+            resValue "string", "app_name", "rimu!"
 //            minifyEnabled true
 //            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
             if (releaseKeystore) {
@@ -122,12 +122,12 @@ kotlin {
     }
 }
 
-// The APKs are named osudroid-reci-<version>-<build type>.apk. The variant API has no public way to
+// The APKs are named rimu-<version>-<build type>.apk. The variant API has no public way to
 // name them: outputFileName is a property of its implementation (VariantOutputImpl).
 androidComponents {
     onVariants(selector().all()) { variant ->
         variant.outputs.each { output ->
-            output.outputFileName.set("osudroid-reci-${releaseVersionName}-${variant.buildType}.apk")
+            output.outputFileName.set("rimu-${releaseVersionName}-${variant.buildType}.apk")
         }
     }
 }

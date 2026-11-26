@@ -7,7 +7,7 @@ import kotlin.jvm.JvmStatic
  * Logging shortcuts for the legacy code.
  */
 object Debug {
-    private const val TAG = "osu!droid"
+    private const val TAG = "rimu!"
 
     @JvmStatic
     fun i(message: String?) {

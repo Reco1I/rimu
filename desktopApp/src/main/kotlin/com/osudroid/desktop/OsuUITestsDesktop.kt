@@ -16,7 +16,7 @@ import kotlin.system.exitProcess
 import kotlinx.coroutines.runBlocking
 
 /**
- * The UI test browser of osu!droid on desktop, the counterpart of Android's `OsuUITestActivity`:
+ * The UI test browser of rimu! on desktop, the counterpart of Android's `OsuUITestActivity`:
  *
  * ```
  * ./gradlew :desktopApp:runUITests --args="--test 'osu!/Hit circles' --screenshot build/test.png --delay 3"

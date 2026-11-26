@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<!-- Strings that replace the language pack's English ones where rimu! says something different
+     from osu!droid. The strings that only name the game are rebranded in every language by
+     :shared:generateStringResources (brandedStrings) instead. -->
+
+    <string name="opt_import_replay_summary">Import a replay file: one of rimu!\'s (.rmr), or one of osu!droid\'s (.odr, from version 1.6.7 onwards)</string>
+</resources>

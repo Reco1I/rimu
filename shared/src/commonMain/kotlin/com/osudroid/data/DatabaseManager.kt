@@ -5,7 +5,6 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.osudroid.settings.GameFolders
 import com.reco1l.verktex.Platform
 import kotlin.jvm.JvmStatic
 import okio.Path.Companion.toPath
@@ -102,11 +101,12 @@ object DatabaseManager {
         get() = database.getModPresetTable()
 
     /**
-     * The path to the database file.
+     * The path to the database file, in the application's private folder: the game's folder is
+     * shared with osu!droid, and only keeps what the player handles (beatmaps, skins, replays).
      */
     @JvmStatic
     val databasePath: String
-        get() = "${GameFolders.corePath}databases/room-${Platform.application.buildType}.db"
+        get() = (Platform.storage.dataDirectory / "databases" / "room-${Platform.application.buildType}.db").toString()
 
     /**
      * The database, set once it's open, see [open].

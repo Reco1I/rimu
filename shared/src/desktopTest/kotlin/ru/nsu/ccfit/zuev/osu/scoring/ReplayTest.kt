@@ -7,6 +7,7 @@ import com.osudroid.mods.ModHidden
 import com.osudroid.scoring.Statistic
 import com.osudroid.utils.BitSet
 import java.io.File
+import java.util.zip.GZIPInputStream
 import okio.Buffer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -53,7 +54,7 @@ class ReplayTest {
     }
 
     private fun saved(replay: Replay): File {
-        val file = File.createTempFile("replay", ".odr")
+        val file = File.createTempFile("replay", Replay.FILE_EXTENSION)
         file.deleteOnExit()
         replay.save(file.path)
         return file
@@ -160,8 +161,32 @@ class ReplayTest {
     }
 
     @Test
-    fun testFileIsJson() {
-        val text = saved(recordedReplay()).readText()
+    fun testFileIsGzippedJson() {
+        val bytes = saved(recordedReplay()).readBytes()
+        assertEquals(0x1f.toByte(), bytes[0])
+        assertEquals(0x8b.toByte(), bytes[1])
+
+        val text = GZIPInputStream(bytes.inputStream()).reader().readText()
         assertTrue(text.startsWith("{\"version\":10,"))
+    }
+
+    @Test
+    fun testLoadsUncompressedJson() {
+        // The replays written before they were compressed.
+        val text = GZIPInputStream(saved(recordedReplay()).inputStream()).reader().readText()
+
+        val loaded = Replay()
+        loaded.setObjectCount(3)
+        assertTrue(loaded.load(Buffer().writeUtf8(text), "old.odr", true))
+        assertEquals("Artist - Title", loaded.beatmapsetName)
+        assertEquals(789, loaded.stat!!.scoreMaxCombo)
+        assertEquals(3, loaded.objectData!!.size)
+    }
+
+    @Test
+    fun testReplayFilenames() {
+        assertTrue(Replay.isReplayFilename("a${Replay.FILE_EXTENSION}"))
+        assertTrue(Replay.isReplayFilename("a.ODR"))
+        assertFalse(Replay.isReplayFilename("a.osz"))
     }
 }

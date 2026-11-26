@@ -44,9 +44,9 @@ object ReplayImporter {
 
         // A file that isn't named as a replay (such as a picked file's temporary copy) is named after
         // the play, which doesn't conflict with other replays.
-        if (!scoreInfo.replayFilename.endsWith(".odr", ignoreCase = true)) {
+        if (!Replay.isReplayFilename(scoreInfo.replayFilename)) {
             val name = "${scoreInfo.playerName}_${replay.beatmapsetName}_${replay.beatmapName}_${currentTimeMillis()}"
-            scoreInfo.replayFilename = name.replace(ILLEGAL_CHARACTERS, "_") + ".odr"
+            scoreInfo.replayFilename = name.replace(ILLEGAL_CHARACTERS, "_") + Replay.FILE_EXTENSION
         }
 
         if (DatabaseManager.scoreInfoTable.insertScore(scoreInfo) < 0) {

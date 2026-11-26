@@ -34,7 +34,7 @@ sourceSets.main {
 // The version and build type OsuDesktop reads (DESKTOP_APPLICATION): a debug build without a version
 // unless built with -PdesktopVersion and -PdesktopBuildType=release, as the release workflow does.
 val generateApplicationProperties = tasks.register<WriteProperties>("generateApplicationProperties") {
-    destinationFile.set(layout.buildDirectory.file("generated/application/osudroid-desktop.properties"))
+    destinationFile.set(layout.buildDirectory.file("generated/application/rimu-desktop.properties"))
     property("versionName", providers.gradleProperty("desktopVersion").orElse("desktop"))
     property("buildType", providers.gradleProperty("desktopBuildType").orElse("debug"))
 }
@@ -45,9 +45,8 @@ sourceSets.main {
 
 application {
     mainClass.set("com.osudroid.desktop.OsuDesktopKt")
-    // The name of the distributions and of their start scripts (bin/osudroid-reci), apart from
-    // upstream osu!droid's.
-    applicationName = "osudroid-reci"
+    // The name of the distributions and of their start scripts (bin/rimu).
+    applicationName = "rimu"
 
     // GLFW has to run on the first thread on macOS.
     if (System.getProperty("os.name").lowercase().contains("mac")) {
@@ -66,10 +65,10 @@ tasks.named<JavaExec>("run") {
     systemProperty("verktex.ffmpeg.path", ffmpegDirectory)
 }
 
-// The UI test browser of osu!droid, with Verktex's suites too.
+// The UI test browser of rimu!, with Verktex's suites too.
 tasks.register<JavaExec>("runUITests") {
     group = "application"
-    description = "Runs the UI test browser of osu!droid on desktop."
+    description = "Runs the UI test browser of rimu! on desktop."
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.osudroid.desktop.OsuUITestsDesktopKt")
     jvmArgs = application.applicationDefaultJvmArgs.toList()

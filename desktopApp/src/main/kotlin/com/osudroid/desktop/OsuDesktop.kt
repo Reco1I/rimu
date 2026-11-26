@@ -23,7 +23,7 @@ class OsuDesktop(
     private val screenshotDelaySeconds: Double = 10.0,
     private val quickPlay: String? = null,
     private val quickPlayAutoplay: Boolean = true,
-) : DesktopGameHost(title = "osu!droid", vsync = true), OsuGameHost {
+) : DesktopGameHost(title = "rimu!", applicationName = "rimu", vsync = true), OsuGameHost {
 
     override val platformApplication = DESKTOP_APPLICATION
 
@@ -61,12 +61,12 @@ class OsuDesktop(
  */
 /**
  * The game on desktop: its version and build type are the ones the build wrote in
- * `osudroid-desktop.properties` (`-PdesktopVersion`, `-PdesktopBuildType`), a debug build without a
+ * `rimu-desktop.properties` (`-PdesktopVersion`, `-PdesktopBuildType`), a debug build without a
  * version of its own by default.
  */
 internal val DESKTOP_APPLICATION: PlatformApplication = run {
     val properties = Properties()
-    OsuDesktop::class.java.getResourceAsStream("/osudroid-desktop.properties")?.use(properties::load)
+    OsuDesktop::class.java.getResourceAsStream("/rimu-desktop.properties")?.use(properties::load)
 
     val buildType = properties.getProperty("buildType", "debug")
     PlatformApplication(

@@ -1,49 +1,48 @@
-![osudroid](https://github.com/osudroid/osu-droid/assets/52914632/8747ab50-c77d-4808-91aa-5058891e4bcd)
+# rimu!
 
-# osu-droid
-[![Official International Discord](https://discordapp.com/api/guilds/316545691545501706/widget.png?style=shield)](https://discord.gg/nyD92cE)
-[![Android](https://github.com/osudroid/osu-droid/workflows/Android/badge.svg?branch=master)](https://github.com/osudroid/osu-droid/actions?query=workflow%3A"Android")
-[![CodeFactor](https://www.codefactor.io/repository/github/osudroid/osu-droid/badge)](https://www.codefactor.io/repository/github/osudroid/osu-droid)
-
-osu!droid is a free-to-play circle clicking rhythm game for Android devices. It was a game hatched many years ago by the
-[osu!](https://osu.ppy.sh/home) community. This project is now being developed by a small group of fans and also with the help of foreign friends.
+rimu! is a free-to-play circle clicking rhythm game for Android and desktop (Linux and Windows), built on
+[Verktex](https://github.com/Reco1I/verktex), its own engine. It started as a fork of [osu!droid](https://github.com/osudroid/osu-droid),
+the game hatched by the [osu!](https://osu.ppy.sh/home) community, and shares its folder with it: the beatmaps, skins and
+replays in `osu!droid/` are rimu!'s too.
 
 ## Status
 
-osu!droid is under constant development. Features are constantly being added and bugs are constantly being fixed, but
-it's playable and fun!
+rimu! is under constant development. Features are being added and bugs fixed, but it's playable and fun!
+
+Releases, with the Android APK and the desktop distributions, are on the [releases page](https://github.com/Reco1I/rimu/releases).
 
 ### Downloading the source code
 
-Clone the repository:
+Clone the repository with its submodules (Verktex is one):
 
 ```sh
-git clone --recurse-submodules https://github.com/osudroid/osu-droid.git
+git clone --recurse-submodules https://github.com/Reco1I/rimu.git
 ```
-Open the folder in Android Studio.
 
-To update the source code to the latest commit, run the following command inside the `osu-droid` directory:
+Open the folder in Android Studio or IntelliJ IDEA.
 
-```she
+To update the source code to the latest commit, run the following commands inside the repository's directory:
+
+```sh
 git pull
 git submodule update --init
 ```
 
 ### Building
 
-osu!droid requires Java 17 to build.
+rimu! requires Java 17, the Android NDK 22.1.7171670 and the android-36.1 SDK platform to build.
 
-In Android Studio, you can `Build` a debug release to test your changes. The output directory of your `.apk` is inside
-`build/output` of `osu-droid`'s directory.
-
-If you prefer the command line, and you are on Linux, run `chmod +x gradlew` and `./gradlew assembleDebug` inside the
-directory to build the debug `.apk` files.
+- Android: `./gradlew assembleDebug` builds the debug APK in `androidApp/build/outputs/apk/`.
+- Desktop: `./gradlew :desktopApp:run` runs the game, and `./gradlew :desktopApp:distZip` builds a distribution
+  (`bin/rimu`), which needs a Java 17 runtime.
+- Tests: `./gradlew :shared:desktopTest`.
 
 ## Contributing
 
 We welcome any sort of contributions, as long as they're helpful. Those who aren't able to contribute code may instead
-suggest small changes like grammar fixes or report client issues via [Feature request](https://github.com/osudroid/osu-droid/issues/11) or [GitHub issues](https://github.com/osudroid/osu-droid/issues).
+suggest changes or report issues through [GitHub issues](https://github.com/Reco1I/rimu/issues).
 
 ## License
 
-osu!droid is licensed under the [Apache-2.0](https://opensource.org/licenses/Apache-2.0) License. Please see the LICENSE file for more information.
+rimu! is licensed under the [Apache-2.0](https://opensource.org/licenses/Apache-2.0) License, as osu!droid is. Please see
+the LICENSE file for more information.

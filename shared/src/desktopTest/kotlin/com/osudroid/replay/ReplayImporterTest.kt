@@ -91,13 +91,21 @@ class ReplayImporterTest {
     }
 
     @Test
+    fun testKeepsTheNameOfRimuReplays() {
+        import(savedReplay("my replay.rmr"))
+
+        assertEquals("my replay.rmr", storedScores().single().replayFilename)
+        assertTrue(File(folder, "Scores/my replay.rmr").isFile)
+    }
+
+    @Test
     fun testNamesTemporaryFilesAfterThePlay() {
         val file = savedReplay("picked123.tmp")
 
         import(file)
 
         val name = storedScores().single().replayFilename
-        assertTrue(name, name.startsWith("player_Artist - Title_Hard_") && name.endsWith(".odr"))
+        assertTrue(name, name.startsWith("player_Artist - Title_Hard_") && name.endsWith(".rmr"))
         assertTrue(File(folder, "Scores/$name").isFile)
     }
 

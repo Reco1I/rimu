@@ -35,6 +35,7 @@ import okio.sink
 import okio.source
 import com.osudroid.AndroidSecurityUtils
 import com.osudroid.game.Gameplay
+import ru.nsu.ccfit.zuev.osu.scoring.Replay
 
 /**
  * The game's host on Android: the activity running the engine, which starts the game
@@ -59,16 +60,6 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         OsuGame.isHeadless = false
 
         super.onCreate(savedInstanceState)
-
-        if (Platform.application.isDebug) {
-            try {
-                @Suppress("DEPRECATION")
-                val folder = File(Environment.getExternalStorageDirectory(), "osu!droid/Log").apply { mkdirs() }
-                val file = File(folder, "rawlog.txt").apply { createNewFile() }
-                Runtime.getRuntime().exec("logcat -f ${file.absolutePath}")
-            } catch (_: IOException) {
-            }
-        }
     }
 
     override fun onEngineInitialized() = OsuGame.start()
@@ -230,7 +221,7 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
 
             when {
                 path == null -> Unit
-                path.lowercase().endsWith(".odr") -> updateThread { MainScene.watchReplay(path) }
+                Replay.isReplayFilename(path) -> updateThread { MainScene.watchReplay(path) }
                 else -> LibraryImport.refresh(path)
             }
         }

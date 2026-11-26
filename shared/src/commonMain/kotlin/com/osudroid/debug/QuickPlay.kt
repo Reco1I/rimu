@@ -17,7 +17,7 @@ import ru.nsu.ccfit.zuev.osu.LibraryManager
  * Each host passes it what it was started with:
  *
  * ```
- * adb shell am start -S -n com.reco1l.osudroid.debug/ru.nsu.ccfit.zuev.osu.MainActivity \
+ * adb shell am start -S -n com.reco1l.rimu.debug/ru.nsu.ccfit.zuev.osu.MainActivity \
  *     --es quickplay "abracadabra normal" [--ez autoplay false]
  *
  * ./gradlew :desktopApp:run --args="--quickplay 'abracadabra normal' [--no-autoplay]"

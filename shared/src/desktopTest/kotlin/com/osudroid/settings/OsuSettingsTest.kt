@@ -34,7 +34,7 @@ class OsuSettingsTest {
         Settings[OsuSettings.CursorSize] = 80
         assertTrue(SettingsBackup.export())
 
-        val backup = folder.resolve("osudroid.cfg")
+        val backup = folder.resolve("rimu.cfg")
         assertFalse("secret" in backup.readText())
 
         // A backup of the old preferences, with a value out of range and one of the wrong type.

@@ -1270,7 +1270,7 @@ class GameplaySession(
             val ctime = currentTimeMillis().toString()
             replayPath = GameFolders.corePath + "Scores/" +
                 MD5Calculator.getStringMD5(loaded.beatmapInfo.filename + ctime) +
-                ctime.substring(0, min(3, ctime.length)) + ".odr"
+                ctime.substring(0, min(3, ctime.length)) + Replay.FILE_EXTENSION
             replay!!.setStat(stat)
             replay!!.save(replayPath)
         }
@@ -2130,13 +2130,13 @@ class GameplaySession(
             }
 
             val currentTime = currentTimeMillis().toString()
-            val odrFilename = MD5Calculator.getStringMD5(loaded.beatmapInfo.filename + currentTime) + currentTime.substring(0, min(3, currentTime.length)) + ".odr"
+            val replayFilename = MD5Calculator.getStringMD5(loaded.beatmapInfo.filename + currentTime) + currentTime.substring(0, min(3, currentTime.length)) + Replay.FILE_EXTENSION
 
             replay.setStat(stat)
-            replay.save(GameFolders.scorePath + odrFilename)
+            replay.save(GameFolders.scorePath + replayFilename)
 
             if (stat.totalScoreWithMultiplier > 0 && ModAutoplay::class !in stat.mod) {
-                stat.replayFilename = odrFilename
+                stat.replayFilename = replayFilename
                 stat.beatmapMD5 = loaded.beatmapInfo.md5
 
                 val scoreInfo = stat.toScoreInfo()

@@ -104,7 +104,7 @@ jobs:
       run: |
         mkdir -p dist
         apk=$(ls androidApp/build/outputs/apk/release/*.apk | head -n1)
-        cp "$apk" "dist/osudroid-reci-${{ needs.version.outputs.version }}-android.apk"
+        cp "$apk" "dist/rimu-${{ needs.version.outputs.version }}-android.apk"
 
     - name: Check the APK's signature
       run: |
@@ -156,7 +156,7 @@ jobs:
       run: (yes 2> /dev/null || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;22.1.7171670" > /dev/null
 
     # A zip with the game, its libraries, FFmpeg's for this platform and the start scripts
-    # (bin/osudroid-reci, bin/osudroid-reci.bat). It runs on a Java 17 runtime.
+    # (bin/rimu, bin/rimu.bat). It runs on a Java 17 runtime.
     - name: Build the distribution
       run: >
         ./gradlew :desktopApp:distZip
@@ -165,12 +165,12 @@ jobs:
 
     - name: Check the Vulkan library was bundled
       if: matrix.platform == 'linux-x64'
-      run: unzip -p desktopApp/build/distributions/osudroid-reci.zip osudroid-reci/lib/desktop-natives.jar > "$RUNNER_TEMP/natives.jar" && unzip -l "$RUNNER_TEMP/natives.jar" | grep natives/linux-x64/libverktex_vulkan.so
+      run: unzip -p desktopApp/build/distributions/rimu.zip rimu/lib/desktop-natives.jar > "$RUNNER_TEMP/natives.jar" && unzip -l "$RUNNER_TEMP/natives.jar" | grep natives/linux-x64/libverktex_vulkan.so
 
     - name: Name the distribution
       run: |
         mkdir -p dist
-        cp desktopApp/build/distributions/osudroid-reci.zip "dist/osudroid-reci-${{ needs.version.outputs.version }}-desktop-${{ matrix.platform }}.zip"
+        cp desktopApp/build/distributions/rimu.zip "dist/rimu-${{ needs.version.outputs.version }}-desktop-${{ matrix.platform }}.zip"
 
     - name: Upload the distribution
       uses: actions/upload-artifact@v7
@@ -204,6 +204,6 @@ jobs:
         [ "${{ inputs.draft }}" = "true" ] && flags+=(--draft)
         gh release create "$TAG" dist/* \
           --target "$GITHUB_SHA" \
-          --title "osu!droid-reci $VERSION" \
+          --title "rimu! $VERSION" \
           --generate-notes \
           "${flags[@]}"

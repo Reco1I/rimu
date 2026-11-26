@@ -13,7 +13,7 @@ import kotlinx.serialization.json.jsonObject
 import okio.Path.Companion.toPath
 
 /**
- * Backs the settings up to `osudroid.cfg` in the game's folder, and restores them from it. The
+ * Backs the settings up to `rimu.cfg` in the game's folder, and restores them from it. The
  * [sensitive][OsuSettingKey.isSensitive] settings stay out of it.
  *
  * The file is a JSON object of the settings by name, as the backups of the old preferences were, so
@@ -24,7 +24,7 @@ object SettingsBackup {
     private val json = Json { prettyPrint = true }
 
     private val file
-        get() = (GameFolders.corePath + "osudroid.cfg").toPath()
+        get() = (GameFolders.corePath + "rimu.cfg").toPath()
 
 
     /**

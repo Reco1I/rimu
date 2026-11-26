@@ -13,7 +13,9 @@ object GameFolders {
 
     /**
      * The game's folder when none was chosen: `osu!droid` in the storage the user sees, or in the
-     * private folder of the application without one.
+     * private folder of the application without one. It's osu!droid's folder on purpose, so that
+     * both games share their beatmaps, skins and replays; what's only rimu!'s (its database, its
+     * settings) is in [Platform.storage]'s data directory instead.
      */
     @JvmStatic
     val defaultCorePath: String

@@ -35,7 +35,7 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="adjustPan"
-            android:label="osu!droid-reci UI tests"
+            android:label="rimu! UI tests"
             android:process=":uitest"
             android:taskAffinity=".uitest"
             android:enabled="${uiTestsEnabled}"
@@ -112,6 +112,15 @@
                 <data android:scheme="file" android:host="*" android:mimeType="application/octet-stream" android:pathPattern=".*\\.odr" />
             </intent-filter>
 
+            <!-- file:// URIs matched by .rmr extension -->
+            <intent-filter android:label="@string/act_import_replay">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" android:host="*" android:mimeType="application/octet-stream" android:pathPattern=".*\\.rmr" />
+                <data android:scheme="file" android:host="*" android:mimeType="application/gzip" android:pathPattern=".*\\.rmr" />
+            </intent-filter>
+
             <!-- content:// URIs matched by .osz extension (modern file managers / browsers) -->
             <intent-filter android:label="@string/act_import_beatmap">
                 <action android:name="android.intent.action.VIEW" />
@@ -134,6 +143,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.odr" />
+            </intent-filter>
+
+            <!-- content:// URIs matched by .rmr extension (modern file managers / browsers) -->
+            <intent-filter android:label="@string/act_import_replay">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.rmr" />
             </intent-filter>
 
             <!-- content:// URIs matched by osu beatmap MIME type -->

@@ -25,7 +25,9 @@ import okio.use
 import okio.IOException
 import okio.Path.Companion.toPath
 import okio.Source
+import okio.ByteString.Companion.toByteString
 import okio.buffer
+import okio.gzip
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.helper.Debug
@@ -157,8 +159,8 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
                 },
             )
 
-            Platform.fileSystem.write(filename.toPath()) {
-                writeUtf8(ReplayJson.encodeToString(ReplayFile.serializer(), file))
+            Platform.fileSystem.sink(filename.toPath()).gzip().buffer().use {
+                it.writeUtf8(ReplayJson.encodeToString(ReplayFile.serializer(), file))
             }
         } catch (e: IOException) {
             Debug.e("IOException: " + e.message, e)
@@ -184,10 +186,11 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
         try {
             val buffered = source.buffer()
 
-            if (LegacyReplay.isLegacy(buffered)) {
-                loadLegacy(buffered, replayFilename, withGameplayData)
-            } else {
-                loadJson(buffered.readUtf8(), replayFilename, withGameplayData)
+            when {
+                buffered.rangeEquals(0, GzipSignature) -> loadJson(buffered.gzip().buffer().readUtf8(), replayFilename, withGameplayData)
+                LegacyReplay.isLegacy(buffered) -> loadLegacy(buffered, replayFilename, withGameplayData)
+                // The JSON replays written before they were compressed, named .odr as osu!droid's.
+                else -> loadJson(buffered.readUtf8(), replayFilename, withGameplayData)
             }
         } catch (e: Exception) {
             Toasts.showLong(Res.string.replay_corrupted)
@@ -525,6 +528,27 @@ class Replay @JvmOverloads constructor(allocateMoves: Boolean = false) {
          * The version replays are written in, see the versions above.
          */
         const val ReplayFormatVersion = 10
+
+        /**
+         * The extension of the replays rimu! writes: their JSON, compressed with gzip. osu!droid's
+         * replays (`.odr`), and the JSON ones rimu! wrote before, are read too.
+         */
+        const val FILE_EXTENSION = ".rmr"
+
+        /**
+         * The extension of osu!droid's replays, which rimu! reads but doesn't write.
+         */
+        const val LEGACY_FILE_EXTENSION = ".odr"
+
+        /**
+         * Whether [filename] is named as a replay, one of rimu!'s or osu!droid's.
+         */
+        @JvmStatic
+        fun isReplayFilename(filename: String) =
+            filename.endsWith(FILE_EXTENSION, ignoreCase = true) || filename.endsWith(LEGACY_FILE_EXTENSION, ignoreCase = true)
+
+        // The first bytes of gzip's streams.
+        private val GzipSignature = byteArrayOf(0x1f, 0x8b.toByte()).toByteString()
 
         /**
          * The amount of cursors replays record, as many as the game tracks.
