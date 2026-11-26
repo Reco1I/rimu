@@ -284,7 +284,7 @@ object OsuUITests : UITestSuite("osu!") {
                     listOf("hitcircle", "hitcircleoverlay", "approachcircle", "sliderb0", "sliderfollowcircle", "reversearrow"),
                     listOf("hit300", "hit100", "hit50", "hit0"),
                     listOf("cursor", "cursortrail", "spinner-circle", "spinner-approachcircle"),
-                    listOf("play-skip", "ranking-S-small", "ranking-A-small", "selection-mods"),
+                    listOf("play-skip", "ranking-S-small", "ranking-A-small", "play-unranked"),
                 )) {
                     section(group.joinToString(", ")) {
                         for (name in group) {

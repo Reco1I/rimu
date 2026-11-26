@@ -43,7 +43,8 @@ abstract class Mod {
         get() = name.replace(" ", "").lowercase()
 
     /**
-     * The texture name of the icon of this [Mod].
+     * The texture name of the icon of this [Mod] in skins. The game has no texture of its own for it: without one in the
+     * skin, the icon is drawn by the engine (see `ModIcon`).
      */
     val iconTextureName
         get() = "selection-mod-${iconTextureNameSuffix}"

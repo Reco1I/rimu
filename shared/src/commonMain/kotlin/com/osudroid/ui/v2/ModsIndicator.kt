@@ -25,7 +25,8 @@ class ModsIndicator : LinearContainer() {
         }
 
     /**
-     * Whether the icons are the skin's textures of the mods, see [ModIcon.useSkinTexture].
+     * Whether the icons are the skin's textures of the mods when it has them, otherwise always drawn by the engine,
+     * see [ModIcon.useSkinTexture].
      */
     var useSkinTextures: Boolean = true
         set(value) {
