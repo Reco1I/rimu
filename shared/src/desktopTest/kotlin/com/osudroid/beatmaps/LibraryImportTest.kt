@@ -18,6 +18,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import ru.nsu.ccfit.zuev.osu.LibraryManager
@@ -221,6 +222,30 @@ class LibraryImportTest {
             assertEquals(1, scannedFolders())
             assertTrue(DatabaseManager.beatmapInfoTable.isBeatmapSetImported("1 Empty"))
             assertEquals(1, Notifications.entries.size)
+        } finally {
+            DatabaseManager.database.close()
+            Notifications.reset()
+        }
+    }
+
+    @Test
+    fun testTheNotificationOfAFolderWithoutBeatmapsDeletesIt() = runBlocking {
+        DatabaseManager.openInMemory()
+        Notifications.reset()
+
+        try {
+            val empty = File(songs, "1 Empty").apply { mkdirs() }
+            LibraryManager.scanDirectory(null)
+
+            val notification = Notifications.entries.single()
+            assertTrue(notification.actionLabel != null)
+
+            notification.onAction()
+
+            withTimeout(10_000) {
+                while (empty.exists()) delay(10)
+            }
+            assertTrue(Notifications.entries.isEmpty())
         } finally {
             DatabaseManager.database.close()
             Notifications.reset()

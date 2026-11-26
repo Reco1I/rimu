@@ -14,7 +14,9 @@ import com.osudroid.beatmaps.parser.BeatmapParser
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.BeatmapSetInfo
 import com.osudroid.data.DatabaseManager
+import com.osudroid.notifications.Notification
 import com.osudroid.notifications.Notifications
+import com.osudroid.utils.async
 import com.osudroid.resources.Res
 import com.reco1l.verktex.Logger
 import kotlin.concurrent.atomics.AtomicInt
@@ -213,7 +215,8 @@ object LibraryManager : MusicService.Playlist {
         return true
     }
 
-    // Tells of the folders kept without a beatmap that loads, in one notification.
+    // Tells of the folders kept without a beatmap that loads, in one notification, whose button
+    // deletes them.
     private fun notifyBrokenFolders(names: List<String>) {
         if (names.isEmpty()) {
             return
@@ -224,7 +227,31 @@ object LibraryManager : MusicService.Playlist {
         } else {
             Res.string.notification_broken_beatmap_sets.format(names.size, names.sorted().joinToString("\n"))
         }
-        Notifications.post(Res.string.notification_library_title, text, isError = true)
+
+        var notification: Notification? = null
+        notification = Notifications.post(
+            title = Res.string.notification_library_title,
+            text = text,
+            isError = true,
+            action = Res.string.notification_broken_beatmap_delete,
+            onAction = {
+                notification?.dismiss()
+                async { deleteBrokenFolders(names) }
+            }
+        )
+    }
+
+    /**
+     * Deletes the beatmap set folders [names] of the beatmaps folder, scanned without a beatmap
+     * that loads.
+     */
+    fun deleteBrokenFolders(names: List<String>) {
+        val beatmapsFolder = GameFolders.beatmapPath.toPath()
+
+        for (name in names) {
+            deleteRecursivelySafely(beatmapsFolder / name)
+            synchronized(pendingBeatmapsLock) { foldersWithoutBeatmaps -= name }
+        }
     }
 
     // Whether the folder was scanned without a beatmap and hasn't changed since.

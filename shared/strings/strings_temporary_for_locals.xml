@@ -152,8 +152,9 @@
     <string name="notification_beatmap_sets_imported">%d beatmap sets imported.</string>
     <string name="notification_skins_imported">%d skins imported.</string>
     <string name="notification_beatmap_sets_and_skins_imported">%1$d beatmap sets and %2$d skins imported.</string>
-    <string name="notification_broken_beatmap_set">%s has no beatmap that can be loaded. Delete it, or download it again.</string>
-    <string name="notification_broken_beatmap_sets">%1$d beatmap set folders have no beatmap that can be loaded. Delete them, or download them again:%n%2$s</string>
+    <string name="notification_broken_beatmap_set">%s has no beatmap that can be loaded.</string>
+    <string name="notification_broken_beatmap_delete">Delete</string>
+    <string name="notification_broken_beatmap_sets">%1$d beatmap set folders have no beatmap that can be loaded:%n%2$s</string>
     <string name="notification_import_failed_title">Import failed</string>
     <string name="notification_import_invalid">%s isn\'t a valid archive.</string>
     <string name="notification_import_extract_failed">%s couldn\'t be extracted.</string>
