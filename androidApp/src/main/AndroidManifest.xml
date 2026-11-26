@@ -35,7 +35,7 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="adjustPan"
-            android:label="osu!droid UI tests"
+            android:label="osu!droid-reci UI tests"
             android:process=":uitest"
             android:taskAffinity=".uitest"
             android:enabled="${uiTestsEnabled}"

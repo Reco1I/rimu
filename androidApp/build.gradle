@@ -68,13 +68,13 @@ android {
 
     buildTypes {
         debug {
-            resValue "string", "app_name", "osu!droid-debug"
+            resValue "string", "app_name", "osu!droid-reci-debug"
             applicationIdSuffix '.debug'
             manifestPlaceholders = [uiTestsEnabled: "true", profileable: "false"]
         }
 
         release {
-            resValue "string", "app_name", "osu!droid"
+            resValue "string", "app_name", "osu!droid-reci"
 //            minifyEnabled true
 //            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
             if (releaseKeystore) {
@@ -115,7 +115,7 @@ android {
 
     android.applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
-            def fileName = "osudroid-${defaultConfig.versionName}-${variant.buildType.name}.apk"
+            def fileName = "osudroid-reci-${defaultConfig.versionName}-${variant.buildType.name}.apk"
             outputFileName = fileName
         }
     }

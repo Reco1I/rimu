@@ -46,8 +46,9 @@ sourceSets.main {
 
 application {
     mainClass.set("com.osudroid.desktop.OsuDesktopKt")
-    // The name of the distributions and of their start scripts (bin/osudroid).
-    applicationName = "osudroid"
+    // The name of the distributions and of their start scripts (bin/osudroid-reci), apart from
+    // upstream osu!droid's.
+    applicationName = "osudroid-reci"
 
     // GLFW has to run on the first thread on macOS.
     if (System.getProperty("os.name").lowercase().contains("mac")) {
