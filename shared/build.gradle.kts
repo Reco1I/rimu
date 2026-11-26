@@ -319,9 +319,6 @@ kotlin {
             // The parent of the activities' theme (res/values/styles.xml).
             implementation("androidx.appcompat:appcompat:1.7.1")
 
-            implementation("com.google.firebase:firebase-crashlytics:19.4.0")
-            implementation("com.google.firebase:firebase-analytics:22.2.0")
-
             // Localizations
             implementation("com.github.osudroid:language-pack:${providers.gradleProperty("languagePackVersion").get()}")
         }

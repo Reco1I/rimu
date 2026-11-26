@@ -8,6 +8,7 @@ import com.osudroid.debug.QuickPlay
 import com.reco1l.verktex.PlatformApplication
 import com.reco1l.verktex.desktop.DesktopGameHost
 import java.io.File
+import java.util.Properties
 
 /**
  * The game's window on desktop, which starts the game ([OsuGame.start]).
@@ -59,11 +60,43 @@ class OsuDesktop(
  * unless `--no-autoplay` is given, see [QuickPlay].
  */
 /**
- * The game on desktop: a debug build, without a version of its own.
+ * The game on desktop: its version and build type are the ones the build wrote in
+ * `osudroid-desktop.properties` (`-PdesktopVersion`, `-PdesktopBuildType`), a debug build without a
+ * version of its own by default.
  */
-internal val DESKTOP_APPLICATION = PlatformApplication(versionName = "desktop", buildType = "debug", isDebug = true)
+internal val DESKTOP_APPLICATION: PlatformApplication = run {
+    val properties = Properties()
+    OsuDesktop::class.java.getResourceAsStream("/osudroid-desktop.properties")?.use(properties::load)
+
+    val buildType = properties.getProperty("buildType", "debug")
+    PlatformApplication(
+        versionName = properties.getProperty("versionName", "desktop"),
+        buildType = buildType,
+        isDebug = buildType == "debug",
+    )
+}
+
+/**
+ * Where a distribution (`./gradlew :desktopApp:distZip`) has FFmpeg's libraries: `ffmpeg/` next to
+ * its `lib/`, which Verktex is told through `verktex.ffmpeg.path` unless it was given already, as
+ * `./gradlew :desktopApp:run` does.
+ */
+private fun locateBundledFFmpeg() {
+    if (System.getProperty("verktex.ffmpeg.path") != null) {
+        return
+    }
+
+    val jar = OsuDesktop::class.java.protectionDomain?.codeSource?.location ?: return
+    val directory = File(jar.toURI()).parentFile?.parentFile?.resolve("ffmpeg") ?: return
+
+    if (directory.isDirectory) {
+        System.setProperty("verktex.ffmpeg.path", directory.absolutePath)
+    }
+}
 
 fun main(args: Array<String>) {
+    locateBundledFFmpeg()
+
     var screenshot: File? = null
     var delay = 10.0
     var quickPlay: String? = null

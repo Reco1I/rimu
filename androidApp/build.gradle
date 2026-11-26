@@ -18,12 +18,10 @@ if (localPropertiesFile.exists()) {
 }
 
 // The Android application: the entry points of the game on Android (MainActivity, the application
-// class, the other activities) and what an application decides: its id,
-// version, signing, build types and the Firebase plugins. The game itself is :shared.
+// class, the other activities) and what an application decides: its id, version, signing and build
+// types. The game itself is :shared.
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.google.firebase.crashlytics'
 
 android {
     // :shared has the namespace the application had (ru.nsu.ccfit.zuev.osuplus), for its resources,
@@ -35,7 +33,7 @@ android {
     ndkVersion '22.1.7171670'
 
     defaultConfig {
-        applicationId 'ru.nsu.ccfit.zuev.osuplus'
+        applicationId 'com.reco1l.osudroid'
         manifestPlaceholders = [uiTestsEnabled: "false", profileable: "false"]
         minSdkVersion 24
         targetSdkVersion 29
@@ -52,22 +50,18 @@ android {
         }
     }
 
+    // Debug and profile builds are signed with Android's debug key of each machine
+    // (~/.android/debug.keystore). Release builds are signed with the release key given in
+    // local.properties (RELEASE_KEYSTORE, its path relative to androidApp/, RELEASE_KEYSTORE_PASSWORD,
+    // RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD), which is never committed; without it they're unsigned.
+    def releaseKeystore = localProperties.getProperty('RELEASE_KEYSTORE')
     signingConfigs {
-        debug {
-            storeFile file('debug.jks')
-            storePassword "debug.dgsrz.com"
-            keyAlias 'debug.github.dgsrz.com'
-            keyPassword 'debug.github.dgsrz.com'
-        }
-
-        release {
-            try {
-                storeFile file(localProperties.get("RELEASE_KEYSTORE", "debug.jks"))
-                storePassword localProperties.get('RELEASE_KEYSTORE_PASSWORD', "debug.dgsrz.com")
-                keyAlias localProperties.get('RELEASE_KEY_ALIAS', "debug.github.dgsrz.com")
-                keyPassword localProperties.get('RELEASE_KEY_PASSWORD', "debug.github.dgsrz.com")
-            } catch (ignored) {
-                throw new InvalidUserDataException('You should define RELEASE_KEYSTORE_PASSWORD and RELEASE_KEY_PASSWORD in local.properties.', ignored)
+        if (releaseKeystore) {
+            release {
+                storeFile file(releaseKeystore)
+                storePassword localProperties.getProperty('RELEASE_KEYSTORE_PASSWORD')
+                keyAlias localProperties.getProperty('RELEASE_KEY_ALIAS')
+                keyPassword localProperties.getProperty('RELEASE_KEY_PASSWORD')
             }
         }
     }
@@ -77,18 +71,14 @@ android {
             resValue "string", "app_name", "osu!droid-debug"
             applicationIdSuffix '.debug'
             manifestPlaceholders = [uiTestsEnabled: "true", profileable: "false"]
-            firebaseCrashlytics {
-                mappingFileUploadEnabled false
-            }
         }
 
         release {
             resValue "string", "app_name", "osu!droid"
 //            minifyEnabled true
 //            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
-            signingConfig signingConfigs.release
-            firebaseCrashlytics {
-                mappingFileUploadEnabled false
+            if (releaseKeystore) {
+                signingConfig signingConfigs.release
             }
         }
 
@@ -100,18 +90,6 @@ android {
             matchingFallbacks = ['release']
             manifestPlaceholders = [uiTestsEnabled: "true", profileable: "true"]
             signingConfig signingConfigs.debug
-        }
-
-        pre_release {
-            matchingFallbacks = ['release']
-            resValue "string", "app_name", "osu!droid"
-//            minifyEnabled true
-//            debuggable true
-//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg', 'proguard-kotlin.pro'
-            signingConfig signingConfigs.release
-            firebaseCrashlytics {
-                mappingFileUploadEnabled false
-            }
         }
     }
 
@@ -149,7 +127,5 @@ dependencies {
     // What the entry points use themselves.
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'com.google.firebase:firebase-crashlytics:19.4.0'
-    implementation 'com.google.firebase:firebase-analytics:22.2.0'
     implementation 'pub.devrel:easypermissions:3.0.0'
 }

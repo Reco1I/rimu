@@ -9,7 +9,6 @@ import android.os.Environment
 import android.os.StatFs
 import android.provider.OpenableColumns
 import android.view.KeyEvent
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.osudroid.OsuGame
 import com.osudroid.OsuGameHost
 import com.osudroid.beatmaps.BeatmapCache
@@ -19,7 +18,6 @@ import com.osudroid.difficulty.BeatmapDifficultyCalculator
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.LobbyAPI
 import com.osudroid.resources.Res
-import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.mainmenu.MainScene
 import com.osudroid.AccessibilityDetector
 import com.osudroid.utils.async
@@ -73,10 +71,7 @@ abstract class AndroidOsuGameHost : AndroidGameHost(), OsuGameHost {
         }
     }
 
-    override fun onEngineInitialized() {
-        OsuGame.start()
-        FirebaseCrashlytics.getInstance().setUserId(OsuSettings.installId)
-    }
+    override fun onEngineInitialized() = OsuGame.start()
 
     override fun onEngineStarted() = Unit
 

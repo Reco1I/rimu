@@ -32,8 +32,22 @@ sourceSets.main {
     resources.srcDir(rootProject.layout.projectDirectory.dir("shared/assets"))
 }
 
+// The version and build type OsuDesktop reads (DESKTOP_APPLICATION): a debug build without a version
+// unless built with -PdesktopVersion and -PdesktopBuildType=release, as the release workflow does.
+val generateApplicationProperties by tasks.registering(WriteProperties::class) {
+    destinationFile.set(layout.buildDirectory.file("generated/application/osudroid-desktop.properties"))
+    property("versionName", providers.gradleProperty("desktopVersion").orElse("desktop"))
+    property("buildType", providers.gradleProperty("desktopBuildType").orElse("debug"))
+}
+
+sourceSets.main {
+    resources.srcDir(files(layout.buildDirectory.dir("generated/application")).builtBy(generateApplicationProperties))
+}
+
 application {
     mainClass.set("com.osudroid.desktop.OsuDesktopKt")
+    // The name of the distributions and of their start scripts (bin/osudroid).
+    applicationName = "osudroid"
 
     // GLFW has to run on the first thread on macOS.
     if (System.getProperty("os.name").lowercase().contains("mac")) {
@@ -63,4 +77,20 @@ tasks.register<JavaExec>("runUITests") {
 
     dependsOn(gradle.includedBuild("verktex").task(":shared:prepareFFmpeg"))
     systemProperty("verktex.ffmpeg.path", ffmpegDirectory)
+}
+
+// Distributions (installDist, distZip, distTar) bundle FFmpeg's libraries for the platform they're
+// built on in ffmpeg/, where OsuDesktop finds them. They need a Java 17 runtime to run.
+distributions.main {
+    contents {
+        from(ffmpegDirectory) {
+            into("ffmpeg")
+        }
+    }
+}
+
+for (task in listOf("installDist", "distZip", "distTar")) {
+    tasks.named(task) {
+        dependsOn(gradle.includedBuild("verktex").task(":shared:prepareFFmpeg"))
+    }
 }
