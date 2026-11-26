@@ -10,11 +10,9 @@ import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.DatabaseManager
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateDroidDifficulty
 import com.osudroid.difficulty.BeatmapDifficultyCalculator.calculateStandardDifficulty
-import com.osudroid.mods.IMigratableMod
 import com.osudroid.mods.IModApplicableToTrackRate
 import com.osudroid.mods.Mod
 import com.osudroid.mods.ModDifficultyAdjust
-import com.osudroid.mods.ModType
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.scoring.ScoreMultiplierCalculator
 import com.osudroid.ui.v2.ModsIndicator
@@ -23,7 +21,6 @@ import com.osudroid.ui.v2.StarRatingBadge
 import com.osudroid.multiplayer.clearPlayerMods
 import com.osudroid.utils.ModHashMap
 import kotlin.concurrent.Volatile
-import com.osudroid.utils.allModsInstances
 import com.osudroid.utils.applyMods
 import com.osudroid.utils.async
 import com.osudroid.utils.calculateRate
@@ -35,8 +32,8 @@ import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
+import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.fill
-import com.reco1l.verktex.data.horizontalPadding
 import com.reco1l.verktex.data.verticalPadding
 import com.reco1l.verktex.data.wrap
 import com.reco1l.verktex.math.Easing
@@ -48,6 +45,10 @@ import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.badge
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.colorTo
+import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.ui.fadeOut
+import com.reco1l.verktex.ui.moveToX
+import com.reco1l.verktex.ui.control.TabSelector
 import com.reco1l.verktex.ui.container.CaptureContainer
 import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.container.container
@@ -89,14 +90,10 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
     var onDifficultyCalculated: (beatmapInfo: BeatmapInfo, starRating: Double) -> Unit = { _, _ -> }
 
     /**
-     * List of all mod sections.
+     * The toggles of every mod the user can select.
      */
-    val modSections = mutableListOf<ModMenuSection>()
-
-    /**
-     * List of all mod toggles.
-     */
-    val modToggles = mutableListOf<ModMenuToggle>()
+    val modToggles
+        get() = sectionsView.modToggles
 
 
     /**
@@ -107,9 +104,11 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
     @Volatile
     private var hasSettingsChanged = false
 
-    private lateinit var modPresetsSection: ModMenuPresetsSection
-    private lateinit var customizeButton: TextButton
-    private var customizationMenu: ModCustomizationMenu
+    private lateinit var tabs: TabSelector
+    private lateinit var customizeTab: TextButton
+    private lateinit var sectionsView: ModSectionsView
+    private lateinit var customizationView: ModCustomizationView
+    private var shownTab = Tab.Mods
     private lateinit var selectedModsIndicator: ModsIndicator
     private lateinit var searchInput: ModMenuSearchInput
     private lateinit var rankedBadge: Badge
@@ -124,7 +123,7 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
     private var calculationJob: Job? = null
 
     /**
-     * The mods whose settings [customizationMenu] shows, which follow [mods].
+     * The mods whose settings [customizationView] shows, which follow [mods].
      */
     private val customizedMods = mutableMapOf<KClass<out Mod>, Mod>()
 
@@ -172,20 +171,31 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
                             onActionCancel = { SkinSounds["click-short"].play() }
                         }
 
-                        customizeButton = textButton {
-                            text = "Customize"
-                            isEnabled = false
-                            leadingIcon = faSolidIcon(FAIcon.Wrench)
-                            onActionUp = {
+                        tabs = TabSelector().apply {
+                            width = 280f.dip
+                            anchor = Anchor.CenterLeft
+                            origin = Anchor.CenterLeft
+
+                            addButton("Mods") {
                                 SkinSounds["click-short-confirm"].play()
-                                if (customizationMenu.isShown) {
-                                    customizationMenu.hide()
-                                } else {
-                                    customizationMenu.show()
-                                }
+                                showTab(Tab.Mods)
+                            }.apply {
+                                leadingIcon = faSolidIcon(FAIcon.PuzzlePiece)
+                                height = TAB_HEIGHT
                             }
-                            onActionCancel = { SkinSounds["click-short"].play() }
+
+                            customizeTab = addButton("Customize") {
+                                SkinSounds["click-short-confirm"].play()
+                                showTab(Tab.Customize)
+                            }.apply {
+                                leadingIcon = faSolidIcon(FAIcon.Wrench)
+                                height = TAB_HEIGHT
+                                isEnabled = false
+                            }
+
+                            selectedTab = 0
                         }
+                        +tabs
 
                         textButton {
                             text = "Clear"
@@ -214,59 +224,24 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
                     // Right side: Search box
                     searchInput = ModMenuSearchInput().apply {
 
-                        onSearchTermUpdate = { searchTerm ->
-                            modSections.forEach { it.onSearchTermUpdate(searchTerm) }
-
-                            if (modPresetsSection.isVisible) {
-                                modPresetsSection.onSearchTermUpdate(searchTerm)
-                            }
-                        }
+                        onSearchTermUpdate = { sectionsView.onSearchTermUpdate(it) }
                     }
                     +searchInput
                 }
             }
 
-            // Sections container
+            // Tabs: the mod sections or the customization
             extendIntoSafeAreaContainer {
                 width = fill()
                 height = fill()
 
-                scrollableContainer {
-                    width = fill()
-                    height = fill()
-                    scrollAxes = Axis.X
+                sectionsView = ModSectionsView(this@ModMenu)
+                +sectionsView
 
-                    linearContainer {
-                        orientation = Orientation.Horizontal
-                        width = wrap()
-                        height = fill()
-                        padding = horizontalPadding(16f.dip)
-                        spacing = 16f.dip
-
-                        modPresetsSection = ModMenuPresetsSection(this@ModMenu)
-                        +modPresetsSection
-
-                        val mods = allModsInstances
-
-                        ModType.entries.forEach { type ->
-                            val sectionName = type.stringId.toString()
-                            val sectionToggles = mods
-                                .filter { it !is IMigratableMod && it.isUserPlayable && it.type == type }
-                                .map { ModMenuToggle(it, this@ModMenu.mods) }
-
-                            if (sectionToggles.isEmpty()) {
-                                return@forEach
-                            }
-
-                            modToggles.addAll(sectionToggles)
-
-                            val section = ModMenuSection(sectionName, sectionToggles)
-
-                            +section
-                            modSections.add(section)
-                        }
-                    }
+                customizationView = ModCustomizationView(::onModSettingChanged).apply {
+                    isVisible = false
                 }
+                +customizationView
             }
 
             // Bottom bar
@@ -346,11 +321,7 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             }
         }
 
-        // Customizations menu
-        customizationMenu = ModCustomizationMenu(customizeButton, ::onModSettingChanged)
-        +customizationMenu
-
-        modPresetsSection.loadPresets()
+        sectionsView.presetsSection.loadPresets()
     }
 
 
@@ -394,7 +365,7 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             // This is needed to give the mod a reference to the beatmap's default difficulty values.
             this@ModMenu.mods.ofType<ModDifficultyAdjust>()?.setDefaultDifficulty(beatmap.difficulty)
 
-            customizationMenu.updateComponents()
+            customizationView.updateComponents()
 
             // Copy the mods to avoid concurrent modification
             val mods = this@ModMenu.mods.deepCopy().values
@@ -455,16 +426,18 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             Verktex.addOverlay(this)
         }
 
-        // Do not show mod presets in multiplayer.
-        modPresetsSection.isVisible = !Multiplayer.isMultiplayer
+        showTab(Tab.Mods, animate = false)
 
-        if (modPresetsSection.isVisible) {
-            modPresetsSection.onSearchTermUpdate(searchInput.value)
+        // Do not show mod presets in multiplayer.
+        sectionsView.presetsSection.isVisible = !Multiplayer.isMultiplayer
+
+        if (sectionsView.presetsSection.isVisible) {
+            sectionsView.presetsSection.onSearchTermUpdate(searchInput.value)
         }
 
         // Ensure mods and customizations that can be enabled by the user are displayed and enabled.
         updateModButtonVisibility()
-        updateCustomizationMenuEnabledStates()
+        updateCustomizationEnabledStates()
 
         // The mods may have changed while it was hidden, and the beatmap is parsed again to update the
         // settings defaults that rely on the original beatmap data.
@@ -478,20 +451,62 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
 
     //endregion
 
+    //region Tabs
+
+    private enum class Tab { Mods, Customize }
+
+    /**
+     * Shows the mod sections or the customization of the selected mods in place of the other.
+     */
+    private fun showTab(tab: Tab, animate: Boolean = true) {
+        tabs.selectedTab = tab.ordinal
+
+        if (shownTab == tab && animate) {
+            return
+        }
+        shownTab = tab
+
+        val shown = if (tab == Tab.Mods) sectionsView else customizationView
+        val hidden = if (tab == Tab.Mods) customizationView else sectionsView
+
+        if (!animate) {
+            hidden.clearTransforms()
+            hidden.isVisible = false
+
+            shown.clearTransforms()
+            shown.isVisible = true
+            shown.alpha = 1f
+            shown.translationX = 0f.px
+        } else {
+            // The customization is to the right of the mods: switching to it slides both to the left, and back.
+            val offset = TAB_SWITCH_OFFSET.toPixels() * if (tab == Tab.Customize) 1f else -1f
+
+            hidden.clearTransforms()
+            hidden.fadeOut(TAB_SWITCH_DURATION / 2f, Easing.OutQuint)
+            hidden.moveToX(-offset, TAB_SWITCH_DURATION, Easing.OutQuint).after { hidden.isVisible = false }
+
+            shown.clearTransforms()
+            shown.isVisible = true
+            shown.alpha = 0f
+            shown.translationX = offset.px
+            shown.fadeIn(TAB_SWITCH_DURATION, Easing.OutQuint)
+            shown.moveToX(0f, TAB_SWITCH_DURATION, Easing.OutQuint)
+        }
+
+        // Search only filters the mod sections.
+        searchInput.isVisible = tab == Tab.Mods
+    }
+
+    //endregion
+
     //region Mods
 
     fun updateModButtonVisibility() {
-        modToggles.forEach {
-            it.updateVisibility(searchInput.value)
-            it.applyCompatibilityState()
-        }
-
-        // Update section visibility after toggles have been updated since it may not need to be visible anymore.
-        modSections.forEach { it.updateVisibility() }
+        sectionsView.updateModButtonVisibility(searchInput.value)
     }
 
-    fun updateCustomizationMenuEnabledStates() {
-        customizationMenu.updateComponentEnabledStates()
+    fun updateCustomizationEnabledStates() {
+        customizationView.updateComponentEnabledStates()
     }
 
     /**
@@ -558,13 +573,17 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             ).toFloat()
         )
 
-        customizeButton.isEnabled = !customizationMenu.isEmpty()
+        customizeTab.isEnabled = !customizationView.isEmpty()
+
+        if (shownTab == Tab.Customize && customizationView.isEmpty()) {
+            showTab(Tab.Mods)
+        }
 
         OsuGame.applyModsToMusic(mods)
         parseBeatmap()
 
         selectedModsIndicator.mods = enabledMods
-        modPresetsSection.onModsChanged()
+        sectionsView.presetsSection.onModsChanged()
     }
 
     /**
@@ -586,19 +605,19 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
     }
 
     /**
-     * Shows the settings of the selected mods in [customizationMenu].
+     * Shows the settings of the selected mods in [customizationView].
      */
     private fun updateCustomizations() {
         for ((modClass, mod) in customizedMods.toList()) {
             if (mods[modClass] !== mod) {
-                customizationMenu.onModRemoved(mod)
+                customizationView.onModRemoved(mod)
                 customizedMods.remove(modClass)
             }
         }
 
         for ((modClass, mod) in mods) {
             if (modClass !in customizedMods) {
-                customizationMenu.onModAdded(mod)
+                customizationView.onModAdded(mod)
                 customizedMods[modClass] = mod
             }
         }
@@ -648,7 +667,11 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
 
     //endregion
 
+    private companion object {
+        const val TAB_SWITCH_DURATION = 0.3f
+        val TAB_SWITCH_OFFSET = 48f.dip
 
+        // The selector's padding around tabs of this height makes it as tall as the top bar's other buttons.
+        val TAB_HEIGHT = themed { (buttonStyle.medium.height.toPixels() - gap.xs.toPixels() * 2f).px }
+    }
 }
-
-

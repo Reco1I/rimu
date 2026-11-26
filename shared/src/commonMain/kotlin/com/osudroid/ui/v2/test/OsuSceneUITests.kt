@@ -121,6 +121,21 @@ object OsuSceneUITests : UITestSuite("Scenes") {
             modMenu.show()
         }
 
+        test("Mod menu (selected mods)") {
+            useGameContext()
+            BeatmapSelection.beatmap = firstBeatmap()
+
+            // Mods with settings, and one without, so that the customization has a few to list.
+            val mods = ModHashMap().apply {
+                listOf(ModDoubleTime(), ModHidden(), ModDifficultyAdjust()).forEach { put(it::class, it) }
+            }
+
+            val modMenu = ModMenu(mods)
+            showModMenuButton(modMenu)
+            onDispose { modMenu.hide() }
+            modMenu.show()
+        }
+
         test("Mod menu (multiplayer)") {
             useGameContext()
             BeatmapSelection.beatmap = firstBeatmap()
