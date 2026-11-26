@@ -1,10 +1,10 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.osudroid.ui.v2.skinTexture
 import com.osudroid.ui.v2.hud.GameplayState
 import com.osudroid.OsuGame
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
-import com.osudroid.ui.v2.SkinTextures
 import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
@@ -29,7 +29,7 @@ class HUDBackButton(private val game: GameplayState) : HUDElement() {
     private val requiredPressTimeMs = Settings[OsuSettings.BackButtonPressTime].toFloat()
 
     private val arrow = Sprite().apply {
-        textureRegion = SkinTextures["back-arrow"]
+        texture = skinTexture("back-arrow")
         anchor = Anchor.Center
         origin = Anchor.Center
         width = 0.6f.pct

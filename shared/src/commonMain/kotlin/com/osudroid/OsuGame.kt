@@ -14,7 +14,6 @@ import com.osudroid.utils.calculateRate
 import com.osudroid.utils.delayed
 import com.osudroid.ui.v2.SkinFolders
 import com.osudroid.ui.v2.Skin
-import com.osudroid.ui.v2.SkinSounds
 import com.osudroid.ui.v2.BeatmapBackground
 import com.osudroid.ui.v2.SplashScene
 import com.osudroid.ui.v2.mainmenu.MainScene
@@ -167,7 +166,6 @@ object OsuGame {
         SplashScene.progress = 10
         SplashScene.info = "Loading skin..."
         Skin.load(SkinFolders.path)
-        SkinSounds.preload()
         SplashScene.progress = 40
         music.stop()
     }

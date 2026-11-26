@@ -670,6 +670,7 @@ class GameplaySession(
         )
 
         SkinTextures.preloadGameplay()
+        SkinSounds.preloadGameplay()
 
         // The pools keep what they have on a retry, the skin being the same.
         val keepPools: Boolean

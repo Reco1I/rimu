@@ -138,7 +138,7 @@ object BeatmapBackground : Container() {
                 if (shownPath != path) {
                     return@scheduleOnDraw
                 }
-                val region = source?.let { Textures.load("::background-$keyIndex", it) }
+                val region = source?.let { Textures.store("backgrounds").load("background-$keyIndex", it) }
                 crossfadeTo(region ?: SkinTextures["menu-background"], duration)
             }
         }

@@ -4,6 +4,8 @@ import com.osudroid.mods.*
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.ui.ISkinnable
+import com.osudroid.ui.v2.skinTexture
+import com.reco1l.verktex.ui.Sprite
 import com.osudroid.ui.v2.*
 import com.osudroid.utils.allModsInstances
 import com.reco1l.verktex.Verktex
@@ -45,7 +47,7 @@ class ModIcon(val mod: Mod) : Container(), ISkinnable {
         if (texture != null) {
             background = Background.Color(Color4.Transparent)
 
-            +OsuSkinnableSprite(mod.iconTextureName).apply {
+            +Sprite(skinTexture(mod.iconTextureName)).apply {
                 width = fill()
                 height = fill()
             }

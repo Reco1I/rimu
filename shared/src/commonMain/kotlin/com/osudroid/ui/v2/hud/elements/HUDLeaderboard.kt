@@ -1,10 +1,10 @@
 package com.osudroid.ui.v2.hud.elements
 
+import com.osudroid.ui.v2.skinTexture
 import com.osudroid.scoring.Statistic
 import com.osudroid.ui.v2.hud.GameplayState
 import com.osudroid.OsuGame
 import com.osudroid.multiplayer.Multiplayer
-import com.osudroid.ui.v2.SkinTextures
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.songselect.SongSelect
 import com.reco1l.verktex.data.Anchor
@@ -269,7 +269,7 @@ class HUDLeaderboard(private val game: GameplayState) : HUDElement() {
         val backgroundSprite = Sprite().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            textureRegion = SkinTextures["menu-button-background"]
+            texture = skinTexture("menu-button-background")
         }
 
         val info = Text().apply {

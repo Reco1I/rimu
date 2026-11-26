@@ -127,7 +127,7 @@ object BeatmapCovers {
     /**
      * The cover at [url] if it's loaded.
      */
-    fun loaded(url: String): Texture.Region? = Textures[CachedTextures.keyOf(url)]
+    fun loaded(url: String): Texture.Region? = CachedTextures.store[CachedTextures.keyOf(url)]
 
     /**
      * Downloads the cover at [url] if it isn't cached and loads it, giving it to [onLoaded] on the update
@@ -155,7 +155,7 @@ object BeatmapCovers {
      */
     fun unload(url: String) {
         if (loaded(url) != null) {
-            Textures.unload(CachedTextures.keyOf(url))
+            CachedTextures.store.unload(CachedTextures.keyOf(url))
         }
     }
 }

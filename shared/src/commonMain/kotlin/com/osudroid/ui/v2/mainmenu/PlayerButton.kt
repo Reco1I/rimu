@@ -1,10 +1,11 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.reco1l.verktex.texture.reference
 import com.osudroid.ui.v2.CachedTextures
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
-import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
@@ -66,7 +67,7 @@ class PlayerButton : ClickableContainer() {
                 background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.3f) })
                 radius = themed { CornerRadius(radius.xl) }
                 scaleType = ScaleType.Crop
-                textureRegion = SkinTextures["emptyavatar"]
+                texture = skinTexture("emptyavatar")
             }
 
             linearContainer {
@@ -105,10 +106,10 @@ class PlayerButton : ClickableContainer() {
             avatarUri = onlineManager.avatarURL
             avatarLoaded = onlineScoring.isAvatarLoaded
 
-            avatarSprite.textureRegion = if (!avatarLoaded || avatarUri.isEmpty()) {
-                SkinTextures["emptyavatar"]
+            avatarSprite.texture = if (!avatarLoaded || avatarUri.isEmpty()) {
+                skinTexture("emptyavatar")
             } else {
-                CachedTextures[avatarUri] ?: SkinTextures["emptyavatar"]
+                CachedTextures[avatarUri]?.reference ?: skinTexture("emptyavatar")
             }
         }
 

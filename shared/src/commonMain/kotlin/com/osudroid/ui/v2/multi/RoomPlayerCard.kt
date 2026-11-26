@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.multi
 
+import com.reco1l.verktex.texture.reference
+import com.osudroid.ui.v2.skinTexture
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
@@ -130,7 +132,7 @@ class RoomPlayerCard : LinearContainer() {
             private set
 
         private var lastPlayerId = -1L
-        private val defaultAvatar = SkinTextures["emptyavatar"]
+        private val defaultAvatar = skinTexture("emptyavatar")
 
         private val hostIcon = Icon(FAIcon.Crown).apply {
             width = 24f.px
@@ -147,7 +149,7 @@ class RoomPlayerCard : LinearContainer() {
         private val missingBeatmapIcon = Sprite().apply {
             width = 24f.px
             height = 24f.px
-            textureRegion = SkinTextures["missing"]
+            texture = skinTexture("missing")
         }
 
         init {
@@ -167,7 +169,7 @@ class RoomPlayerCard : LinearContainer() {
                 height = 50f.px
                 radius = CornerRadius(8f.px)
                 scaleType = ScaleType.Crop
-                textureRegion = defaultAvatar
+                texture = defaultAvatar
             }
             +avatarSprite
 
@@ -327,12 +329,12 @@ class RoomPlayerCard : LinearContainer() {
             avatarJob?.cancel()
             avatarJob = null
 
-            val loadedTexture = Textures[CachedTextures.keyOf(avatarUrl)]
+            val loadedTexture = CachedTextures.store[CachedTextures.keyOf(avatarUrl)]
 
             if (loadedTexture != null) {
-                avatarSprite.textureRegion = loadedTexture
+                avatarSprite.texture = loadedTexture.reference
             } else {
-                avatarSprite.textureRegion = defaultAvatar
+                avatarSprite.texture = defaultAvatar
 
                 avatarJob = async {
                     ensureActive()
@@ -342,13 +344,13 @@ class RoomPlayerCard : LinearContainer() {
 
                         updateThread {
                             if (lastPlayerId == userId) {
-                                avatarSprite.textureRegion = CachedTextures[avatarUrl] ?: defaultAvatar
+                                avatarSprite.texture = CachedTextures[avatarUrl]?.reference ?: defaultAvatar
                             }
                         }
                     } else {
                         updateThread {
                             if (lastPlayerId == userId) {
-                                avatarSprite.textureRegion = defaultAvatar
+                                avatarSprite.texture = defaultAvatar
                             }
                         }
                     }

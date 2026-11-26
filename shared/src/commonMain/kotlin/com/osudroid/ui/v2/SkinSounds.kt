@@ -1,6 +1,8 @@
 package com.osudroid.ui.v2
 
 import com.reco1l.verktex.Platform
+import com.reco1l.verktex.audio.SoundStore
+import com.reco1l.verktex.audio.Sounds
 import kotlin.jvm.JvmStatic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -25,6 +27,12 @@ object SkinSounds {
 
     private val lock = SynchronizedObject()
 
+    // Where the samples are loaded: the skin's (or the default ones standing in for them) are released together
+    // when the skin changes, the beatmap skin's when the beatmap does.
+    private val skinStore = Sounds.store("skin")
+    private val beatmapStore = Sounds.store("beatmap-skin")
+    private val defaultStore = Sounds.store("default-skin")
+
 
     /**
      * Gets a skin sound by name, a silent one if it doesn't exist.
@@ -44,7 +52,7 @@ object SkinSounds {
                 return null
             }
 
-            val sound = loadFromSkin(name) ?: loadFromAssets(name)
+            val sound = loadFromSkin(name) ?: loadFromAssets(name, skinStore)
 
             if (sound == null) {
                 missingSounds += name
@@ -62,7 +70,7 @@ object SkinSounds {
     @JvmStatic
     fun getDefault(name: String): BassSoundProvider {
         return synchronized(lock) {
-            return defaultSounds.getOrPut(name) { loadFromAssets(name) ?: BassSoundProvider.EMPTY }
+            return defaultSounds.getOrPut(name) { loadFromAssets(name, defaultStore) ?: BassSoundProvider.EMPTY }
         }
     }
 
@@ -86,37 +94,44 @@ object SkinSounds {
     @JvmStatic
     fun getBeatmap(name: String, set: Int) = getBeatmapOrNull(if (set >= 2) name + set else name) ?: getOrNull(name)
 
-    /**
-     * Loads all the sounds of the current skin, so that they don't have to be loaded when they're first played.
-     */
-    @JvmStatic
-    fun preload() {
-        val assets = Platform.provider.list("sfx", false) ?: return
-
-        for (asset in assets) {
-            getOrNull(asset.substringBeforeLast('.'))
+    // What gameplay plays, loaded with the play (preloadGameplay) instead of when first played, which would stall a
+    // frame of the play. Menus load theirs when they're first played.
+    private val gameplaySounds = buildList {
+        for (set in arrayOf("normal", "soft", "drum")) {
+            for (sound in arrayOf("hitnormal", "hitwhistle", "hitfinish", "hitclap", "slidertick", "sliderslide", "sliderwhistle")) {
+                add("$set-$sound")
+            }
         }
-
-        getOrNull("comboburst")
-
+        addAll(listOf("spinnerspin", "spinnerbonus", "combobreak", "failsound", "sectionpass", "sectionfail", "applause", "comboburst"))
         for (i in 0 until 10) {
-            getOrNull("comboburst-$i")
+            add("comboburst-$i")
         }
     }
 
     /**
-     * Releases all the sounds of the skin and loads the ones of the current skin. To be called after the skin
-     * has changed.
+     * Loads the sounds gameplay plays, so that they don't have to be loaded when they're first played. To be called
+     * while a play loads, once the beatmap skin is loaded.
+     */
+    @JvmStatic
+    fun preloadGameplay() {
+        for (name in gameplaySounds) {
+            getOrNull(name)
+        }
+    }
+
+    /**
+     * Releases all the sounds of the skin, those of the new skin are loaded as they're played. To be called after
+     * the skin has changed.
      */
     @JvmStatic
     fun onSkinChanged() {
         synchronized(lock) {
+            // Whoever still holds one plays nothing rather than a released sample.
             sounds.values.forEach { it.free() }
             sounds.clear()
             missingSounds.clear()
+            skinStore.unloadAll()
         }
-
-        preload()
     }
 
     /**
@@ -137,11 +152,7 @@ object SkinSounds {
                 return
             }
 
-            val sound = BassSoundProvider()
-
-            if (sound.prepare(path)) {
-                beatmapSounds[name] = sound
-            }
+            beatmapStore.loadSampleResource(name, path)?.let { beatmapSounds[name] = BassSoundProvider(it) }
         }
     }
 
@@ -153,6 +164,7 @@ object SkinSounds {
         synchronized(lock) {
             beatmapSounds.values.forEach { it.free() }
             beatmapSounds.clear()
+            beatmapStore.unloadAll()
         }
     }
 
@@ -163,24 +175,20 @@ object SkinSounds {
             val metadata = Platform.fileSystem.metadataOrNull(file)
 
             if (metadata != null && metadata.isRegularFile && (metadata.size ?: 0L) > 0) {
-                val sound = BassSoundProvider()
-
-                if (sound.prepare(file.toString())) {
-                    return sound
-                }
+                skinStore.loadSampleResource(name, file.toString())?.let { return BassSoundProvider(it) }
             }
         }
 
         return null
     }
 
-    private fun loadFromAssets(name: String): BassSoundProvider? {
+    private fun loadFromAssets(name: String, store: SoundStore): BassSoundProvider? {
         for (extension in extensions) {
-            val sound = BassSoundProvider()
-
-            if (sound.prepareAsset("sfx/$name.$extension")) {
-                return sound
+            if (!Platform.provider.exists("sfx/$name.$extension", false)) {
+                continue
             }
+
+            store.loadSampleResource(name, "sfx/$name.$extension", isExternal = false)?.let { return BassSoundProvider(it) }
         }
 
         return null

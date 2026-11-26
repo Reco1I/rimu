@@ -11,6 +11,7 @@ import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.texture.FramesReference
 import com.reco1l.verktex.texture.TextureReference
+import com.reco1l.verktex.texture.TextureStore
 import com.reco1l.verktex.texture.Textures
 import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.container.Container
@@ -21,14 +22,20 @@ import kotlin.jvm.JvmStatic
 import okio.Path.Companion.toPath
 
 /**
- * Looks up textures downloaded to the cache folder, such as avatars, through Verktex [Textures].
+ * Looks up textures downloaded to the cache folder, such as avatars, in their own [store].
  */
 object CachedTextures {
 
     /**
-     * The [Textures] key of a downloaded file.
+     * The store of the downloaded textures.
      */
-    fun keyOf(url: String) = "cache:" + MD5Calculator.getStringMD5(url)
+    val store: TextureStore
+        get() = Textures.store("cache")
+
+    /**
+     * The [store] key of a downloaded file.
+     */
+    fun keyOf(url: String) = MD5Calculator.getStringMD5(url)
 
     /**
      * Gets the texture of an already downloaded file, loading it if needed.
@@ -37,21 +44,27 @@ object CachedTextures {
         val key = keyOf(url)
         val file = GameFolders.cachePath.toPath() / MD5Calculator.getStringMD5(url)
 
-        return Textures[key] ?: Textures.load(key, file.toString(), isInternal = false)
+        return store[key] ?: store.load(key, file.toString(), isInternal = false)
     }
 }
 
 /**
- * Looks up skin assets through Verktex [Textures], preferring the custom skin folder and falling back to
- * the default skin's assets. Textures of the beatmap skin take priority over those while it's enabled.
+ * Looks up skin assets, preferring the custom skin folder and falling back to the default skin's assets, in the
+ * [skinStore]. Textures of the beatmap skin, in the [beatmapStore], take priority over those while it's enabled.
  */
 object SkinTextures {
     private const val TAG = "SkinTextures"
 
 
-    private const val KEY_PREFIX = "skin:"
+    /**
+     * The textures of the skin, unloaded all at once when it changes. Their keys are their names.
+     */
+    val skinStore: TextureStore = Textures.store("skin")
 
-    private const val BEATMAP_KEY_PREFIX = "beatmap:"
+    /**
+     * The textures of the beatmap skin, unloaded all at once when the beatmap changes.
+     */
+    val beatmapStore: TextureStore = Textures.store("beatmap-skin")
 
     private val frameNameRegex = Regex("(.+?)-?\\d+")
 
@@ -98,7 +111,7 @@ object SkinTextures {
         "scorebar-bg", "scorebar-marker", "scorebar-ki", "scorebar-kidanger", "scorebar-kidanger2",
         "particle50", "particle100", "particle300", "sliderpoint10", "sliderpoint30",
         // Shown by breaks and the leaderboard while playing.
-        "section-pass", "section-fail", "ranking-X-small", "ranking-XH-small", "ranking-S-small", "ranking-SH-small",
+        "section-pass", "section-fail", "play-unranked", "play-warningarrow", "back-arrow", "ranking-X-small", "ranking-XH-small", "ranking-S-small", "ranking-SH-small",
         "ranking-A-small", "ranking-B-small", "ranking-C-small", "ranking-D-small"
     )
 
@@ -336,7 +349,7 @@ object SkinTextures {
         aliasedBeatmapFiles.clear()
         hdBeatmapFiles.clear()
         revision++
-        Textures.unloadAll { key, _ -> key.startsWith(BEATMAP_KEY_PREFIX) }
+        beatmapStore.unloadAll()
     }
 
     /**
@@ -344,7 +357,7 @@ object SkinTextures {
      * called after the skin has changed.
      */
     fun onSkinChanged() {
-        Textures.unloadAll { key, _ -> key.startsWith(KEY_PREFIX) }
+        skinStore.unloadAll()
         missingTextures.clear()
         revision++
         notifySkinChanged(Verktex.scene)
@@ -372,12 +385,11 @@ object SkinTextures {
         }
 
         val path = beatmapFiles[name] ?: return null
-        val key = BEATMAP_KEY_PREFIX + name
         val density = if (path.substringBeforeLast('.').endsWith(HD_SUFFIX, ignoreCase = true)) 2f else 1f
 
-        return Textures[key] ?: run {
-            onLoad(key)
-            Textures.load(key, path, isInternal = false, density = density)
+        return beatmapStore[name] ?: run {
+            onLoad("beatmap-skin:$name")
+            beatmapStore.load(name, path, isInternal = false, density = density)
         }
     }
 
@@ -416,9 +428,9 @@ object SkinTextures {
 
         lookupBeatmap(defaultName)?.let { return it }
 
-        val key = KEY_PREFIX + customName
+        val key = customName
 
-        Textures[key]?.let { return it }
+        skinStore[key]?.let { return it }
 
         if (key in missingTextures) {
             return null
@@ -442,13 +454,13 @@ object SkinTextures {
 
     private fun loadFromSkin(key: String, name: String): Texture.Region? {
         skinFile("$name.png")?.let { path ->
-            return Textures.load(key, path, isInternal = false)
+            return skinStore.load(key, path, isInternal = false)
         }
 
         val hdPath = skinFile("$name$HD_SUFFIX.png")
 
         if (hdPath != null) {
-            return Textures.load(key, hdPath, isInternal = false, density = 2f)
+            return skinStore.load(key, hdPath, isInternal = false, density = 2f)
         }
 
         return null
@@ -461,8 +473,8 @@ object SkinTextures {
         val assetPath = "$name.png"
 
         return when {
-            assetExists(defaultPath) -> Textures.load(key, defaultPath, isInternal = true)
-            assetExists(assetPath) -> Textures.load(key, assetPath, isInternal = true)
+            assetExists(defaultPath) -> skinStore.load(key, defaultPath, isInternal = true)
+            assetExists(assetPath) -> skinStore.load(key, assetPath, isInternal = true)
             else -> null
         }
     }

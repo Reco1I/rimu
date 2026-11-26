@@ -10,9 +10,19 @@ import kotlin.jvm.JvmOverloads
 /**
  * A sound effect. Playing it again restarts it instead of overlapping with the previous playback.
  */
-class BassSoundProvider {
+class BassSoundProvider() {
+
+    /**
+     * Plays [sample], which belongs to whoever loaded it (e.g. a [com.reco1l.verktex.audio.SoundStore]):
+     * [free] only lets go of it.
+     */
+    constructor(sample: AudioSample) : this() {
+        this.sample = sample
+        ownsSample = false
+    }
 
     private var sample: AudioSample? = null
+    private var ownsSample = true
     private var playback: AudioPlayback? = null
 
     private var volume = 1f
@@ -36,6 +46,7 @@ class BassSoundProvider {
 
     private fun load(path: String?, isExternal: Boolean): Boolean {
         free()
+        ownsSample = true
 
         if (path.isNullOrEmpty()) {
             return false
@@ -76,7 +87,11 @@ class BassSoundProvider {
     }
 
     fun free() {
-        sample?.dispose()
+        if (ownsSample) {
+            sample?.dispose()
+        } else {
+            playback?.stop()
+        }
         sample = null
         playback = null
     }

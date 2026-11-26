@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.songselect
 
+import com.reco1l.verktex.texture.reference
+import com.osudroid.ui.v2.skinTexture
 import com.osudroid.BeatmapSelection
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
@@ -412,7 +414,7 @@ class SongSelectLeaderboard : LinearContainer() {
                                     anchor = Anchor.CenterLeft
                                     origin = Anchor.CenterLeft
                                     radius = CornerRadius(8f.px)
-                                    textureRegion = SkinTextures["offline-avatar"]
+                                    texture = skinTexture("offline-avatar")
                                 }
                             }
 
@@ -479,7 +481,7 @@ class SongSelectLeaderboard : LinearContainer() {
             if (avatarSprite != null) {
                 val avatarUrl = data.avatarUrl
 
-                avatarSprite.textureRegion = (if (avatarUrl != null) CachedTextures[avatarUrl] else null) ?: SkinTextures["offline-avatar"]
+                avatarSprite.texture = (if (avatarUrl != null) CachedTextures[avatarUrl] else null)?.reference ?: skinTexture("offline-avatar")
             }
 
             scoreText.text = formatNumber(data.score)

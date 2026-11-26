@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
+import com.reco1l.verktex.texture.reference
 import com.osudroid.game.Gameplay
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
@@ -20,7 +21,7 @@ import com.osudroid.multiplayer.*
 import com.osudroid.resources.Res
 import com.osudroid.ui.v2.BeatmapBackground
 import com.osudroid.ui.v2.LoaderScene
-import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.skinTexture
 import com.osudroid.ui.v2.multi.*
 import com.osudroid.ui.v2.settings.SettingsMenu
 import com.osudroid.ui.v2.songselect.SongSelect
@@ -190,7 +191,7 @@ class MainScene : Scene() {
             kiaiParticles = particleSystem(maxParticles = 128) {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
-                texture = SkinTextures["star"]
+                textureReference = skinTexture("star")
             }
         }
 

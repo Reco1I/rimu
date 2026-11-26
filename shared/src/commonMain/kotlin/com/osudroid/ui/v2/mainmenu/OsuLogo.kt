@@ -1,6 +1,6 @@
 package com.osudroid.ui.v2.mainmenu
 
-import com.osudroid.ui.v2.SkinTextures
+import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
@@ -112,7 +112,7 @@ class OsuLogo(withExternalEffects: Boolean = true) : ClickableContainer() {
             }
 
             sprite {
-                textureRegion = SkinTextures["logo"]
+                texture = skinTexture("logo")
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
