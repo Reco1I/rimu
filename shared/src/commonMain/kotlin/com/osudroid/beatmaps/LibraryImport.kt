@@ -143,7 +143,8 @@ object LibraryImport {
 
 
     private suspend fun runRefresh(openedFile: Path?) {
-        // Posted only when there's something to do.
+        // Archives take a while to extract: listed in the notification center while they do,
+        // without popping up, and told at once when they're all imported. Scanning is silent.
         var notification: Notification? = null
 
         fun report(text: CharSequence, done: Int, total: Int) {
@@ -151,7 +152,7 @@ object LibraryImport {
             val current = notification
 
             if (current == null) {
-                notification = Notifications.startTask(Res.string.notification_library_title, text, isIndeterminate = false).also {
+                notification = Notifications.startTask(Res.string.notification_library_title, text, isIndeterminate = false, showToast = false).also {
                     it.progress = progress
                 }
             } else {
@@ -160,65 +161,66 @@ object LibraryImport {
             }
         }
 
-        var importedSkins = 0
-        var importedSets = 0
+        val importedSkins = ArrayList<String>()
+        val importedSets = ArrayList<String>()
 
         try {
             val forceUpdate = when (openedFile?.extension) {
                 null -> {
-                    importedSkins = importSkins { done, total ->
-                        report(Res.string.notification_importing_skins.format(done, total), done, total)
-                    }
-                    importBeatmapSets { done, total ->
-                        report(Res.string.notification_importing_beatmaps.format(done, total), done, total)
-                    }
+                    importSkins(
+                        onProgress = { done, total -> report(Res.string.notification_importing_skins.format(done, total), done, total) },
+                        onImported = { importedSkins += it }
+                    )
+                    importBeatmapSets(
+                        onProgress = { done, total -> report(Res.string.notification_importing_beatmaps.format(done, total), done, total) },
+                        onImported = { importedSets += it }
+                    )
                 }
 
                 "osk" -> {
-                    report(Res.string.notification_importing_skins.format(0, 1), 0, 1)
-                    if (importSkin(openedFile)) importedSkins++
+                    if (importSkin(openedFile)) importedSkins += skinFolderName(openedFile)
                     emptySet()
                 }
 
-                "osz" -> {
-                    report(Res.string.notification_importing_beatmaps.format(0, 1), 0, 1)
-                    setOfNotNull(importBeatmapSet(openedFile))
-                }
+                "osz" -> setOfNotNull(importBeatmapSet(openedFile)).also { importedSets += it }
 
                 else -> emptySet()
             }
+
+            notification?.dismiss()
+            notification = null
 
             if (!hasCheckedStarRatings) {
                 hasCheckedStarRatings = true
                 DifficultyCalculationManager.checkForOutdatedStarRatings()
             }
 
-            var scannedSets = 0
-            LibraryManager.scanDirectory(
-                forceUpdate,
-                onStart = { total ->
-                    scannedSets = total
-                    if (total > 0) {
-                        report(Res.string.notification_scanning_beatmaps.format(0, total), 0, total)
-                    }
-                },
-                onProgress = { done, total ->
-                    report(Res.string.notification_scanning_beatmaps.format(done, total), done, total)
-                }
-            )
-            // The sets imported are among the folders scanned.
-            importedSets = scannedSets
-
+            LibraryManager.scanDirectory(forceUpdate)
             LibraryManager.loadLibrary()
             notifyLibraryChanged()
 
-            notification?.complete(Res.string.notification_library_updated.format(importedSets, importedSkins))
+            notifyImported(importedSets, importedSkins)
         } catch (e: CancellationException) {
             notification?.dismiss()
             throw e
         } catch (e: Exception) {
             Logger.e(TAG, "Failed to refresh the library", e)
-            notification?.fail(Res.string.message_error.format(e.message ?: e::class.simpleName))
+            notification?.dismiss()
+            Notifications.post(Res.string.notification_library_title, Res.string.message_error.format(e.message ?: e::class.simpleName), isError = true)
+        }
+    }
+
+    // One notification for what a refresh imported, naming it if it's a single beatmap set or skin.
+    private fun notifyImported(sets: List<String>, skins: List<String>) {
+        val title = Res.string.notification_library_title
+
+        when {
+            sets.isEmpty() && skins.isEmpty() -> return
+            sets.size == 1 && skins.isEmpty() -> Notifications.post(Res.string.notification_beatmap_set_imported, sets[0])
+            sets.isEmpty() && skins.size == 1 -> Notifications.post(Res.string.notification_skin_imported, skins[0])
+            skins.isEmpty() -> Notifications.post(title, Res.string.notification_beatmap_sets_imported.format(sets.size))
+            sets.isEmpty() -> Notifications.post(title, Res.string.notification_skins_imported.format(skins.size))
+            else -> Notifications.post(title, Res.string.notification_beatmap_sets_and_skins_imported.format(sets.size, skins.size))
         }
     }
 
@@ -266,11 +268,15 @@ object LibraryImport {
      *
      * @param onProgress Called before each archive and after the last one, with how many were
      * imported and how many there are.
+     * @param onImported Called with the folder of each beatmap set imported.
      * @return The folders of the beatmap sets imported from the beatmaps and the downloads folders.
      */
     @JvmStatic
     @JvmOverloads
-    fun importBeatmapSets(onProgress: (done: Int, total: Int) -> Unit = { _, _ -> }): Set<String> {
+    fun importBeatmapSets(
+        onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
+        onImported: (folder: String) -> Unit = {}
+    ): Set<String> {
         val inGameFolder = findArchives(GameFolders.corePath.toPath(), "osz")
         val inBeatmapsFolder = findArchives(GameFolders.beatmapPath.toPath(), "osz")
         val inDownloads = downloadsFolder()?.let { findArchives(it, "osz") }.orEmpty()
@@ -282,7 +288,7 @@ object LibraryImport {
 
         val imported = archives.withIndex().mapNotNull { (i, archive) ->
             onProgress(i, archives.size)
-            importBeatmapSet(archive)?.let { archive to it }
+            importBeatmapSet(archive)?.let { onImported(it); archive to it }
         }.toMap()
         onProgress(archives.size, archives.size)
 
@@ -295,11 +301,15 @@ object LibraryImport {
      *
      * @param onProgress Called before each archive and after the last one, with how many were
      * imported and how many there are.
+     * @param onImported Called with the name of each skin imported.
      * @return How many were imported.
      */
     @JvmStatic
     @JvmOverloads
-    fun importSkins(onProgress: (done: Int, total: Int) -> Unit = { _, _ -> }): Int {
+    fun importSkins(
+        onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
+        onImported: (name: String) -> Unit = {}
+    ): Int {
         val archives = findArchives(SkinFolders.topPath.toPath(), "osk") +
             downloadsFolder()?.let { findArchives(it, "osk") }.orEmpty()
 
@@ -309,7 +319,7 @@ object LibraryImport {
 
         val imported = archives.withIndex().count { (i, archive) ->
             onProgress(i, archives.size)
-            importSkin(archive)
+            importSkin(archive).also { if (it) onImported(skinFolderName(archive)) }
         }
         onProgress(archives.size, archives.size)
         return imported
@@ -343,7 +353,7 @@ object LibraryImport {
      */
     @JvmStatic
     fun importSkin(archive: Path): Boolean {
-        val folderName = archive.name.substringBeforeLast('.')
+        val folderName = skinFolderName(archive)
         val folder = SkinFolders.topPath.toPath() / folderName
 
         if (!extract(archive, folder)) {
@@ -370,6 +380,9 @@ object LibraryImport {
             return false
         }
 
+        // A folder this import creates is removed if it fails, it would be an empty beatmap set.
+        val folderExisted = fileSystem.exists(folder)
+
         try {
             fileSystem.createDirectories(folder)
 
@@ -390,6 +403,14 @@ object LibraryImport {
             Notifications.post(Res.string.notification_import_failed_title, Res.string.notification_import_extract_failed.format(archive.name), isError = true)
             Logger.e(TAG, "Failed to extract ${archive.name}", e)
             renameSafely(archive, archive.name.substringBeforeLast('.') + ".bad" + archive.extension)
+
+            if (!folderExisted) {
+                try {
+                    fileSystem.deleteRecursively(folder, mustExist = false)
+                } catch (e: IOException) {
+                    Logger.e(TAG, "Failed to delete $folder", e)
+                }
+            }
             return false
         }
 
@@ -406,6 +427,8 @@ object LibraryImport {
                 runCatching { fileSystem.openZip(file) }.isSuccess
         }
     }
+
+    private fun skinFolderName(archive: Path) = archive.name.substringBeforeLast('.')
 
     private fun downloadsFolder(): Path? {
         if (!Settings[OsuSettings.ScanDownload]) {

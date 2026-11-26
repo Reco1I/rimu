@@ -14,6 +14,7 @@ import com.osudroid.beatmaps.parser.BeatmapParser
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.data.BeatmapSetInfo
 import com.osudroid.data.DatabaseManager
+import com.osudroid.notifications.Notifications
 import com.osudroid.resources.Res
 import com.reco1l.verktex.Logger
 import kotlin.concurrent.atomics.AtomicInt
@@ -41,6 +42,10 @@ object LibraryManager : MusicService.Playlist {
     private val pendingBeatmaps = ArrayList<BeatmapInfo>()
 
     private val pendingBeatmapsLock = SynchronizedObject()
+
+    // The folders scanned without a beatmap, by name, with when they were last modified: they
+    // aren't in the database, so they're only scanned again once they change. Under the lock above.
+    private val foldersWithoutBeatmaps = HashMap<String, Long>()
 
 
     private fun checkDirectory(path: String): Boolean {
@@ -159,19 +164,20 @@ object LibraryManager : MusicService.Playlist {
         }
     }
 
-    private fun scanBeatmapSetFolder(directory: Path) {
+    /**
+     * Scans a beatmap set folder, adding its beatmaps to those to insert.
+     *
+     * @return Whether it's broken: none of its beatmaps could be loaded, and it was kept.
+     */
+    private fun scanBeatmapSetFolder(directory: Path): Boolean {
 
         val fileSystem = Platform.fileSystem
+        val lastModified = fileSystem.metadataOrNull(directory)?.lastModifiedAtMillis ?: 0L
         val osuFiles = fileSystem.listOrNull(directory)?.filter { it.name.endsWith(".osu") }
 
         if (osuFiles == null) {
-            if (Settings[OsuSettings.DeleteUnimportedBeatmaps]) {
-                deleteRecursivelySafely(directory)
-            }
-            return
+            return keepOrDeleteBroken(directory, lastModified)
         }
-
-        val lastModified = fileSystem.metadataOrNull(directory)?.lastModifiedAtMillis ?: 0L
         var beatmapsFound = 0
 
         for (osuFile in osuFiles) {
@@ -193,9 +199,38 @@ object LibraryManager : MusicService.Playlist {
             }
         }
 
-        if (Settings[OsuSettings.DeleteUnimportedBeatmaps] && beatmapsFound == 0) {
+        return beatmapsFound == 0 && keepOrDeleteBroken(directory, lastModified)
+    }
+
+    // A folder without a beatmap that loads is deleted if the setting says so, otherwise it's
+    // remembered so that it isn't scanned again until it changes. Returns whether it was kept.
+    private fun keepOrDeleteBroken(directory: Path, lastModified: Long): Boolean {
+        if (Settings[OsuSettings.DeleteUnimportedBeatmaps]) {
             deleteRecursivelySafely(directory)
+            return false
         }
+        synchronized(pendingBeatmapsLock) { foldersWithoutBeatmaps[directory.name] = lastModified }
+        return true
+    }
+
+    // Tells of the folders kept without a beatmap that loads, in one notification.
+    private fun notifyBrokenFolders(names: List<String>) {
+        if (names.isEmpty()) {
+            return
+        }
+
+        val text = if (names.size == 1) {
+            Res.string.notification_broken_beatmap_set.format(names[0])
+        } else {
+            Res.string.notification_broken_beatmap_sets.format(names.size, names.sorted().joinToString("\n"))
+        }
+        Notifications.post(Res.string.notification_library_title, text, isError = true)
+    }
+
+    // Whether the folder was scanned without a beatmap and hasn't changed since.
+    private fun isKnownWithoutBeatmaps(directory: Path): Boolean {
+        val scannedModified = synchronized(pendingBeatmapsLock) { foldersWithoutBeatmaps[directory.name] } ?: return false
+        return Platform.fileSystem.metadataOrNull(directory)?.lastModifiedAtMillis == scannedModified
     }
 
 
@@ -295,13 +330,16 @@ object LibraryManager : MusicService.Playlist {
 
         private val scannedCount = AtomicInt(0)
 
+        // The folders kept without a beatmap that loads, under the lock of the pending beatmaps.
+        private val brokenFolders = ArrayList<String>()
+
 
         suspend fun start(onStart: (Int) -> Unit, onProgress: (Int, Int) -> Unit) {
 
             // Only the folders the database doesn't have, or that are to be updated, are scanned.
             val pending = directories.filter { directory ->
                 forceUpdateDirectories?.contains(directory.name) == true ||
-                    !DatabaseManager.beatmapInfoTable.isBeatmapSetImported(directory.name)
+                    !isKnownWithoutBeatmaps(directory) && !DatabaseManager.beatmapInfoTable.isBeatmapSetImported(directory.name)
             }
             onStart(pending.size)
 
@@ -323,7 +361,9 @@ object LibraryManager : MusicService.Playlist {
 
                             // A folder that fails is logged and doesn't stop the others.
                             try {
-                                scanBeatmapSetFolder(directory)
+                                if (scanBeatmapSetFolder(directory)) {
+                                    synchronized(pendingBeatmapsLock) { brokenFolders += directory.name }
+                                }
                             } catch (t: Throwable) {
                                 Logger.e("LibraryManager", "Failed to scan beatmap set folder: $directory", t)
                             }
@@ -333,6 +373,8 @@ object LibraryManager : MusicService.Playlist {
                     }
                 }
             }
+
+            notifyBrokenFolders(synchronized(pendingBeatmapsLock) { brokenFolders.toList() })
 
             // Taken under the lock, inserted outside it: the insert suspends.
             val scanned = synchronized(pendingBeatmapsLock) {

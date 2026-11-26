@@ -77,7 +77,9 @@ object DifficultyCalculationManager {
         notification = Notifications.startTask(
             title = Res.string.notification_difficulty_title,
             text = Res.string.notification_difficulty_text,
-            isIndeterminate = true
+            isIndeterminate = true,
+            // Only listed while it runs, the menu's bell spinning.
+            showToast = false
         )
 
         job = async {
@@ -152,7 +154,8 @@ object DifficultyCalculationManager {
                 }
             }.joinAll()
 
-            notification?.complete(Res.string.notification_difficulty_done)
+            // Nothing to tell once it ends: it goes away.
+            notification?.dismiss()
             notification = null
 
             // Song select shows the new star ratings, the next one loads them anyway.

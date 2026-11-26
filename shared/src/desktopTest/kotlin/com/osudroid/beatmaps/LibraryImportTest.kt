@@ -179,10 +179,48 @@ class LibraryImportTest {
             assertEquals(listOf("1 Kenji Ninuma - DISCOPRINCE"), LibraryManager.getLibrary().map { it.directory })
             assertTrue(DatabaseManager.beatmapInfoTable.isBeatmapSetImported("1 Kenji Ninuma - DISCOPRINCE"))
 
-            // A single task told of it, and ended. The second refresh had nothing to do.
-            val tasks = Notifications.entries
-            assertEquals(1, tasks.size)
-            assertEquals(Notification.State.Completed, tasks[0].state)
+            // A single message told of both, the import's task went away. The second refresh had
+            // nothing to do.
+            val messages = Notifications.entries.filter { it.state != Notification.State.Active }
+            assertEquals(1, messages.size)
+            assertEquals(Notification.State.Info, messages[0].state)
+        } finally {
+            DatabaseManager.database.close()
+            Notifications.reset()
+        }
+    }
+
+    @Test
+    fun testAFolderWithoutBeatmapsIsScannedAgainOnlyOnceItChanges() = runBlocking {
+        DatabaseManager.openInMemory()
+        Notifications.reset()
+
+        try {
+            val empty = File(songs, "1 Empty").apply { mkdirs() }
+
+            fun scannedFolders(): Int {
+                var total = -1
+                runBlocking { LibraryManager.scanDirectory(null, onStart = { total = it }) }
+                return total
+            }
+
+            assertEquals(1, scannedFolders())
+
+            // Told of once.
+            val notification = Notifications.entries.single()
+            assertEquals(Notification.State.Failed, notification.state)
+
+            assertEquals(0, scannedFolders())
+            assertEquals(1, Notifications.entries.size)
+
+            // A beatmap added to it changes it.
+            val osu = File(javaClass.classLoader.getResource("beatmaps/Kenji Ninuma - DISCOPRINCE (peppy) [Normal].osu")!!.toURI())
+            osu.copyTo(File(empty, osu.name))
+            empty.setLastModified(empty.lastModified() + 2000)
+
+            assertEquals(1, scannedFolders())
+            assertTrue(DatabaseManager.beatmapInfoTable.isBeatmapSetImported("1 Empty"))
+            assertEquals(1, Notifications.entries.size)
         } finally {
             DatabaseManager.database.close()
             Notifications.reset()

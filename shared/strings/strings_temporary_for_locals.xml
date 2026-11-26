@@ -147,8 +147,13 @@
     <string name="replay_import_title">Replay import</string>
     <string name="notification_importing_skins">Importing skins… (%1$d/%2$d)</string>
     <string name="notification_importing_beatmaps">Importing beatmap sets… (%1$d/%2$d)</string>
-    <string name="notification_scanning_beatmaps">Scanning beatmap sets… (%1$d/%2$d)</string>
-    <string name="notification_library_updated">The library is up to date: %1$d beatmap sets and %2$d skins imported.</string>
+    <string name="notification_beatmap_set_imported">Beatmap set imported</string>
+    <string name="notification_skin_imported">Skin imported</string>
+    <string name="notification_beatmap_sets_imported">%d beatmap sets imported.</string>
+    <string name="notification_skins_imported">%d skins imported.</string>
+    <string name="notification_beatmap_sets_and_skins_imported">%1$d beatmap sets and %2$d skins imported.</string>
+    <string name="notification_broken_beatmap_set">%s has no beatmap that can be loaded. Delete it, or download it again.</string>
+    <string name="notification_broken_beatmap_sets">%1$d beatmap set folders have no beatmap that can be loaded. Delete them, or download them again:%n%2$s</string>
     <string name="notification_import_failed_title">Import failed</string>
     <string name="notification_import_invalid">%s isn\'t a valid archive.</string>
     <string name="notification_import_extract_failed">%s couldn\'t be extracted.</string>
@@ -159,5 +164,4 @@
     <string name="notification_difficulty_title">Calculating beatmap difficulties</string>
     <string name="notification_difficulty_text">During this process, the game may suffer performance degradation.</string>
     <string name="notification_difficulty_progress">%d%% of the beatmaps calculated.</string>
-    <string name="notification_difficulty_done">Every beatmap\'s difficulty is calculated.</string>
 </resources>

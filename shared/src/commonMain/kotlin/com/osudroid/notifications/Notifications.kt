@@ -83,13 +83,26 @@ object Notifications {
     }
 
     /**
-     * Posts a task, which runs until [Notification.complete] or [Notification.fail] are called.
+     * Posts a task, which runs until [Notification.complete] or [Notification.fail] are called, or
+     * until it's [dismissed][Notification.dismiss] without telling anything.
+     *
+     * @param showToast Whether it pops up as it starts, otherwise it's only listed in the
+     * notification center while it runs.
      */
-    fun startTask(title: CharSequence, text: CharSequence, isIndeterminate: Boolean = true): Notification {
+    fun startTask(
+        title: CharSequence,
+        text: CharSequence,
+        isIndeterminate: Boolean = true,
+        showToast: Boolean = true
+    ): Notification {
         val notification = Notification(title, text, Notification.State.Active)
         notification.isIndeterminate = isIndeterminate
+        // Seen while it runs, it's unread again once it ends.
+        notification.isRead = !showToast
         add(notification)
-        notification.showToast()
+        if (showToast) {
+            notification.showToast()
+        }
         return notification
     }
 
