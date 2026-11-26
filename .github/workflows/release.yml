@@ -151,7 +151,9 @@ jobs:
     # compile with its glslc: Linux x64 only so far, other platforms run on OpenGL.
     - name: Install the NDK
       if: matrix.platform == 'linux-x64'
-      run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;22.1.7171670" > /dev/null
+      # sdkmanager stops reading the licenses' answers when it's done, which ends yes with a broken
+      # pipe: the job's shell has pipefail, so that isn't an error.
+      run: (yes 2> /dev/null || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;22.1.7171670" > /dev/null
 
     # A zip with the game, its libraries, FFmpeg's for this platform and the start scripts
     # (bin/osudroid, bin/osudroid.bat). It runs on a Java 17 runtime.
