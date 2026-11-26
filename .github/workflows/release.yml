@@ -80,7 +80,15 @@ jobs:
           exit 1
         fi
         keystore="$RUNNER_TEMP/release.jks"
-        echo "$KEYSTORE_BASE64" | base64 -d > "$keystore"
+        # Spaces and line breaks a paste may add aren't base64.
+        if ! printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 -d > "$keystore" 2> /dev/null; then
+          echo "::error::RELEASE_KEYSTORE_BASE64 isn't valid base64: set it again to the output of 'base64 -w0 release.jks'."
+          exit 1
+        fi
+        if ! keytool -list -keystore "$keystore" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null; then
+          echo "::error::The keystore couldn't be opened with RELEASE_KEYSTORE_PASSWORD, or has no key named RELEASE_KEY_ALIAS."
+          exit 1
+        fi
         {
           echo "sdk.dir=$ANDROID_HOME"
           echo "RELEASE_KEYSTORE=$keystore"
