@@ -31,7 +31,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitAll
-import com.osudroid.game.objects.GameObjectPool
+import com.osudroid.game.objects.PiecePool
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.online.OnlineFileOperator
 import com.osudroid.ui.v2.results.Results
@@ -275,7 +275,7 @@ class Gameplay {
         val session = session
 
         BeatmapSkinManager.setSkinEnabled(false)
-        GameObjectPool.getInstance().purge()
+        PiecePool.instance.purge()
         session?.exit()
         BeatmapSkinManager.getInstance().clearSkin()
 

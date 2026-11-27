@@ -15,7 +15,9 @@ import com.reco1l.verktex.data.Color4
 import kotlin.math.max
 import com.osudroid.game.objects.GameObject
 import com.osudroid.game.objects.GameObjectListener
-import com.osudroid.game.objects.GameObjectPool
+import com.osudroid.game.objects.GameplayHitCircle
+import com.osudroid.game.objects.GameplaySlider
+import com.osudroid.game.objects.GameplaySpinner
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 
 /**
@@ -138,7 +140,7 @@ class ObjectSpawner(
             var gameObject: GameObject? = null
 
             if (obj is HitCircle) {
-                val gameplayCircle = GameObjectPool.getInstance().circle
+                val gameplayCircle = GameplayHitCircle()
 
                 gameplayCircle.init(listener, playfield, obj, comboColor(obj))
                 listener.addObject(gameplayCircle)
@@ -156,7 +158,7 @@ class ObjectSpawner(
                 gameObject = gameplayCircle
             } else if (obj is Spinner) {
                 val rps = 2 + 2 * loaded.playableBeatmap.difficulty.od / 10f
-                val gameplaySpinner = GameObjectPool.getInstance().spinner
+                val gameplaySpinner = GameplaySpinner()
 
                 gameplaySpinner.init(listener, playfield.spinners, playfield, obj, rps, stat)
                 listener.addObject(gameplaySpinner)
@@ -172,7 +174,7 @@ class ObjectSpawner(
 
                 gameObject = gameplaySpinner
             } else if (obj is Slider) {
-                val gameplaySlider = GameObjectPool.getInstance().slider
+                val gameplaySlider = GameplaySlider()
 
                 gameplaySlider.init(listener, playfield, stat, obj, loaded.playableBeatmap.controlPoints,
                     comboColor(obj), sliderBorderColor(), loaded.sliderPaths[sliderIndex], loaded.sliderRenderPaths[sliderIndex])

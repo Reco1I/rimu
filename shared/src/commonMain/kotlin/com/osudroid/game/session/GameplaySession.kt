@@ -114,7 +114,7 @@ import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.Utils
 import com.osudroid.game.objects.GameObject
 import com.osudroid.game.objects.GameObjectListener
-import com.osudroid.game.objects.GameObjectPool
+import com.osudroid.game.objects.PiecePool
 import com.osudroid.game.objects.PoolSizes
 import kotlin.time.measureTime
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
@@ -676,7 +676,7 @@ class GameplaySession(
         // The pools keep what they have on a retry, the skin being the same.
         val keepPools: Boolean
         val preloadTime = measureTime {
-            keepPools = GameObjectPool.getInstance().preload(poolSizes)
+            keepPools = PiecePool.instance.preload(poolSizes, context.isTraceable)
             FollowPointConnection.renew(poolSizes.followPoints + 4, keep = keepPools)
             GameplaySliderTick.renew(poolSizes.sliderTicks + 4, keep = keepPools)
         }
@@ -1260,7 +1260,7 @@ class GameplaySession(
         logPoolMisses()
 
         BeatmapSkinManager.setSkinEnabled(false)
-        GameObjectPool.getInstance().purge()
+        PiecePool.instance.purge()
         activeObjects.clear()
         expiredObjects.clear()
 
@@ -1467,7 +1467,7 @@ class GameplaySession(
     // What the pools had to create while playing, each a stall: the pools should be filled with it beforehand.
     private fun logPoolMisses() {
         SkinTextures.stopPlayTracking()
-        Logger.i(TAG, "Created while playing: " + GameObjectPool.getInstance().missSummary() +
+        Logger.i(TAG, "Created while playing: " + PiecePool.instance.missSummary() +
             ", follow points: " + FollowPointConnection.misses + ", slider ticks: " + GameplaySliderTick.misses +
             ", textures: " + SkinTextures.loadsWhilePlaying)
     }

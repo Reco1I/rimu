@@ -20,7 +20,7 @@ classes as they were; this is where their code went.
 | `registerHit`, the hit windows, HP drain and Easy's lives | `ScoreProcessor`, `HitJudging`, `HealthProcessor` (`game/rules/`) |
 | `GameHelper` (mods, OD/HP, rate, beat, kiai, replay version) | `GameplayContext` and its `GameplayTiming` (`game/`), one per play, given to the objects by their listener |
 | `GameHelper.createRenderPath`, `convertSliderPath`, `SliderPath` | `createSliderRenderPath`, `convertSliderPath`, `SliderPath` (`game/SliderPaths.kt`) |
-| `GameObject`, `GameplayHitCircle`, `GameplaySlider`, `GameplaySpinner`, `GameObjectPool`, `GameObjectListener` (`ru/nsu/ccfit/zuev/osu/game/`) | The same classes in `com/osudroid/game/objects/`; the listener is `JudgementListener`, `GameplayCursors` and `GameplaySamples`, with typed judgements (`JudgementResult`, `SliderPart`) |
+| `GameObject`, `GameplayHitCircle`, `GameplaySlider`, `GameplaySpinner`, `GameObjectPool`, `GameObjectListener` (`ru/nsu/ccfit/zuev/osu/game/`) | The same classes in `com/osudroid/game/objects/`, `GameObjectPool` being `PiecePool`, which pools the pieces rather than the objects; the listener is `JudgementListener`, `GameplayCursors` and `GameplaySamples`, with typed judgements (`JudgementResult`, `SliderPart`) |
 | `StatisticV2` (`ru/nsu/ccfit/zuev/osu/scoring/`) | `Statistic` (`com/osudroid/scoring/`) |
 | The HUD reading `GameScene` | `GameplayState` (`ui/v2/hud/`), which the session implements |
 

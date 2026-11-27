@@ -10,16 +10,15 @@ import com.osudroid.game.HitResult
 import com.osudroid.mods.ModRelax
 import com.osudroid.settings.OsuSettings
 import com.osudroid.ui.v2.game.GameplayPlayfield
-import com.osudroid.ui.v2.skin.JudgementPiece
 import com.osudroid.ui.v2.skin.MainCirclePiece
 import com.osudroid.ui.v2.skin.SkinComponent
-import com.osudroid.ui.v2.skin.SkinPieces
 import com.osudroid.ui.v2.skin.HitLightingPiece
 import com.osudroid.ui.v2.skin.legacy.LegacySkin
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.data.Dimension
-import com.reco1l.verktex.ui.Choreography
+import com.reco1l.verktex.ui.ChoreographyStates
+import com.reco1l.verktex.ui.latestChoreographyEndTime
 import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.Proxy
 import com.reco1l.verktex.ui.container.Container
@@ -292,9 +291,49 @@ abstract class GameObject : Container() {
 
     //endregion
 
-    //region Judgement effects
+    //region Pieces
 
-    private val judgementPieces = ArrayList<JudgementPiece>()
+    // The pieces borrowed from the pool, given back as the object expires, and the component each is of.
+    private val ownedComponents = ArrayList<SkinComponent<*>>()
+    private val ownedPieces = ArrayList<Any>()
+
+    /**
+     * A piece of [component] for this object, borrowed from the [PiecePool] until it expires: it's given back with
+     * the others, taken out of its parent, by [releasePieces].
+     */
+    protected fun <T : Any> obtain(component: SkinComponent<T>): T = own(component, PiecePool.instance.obtain(component))
+
+    /**
+     * Same as [obtain], null if no skin draws [component].
+     */
+    protected fun <T : Any> obtainOrNull(component: SkinComponent<T>): T? =
+        PiecePool.instance.obtainOrNull(component)?.let { own(component, it) }
+
+    private fun <T : Any> own(component: SkinComponent<T>, piece: T): T {
+        ownedComponents += component
+        ownedPieces += piece
+        return piece
+    }
+
+    /**
+     * Gives back every piece this object borrowed, its judgements' included, and the proxies drawing them. Called
+     * as it expires, once: the object isn't used afterwards.
+     */
+    protected fun releasePieces() {
+        removeProxies()
+
+        val pool = PiecePool.instance
+        for (i in ownedPieces.indices) {
+            pool.release(ownedComponents[i], ownedPieces[i])
+        }
+        ownedComponents.clear()
+        ownedPieces.clear()
+        lighting = null
+    }
+
+    //endregion
+
+    //region Judgement effects
 
     private var lighting: HitLightingPiece? = null
     private var isLightingLookedUp = false
@@ -303,7 +342,7 @@ abstract class GameObject : Container() {
      * Shows the judgement with the texture [textureName] (`hit300`, `hit0`, `sliderpoint30`…) at ([x], [y]) in this
      * object, for an object of the given [scale], now: the judgement, drawn above every object, its particles and its
      * hit lighting, in [color]. The particles are thrown in the playfield, at ([particleX], [particleY]) and the
-     * given [particleScale]. A [spinnerMiss] only fades. The lifetime of this object is extended until they end.
+     * given [particleScale]. A [spinnerMiss] only fades. This object lives until they end.
      */
     protected fun showJudgement(
         playfield: GameplayPlayfield,
@@ -326,8 +365,8 @@ abstract class GameObject : Container() {
             Settings[OsuSettings.HitLighting]) {
 
             if (!isLightingLookedUp) {
-                // Looked up once: only texture skins have it, and the pools are emptied when the skin changes.
-                lighting = SkinPieces.current.createOrNull(SkinComponent.HitLighting)
+                // Only texture skins have it.
+                lighting = obtainOrNull(SkinComponent.HitLighting)
                 isLightingLookedUp = true
             }
 
@@ -337,16 +376,15 @@ abstract class GameObject : Container() {
                     this += lighting
                     drawIn(playfield.underlay, lighting)
                 }
-                extendLifetime(lighting.play(x, y, color, scale, time))
+                lighting.play(x, y, color, scale, time)
             }
         }
 
-        val piece: JudgementPiece = GameObjectPool.getInstance().getJudgement(textureName)
-        judgementPieces += piece
+        val piece = obtain(PiecePool.instance.judgement(textureName))
         this += piece
         drawIn(playfield.judgements, piece)
 
-        extendLifetime(piece.play(x, y, result, scale, time, spinnerMiss))
+        piece.play(x, y, result, scale, time, spinnerMiss)
     }
 
     /**
@@ -362,7 +400,7 @@ abstract class GameObject : Container() {
     /**
      * Plays [piece], one of this object's, being hit at the given [scale] now, drawn above every object as the
      * judgements are: a circle as its skin plays it ([MainCirclePiece.playHit]), any other piece (a reverse arrow)
-     * bursting as osu!stable's do. The lifetime of this object is extended until it ends.
+     * bursting as osu!stable's do. This object lives until it ends.
      */
     protected fun burst(playfield: GameplayPlayfield, piece: Component, scale: Float) {
         if (piece.parent == null) {
@@ -375,31 +413,50 @@ abstract class GameObject : Container() {
         piece.alpha = 1f
 
         val time = currentClockTime
-        extendLifetime(if (piece is MainCirclePiece) piece.playHit(scale, time) else LegacySkin.burst(piece, scale, time))
+        if (piece is MainCirclePiece) piece.playHit(scale, time) else LegacySkin.burst(piece, scale, time)
+    }
+
+    //endregion
+
+    //region State
+
+    /**
+     * What a hit object shows of its judgement, as osu!lazer's `ArmedState`.
+     */
+    enum class ArmedState {
+        /**
+         * Not judged yet.
+         */
+        Idle,
+
+        /**
+         * Hit, with any result but a miss.
+         */
+        Hit,
+
+        /**
+         * Missed.
+         */
+        Miss
     }
 
     /**
-     * Takes out the effects of the judgements, the proxies included, for this object to be pooled. Called when it
-     * expires.
+     * The state of this object, set as it's judged, see [applyState].
      */
-    protected fun releaseEffects() {
-        val pool = GameObjectPool.getInstance()
+    var state = ArmedState.Idle
+        private set
 
-        for (i in judgementPieces.indices) {
-            val piece = judgementPieces[i]
-            piece.clearAnimations()
-            piece.removeSelf()
-            pool.putJudgement(piece)
-        }
-        judgementPieces.clear()
+    /**
+     * Plays what this object shows in [state] from [time], see [ChoreographyStates]. Called by [applyState].
+     */
+    protected open fun playState(state: ArmedState, time: Float) {}
 
-        lighting?.let {
-            it.clearAnimations()
-            it.removeSelf()
-        }
-
-        removeProxies()
-        effectsEndTime = Float.NEGATIVE_INFINITY
+    /**
+     * Sets the [state] of this object and plays it from [time], now by default.
+     */
+    protected fun applyState(state: ArmedState, time: Float = currentClockTime) {
+        this.state = state
+        playState(state, time)
     }
 
     //endregion
@@ -423,36 +480,28 @@ abstract class GameObject : Container() {
     }
 
     /**
-     * Called when this [GameObject]'s lifetime expires.
+     * Called when this [GameObject]'s lifetime expires, once: it gives back its pieces and isn't used afterwards.
      */
     open fun onExpire() {}
 
-    /**
-     * The time in seconds since the beatmap started at which this [GameObject]'s lifetime ends.
-     */
-    var lifetimeEnd = 0f
-        protected set(value) {
-            // Never before the effects this object plays end.
-            field = max(value, effectsEndTime)
-        }
-
-    // When the last effect this object played ends, see extendLifetime.
-    private var effectsEndTime = Float.NEGATIVE_INFINITY
+    // The least time the lifetime ends at, set once the object is judged. NaN before.
+    private var judgedLifetimeEnd = Float.NaN
 
     /**
-     * Extends the lifetime of this [GameObject] to allow a [Choreography] to finish.
-     *
-     * @param choreography The [Choreography] to extend this [GameObject]'s lifetime with.
+     * Ends the lifetime of this object at [time] or once everything it and its pieces play ends, whichever is
+     * later, see [lifetimeEnd].
      */
-    protected fun extendLifetime(choreography: Choreography) = extendLifetime(choreography.endTime)
-
-    /**
-     * Extends the lifetime of this [GameObject] to at least [endTime], even when it's set again afterwards.
-     */
-    protected fun extendLifetime(endTime: Float) {
-        effectsEndTime = max(effectsEndTime, endTime)
-        lifetimeEnd = max(lifetimeEnd, endTime)
+    protected fun endLifetime(time: Float) {
+        judgedLifetimeEnd = time
     }
+
+    /**
+     * The time in seconds since the beatmap started at which this [GameObject]'s lifetime ends: never before it's
+     * judged ([endLifetime]), then once what it and its pieces play in their choreographies ends, as osu!lazer's
+     * `LatestTransformEndTime`.
+     */
+    val lifetimeEnd: Float
+        get() = if (judgedLifetimeEnd.isNaN()) Float.MAX_VALUE else max(judgedLifetimeEnd, latestChoreographyEndTime())
 
     //endregion
 }

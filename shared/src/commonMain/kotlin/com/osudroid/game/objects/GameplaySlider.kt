@@ -29,17 +29,17 @@ import com.osudroid.mods.ModSynesthesia
 import com.osudroid.ui.v2.skin.FollowCirclePiece
 import com.osudroid.ui.v2.skin.MainCirclePiece
 import com.osudroid.ui.v2.skin.SkinComponent
-import com.osudroid.ui.v2.skin.SkinPieces
+import com.osudroid.ui.v2.skin.SliderBodyStyle
 import com.osudroid.ui.v2.skin.SliderBallPiece
 import com.osudroid.ui.v2.game.SliderTickContainer
 import com.osudroid.ui.v2.game.GameplaySliderTick
 import com.osudroid.utils.BitSet
-import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.choreographAt
 import com.reco1l.verktex.ui.choreographNow
+import com.reco1l.verktex.ui.choreographyStates
 import com.reco1l.verktex.ui.container.Container
 import kotlin.math.PI
 import kotlin.math.abs
@@ -49,14 +49,14 @@ import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 
+/**
+ * A slider. Each slider of a beatmap gets its own, which borrows its pieces from the [PiecePool].
+ */
 class GameplaySlider : GameObject() {
 
-    private val pieces = SkinPieces.current
-    private val normalApproachCircle = pieces.create(SkinComponent.ApproachCircle)
-    private val traceableApproachCircle by lazy { pieces.create(SkinComponent.TraceableApproachCircle) }
-    private var approachCircle: Component = normalApproachCircle
-    private val startArrow = pieces.create(SkinComponent.ReverseArrow)
-    private val endArrow = pieces.create(SkinComponent.ReverseArrow)
+    private lateinit var approachCircle: Component
+    private lateinit var startArrow: Component
+    private lateinit var endArrow: Component
     private var beatmapSlider: Slider? = null
     private var controlPoints: BeatmapControlPoints? = null
     private var playfield: GameplayPlayfield? = null
@@ -64,11 +64,9 @@ class GameplaySlider : GameObject() {
     // The playfield the effects of the judgements are shown in, until the slider expires.
     private var effectsPlayfield: GameplayPlayfield? = null
 
-    // The bursts of the head and the end, which stay shown for the repeats, and of the reverse arrows.
-    private val headBurst = pieces.create(SkinComponent.SliderHeadCircle).apply { hideNumber() }
-    private val tailBurst = pieces.create(SkinComponent.SliderTailCircle)
-    private val reverseBursts = ArrayList<Component>()
-    private val freeReverseBursts = ArrayList<Component>()
+    // The bursts of the head and the end, which stay shown for the repeats.
+    private lateinit var headBurst: MainCirclePiece
+    private lateinit var tailBurst: MainCirclePiece
     private var stat: Statistic? = null
     private var listener: GameObjectListener? = null
     private var path: SliderPath? = null
@@ -95,7 +93,7 @@ class GameplaySlider : GameObject() {
     private var isTracking = false
     private var spanStarted = false
 
-    private val followCircle: FollowCirclePiece = pieces.create(SkinComponent.FollowCircle)
+    private lateinit var followCircle: FollowCirclePiece
 
     // Temporarily used Vector2 to avoid allocations
     private val tmpPoint = Vector2(0f)
@@ -118,8 +116,8 @@ class GameplaySlider : GameObject() {
     private var lastSnakeOutStartLength = 0f
     private var lastSnakeOutEndLength = 0f
 
-    private val sliderBody = PathShape()
-    private val sliderBodyStyle = pieces.create(SkinComponent.SliderBody)
+    private lateinit var sliderBody: PathShape
+    private lateinit var sliderBodyStyle: SliderBodyStyle
 
     /**
      * The absolute slider's path end position.
@@ -130,17 +128,17 @@ class GameplaySlider : GameObject() {
     /**
      * The slider ball.
      */
-    private val ball: SliderBallPiece = pieces.create(SkinComponent.SliderBall)
+    private lateinit var ball: SliderBallPiece
 
     /**
      * The start circle piece of the slider.
      */
-    private val headCirclePiece: MainCirclePiece = pieces.create(SkinComponent.SliderHeadCircle)
+    private lateinit var headCirclePiece: MainCirclePiece
 
     /**
      * The end circle piece of the slider.
      */
-    private val tailCirclePiece: MainCirclePiece = pieces.create(SkinComponent.SliderTailCircle)
+    private lateinit var tailCirclePiece: MainCirclePiece
 
     /**
      * The slider tick container.
@@ -173,6 +171,22 @@ class GameplaySlider : GameObject() {
         context = listener.context
         this.playfield = playfield
         effectsPlayfield = playfield
+
+        headCirclePiece = obtain(SkinComponent.SliderHeadCircle)
+        tailCirclePiece = obtain(SkinComponent.SliderTailCircle)
+        approachCircle = obtain(if (context.isTraceable) SkinComponent.TraceableApproachCircle else SkinComponent.ApproachCircle)
+        startArrow = obtain(SkinComponent.ReverseArrow)
+        endArrow = obtain(SkinComponent.ReverseArrow)
+        ball = obtain(SkinComponent.SliderBall)
+        followCircle = obtain(SkinComponent.FollowCircle)
+        sliderBodyStyle = obtain(SkinComponent.SliderBody)
+        sliderBody = PiecePool.instance.obtainSliderBody()
+
+        // A head bursts without its number. The pieces are the heads', which can have been shown as ends.
+        headBurst = obtain(SkinComponent.SliderHeadCircle)
+        headBurst.showAsSliderEnd(false)
+        headBurst.hideNumber()
+        tailBurst = obtain(SkinComponent.SliderTailCircle)
 
         // Newer objects are below older ones.
         playfield.objects.add(0, this)
@@ -244,7 +258,6 @@ class GameplaySlider : GameObject() {
         headCirclePiece.setComboNumber(comboNum)
         headCirclePiece.isVisible = applyIncreasedVisibilityToCirclePiece
 
-        approachCircle = if (context.isTraceable) traceableApproachCircle else normalApproachCircle
         approachCircle.color = comboColor
         approachCircle.scale = scale * 3 * (beatmapSlider.timePreempt / context.originalTimePreempt).toFloat()
         approachCircle.alpha = 0f
@@ -389,8 +402,6 @@ class GameplaySlider : GameObject() {
                 sequence.then().fadeOut(fadeOutDuration, Easing.OutQuad)
             }
         }
-
-        lifetimeEnd = Float.MAX_VALUE
     }
 
     private fun getPositionAt(percentage: Float, updateBallAngle: Boolean, updateEndArrowRotation: Boolean): Vector2 {
@@ -491,75 +502,44 @@ class GameplaySlider : GameObject() {
         showSliderJudgement(judgement, at, if (isTracked && result != JudgementResult.Miss) tailBurst else null)
     }
 
-    // Shows the judgement of a part of the slider at [at], with the piece bursting there when it's given.
+    // Shows the judgement of a part of the slider at [at], with the piece bursting there when it's given. The head and
+    // the end are in the combo colour, as they're shown, whatever colour the skin gives the body (a skin's
+    // SliderTrackOverride, e.g. black).
     private fun showSliderJudgement(judgement: String?, at: Vector2, burstPiece: MainCirclePiece?) {
         val playfield = effectsPlayfield ?: return
         val scale = beatmapSlider!!.gameplayScale
 
         if (burstPiece != null && areBurstsShown()) {
             burstPiece.setPosition(at.x, at.y)
-            burstPiece.setCircleColor(bodyColor)
+            burstPiece.setCircleColor(circleColor)
             burst(playfield, burstPiece, scale)
         }
 
         if (judgement != null) {
-            showJudgement(playfield, judgement, at.x, at.y, scale, bodyColor)
+            showJudgement(playfield, judgement, at.x, at.y, scale, circleColor)
         }
     }
 
     private fun burstReverseArrow(at: Vector2, rotation: Float) {
         val playfield = effectsPlayfield ?: return
 
-        val arrow = freeReverseBursts.removeLastOrNull() ?: pieces.create(SkinComponent.ReverseArrow)
-        reverseBursts += arrow
+        val arrow = obtain(SkinComponent.ReverseArrow)
 
         arrow.setPosition(at.x, at.y)
         arrow.rotationZ = rotation
         burst(playfield, arrow, beatmapSlider!!.gameplayScale)
     }
 
-    private fun removeFromScene() {
+    private fun removeFromScene(state: ArmedState) {
         if (playfield == null) {
             return
         }
 
-        val beatmapSlider = beatmapSlider!!
-
         val modifierStartTime = hitTime +
             max(duration, (if (headWasHit) firstHitAccuracy.toDouble() else hitWindow!!.mehWindow) / 1000.0).toFloat()
 
-        lifetimeEnd = modifierStartTime
-
-        if (Settings[OsuSettings.AnimateFollowCircle]) {
-            if (isInRadius) {
-                extendLifetime(followCircle.playSliderEnd(beatmapSlider.gameplayScale, modifierStartTime))
-            }
-        } else {
-            followCircle.removeSelf()
-        }
-
-        if (context.fadesOutObjects) {
-            sliderBody.removeSelf()
-        } else {
-            sliderBody.choreographAt(modifierStartTime) { sequence ->
-                // Short fade for snaking out sliders to allow for any body color to smoothly disappear.
-                sequence.fadeOut(if (headWasHit && shouldSnakeOut) 0.04f else 0.24f)
-                    .after { e -> updateThread { e.removeSelf() } }
-
-                extendLifetime(sequence)
-            }
-        }
-
-        if (!headCirclePiece.isAnimating) {
-            // When animating, the head circle will detach after the animation ends.
-            headCirclePiece.removeSelf()
-        }
-
-        tailCirclePiece.removeSelf()
-        approachCircle.removeSelf()
-        startArrow.removeSelf()
-        endArrow.removeSelf()
-        tickContainer.removeSelf()
+        endLifetime(modifierStartTime)
+        applyState(state, modifierStartTime)
 
         stopSlidingSamples()
 
@@ -578,45 +558,14 @@ class GameplaySlider : GameObject() {
     }
 
     override fun onExpire() {
-        headCirclePiece.clearAnimations()
-        tailCirclePiece.clearAnimations()
-        startArrow.clearAnimations()
-        endArrow.clearAnimations()
-        approachCircle.clearAnimations()
-        followCircle.clearAnimations()
-        ball.clearAnimations()
-        sliderBody.clearAnimations()
-        tickContainer.clearAnimations()
-
-        headCirclePiece.removeSelf()
-        tailCirclePiece.removeSelf()
-        startArrow.removeSelf()
-        endArrow.removeSelf()
-        approachCircle.removeSelf()
-        followCircle.removeSelf()
-        ball.removeSelf()
-        sliderBody.removeSelf()
+        releasePieces()
+        PiecePool.instance.releaseSliderBody(sliderBody)
         tickContainer.removeSelf()
-
-        for (burst in arrayOf(headBurst, tailBurst)) {
-            burst.clearAnimations()
-            burst.removeSelf()
-        }
-        for (i in reverseBursts.indices) {
-            reverseBursts[i].clearAnimations()
-            reverseBursts[i].removeSelf()
-        }
-        freeReverseBursts += reverseBursts
-        reverseBursts.clear()
-
-        releaseEffects()
         effectsPlayfield = null
         removeSelf()
 
         // removeFromScene() stops looping sounds and releases hit samples, but during a seek, onExpire() fires without
-        // removeFromScene(). This causes looping sounds to continuously play after a seek, and nested hit samples
-        // remain populated, so when the pool reuses this slider, reloadHitSounds() appends to them instead of an empty
-        // list, resulting in doubled hitsounds at every tick/repeat.
+        // removeFromScene(): looping sounds would keep playing after a seek.
         stopLoopingSamples()
 
         for (i in 0 until nestedHitSamples.size) {
@@ -628,8 +577,6 @@ class GameplaySlider : GameObject() {
 
             hitSamples.clear()
         }
-
-        GameObjectPool.getInstance().putSlider(this)
     }
 
     private fun onSpanFinish() {
@@ -767,7 +714,7 @@ class GameplaySlider : GameObject() {
 
         listener.onSliderEnd(id, firstHitAccuracy, tickSet)
 
-        removeFromScene()
+        removeFromScene(if (score > 0) ArmedState.Hit else ArmedState.Miss)
     }
 
     private fun updateTracking(position: Vector2) {
@@ -957,9 +904,6 @@ class GameplaySlider : GameObject() {
 
         val scale = beatmapSlider.gameplayScale
 
-        // Note that this is not using ball.hasParent() because the ball's auto-detach animation can fire slightly
-        // before onSpanFinish() due to float/double precision differences in end-time computation, causing
-        // ball.hasParent() == false while followCircle is still attached.
         if (!spanStarted) {
             spanStarted = true
 
@@ -989,8 +933,6 @@ class GameplaySlider : GameObject() {
                 drawIn(playfield.approachCircles, piece)
             }
 
-            ball.choreographAt(beatmapSlider.endTime.toFloat() / 1000) { sequence ->
-                sequence.fadeOut().after { e -> updateThread { e.removeSelf() } } }
         }
 
         approachCircle.clearAnimations()
@@ -1032,6 +974,10 @@ class GameplaySlider : GameObject() {
         if (percentage >= 1) {
             onSpanFinish()
         }
+    }
+
+    override fun playState(state: ArmedState, time: Float) {
+        STATES.play(this, state, time)
     }
 
     override fun isJudged(): Boolean {
@@ -1213,10 +1159,7 @@ class GameplaySlider : GameObject() {
                 headCirclePiece.removeSelf()
             } else {
                 // Slider head is hit too early - slowly fade it.
-                headCirclePiece.choreographNow { sequence ->
-                    sequence.fadeOut(0.1f).after { e -> updateThread { e.removeSelf() } }
-                    extendLifetime(sequence)
-                }
+                headCirclePiece.choreographNow { sequence -> sequence.fadeOut(0.1f) }
             }
         }
     }
@@ -1486,7 +1429,45 @@ class GameplaySlider : GameObject() {
         lastSnakeOutEndLength = targetLength
     }
 
-    companion object {
+    private companion object {
+
+        // What the slider shows as its end is judged, from the time its body starts fading. Hit or missed, it fades
+        // the same.
+        val STATES = choreographyStates<ArmedState, GameplaySlider> {
+            otherwise { time ->
+                if (Settings[OsuSettings.AnimateFollowCircle]) {
+                    if (isInRadius) {
+                        followCircle.playSliderEnd(beatmapSlider!!.gameplayScale, time)
+                    }
+                } else {
+                    followCircle.removeSelf()
+                }
+
+                if (context.fadesOutObjects) {
+                    sliderBody.removeSelf()
+                } else {
+                    // Short fade for snaking out sliders to allow for any body color to smoothly disappear.
+                    sliderBody.choreographAt(time) { sequence -> sequence.fadeOut(if (headWasHit && shouldSnakeOut) 0.04f else 0.24f) }
+                }
+
+                // A head still fading, hit too early, stays until it's faded.
+                if (!headCirclePiece.isAnimating) {
+                    headCirclePiece.removeSelf()
+                }
+
+                // The ball stays where the slider ends and fades out, as osu!lazer's DrawableSliderBall.
+                ball.choreographAt(time) { sequence -> sequence.fadeOut(BALL_FADE_OUT, Easing.OutQuad) }
+
+                tailCirclePiece.removeSelf()
+                approachCircle.removeSelf()
+                startArrow.removeSelf()
+                endArrow.removeSelf()
+                tickContainer.removeSelf()
+            }
+        }
+
+        // How long the ball takes to fade out once the slider ends: osu!lazer's fade_out_time / 4.
+        const val BALL_FADE_OUT = 0.45f / 4
 
         // The part of the whole width of the body that its shadow takes, as osu!lazer's LegacySliderBody.
         // How much larger reverse arrows are at the start of each beat.

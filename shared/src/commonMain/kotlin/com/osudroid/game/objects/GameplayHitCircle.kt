@@ -11,24 +11,23 @@ import com.osudroid.mods.ModHidden
 import com.osudroid.ui.v2.game.GameplayPlayfield
 import com.osudroid.ui.v2.skin.MainCirclePiece
 import com.osudroid.ui.v2.skin.SkinComponent
-import com.osudroid.ui.v2.skin.SkinPieces
-import com.osudroid.utils.updateThread
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.choreographAt
-import com.reco1l.verktex.ui.choreographNow
+import com.reco1l.verktex.ui.choreographyStates
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import ru.nsu.ccfit.zuev.skins.OsuSkin
 
+/**
+ * A hit circle. Each hit circle of a beatmap gets its own, which borrows its pieces from the [PiecePool].
+ */
 class GameplayHitCircle : GameObject() {
 
-    private val normalApproachCircle = SkinPieces.current.create(SkinComponent.ApproachCircle)
-    private val traceableApproachCircle by lazy { SkinPieces.current.create(SkinComponent.TraceableApproachCircle) }
-    private var approachCircle: Component = normalApproachCircle
+    private lateinit var approachCircle: Component
     private var comboColor = Color4()
     private var listener: GameObjectListener? = null
     private var playfield: GameplayPlayfield? = null
@@ -46,7 +45,7 @@ class GameplayHitCircle : GameObject() {
     /**
      * The circle piece that represents the circle body and overlay.
      */
-    private val circlePiece: MainCirclePiece = SkinPieces.current.create(SkinComponent.HitCircle)
+    private lateinit var circlePiece: MainCirclePiece
 
     fun init(listener: GameObjectListener, playfield: GameplayPlayfield, beatmapCircle: HitCircle,
              comboColor: Color4) {
@@ -79,6 +78,7 @@ class GameplayHitCircle : GameObject() {
         val fadeInDuration = beatmapCircle.timeFadeIn.toFloat() / 1000f
 
         // Initializing sprites
+        circlePiece = obtain(SkinComponent.HitCircle)
         circlePiece.setCircleColor(comboColor)
         circlePiece.scale = scale
         circlePiece.alpha = 0f
@@ -94,7 +94,7 @@ class GameplayHitCircle : GameObject() {
         circlePiece.isVisible = !context.isTraceable ||
             (Settings[OsuSettings.ShowFirstApproachCircle] && context.traceable!!.firstObject === beatmapCircle)
 
-        approachCircle = if (context.isTraceable) traceableApproachCircle else normalApproachCircle
+        approachCircle = obtain(if (context.isTraceable) SkinComponent.TraceableApproachCircle else SkinComponent.ApproachCircle)
         approachCircle.color = comboColor
         approachCircle.scale = scale * 3 * (beatmapCircle.timePreempt / context.originalTimePreempt).toFloat()
         approachCircle.alpha = 0f
@@ -164,15 +164,13 @@ class GameplayHitCircle : GameObject() {
 
             hitSamples.add(gameplaySample)
         }
-
-        lifetimeEnd = Float.MAX_VALUE
     }
 
     private fun removeFromScene() {
         val playfield = playfield ?: return
         val judgement = judgement
 
-        lifetimeEnd = hitTime + hitOffset
+        endLifetime(hitTime + hitOffset)
 
         for (i in hitSamples.size - 1 downTo 0) {
             hitSamples[i].release()
@@ -183,25 +181,17 @@ class GameplayHitCircle : GameObject() {
         approachCircle.clearAnimations()
         approachCircle.removeSelf()
 
-        if (judgement != null && judgement != "hit0" && areBurstsShown()) {
-            // The circle bursts itself.
-            circlePiece.setCircleColor(comboColor)
-            circlePiece.setColor(1f, 1f, 1f)
-            burst(playfield, circlePiece, beatmapCircle!!.gameplayScale)
-        } else if (successfulHit || !circlePiece.isVisible || circlePiece.alpha == 0f) {
-            circlePiece.removeSelf()
-        } else {
-            circlePiece.choreographNow { sequence ->
-                sequence.fadeOut(0.1f).after { e -> updateThread { e.removeSelf() } }
-                extendLifetime(sequence)
-            }
-        }
+        applyState(if (judgement != null && judgement != "hit0") ArmedState.Hit else ArmedState.Miss)
 
         if (judgement != null) {
             showJudgement(playfield, judgement, position.x, position.y, beatmapCircle!!.gameplayScale, comboColor)
         }
 
         this.playfield = null
+    }
+
+    override fun playState(state: ArmedState, time: Float) {
+        STATES.play(this, state, time)
     }
 
     private fun playHitSamples() {
@@ -302,12 +292,7 @@ class GameplayHitCircle : GameObject() {
     }
 
     override fun onExpire() {
-        circlePiece.clearAnimations()
-        approachCircle.clearAnimations()
-
-        circlePiece.removeSelf()
-        approachCircle.removeSelf()
-        releaseEffects()
+        releasePieces()
         removeSelf()
 
         for (i in hitSamples.size - 1 downTo 0) {
@@ -315,11 +300,34 @@ class GameplayHitCircle : GameObject() {
         }
 
         hitSamples.clear()
-
-        GameObjectPool.getInstance().putCircle(this)
     }
 
     override fun isJudged(): Boolean {
         return startHit
+    }
+
+    private companion object {
+
+        // What the circle shows as it's judged, from the time it is.
+        val STATES = choreographyStates<ArmedState, GameplayHitCircle> {
+            this[ArmedState.Hit] = {
+                if (areBurstsShown()) {
+                    // The circle bursts itself.
+                    circlePiece.setCircleColor(comboColor)
+                    circlePiece.setColor(1f, 1f, 1f)
+                    burst(playfield!!, circlePiece, beatmapCircle!!.gameplayScale)
+                } else {
+                    circlePiece.removeSelf()
+                }
+            }
+
+            this[ArmedState.Miss] = { time ->
+                if (!circlePiece.isVisible || circlePiece.alpha == 0f) {
+                    circlePiece.removeSelf()
+                } else {
+                    circlePiece.choreographAt(time) { sequence -> sequence.fadeOut(0.1f) }
+                }
+            }
+        }
     }
 }

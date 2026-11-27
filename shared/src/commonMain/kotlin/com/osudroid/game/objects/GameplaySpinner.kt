@@ -17,13 +17,13 @@ import com.osudroid.game.GameplayHitSampleInfo
 import com.osudroid.game.GameplaySequenceHitSampleInfo
 import com.osudroid.math.Vector2
 import com.osudroid.ui.v2.skin.SkinComponent
-import com.osudroid.ui.v2.skin.SkinPieces
 import com.osudroid.ui.v2.skin.SpinnerPiece
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Vec4
 import com.reco1l.verktex.graphics.Texture
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
+import com.reco1l.verktex.ui.choreographyStates
 import com.reco1l.verktex.ui.container.ClipContainer
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.fadeIn
@@ -45,18 +45,20 @@ import com.reco1l.verktex.data.fill
 import kotlin.random.Random
 
 /**
- * A spinner: it judges the spins, and its skin's [piece] shows them.
+ * A spinner: it judges the spins, and its skin's [piece] shows them. Each spinner of a beatmap gets its own, which
+ * borrows its pieces from the [PiecePool].
  */
 class GameplaySpinner(
 
     /**
-     * How the spinner looks, the skin's by default.
+     * How the spinner looks, the skin's piece from the pool when null.
      */
-    private val piece: SpinnerPiece = SkinPieces.current.create(SkinComponent.Spinner)
+    private val style: SpinnerPiece? = null
 
 ) : GameObject() {
 
-    private val rpmCounter = SpinnerRpmCounter()
+    private lateinit var piece: SpinnerPiece
+    private lateinit var rpmCounter: SpinnerRpmCounter
 
     private var beatmapSpinner: Spinner? = null
     private var oldMouse: Vector2? = null
@@ -89,8 +91,6 @@ class GameplaySpinner(
         // The center of the playfield, where the cursor goes in autoplay.
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f)
 
-        this += piece
-
         isSpinnerFrequencyModulate = OsuSkin.get().isSpinnerFrequencyModulate
         spinnerSpinSample = GameplaySequenceHitSampleInfo()
         spinnerBonusSample = GameplaySequenceHitSampleInfo()
@@ -118,6 +118,9 @@ class GameplaySpinner(
     fun init(listener: GameObjectListener, scene: Container, playfield: GameplayPlayfield,
                   beatmapSpinner: Spinner, rps: Float, stat: Statistic) {
         effectsPlayfield = playfield
+        piece = style ?: obtain(SkinComponent.Spinner)
+        this += piece
+        rpmCounter = PiecePool.instance.obtainRpmCounter()
         fullRotations = 0
         rotations = 0f
         this.scene = scene
@@ -153,20 +156,6 @@ class GameplaySpinner(
         layout(playfield)
 
         oldMouse = null
-
-        lifetimeEnd = Float.MAX_VALUE
-    }
-
-    private fun detachFromScene() {
-        if (scene == null) {
-            return
-        }
-
-        piece.end()
-        rpmCounter.detach()
-
-        lifetimeEnd = hitTime + duration
-        scene = null
     }
 
     /**
@@ -197,7 +186,8 @@ class GameplaySpinner(
             return
         }
 
-        detachFromScene()
+        scene = null
+        endLifetime(hitTime + duration)
 
         val listener = listener!!
         val replayObjectData = replayObjectData
@@ -242,6 +232,7 @@ class GameplaySpinner(
             }
         }
         stopLoopingSamples()
+        applyState(if (score > 0) ArmedState.Hit else ArmedState.Miss)
         showResult(listener.onSpinnerJudged(id, JudgementResult.fromScore(score), endsCombo, this.bonusScoreCounter + fullRotations - 1))
         playAndFreeHitSamples(score)
     }
@@ -402,9 +393,19 @@ class GameplaySpinner(
         }
     }
 
+    override fun playState(state: ArmedState, time: Float) {
+        STATES.play(this, state, time)
+    }
+
     override fun onExpire() {
-        detachFromScene()
-        releaseEffects()
+        // Not judged, when a seek expires it.
+        if (scene != null) {
+            piece.end()
+            scene = null
+        }
+
+        PiecePool.instance.releaseRpmCounter(rpmCounter)
+        releasePieces()
         effectsPlayfield = null
         removeSelf()
         stopLoopingSamples()
@@ -414,7 +415,6 @@ class GameplaySpinner(
         }
 
         hitSamples.clear()
-        GameObjectPool.getInstance().putSpinner(this)
     }
 
     // Detached once it's judged.
@@ -578,6 +578,14 @@ class GameplaySpinner(
     }
 
     private companion object {
+
+        // What the spinner shows as it's judged: hit or missed, its piece ends the same.
+        val STATES = choreographyStates<ArmedState, GameplaySpinner> {
+            otherwise {
+                piece.end()
+                rpmCounter.detach()
+            }
+        }
 
         // How far from the centre autoplay spins, 50 pixels of osu!droid's 1280x720 screen.
         const val AUTO_RADIUS = 50 * Playfield.SCREEN_PIXEL

@@ -42,7 +42,6 @@ import kotlin.math.min
 import kotlin.math.sin
 import com.osudroid.game.objects.GameObject
 import com.osudroid.game.objects.GameObjectListener
-import com.osudroid.game.objects.GameObjectPool
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 
 /**
@@ -325,12 +324,6 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
         spawned.isExpired = true
 
         spawned.gameObject.onExpire()
-        // The pool keeps expired objects for the game to reuse them, the test makes new ones.
-        GameObjectPool.getInstance().apply {
-            circles.remove(spawned.gameObject)
-            sliders.remove(spawned.gameObject)
-            spinners.remove(spawned.gameObject)
-        }
     }
 
     private fun scoreName(score: Int) = when (score) {

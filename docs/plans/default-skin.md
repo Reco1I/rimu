@@ -72,8 +72,8 @@ The rules for every piece:
   circle shrinking, and the fail animation. It plays them on the piece as a whole.
 - **Where the piece is drawn.** Pieces drawn above every object (approach circles, the ball, the follow circle) go
   through `GameObject.drawIn` as today. Judgements go into the `judgements` layer.
-- **Pooling.** Objects are pooled, so `GameObjectPool.preload` drops pooled objects and judgement pieces when
-  `SkinTextures.revision` has changed since they were made. It already does that for spinners of the wrong style.
+- **Pooling.** Pieces are pooled (`PiecePool`), so `PiecePool.preload` drops them when `SkinTextures.revision` has
+  changed since they were made.
 
 ### Dimensions follow osu!stable
 
