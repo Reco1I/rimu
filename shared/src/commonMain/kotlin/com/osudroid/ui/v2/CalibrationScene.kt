@@ -107,7 +107,7 @@ class CalibrationScene(
         background = Background.Component(Box().apply {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
-            color = Verktex.theme.palette.accent.shade(0.08f)
+            color = Verktex.theme.palette.inset
         })
 
         textButton {
@@ -148,7 +148,7 @@ class CalibrationScene(
                 height = Dimension.FillAvailable
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                color = themed { palette.accent.shade(0.35f) }
+                color = themed { palette.controlActiveBackground }
                 hitCircleFill = this
             }
 
@@ -171,7 +171,7 @@ class CalibrationScene(
                 borderWidth = 6f.px
                 scaleOrigin = Anchor.Center
                 scale = APPROACH_SCALE_START
-                borderColor = themed { palette.accent.shade(0.85f) }
+                borderColor = themed { palette.contentPrimary }
                 approachCircle = this
             }
 
@@ -228,7 +228,7 @@ class CalibrationScene(
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
             translationY = (-28f).px
-            color = themed { palette.accent.shade(0.45f) }
+            color = themed { palette.contentSubtle }
         }
 
         linearContainer {
@@ -240,7 +240,7 @@ class CalibrationScene(
             padding = Padding(24f.px)
             radius = CornerRadius(16f.px)
 
-            background = Background.Color(themed { palette.accent.shade(0.15f) })
+            background = Background.Color(themed { palette.surfaceHigh })
 
             text {
                 text = string.opt_offset_calibration_calibration
@@ -254,7 +254,7 @@ class CalibrationScene(
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                color = themed { palette.accent.shade(0.2f) }
+                color = themed { palette.border }
             }
 
             text {
@@ -263,7 +263,7 @@ class CalibrationScene(
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                color = themed { palette.accent.shade(0.6f) }
+                color = themed { palette.contentMuted }
             }
 
             linearContainer {
@@ -283,7 +283,7 @@ class CalibrationScene(
                     alignment = Anchor.Center
                     width = 110f.px
                     radius = CornerRadius(8f.px)
-                    background = Background.Color(themed { palette.accent.shade(0.12f) })
+                    background = Background.Color(themed { palette.surfaceRaised })
                     color = themed { palette.accent }
                     onActionUp = { showBpmInputDialog() }
                     bpmValueText = this
@@ -299,7 +299,7 @@ class CalibrationScene(
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                color = themed { palette.accent.shade(0.2f) }
+                color = themed { palette.border }
             }
 
             text {
@@ -308,7 +308,7 @@ class CalibrationScene(
                 alignment = Anchor.TopCenter
                 anchor = Anchor.TopCenter
                 origin = Anchor.TopCenter
-                color = themed { palette.accent.shade(0.6f) }
+                color = themed { palette.contentMuted }
             }
 
             linearContainer {
@@ -328,7 +328,7 @@ class CalibrationScene(
                     alignment = Anchor.Center
                     width = 110f.px
                     radius = CornerRadius(8f.px)
-                    background = Background.Color(themed { palette.accent.shade(0.12f) })
+                    background = Background.Color(themed { palette.surfaceRaised })
                     color = themed { palette.accent }
                     onActionUp = { showOffsetInputDialog() }
                     offsetValueText = this
@@ -382,7 +382,7 @@ class CalibrationScene(
             orientation = LinearContainer.Orientation.Vertical
             padding = Padding(14f.px)
             radius = CornerRadius(16f.px)
-            background = Background.Color(themed { palette.accent.shade(0.15f) })
+            background = Background.Color(themed { palette.surfaceHigh })
 
             // Header
             text {
@@ -398,7 +398,7 @@ class CalibrationScene(
             box {
                 width = Dimension.FillAvailable
                 height = 1f.px
-                color = themed { palette.accent.shade(0.2f) }
+                color = themed { palette.border }
             }
 
             // Setting row: label (left) + ON/OFF toggle (right)
@@ -415,7 +415,7 @@ class CalibrationScene(
                     alignment = Anchor.CenterLeft
                     anchor = Anchor.CenterLeft
                     origin = Anchor.CenterLeft
-                    color = themed { palette.accent.shade(0.9f) }
+                    color = themed { palette.contentPrimary }
                 }
 
                 highPrecisionToggle = Checkbox(Settings[OsuSettings.HighPrecisionInput]).apply {
@@ -435,7 +435,7 @@ class CalibrationScene(
                 alignment = Anchor.TopLeft
                 anchor = Anchor.TopLeft
                 origin = Anchor.TopLeft
-                color = themed { palette.accent.shade(0.5f) }
+                color = themed { palette.contentSubtle }
             }
         }
     }

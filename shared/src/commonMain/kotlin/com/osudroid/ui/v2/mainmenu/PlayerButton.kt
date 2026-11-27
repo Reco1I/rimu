@@ -59,12 +59,12 @@ class PlayerButton : ClickableContainer() {
             padding = Padding(9f.dip)
             spacing = 8f.dip
             radius = themed { CornerRadius(radius.xl) }
-            background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.2f) })
+            background = Background.Color(themed { palette.surfaceRaised.alpha(0.2f) })
 
             avatarSprite = sprite {
                 width = 48f.dip
                 height = 48f.dip
-                background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.3f) })
+                background = Background.Color(themed { palette.surfaceRaised.alpha(0.3f) })
                 radius = themed { CornerRadius(radius.xl) }
                 scaleType = ScaleType.Crop
                 texture = skinTexture("emptyavatar")
@@ -83,7 +83,7 @@ class PlayerButton : ClickableContainer() {
                 informationText = text {
                     text = "Loading..."
                     fontSize = themed { typography.smallCaption.size }
-                    color = themed { palette.accent.shade(0.8f) }
+                    color = themed { palette.contentSecondary }
                 }
             }
         }

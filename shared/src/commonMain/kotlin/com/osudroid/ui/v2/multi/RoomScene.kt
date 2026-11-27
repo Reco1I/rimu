@@ -240,7 +240,7 @@ class RoomScene(
         chat = RoomChat()
 
         // On the scene, so it also covers the safe area its padding keeps the content out of.
-        background = Background.Color(themed { palette.accent.shade(0.1f).alpha(0.9f) })
+        background = Background.Color(themed { palette.inset.alpha(0.75f) })
 
         linearContainer {
             orientation = LinearContainer.Orientation.Vertical
@@ -249,7 +249,7 @@ class RoomScene(
 
             header = extendIntoSafeAreaContainer {
                 width = Dimension.FillAvailable
-                background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
+                background = Background.Color(themed { palette.inset.alpha(0.5f) })
                 border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
                 padding = Padding(16f.dip)
 
@@ -335,7 +335,7 @@ class RoomScene(
 
                         text {
                             text = title.toString().uppercase()
-                            color = themed { palette.accent.shade(0.7f) }
+                            color = themed { palette.contentTertiary }
                             fontSettings = themed { typography.smallBody }
                         }
 
@@ -370,7 +370,7 @@ class RoomScene(
                         height = Dimension.WrapContent
                         padding = Padding(12f.dip)
                         radius = themed { CornerRadius(radius.xl) }
-                        background = Background.Color(themed { palette.accent.shade(0.1f).alpha(0.5f) })
+                        background = Background.Color(themed { palette.surfaceRaised.alpha(0.5f) })
                         // Not faded for the players who can't change it, only pressed by the host.
                         transitions = BEATMAP_CARD_TRANSITIONS
                         onActionUp = { changeBeatmap() }
@@ -414,7 +414,7 @@ class RoomScene(
 
             footer = extendIntoSafeAreaContainer {
                 width = Dimension.FillAvailable
-                background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
+                background = Background.Color(themed { palette.inset.alpha(0.5f) })
                 border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
                 // Above the chat's bar, shown over the scene.
                 padding = Padding(16f.dip, 16f.dip, 16f.dip, (16f.dip.toPixels() + RoomChat.BAR_HEIGHT.toPixels()).px)

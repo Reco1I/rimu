@@ -77,9 +77,9 @@ class RoomPlayerCard : LinearContainer() {
             }
 
             teamColorBar.background = Background.Color(when (player.team) {
-                Blue -> Color4(0xFF60A5FA).shade(0.8f)
-                Red -> Color4(0xFFF87171).shade(0.8f)
-                null -> Verktex.theme.palette.accent.shade(0.6f)
+                Blue -> Color4(0xFF538FD9)
+                Red -> Color4(0xFFD86262)
+                null -> Verktex.theme.palette.contentMuted
             })
 
             if (player.id == OnlineManager.getInstance().userId) {
@@ -157,7 +157,7 @@ class RoomPlayerCard : LinearContainer() {
             height = Dimension.WrapContent
             padding = Padding(10f.dip)
             radius = themed { CornerRadius(radius.xl) }
-            background = Background.Color(themed { palette.accent.shade(0.1f) })
+            background = Background.Color(themed { palette.surfaceRaised })
             borderWidth = 2f.px
 
             // A background label, behind the rest.
@@ -176,14 +176,14 @@ class RoomPlayerCard : LinearContainer() {
                 width = AVATAR_SIZE
                 height = AVATAR_SIZE
                 radius = themed { CornerRadius(radius.lg) }
-                background = Background.Color(themed { palette.accent.shade(0.2f) })
+                background = Background.Color(themed { palette.border })
 
                 // Shown until the avatar loads, and for the players without one.
                 +Icon(FAIcon.User).apply {
                     anchor = Anchor.Center
                     origin = Anchor.Center
                     iconSize = 24f.dip
-                    color = themed { palette.accent.shade(0.6f) }
+                    color = themed { palette.contentMuted }
                 }
 
                 +avatarSprite
@@ -251,7 +251,7 @@ class RoomPlayerCard : LinearContainer() {
                     modDisplay = Text().apply {
                         minHeight = 24f.px // Force to take space even if no mods are enabled
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent.shade(0.8f) }
+                        color = themed { palette.contentSecondary }
                     }
 
                     innerContainer += modDisplay!!

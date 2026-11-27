@@ -82,7 +82,7 @@ class BeatmapInfoLayout(
                 artistText = text {
                     text = "Unknown"
                     fontSize = themed { typography.smallBody.size }
-                    color = themed { palette.accent.shade(0.9f) }
+                    color = themed { palette.contentPrimary }
                     clipping = ClipMode.Bounds
                 }
 
@@ -97,14 +97,14 @@ class BeatmapInfoLayout(
                 versionText = text {
                     text = "Unknown"
                     fontSize = themed { typography.smallBody.size }
-                    color = themed { palette.accent.shade(0.8f) }
+                    color = themed { palette.contentSecondary }
                     clipping = ClipMode.Bounds
                 }
 
                 creatorText = text {
                     text = "Unknown"
                     fontSize = themed { typography.smallBody.size }
-                    color = themed { palette.accent.shade(0.8f) }
+                    color = themed { palette.contentSecondary }
                 }
             }
 

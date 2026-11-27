@@ -145,8 +145,12 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
         width = fill()
         height = fill()
         blurRadius = 8f.dip
-        background = themed {
-            Background.Color(palette.accent.shade(0.15f).alpha(0.5f))
+
+        // The backdrop, over the blurred capture: the menu's own background is drawn under it.
+        extendIntoSafeAreaContainer {
+            width = fill()
+            height = fill()
+            background = Background.Color(themed { palette.inset.alpha(0.75f) })
         }
 
         linearContainer {
@@ -157,7 +161,7 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             // TopBar
             extendIntoSafeAreaContainer {
                 width = fill()
-                background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
+                background = themed { Background.Color(palette.inset.alpha(0.5f)) }
                 border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
 
                 linearContainer {
@@ -260,7 +264,7 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             // Bottom bar
             extendIntoSafeAreaContainer {
                 width = fill()
-                background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
+                background = themed { Background.Color(palette.inset.alpha(0.5f)) }
                 border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
 
                 bottomBarContent = container {
@@ -568,7 +572,7 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             colorTo(if (isRanked) Color4(0xFF161622) else Verktex.theme.palette.accent, 0.1f)
 
             background = Background.Color(
-                if (isRanked) Color4(0xFF83DF6B) else Verktex.theme.palette.accent.shade(0.15f)
+                if (isRanked) Color4(0xFF83DF6B) else Verktex.theme.palette.surfaceHigh
             )
         }
 

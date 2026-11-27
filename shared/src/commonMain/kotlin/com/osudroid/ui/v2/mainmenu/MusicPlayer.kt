@@ -66,7 +66,7 @@ class MusicPlayer(private val trigger: Button) : Modal() {
                     artistText = text {
                         width = Dimension.FillAvailable
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent.shade(0.9f) }
+                        color = themed { palette.contentPrimary }
                     }
                 }
 
@@ -77,14 +77,14 @@ class MusicPlayer(private val trigger: Button) : Modal() {
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent.shade(0.8f) }
+                        color = themed { palette.contentSecondary }
                     }
 
                     totalTime = text {
                         anchor = Anchor.CenterRight
                         origin = Anchor.CenterRight
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent.shade(0.8f) }
+                        color = themed { palette.contentSecondary }
                     }
                 }
 

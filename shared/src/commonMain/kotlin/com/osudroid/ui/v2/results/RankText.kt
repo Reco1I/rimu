@@ -39,7 +39,7 @@ class RankText(mark: String, size: Dimension.Fixed) : Text() {
         effects = listOf(
             TextEffect.Shadow(Color4(0f, 0f, 0f, 0.55f), offsetY = 6f.dip, softness = 10f.dip),
             TextEffect.Glow(rankColor, 22f.dip, 1.3f),
-            TextEffect.Outline(rankColor.shade(0.3f), 2f.dip),
+            TextEffect.Outline(rankColor.darken(1.1f), 2f.dip),
         )
     }
 }

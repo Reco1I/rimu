@@ -29,7 +29,7 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : Button() {
     init {
         width = fill()
         height = wrap()
-        background = Background.Color(themed { palette.accent.shade(0.2f).alpha(0.4f) })
+        background = Background.Color(themed { palette.border.alpha(0.4f) })
         padding = Padding(12f.dip)
 
         linearContainer {

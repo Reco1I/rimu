@@ -60,7 +60,7 @@ class ModCustomizationView(
             height = fill()
             clipping = ClipMode.Bounds
             padding = Padding(16f.dip)
-            background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
+            background = Background.Color(themed { palette.inset.alpha(0.5f) })
             border = Border(1f.dip, Color4.Transparent, Color4.White.alpha(0.15f), Color4.Transparent, Color4.Transparent)
 
             entriesContainer = linearContainer {

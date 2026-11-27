@@ -60,7 +60,7 @@ open class ResultsTile(label: CharSequence, value: CharSequence) : LinearContain
         spacing = 2f.dip
         padding = Padding(12f.dip, 10f.dip)
         radius = themed { CornerRadius(radius.md) }
-        background = Background.Color(themed { palette.accent.shade(0.12f).alpha(0.7f) })
+        background = Background.Color(themed { palette.surfaceRaised.alpha(0.7f) })
 
         labelText = text {
             text = label

@@ -70,7 +70,7 @@ class BeatmapSetHeader(headerHeight: Dimension.Fixed) : Container() {
             width = fill()
             height = fill()
             scaleType = ScaleType.Crop
-            background = Background.Color(themed { palette.accent.shade(0.3f) })
+            background = Background.Color(themed { palette.buttonBackgroundSurface })
         }
 
         box {
@@ -119,7 +119,7 @@ class BeatmapSetHeader(headerHeight: Dimension.Fixed) : Container() {
                 maxLines = 1
                 fontSettings = themed { typography.caption }
                 fontSize = themed { typography.smallCaption.size }
-                color = themed { palette.accent.shade(0.8f) }
+                color = themed { palette.contentSecondary }
             }
         }
 
@@ -229,7 +229,7 @@ internal fun addDifficultyDots(container: LinearContainer, set: BeatmapSetModel,
             origin = Anchor.CenterLeft
             text = "+${set.beatmaps.size - max}"
             fontSize = themed { typography.smallCaption.size }
-            color = themed { palette.accent.shade(0.8f) }
+            color = themed { palette.contentSecondary }
         }
     }
 }
@@ -275,7 +275,7 @@ class BeatmapSetCard(private val state: BeatmapListingState) : RecyclableCompone
             width = fill()
             clipping = ClipMode.Bounds
             radius = themed { CornerRadius(radius.xl) }
-            background = Background.Color(themed { palette.accent.shade(0.12f) })
+            background = Background.Color(themed { palette.surfaceRaised })
             borderColor = themed { palette.accent.alpha(0.2f) }
             borderWidth = 1f.dip
             onActionUp = { boundData?.let(state::showDetails) }
@@ -328,7 +328,7 @@ class BeatmapSetCard(private val state: BeatmapListingState) : RecyclableCompone
                         width = fill()
                         maxLines = 1
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent.shade(0.7f) }
+                        color = themed { palette.contentTertiary }
                     }
                 }
             }

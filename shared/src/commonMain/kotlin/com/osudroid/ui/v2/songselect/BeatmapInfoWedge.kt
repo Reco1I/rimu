@@ -78,9 +78,9 @@ class BeatmapInfoWedge(
             skewOrigin = Anchor.TopLeft
             skewX = -12f
 
-            color = themed { palette.accent.shade(0.1f).alpha(0.75f) }
+            color = themed { palette.surface.alpha(0.75f) }
             radius = CornerRadius(Dimension.Zero, Dimension.Zero, 12f.dip, Dimension.Zero)
-            border = themed { Border(2f.px, palette.accent.shade(0.2f)) }
+            border = themed { Border(2f.px, palette.border) }
         })
 
         linearContainer {
@@ -102,7 +102,7 @@ class BeatmapInfoWedge(
                         text = "Unknown"
                         fontSettings = themed { typography.h3 }
                         fontSize = themed { typography.body.size }
-                        color = themed { palette.accent.shade(0.8f) }
+                        color = themed { palette.contentSecondary }
                     }
 
                     titleText = text {
@@ -116,7 +116,7 @@ class BeatmapInfoWedge(
 
                     versionText = text {
                         text = "Unknown"
-                        color = themed { palette.accent.shade(0.8f) }
+                        color = themed { palette.contentSecondary }
                     }
                 }
                 starsText = StarRatingBadge()

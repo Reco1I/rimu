@@ -63,7 +63,7 @@ class ModIcon(val mod: Mod) : Container(), ISkinnable {
                 height = fill()
             }
         } else {
-            background = Background.Color(Verktex.theme.palette.accent.shade(0.1f))
+            background = Background.Color(Verktex.theme.palette.surfaceRaised)
 
             // Both are drawn at a fixed size and scaled to the icon's in onUpdate, as the icon's size changes when
             // it's animated and fonts are made for each size.

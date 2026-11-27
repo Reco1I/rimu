@@ -43,7 +43,7 @@ class LoaderScene : Scene() {
             box {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
-                color = Verktex.theme.palette.accent.shade(0.1f)
+                color = Verktex.theme.palette.inset
                 alpha = 0.9f
             }
         })

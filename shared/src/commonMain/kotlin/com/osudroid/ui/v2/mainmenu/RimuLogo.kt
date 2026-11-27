@@ -61,7 +61,7 @@ class RimuLogo(withEffects: Boolean = true) : Container() {
     private fun updateEffects() {
         val accent = Verktex.theme.palette.accent
         glow.effects = listOf(TextEffect.Glow(accent, GLOW_RADIUS, 1.5f))
-        label.effects = listOf(TextEffect.Outline(accent.shade(0.5f).alpha(0.35f), OUTLINE_WIDTH))
+        label.effects = listOf(TextEffect.Outline(Verktex.theme.palette.contentSubtle.alpha(0.35f), OUTLINE_WIDTH))
     }
 
     override fun onThemeChanged() {

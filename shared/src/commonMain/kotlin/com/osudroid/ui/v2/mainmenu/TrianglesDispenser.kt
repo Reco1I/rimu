@@ -35,9 +35,9 @@ class TrianglesDispenser : Canvas() {
      * The color palette of the triangles.
      */
     var colorPalette = arrayOf(
-        Color4.White.shade(0.1f),
-        Color4.White.shade(0.125f),
-        Color4.White.shade(0.15f),
+        Color4(0.24f, 0.24f, 0.24f),
+        Color4(0.27f, 0.27f, 0.27f),
+        Color4(0.3f, 0.3f, 0.3f),
     )
 
     /**

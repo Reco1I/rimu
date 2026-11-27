@@ -88,7 +88,7 @@ class NotificationCenter(private val trigger: Button) : Modal() {
                     alignment = Anchor.Center
                     padding = Padding(top = 16f.dip, bottom = 16f.dip)
                     fontSettings = themed { typography.smallBody }
-                    color = themed { palette.accent.shade(0.8f) }
+                    color = themed { palette.contentSecondary }
                     text = Res.string.notifications_empty
                 }
 

@@ -180,8 +180,8 @@ class MainScene(playIntro: Boolean = false) : Scene() {
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable
                 gradientAngle = 270f
-                colorStart = Verktex.theme.palette.accent.shade(0.1f)
-                colorEnd = (Verktex.theme.palette.accent.shade(0.1f)).alpha(0.5f)
+                colorStart = Verktex.theme.palette.inset
+                colorEnd = Verktex.theme.palette.inset.alpha(0.5f)
             }
 
             // The music's spectrum along the top and bottom edges.

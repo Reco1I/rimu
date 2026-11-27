@@ -155,7 +155,7 @@ class GameLoaderScene(private val gameplay: Gameplay, private val beatmapInfo: B
                         wrapText = true
                         text = "by ${beatmapInfo.artistText}"
                         fontSize = themed { typography.h3.size }
-                        color = themed { palette.accent.shade(0.9f) }
+                        color = themed { palette.contentPrimary }
                     }
 
                     if (mods.isNotEmpty()) {

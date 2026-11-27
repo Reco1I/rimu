@@ -386,8 +386,8 @@ class SongSelectLeaderboard : LinearContainer() {
                     radius = CornerRadius(12f.px)
                     borderWidth = 2f.px
 
-                    background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.75f) })
-                    borderColor = themed { palette.accent.shade(0.2f) }
+                    background = Background.Color(themed { palette.surface.alpha(0.75f) })
+                    borderColor = themed { palette.border }
 
                     container {
                         width = Dimension.FillAvailable
@@ -454,7 +454,7 @@ class SongSelectLeaderboard : LinearContainer() {
 
                                     text {
                                         text = name.uppercase()
-                                        color = themed { palette.accent.shade(0.8f) }
+                                        color = themed { palette.contentSecondary }
                                     }
                                     +metricText
                                 }

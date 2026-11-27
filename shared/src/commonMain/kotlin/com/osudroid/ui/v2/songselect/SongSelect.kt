@@ -136,7 +136,7 @@ class SongSelect : Scene() {
     private val backgroundDim = Box().apply {
         width = fill()
         height = fill()
-        color = Color4.Black
+        color = themed { palette.inset }
         alpha = 0f
     }
 

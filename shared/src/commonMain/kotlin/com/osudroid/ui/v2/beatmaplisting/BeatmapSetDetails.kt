@@ -122,7 +122,7 @@ class BeatmapSetDetails(private val state: BeatmapListingState) : Modal() {
                         width = fill()
                         maxLines = 1
                         fontSize = themed { typography.smallCaption.size }
-                        color = themed { palette.accent.shade(0.7f) }
+                        color = themed { palette.contentTertiary }
                     }
 
                     linearContainer {

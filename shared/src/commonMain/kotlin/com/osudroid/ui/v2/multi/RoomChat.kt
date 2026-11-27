@@ -126,16 +126,15 @@ class RoomChat : Container() {
 
             extendIntoSafeAreaContainer {
                 width = Dimension.FillAvailable
-                // Brighter than the messages below it, as a bar of its own.
-                background = Background.Color(themed { palette.accent.shade(0.3f) })
-                border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
+                background = Background.Color(themed { palette.buttonBackgroundSurface })
+                border = Border(1f.dip, top = Color4.White.alpha(0.15f))
 
                 +button
             }
 
             extendIntoSafeAreaContainer {
                 width = Dimension.FillAvailable
-                background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.9f) })
+                background = Background.Color(themed { palette.inset.alpha(0.8f) })
 
                 linearContainer {
                     width = Dimension.FillAvailable
@@ -424,7 +423,7 @@ class RoomChat : Container() {
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
                         fontSettings = themed { typography.smallCaption }
-                        color = themed { palette.accent.shade(0.5f) }
+                        color = themed { palette.contentSubtle }
                     }
 
                     // Keeps its width without the sender, so the messages of a player line up.

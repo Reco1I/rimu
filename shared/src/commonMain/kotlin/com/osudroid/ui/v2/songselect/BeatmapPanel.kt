@@ -57,7 +57,7 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         anchor = Anchor.TopRight
         origin = Anchor.TopRight
         radius = themed { CornerRadius(radius.xl) }
-        background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.6f) })
+        background = Background.Color(themed { palette.surface.alpha(0.6f) })
         borderColor = themed { palette.accent.alpha(0.3f) }
         borderWidth = 1f.dip
 
