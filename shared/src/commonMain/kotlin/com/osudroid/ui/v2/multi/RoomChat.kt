@@ -12,6 +12,13 @@ import com.osudroid.multiplayer.api.data.*
 import com.osudroid.resources.Res
 import com.osudroid.utils.*
 import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.ui.container.RecyclableComponent
+import com.reco1l.verktex.ui.container.RecyclerContainer
+import com.reco1l.verktex.ui.fadeIn
+import com.reco1l.verktex.input.KeyboardEvent
+import com.reco1l.verktex.data.Border
+import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
+import com.reco1l.verktex.ui.container.ExtendIntoSafeAreaContainer
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.ClipMode
@@ -19,9 +26,7 @@ import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
-import com.reco1l.verktex.data.pct
 import com.reco1l.verktex.data.px
-import com.reco1l.verktex.data.toPadding
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.time.FrameClock
@@ -30,9 +35,10 @@ import com.reco1l.verktex.ui.Button
 import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.container.ClickableContainer
 import com.reco1l.verktex.ui.container.LinearContainer
+import com.reco1l.verktex.ui.container.LinearContainer.Orientation
+import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
-import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.control.TextInput
 import com.reco1l.verktex.ui.moveTo
 import com.reco1l.verktex.ui.text.Text
@@ -54,7 +60,8 @@ private val DEVELOPERS = longArrayOf(
 )
 
 
-class RoomChat : LinearContainer() {
+// A container rather than a linear one: the dismiss area and the panel overlap.
+class RoomChat : Container() {
 
     /**
      * Height of the chat button, in pixels, see [BAR_HEIGHT].
@@ -78,70 +85,95 @@ class RoomChat : LinearContainer() {
     private val button = ChatButton()
 
     private var content: LinearContainer
+    private var dismissArea: ExtendIntoSafeAreaContainer
     private lateinit var input: TextInput
-    private lateinit var messageContainer: LinearContainer
+    private lateinit var messageList: RecyclerContainer<ChatEntry, MessageRow>
 
-    private var messagesChanged = false
+    // Numbers the entries, which alternate their background by it.
+    private var nextEntryNumber = 0L
 
 
     init {
 
-        // Force the main container to fill the entire screen so that the chat can be closed by
-        // tapping outside of it (see onInputEvent).
+        // Fills the screen so that the chat can be closed by tapping outside of it.
         width = Dimension.FillAvailable
         height = Dimension.FillAvailable
 
+        // Behind the panel while it's expanded, dimming the whole screen: a tap outside of the panel
+        // collapses it. Hidden while collapsed, so what's below the chat gets the input.
+        dismissArea = extendIntoSafeAreaContainer {
+            width = Dimension.FillAvailable
+            height = Dimension.FillAvailable
+            background = Background.Color(Color4.Black.alpha(0.2f))
+            isVisible = false
+
+            +ClickableContainer().apply {
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                onActionDown = { collapse() }
+            }
+        }
+
+        // The bar and the body below it, out of the screen while collapsed. Their backgrounds
+        // reach the edges of the screen, their content staying in the safe area: the body's covers
+        // the bottom of the safe area below the bar while collapsed.
         content = linearContainer {
             width = Dimension.FillAvailable
             orientation = Orientation.Vertical
             anchor = Anchor.BottomCenter
             origin = Anchor.BottomCenter
             translationY = BODY_HEIGHT.dip
-            background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.9f) })
 
-            +button
-
-            linearContainer {
+            extendIntoSafeAreaContainer {
                 width = Dimension.FillAvailable
-                height = BODY_HEIGHT.dip
-                orientation = Orientation.Vertical
+                // Brighter than the messages below it, as a bar of its own.
+                background = Background.Color(themed { palette.accent.shade(0.3f) })
+                border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
 
-                scrollableContainer {
-                    width = Dimension.FillAvailable
-                    height = Dimension.FillAvailable
-                    scrollAxes = Axis.Y
-                    clipping = ClipMode.Bounds
+                +button
+            }
 
-                    messageContainer = linearContainer {
-                        width = Dimension.FillAvailable
-                        orientation = Orientation.Vertical
-
-                        repeat(MAX_MESSAGES) {
-                            +MessageComponent()
-                        }
-                    }
-                }
+            extendIntoSafeAreaContainer {
+                width = Dimension.FillAvailable
+                background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.9f) })
 
                 linearContainer {
                     width = Dimension.FillAvailable
-                    spacing = 8f.dip
-                    padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 8f.dip, bottom = 12f.dip)
+                    height = BODY_HEIGHT.dip
+                    orientation = Orientation.Vertical
 
-                    +TextInput("").apply {
+                    // Only the rows shown are kept, from the bottom as the latest message is.
+                    messageList = RecyclerContainer<ChatEntry, MessageRow>(ROW_POOL_SIZE).apply {
                         width = Dimension.FillAvailable
                         height = Dimension.FillAvailable
-                        maxCharacters = 200
-                        placeholder = "Type a message..."
-                        onConfirm = { sendMessage() }
-
-                        input = this
+                        scrollAxes = Axis.Y
+                        clipping = ClipMode.Bounds
+                        isAnchoredToEnd = true
+                        onCreateComponent = { MessageRow() }
                     }
+                    +messageList
 
-                    textButton {
-                        trailingIcon = faSolidIcon(FAIcon.PaperPlane)
-                        variant = Button.Variant.Solid
-                        text = Res.string.multiplayer_room_chat_send
-                        onActionUp = { sendMessage() }
+                    linearContainer {
+                        width = Dimension.FillAvailable
+                        spacing = 8f.dip
+                        padding = Padding(12f.dip, 8f.dip, 12f.dip, 12f.dip)
+
+                        +TextInput("").apply {
+                            width = Dimension.FillAvailable
+                            height = Dimension.FillAvailable
+                            maxCharacters = 200
+                            placeholder = "Type a message..."
+                            onConfirm = { sendMessage() }
+
+                            input = this
+                        }
+
+                        textButton {
+                            trailingIcon = faSolidIcon(FAIcon.PaperPlane)
+                            variant = Button.Variant.Solid
+                            text = Res.string.multiplayer_room_chat_send
+                            onActionUp = { sendMessage() }
+                        }
                     }
                 }
             }
@@ -176,13 +208,20 @@ class RoomChat : LinearContainer() {
             SkinSounds["heartbeat"].play(0.75f)
         }
 
+        // The sender is shown unless the previous message is from the same player.
+        val previous = messages.lastOrNull()
+        val showSender = message is PlayerMessage
+                && (previous !is PlayerMessage || previous.player.id != message.player.id)
+
         messages.add(message)
+        messageList.addData(listOf(ChatEntry(nextEntryNumber++, message, showSender)))
+
         if (messages.size > MAX_MESSAGES) {
             messages.removeFirstOrNull()
+            messageList.removeFirstData(1)
         }
 
         button.updateState()
-        messagesChanged = true
     }
 
 
@@ -202,6 +241,13 @@ class RoomChat : LinearContainer() {
 
             content.clearTransforms()
             content.moveTo(0f, 0f, 0.4f, Easing.OutExpo)
+
+            dismissArea.apply {
+                clearTransforms()
+                isVisible = true
+                alpha = 0f
+                fadeIn(0.2f, Easing.OutCubic)
+            }
         }
     }
 
@@ -210,6 +256,9 @@ class RoomChat : LinearContainer() {
         if (isExpanded) {
             isExpanded = false
             input.blur()
+
+            dismissArea.clearTransforms()
+            dismissArea.isVisible = false
 
             content.clearTransforms()
 
@@ -247,26 +296,17 @@ class RoomChat : LinearContainer() {
         collapse(true)
     }
 
-    override fun onUpdate(clock: FrameClock) {
 
-        if (messagesChanged) {
-            messagesChanged = false
-
-            for (i in MAX_MESSAGES - 1 downTo 0) {
-                val messageComponent = messageContainer[i] as MessageComponent
-                messageComponent.message = if (i < messages.size) messages[i] else null
-            }
-        }
-
-        super.onUpdate(clock)
-    }
-
+    // Back collapses the expanded chat before the scene gets it (e.g. the room asking to leave).
     override fun onInputEvent(event: InputEvent): Boolean {
         if (super.onInputEvent(event)) {
             return true
         }
 
-        collapse()
+        if (isExpanded && event is KeyboardEvent && event.isBackPress) {
+            collapse()
+            return true
+        }
         return false
     }
 
@@ -290,8 +330,7 @@ class RoomChat : LinearContainer() {
         init {
             width = Dimension.FillAvailable
             height = BAR_HEIGHT
-            background = Background.Color(themed { (palette.accent.shade(0.15f)).alpha(0.5f) })
-            padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 0f.dip, bottom = 0f.dip)
+            padding = Padding(12f.dip, 0f.dip)
 
             onActionUp = {
                 if (!isExpanded) {
@@ -336,95 +375,106 @@ class RoomChat : LinearContainer() {
     }
 
 
-    inner class MessageComponent : LinearContainer() {
+    /**
+     * A message in the list, with what its row shows of it besides the message.
+     */
+    class ChatEntry(
 
-        var message: Message? = null
-            set(value) {
-                if (field != value) {
-                    field = value
-                    messageChanged = true
-                }
-            }
+        /**
+         * The number of the entry since the chat was created, every other one is highlighted.
+         */
+        val number: Long,
+
+        val message: Message,
+
+        /**
+         * Whether the row shows who sent it, which it doesn't for consecutive messages of a player.
+         */
+        val showSender: Boolean,
+    )
 
 
-        private var messageChanged = false
+    // Built once, filled with the entry it's bound to.
+    inner class MessageRow : RecyclableComponent<ChatEntry>() {
+
+        override val isRecyclable = true
+
+        private lateinit var playerRow: LinearContainer
+        private lateinit var timeText: Text
+        private lateinit var nameText: Text
+        private lateinit var contentText: Text
+        private lateinit var systemText: Text
 
 
         init {
             width = Dimension.FillAvailable
-            orientation = Orientation.Horizontal
-            spacing = 8f.dip
-            background = Background.Color(themed { (palette.accent.shade(0.09f)).alpha(0f) })
-            padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 0f.dip, bottom = 0f.dip)
-        }
+            padding = Padding(12f.dip, 4f.dip)
 
+            // Only one of them is shown, and a linear container doesn't measure the hidden one.
+            linearContainer {
+                width = Dimension.FillAvailable
+                orientation = Orientation.Vertical
 
-        override fun onUpdate(clock: FrameClock) {
+                playerRow = linearContainer {
+                    width = Dimension.FillAvailable
+                    orientation = Orientation.Horizontal
+                    spacing = 8f.dip
 
-            if (messageChanged) {
-                messageChanged = false
-
-                clearChildren()
-
-                val message = message ?: return
-                val messageIndex = messages.indexOf(message)
-
-                // Every other message is highlighted.
-                val alpha = if (messageIndex % 2 == 0) 0.5f else 0f
-                background = themed { Background.Color(palette.accent.shade(0.09f).alpha(alpha)) }
-
-                if (message is SystemMessage) {
-                    text {
-                        width = Dimension.FillAvailable
+                    timeText = text {
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
-                        text = message.content
-                        padding = Padding(12f.px)
-                        color = message.color
-                        alignment = Anchor.Center
+                        fontSettings = themed { typography.smallCaption }
+                        color = themed { palette.accent.shade(0.5f) }
                     }
-                } else if (message is PlayerMessage) {
 
-                    val showSender = messageIndex == 0
-                            || messages[messageIndex - 1] !is PlayerMessage
-                            || (messages[messageIndex - 1] as PlayerMessage).player.id != message.player.id
-
-                    container {
-                        width = 0.25f.pct
+                    // Keeps its width without the sender, so the messages of a player line up.
+                    nameText = text {
+                        width = NAME_WIDTH
                         anchor = Anchor.CenterLeft
                         origin = Anchor.CenterLeft
-
-                        text {
-                            anchor = Anchor.CenterLeft
-                            origin = Anchor.CenterLeft
-                            color = themed { palette.accent.shade(0.5f) }
-                            text = formatTimeOfDay(message.time)
-                        }
-
-                        if (showSender) {
-                            text {
-                                anchor = Anchor.CenterRight
-                                origin = Anchor.CenterRight
-                                color = getPlayerTagColor(message.player)
-                                text = message.player.name
-                            }
-                        }
+                        alignment = Anchor.CenterRight
+                        maxLines = 1
                     }
 
-                    text {
+                    contentText = text {
                         width = Dimension.FillAvailable
                         color = themed { palette.accent }
-                        text = message.content
                     }
-                } else {
-                    // Technically should never happen.
-                    isVisible = false
+                }
+
+                systemText = text {
+                    width = Dimension.FillAvailable
+                    padding = Padding(0f.dip, 8f.dip)
+                    alignment = Anchor.Center
                 }
             }
-
-            super.onUpdate(clock)
         }
 
+
+        override fun onBind(data: ChatEntry) {
+            val message = data.message
+
+            // Every other message is highlighted, lighter than the panel.
+            val alpha = if (data.number % 2 == 0L) ROW_HIGHLIGHT_ALPHA else 0f
+            background = themed { Background.Color(palette.accent.alpha(alpha)) }
+
+            playerRow.isVisible = message is PlayerMessage
+            systemText.isVisible = message is SystemMessage
+
+            when (message) {
+                is PlayerMessage -> {
+                    timeText.text = formatTimeOfDay(message.time)
+                    nameText.text = if (data.showSender) message.player.name else ""
+                    nameText.color = getPlayerTagColor(message.player)
+                    contentText.text = message.content
+                }
+
+                is SystemMessage -> {
+                    systemText.text = message.content
+                    systemText.color = message.color
+                }
+            }
+        }
     }
 
 
@@ -436,7 +486,14 @@ class RoomChat : LinearContainer() {
          */
         val BAR_HEIGHT = 45.6f.dip
 
+        private val NAME_WIDTH = 128f.dip
+
         private const val MAX_MESSAGES = 50
+
+        // About the rows the body shows at once, so binding them doesn't create more.
+        private const val ROW_POOL_SIZE = 16
+
+        private const val ROW_HIGHLIGHT_ALPHA = 0.05f
         private const val BODY_HEIGHT = 288f
     }
 }

@@ -230,8 +230,10 @@ object OsuSceneUITests : UITestSuite("Scenes") {
         test("Room chat") {
             useGameContext()
 
+            // Expanded to show the messages, the bar collapses and expands it again.
             val chat = RoomChat()
             chat.show()
+            chat.expand()
             onDispose { chat.hide() }
 
             val players = List(3) { TestData.roomPlayer(it + 10L) }
