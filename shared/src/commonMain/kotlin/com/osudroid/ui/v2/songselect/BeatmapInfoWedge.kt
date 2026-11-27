@@ -25,7 +25,8 @@ import com.reco1l.verktex.ui.FAIcon
 import com.reco1l.verktex.ui.Badge
 import com.reco1l.verktex.ui.LabeledBadge
 import com.reco1l.verktex.ui.badge
-import com.reco1l.verktex.ui.container.ExtendIntoSafeAreaContainer
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.data.extendIntoSafeArea
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.labeledBadge
@@ -43,7 +44,7 @@ class BeatmapInfoWedge(
      * Returns the mods to show the beatmap with.
      */
     private val mods: () -> ModHashMap
-) : ExtendIntoSafeAreaContainer() {
+) : Container() {
 
 
     private lateinit var titleText: Text
@@ -67,6 +68,7 @@ class BeatmapInfoWedge(
 
     init {
         width = Dimension.FillAvailable
+        padding = extendIntoSafeArea()
 
         // Reaches the edges of the window, the outline of those sides is left outside of it.
         // Skewed around its top, the bottom slides to the left: the right side slants and the left one

@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import com.reco1l.verktex.data.extendIntoSafeArea
 import com.osudroid.beatmaplisting.BeatmapListing
 import com.osudroid.game.Gameplay
 import com.osudroid.game.loading.PlayRequest
@@ -50,7 +51,6 @@ import com.reco1l.verktex.ui.StateTransitions
 import com.reco1l.verktex.ui.scaleTo
 import com.osudroid.ui.OsuColors
 import com.reco1l.verktex.ui.button
-import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
 import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
@@ -247,11 +247,11 @@ class RoomScene(
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
-            header = extendIntoSafeAreaContainer {
+            header = container {
                 width = Dimension.FillAvailable
                 background = Background.Color(themed { palette.inset.alpha(0.5f) })
                 border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
-                padding = Padding(16f.dip)
+                padding = Padding(16f.dip).extendIntoSafeArea()
 
                 linearContainer {
                     anchor = Anchor.CenterLeft
@@ -412,12 +412,12 @@ class RoomScene(
                 }
             }
 
-            footer = extendIntoSafeAreaContainer {
+            footer = container {
                 width = Dimension.FillAvailable
                 background = Background.Color(themed { palette.inset.alpha(0.5f) })
                 border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
                 // Above the chat's bar, shown over the scene.
-                padding = Padding(16f.dip, 16f.dip, 16f.dip, (16f.dip.toPixels() + RoomChat.BAR_HEIGHT.toPixels()).px)
+                padding = Padding(16f.dip, 16f.dip, 16f.dip, (16f.dip.toPixels() + RoomChat.BAR_HEIGHT.toPixels()).px).extendIntoSafeArea()
 
                 linearContainer {
                     origin = Anchor.CenterLeft

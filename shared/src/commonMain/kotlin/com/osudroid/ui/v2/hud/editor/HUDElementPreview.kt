@@ -60,7 +60,7 @@ class HUDElementPreview(private val element: HUDElement, val hud: GameplayHUD): 
         val elementSize = element.measuredSize
 
         if (elementSize.x > 0f && elementSize.y > 0f) {
-            val inner = padding.toVec4()
+            val inner = layoutPadding
 
             element.scale = if (elementSize.x > elementSize.y) {
                 min(1f, (bounds.width - inner.x - inner.z) / elementSize.x)

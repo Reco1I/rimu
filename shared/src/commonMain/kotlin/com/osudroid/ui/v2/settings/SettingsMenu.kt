@@ -1,5 +1,7 @@
 package com.osudroid.ui.v2.settings
 
+import com.reco1l.verktex.data.extendIntoSafeArea
+import com.reco1l.verktex.data.coverParentPadding
 import com.osudroid.OsuGame
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.settings.SettingKey
@@ -49,8 +51,6 @@ import kotlin.math.log10
 import com.reco1l.verktex.ui.themed
 import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
-import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
-import com.reco1l.verktex.ui.container.ignoreParentPaddingContainer
 
 
 class SettingsMenu : Scene() {
@@ -80,7 +80,8 @@ class SettingsMenu : Scene() {
     init {
         background = Background.Color(themed { palette.surface })
 
-        ignoreParentPaddingContainer {
+        container {
+            padding = coverParentPadding().extendIntoSafeArea()
             width = fill()
             height = fill()
 
@@ -90,7 +91,8 @@ class SettingsMenu : Scene() {
                 orientation = Orientation.Horizontal
 
                 // Sections
-                sidebar = extendIntoSafeAreaContainer {
+                sidebar = container {
+                    padding = extendIntoSafeArea()
                     height = fill()
                     background = Background.Color(themed { palette.buttonBackgroundSurface })
 
@@ -148,7 +150,8 @@ class SettingsMenu : Scene() {
                     width = fill()
                     height = fill()
 
-                    extendIntoSafeAreaContainer {
+                    container {
+                        padding = extendIntoSafeArea()
                         width = fill()
 
                         sectionContainer = linearContainer {

@@ -1,5 +1,8 @@
 package com.osudroid.ui.v2.multi
 
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.data.extendIntoSafeArea
+import com.reco1l.verktex.data.fill
 import com.osudroid.OsuGame
 import com.reco1l.verktex.data.Background
 import com.osudroid.multiplayer.Multiplayer
@@ -102,11 +105,11 @@ class LobbyScene : Scene() {
 
 
             // Top bar
-            topBar = extendIntoSafeAreaContainer {
+            topBar = container {
                 width = fill()
                 background = Background.Color(themed { palette.inset.alpha(0.5f) })
                 border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
-                padding = Padding(16f.dip)
+                padding = Padding(16f.dip).extendIntoSafeArea()
 
                 linearContainer {
                     anchor = Anchor.CenterLeft
@@ -151,7 +154,8 @@ class LobbyScene : Scene() {
             }
 
             // Room list
-            roomList = extendIntoSafeAreaContainer {
+            roomList = container {
+                padding = extendIntoSafeArea()
                 width = fill()
                 height = fill()
 

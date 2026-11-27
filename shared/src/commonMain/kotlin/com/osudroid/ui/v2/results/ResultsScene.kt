@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.results
 
+import com.reco1l.verktex.data.extendIntoSafeArea
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.mods.ModCustomSpeed
 import com.osudroid.mods.ModDifficultyAdjust
@@ -46,7 +47,6 @@ import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.container.container
-import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
 import com.reco1l.verktex.ui.container.gridContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
@@ -162,11 +162,11 @@ class ResultsScene(
 
     //region Layout
 
-    private fun Container.topBar() = extendIntoSafeAreaContainer {
+    private fun Container.topBar() = container {
         width = fill()
         background = Background.Color(themed { palette.inset.alpha(0.5f) })
         border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
-        padding = Padding(12f.dip)
+        padding = Padding(12f.dip).extendIntoSafeArea()
 
         linearContainer {
             width = fill()

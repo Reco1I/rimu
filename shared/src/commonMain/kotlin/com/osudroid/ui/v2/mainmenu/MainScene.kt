@@ -533,7 +533,7 @@ class MainScene(playIntro: Boolean = false) : Scene() {
         // Its content is measured by itself, inside the container it would be limited to the
         // width being animated.
         val unbounded = LayoutConstraints(0f, Float.POSITIVE_INFINITY, 0f, Float.POSITIVE_INFINITY)
-        val menuContentWidth = menuContainer[0].measure(unbounded).x + menuContainer.paddingLeft.toPixels()
+        val menuContentWidth = menuContainer[0].measure(unbounded).x + menuContainer.measurePadding.x
 
         menuContainer.transformSequence(impact + 0.1f) {
             animate(menuWidthProperty, menuContentWidth, MENU_EXPAND_DURATION, Easing.OutQuint)

@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.reco1l.verktex.data.extendIntoSafeArea
 import com.osudroid.OsuGame
 import com.reco1l.verktex.data.Background
 import com.osudroid.BeatmapSelection
@@ -54,7 +55,6 @@ import com.reco1l.verktex.ui.control.TabSelector
 import com.reco1l.verktex.ui.container.CaptureContainer
 import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.container.container
-import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
 import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.container.scrollableContainer
 import com.reco1l.verktex.ui.text.faSolidIcon
@@ -70,7 +70,6 @@ import kotlin.math.roundToInt
 import kotlin.reflect.KClass
 import com.osudroid.utils.createModInstance
 import com.reco1l.verktex.data.Border
-import com.reco1l.verktex.ui.container.IgnoreParentPaddingContainer
 import com.reco1l.verktex.ui.container.captureContainer
 import com.reco1l.verktex.ui.themed
 import com.reco1l.verktex.localization.formatString
@@ -147,7 +146,8 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
         blurRadius = 8f.dip
 
         // The backdrop, over the blurred capture: the menu's own background is drawn under it.
-        extendIntoSafeAreaContainer {
+        container {
+            padding = extendIntoSafeArea()
             width = fill()
             height = fill()
             background = Background.Color(themed { palette.inset.alpha(0.75f) })
@@ -159,7 +159,8 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             orientation = Orientation.Vertical
 
             // TopBar
-            extendIntoSafeAreaContainer {
+            container {
+                padding = extendIntoSafeArea()
                 width = fill()
                 background = themed { Background.Color(palette.inset.alpha(0.5f)) }
                 border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
@@ -248,7 +249,8 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             }
 
             // Tabs: the mod sections or the customization
-            extendIntoSafeAreaContainer {
+            container {
+                padding = extendIntoSafeArea()
                 width = fill()
                 height = fill()
 
@@ -262,7 +264,8 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             }
 
             // Bottom bar
-            extendIntoSafeAreaContainer {
+            container {
+                padding = extendIntoSafeArea()
                 width = fill()
                 background = themed { Background.Color(palette.inset.alpha(0.5f)) }
                 border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)

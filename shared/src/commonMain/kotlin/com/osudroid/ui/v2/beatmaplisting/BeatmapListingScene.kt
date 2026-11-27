@@ -1,5 +1,8 @@
 package com.osudroid.ui.v2.beatmaplisting
 
+import com.reco1l.verktex.ui.container.container
+import com.reco1l.verktex.data.extendIntoSafeArea
+import com.reco1l.verktex.data.fill
 import com.osudroid.beatmaplisting.BeatmapDownloader
 import com.osudroid.beatmaplisting.BeatmapMirror
 import com.osudroid.beatmaplisting.BeatmapMirrorSearchRequestModel.OrderType
@@ -112,7 +115,8 @@ class BeatmapListingScene(private val source: BeatmapSearchSource = MirrorSearch
             topBar = topBar()
             filtersBar()
 
-            results = extendIntoSafeAreaContainer {
+            results = container {
+                padding = extendIntoSafeArea()
                 width = fill()
                 height = fill()
 
@@ -176,11 +180,11 @@ class BeatmapListingScene(private val source: BeatmapSearchSource = MirrorSearch
     }
 
 
-    private fun Container.topBar() = extendIntoSafeAreaContainer {
+    private fun Container.topBar() = container {
         width = fill()
         background = Background.Color(themed { palette.inset.alpha(0.5f) })
         border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
-        padding = Padding(16f.dip, 12f.dip)
+        padding = Padding(16f.dip, 12f.dip).extendIntoSafeArea()
 
         linearContainer {
             anchor = Anchor.CenterLeft
@@ -244,12 +248,12 @@ class BeatmapListingScene(private val source: BeatmapSearchSource = MirrorSearch
     }
 
     private fun Container.filtersBar() {
-        filtersBar = extendIntoSafeAreaContainer {
+        filtersBar = container {
             width = fill()
             isVisible = false
             background = Background.Color(themed { palette.surfaceHigh.alpha(0.6f) })
             border = Border(1f.dip, colorBottom = Color4.White.alpha(0.1f))
-            padding = Padding(16f.dip, 8f.dip)
+            padding = Padding(16f.dip, 8f.dip).extendIntoSafeArea()
 
             linearContainer {
                 spacing = 12f.dip

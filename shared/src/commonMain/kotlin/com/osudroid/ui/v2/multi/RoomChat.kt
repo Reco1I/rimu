@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.multi
 
+import com.reco1l.verktex.data.extendIntoSafeArea
 import com.osudroid.game.Gameplay
 import com.reco1l.verktex.data.Background
 import com.osudroid.OsuGame
@@ -17,8 +18,6 @@ import com.reco1l.verktex.ui.container.RecyclerContainer
 import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.input.KeyboardEvent
 import com.reco1l.verktex.data.Border
-import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
-import com.reco1l.verktex.ui.container.ExtendIntoSafeAreaContainer
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.ClipMode
@@ -85,7 +84,7 @@ class RoomChat : Container() {
     private val button = ChatButton()
 
     private var content: LinearContainer
-    private var dismissArea: ExtendIntoSafeAreaContainer
+    private var dismissArea: Container
     private lateinit var input: TextInput
     private lateinit var messageList: RecyclerContainer<ChatEntry, MessageRow>
 
@@ -101,7 +100,8 @@ class RoomChat : Container() {
 
         // Behind the panel while it's expanded, dimming the whole screen: a tap outside of the panel
         // collapses it. Hidden while collapsed, so what's below the chat gets the input.
-        dismissArea = extendIntoSafeAreaContainer {
+        dismissArea = container {
+            padding = extendIntoSafeArea()
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
             background = Background.Color(Color4.Black.alpha(0.2f))
@@ -124,7 +124,8 @@ class RoomChat : Container() {
             origin = Anchor.BottomCenter
             translationY = BODY_HEIGHT.dip
 
-            extendIntoSafeAreaContainer {
+            container {
+                padding = extendIntoSafeArea()
                 width = Dimension.FillAvailable
                 background = Background.Color(themed { palette.buttonBackgroundSurface })
                 border = Border(1f.dip, top = Color4.White.alpha(0.15f))
@@ -132,7 +133,8 @@ class RoomChat : Container() {
                 +button
             }
 
-            extendIntoSafeAreaContainer {
+            container {
+                padding = extendIntoSafeArea()
                 width = Dimension.FillAvailable
                 background = Background.Color(themed { palette.inset.alpha(0.8f) })
 

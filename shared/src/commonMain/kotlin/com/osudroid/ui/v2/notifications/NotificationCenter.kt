@@ -50,6 +50,8 @@ class NotificationCenter(private val trigger: Button) : Modal() {
     init {
         // Without the dimmed backdrop of modals.
         background = Background.Color(Color4.Transparent)
+        // Placed below its trigger, in the modal's space over the whole window.
+        isCardInSafeArea = false
 
         card.apply {
             anchor = Anchor.TopLeft
@@ -120,15 +122,15 @@ class NotificationCenter(private val trigger: Button) : Modal() {
     private fun placeBelowTrigger() {
         val (sceneX, sceneY) = trigger.toSceneSpace(trigger.bounds.width, trigger.bounds.height)
 
-        // The card is laid out inside this modal's padding, the safe area.
+        // The card is laid out over the whole modal, as the trigger is placed.
         val (x, y) = toLocalSpaceFromScene(sceneX, sceneY)
 
-        val cardY = y - paddingTop.toPixels() + 12f.dip.toPixels()
-        card.x = (x - paddingLeft.toPixels()).px
+        val cardY = y + 12f.dip.toPixels()
+        card.x = x.px
         card.y = cardY.px
 
         // The list scrolls within what's left of the window below it, the header and the margins.
-        val available = bounds.height - paddingTop.toPixels() - paddingBottom.toPixels() - cardY - 96f.dip.toPixels()
+        val available = bounds.height - safeArea.w - cardY - 96f.dip.toPixels()
         scroll.maxHeight = available.coerceAtLeast(96f.dip.toPixels()).px
     }
 

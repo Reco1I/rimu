@@ -41,6 +41,8 @@ class MusicPlayer(private val trigger: Button) : Modal() {
     init {
         // Without the dimmed backdrop of modals.
         background = Background.Color(Color4.Transparent)
+        // Placed below its trigger, in the modal's space over the whole window.
+        isCardInSafeArea = false
 
         card.apply {
             anchor = Anchor.TopLeft
@@ -155,11 +157,11 @@ class MusicPlayer(private val trigger: Button) : Modal() {
     private fun placeBelowTrigger() {
         val (sceneX, sceneY) = trigger.toSceneSpace(trigger.bounds.width, trigger.bounds.height)
 
-        // The card is laid out inside this modal's padding, the safe area.
+        // The card is laid out over the whole modal, as the trigger is placed.
         val (x, y) = toLocalSpaceFromScene(sceneX, sceneY)
 
-        card.x = (x - paddingLeft.toPixels()).px
-        card.y = (y - paddingTop.toPixels() + 12f.dip.toPixels()).px
+        card.x = x.px
+        card.y = (y + 12f.dip.toPixels()).px
     }
 
     override fun onUpdate(clock: FrameClock) {
