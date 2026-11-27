@@ -374,10 +374,11 @@ object OsuSceneUITests : UITestSuite("Scenes") {
     // Events the server would send to the room, sent straight to the room scene.
     private fun UITestStage.roomEvents() = linearContainer {
         orientation = LinearContainer.Orientation.Horizontal
-        // Next to the name of the room, where they cover the least of it.
-        anchor = Anchor.TopCenter
-        origin = Anchor.TopCenter
-        y = 4f.dip
+        // Below the top bar, at the right of the beatmap's section title, where they cover the least.
+        anchor = Anchor.TopRight
+        origin = Anchor.TopRight
+        x = (-16f).dip
+        y = 96f.dip
         spacing = 4f.dip
 
         var nextPlayerId = 100L

@@ -46,6 +46,12 @@ import com.osudroid.utils.mainThread
 import com.osudroid.utils.runSafe
 import com.osudroid.utils.updateThread
 import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.ui.StateTransitions
+import com.reco1l.verktex.ui.scaleTo
+import com.osudroid.ui.OsuColors
+import com.reco1l.verktex.ui.button
+import com.reco1l.verktex.ui.container.extendIntoSafeAreaContainer
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.ClipMode
@@ -183,7 +189,8 @@ class RoomScene(
     private lateinit var playersBadge: LabeledBadge
     private lateinit var modsIndicator: ModsIndicator
     private lateinit var playersContainer: LinearContainer
-    private lateinit var changeBeatmapButton: TextButton
+    private lateinit var beatmapCard: Button
+    private lateinit var changeBeatmapLabel: Text
     private lateinit var downloadBeatmapButton: TextButton
 
 
@@ -232,310 +239,321 @@ class RoomScene(
         RoomAPI.roomEventListener = this
         chat = RoomChat()
 
-        background = Background.Component(Container().apply {
+        // On the scene, so it also covers the safe area its padding keeps the content out of.
+        background = Background.Color(themed { palette.accent.shade(0.1f).alpha(0.9f) })
+
+        linearContainer {
+            orientation = LinearContainer.Orientation.Vertical
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
 
-            box {
+            header = extendIntoSafeAreaContainer {
                 width = Dimension.FillAvailable
-                height = Dimension.FillAvailable
-                color = Verktex.theme.palette.accent.shade(0.1f)
-                alpha = 0.9f
-            }
-        })
+                background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
+                border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
+                padding = Padding(16f.dip)
 
-        container {
-            width = Dimension.FillAvailable
-            height = Dimension.FillAvailable
-            padding = Padding(
-            left = 80f.px,
-            top = 8f.dip,
-            right = 80f.px,
-            bottom = (8f.dip.toPixels() + (Multiplayer.roomScene?.chat?.buttonHeight ?: 0f)).px
-            )
+                linearContainer {
+                    anchor = Anchor.CenterLeft
+                    origin = Anchor.CenterLeft
+                    orientation = LinearContainer.Orientation.Vertical
+                    spacing = 8f.dip
 
-            linearContainer {
-                orientation = LinearContainer.Orientation.Vertical
-                width = Dimension.FillAvailable
-                height = Dimension.FillAvailable
-
-                header = container {
-                    width = Dimension.FillAvailable
-                    padding = Padding(0f.dip, 10f.dip)
-
-                    linearContainer {
-                        orientation = LinearContainer.Orientation.Vertical
-                        spacing = 8f.dip
-
-                        nameText = text {
-                            text = room.name
-                            color = themed { palette.accent }
-                            fontSize = themed { typography.h3.size }
-                        }
-
-                        linearContainer {
-                            spacing = 8f.dip
-
-                            teamModeBadge = badge {
-                                density = Badge.Density.Small
-                            }
-
-                            winConditionBadge = badge {
-                                density = Badge.Density.Small
-                            }
-
-                            playersBadge = labeledBadge {
-                                density = Badge.Density.Small
-                                label = Res.string.multiplayer_room_players
-                                value = "0/${room.maxPlayers}"
-                            }
-
-                            freeModsBadge = badge {
-                                density = Badge.Density.Small
-                                variant = Badge.Variant.Solid
-                                text = Res.string.multiplayer_room_free_mods
-                                isVisible = false
-                            }
-
-                            +ModsIndicator().apply {
-                                modsIndicator = this
-                            }
-                        }
+                    nameText = text {
+                        text = room.name
+                        color = themed { palette.accent }
+                        fontSettings = themed { typography.h1 }
                     }
 
-                    textButton {
-                        leadingIcon = faSolidIcon(FAIcon.Gear)
-                        anchor = Anchor.CenterRight
-                        origin = Anchor.CenterRight
-                        onActionUp = {
-                            // Shown again when leaving the settings.
-                            chat.hide()
-                            Verktex.pushScene(SettingsMenu())
+                    linearContainer {
+                        spacing = 8f.dip
+
+                        teamModeBadge = badge {
+                            anchor = Anchor.CenterLeft
+                            origin = Anchor.CenterLeft
+                            density = Badge.Density.Small
                         }
-                        text = Res.string.multiplayer_room_settings
+
+                        winConditionBadge = badge {
+                            anchor = Anchor.CenterLeft
+                            origin = Anchor.CenterLeft
+                            density = Badge.Density.Small
+                        }
+
+                        playersBadge = labeledBadge {
+                            anchor = Anchor.CenterLeft
+                            origin = Anchor.CenterLeft
+                            density = Badge.Density.Small
+                            label = Res.string.multiplayer_room_players
+                            value = "0/${room.maxPlayers}"
+                        }
+
+                        freeModsBadge = badge {
+                            anchor = Anchor.CenterLeft
+                            origin = Anchor.CenterLeft
+                            density = Badge.Density.Small
+                            variant = Badge.Variant.Solid
+                            text = Res.string.multiplayer_room_free_mods
+                            isVisible = false
+                        }
+
+                        +ModsIndicator().apply {
+                            anchor = Anchor.CenterLeft
+                            origin = Anchor.CenterLeft
+                            // As tall as the badges.
+                            iconSize = MODS_INDICATOR_SIZE
+                            modsIndicator = this
+                        }
                     }
                 }
 
-                sections = linearContainer {
-                    width = Dimension.FillAvailable
-                    height = Dimension.FillAvailable
-                    padding = Padding(0f.dip, 8f.dip)
-                    spacing = 24f.dip
+                textButton {
+                    leadingIcon = faSolidIcon(FAIcon.Gear)
+                    anchor = Anchor.CenterRight
+                    origin = Anchor.CenterRight
+                    onActionUp = {
+                        // Shown again when leaving the settings.
+                        chat.hide()
+                        Verktex.pushScene(SettingsMenu())
+                    }
+                    text = Res.string.multiplayer_room_settings
+                }
+            }
 
-                    fun LinearContainer.Section(title: com.reco1l.verktex.localization.LocalizedString, block: LinearContainer.() -> Unit) {
+            sections = linearContainer {
+                width = Dimension.FillAvailable
+                height = Dimension.FillAvailable
+                padding = Padding(16f.dip)
+                spacing = 24f.dip
+
+                fun LinearContainer.Section(title: com.reco1l.verktex.localization.LocalizedString, block: LinearContainer.() -> Unit) {
+                    linearContainer {
+                        orientation = LinearContainer.Orientation.Vertical
+                        width = Dimension.FillAvailable
+                        height = Dimension.FillAvailable
+                        spacing = 8f.dip
+
+                        text {
+                            text = title.toString().uppercase()
+                            color = themed { palette.accent.shade(0.7f) }
+                            fontSettings = themed { typography.smallBody }
+                        }
+
+                        block()
+                    }
+                }
+
+                Section(Res.string.multiplayer_room_players) {
+
+                    scrollableContainer {
+                        width = Dimension.FillAvailable
+                        height = Dimension.FillAvailable
+                        scrollAxes = Axis.Y
+                        clipping = ClipMode.Bounds
+
                         linearContainer {
                             orientation = LinearContainer.Orientation.Vertical
                             width = Dimension.FillAvailable
-                            height = Dimension.FillAvailable
+                            // Room for the glow of the cards, which the clipping would cut.
+                            padding = Padding(RoomPlayerCard.GLOW_RADIUS)
                             spacing = 8f.dip
-
-                            text {
-                                text = title.toString().uppercase()
-                                color = themed { palette.accent.shade(0.7f) }
-                            }
-
-                            block()
+                            playersContainer = this
                         }
-                    }
-
-                    Section(Res.string.multiplayer_room_players) {
-
-                        scrollableContainer {
-                            width = Dimension.FillAvailable
-                            height = Dimension.FillAvailable
-                            scrollAxes = Axis.Y
-                            clipping = ClipMode.Bounds
-
-                            linearContainer {
-                                orientation = LinearContainer.Orientation.Vertical
-                                width = Dimension.FillAvailable
-                                padding = Padding(1f.px)
-                                spacing = 4f.dip
-                                playersContainer = this
-                            }
-                        }
-                    }
-
-                    Section(Res.string.multiplayer_room_beatmap) {
-
-                        +BeatmapInfoLayout { mods }.apply {
-                            padding = Padding(12f.dip)
-                            radius = themed { CornerRadius(radius.md) }
-                            background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.5f) })
-                            isVisible = false
-
-                            beatmapInfoLayout = this
-                        }
-
-                        beatmapInfoAlert = text {
-                            width = Dimension.FillAvailable
-                            alignment = Anchor.Center
-                            padding = Padding(12f.dip)
-                            radius = themed { CornerRadius(radius.md) }
-                            background = Background.Color(themed { (palette.accent.shade(0.1f)).alpha(0.5f) })
-                        }
-
-                        linearContainer {
-                            width = Dimension.FillAvailable
-                            spacing = 8f.dip
-
-                            changeBeatmapButton = textButton {
-                                leadingIcon = faSolidIcon(FAIcon.ArrowRightArrowLeft)
-                                alignment = Anchor.CenterLeft
-                                text = Res.string.multiplayer_room_change_beatmap
-                                onActionUp = {
-                                    if (Multiplayer.isRoomHost) {
-                                        SongSelect().apply {
-                                            loadBeatmaps()
-                                            show()
-                                        }
-
-                                        // Above song select, which loads the sets imported from it once it's left.
-                                        if (LibraryManager.getLibrary().isEmpty()) {
-                                            OsuGame.music.pause()
-                                            BeatmapListing.show()
-                                        }
-
-                                        // We notify all clients that the host is changing beatmap
-                                        RoomAPI.changeBeatmap()
-                                    }
-                                }
-                            }
-
-                            downloadBeatmapButton = textButton {
-                                leadingIcon = faSolidIcon(FAIcon.Download)
-                                alignment = Anchor.CenterLeft
-                                isVisible = false
-                            }
-                        }
-
                     }
                 }
 
-                footer = container {
-                    width = Dimension.FillAvailable
-                    padding = Padding(0f.dip, 8f.dip)
+                Section(Res.string.multiplayer_room_beatmap) {
 
-                    linearContainer {
-                        origin = Anchor.BottomLeft
-                        anchor = Anchor.BottomLeft
-                        spacing = 8f.dip
+                    // The card itself changes the beatmap, for the host.
+                    beatmapCard = button {
+                        width = Dimension.FillAvailable
+                        height = Dimension.WrapContent
+                        padding = Padding(12f.dip)
+                        radius = themed { CornerRadius(radius.xl) }
+                        background = Background.Color(themed { palette.accent.shade(0.1f).alpha(0.5f) })
+                        // Not faded for the players who can't change it, only pressed by the host.
+                        transitions = BEATMAP_CARD_TRANSITIONS
+                        onActionUp = { changeBeatmap() }
 
-                        textButton {
-                            leadingIcon = faSolidIcon(FAIcon.ArrowRightFromBracket)
-                            text = Res.string.multiplayer_room_leave
-                            color = Color4(0xFFFFBFBF)
-                            background = Background.Color(Color4(0xFF342121))
-                            onActionUp = { leaveDialog.show() }
-                        }
+                        linearContainer {
+                            orientation = LinearContainer.Orientation.Vertical
+                            width = Dimension.FillAvailable
+                            spacing = 8f.dip
 
-                        modsButton = textButton {
-                            leadingIcon = faSolidIcon(FAIcon.Sliders)
-                            text = Res.string.multiplayer_room_mods
-                            onActionUp = { showModMenu() }
+                            +BeatmapInfoLayout { mods }.apply {
+                                isVisible = false
+                                beatmapInfoLayout = this
+                            }
+
+                            beatmapInfoAlert = text {
+                                width = Dimension.FillAvailable
+                                alignment = Anchor.Center
+                                padding = Padding(12f.dip)
+                                color = themed { palette.accent }
+                            }
+
+                            changeBeatmapLabel = text {
+                                anchor = Anchor.TopRight
+                                origin = Anchor.TopRight
+                                leadingIcon = faSolidIcon(FAIcon.ArrowRightArrowLeft)
+                                iconSpacing = 6f.dip
+                                text = Res.string.multiplayer_room_click_to_change_beatmap
+                                fontSettings = themed { typography.smallCaption }
+                                color = themed { palette.accent.alpha(0.7f) }
+                            }
                         }
                     }
 
-                    linearContainer {
-                        orientation = LinearContainer.Orientation.Vertical
-                        origin = Anchor.CenterRight
-                        anchor = Anchor.CenterRight
-                        width = 160f.dip
-                        spacing = 8f.dip
-
-                        textButton {
-                            width = Dimension.FillAvailable
-                            variant = Button.Variant.Solid
-                            text = Res.string.multiplayer_room_start_game
-                            onActionUp = callback@{
-
-                                if (isWaitingForStatusChange.load() || !Multiplayer.isRoomHost || Multiplayer.player?.status != PlayerStatus.Ready) {
-                                    return@callback
-                                }
-
-                                if (room.beatmap == null) {
-                                    Toasts.showLong(Res.string.multiplayer_room_must_select_beatmap)
-                                    return@callback
-                                }
-
-                                if (!BuildSettings.MOCK_MULTIPLAYER) {
-                                    if (room.teamMode == TeamMode.TeamVS) {
-                                        val teams = room.teamMap
-
-                                        if (teams.values.any { it.isEmpty() }) {
-                                            Toasts.showLong(Res.string.multiplayer_room_at_least_one_player_per_team)
-                                            return@callback
-                                        }
-                                    }
-
-                                    val players = room.activePlayers.filter { it.status != PlayerStatus.MissingBeatmap }
-
-                                    if (players.size <= 1) {
-                                        Toasts.showLong(Res.string.multiplayer_room_at_least_two_players_beatmap)
-                                        return@callback
-                                    }
-                                }
-
-                                SkinSounds["menuhit"].play()
-                                RoomAPI.notifyMatchPlay()
-                            }
-                            startButton = this
-                        }
-
-                        textButton {
-                            width = Dimension.FillAvailable
-                            text = Res.string.multiplayer_room_not_ready
-                            onActionUp = callback@{
-
-                                // Atomic guard: only the first tap wins even if two ACTION_UP events
-                        // are delivered before the server reply clears the flag.
-                        if (!isWaitingForStatusChange.compareAndSet(false, true)) {
-                                    return@callback
-                                }
-
-                        SkinSounds["menuclick"].play()
-
-                                // Guard: if back() nulled player between the isWaitingForStatusChange check
-                        // and here, reset the flag and exit instead of crashing.
-                        val player = Multiplayer.player ?: run {
-                            isWaitingForStatusChange.store(false)
-                            return@callback
-                        }
-
-                        when (player.status) {
-
-                            PlayerStatus.NotReady -> {
-                                if (room.beatmap == null) {
-                                    Toasts.showLong(Res.string.multiplayer_room_cannot_ready_changing_beatmap)
-                                    isWaitingForStatusChange.store(false)
-                                    return@callback
-                                }
-
-                                if (room.teamMode == TeamMode.TeamVS && player.team == null) {
-                                    Toasts.showLong(Res.string.multiplayer_room_cannot_ready_no_team)
-                                    isWaitingForStatusChange.store(false)
-                                    return@callback
-                                }
-
-                                        RoomAPI.setPlayerStatus(PlayerStatus.Ready)
-                                    }
-
-                                    PlayerStatus.Ready -> invalidateStatus()
-
-                                    PlayerStatus.MissingBeatmap -> {
-                                        Toasts.showLong(Res.string.multiplayer_room_cannot_ready_missing_beatmap)
-                                        isWaitingForStatusChange.store(false)
-                                    }
-
-                                    else -> isWaitingForStatusChange.store(false) /*This case can never happen, the PLAYING status is set when a game starts*/
-                                }
-                            }
-                            statusButton = this
-                        }
+                    downloadBeatmapButton = textButton {
+                        leadingIcon = faSolidIcon(FAIcon.Download)
+                        alignment = Anchor.CenterLeft
+                        isVisible = false
                     }
                 }
             }
 
+            footer = extendIntoSafeAreaContainer {
+                width = Dimension.FillAvailable
+                background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
+                border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
+                // Above the chat's bar, shown over the scene.
+                padding = Padding(16f.dip, 16f.dip, 16f.dip, (16f.dip.toPixels() + RoomChat.BAR_HEIGHT.toPixels()).px)
+
+                linearContainer {
+                    origin = Anchor.CenterLeft
+                    anchor = Anchor.CenterLeft
+                    spacing = 8f.dip
+
+                    textButton {
+                        leadingIcon = faSolidIcon(FAIcon.ArrowRightFromBracket)
+                        text = Res.string.multiplayer_room_leave
+                        color = OsuColors.redLight
+                        onActionUp = { leaveDialog.show() }
+                    }
+
+                    modsButton = textButton {
+                        leadingIcon = faSolidIcon(FAIcon.Sliders)
+                        text = Res.string.multiplayer_room_mods
+                        onActionUp = { showModMenu() }
+                    }
+                }
+
+                linearContainer {
+                    origin = Anchor.CenterRight
+                    anchor = Anchor.CenterRight
+                    spacing = 8f.dip
+
+                    textButton {
+                        text = Res.string.multiplayer_room_not_ready
+                        onActionUp = { toggleStatus() }
+                        statusButton = this
+                    }
+
+                    textButton {
+                        variant = Button.Variant.Solid
+                        text = Res.string.multiplayer_room_start_game
+                        onActionUp = { startMatch() }
+                        startButton = this
+                    }
+                }
+            }
+        }
+    }
+
+    private fun changeBeatmap() {
+        if (!Multiplayer.isRoomHost) {
+            return
+        }
+
+        SongSelect().apply {
+            loadBeatmaps()
+            show()
+        }
+
+        // Above song select, which loads the sets imported from it once it's left.
+        if (LibraryManager.getLibrary().isEmpty()) {
+            OsuGame.music.pause()
+            BeatmapListing.show()
+        }
+
+        // We notify all clients that the host is changing beatmap
+        RoomAPI.changeBeatmap()
+    }
+
+    private fun startMatch() {
+        if (isWaitingForStatusChange.load() || !Multiplayer.isRoomHost || Multiplayer.player?.status != PlayerStatus.Ready) {
+            return
+        }
+
+        if (room.beatmap == null) {
+            Toasts.showLong(Res.string.multiplayer_room_must_select_beatmap)
+            return
+        }
+
+        if (!BuildSettings.MOCK_MULTIPLAYER) {
+            if (room.teamMode == TeamMode.TeamVS) {
+                val teams = room.teamMap
+
+                if (teams.values.any { it.isEmpty() }) {
+                    Toasts.showLong(Res.string.multiplayer_room_at_least_one_player_per_team)
+                    return
+                }
+            }
+
+            val players = room.activePlayers.filter { it.status != PlayerStatus.MissingBeatmap }
+
+            if (players.size <= 1) {
+                Toasts.showLong(Res.string.multiplayer_room_at_least_two_players_beatmap)
+                return
+            }
+        }
+
+        SkinSounds["menuhit"].play()
+        RoomAPI.notifyMatchPlay()
+    }
+
+    private fun toggleStatus() {
+        // Atomic guard: only the first tap wins even if two ACTION_UP events are delivered before
+        // the server reply clears the flag.
+        if (!isWaitingForStatusChange.compareAndSet(false, true)) {
+            return
+        }
+
+        SkinSounds["menuclick"].play()
+
+        // Guard: if back() nulled player between the isWaitingForStatusChange check and here,
+        // reset the flag and exit instead of crashing.
+        val player = Multiplayer.player ?: run {
+            isWaitingForStatusChange.store(false)
+            return
+        }
+
+        when (player.status) {
+
+            PlayerStatus.NotReady -> {
+                if (room.beatmap == null) {
+                    Toasts.showLong(Res.string.multiplayer_room_cannot_ready_changing_beatmap)
+                    isWaitingForStatusChange.store(false)
+                    return
+                }
+
+                if (room.teamMode == TeamMode.TeamVS && player.team == null) {
+                    Toasts.showLong(Res.string.multiplayer_room_cannot_ready_no_team)
+                    isWaitingForStatusChange.store(false)
+                    return
+                }
+
+                RoomAPI.setPlayerStatus(PlayerStatus.Ready)
+            }
+
+            PlayerStatus.Ready -> invalidateStatus()
+
+            PlayerStatus.MissingBeatmap -> {
+                Toasts.showLong(Res.string.multiplayer_room_cannot_ready_missing_beatmap)
+                isWaitingForStatusChange.store(false)
+            }
+
+            else -> isWaitingForStatusChange.store(false) /*This case can never happen, the PLAYING status is set when a game starts*/
         }
     }
 
@@ -632,10 +650,8 @@ class RoomScene(
 
         modsButton.isEnabled = Multiplayer.isRoomHost || room.gameplaySettings.isFreeMod
 
-        changeBeatmapButton.apply {
-            isEnabled = Multiplayer.isRoomHost
-            isVisible = Multiplayer.isRoomHost
-        }
+        beatmapCard.isEnabled = Multiplayer.isRoomHost
+        changeBeatmapLabel.isVisible = Multiplayer.isRoomHost
     }
 
 
@@ -790,7 +806,11 @@ class RoomScene(
     }
 
     private fun showModMenu() {
-        val menu = modMenu ?: ModMenu(mods).apply { onBack = { closeModMenu() } }
+        val menu = modMenu ?: ModMenu(mods).apply {
+            onBack = { closeModMenu() }
+            // Above the chat's bar, shown over it.
+            bottomInset = RoomChat.BAR_HEIGHT
+        }
 
         modMenu = menu
         menu.show()
@@ -1345,4 +1365,16 @@ class RoomScene(
         updateThread { updateInformation() }
     }
 
+
+    private companion object {
+
+        // The height of a small badge: its text's line and its vertical padding.
+        val MODS_INDICATOR_SIZE = 20f.dip
+
+        val BEATMAP_CARD_TRANSITIONS = StateTransitions().apply {
+            idle { scaleTo(1f, 0.2f, Easing.OutQuint) }
+            pressed { scaleTo(0.98f, 0.2f, Easing.OutQuint) }
+            disabled { scaleTo(1f, 0.2f, Easing.OutQuint) }
+        }
+    }
 }

@@ -198,7 +198,6 @@ class SongSelect : Scene() {
                 height = wrap()
                 minWidth = 92f.dip
                 padding = themed { Padding(gap.sm) }
-                tintChildren = false
                 radius = themed {
                     buttonStyle[density].radius.let { r -> CornerRadius(r, r, 0f.px, 0f.px) }
                 }

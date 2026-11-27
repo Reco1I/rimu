@@ -31,6 +31,8 @@ import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.ClipMode
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.ui.container.Container
+import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.data.fill
@@ -90,6 +92,16 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
     var onDifficultyCalculated: (beatmapInfo: BeatmapInfo, starRating: Double) -> Unit = { _, _ -> }
 
     /**
+     * Extra space below the content of the bottom bar, for what's shown over the menu at the
+     * bottom of the screen, e.g. the bar of a multiplayer room's chat.
+     */
+    var bottomInset: Dimension.Fixed = 0f.dip
+        set(value) {
+            field = value
+            bottomBarContent.padding = bottomBarPadding()
+        }
+
+    /**
      * The toggles of every mod the user can select.
      */
     val modToggles
@@ -104,6 +116,7 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
     @Volatile
     private var hasSettingsChanged = false
 
+    private lateinit var bottomBarContent: Container
     private lateinit var tabs: TabSelector
     private lateinit var customizeTab: TextButton
     private lateinit var sectionsView: ModSectionsView
@@ -250,10 +263,10 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
                 background = Background.Color(themed { palette.accent.shade(0.5f).alpha(0.1f) })
                 border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
 
-                container {
+                bottomBarContent = container {
                     width = fill()
                     height = wrap()
-                    padding = Padding(16f.dip)
+                    padding = bottomBarPadding()
 
                     linearContainer {
                         orientation = Orientation.Horizontal
@@ -420,6 +433,9 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
     /**
      * Shows this menu over the current scene.
      */
+    private fun bottomBarPadding() =
+        Padding(16f.dip, 16f.dip, 16f.dip, (16f.dip.toPixels() + bottomInset.toPixels()).px)
+
     fun show() {
         // An overlay because the scene it was opened from stays visible behind it.
         if (!isShown) {

@@ -44,7 +44,6 @@ class ModMenuToggle(var mod: Mod, private val selectedMods: ModHashMap) : Button
         width = fill()
         height = wrap()
         padding = Padding(14f.dip)
-        tintChildren = false
 
         linearContainer {
             width = fill()

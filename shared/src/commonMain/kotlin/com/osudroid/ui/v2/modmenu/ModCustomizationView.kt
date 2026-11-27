@@ -217,13 +217,15 @@ class ModCustomizationView(
      */
     private inner class ModEntry(val mod: Mod) : Button() {
 
+        // Highlighted neutral rather than in the accent, as its selection.
+        override val highlightColor
+            get() = Color4.White
+
         init {
             width = fill()
             variant = Variant.Ghost
 
-            // Neutral rather than the accent the buttons are tinted by, which would tint the mod's icon too, and a
-            // selection marked by a light background rather than a selected button's accent one.
-            color = Color4.White
+            // A selection marked by a light background rather than a selected button's accent one.
             background = themed {
                 Background.Color(if (selectedMod === mod) Color4.White.alpha(0.12f) else Color4.Transparent)
             }

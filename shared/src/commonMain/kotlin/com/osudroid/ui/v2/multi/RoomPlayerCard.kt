@@ -1,7 +1,7 @@
 package com.osudroid.ui.v2.multi
 
 import com.reco1l.verktex.texture.reference
-import com.osudroid.ui.v2.skinTexture
+import com.reco1l.verktex.texture.TextureReference
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
@@ -26,6 +26,7 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
 import com.reco1l.verktex.data.Padding
+import com.reco1l.verktex.data.Shadow
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
 import com.reco1l.verktex.data.pct
@@ -126,81 +127,91 @@ class RoomPlayerCard : LinearContainer() {
         private lateinit var innerContainer: LinearContainer
         private var modDisplay: Component? = null
 
-        private val avatarSprite: Sprite
+        private val avatarSprite = Sprite().apply {
+            width = fill()
+            height = fill()
+            radius = themed { CornerRadius(radius.lg) }
+            scaleType = ScaleType.Crop
+            isVisible = false
+        }
 
         var avatarJob: Job? = null
             private set
 
         private var lastPlayerId = -1L
-        private val defaultAvatar = skinTexture("emptyavatar")
 
-        private val hostIcon = Icon(FAIcon.Crown).apply {
-            width = 24f.px
-            height = 24f.px
+        private val hostIcon = statusIcon(FAIcon.Crown).apply {
             color = themed { palette.accent }
         }
 
-        private val mutedIcon = Icon(FAIcon.MicrophoneSlash).apply {
-            width = 24f.px
-            height = 24f.px
+        private val mutedIcon = statusIcon(FAIcon.MicrophoneSlash).apply {
             color = OsuColors.redLight
         }
 
-        private val missingBeatmapIcon = Sprite().apply {
-            width = 24f.px
-            height = 24f.px
-            texture = skinTexture("missing")
+        private val missingBeatmapIcon = statusIcon(FAIcon.FileCircleXmark).apply {
+            color = OsuColors.redLight
         }
 
         init {
             width = fill()
-
             height = Dimension.WrapContent
-            color = themed { palette.accent }
-            alpha = if (isEnabled) 1f else 0.5f
-            borderWidth = 2f.px
-            padding = Padding(8f.dip)
+            padding = Padding(10f.dip)
+            radius = themed { CornerRadius(radius.xl) }
             background = Background.Color(themed { palette.accent.shade(0.1f) })
+            borderWidth = 2f.px
 
-            avatarSprite = Sprite().apply {
-                anchor = Anchor.CenterLeft
-                origin = Anchor.CenterLeft
-                width = 50f.px
-                height = 50f.px
-                radius = CornerRadius(8f.px)
-                scaleType = ScaleType.Crop
-                texture = defaultAvatar
+            // A background label, behind the rest.
+            rankText = text {
+                anchor = Anchor.BottomRight
+                origin = Anchor.BottomRight
+                fontSettings = themed { typography.h1 }
+                fontSize = 36f.dip
+                color = themed { palette.accent }
+                alpha = 0.2f
             }
-            +avatarSprite
 
             container {
-                width = fill()
+                anchor = Anchor.CenterLeft
+                origin = Anchor.CenterLeft
+                width = AVATAR_SIZE
+                height = AVATAR_SIZE
+                radius = themed { CornerRadius(radius.lg) }
+                background = Background.Color(themed { palette.accent.shade(0.2f) })
 
-                innerContainer = linearContainer {
-                    x = 58f.px
-                    anchor = Anchor.CenterLeft
-                    origin = Anchor.CenterLeft
-                    orientation = LinearContainer.Orientation.Vertical
+                // Shown until the avatar loads, and for the players without one.
+                +Icon(FAIcon.User).apply {
+                    anchor = Anchor.Center
+                    origin = Anchor.Center
+                    iconSize = 24f.dip
+                    color = themed { palette.accent.shade(0.6f) }
+                }
 
-                    linearContainer {
-                        orientation = LinearContainer.Orientation.Horizontal
-                        spacing = 8f.dip
+                +avatarSprite
+            }
 
-                        nameText = text {
-                            color = themed { palette.accent }
-                        }
+            innerContainer = linearContainer {
+                x = (AVATAR_SIZE.toPixels() + 12f.dip.toPixels()).px
+                anchor = Anchor.CenterLeft
+                origin = Anchor.CenterLeft
+                orientation = LinearContainer.Orientation.Vertical
+                spacing = 2f.dip
 
-                        iconContainer = linearContainer {
-                            orientation = LinearContainer.Orientation.Horizontal
-                            spacing = 6f.px
-                        }
+                linearContainer {
+                    orientation = LinearContainer.Orientation.Horizontal
+                    spacing = 8f.dip
+
+                    nameText = text {
+                        anchor = Anchor.CenterLeft
+                        origin = Anchor.CenterLeft
+                        color = themed { palette.accent }
+                        fontSettings = themed { typography.h3 }
                     }
 
-                    rankText = text {
-                        anchor = Anchor.CenterRight
-                        origin = Anchor.CenterRight
-                        color = themed { palette.accent.shade(0.8f) }
-                        fontSize = themed { typography.smallBody.size }
+                    iconContainer = linearContainer {
+                        anchor = Anchor.CenterLeft
+                        origin = Anchor.CenterLeft
+                        orientation = LinearContainer.Orientation.Horizontal
+                        spacing = 6f.dip
                     }
                 }
             }
@@ -213,11 +224,13 @@ class RoomPlayerCard : LinearContainer() {
         }
 
         fun updateState(room: Room, player: RoomPlayer) {
-            borderColor = when (player.status) {
-                Playing -> Verktex.theme.palette.accent
-                Ready -> Color4(0xFFBBF7D0)
-                NotReady, MissingBeatmap -> Color4(0xFFFECACA)
+            val statusColor = when (player.status) {
+                Playing -> resolvedTheme.palette.accent
+                Ready -> READY_COLOR
+                NotReady, MissingBeatmap -> NOT_READY_COLOR
             }
+            borderColor = statusColor
+            shadow = Shadow(statusColor.alpha(0.4f), blur = GLOW_RADIUS)
 
             if (lastPlayerId != player.id) {
                 loadAvatar(player.id)
@@ -332,9 +345,9 @@ class RoomPlayerCard : LinearContainer() {
             val loadedTexture = CachedTextures.store[CachedTextures.keyOf(avatarUrl)]
 
             if (loadedTexture != null) {
-                avatarSprite.texture = loadedTexture.reference
+                showAvatar(loadedTexture.reference)
             } else {
-                avatarSprite.texture = defaultAvatar
+                showAvatar(null)
 
                 avatarJob = async {
                     ensureActive()
@@ -344,18 +357,30 @@ class RoomPlayerCard : LinearContainer() {
 
                         updateThread {
                             if (lastPlayerId == userId) {
-                                avatarSprite.texture = CachedTextures[avatarUrl]?.reference ?: defaultAvatar
+                                showAvatar(CachedTextures[avatarUrl]?.reference)
                             }
                         }
                     } else {
                         updateThread {
                             if (lastPlayerId == userId) {
-                                avatarSprite.texture = defaultAvatar
+                                showAvatar(null)
                             }
                         }
                     }
                 }
             }
+        }
+
+        // The placeholder behind it shows while it's hidden.
+        private fun showAvatar(texture: TextureReference?) {
+            avatarSprite.texture = texture
+            avatarSprite.isVisible = texture != null
+        }
+
+        private fun statusIcon(code: Int) = Icon(code).apply {
+            anchor = Anchor.CenterLeft
+            origin = Anchor.CenterLeft
+            iconSize = themed { typography.h3.size }
         }
 
         private fun updatePlayerIcons(room: Room, player: RoomPlayer) {
@@ -375,5 +400,18 @@ class RoomPlayerCard : LinearContainer() {
                 }
             }
         }
+    }
+
+    companion object {
+
+        /**
+         * How far the glow of a card reaches past it.
+         */
+        val GLOW_RADIUS = 8f.dip
+
+        private val AVATAR_SIZE = 50f.dip
+
+        private val READY_COLOR = Color4(0xFF86EFAC)
+        private val NOT_READY_COLOR = Color4(0xFFFCA5A5)
     }
 }

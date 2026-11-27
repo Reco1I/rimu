@@ -165,4 +165,5 @@
     <string name="notification_difficulty_title">Calculating beatmap difficulties</string>
     <string name="notification_difficulty_text">During this process, the game may suffer performance degradation.</string>
     <string name="notification_difficulty_progress">%d%% of the beatmaps calculated.</string>
+    <string name="multiplayer_room_click_to_change_beatmap">Click to change beatmap</string>
 </resources>

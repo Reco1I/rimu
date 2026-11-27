@@ -31,7 +31,6 @@ class RoomButton(val lobbyScene: LobbyScene, val room: Room) : Button() {
         height = wrap()
         background = Background.Color(themed { palette.accent.shade(0.2f).alpha(0.4f) })
         padding = Padding(12f.dip)
-        tintChildren = false
 
         linearContainer {
             orientation = LinearContainer.Orientation.Vertical

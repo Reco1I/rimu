@@ -111,7 +111,6 @@ class ModMenuPresetsSection(val menu: ModMenu) : ModMenuSection("Presets") {
             width = fill()
             height = wrap()
             padding = Padding(12f.dip)
-            tintChildren = false
 
             onActionUp = {
                 if (isSelected) {

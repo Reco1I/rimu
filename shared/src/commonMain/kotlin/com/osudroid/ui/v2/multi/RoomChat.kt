@@ -57,10 +57,10 @@ private val DEVELOPERS = longArrayOf(
 class RoomChat : LinearContainer() {
 
     /**
-     * Height of the chat button.
+     * Height of the chat button, in pixels, see [BAR_HEIGHT].
      */
     val buttonHeight
-        get() = button.bounds.height
+        get() = BAR_HEIGHT.toPixels()
 
     /**
      * Whether the chat is currently expanded.
@@ -289,7 +289,7 @@ class RoomChat : LinearContainer() {
 
         init {
             width = Dimension.FillAvailable
-            height = 45.6f.dip
+            height = BAR_HEIGHT
             background = Background.Color(themed { (palette.accent.shade(0.15f)).alpha(0.5f) })
             padding = Verktex.graphics.window.insets.safeArea.toPadding().copy(top = 0f.dip, bottom = 0f.dip)
 
@@ -429,6 +429,13 @@ class RoomChat : LinearContainer() {
 
 
     companion object {
+
+        /**
+         * The height of the chat's bar, which stays at the bottom of the screen while collapsed:
+         * what's shown along with the chat is padded by it so it isn't covered.
+         */
+        val BAR_HEIGHT = 45.6f.dip
+
         private const val MAX_MESSAGES = 50
         private const val BODY_HEIGHT = 288f
     }
