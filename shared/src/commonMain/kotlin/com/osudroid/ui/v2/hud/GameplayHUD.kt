@@ -3,10 +3,7 @@ package com.osudroid.ui.v2.hud
 import com.osudroid.OsuGame
 import com.osudroid.scoring.Statistic
 import com.osudroid.ui.v2.SkinFolders
-import com.osudroid.utils.LenientJson
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
 
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.input.InputEvent
@@ -29,8 +26,9 @@ import com.osudroid.beatmaps.constants.HitObjectType
 import com.osudroid.beatmaps.hitobjects.HitObject
 import com.reco1l.verktex.ui.toast.Toasts
 import ru.nsu.ccfit.zuev.osu.scoring.*
-import ru.nsu.ccfit.zuev.skins.OsuSkin
-import ru.nsu.ccfit.zuev.skins.SkinJsonReader
+import com.osudroid.ui.skinning.OsuSkin
+import com.osudroid.ui.skinning.SkinConfigurationLoader
+import com.osudroid.ui.skinning.SkinJson
 import kotlin.reflect.*
 import com.reco1l.verktex.Platform
 import okio.Path.Companion.toPath
@@ -158,7 +156,7 @@ class GameplayHUD(
                 text = string.hudEditor_modal_discard
                 onActionUp = {
                     hide()
-                    setSkinData(OsuSkin.get().hudSkinData)
+                    setSkinData(OsuSkin.current.hud)
                     Toasts.showLong(string.hudEditor_discarded)
                 }
             }
@@ -181,28 +179,20 @@ class GameplayHUD(
     //region Skinning
 
     /**
-     * Saves the current HUD layout to the skin JSON file.
+     * Saves the current HUD layout to the skin's skin.json, created when it has none. The rest of the
+     * file is kept as it is, what rimu! doesn't read included.
      */
     fun saveToSkinJSON() {
 
         val data = getSkinData()
 
-        val fileSystem = Platform.fileSystem
-        val jsonFile = SkinFolders.path.toPath() / "skin.json"
-        var json: JsonObject
+        val jsonFile = SkinFolders.path.toPath() / SkinConfigurationLoader.JSON_FILE
+        val json = SkinConfigurationLoader.readJson(jsonFile) ?: JsonObject(emptyMap())
+        val saved = JsonObject(json + ("HUD" to SkinJson.encodeToJsonElement(HUDSkinData.serializer(), data)))
 
-        if (fileSystem.exists(jsonFile)) {
-            json = LenientJson.parseToJsonElement(fileSystem.read(jsonFile) { readUtf8() }).jsonObject
-        } else {
-            // We use the current skin data as a base to avoid losing any other skin data.
-            json = SkinJsonReader.getReader().currentData
-        }
+        Platform.fileSystem.write(jsonFile) { writeUtf8(SkinJson.encodeToString(JsonObject.serializer(), saved)) }
 
-        json = JsonObject(json + ("HUD" to HUDSkinData.writeToJSON(data)))
-        fileSystem.write(jsonFile) { writeUtf8(prettyJson.encodeToString(JsonObject.serializer(), json)) }
-
-        SkinJsonReader.getReader().currentData = json
-        OsuSkin.get().hudSkinData = data
+        OsuSkin.current = OsuSkin.current.copy(hud = data)
     }
 
     /**
@@ -388,13 +378,4 @@ class GameplayHUD(
          */
         const val REFERENCE_HEIGHT = 720f
     }
-}
-
-/**
- * Writes skin JSON indented by four spaces, as it always was.
- */
-@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
-private val prettyJson = Json {
-    prettyPrint = true
-    prettyPrintIndent = "    "
 }

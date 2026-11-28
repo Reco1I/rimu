@@ -23,7 +23,6 @@ import com.reco1l.verktex.ui.choreography
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.container.Container
 import ru.nsu.ccfit.zuev.osu.*
-import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.math.*
 import kotlin.jvm.JvmStatic
 

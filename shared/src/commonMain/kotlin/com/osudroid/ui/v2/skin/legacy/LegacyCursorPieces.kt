@@ -17,7 +17,7 @@ import com.reco1l.verktex.ui.AnimatedSprite
 import com.reco1l.verktex.ui.Sprite
 import kotlin.math.max
 import kotlin.math.min
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 
 /**
  * The follow point of a texture skin, `followpoint`, animated or not depending on the skin, which may change while
@@ -28,7 +28,7 @@ import ru.nsu.ccfit.zuev.skins.OsuSkin
  */
 class LegacyFollowPointPiece : FollowPointPiece() {
 
-    private val sprite = object : AnimatedSprite(skinFrames("followpoint", orStatic = true), OsuSkin.get().animationFramerate) {
+    private val sprite = object : AnimatedSprite(skinFrames("followpoint", orStatic = true), OsuSkin.current.utils.animationFramerate) {
 
         init {
             anchor = Anchor.Center
@@ -70,7 +70,7 @@ class LegacyFollowPointPiece : FollowPointPiece() {
  */
 class LegacyCursorPiece : CursorPiece() {
 
-    override val isCentred = OsuSkin.get().isCentreCursor
+    override val isCentred = OsuSkin.current.cursor.centreCursor
 
     init {
         +Sprite().apply { texture = skinTexture("cursor") }
@@ -90,8 +90,8 @@ object LegacyCursorTrailStyle : CursorTrailStyle {
         get() = SkinTextures["cursormiddle"] != null
 
     override val isCentred: Boolean
-        get() = isContinuous || OsuSkin.get().isCentreCursor
+        get() = isContinuous || OsuSkin.current.cursor.centreCursor
 
     override val rotates: Boolean
-        get() = OsuSkin.get().isRotateCursorTrail
+        get() = OsuSkin.current.cursor.rotateCursorTrail
 }

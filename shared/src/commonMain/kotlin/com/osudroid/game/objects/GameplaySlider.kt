@@ -47,7 +47,7 @@ import kotlin.math.max
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.Utils
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 
 /**
  * A slider. Each slider of a beatmap gets its own, which borrows its pieces from the [PiecePool].
@@ -158,7 +158,7 @@ class GameplaySlider : GameObject() {
 
     init {
         tickContainer = SliderTickContainer()
-        isSliderBallFlip = OsuSkin.get().isSliderBallFlip
+        isSliderBallFlip = OsuSkin.current.slider.ballFlip
 
         sliderSlideSample = GameplaySequenceHitSampleInfo()
         sliderWhistleSample = GameplaySequenceHitSampleInfo()
@@ -227,15 +227,15 @@ class GameplaySlider : GameObject() {
         replayTickIndex = 0
         firstHitAccuracy = 0
         tickSet.clear()
-        kiai = (context.timing.isKiai && !OsuSkin.get().isDisableKiai)
+        kiai = (context.timing.isKiai && !OsuSkin.current.utils.disableKiai)
         preStageFinish = false
         superPathMaxLength = 0f
         lastSnakeInLength = Float.NaN
         lastSnakeOutStartLength = Float.NaN
         lastSnakeOutEndLength = Float.NaN
         bodyColor = comboColor
-        if (!OsuSkin.get().isSliderFollowComboColor) {
-            val skinBodyColor = OsuSkin.get().sliderBodyColor
+        if (!OsuSkin.current.slider.followComboColor) {
+            val skinBodyColor = OsuSkin.current.slider.bodyColor
             bodyColor = skinBodyColor ?: comboColor
         }
         circleColor = comboColor
@@ -252,7 +252,7 @@ class GameplaySlider : GameObject() {
         headCirclePiece.alpha = 0f
         headCirclePiece.setPosition(this.position.x, this.position.y)
         var comboNum = beatmapSlider.indexInCurrentCombo + 1
-        if (OsuSkin.get().isLimitComboTextLength) {
+        if (OsuSkin.current.utils.limitComboTextLength) {
             comboNum %= 10
         }
         headCirclePiece.setComboNumber(comboNum)
@@ -847,7 +847,7 @@ class GameplaySlider : GameObject() {
         }
 
         if (headCirclePiece.isVisible) {
-            if ((context.timing.isKiai && !OsuSkin.get().isDisableKiai)) {
+            if ((context.timing.isKiai && !OsuSkin.current.utils.disableKiai)) {
                 kiai = true
                 headCirclePiece.setCircleColor(KiaiColors.at(context, circleColor))
             } else if (kiai) {

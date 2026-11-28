@@ -23,7 +23,8 @@ import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.fadeTo
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.Box
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
+import com.osudroid.ui.skinning.SkinFont
 import kotlin.jvm.JvmOverloads
 
 //region Flashlight
@@ -281,7 +282,7 @@ class BreakAnimator(
             layer.add(0, it)
         }
 
-        val zeroWidth = SkinTextures[OsuSkin.get().scorePrefix, "0"]?.displayWidth ?: 0f
+        val zeroWidth = SkinTextures[SkinFont.Score, "0"]?.displayWidth ?: 0f
 
         mark = Sprite(rankingTexture()).also {
             it.anchor = Anchor.TopRight
@@ -419,7 +420,7 @@ class ComboBurst(private val rightX: Float) {
 
         if (sprites.isNotEmpty()) {
             // In order, or at random for skins that ask for it.
-            if (OsuSkin.get().isComboBurstRandom) {
+            if (OsuSkin.current.utils.comboBurstRandom) {
                 nextShowId = Random.nextInt(sprites.size)
             }
 

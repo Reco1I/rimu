@@ -1,16 +1,10 @@
 package com.osudroid.ui.v2
 
-import com.osudroid.OsuGameHost
-import com.osudroid.ui.skinning.IniReader
-import com.osudroid.ui.skinning.convertToJson
-import com.osudroid.ui.skinning.mergeMissing
-import com.osudroid.utils.LenientJson
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
-import ru.nsu.ccfit.zuev.skins.OsuSkin
-import ru.nsu.ccfit.zuev.skins.SkinJsonReader
+import com.osudroid.ui.skinning.OsuSkin
+import com.osudroid.ui.skinning.SkinConfigurationLoader
 import com.reco1l.verktex.Platform
-import okio.Path
+import com.reco1l.verktex.Verktex
+import com.reco1l.verktex.ui.Theme
 import okio.Path.Companion.toPath
 
 /**
@@ -30,41 +24,10 @@ object Skin {
             return
         }
 
-        SkinJsonReader.getReader().supplyJson(readConfiguration(skinFolder) ?: JsonObject(emptyMap()))
-    }
+        val configuration = SkinConfigurationLoader.load(skinFolder)
+        OsuSkin.current = configuration
 
-    private fun readConfiguration(folder: Path): JsonObject? {
-        val fileSystem = Platform.fileSystem
-        val jsonFile = folder / "skin.json"
-        val iniFile = folder / "skin.ini"
-
-        if (fileSystem.exists(jsonFile)) {
-            try {
-                val json = LenientJson.parseToJsonElement(OsuSkin.readFull(jsonFile.toString())).jsonObject
-
-                // Backfill any skin.ini derived keys missing
-                if (fileSystem.exists(iniFile)) {
-                    return IniReader(iniFile.toString()).use { mergeMissing(json, convertToJson(it)) }
-                }
-
-                return json
-            } catch (e: Exception) {
-                e.printStackTrace()
-                return null
-            }
-        }
-
-        if (!fileSystem.exists(iniFile)) {
-            return null
-        }
-
-        val json = try {
-            IniReader(iniFile.toString()).use { convertToJson(it) }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-
-        return json
+        // Applies the accent color of the skin to the theme of the UI.
+        Verktex.theme = Theme(palette = Theme.ColorPalette(configuration.theme.accentColor))
     }
 }

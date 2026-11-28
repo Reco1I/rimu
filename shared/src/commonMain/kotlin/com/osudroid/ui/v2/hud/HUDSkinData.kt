@@ -2,18 +2,20 @@ package com.osudroid.ui.v2.hud
 
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Vec2
-import com.osudroid.utils.optDouble
-import com.osudroid.utils.optJsonObject
-import com.osudroid.utils.optString
 import kotlin.jvm.JvmField
-import kotlin.jvm.JvmStatic
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
+/**
+ * The layout of the HUD, a skin.json's `HUD`: an array of its elements, each with its `type`, its
+ * position (`x`, `y`), `anchor`, `origin` and `scale`. Elements of types the HUD doesn't know are
+ * kept, the HUD skips them.
+ */
+@Serializable(with = HUDSkinDataSerializer::class)
 data class HUDSkinData(val elements: List<HUDElementSkinData>) {
 
 
@@ -95,46 +97,6 @@ data class HUDSkinData(val elements: List<HUDElementSkinData>) {
                 )
             )
         )
-
-
-        @JvmStatic
-        fun writeToJSON(data: HUDSkinData) = buildJsonArray {
-            data.elements.forEach {
-                add(buildJsonObject {
-                    put("type", it.type)
-                    put("x", it.position.x)
-                    put("y", it.position.y)
-                    put("anchor", Anchor.getName(it.anchor))
-                    put("origin", Anchor.getName(it.origin))
-                    put("scale", it.scale)
-                })
-            }
-        }
-
-        /**
-         * Reads a layout. Elements of types the HUD doesn't know are kept, the HUD skips them.
-         */
-        @JvmStatic
-        fun readFromJSON(json: JsonArray) = HUDSkinData(
-            elements = List(json.size) { i ->
-
-                val element = json[i] as? JsonObject ?: throw IllegalArgumentException("HUD element $i is not an object.")
-                val type = element["type"]?.let { (it as? JsonPrimitive)?.content } ?: throw IllegalArgumentException("HUD element $i has no type.")
-
-                HUDElementSkinData(
-                    type = type,
-                    position = Vec2(
-                        element.optDouble("x", 0.0).toFloat(),
-                        element.optDouble("y", 0.0).toFloat(),
-                    ),
-                    anchor = Anchor.getFromName(element.optString("anchor", "Center")),
-                    origin = Anchor.getFromName(element.optString("origin", "Center")),
-                    scale = element.optDouble("scale", 1.0).toFloat(),
-                )
-            }
-        )
-
-
     }
 
 }
@@ -166,3 +128,40 @@ data class HUDElementSkinData(
      */
     val scale: Float = 1f
 )
+
+
+object HUDSkinDataSerializer : KSerializer<HUDSkinData> {
+
+    @Serializable
+    private class Element(
+        val type: String,
+        val x: Float = 0f,
+        val y: Float = 0f,
+        val anchor: String = "Center",
+        val origin: String = "Center",
+        val scale: Float = 1f,
+    )
+
+    private val elements = ListSerializer(Element.serializer())
+
+    override val descriptor: SerialDescriptor = SerialDescriptor("com.osudroid.ui.v2.hud.HUDSkinData", elements.descriptor)
+
+    override fun deserialize(decoder: Decoder) = HUDSkinData(
+        decoder.decodeSerializableValue(elements).map {
+            HUDElementSkinData(
+                type = it.type,
+                position = Vec2(it.x, it.y),
+                anchor = Anchor.getFromName(it.anchor),
+                origin = Anchor.getFromName(it.origin),
+                scale = it.scale,
+            )
+        }
+    )
+
+    override fun serialize(encoder: Encoder, value: HUDSkinData) = encoder.encodeSerializableValue(
+        elements,
+        value.elements.map {
+            Element(it.type, it.position.x, it.position.y, Anchor.getName(it.anchor), Anchor.getName(it.origin), it.scale)
+        }
+    )
+}

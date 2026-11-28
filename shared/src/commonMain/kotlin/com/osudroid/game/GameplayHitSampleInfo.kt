@@ -7,7 +7,7 @@ import com.osudroid.utils.IPoolable
 import com.osudroid.utils.SynchronizedPool
 import kotlin.math.max
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 import kotlin.jvm.JvmStatic
 
 /**
@@ -76,7 +76,7 @@ class GameplayHitSampleInfo : IGameplayHitSampleInfo, IPoolable {
     }
 
     override fun play() {
-        if (!OsuSkin.get().isLayeredHitSounds && (sampleInfo as? BankHitSampleInfo)?.isLayered == true) {
+        if (!OsuSkin.current.utils.layeredHitSounds && (sampleInfo as? BankHitSampleInfo)?.isLayered == true) {
             return
         }
 

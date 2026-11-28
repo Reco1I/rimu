@@ -19,7 +19,7 @@ import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.shape.PathShape
 import kotlin.math.max
 import kotlin.math.min
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 
 /**
  * The ball of a texture skin: `sliderb`, animated as it rolls, with the default skin's layers under (`sliderb-nd`)
@@ -53,7 +53,7 @@ class LegacySliderBallPiece : SliderBallPiece() {
 
 
     override fun setComboColor(color: Color4) {
-        ball.color = if (OsuSkin.get().isAllowSliderBallTint) color else Color4.White
+        ball.color = if (OsuSkin.current.utils.allowSliderBallTint) color else Color4.White
 
         // Only shown with the default ball: a skin's own ball ignores them. Looked up again as the skin may have
         // changed while this piece was pooled.
@@ -83,7 +83,7 @@ class LegacySliderBallPiece : SliderBallPiece() {
 class LegacyFollowCirclePiece : FollowCirclePiece() {
 
     // Animated or not depending on the skin, which may change while the slider is alive.
-    private val sprite = AnimatedSprite(skinFrames("sliderfollowcircle", orStatic = true), OsuSkin.get().animationFramerate).also {
+    private val sprite = AnimatedSprite(skinFrames("sliderfollowcircle", orStatic = true), OsuSkin.current.utils.animationFramerate).also {
         it.origin = Anchor.Center
         it.anchor = Anchor.Center
         +it
@@ -142,12 +142,12 @@ object LegacySliderBodyStyle : SliderBodyStyle {
     private const val SHADOW_PORTION = 5f / 64f
 
     override fun apply(body: PathShape, bodyColor: Color4, borderColor: Color4, skinScale: Float) {
-        val skin = OsuSkin.get()
-        val bodyWidth = skin.sliderBodyWidth * skinScale
-        val bodyAlpha = skin.sliderBodyBaseAlpha
+        val skin = OsuSkin.current
+        val bodyWidth = skin.slider.bodyWidth * skinScale
+        val bodyAlpha = skin.slider.bodyBaseAlpha
 
         body.halfWidth = bodyWidth
-        body.borderWidth = skin.sliderBorderWidth * skinScale
+        body.borderWidth = skin.slider.borderWidth * skinScale
         body.borderColor = borderColor
         body.shadowWidth = bodyWidth * SHADOW_PORTION / (1 - SHADOW_PORTION)
         body.bodyColor = darken(bodyColor, 0.1f).alpha(bodyAlpha)

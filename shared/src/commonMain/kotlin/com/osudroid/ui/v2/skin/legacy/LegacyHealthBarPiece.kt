@@ -16,7 +16,7 @@ import com.reco1l.verktex.ui.clearTransforms
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.scaleTo
 import com.reco1l.verktex.ui.container.ClipContainer
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 
 /**
  * The health bar of a texture skin (`scorebar-bg`, `-colour`, and `-marker` for the new style or `-ki`… for the old
@@ -63,7 +63,7 @@ class LegacyHealthBarPiece : HealthBarPiece() {
         fillWidth = fillFrames.firstOrNull()?.displayWidth ?: 0f
         fillHeight = fillFrames.firstOrNull()?.displayHeight ?: 0f
 
-        fill = AnimatedSprite(fillFrames, OsuSkin.get().animationFramerate)
+        fill = AnimatedSprite(fillFrames, OsuSkin.current.utils.animationFramerate)
         fill.width = fillWidth.px
         fill.height = fillHeight.px
 

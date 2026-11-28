@@ -7,7 +7,7 @@ import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
 import com.rian.framework.RollingLongCounter
 import com.osudroid.ui.v2.hud.GameplayState
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 import com.reco1l.verktex.localization.formatString
 
 class HUDScoreCounter : HUDElement() {
@@ -28,7 +28,7 @@ class HUDScoreCounter : HUDElement() {
     private val counter = RollingLongCounter(0L).apply { rollingDuration = 1f }
 
     init {
-        sprite.spacing = -OsuSkin.get().scoreOverlap
+        sprite.spacing = -OsuSkin.current.fonts.scoreOverlap
 
         sprite.useFixedDigitWidth()
         sprite.text = format(0)

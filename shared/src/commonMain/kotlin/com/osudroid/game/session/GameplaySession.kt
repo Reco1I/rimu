@@ -121,7 +121,7 @@ import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.osu.scoring.Replay
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 import com.osudroid.utils.currentTimeMillis
 import com.reco1l.verktex.input.KeyboardEvent
 
@@ -482,7 +482,7 @@ class GameplaySession(
      * @return Whether the attempt can be played.
      */
     fun prepare(scope: CoroutineScope, isNewBeatmap: Boolean): Boolean {
-        if (isHUDEditorMode || OsuSkin.get().hudSkinData.hasElement(HUDElements.pp_counter.name)) {
+        if (isHUDEditorMode || OsuSkin.current.hud.hasElement(HUDElements.pp_counter.name)) {
             when (OsuSettings.difficultyAlgorithm) {
                 DifficultyAlgorithm.droid -> {
                     performanceAttributes = DroidPerformanceAttributes()
@@ -585,8 +585,8 @@ class GameplaySession(
             sliderBorderColor = playableBeatmap.colors.sliderBorderColor
         }
 
-        if (OsuSkin.get().isForceOverrideSliderBorderColor) {
-            sliderBorderColor = OsuSkin.get().sliderBorderColor
+        if ((OsuSkin.current.slider.borderColor != null)) {
+            sliderBorderColor = OsuSkin.current.slider.borderColor
         }
 
         if (sliderBorderColor == null) {
@@ -601,9 +601,9 @@ class GameplaySession(
             comboColors.add(comboColor.color)
         }
 
-        if (comboColors.isEmpty() || OsuSkin.get().isForceOverrideComboColor) {
+        if (comboColors.isEmpty() || OsuSkin.current.comboColors.forceOverride) {
             comboColors.clear()
-            comboColors.addAll(OsuSkin.get().comboColor)
+            comboColors.addAll(OsuSkin.current.comboColors.resolved)
         }
 
         scope?.ensureActive()
@@ -830,7 +830,7 @@ class GameplaySession(
         }
 
         hud.setEditMode(isHUDEditorMode)
-        hud.setSkinData(OsuSkin.get().hudSkinData)
+        hud.setSkinData(OsuSkin.current.hud)
 
         skipBtn = null
         if (skipTime > 1) {
@@ -2161,7 +2161,7 @@ class GameplaySession(
     }
 
     private fun updatePPValue(objectId: Int) {
-        if (Settings[OsuSettings.HideInGameUI] || !isHUDEditorMode && !OsuSkin.get().hudSkinData.hasElement(HUDElements.pp_counter.name)) {
+        if (Settings[OsuSettings.HideInGameUI] || !isHUDEditorMode && !OsuSkin.current.hud.hasElement(HUDElements.pp_counter.name)) {
             return
         }
 

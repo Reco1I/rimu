@@ -16,7 +16,7 @@ import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.ui.v2.skin.SkinComponent
 import com.osudroid.ui.v2.skin.SkinPieces
 import com.osudroid.ui.v2.hud.GameplayState
-import ru.nsu.ccfit.zuev.skins.*
+import com.osudroid.ui.skinning.OsuSkin
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -38,7 +38,7 @@ class HUDComboCounter : HUDElement() {
 
         it.alpha = 0f
         it.text = "0x"
-        it.spacing = -OsuSkin.get().comboOverlap
+        it.spacing = -OsuSkin.current.fonts.comboOverlap
         it.isAdditive = true
         it.useFixedDigitWidth()
 
@@ -50,7 +50,7 @@ class HUDComboCounter : HUDElement() {
 
         it.alpha = 0f
         it.text = "0x"
-        it.spacing = -OsuSkin.get().comboOverlap
+        it.spacing = -OsuSkin.current.fonts.comboOverlap
         it.useFixedDigitWidth()
 
         add(0, it)

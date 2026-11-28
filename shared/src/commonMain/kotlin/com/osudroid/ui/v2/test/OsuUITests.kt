@@ -70,7 +70,7 @@ import com.reco1l.verktex.ui.container.linearContainer
 import com.reco1l.verktex.ui.control.seekBar
 import com.reco1l.verktex.ui.text.text
 import com.reco1l.verktex.ui.textButton
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.SkinFont
 import okio.Path.Companion.toPath
 
 /**
@@ -348,13 +348,13 @@ object OsuUITests : UITestSuite("osu!") {
         test("Sprite fonts") {
             column {
                 section("Score") {
-                    +SpriteFont(OsuSkin.get().scorePrefix).apply { text = "0123456789" }
+                    +SpriteFont(SkinFont.Score).apply { text = "0123456789" }
                 }
                 section("Combo") {
-                    +SpriteFont(OsuSkin.get().comboPrefix).apply { text = "727" }
+                    +SpriteFont(SkinFont.Combo).apply { text = "727" }
                 }
                 section("Hit circle numbers") {
-                    +SpriteFont(OsuSkin.get().hitCirclePrefix).apply { text = "0123456789" }
+                    +SpriteFont(SkinFont.HitCircle).apply { text = "0123456789" }
                 }
             }
         }

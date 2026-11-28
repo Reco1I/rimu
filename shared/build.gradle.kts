@@ -376,6 +376,10 @@ kotlin {
             // library is github.com/Reco1I/java-serialization-kotlinx, published with JitPack.
             implementation("com.github.Reco1I.java-serialization-kotlinx:java-serialization-kotlinx:0.1.0")
 
+            // Skins' skin.ini, read as @Serializable classes, see LegacySkinIni: the library is
+            // github.com/Reco1I/ini-serialization-kotlinx, published with JitPack.
+            implementation("com.github.Reco1I.ini-serialization-kotlinx:ini-serialization-kotlinx:0.1.0")
+
             // Files, streams and hashing.
             api("com.squareup.okio:okio:3.9.1")
 

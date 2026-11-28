@@ -20,7 +20,7 @@ import com.reco1l.verktex.ui.scaleTo
 import com.osudroid.game.objects.GameObject
 import com.osudroid.game.objects.GameplayCursors
 import com.osudroid.game.objects.GameplaySpinner
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 import kotlin.math.sqrt
 import com.reco1l.verktex.graphics.BlendMode
 
@@ -32,7 +32,7 @@ class CursorSprite : Container() {
     val baseSize = OsuSettings.cursorSize * 2
 
     // Whether the skin lets it grow while pressed.
-    private val expands = OsuSkin.get().isExpandCursor
+    private val expands = OsuSkin.current.cursor.expandCursor
 
     private var isPressed = false
 
@@ -87,7 +87,7 @@ class CursorSprite : Container() {
     }
 
     private fun startRotationLoop() {
-        if (OsuSkin.get().isRotateCursor) {
+        if (OsuSkin.current.cursor.rotateCursor) {
             rotateTo(360f, 14f).after {
                 rotationZ = 0f
                 startRotationLoop()

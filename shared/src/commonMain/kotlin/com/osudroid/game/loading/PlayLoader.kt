@@ -27,7 +27,7 @@ import okio.FileNotFoundException
 import okio.IOException
 import okio.Path.Companion.toPath
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 
 /**
  * Loads the beatmap of a [PlayRequest], reusing what it can of the play loaded before it.
@@ -121,7 +121,7 @@ object PlayLoader {
             )
         }
 
-        if (request.isHUDEditor || OsuSkin.get().hudSkinData.hasElement(HUDElements.pp_counter.name)) {
+        if (request.isHUDEditor || OsuSkin.current.hud.hasElement(HUDElements.pp_counter.name)) {
             calculateTimedDifficulty(play)?.let(onTimedDifficultyJob)
         }
 

@@ -22,7 +22,6 @@ import com.reco1l.verktex.ui.container.ScalingContainer
 import com.reco1l.verktex.ui.fadeIn
 import kotlin.math.hypot
 import com.reco1l.verktex.ui.toast.Toasts
-import ru.nsu.ccfit.zuev.skins.OsuSkin
 
 /**
  * The menu shown when pausing or failing, on top of the frozen gameplay.

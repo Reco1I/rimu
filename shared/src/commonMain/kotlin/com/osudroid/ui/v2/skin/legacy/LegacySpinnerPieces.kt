@@ -18,7 +18,7 @@ import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.scaleTo
 import kotlin.math.min
 import kotlin.random.Random
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 
 private fun centeredSprite(texture: String) = Sprite().apply {
     origin = Anchor.Center
@@ -115,7 +115,7 @@ class LegacyClassicSpinnerPiece : SpinnerPiece() {
     override fun start(hitTime: Float, duration: Float, timePreempt: Float, isBackgroundVisible: Boolean, isApproachCircleVisible: Boolean) {
         spinnerBackground.isVisible = isBackgroundVisible
         metre.clipFactorY = 0f
-        spinnerBackground.color = OsuSkin.get().spinnerBackgroundColor
+        spinnerBackground.color = OsuSkin.current.utils.spinnerBackgroundColor
 
         add(0, spinText)
 
@@ -190,7 +190,7 @@ class LegacyClassicSpinnerPiece : SpinnerPiece() {
      * Reference: https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Skinning/Legacy/LegacyOldStyleSpinner.cs
      */
     private fun metreFill(progress: Float): Float {
-        val isBlinking = !OsuSkin.get().isSpinnerNoBlink
+        val isBlinking = !OsuSkin.current.utils.spinnerNoBlink
         var percent = progress * 100
 
         if (isBlinking) {

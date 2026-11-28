@@ -45,7 +45,7 @@ import com.osudroid.ui.v2.skin.legacy.LegacyClassicSpinnerPiece
 import com.osudroid.ui.v2.skin.legacy.LegacyModernSpinnerPiece
 import ru.nsu.ccfit.zuev.osu.menu.ScoreBoardItem
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 
 /**
  * Tests for the gameplay objects and the HUD, played by autoplay and a made up play instead of a
@@ -263,7 +263,7 @@ object OsuGameplayUITests : UITestSuite("Gameplay") {
 
     // As the game scene picks it for a beatmap without colors of its own.
     private fun sliderBorderColor() =
-        if (OsuSkin.get().isForceOverrideSliderBorderColor) OsuSkin.get().sliderBorderColor!!
+        if ((OsuSkin.current.slider.borderColor != null)) OsuSkin.current.slider.borderColor!!
         else BeatmapSkinManager.getInstance().sliderColor
 
     // The spinners the Spinners test shows, by name.

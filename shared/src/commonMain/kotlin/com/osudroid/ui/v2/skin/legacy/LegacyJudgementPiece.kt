@@ -11,7 +11,7 @@ import com.osudroid.ui.v2.skin.JudgementPiece
 import com.reco1l.verktex.ui.AnimatedSprite
 import com.reco1l.verktex.ui.Choreography
 import com.reco1l.verktex.ui.choreographyTransitions
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 import kotlin.random.Random
 
 /**
@@ -25,7 +25,7 @@ class LegacyJudgementPiece(textureName: String) : JudgementPiece(textureName) {
 
     private val sprite = AnimatedSprite(
         if (textureName in ANIMATED) skinFrames(textureName, orStatic = true) else StaticSkinTexture(textureName),
-        OsuSkin.get().animationFramerate
+        OsuSkin.current.utils.animationFramerate
     ).also {
         it.origin = Anchor.Center
         it.anchor = Anchor.Center

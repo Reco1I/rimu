@@ -10,8 +10,7 @@ import com.reco1l.verktex.math.Easing
 import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.choreographAt
-import com.osudroid.ui.skinning.StringSkinData
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.SkinFont
 
 /**
  * The pieces of a texture skin (osu!stable's skins), from the custom skin's and the beatmap skin's textures. It
@@ -37,8 +36,8 @@ object LegacySkin : GameplaySkin {
         SkinComponent.FollowPoint -> isAnimationSkinned("followpoint")
         SkinComponent.Cursor -> isSkinned("cursor")
         SkinComponent.CursorTrail -> isSkinned("cursortrail")
-        SkinComponent.ScoreFont -> isFontSkinned(OsuSkin.get().scorePrefix)
-        SkinComponent.ComboFont -> isFontSkinned(OsuSkin.get().comboPrefix)
+        SkinComponent.ScoreFont -> isFontSkinned(SkinFont.Score)
+        SkinComponent.ComboFont -> isFontSkinned(SkinFont.Combo)
         SkinComponent.HealthBar -> isSkinned("scorebar-bg")
         SkinComponent.HitLighting -> isSkinned("lighting")
         is SkinComponent.Judgement -> isAnimationSkinned(component.textureName)
@@ -63,8 +62,8 @@ object LegacySkin : GameplaySkin {
         SkinComponent.FollowPoint -> LegacyFollowPointPiece()
         SkinComponent.Cursor -> LegacyCursorPiece()
         SkinComponent.CursorTrail -> LegacyCursorTrailStyle
-        SkinComponent.ScoreFont -> LegacyNumberText(OsuSkin.get().scorePrefix)
-        SkinComponent.ComboFont -> LegacyNumberText(OsuSkin.get().comboPrefix)
+        SkinComponent.ScoreFont -> LegacyNumberText(SkinFont.Score)
+        SkinComponent.ComboFont -> LegacyNumberText(SkinFont.Combo)
         SkinComponent.HealthBar -> LegacyHealthBarPiece()
         SkinComponent.HitLighting -> if (SkinTextures["lighting"] != null) HitLightingPiece() else null
         is SkinComponent.Judgement -> LegacyJudgementPiece(component.textureName)
@@ -102,7 +101,7 @@ object LegacySkin : GameplaySkin {
     private fun isSkinned(name: String) = SkinTextures.isSkinned(name)
 
     // A font's digits are its textures: `score-0`…
-    private fun isFontSkinned(prefix: StringSkinData) = isSkinned("${prefix.currentValue}-0".replace("\\", ""))
+    private fun isFontSkinned(font: SkinFont) = isSkinned("${font.prefix}-0".replace("\\", ""))
 
     // An animation's frames are `name-0`… or `name0`…
     private fun isAnimationSkinned(name: String) =

@@ -5,7 +5,7 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import com.osudroid.settings.GameFolders
 import com.osudroid.ui.ISkinnable
-import com.osudroid.ui.skinning.StringSkinData
+import com.osudroid.ui.skinning.SkinFont
 import com.reco1l.verktex.Platform
 import com.reco1l.verktex.Verktex
 import com.reco1l.verktex.graphics.Texture
@@ -17,7 +17,7 @@ import com.reco1l.verktex.ui.Component
 import com.reco1l.verktex.ui.container.Container
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calculator
 import ru.nsu.ccfit.zuev.skins.BeatmapSkinManager
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 import kotlin.jvm.JvmStatic
 import okio.Path.Companion.toPath
 
@@ -144,11 +144,11 @@ object SkinTextures {
     operator fun get(name: String): Texture.Region? = lookup(name, name)
 
     /**
-     * Gets a skin texture named with a configurable prefix, such as the hit circle font, loading it if needed.
+     * Gets a texture of a skin font, named with its prefix, loading it if needed.
      */
     @JvmStatic
-    operator fun get(prefix: StringSkinData, name: String): Texture.Region? {
-        return lookup("${prefix.currentValue}-$name".replace("\\", ""), "${prefix.defaultValue}-$name")
+    operator fun get(font: SkinFont, name: String): Texture.Region? {
+        return lookup("${font.prefix}-$name".replace("\\", ""), "${font.defaultPrefix}-$name")
     }
 
     /**
@@ -249,7 +249,7 @@ object SkinTextures {
             return false
         }
 
-        return isDefaultSkin() || OsuSkin.get().version >= 2f
+        return isDefaultSkin() || OsuSkin.current.utils.version >= 2f
     }
 
     /**
@@ -268,17 +268,17 @@ object SkinTextures {
             }
         }
 
-        val skin = OsuSkin.get()
+        val skin = OsuSkin.current
 
         for (digit in 0..9) {
-            get(skin.hitCirclePrefix, digit.toString())
-            get(skin.scorePrefix, digit.toString())
-            get(skin.comboPrefix, digit.toString())
+            get(SkinFont.HitCircle, digit.toString())
+            get(SkinFont.Score, digit.toString())
+            get(SkinFont.Combo, digit.toString())
         }
 
         for (name in arrayOf("comma", "dot", "percent", "x")) {
-            get(skin.scorePrefix, name)
-            get(skin.comboPrefix, name)
+            get(SkinFont.Score, name)
+            get(SkinFont.Combo, name)
         }
     }
 
@@ -592,15 +592,15 @@ object SkinTextures {
 
 /**
  * Refers to the skin texture named [name], see [SkinTextures.get], following it as the skin or the
- * beatmap skin changes. With a [prefix], it's the one named with that configurable prefix.
+ * beatmap skin changes. With a [font], it's that font's texture named so.
  */
-data class SkinTexture(val name: String, val prefix: StringSkinData? = null) : TextureReference.Lookup() {
+data class SkinTexture(val name: String, val font: SkinFont? = null) : TextureReference.Lookup() {
 
     // Both only go up, so their sum changes whenever either does.
     override val revision: Int
         get() = Textures.revision + SkinTextures.revision
 
-    override fun lookup() = if (prefix != null) SkinTextures[prefix, name] else SkinTextures[name]
+    override fun lookup() = if (font != null) SkinTextures[font, name] else SkinTextures[name]
 }
 
 /**
@@ -609,9 +609,9 @@ data class SkinTexture(val name: String, val prefix: StringSkinData? = null) : T
 fun skinTexture(name: String) = SkinTexture(name)
 
 /**
- * Refers to the skin texture named [name] with a configurable [prefix], following it as the skin changes.
+ * Refers to the texture named [name] of the skin font [font], following it as the skin changes.
  */
-fun skinTexture(prefix: StringSkinData, name: String) = SkinTexture(name, prefix)
+fun skinTexture(font: SkinFont, name: String) = SkinTexture(name, font)
 
 /**
  * Refers to the frames of the animated skin texture named [name], see [SkinTextures.frames], following

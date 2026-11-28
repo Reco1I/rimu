@@ -6,7 +6,8 @@ import com.osudroid.ui.v2.skinTexture
 import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.ui.Sprite
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
+import com.osudroid.ui.skinning.SkinFont
 
 /**
  * The circle of a texture skin, as osu!lazer's `LegacyMainCirclePiece`: the circle texture tinted with the combo
@@ -37,10 +38,10 @@ class LegacyMainCirclePiece(
         +it
     }
 
-    private val number = if (hasNumber) SpriteFont(OsuSkin.get().hitCirclePrefix).also {
+    private val number = if (hasNumber) SpriteFont(SkinFont.HitCircle).also {
         it.origin = Anchor.Center
         it.anchor = Anchor.Center
-        it.spacing = -OsuSkin.get().hitCircleOverlap
+        it.spacing = -OsuSkin.current.fonts.hitCircleOverlap
         +it
     } else null
 
@@ -57,7 +58,7 @@ class LegacyMainCirclePiece(
         val number = number ?: return
         number.text = value.toString()
 
-        val scale = OsuSkin.get().comboTextScale
+        val scale = OsuSkin.current.utils.comboTextScale
         number.textureScaleX = scale
         number.textureScaleY = scale
 
@@ -69,7 +70,7 @@ class LegacyMainCirclePiece(
      * while this piece was pooled.
      */
     private fun applyLayering(number: SpriteFont) {
-        val top = if (OsuSkin.get().isHitCircleOverlayAboveNumber) overlay else number
+        val top = if (OsuSkin.current.utils.hitCircleOverlayAboveNumber) overlay else number
 
         if (this[childCount - 1] !== top) {
             top.removeSelf()

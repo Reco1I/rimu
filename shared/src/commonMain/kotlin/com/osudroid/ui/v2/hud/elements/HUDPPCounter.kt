@@ -9,7 +9,6 @@ import com.osudroid.ui.v2.skin.SkinPieces
 import com.rian.framework.RollingDoubleCounter
 import ru.nsu.ccfit.zuev.osu.DifficultyAlgorithm
 import com.osudroid.ui.v2.hud.GameplayState
-import ru.nsu.ccfit.zuev.skins.OsuSkin
 import kotlin.math.roundToInt
 
 class HUDPPCounter : HUDElement() {

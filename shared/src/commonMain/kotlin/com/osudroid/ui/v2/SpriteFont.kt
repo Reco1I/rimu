@@ -1,13 +1,13 @@
 package com.osudroid.ui.v2
 
-import com.osudroid.ui.skinning.StringSkinData
+import com.osudroid.ui.skinning.SkinFont
 import com.reco1l.verktex.texture.TextureReference
 import com.reco1l.verktex.ui.text.TextureText
 
-open class SpriteFont(private val texturePrefix: StringSkinData) : TextureText(mutableMapOf<Char, TextureReference?>().also {
+open class SpriteFont(private val skinFont: SkinFont) : TextureText(mutableMapOf<Char, TextureReference?>().also {
 
     fun addChar(char: Char, textureName: String) {
-        it[char] = skinTexture(texturePrefix, textureName)
+        it[char] = skinTexture(skinFont, textureName)
     }
 
     for (i in 0..9) {

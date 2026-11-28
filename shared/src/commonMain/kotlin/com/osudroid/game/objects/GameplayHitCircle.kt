@@ -20,7 +20,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 
 /**
  * A hit circle. Each hit circle of a beatmap gets its own, which borrows its pieces from the [PiecePool].
@@ -70,7 +70,7 @@ class GameplayHitCircle : GameObject() {
         startHit = false
         successfulHit = false
         judgement = null
-        kiai = (context.timing.isKiai && !OsuSkin.get().isDisableKiai)
+        kiai = (context.timing.isKiai && !OsuSkin.current.utils.disableKiai)
         this.comboColor = comboColor
 
         val initialModifierTime = hitTime - timePreempt
@@ -85,7 +85,7 @@ class GameplayHitCircle : GameObject() {
         circlePiece.setPosition(this.position.x, this.position.y)
 
         var comboNum = beatmapCircle.indexInCurrentCombo + 1
-        if (OsuSkin.get().isLimitComboTextLength) {
+        if (OsuSkin.current.utils.limitComboTextLength) {
             comboNum %= 10
         }
 
@@ -250,7 +250,7 @@ class GameplayHitCircle : GameObject() {
         }
 
         if (circlePiece.isVisible) {
-            if ((context.timing.isKiai && !OsuSkin.get().isDisableKiai)) {
+            if ((context.timing.isKiai && !OsuSkin.current.utils.disableKiai)) {
                 kiai = true
                 circlePiece.setCircleColor(KiaiColors.at(context, comboColor))
             } else if (kiai) {

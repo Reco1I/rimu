@@ -39,7 +39,7 @@ import kotlin.math.sin
 import com.osudroid.audio.MusicService
 import ru.nsu.ccfit.zuev.osu.Constants
 import ru.nsu.ccfit.zuev.osu.Utils
-import ru.nsu.ccfit.zuev.skins.OsuSkin
+import com.osudroid.ui.skinning.OsuSkin
 import com.osudroid.ui.v2.game.SpinnerRpmCounter
 import com.reco1l.verktex.data.fill
 import kotlin.random.Random
@@ -91,7 +91,7 @@ class GameplaySpinner(
         // The center of the playfield, where the cursor goes in autoplay.
         position.set(Constants.MAP_WIDTH / 2f, Constants.MAP_HEIGHT / 2f)
 
-        isSpinnerFrequencyModulate = OsuSkin.get().isSpinnerFrequencyModulate
+        isSpinnerFrequencyModulate = OsuSkin.current.utils.spinnerFrequencyModulate
         spinnerSpinSample = GameplaySequenceHitSampleInfo()
         spinnerBonusSample = GameplaySequenceHitSampleInfo()
 

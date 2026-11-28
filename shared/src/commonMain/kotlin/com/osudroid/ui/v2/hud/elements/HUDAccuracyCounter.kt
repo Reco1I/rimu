@@ -9,7 +9,6 @@ import com.osudroid.ui.v2.skin.SkinPieces
 import com.reco1l.verktex.ui.text.TextAlign
 import com.rian.framework.RollingFloatCounter
 import com.osudroid.ui.v2.hud.GameplayState
-import ru.nsu.ccfit.zuev.skins.OsuSkin
 import com.reco1l.verktex.localization.formatString
 import kotlin.math.roundToInt
 
