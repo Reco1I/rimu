@@ -143,9 +143,7 @@ class ModMenu(val mods: ModHashMap) : Container() {
     init {
         width = fill()
         height = fill()
-        // The backdrop reaches the edges, the content stays in the safe area.
         padding = coverParentPadding().extendIntoSafeArea()
-        // It covers what it was opened from, which isn't drawn while the blur is shown.
         isInterceptingInput = true
         background = themed { Background.Blur(8f.dip, static = true, color = palette.inset.alpha(0.75f)) }
 
@@ -159,7 +157,7 @@ class ModMenu(val mods: ModHashMap) : Container() {
                 padding = extendIntoSafeArea()
                 width = fill()
                 background = Background.Color(themed { palette.inset.alpha(0.5f) })
-                border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
+                border = Border(1f.dip, top = Color4.Transparent, bottom = Color4.White.alpha(0.15f))
 
                 linearContainer {
                     width = fill()
@@ -264,7 +262,7 @@ class ModMenu(val mods: ModHashMap) : Container() {
                 padding = extendIntoSafeArea()
                 width = fill()
                 background = themed { Background.Color(palette.inset.alpha(0.5f)) }
-                border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
+                border = Border(1f.dip, top = Color4.White.alpha(0.15f), bottom = Color4.Transparent)
 
                 bottomBarContent = container {
                     width = fill()

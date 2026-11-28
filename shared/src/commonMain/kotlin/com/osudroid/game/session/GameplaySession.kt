@@ -431,7 +431,7 @@ class GameplaySession(
             sceneBorder = Container().apply {
                 anchor = Anchor.Center
                 origin = Anchor.Center
-                border = Border(Dimension.Fixed.Pixels(5f), Color4.White, Color4.White)
+                border = Border(Dimension.Fixed.Pixels(5f), Color4.White)
                 alpha = Interpolation.linear(0.2f, 0.8f, brightness)
                 width = Dimension.FillAvailable
                 height = Dimension.FillAvailable

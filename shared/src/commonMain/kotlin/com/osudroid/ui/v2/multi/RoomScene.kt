@@ -250,7 +250,7 @@ class RoomScene(
             header = container {
                 width = Dimension.FillAvailable
                 background = Background.Color(themed { palette.inset.alpha(0.5f) })
-                border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
+                border = Border(1f.dip, top = Color4.Transparent, bottom = Color4.White.alpha(0.15f))
                 padding = Padding(16f.dip).extendIntoSafeArea()
 
                 linearContainer {
@@ -415,7 +415,7 @@ class RoomScene(
             footer = container {
                 width = Dimension.FillAvailable
                 background = Background.Color(themed { palette.inset.alpha(0.5f) })
-                border = Border(1f.dip, Color4.White.alpha(0.15f), Color4.Transparent)
+                border = Border(1f.dip, top = Color4.White.alpha(0.15f), bottom = Color4.Transparent)
                 // Above the chat's bar, shown over the scene.
                 padding = Padding(16f.dip, 16f.dip, 16f.dip, (16f.dip.toPixels() + RoomChat.BAR_HEIGHT.toPixels()).px).extendIntoSafeArea()
 

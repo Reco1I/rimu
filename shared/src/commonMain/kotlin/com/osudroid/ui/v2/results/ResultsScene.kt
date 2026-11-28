@@ -165,7 +165,7 @@ class ResultsScene(
     private fun Container.topBar() = container {
         width = fill()
         background = Background.Color(themed { palette.inset.alpha(0.5f) })
-        border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
+        border = Border(1f.dip, top = Color4.Transparent, bottom = Color4.White.alpha(0.15f))
         padding = Padding(12f.dip).extendIntoSafeArea()
 
         linearContainer {

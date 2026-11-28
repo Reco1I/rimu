@@ -322,7 +322,7 @@ object OsuUITests : UITestSuite("osu!") {
                                 this.height = height.dip
                                 background = Background.Texture(texture, scaleType)
                                 radius = CornerRadius(24f.dip, 4f.dip, 24f.dip, 4f.dip)
-                                border = Border(3f.dip, Color4.Red400, Color4.Green400, Color4.Blue400, Color4.Yellow400)
+                                border = Border(3f.dip, top = Color4.Red400, right = Color4.Green400, bottom = Color4.Blue400, left = Color4.Yellow400)
 
                                 text {
                                     text = scaleType.name

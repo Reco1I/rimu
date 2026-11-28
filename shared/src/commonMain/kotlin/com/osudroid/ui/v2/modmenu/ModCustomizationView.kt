@@ -61,7 +61,7 @@ class ModCustomizationView(
             clipping = ClipMode.Bounds
             padding = Padding(16f.dip)
             background = Background.Color(themed { palette.inset.alpha(0.5f) })
-            border = Border(1f.dip, Color4.Transparent, Color4.White.alpha(0.15f), Color4.Transparent, Color4.Transparent)
+            border = Border(1f.dip, top = Color4.Transparent, right = Color4.White.alpha(0.15f), bottom = Color4.Transparent, left = Color4.Transparent)
 
             entriesContainer = linearContainer {
                 width = SIDEBAR_WIDTH
