@@ -180,7 +180,11 @@ class NotificationCenter(private val trigger: Button) : Modal() {
             row.text = notification.text
             row.progress = notification.progress
             row.isIndeterminate = notification.isIndeterminate
-            row.setAction(notification.actionLabel, notification.onAction)
+            // The action may open a scene, which the center would cover.
+            row.setAction(notification.actionLabel) {
+                hide()
+                notification.onAction()
+            }
 
             // Running tasks stay until they end, the others can be closed or swiped away.
             row.isDismissible = notification.state != Notification.State.Active

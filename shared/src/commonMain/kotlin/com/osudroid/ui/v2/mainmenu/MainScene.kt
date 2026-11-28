@@ -34,6 +34,8 @@ import com.reco1l.verktex.data.Anchor
 import com.reco1l.verktex.data.Axis
 import com.reco1l.verktex.data.Color4
 import com.reco1l.verktex.data.Dimension
+import com.reco1l.verktex.data.coverParentPadding
+import com.reco1l.verktex.ui.animate
 import com.reco1l.verktex.data.Padding
 import com.reco1l.verktex.data.dip
 import com.reco1l.verktex.data.fill
@@ -129,6 +131,19 @@ class MainScene(playIntro: Boolean = false) : Scene() {
     private val flash: Box
 
     private var isIntroPending = playIntro
+
+    // Updates left before the intro's animations start, see playIntro. Negative when none is waiting.
+    private var introSettleFrames = -1
+    private var restingMenuWidth: Dimension? = null
+
+    // Whether the song to play was loaded beforehand, see prepareIntro.
+    private var isSongPrepared = false
+
+    /**
+     * Called once the intro ended, or on the first entrance without one: what the game starts in the
+     * background waits for it, so that it doesn't compete with the intro for the device.
+     */
+    var onIntroFinished: (() -> Unit)? = null
 
     // The menu's width while it expands from behind the logo, see playIntro.
     private var menuWidth = 0f
@@ -369,6 +384,19 @@ class MainScene(playIntro: Boolean = false) : Scene() {
 
 
     /**
+     * Loads the song the menu plays when it first shows, off the update thread: [onEnter] runs under
+     * the tree lock, where opening a song would freeze the intro.
+     */
+    fun prepareIntro() {
+        val music = OsuGame.music
+        if (music.isPlaying) {
+            return
+        }
+        val beatmap = BeatmapSelection.beatmap ?: LibraryManager.getLibrary().randomOrNull()?.beatmaps?.randomOrNull()
+        isSongPrepared = beatmap != null && music.load(beatmap)
+    }
+
+    /**
      * Asks for confirmation before leaving the game.
      */
     fun showExitDialog() {
@@ -398,14 +426,31 @@ class MainScene(playIntro: Boolean = false) : Scene() {
         }
 
         isExiting = true
+
+        // The menu folds back behind the logo, which is centered again as it was in the splash: as
+        // the intro's expansion, clipped and measured without its width while it narrows.
+        menuContainer.clearTransforms()
+        menuWidth = menuContainer.bounds.width
+        menuContainer.width = menuWidth.px
+        menuContainer.clipping = ClipMode.Bounds
+        menuContainer.scrollAxes = Axis.Both
+        menuContainer.animate(menuWidthProperty, 0f, MENU_EXPAND_DURATION, Easing.OutQuint)
         menuContainer.fadeOut(0.3f, Easing.OutQuint)
+
+        topBar.clearTransforms()
+        topBar.fadeOut(0.3f, Easing.OutQuint)
 
         OsuGame.music.stop()
         SkinSounds["seeya"].play()
 
+        // The scene's own background (the gradient, the spectrum and the particles) fades with the
+        // beatmap's, leaving black behind the logo.
         BeatmapBackground.fadeBrightness(0f, 0.4f)
+        backgroundLayer.clearTransforms()
+        backgroundLayer.fadeOut(0.4f)
 
         logo.playEffects = false
+        logo.clearTransforms()
         logo.scaleTo(0.5f, 3f)
         logo.rotateTo(-15f, 3f)
 
@@ -415,6 +460,8 @@ class MainScene(playIntro: Boolean = false) : Scene() {
         box {
             width = Dimension.FillAvailable
             height = Dimension.FillAvailable
+            // Over the whole window, the safe area included.
+            padding = coverParentPadding()
             color = Color4.Black
             alpha = 0f
 
@@ -438,20 +485,18 @@ class MainScene(playIntro: Boolean = false) : Scene() {
         BeatmapBackground.crossfadeDuration = BACKGROUND_FADE_DURATION
         BeatmapBackground.fadeBrightness(1f)
 
-        if (!hasEntered) {
-            hasEntered = true
-
-            addSnowfallWithPeriod(backgroundLayer)
-            addFireworksWithPeriod(backgroundLayer)
-
-            // Only logs in when staying online is enabled.
-            OnlineScoring.getInstance().login()
-        }
+        val isFirstEntrance = !hasEntered
+        hasEntered = true
 
         val music = OsuGame.music
 
         // A song left playing (e.g. by song select) goes on, it's the selection's.
-        if (!music.isPlaying) {
+        if (isSongPrepared) {
+            isSongPrepared = false
+            if (!music.isPlaying) {
+                music.play()
+            }
+        } else if (!music.isPlaying) {
             // Null with an empty library, the menu stays silent.
             val beatmap = BeatmapSelection.beatmap ?: LibraryManager.getLibrary()
                 .randomOrNull()?.beatmaps?.randomOrNull()
@@ -464,6 +509,10 @@ class MainScene(playIntro: Boolean = false) : Scene() {
             isIntroPending = false
             playIntro()
             return
+        }
+
+        if (isFirstEntrance) {
+            onFirstEntranceSettled()
         }
 
         // Entrance: the top bar slides down, the logo and then the menu rise.
@@ -487,13 +536,26 @@ class MainScene(playIntro: Boolean = false) : Scene() {
         }
     }
 
-    // The splash's logo stamped down, the flash and the menu's expansion, see the class.
+    // The first entrance's effects and what waits for the intro, see onIntroFinished.
+    private fun onFirstEntranceSettled() {
+        addSnowfallWithPeriod(backgroundLayer)
+        addFireworksWithPeriod(backgroundLayer)
+
+        // Only logs in when staying online is enabled.
+        OnlineScoring.getInstance().login()
+
+        onIntroFinished?.invoke()
+        onIntroFinished = null
+    }
+
+    // Shows the menu as the splash left it, and starts the stamp a few updates later (startIntro):
+    // the first frames of the menu lay it out and load what it shows, which would cut the stamp short.
     private fun playIntro() {
         // As the splash left it: black, the logo alone in the center over the folded menu.
         BeatmapBackground.setBrightness(0f)
         backgroundLayer.alpha = 0f
 
-        val restingMenuWidth = menuContainer.width
+        restingMenuWidth = menuContainer.width
         menuWidth = 0f
         menuContainer.width = 0f.px
         menuContainer.alpha = 0f
@@ -507,6 +569,11 @@ class MainScene(playIntro: Boolean = false) : Scene() {
         logo.clearTransforms()
         logo.scale = SPLASH_LOGO_SCALE
 
+        introSettleFrames = INTRO_SETTLE_FRAMES
+    }
+
+    // The splash's logo stamped down, the flash and the menu's expansion, see the class.
+    private fun startIntro() {
         // A stamp: lifted, slammed down past its scale and settling on it.
         logo.transformSequence {
             scaleTo(SPLASH_LOGO_SCALE * 1.12f, STAMP_LIFT_DURATION, Easing.OutCubic)
@@ -539,9 +606,11 @@ class MainScene(playIntro: Boolean = false) : Scene() {
             animate(menuWidthProperty, menuContentWidth, MENU_EXPAND_DURATION, Easing.OutQuint)
             fadeIn(MENU_EXPAND_DURATION, Easing.OutQuint)
         }.after {
-            menuContainer.width = restingMenuWidth
+            restingMenuWidth?.let { menuContainer.width = it }
             menuContainer.clipping = ClipMode.Disabled
             menuContainer.scrollAxes = Axis.Y
+
+            onFirstEntranceSettled()
         }
 
         topBar.translationY = (-20f).dip
@@ -623,6 +692,10 @@ class MainScene(playIntro: Boolean = false) : Scene() {
 
         RythimManager.onUpdate(deltaTimeSec)
 
+        if (introSettleFrames >= 0 && introSettleFrames-- == 0) {
+            startIntro()
+        }
+
         updateKiaiParticles(deltaTimeSec)
         updateNotificationsBadge()
 
@@ -680,6 +753,9 @@ class MainScene(playIntro: Boolean = false) : Scene() {
         private const val STAMP_DROP_DURATION = 0.18f
         private const val FLASH_DURATION = 1.2f
         private const val MENU_EXPAND_DURATION = 0.45f
+
+        // The updates the menu is shown as the splash left it before stamping, see playIntro.
+        private const val INTRO_SETTLE_FRAMES = 2
 
         private val SPECTRUM_HEIGHT = 96f.dip
         private const val SPECTRUM_ALPHA = 0.4f

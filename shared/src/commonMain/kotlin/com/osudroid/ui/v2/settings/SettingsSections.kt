@@ -570,18 +570,26 @@ val gameplaySection = listOf(
 private const val MIN_RESOLUTION = 720
 
 /**
- * The resolution scale option, from the scale giving [MIN_RESOLUTION] up to the resolution of the
- * display. Null if the display isn't larger than that.
+ * The lowest resolution scale the settings offer, as a percentage, the one giving [MIN_RESOLUTION].
+ * Null if the display isn't larger than that, the resolution then can't be lowered.
  */
-private fun resolutionScaleOption(): SettingsOption? {
+fun minResolutionScale(): Int? {
     val display = Platform.currentDisplay
     val shortSide = min(display.width, display.height)
 
     if (shortSide <= MIN_RESOLUTION) {
         return null
     }
+    return ceil(MIN_RESOLUTION * 100f / shortSide).toInt()
+}
 
-    val minPercentage = ceil(MIN_RESOLUTION * 100f / shortSide)
+/**
+ * The resolution scale option, from [minResolutionScale] up to the resolution of the display. Null
+ * if the display isn't larger than [MIN_RESOLUTION].
+ */
+private fun resolutionScaleOption(): SettingsOption? {
+    val display = Platform.currentDisplay
+    val minPercentage = minResolutionScale()?.toFloat() ?: return null
 
     // Applied once the slider is released, every value would make the surface again while dragging.
     var isDragging = false

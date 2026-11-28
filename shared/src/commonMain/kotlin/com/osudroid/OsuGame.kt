@@ -1,5 +1,6 @@
 package com.osudroid
 
+import com.osudroid.game.FrameRateMonitor
 import com.osudroid.beatmaps.LibraryImport
 import com.osudroid.audio.MusicService
 import com.osudroid.data.DatabaseManager
@@ -68,8 +69,8 @@ object OsuGame {
      * background, and then the main menu, telling the host with [OsuGameHost.onGameStarted].
      *
      * Archives aren't imported nor the beatmaps folder scanned before the menu: the library is
-     * refreshed in the background once it shows ([LibraryImport.refresh]), its progress in the
-     * notifications.
+     * refreshed in the background once the menu's intro ended ([MainScene.onIntroFinished],
+     * [LibraryImport.refresh]), its progress in the notifications.
      */
     @JvmStatic
     fun start() {
@@ -106,21 +107,32 @@ object OsuGame {
 
             splashScene.playWelcomeAnimation()
 
-            delayed(2500) {
-                // Every scene from the menu on is drawn over the selected beatmap's background,
-                // the splash over black.
+            // The menu is prepared while the splash shows, so that its intro doesn't wait for it.
+            // Every scene from the menu on is drawn over the selected beatmap's background, the
+            // splash over black: installed dark, it loads its texture meanwhile.
+            Verktex.withTreeLock {
                 BeatmapBackground.install()
+                BeatmapBackground.setBrightness(0f)
+            }
 
-                // The splash can't be gone back to.
-                val menu = MainScene(playIntro = true)
-                Verktex.resetScenes(menu)
+            val menu = MainScene(playIntro = true)
+            menu.prepareIntro()
 
-                Platform.forceMaxRefreshRate = Settings[OsuSettings.ForceMaxRefreshRate]
-
+            // What runs in the background waits for the intro, which it would make stutter.
+            menu.onIntroFinished = {
                 // Before the host's, so that a file the game was opened with is imported after it.
                 LibraryImport.refresh()
 
                 host.onGameStarted()
+            }
+
+            delayed(2500) {
+                // The splash can't be gone back to.
+                Verktex.resetScenes(menu)
+
+                Platform.forceMaxRefreshRate = Settings[OsuSettings.ForceMaxRefreshRate]
+
+                FrameRateMonitor.start()
             }
         }
     }

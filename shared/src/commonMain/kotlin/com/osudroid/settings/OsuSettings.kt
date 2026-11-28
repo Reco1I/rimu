@@ -88,6 +88,13 @@ object OsuSettings {
      */
     @JvmField val ResolutionScale = key("resolutionScale", 100)
 
+    /**
+     * The [ResolutionScale] the game last suggested lowering, see
+     * [FrameRateMonitor][com.osudroid.game.FrameRateMonitor]: it's suggested again only once the
+     * resolution is lower than this one. Above 100 if it was never suggested.
+     */
+    @JvmField val LowerResolutionSuggestedAt = key("lowerResolutionSuggestedAt", 101)
+
     //endregion
 
     //region Audio

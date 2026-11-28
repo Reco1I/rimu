@@ -53,7 +53,11 @@ import com.reco1l.verktex.input.InputEvent
 import com.reco1l.verktex.input.KeyboardEvent
 
 
-class SettingsMenu : Scene() {
+/**
+ * @param initialSection The section shown first, otherwise the room's or the player's in
+ * multiplayer and the general one in singleplayer.
+ */
+class SettingsMenu(private val initialSection: SettingsSection? = null) : Scene() {
 
     // Back goes back a section or leaves the settings, once no component consumed it.
     override fun onInputEvent(event: InputEvent): Boolean {
@@ -170,6 +174,7 @@ class SettingsMenu : Scene() {
         onPlayfieldChanged = { playfieldAreaDisplay.update() }
 
         selectedSection = when {
+            initialSection != null -> initialSection
             Multiplayer.isRoomHost -> SettingsSection.Room
             Multiplayer.isMultiplayer -> SettingsSection.Player
             else -> SettingsSection.General
