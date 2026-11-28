@@ -1,5 +1,6 @@
 package com.osudroid.ui.v2.modmenu
 
+import com.reco1l.verktex.data.coverParentPadding
 import com.reco1l.verktex.data.extendIntoSafeArea
 import com.osudroid.OsuGame
 import com.reco1l.verktex.data.Background
@@ -52,7 +53,6 @@ import com.reco1l.verktex.ui.fadeIn
 import com.reco1l.verktex.ui.fadeOut
 import com.reco1l.verktex.ui.moveToX
 import com.reco1l.verktex.ui.control.TabSelector
-import com.reco1l.verktex.ui.container.CaptureContainer
 import com.reco1l.verktex.ui.container.LinearContainer.Orientation
 import com.reco1l.verktex.ui.container.container
 import com.reco1l.verktex.ui.container.linearContainer
@@ -70,7 +70,6 @@ import kotlin.math.roundToInt
 import kotlin.reflect.KClass
 import com.osudroid.utils.createModInstance
 import com.reco1l.verktex.data.Border
-import com.reco1l.verktex.ui.container.captureContainer
 import com.reco1l.verktex.ui.themed
 import com.reco1l.verktex.localization.formatString
 
@@ -78,7 +77,7 @@ import com.reco1l.verktex.localization.formatString
  * The mod menu, shown over the scene it was opened from. It shows and changes [mods], which its
  * owner keeps: song select's for solo play, the room's in multiplayer.
  */
-class ModMenu(val mods: ModHashMap) : CaptureContainer() {
+class ModMenu(val mods: ModHashMap) : Container() {
 
     /**
      * Called by the back button. Hides the menu by default.
@@ -115,12 +114,13 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
     @Volatile
     private var hasSettingsChanged = false
 
+    private var shownTab = Tab.Mods
+
     private lateinit var bottomBarContent: Container
     private lateinit var tabs: TabSelector
     private lateinit var customizeTab: TextButton
     private lateinit var sectionsView: ModSectionsView
     private lateinit var customizationView: ModCustomizationView
-    private var shownTab = Tab.Mods
     private lateinit var selectedModsIndicator: ModsIndicator
     private lateinit var searchInput: ModMenuSearchInput
     private lateinit var rankedBadge: Badge
@@ -143,15 +143,11 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
     init {
         width = fill()
         height = fill()
-        blurRadius = 8f.dip
-
-        // The backdrop, over the blurred capture: the menu's own background is drawn under it.
-        container {
-            padding = extendIntoSafeArea()
-            width = fill()
-            height = fill()
-            background = Background.Color(themed { palette.inset.alpha(0.75f) })
-        }
+        // The backdrop reaches the edges, the content stays in the safe area.
+        padding = coverParentPadding().extendIntoSafeArea()
+        // It covers what it was opened from, which isn't drawn while the blur is shown.
+        isInterceptingInput = true
+        background = themed { Background.Blur(8f.dip, static = true, color = palette.inset.alpha(0.75f)) }
 
         linearContainer {
             width = fill()
@@ -162,7 +158,7 @@ class ModMenu(val mods: ModHashMap) : CaptureContainer() {
             container {
                 padding = extendIntoSafeArea()
                 width = fill()
-                background = themed { Background.Color(palette.inset.alpha(0.5f)) }
+                background = Background.Color(themed { palette.inset.alpha(0.5f) })
                 border = Border(1f.dip, colorBottom = Color4.White.alpha(0.15f))
 
                 linearContainer {
