@@ -372,7 +372,7 @@ class RoomScene(
                         radius = themed { CornerRadius(radius.xl) }
                         background = Background.Color(themed { palette.surfaceRaised.alpha(0.5f) })
                         // Not faded for the players who can't change it, only pressed by the host.
-                        transitions = BEATMAP_CARD_TRANSITIONS
+                        interaction.transitions = BEATMAP_CARD_TRANSITIONS
                         onActionUp = { changeBeatmap() }
 
                         linearContainer {

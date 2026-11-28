@@ -1,10 +1,9 @@
 package com.osudroid.ui.v2.songselect
 
-import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
-import com.reco1l.verktex.ui.borderColor
 import com.reco1l.verktex.Logger
 import com.osudroid.data.BeatmapInfo
 import com.osudroid.ui.OsuColors
@@ -142,8 +141,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
                 origin = Anchor.TopRight
                 onActionLongPress = { beatmapCarrousel.onBeatmapSetLongPress?.invoke(this@BeatmapSetPanel) }
                 onActionUp = { select() }
-                borderColor = themed { palette.accent.alpha(0.3f) }
-                borderWidth = 1f.dip
+                border = Border(1f.dip, themed { palette.accent.alpha(0.3f) })
                 radius = themed { CornerRadius(radius.xl) }
 
                 cover = sprite {
@@ -257,7 +255,7 @@ class BeatmapSetPanel(val beatmapCarrousel: BeatmapCarrousel) : RecyclableCompon
         button.shadow = if (it > 0f) Shadow(accent.alpha(GLOW_ALPHA * it), blur = GLOW_BLUR.dip, cutout = true) else Shadow.None
     })
 
-    private val buttonBorderColorProperty by lazy { animatableColor({ button.borderColor }, { button.borderColor = it }) }
+    private val buttonBorderColorProperty by lazy { animatableColor({ button.border.color }, { button.border = button.border.withColor(it) }) }
 
     // A fraction of the height of the content, measuring it with a fixed height would limit the panels to that height.
     private val panelsExpansionProperty = animatableFloat({ panelsExpansion }, {

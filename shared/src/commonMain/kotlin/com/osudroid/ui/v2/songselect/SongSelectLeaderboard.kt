@@ -3,11 +3,10 @@ package com.osudroid.ui.v2.songselect
 import com.reco1l.verktex.texture.reference
 import com.osudroid.ui.v2.skinTexture
 import com.osudroid.BeatmapSelection
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.ui.text.spans
-import com.reco1l.verktex.ui.borderWidth
-import com.reco1l.verktex.ui.borderColor
 import com.osudroid.data.*
 import com.osudroid.online.*
 import com.osudroid.online.model.*
@@ -384,10 +383,9 @@ class SongSelectLeaderboard : LinearContainer() {
                     padding = Padding(8f.px)
                     spacing = 8f.px
                     radius = CornerRadius(12f.px)
-                    borderWidth = 2f.px
+                    border = Border(2f.px, themed { palette.border })
 
                     background = Background.Color(themed { palette.surface.alpha(0.75f) })
-                    borderColor = themed { palette.border }
 
                     container {
                         width = Dimension.FillAvailable

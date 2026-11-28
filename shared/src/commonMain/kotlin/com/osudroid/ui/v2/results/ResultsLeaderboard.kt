@@ -83,8 +83,7 @@ class ResultsLeaderboard(
             linearContainer {
                 orientation = Orientation.Vertical
                 width = fill()
-                // Room for the position.
-                paddingRight = 40f.dip
+                padding = Padding(right = 40f.dip)
 
                 text {
                     text = stat.playerName

@@ -55,7 +55,7 @@ class ScoreNumber @JvmOverloads constructor(
             number.choreography?.clear()
             number.scale = letterScale
             number.choreograph {
-                at(number.currentClockTime)
+                at(number.timing.time)
                 scaleTo(letterScale * 1.5f, 0.2f)
                 then()
                 scaleTo(letterScale, 0.4f)

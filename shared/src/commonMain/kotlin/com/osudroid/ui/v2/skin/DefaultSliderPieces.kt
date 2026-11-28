@@ -105,7 +105,7 @@ class DefaultFollowCirclePiece : FollowCirclePiece() {
         val startScale = if (alpha == 0f) scale * 0.5f else scaleX
 
         clearAnimations()
-        choreographAt(currentClockTime) { sequence ->
+        choreographAt(timing.time) { sequence ->
             sequence.scaleTo(startScale)
                 .scaleTo(scale, min(remainingTime, 0.3f), Easing.OutQuint)
                 .fadeIn(min(remainingTime, 0.1f))
@@ -114,7 +114,7 @@ class DefaultFollowCirclePiece : FollowCirclePiece() {
 
     override fun playTrackingEnd(scale: Float) {
         clearAnimations()
-        choreographAt(currentClockTime) { sequence ->
+        choreographAt(timing.time) { sequence ->
             sequence.scaleTo(scale * 1.3f, 0.2f, Easing.OutQuint).fadeOut(0.2f, Easing.OutQuint)
         }
     }
@@ -123,7 +123,7 @@ class DefaultFollowCirclePiece : FollowCirclePiece() {
         if (alpha == 0f) return
 
         clearAnimations()
-        choreographAt(currentClockTime) { sequence ->
+        choreographAt(timing.time) { sequence ->
             sequence.scaleTo(scale * 1.08f).scaleTo(scale, 0.2f, Easing.OutQuint)
         }
     }

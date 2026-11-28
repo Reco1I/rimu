@@ -262,7 +262,7 @@ object OsuUITests : UITestSuite("osu!") {
                         row.approach.alpha = 1f
                         row.approach.scale = 4f - 3f * time
                     } else if (!wasHit) {
-                        val now = row.circle.currentClockTime
+                        val now = row.circle.timing.time
                         row.approach.alpha = 0f
                         // Without bursts, a hit circle disappears as soon as it's hit.
                         if (areBurstsShown) row.circle.playHit(1f, now) else row.circle.alpha = 0f

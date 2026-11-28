@@ -2,13 +2,12 @@ package com.osudroid.ui.v2
 
 import com.osudroid.OsuGame
 import com.reco1l.verktex.data.Background
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.CornerRadius
 import com.osudroid.settings.OsuSettings
 import com.reco1l.verktex.settings.Settings
 import com.reco1l.verktex.ui.control.IntegerTextInput
 import com.reco1l.verktex.ui.dialog.PromptDialog
-import com.reco1l.verktex.ui.borderWidth
-import com.reco1l.verktex.ui.borderColor
 import com.osudroid.beatmaps.DroidHitWindow
 import com.osudroid.math.Interpolation
 import com.osudroid.resources.Res.string
@@ -158,8 +157,7 @@ class CalibrationScene(
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 radius = CornerRadius((CIRCLE_DIAMETER / 2f).px)
-                borderWidth = 8f.px
-                borderColor = themed { palette.accent }
+                border = Border(8f.px, themed { palette.accent })
             }
 
             container {
@@ -168,10 +166,9 @@ class CalibrationScene(
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 radius = CornerRadius((CIRCLE_DIAMETER / 2f).px)
-                borderWidth = 6f.px
+                border = Border(6f.px, themed { palette.contentPrimary })
                 scaleOrigin = Anchor.Center
                 scale = APPROACH_SCALE_START
-                borderColor = themed { palette.contentPrimary }
                 approachCircle = this
             }
 
@@ -181,10 +178,9 @@ class CalibrationScene(
                 anchor = Anchor.Center
                 origin = Anchor.Center
                 radius = CornerRadius((CIRCLE_DIAMETER / 2f).px)
-                borderWidth = 6f.px
+                border = Border(6f.px, themed { palette.accent })
                 scaleOrigin = Anchor.Center
                 alpha = 0f
-                borderColor = themed { palette.accent }
                 rippleCircle = this
             }
         }
@@ -573,7 +569,7 @@ class CalibrationScene(
     private fun triggerRipple(judgement: Judgement) {
         rippleCircle.apply {
             clearTransforms()
-            borderColor = judgement.color
+            border = border.withColor(judgement.color)
             scale = 1f
             alpha = 0.75f
 

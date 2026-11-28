@@ -356,7 +356,7 @@ abstract class GameObject : Container() {
         particleScale: Float = scale,
         spinnerMiss: Boolean = false
     ) {
-        val time = currentClockTime
+        val time = timing.time
         val result = HitResult.fromTexture(textureName)
 
         playfield.particles.emit(particleX, particleY, textureName, particleScale)
@@ -412,7 +412,7 @@ abstract class GameObject : Container() {
         piece.scale = scale
         piece.alpha = 1f
 
-        val time = currentClockTime
+        val time = timing.time
         if (piece is MainCirclePiece) piece.playHit(scale, time) else LegacySkin.burst(piece, scale, time)
     }
 
@@ -454,7 +454,7 @@ abstract class GameObject : Container() {
     /**
      * Sets the [state] of this object and plays it from [time], now by default.
      */
-    protected fun applyState(state: ArmedState, time: Float = currentClockTime) {
+    protected fun applyState(state: ArmedState, time: Float = timing.time) {
         this.state = state
         playState(state, time)
     }

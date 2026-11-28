@@ -43,7 +43,7 @@ class LegacyFollowPointPiece : FollowPointPiece() {
         override fun onUpdate(clock: FrameClock) {
             val duration = duration
 
-            elapsedSec = if (duration > 0f) max(0f, currentClockTime - animationStartTime) % duration else 0f
+            elapsedSec = if (duration > 0f) max(0f, timing.time - animationStartTime) % duration else 0f
 
             super.onUpdate(clock)
         }

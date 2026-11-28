@@ -70,7 +70,7 @@ class CursorSprite : Container() {
 
         choreography?.clear()
         scale = baseSize
-        choreograph { at(currentClockTime).scaleTo(baseSize * PRESSED_SCALE, EXPAND_DURATION, Easing.OutElasticHalf) }
+        choreograph { at(timing.time).scaleTo(baseSize * PRESSED_SCALE, EXPAND_DURATION, Easing.OutElasticHalf) }
     }
 
     /**
@@ -83,7 +83,7 @@ class CursorSprite : Container() {
         isPressed = false
 
         choreography?.clear()
-        choreograph { at(currentClockTime).scaleTo(baseSize, EXPAND_DURATION, Easing.OutQuad) }
+        choreograph { at(timing.time).scaleTo(baseSize, EXPAND_DURATION, Easing.OutQuad) }
     }
 
     private fun startRotationLoop() {

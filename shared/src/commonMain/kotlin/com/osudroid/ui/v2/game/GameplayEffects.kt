@@ -330,7 +330,7 @@ class BreakAnimator(
             passFail?.let {
                 it.isVisible = true
                 it.choreograph {
-                    at(it.currentClockTime)
+                    at(it.timing.time)
                     delay(0.25f).fadeOut(0.025f)
                     then().delay(0.025f).fadeIn(0.025f)
                     then().delay(0.6725f).fadeOut(0.3f)
@@ -463,7 +463,7 @@ class ComboBurst(private val rightX: Float) {
         val startX = fromX
 
         sprite.choreograph {
-            at(sprite.currentClockTime)
+            at(sprite.timing.time)
             fadeIn(0.5f)
             moveToX(toX, 0.5f, Easing.OutSine)
             then().delay(1f)
@@ -530,7 +530,7 @@ class Countdown(
         ready.alpha = 0f
         ready.isVisible = true
         ready.choreograph {
-            at(ready.currentClockTime)
+            at(ready.timing.time)
             fadeIn(duration(1 / 9f))
             rotateTo(0f, duration(1 / 9f))
             then().delay(duration(1 / 9f))
@@ -543,7 +543,7 @@ class Countdown(
         sprite.alpha = 0f
         sprite.isVisible = true
         sprite.choreograph {
-            at(sprite.currentClockTime)
+            at(sprite.timing.time)
             fadeIn(duration(1 / 18f))
             then().delay(duration(holdFraction))
             fadeOut(duration(1 / 18f))
@@ -555,7 +555,7 @@ class Countdown(
         go.alpha = 0f
         go.isVisible = true
         go.choreograph {
-            at(go.currentClockTime)
+            at(go.timing.time)
             fadeIn(duration(1 / 18f))
             rotateTo(0f, duration(1 / 18f))
             then().delay(duration(1 / 18f))

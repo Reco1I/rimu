@@ -7,8 +7,6 @@ import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.ScaleType
 import com.reco1l.verktex.data.CornerRadius
 import com.reco1l.verktex.settings.Settings
-import com.reco1l.verktex.ui.borderWidth
-import com.reco1l.verktex.ui.borderColor
 import com.reco1l.verktex.Platform
 import com.osudroid.multiplayer.Multiplayer
 import com.osudroid.multiplayer.api.RoomAPI
@@ -158,7 +156,7 @@ class RoomPlayerCard : LinearContainer() {
             padding = Padding(10f.dip)
             radius = themed { CornerRadius(radius.xl) }
             background = Background.Color(themed { palette.surfaceRaised })
-            borderWidth = 2f.px
+            border = border.withWidth(2f.px)
 
             // A background label, behind the rest.
             rankText = text {
@@ -225,11 +223,11 @@ class RoomPlayerCard : LinearContainer() {
 
         fun updateState(room: Room, player: RoomPlayer) {
             val statusColor = when (player.status) {
-                Playing -> resolvedTheme.palette.accent
+                Playing -> theme.resolved.palette.accent
                 Ready -> READY_COLOR
                 NotReady, MissingBeatmap -> NOT_READY_COLOR
             }
-            borderColor = statusColor
+            border = border.withColor(statusColor)
             shadow = Shadow(statusColor.alpha(0.4f), blur = GLOW_RADIUS)
 
             if (lastPlayerId != player.id) {

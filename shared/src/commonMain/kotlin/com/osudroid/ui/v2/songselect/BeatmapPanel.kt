@@ -1,9 +1,8 @@
 package com.osudroid.ui.v2.songselect
 
-import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.Background
 import com.reco1l.verktex.data.CornerRadius
-import com.reco1l.verktex.ui.borderColor
 import com.osudroid.data.*
 import com.osudroid.ui.v2.*
 import com.reco1l.verktex.Verktex
@@ -58,8 +57,7 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         origin = Anchor.TopRight
         radius = themed { CornerRadius(radius.xl) }
         background = Background.Color(themed { palette.surface.alpha(0.6f) })
-        borderColor = themed { palette.accent.alpha(0.3f) }
-        borderWidth = 1f.dip
+        border = Border(1f.dip, themed { palette.accent.alpha(0.3f) })
 
         linearContainer {
             orientation = LinearContainer.Orientation.Horizontal
@@ -114,7 +112,7 @@ open class BeatmapPanel(val beatmapSetPanel: BeatmapSetPanel, val beatmapInfo: B
         shadow = if (it > 0f) Shadow(accent.alpha(GLOW_ALPHA * it), blur = GLOW_BLUR.dip, cutout = true) else Shadow.None
     })
 
-    private val borderColorProperty = animatableColor({ borderColor }, { borderColor = it })
+    private val borderColorProperty = animatableColor({ border.color }, { border = border.withColor(it) })
 
     private fun animateExpansion(expanded: Boolean) {
         val accent = Verktex.theme.palette.accent

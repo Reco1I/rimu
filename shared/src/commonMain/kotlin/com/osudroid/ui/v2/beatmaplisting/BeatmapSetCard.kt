@@ -22,8 +22,6 @@ import com.reco1l.verktex.ui.IconButton
 import com.reco1l.verktex.ui.Sprite
 import com.reco1l.verktex.ui.TextButton
 import com.reco1l.verktex.ui.badge
-import com.reco1l.verktex.ui.borderColor
-import com.reco1l.verktex.ui.borderWidth
 import com.reco1l.verktex.ui.container.Container
 import com.reco1l.verktex.ui.container.LinearContainer
 import com.reco1l.verktex.ui.container.LinearContainer.Orientation
@@ -276,8 +274,7 @@ class BeatmapSetCard(private val state: BeatmapListingState) : RecyclableCompone
             clipping = ClipMode.Bounds
             radius = themed { CornerRadius(radius.xl) }
             background = Background.Color(themed { palette.surfaceRaised })
-            borderColor = themed { palette.accent.alpha(0.2f) }
-            borderWidth = 1f.dip
+            border = Border(1f.dip, themed { palette.accent.alpha(0.2f) })
             onActionUp = { boundData?.let(state::showDetails) }
 
             linearContainer {

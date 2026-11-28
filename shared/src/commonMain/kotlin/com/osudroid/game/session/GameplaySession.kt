@@ -362,7 +362,7 @@ class GameplaySession(
         root += gameplaySpace
 
         // The timelines of the hit objects and the HUD are on the gameplay clock, not the scene's.
-        root.clock = gameplayClock
+        root.timing.source = gameplayClock
 
         // The root is the scene's background, laid out over the whole scene instead of in its safe area.
         val scene = GameUIScene()
@@ -2396,7 +2396,7 @@ class GameplaySession(
         private var areModIconsAnimated = false
 
         init {
-            clock = gameplayClock
+            timing.source = gameplayClock
         }
 
         override fun onEnter() {

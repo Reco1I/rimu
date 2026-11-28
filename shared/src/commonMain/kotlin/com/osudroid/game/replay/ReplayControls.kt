@@ -270,7 +270,7 @@ class ReplayControls : Container() {
 
         // Its animations follow the engine's time, not the gameplay clock the scene paces its children with: a seek
         // back would date them in the future (they'd wait for playback to catch up), and pausing would freeze them.
-        clock = Verktex.clock
+        timing.source = Verktex.clock
 
         +GradientBox().apply {
             width = fill()

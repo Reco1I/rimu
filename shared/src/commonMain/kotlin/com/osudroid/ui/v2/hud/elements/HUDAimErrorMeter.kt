@@ -1,8 +1,7 @@
 package com.osudroid.ui.v2.hud.elements
 
-import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.CornerRadius
-import com.reco1l.verktex.ui.borderColor
 import com.reco1l.verktex.data.Vec2
 import com.reco1l.verktex.data.px
 import com.reco1l.verktex.math.Easing
@@ -98,8 +97,7 @@ class HUDAimErrorMeter : HUDElement() {
             width = (SIZE * INNER_PORTION).px
             height = (SIZE * INNER_PORTION).px
             radius = CornerRadius((SIZE * INNER_PORTION / 2f).px)
-            borderWidth = LINE_THICKNESS.px
-            borderColor = Color4.White
+            border = Border(LINE_THICKNESS.px, Color4.White)
         }
 
         // Cross background

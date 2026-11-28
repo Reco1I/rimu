@@ -1,9 +1,8 @@
 package com.osudroid.ui.v2.hud.editor
 
 import com.osudroid.ui.v2.skinTexture
-import com.reco1l.verktex.ui.borderWidth
+import com.reco1l.verktex.data.Border
 import com.reco1l.verktex.data.CornerRadius
-import com.reco1l.verktex.ui.borderColor
 import com.osudroid.ui.v2.hud.GameplayHUD
 import com.osudroid.ui.v2.hud.HUDElement
 import com.osudroid.utils.updateThread
@@ -36,8 +35,7 @@ class HUDElementOverlay(private val element: HUDElement) : Container() {
 
 
     private val outline = Container().apply {
-        borderColor = Color4(0xFFF27272)
-        borderWidth = 8f.px
+        border = Border(8f.px, Color4(0xFFF27272))
     }
 
     private val toolbar = LinearContainer().apply {

@@ -139,7 +139,7 @@ class GameplayObjectHarness(private val stage: UITestStage) : GameObjectListener
 
 
     init {
-        area.clock = clock
+        area.timing.source = clock
         area += gameplayPlayfield
         stage += area
 
